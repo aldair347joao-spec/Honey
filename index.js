@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const https = require('https');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve o ficheiro HTML principal
 app.get('/', (req, res) => {
@@ -13,7 +15,6 @@ app.get('/', (req, res) => {
 
 // Chave de acesso à API da Groq
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
 
 // Base de dados temporária de teste
 let users = [
@@ -29,35 +30,76 @@ function validarSenha(senha) {
     return temOitoCaracteres && temMaiuscula && temNumero;
 }
 
+// FUNÇÃO AUXILIAR PARA LIGAÇÃO À GROQ USANDO HTTPS NATIVO
+function conectarMotorGroq(promptText) {
+    return new Promise((resolve, reject) => {
+        if (!GROQ_API_KEY) {
+            return reject("Chave GROQ_API_KEY não configurada no painel do Render.");
+        }
+
+        const corpoDados = JSON.stringify({
+            model: "llama3-8b-8192",
+            messages: [
+                { role: "system", content: "Você é a Honey IA. Gere apenas código limpo, sem introduções ou explicações." },
+                { role: "user", content: promptText }
+            ]
+        });
+
+        const opcoes = {
+            hostname: 'api.groq.com',
+            port: 443,
+            path: '/openai/v1/chat/completions',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY.trim()}`,
+                'Content-Length': Buffer.byteLength(corpoDados)
+            }
+        };
+
+        const requisicao = https.request(opcoes, (respostaServidor) => {
+            let dadosAcumulados = '';
+            respostaServidor.on('data', (chunk) => { dadosAcumulados += chunk; });
+            
+            respostaServidor.on('end', () => {
+                try {
+                    const respostaJson = JSON.parse(dadosAcumulados);
+                    if (respostaServidor.statusCode === 200 && respostaJson.choices && respostaJson.choices[0]) {
+                        resolve(respostaJson.choices[0].message.content);
+                    } else {
+                        const detalheErro = respostaJson.error ? respostaJson.error.message : `Status HTTP ${respostaServidor.statusCode}`;
+                        reject(`Erro na API Groq: ${detalheErro}`);
+                    }
+                } catch (e) {
+                    reject("Falha ao interpretar a resposta da inteligência artificial.");
+                }
+            });
+        });
+
+        requisicao.on('error', (erroDeRede) => {
+            reject(`Falha de rede física: ${erroDeRede.message}`);
+        });
+
+        requisicao.write(corpoDados);
+        requisicao.end();
+    });
+}
+
 // ROTA: Gerar o 1º Código (100% Grátis e sem conta)
 app.post('/gerar-gratis', async (req, res) => {
     const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ erro: "Descreva o seu projeto." });
+    if (!prompt) return res.status(400).json({ sucesso: false, erro: "Descreva o seu projeto." });
 
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json", 
-                "Authorization": `Bearer ${GROQ_API_KEY}` 
-            },
-            body: JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [
-                    { role: "system", content: "Você é a Honey IA. Gere apenas código limpo." },
-                    { role: "user", content: prompt }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        res.json({ sucesso: true, codigo: data.choices[0].message.content });
-    } catch (e) {
-        res.status(500).json({ erro: "Falha ao conectar com o motor da Honey IA." });
+        const codigoGerado = await conectarMotorGroq(prompt);
+        res.json({ sucesso: true, codigo: codigoGerado });
+    } catch (erroDoMotor) {
+        console.error(erroDoMotor);
+        res.status(500).json({ sucesso: false, erro: erroDoMotor });
     }
 });
 
-// ROTA: Iniciar Cadastro (Para quem já usou o grátis e vai pagar)
+// ROTA: Iniciar Cadastro
 app.post('/register/init', (req, res) => {
     const { identifier, password } = req.body;
 
@@ -74,10 +116,7 @@ app.post('/register/init', (req, res) => {
     const existe = users.find(u => u.identifier === identifier);
     if (existe) return res.status(400).json({ erro: "Este utilizador já está registado." });
 
-    // Gera o código de 6 dígitos para o teste
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // Guarda temporariamente na memória
     codigosVerificacao[identifier] = { codigo, password };
 
     console.log(`\n[HONEY IA SECURITY] Código para ${identifier}: ${codigo}\n`);
@@ -102,7 +141,6 @@ app.post('/register/confirm', (req, res) => {
         return res.status(400).json({ erro: "Código de verificação incorreto." });
     }
 
-    // Regista o utilizador como "não pago" para abrir a tela de pagamento
     users.push({
         identifier: identifier,
         password: dadosProvisorios.password,
@@ -135,28 +173,15 @@ app.post('/gerar', async (req, res) => {
     if (!user.pago) return res.status(403).json({ erro: "Pagamento em falta." });
 
     try {
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json", 
-                "Authorization": `Bearer ${GROQ_API_KEY}` 
-            },
-            body: JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [
-                    { role: "system", content: "Você é a Honey IA. Gere apenas código limpo." },
-                    { role: "user", content: prompt }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        res.json({ sucesso: true, codigo: data.choices[0].message.content });
-    } catch (e) {
-        res.status(500).json({ erro: "Falha ao conectar com o motor da Honey IA." });
+        const codigoGerado = await conectarMotorGroq(prompt);
+        res.json({ sucesso: true, codigo: codigoGerado });
+    } catch (erroDoMotor) {
+        res.status(500).json({ sucesso: false, erro: erroDoMotor });
     }
 });
 
-app.listen(3000, () => {
-    console.log("🍯 Honey IA rodando limpa e sem erros de conexão!");
+// CORREÇÃO DA PORTA DINÂMICA DO RENDER
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(` Honey IA ativa na porta correta: ${PORT}`);
 });
