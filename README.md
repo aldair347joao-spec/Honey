@@ -1,2 +1,0 @@
-# Honey
-Inteligência Artificial 
