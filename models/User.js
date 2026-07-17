@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     primeiroNome: {
         type: String,
-        required: function() { return !this.googleId && !this.facebookId; }, // Apenas se não for login social
+        required: function() { return !this.googleId && !this.facebookId; },
         trim: true
     },
     apelido: {
@@ -20,9 +20,9 @@ const UserSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: function() { return !this.googleId && !this.facebookId; } // Sem senha para Google/Facebook
+        required: function() { return !this.googleId && !this.facebookId; }
     },
-    // IDs para autenticação social
+    // IDs de Autenticação Social
     googleId: {
         type: String,
         default: null
@@ -31,10 +31,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    // Sistema de Verificação de E-mail por Código
+    // Sistema de Verificação de E-mail
     isVerified: {
         type: Boolean,
-        default: false // Só ativa após confirmar o código
+        default: false
     },
     verificationCode: {
         type: String,
