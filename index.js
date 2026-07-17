@@ -160,4 +160,3 @@ app.post('/gerar', async (req, res) => {
 app.listen(3000, () => {
     console.log("🍯 Honey IA rodando limpa e sem erros de conexão!");
 });
-
