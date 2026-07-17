@@ -49,13 +49,14 @@
             });
 
             const data = await response.json();
-            if (data.sucesso) {
+            
+            if (response.ok && data.sucesso) {
                 output.innerText = data.codigo;
             } else {
-                output.innerText = "[ERRO] " + (data.erro || "Falha ao compilar.");
+                output.innerText = "[ERRO DO MOTOR] " + (data.erro || "Falha ao compilar o prompt.");
             }
         } catch (err) {
-            output.innerText = "[ERRO] Falha ao conectar com o motor da Honey IA.";
+            output.innerText = "[ERRO DE CONEXÃO] Não foi possível comunicar com o servidor da Honey IA.";
         } finally {
             btn.disabled = false;
         }
