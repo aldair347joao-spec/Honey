@@ -30,7 +30,7 @@ function validarSenha(senha) {
     return temOitoCaracteres && temMaiuscula && temNumero;
 }
 
-// FUNÇÃO AUXILIAR PARA LIGAÇÃO À GROQ USANDO HTTPS NATIVO
+// FUNÇÃO AUXILIAR PARA LIGAÇÃO À GROQ USANDO O MODELO ATUALIZADO
 function conectarMotorGroq(promptText) {
     return new Promise((resolve, reject) => {
         if (!GROQ_API_KEY) {
@@ -38,7 +38,7 @@ function conectarMotorGroq(promptText) {
         }
 
         const corpoDados = JSON.stringify({
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant", // Atualizado para o modelo ativo na API
             messages: [
                 { role: "system", content: "Você é a Honey IA. Gere apenas código limpo, sem introduções ou explicações." },
                 { role: "user", content: promptText }
@@ -166,11 +166,8 @@ app.post('/login', (req, res) => {
 
 // ROTA: Gerar Código com Honey IA (Ilimitado após cadastro e pagamento)
 app.post('/gerar', async (req, res) => {
-    const { identifier, prompt } = req.body;
-    const user = users.find(u => u.identifier === identifier);
-
-    if (!user) return res.status(403).json({ erro: "Utilizador não encontrado." });
-    if (!user.pago) return res.status(403).json({ erro: "Pagamento em falta." });
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ sucesso: false, erro: "Descreva o seu projeto." });
 
     try {
         const codigoGerado = await conectarMotorGroq(prompt);
@@ -180,8 +177,8 @@ app.post('/gerar', async (req, res) => {
     }
 });
 
-// CORREÇÃO DA PORTA DINÂMICA DO RENDER
+// CONFIGURAÇÃO DA PORTA DINÂMICA DO RENDER
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(` Honey IA ativa na porta correta: ${PORT}`);
+    console.log(`🍯 Honey IA ativa na porta correta: ${PORT}`);
 });
