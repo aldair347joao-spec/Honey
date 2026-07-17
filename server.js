@@ -7,6 +7,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const path = require('path');
+const cors = require('cors');
 
 const User = require('./models/User');
 const app = express();
@@ -14,11 +15,15 @@ const app = express();
 // ==========================================
 // 1. CONFIGURAÇÕES BÁSICAS
 // ==========================================
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Chave de acesso à API da Groq
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 // ==========================================
 // 2. CONEXÃO AO MONGODB ATLAS
@@ -35,7 +40,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'chave_secreta_honey_ia',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Altera para true se usares HTTPS em produção
+    cookie: { secure: false }
 }));
 
 // Inicializar Passport
@@ -53,13 +58,13 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // ==========================================
-// 4. CONFIGURAÇÃO DO TRANSPORTADOR DE EMAIL (Nodemailer)
+// 4. CONFIGURAÇÃO DO TRANSPORTADOR DE EMAIL
 // ==========================================
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER, // Teu e-mail do Gmail configurado no Render
-        pass: process.env.EMAIL_PASS  // Palavra-passe de app gerada no Gmail
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -80,7 +85,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                     apelido: profile.name.familyName,
                     email: profile.emails[0].value,
                     googleId: profile.id,
-                    isVerified: true // Contas Google já vêm verificadas
+                    isVerified: true
                 });
                 await user.save();
             } else if (!user.googleId) {
@@ -111,7 +116,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
                     apelido: profile.name.familyName,
                     email: email,
                     facebookId: profile.id,
-                    isVerified: true // Contas Facebook já vêm verificadas
+                    isVerified: true
                 });
                 await user.save();
             } else if (!user.facebookId) {
@@ -132,9 +137,11 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 function verificarAcesso(req, res, next) {
     const rotaAtual = req.path;
 
+    // Libertamos as rotas da IA para não exigirem login obrigatório no ecrã inicial
     const rotasPublicas = [
         '/', '/login', '/registar', '/confirmar-codigo', '/politica-privacidade',
-        '/auth/google', '/auth/google/callback', '/auth/facebook', '/auth/facebook/callback'
+        '/auth/google', '/auth/google/callback', '/auth/facebook', '/auth/facebook/callback',
+        '/gerar-gratis', '/gerar'
     ];
 
     const ehRecursoEstatico = rotaAtual.startsWith('/css') || 
@@ -146,14 +153,12 @@ function verificarAcesso(req, res, next) {
         return next();
     }
 
-    // Obter o utilizador da sessão (Passport ou Manual)
     const utilizador = req.session.user || req.user;
 
     if (!utilizador) {
         return res.redirect('/login');
     }
 
-    // Se o utilizador manual não estiver verificado por e-mail, obriga a verificar
     if (!utilizador.isVerified && rotaAtual !== '/confirmar-codigo') {
         req.session.tempEmail = utilizador.email;
         return res.redirect('/confirmar-codigo');
@@ -165,9 +170,73 @@ function verificarAcesso(req, res, next) {
 app.use(verificarAcesso);
 
 // ==========================================
-// 7. ROTAS DE VISUALIZAÇÃO (VIEWS)
+// 7. ROTA DO MOTOR DE INTELIGÊNCIA ARTIFICIAL (GROQ)
 // ==========================================
-app.get('/', (req, res) => res.render('index'));
+app.post('/gerar-gratis', async (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ erro: "Descreva o seu projeto." });
+
+    try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": `Bearer ${GROQ_API_KEY}` 
+            },
+            body: JSON.stringify({
+                model: "llama3-8b-8192",
+                messages: [
+                    { role: "system", content: "Você é a Honey IA. Gere apenas código limpo sem introduções." },
+                    { role: "user", content: prompt }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok || !data.choices) {
+            return res.status(500).json({ erro: "Erro na API da Groq. Verifica as credenciais no Render." });
+        }
+
+        res.json({ sucesso: true, codigo: data.choices[0].message.content });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ erro: "Falha ao conectar com o motor da Honey IA." });
+    }
+});
+
+// Espelho da rota para utilizadores logados
+app.post('/gerar', async (req, res) => {
+    const { prompt } = req.body;
+    try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": `Bearer ${GROQ_API_KEY}` 
+            },
+            body: JSON.stringify({
+                model: "llama3-8b-8192",
+                messages: [
+                    { role: "system", content: "Você é a Honey IA. Gere apenas código limpo." },
+                    { role: "user", content: prompt }
+                ]
+            })
+        });
+        const data = await response.json();
+        res.json({ sucesso: true, codigo: data.choices[0].message.content });
+    } catch (e) {
+        res.status(500).json({ erro: "Falha ao conectar com o motor." });
+    }
+});
+
+// ==========================================
+// 8. ROTAS DE VISUALIZAÇÃO (VIEWS)
+// ==========================================
+app.get('/', (req, res) => {
+    // Se tiveres um index.html na raiz e quiseres usá-lo:
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 app.get('/login', (req, res) => res.render('login', { erro: null }));
 app.get('/registar', (req, res) => res.render('registar', { erro: null }));
 app.get('/confirmar-codigo', (req, res) => {
@@ -180,10 +249,8 @@ app.get('/compilador', (req, res) => {
 });
 
 // ==========================================
-// 8. ROTAS DE AUTENTICAÇÃO MANUAL (POST)
+// 9. ROTAS DE AUTENTICAÇÃO MANUAL (POST)
 // ==========================================
-
-// Registo Manual com Envio de Código
 app.post('/registar', async (req, res) => {
     const { primeiroNome, apelido, email, password } = req.body;
 
@@ -193,7 +260,6 @@ app.post('/registar', async (req, res) => {
             return res.render('registar', { erro: "Este e-mail já está registado na Honey IA." });
         }
 
-        // Validação de Senha Forte (Mínimo 8 caracteres, 1 maiúscula, 1 número, 1 símbolo)
         const regexSenhaForte = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         if (!regexSenhaForte.test(password)) {
             return res.render('registar', { erro: "A senha precisa de pelo menos 8 caracteres, uma letra maiúscula, um número e um caractere especial." });
@@ -202,9 +268,8 @@ app.post('/registar', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Gerar código numérico de 6 dígitos
         const codigoVerificacao = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiracaoCodigo = new Date(Date.now() + 15 * 60 * 1000); // 15 Minutos
+        const expiracaoCodigo = new Date(Date.now() + 15 * 60 * 1000);
 
         const novoUsuario = new User({
             primeiroNome,
@@ -217,7 +282,6 @@ app.post('/registar', async (req, res) => {
 
         await novoUsuario.save();
 
-        // Enviar o e-mail
         const mailOptions = {
             from: '"Honey IA" <teu-email@gmail.com>',
             to: email,
@@ -235,7 +299,6 @@ app.post('/registar', async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-
         req.session.tempEmail = email;
         res.redirect('/confirmar-codigo');
 
@@ -245,7 +308,6 @@ app.post('/registar', async (req, res) => {
     }
 });
 
-// Confirmação do Código de E-mail
 app.post('/confirmar-codigo', async (req, res) => {
     const { codigo } = req.body;
     const email = req.session.tempEmail;
@@ -254,13 +316,10 @@ app.post('/confirmar-codigo', async (req, res) => {
 
     try {
         const usuario = await User.findOne({ email });
-
-        if (!usuario) {
-            return res.render('confirmar-codigo', { email, erro: "Utilizador não encontrado." });
-        }
+        if (!usuario) return res.render('confirmar-codigo', { email, erro: "Utilizador não encontrado." });
 
         if (usuario.verificationCode !== codigo || usuario.verificationCodeExpires < Date.now()) {
-            return res.render('confirmar-codigo', { email, erro: "Código inválido ou expirado. Tenta registar-te novamente." });
+            return res.render('confirmar-codigo', { email, erro: "Código inválido ou expirado." });
         }
 
         usuario.isVerified = true;
@@ -268,7 +327,6 @@ app.post('/confirmar-codigo', async (req, res) => {
         usuario.verificationCodeExpires = null;
         await usuario.save();
 
-        // Inicia a sessão
         req.session.user = {
             id: usuario._id,
             nome: `${usuario.primeiroNome} ${usuario.apelido}`,
@@ -278,32 +336,21 @@ app.post('/confirmar-codigo', async (req, res) => {
 
         delete req.session.tempEmail;
         res.redirect('/compilador');
-
     } catch (error) {
-        console.error(error);
         res.render('confirmar-codigo', { email, erro: "Erro ao validar o código." });
     }
 });
 
-// Login Manual
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-
     try {
         const usuario = await User.findOne({ email });
-        if (!usuario) {
-            return res.render('login', { erro: "E-mail ou senha incorretos." });
-        }
+        if (!usuario) return res.render('login', { erro: "E-mail ou senha incorretos." });
 
-        // Se o login for social, não permite login manual sem senha
-        if (!usuario.password) {
-            return res.render('login', { erro: "Esta conta está associada ao Login Social (Google/Facebook)." });
-        }
+        if (!usuario.password) return res.render('login', { erro: "Esta conta está associada ao Login Social." });
 
         const senhaCorreta = await bcrypt.compare(password, usuario.password);
-        if (!senhaCorreta) {
-            return res.render('login', { erro: "E-mail ou senha incorretos." });
-        }
+        if (!senhaCorreta) return res.render('login', { erro: "E-mail ou senha incorretos." });
 
         if (!usuario.isVerified) {
             req.session.tempEmail = usuario.email;
@@ -316,39 +363,23 @@ app.post('/login', async (req, res) => {
             email: usuario.email,
             isVerified: true
         };
-
         res.redirect('/compilador');
-
     } catch (error) {
-        console.error(error);
-        res.render('login', { erro: "Erro interno ao tentar fazer login." });
+        res.render('login', { erro: "Erro interno no servidor." });
     }
 });
 
-// Logout
 app.get('/sair', (req, res) => {
     req.logout((err) => {
-        req.session.destroy(() => {
-            res.redirect('/');
-        });
+        req.session.destroy(() => { res.redirect('/'); });
     });
 });
 
-// ==========================================
-// 9. ROTAS DE REDIRECIONAMENTO DOS LOGINS SOCIAIS
-// ==========================================
+// Redirecionamento das Redes Sociais
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/auth/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/login' }),
-    (req, res) => res.redirect('/compilador')
-);
-
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => res.redirect('/compilador'));
 app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-app.get('/auth/facebook/callback', 
-    passport.authenticate('facebook', { failureRedirect: '/login' }),
-    (req, res) => res.redirect('/compilador')
-);
+app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => res.redirect('/compilador'));
 
-// Inicializar Servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Honey IA a rodar na porta ${PORT}! 🐝`));
+app.listen(PORT, () => console.log(`Honey IA unificada e operacional na porta ${PORT}! 🐝`));
