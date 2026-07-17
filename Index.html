@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honey IA | Espaço de Trabalho</title>
+    <style>
+        :root { --gold: #ffb700; --bg: #050508; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .box { background: #111116; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #222; text-align: center; }
+        h1 { color: var(--gold); margin-bottom: 5px; }
+        input, textarea, button, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #050508; color: #fff; box-sizing: border-box; }
+        button { background: var(--gold); color: #000; font-weight: bold; cursor: pointer; border: none; }
+        button:hover { background: #e0a100; }
+        .link { color: var(--gold); cursor: pointer; text-decoration: underline; font-size: 14px; }
+        .hidden { display: none; }
+        .paywall { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 999; }
+        .requirements { text-align: left; font-size: 12px; color: #888; margin-bottom: 10px; }
+        .req-active { color: #10b981; }
+    </style>
+</head>
+<body>
+
+<!-- 1. ESPAÇO DE TRABALHO (AGORA É O ECRÃ INICIAL) -->
+<div id="app-box" class="box" style="max-width: 600px;">
+    <h1>Honey IA</h1>
+    <p style="color: #888;" id="app-subtitle">Crie o seu primeiro projeto 100% grátis e sem registo!</p>
+    <textarea id="prompt" placeholder="Descreva o site ou app que pretende criar..."></textarea>
+    <button onclick="processarCompilacao()">Compilar com Honey IA</button>
+    <h4 style="text-align: left; margin-bottom: 5px; color: var(--gold);">Resultado:</h4>
+    <pre id="output" style="background: #000; padding: 15px; border-radius: 8px; text-align: left; overflow-x: auto; max-height: 200px; font-size: 13px;">Aguardando comandos...</pre>
+    <p id="sessao-info" style="font-size: 12px; color: #555; margin-top: 15px;">Modo de teste anónimo</p>
+</div>
+
+<!-- 2. LOGIN / REGISTO (BLOQUEIO SÓ NO 2º PROJETO) -->
+<div id="auth-box" class="box hidden">
+    <h1 id="auth-title">Criar Conta</h1>
+    <p id="auth-subtitle" style="color: #888;">Registe-se para libertar projetos ilimitados</p>
+    
+    <select id="auth-type" onchange="alterarTipoIdentificador()">
+        <option value="email">E-mail</option>
+        <option value="phone">Número de Telefone</option>
+    </select>
+    
+    <input type="text" id="identifier" placeholder="Seu e-mail">
+    <input type="password" id="password" placeholder="Sua palavra-passe" oninput="validarForcaSenha()">
+    
+    <div id="pw-requirements" class="requirements">
+        <p id="req-len">• Mínimo 8 caracteres</p>
+        <p id="req-cap">• Pelo menos 1 letra maiúscula</p>
+        <p id="req-num">• Pelo menos 1 número</p>
+    </div>
+    
+    <button id="btn-main" onclick="handleAuth()">Registar e Enviar Código</button>
+    <p id="toggle-text">Já tem conta paga? <span class="link" onclick="toggleMode()">Faça Login</span></p>
+    <p class="link" onclick="voltarParaApp()" style="margin-top: 15px; display: inline-block;">Voltar ao Editor</p>
+</div>
+
+<!-- 3. CONFIRMAR CÓDIGO (OTP) -->
+<div id="otp-box" class="box hidden">
+    <h1>Confirmar Cadastro 🔑</h1>
+    <p style="color: #888; font-size: 14px;">Introduza o código de 6 dígitos simulado para validar a sua conta.</p>
+    <input type="text" id="otp-code" placeholder="Código de 6 dígitos" maxlength="6" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
+    <button onclick="confirmarOTP()">Validar Código</button>
+</div>
+
+<!-- 4. COBRANÇA (PAYWALL) -->
+<div id="paywall" class="paywall hidden">
+    <div class="box" style="border: 2px solid var(--gold);">
+        <h2 style="color: var(--gold); margin-top: 0;">Ativação de Conta 🐝</h2>
+        <p>Gostou do primeiro teste? Para libertar compilações ilimitadas na Honey IA, efetue o pagamento de <b>15.000 Kz</b>.</p>
+        <div style="background:#000; padding:15px; border-radius:10px; text-align:left; font-size:14px; margin-bottom:20px;">
+            <p>📱 <b>Multicaixa Express:</b> 940 670 392</p>
+            <p>💳 <b>Visa:</b> 4937 2420 2063 9702</p>
+        </div>
+        <button onclick="enviarComprovativo()">Enviar Comprovativo via WhatsApp</button>
+        <p class="link" onclick="fecharPaywall()" style="margin-top: 15px; display: inline-block;">Sair</p>
+    </div>
+</div>
+
+<script>
+    let isLogin = false; // Começa oferecendo registo no ecrã de bloqueio
+    let currentUser = null;
+    let projetosFeitosAnónimo = 0; // Controla se é o 1º ou 2º projeto
+
+    function alterarTipoIdentificador() {
+        const tipo = document.getElementById('auth-type').value;
+        const input = document.getElementById('identifier');
+        if (tipo === 'phone') {
+            input.placeholder = "Ex: 940670392";
+            input.type = "tel";
+        } else {
+            input.placeholder = "Seu e-mail";
+            input.type = "email";
+        }
+    }
+
+    function toggleMode() {
+        isLogin = !isLogin;
+        document.getElementById('auth-title').innerText = isLogin ? 'Fazer Login' : 'Criar Conta';
+        document.getElementById('btn-main').innerText = isLogin ? 'Entrar' : 'Registar e Enviar Código';
+        document.getElementById('pw-requirements').classList.toggle('hidden', isLogin);
+        document.getElementById('toggle-text').innerHTML = isLogin 
+            ? 'Ainda não tem conta? <span class="link" onclick="toggleMode()">Registe-se</span>' 
+            : 'Já tem conta paga? <span class="link" onclick="toggleMode()">Faça Login</span>';
+    }
+
+    function validarForcaSenha() {
+        if(isLogin) return;
+        const password = document.getElementById('password').value;
+        document.getElementById('req-len').classList.toggle('req-active', password.length >= 8);
+        document.getElementById('req-cap').classList.toggle('req-active', /[A-Z]/.test(password));
+        document.getElementById('req-num').classList.toggle('req-active', /[0-9]/.test(password));
+    }
+
+    // Direciona o clique do botão principal do Workspace
+    function processarCompilacao() {
+        const prompt = document.getElementById('prompt').value;
+        if (!prompt) return alert("Por favor, descreva o seu projeto!");
+
+        // Caso 1: Utilizador já está logado
+        if (currentUser) {
+            gerarCodigoPremium(prompt);
+            return;
+        }
+
+        // Caso 2: Utilizador anónimo tentando fazer o 1º projeto (GRÁTIS)
+        if (projetosFeitosAnónimo === 0) {
+            gerarCodigoGratis(prompt);
+        } else {
+            // Caso 3: Utilizador anónimo tentando fazer o 2º projeto (BLOQUEADO)
+            alert("⚠️ Já utilizou o seu projeto gratuito de teste! Registe-se e ative a sua conta para continuar.");
+            abrirTelaAuth();
+        }
+    }
+
+    // 1º Projeto Grátis
+    async function gerarCodigoGratis(prompt) {
+        const output = document.getElementById('output');
+        output.innerText = "[Honey IA] Processando a sua compilação gratuita...";
+
+        try {
+            const response = await fetch('/gerar-gratis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.erro);
+
+            output.innerText = data.codigo;
+            projetosFeitosAnónimo = 1; // Registra que já gastou a chance grátis
+            document.getElementById('app-subtitle').innerText = "Excelente! Projeto gratuito concluído. Ative o acesso Premium para mais.";
+        } catch (error) { 
+            output.innerText = `[ERRO] ${error.message}`; 
+        }
+    }
+
+    // Projetos seguintes (Apenas para utilizadores logados e pagos)
+    async function gerarCodigoPremium(prompt) {
+        const output = document.getElementById('output');
+        output.innerText = "[Honey IA Premium] Compilando com alta prioridade...";
+
+        if (!currentUser.pago) {
+            document.getElementById('paywall').classList.remove('hidden');
+            output.innerText = "[BLOQUEADO] Efetue o pagamento de 15.000 Kz para continuar.";
+            return;
+        }
+
+        try {
+            const response = await fetch('/gerar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: currentUser.identifier, prompt })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.erro);
+            output.innerText = data.codigo;
+        } catch (error) { 
+            output.innerText = `[ERRO] ${error.message}`; 
+        }
+    }
+
+    // Telas de Navegação
+    function abrirTelaAuth() {
+        document.getElementById('app-box').classList.add('hidden');
+        document.getElementById('auth-box').classList.remove('hidden');
+    }
+
+    function voltarParaApp() {
+        document.getElementById('auth-box').classList.add('hidden');
+        document.getElementById('app-box').classList.remove('hidden');
+    }
+
+    // Lógica de Autenticação
+    async function handleAuth() {
+        const identifier = document.getElementById('identifier').value;
+        const password = document.getElementById('password').value;
+
+        if (!identifier || !password) return alert("Preencha todos os campos.");
+
+        if (isLogin) {
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro);
+
+                currentUser = data.user;
+                document.getElementById('sessao-info').innerText = `Ligado como: ${currentUser.identifier}`;
+                voltarParaApp();
+
+                if (!currentUser.pago) {
+                    document.getElementById('paywall').classList.remove('hidden');
+                } else {
+                    alert("Acesso Premium Ativo!");
+                }
+            } catch (error) { alert(error.message); }
+        } else {
+            try {
+                const response = await fetch('/register/init', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.erro);
+
+                alert(`${data.msg}\n\n[MODO TESTE] O seu código de verificação é: ${data.codigoSimulado}`);
+                
+                document.getElementById('auth-box').classList.add('hidden');
+                document.getElementById('otp-box').classList.remove('hidden');
+            } catch (error) { alert(error.message); }
+        }
+    }
+
+    async function confirmarOTP() {
+        const identifier = document.getElementById('identifier').value;
+        const codigoInserido = document.getElementById('otp-code').value;
+
+        try {
+            const response = await fetch('/register/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier, codigoInserido })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.erro);
+
+            alert(data.msg);
+            
+            // Força o login imediato com a conta acabada de criar
+            currentUser = { identifier: identifier, pago: false };
+            document.getElementById('sessao-info').innerText = `Ligado como: ${currentUser.identifier}`;
+            
+            document.getElementById('otp-box').classList.add('hidden');
+            document.getElementById('app-box').classList.remove('hidden');
+            
+            // Abre o ecrã de pagamento imediatamente após registo correto
+            document.getElementById('paywall').classList.remove('hidden');
+        } catch (error) { alert(error.message); }
+    }
+
+    function fecharPaywall() { document.getElementById('paywall').classList.add('hidden'); }
+    
+    function enviarComprovativo() {
+        const prompt = document.getElementById('prompt').value;
+        const msg = encodeURIComponent(`Olá! Fiz o pagamento de 15.000 Kz para ativar a minha conta na Honey IA:\nUtilizador: ${currentUser?.identifier}`);
+        window.open(`https://wa.me/244940670392?text=${msg}`);
+    }
+</script>
+</body>
+</html>
