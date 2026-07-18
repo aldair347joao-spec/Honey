@@ -8,23 +8,46 @@
     <style>
         :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #060609; --card: #0f0f16; --border: #1a1a26; --preview-bg: #14141f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; display: flex; overflow: hidden; position: relative; width: 100%; }
+        body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; width: 100vw; }
         
-        /* Layout Principal Split Screen */
-        .app-layout { display: flex; width: 100%; height: 100%; position: relative; }
+        /* Layout Principal Baseado em Grid Dinâmico */
+        .app-layout { 
+            display: grid; 
+            grid-template-columns: 1fr 0fr; /* Inicialmente 100% chat, 0% sandbox */
+            width: 100%; 
+            height: 100%; 
+            transition: grid-template-columns 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+        }
         
-        /* Área do Chat */
-        .chat-section { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; transition: all 0.4s ease; width: 100%; }
+        /* Quando ativo, divide exatamente ao meio na vertical */
+        .app-layout.split-active { 
+            grid-template-columns: 1fr 1fr; 
+        }
+        
+        /* LADO DIREITO: Secção do Chat e Conversa */
+        .chat-section { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            position: relative; 
+            background: var(--bg);
+            border-left: 0px solid var(--border);
+            transition: border-left 0.3s ease;
+            overflow: hidden;
+        }
+        .app-layout.split-active .chat-section {
+            border-left: 1px solid var(--border); /* Divisória premium entre as duas metades */
+        }
         
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
-        .hero-bee { font-size: 70px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
+        .hero-bee { font-size: 60px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        #welcome-screen h1 { font-size: 38px; color: var(--gold); margin-bottom: 12px; font-weight: 600; letter-spacing: -1px; }
-        #welcome-screen p { color: #8a8a9e; max-width: 420px; font-size: 15px; line-height: 1.6; font-weight: 300; }
+        #welcome-screen h1 { font-size: 34px; color: var(--gold); margin-bottom: 12px; font-weight: 600; letter-spacing: -1px; }
+        #welcome-screen p { color: #8a8a9e; max-width: 420px; font-size: 14px; line-height: 1.6; font-weight: 300; }
 
-        .chat-container { flex: 1; overflow-y: auto; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; max-width: 680px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 140px; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 680px; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 120px; }
         
-        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 15px 20px; border-radius: 20px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
+        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 15px 20px; border-radius: 20px; line-height: 1.6; font-size: 14px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; box-shadow: 0 4px 15px rgba(255,183,0,0.15); }
         .honey-msg { background: var(--card); color: #e4e4ed; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
@@ -38,15 +61,15 @@
         .visualize-btn { background: rgba(0, 230, 118, 0.08); border-color: rgba(0, 230, 118, 0.2); color: #00e676; }
         .visualize-btn:hover { background: rgba(0, 230, 118, 0.2); border-color: #00e676; }
 
-        /* Barra de Input */
-        .input-area { position: fixed; bottom: 24px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: center; z-index: 5; background: transparent; pointer-events: none; }
-        .input-wrapper { max-width: 640px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 10px 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.7); transition: all 0.2s; gap: 6px; pointer-events: auto; }
-        .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255,183,0,0.05); }
+        /* Zona de Input Dinâmica */
+        .input-area { position: absolute; bottom: 20px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: center; z-index: 5; background: transparent; }
+        .input-wrapper { width: 100%; max-width: 600px; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); transition: all 0.2s; gap: 6px; }
+        .input-wrapper:focus-within { border-color: var(--gold); box-shadow: 0 12px 35px rgba(255,183,0,0.05); }
         
-        .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
+        .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 15px; outline: none; min-width: 0; }
         .chat-input::placeholder { color: #4e4e66; }
         
-        .action-btn { background: none; border: none; color: #73738c; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn { background: none; border: none; color: #73738c; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.08); }
         .send-btn { background: var(--gold); color: #000; }
         .send-btn:hover { background: var(--gold-dark); transform: scale(1.04); }
@@ -54,61 +77,78 @@
         .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.12) !important; border: 1px solid rgba(255, 74, 74, 0.25); }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); opacity: 0.9; } }
 
-        /* Painel Sandbox de Teste Live (Lado Direito) */
-        .sandbox-section { flex: 0; width: 0%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), width 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; position: relative; }
-        .sandbox-section.active { flex: 1.1; width: 55%; }
+        /* LADO ESQUERDO: Painel Sandbox Automático e Responsivo */
+        .sandbox-section { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            background: var(--preview-bg); 
+            overflow: hidden; 
+            position: relative; 
+            width: 100%;
+        }
 
-        /* Top Bar Estilo Navegador Premium */
+        /* Top Bar Navegador Premium */
         .sandbox-header { height: 55px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
         .browser-dots { display: flex; gap: 8px; align-items: center; }
         .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 20px; font-size: 12px; color: #8a8a9e; width: 45%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; letter-spacing: 0.3px; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 15px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; letter-spacing: 0.3px; }
         
-        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 55px); background: #ffffff; position: relative; margin: 0; padding: 0; }
-        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; display: block; margin: 0; padding: 0; }
+        .sandbox-body { 
+            flex: 1; 
+            width: 100%; 
+            height: calc(100% - 55px); 
+            background: #14141f; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        
+        /* O Iframe é forçado a ser fluido e responsivo simulando viewport flexível */
+        .sandbox-iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            background: #ffffff; 
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
 
-        .close-sandbox { display: none; }
-
-        /* REGRAS CRÍTICAS DE RESPONSIVIDADE MOBILE (FIX PARA O ERRO DO PRINT) */
-        @media (max-width: 900px) {
-            .sandbox-section {
-                position: fixed;
-                top: 0;
-                right: -100%;
-                width: 100% !important;
-                height: 100%;
-                z-index: 999;
-                border-left: none;
-                transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        /* COMPORTAMENTO MOBILE: Passa a empilhar se o ecrã físico for muito pequeno */
+        @media (max-width: 800px) {
+            .app-layout.split-active { 
+                grid-template-columns: 1fr; 
+                grid-template-rows: 1fr 1fr; /* Divide meio a meio na horizontal em telemóveis pequenos */
             }
-            .sandbox-section.active {
-                right: 0;
-                width: 100% !important;
-                flex: none;
-            }
-            .browser-address { width: 60%; }
-            .close-sandbox { 
-                display: inline-flex !important; 
-                background: rgba(255, 74, 74, 0.1); 
-                border-color: rgba(255, 74, 74, 0.2); 
-                color: #ff4a4a;
-                padding: 6px 12px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            .close-sandbox:hover {
-                background: rgba(255, 74, 74, 0.2);
-                border-color: #ff4a4a;
-            }
+            .app-layout.split-active .chat-section { order: 2; border-left: none; border-top: 1px solid var(--border); }
+            .app-layout.split-active .sandbox-section { order: 1; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-layout">
-        <!-- Secção da Conversa -->
+    <div class="app-layout" id="main-layout">
+        <!-- LADO ESQUERDO: Visualizador Sandbox -->
+        <div class="sandbox-section" id="sandbox-panel">
+            <div class="sandbox-header">
+                <div class="browser-dots">
+                    <div class="dot"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="browser-address" id="live-url">honey-ia://live-preview-premium</div>
+                <button class="premium-btn" onclick="fecharSandbox()" style="padding: 5px 10px; border-radius: 8px; font-size: 11px; border-color: rgba(255,74,74,0.3); color: #ff4a4a; background: rgba(255,74,74,0.05);">Ocultar</button>
+            </div>
+            <div class="sandbox-body">
+                <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
+            </div>
+        </div>
+
+        <!-- LADO DIREITO: Chat e Input da Honey IA -->
         <div class="chat-section" id="chat-area">
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
@@ -130,31 +170,15 @@
                 </div>
             </div>
         </div>
-
-        <!-- Secção Sandbox Live Premium Corrigida -->
-        <div class="sandbox-section" id="sandbox-panel">
-            <div class="sandbox-header">
-                <div class="browser-dots">
-                    <div class="dot"></div>
-                    <div class="dot yellow"></div>
-                    <div class="dot green"></div>
-                </div>
-                <div class="browser-address" id="live-url">honey-ia://sandbox-preview</div>
-                <button class="premium-btn close-sandbox" onclick="fecharSandbox()">Fechar ×</button>
-            </div>
-            <div class="sandbox-body">
-                <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
-            </div>
-        </div>
     </div>
 
 <script>
+    const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const welcomeScreen = document.getElementById('welcome-screen');
     const micBtn = document.getElementById('mic-btn');
-    const sandboxPanel = document.getElementById('sandbox-panel');
     const sandboxIframe = document.getElementById('sandbox-preview');
 
     let reconhecimentoVoz;
@@ -225,7 +249,7 @@
                 containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 5); // Otimizado para renderização ágil
+                setTimeout(digitar, 4); // Digitação rápida de alta performance
             } else { if(callback) callback(); }
         }
         digitar();
@@ -237,15 +261,18 @@
     }
 
     function carregarNoSandbox(codigoHTML) {
-        sandboxPanel.classList.add('active');
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 400);
-
+        // Ativa a divisão perfeita de 50%/50% via Grid
+        mainLayout.classList.add('split-active');
+        
+        // Injeta o código com suporte nativo a responsividade
         const blob = new Blob([codigoHTML], { type: 'text/html' });
         sandboxIframe.src = URL.createObjectURL(blob);
+        
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 300);
     }
 
     function fecharSandbox() {
-        sandboxPanel.classList.remove('active');
+        mainLayout.classList.remove('split-active');
     }
 
     async function enviarMensagem() {
@@ -290,10 +317,11 @@
                     if (codigoDetectado) {
                         const btnVisualizar = document.createElement('button');
                         btnVisualizar.className = 'premium-btn visualize-btn';
-                        btnVisualizar.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Visualizar App`;
+                        btnVisualizar.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Atualizar Visualização`;
                         btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
                         btnGroup.appendChild(btnVisualizar);
 
+                        // Carrega instantaneamente mantendo o chat ao lado direito
                         carregarNoSandbox(codigoDetectado);
                     }
 
