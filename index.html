@@ -8,113 +8,117 @@
     <style>
         :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #060609; --card: #0f0f16; --border: #1a1a26; --preview-bg: #14141f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; width: 100vw; }
         
-        /* Layout Principal - Padrão: Apenas o Chat ocupa tudo */
+        /* O body ocupa a altura visível real e adapta-se dinamicamente ao teclado */
+        body { 
+            background: var(--bg); 
+            color: #fff; 
+            height: 100vh; 
+            height: -webkit-fill-available;
+            overflow: hidden; 
+            width: 100vw; 
+        }
+        
+        /* Layout Principal Flexível - Evita travamentos de Grid em Mobile */
         .app-layout { 
-            display: grid; 
-            grid-template-columns: 1fr; 
+            display: flex;
+            flex-direction: row;
             width: 100%; 
             height: 100%; 
         }
-        
-        /* Quando ativo em computadores/tablets: Divide 50% / 50% na Vertical */
-        @media (min-width: 801px) {
-            .app-layout.split-active { 
-                grid-template-columns: 1fr 1fr; /* Esquerda: Sandbox | Direita: Chat */
-            }
-        }
 
-        /* LADO ESQUERDO: Painel Sandbox (Oculto por padrão no arranque) */
+        /* LADO ESQUERDO: Secção Principal do Chat (Sempre visível) */
+        .chat-section { 
+            flex: 1;
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            background: var(--bg);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* LADO DIREITO: Painel Sandbox (Oculto por padrão, entra sem bugar) */
         .sandbox-section { 
             display: none; 
             flex-direction: column; 
+            width: 50%;
             height: 100%; 
             background: var(--preview-bg); 
+            border-left: 1px solid var(--border);
             overflow: hidden; 
-            position: relative; 
-            width: 100%;
+            position: relative;
         }
 
-        /* Ativa a exibição da sandbox quando a classe split-active for disparada */
+        /* Ativação do modo dividido em computadores e ecrãs largos */
         .app-layout.split-active .sandbox-section {
-            display: flex; 
-            animation: slideInLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            animation: slideInRight 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* LADO DIREITO: Secção do Chat e Conversa */
-        .chat-section { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            position: relative; 
-            background: var(--bg);
-            overflow: hidden;
-            width: 100%;
-        }
-        .app-layout.split-active .chat-section {
-            border-left: 1px solid var(--border); 
-        }
-        
-        #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
+        /* Elementos Internos do Chat */
+        #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.4s ease, visibility 0.4s; text-align: center; padding: 20px; }
         .hero-bee { font-size: 60px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         #welcome-screen h1 { font-size: 34px; color: var(--gold); margin-bottom: 12px; font-weight: 600; letter-spacing: -1px; }
         #welcome-screen p { color: #8a8a9e; max-width: 420px; font-size: 14px; line-height: 1.6; font-weight: 300; }
 
-        .chat-container { flex: 1; overflow-y: auto; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; width: 100%; max-width: 680px; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 120px; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 680px; margin: 0 auto; scroll-behavior: smooth; }
         
-        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 15px 20px; border-radius: 20px; line-height: 1.6; font-size: 14px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 20px; line-height: 1.6; font-size: 14px; animation: fadeIn 0.2s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; box-shadow: 0 4px 15px rgba(255,183,0,0.15); }
         .honey-msg { background: var(--card); color: #e4e4ed; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         
-        .msg-text { width: 100%; display: block; }
-
-        /* Botões Premium */
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-        .premium-btn { background: rgba(255, 183, 0, 0.06); border: 1px solid rgba(255, 183, 0, 0.15); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
-        .premium-btn:hover { background: rgba(255, 183, 0, 0.15); border-color: var(--gold); transform: translateY(-1px); }
-        .visualize-btn { background: rgba(0, 230, 118, 0.08); border-color: rgba(0, 230, 118, 0.2); color: #00e676; }
-        .visualize-btn:hover { background: rgba(0, 230, 118, 0.2); border-color: #00e676; }
-
-        /* Zona de Input Dinâmica */
-        .input-area { position: absolute; bottom: 20px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: center; z-index: 5; background: transparent; }
-        .input-wrapper { width: 100%; max-width: 600px; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.5); transition: all 0.2s; gap: 6px; }
-        .input-wrapper:focus-within { border-color: var(--gold); box-shadow: 0 12px 35px rgba(255,183,0,0.05); }
+        /* BARRA DE CONVERSA ANTI-TECLADO: Presa ao fluxo inferior por flexbox */
+        .input-area { 
+            width: 100%; 
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: center; 
+            background: var(--bg);
+            border-top: 1px solid rgba(26, 26, 38, 0.5);
+        }
+        .input-wrapper { width: 100%; max-width: 600px; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 6px 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); transition: all 0.2s; gap: 6px; }
+        .input-wrapper:focus-within { border-color: var(--gold); }
         
         .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 15px; outline: none; min-width: 0; }
         .chat-input::placeholder { color: #4e4e66; }
         
-        .action-btn { background: none; border: none; color: #73738c; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn { background: none; border: none; color: #73738c; width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.08); }
         .send-btn { background: var(--gold); color: #000; }
-        .send-btn:hover { background: var(--gold-dark); transform: scale(1.04); }
-        .send-btn:disabled { background: #181824; color: #4e4e66; cursor: not-allowed; transform: none; }
-        .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.12) !important; border: 1px solid rgba(255, 74, 74, 0.25); }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); opacity: 0.9; } }
+        .send-btn:disabled { background: #181824; color: #4e4e66; cursor: not-allowed; }
 
-        /* Top Bar Navegador Premium */
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .premium-btn { background: rgba(255, 183, 0, 0.06); border: 1px solid rgba(255, 183, 0, 0.15); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
+        .visualize-btn { background: rgba(0, 230, 118, 0.08); border-color: rgba(0, 230, 118, 0.2); color: #00e676; }
+
+        /* Top Bar Navegador Sandbox */
         .sandbox-header { height: 50px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; flex-shrink: 0; }
         .browser-dots { display: flex; gap: 6px; align-items: center; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 5px 15px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; }
         
         .sandbox-body { flex: 1; width: 100%; height: calc(100% - 50px); background: #14141f; display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; border-radius: 8px; }
 
-        /* RESPONSIVIDADE PARA TELEMÓVEIS (Evita que o layout quebre ou se sobreponha) */
+        /* COMPORTAMENTO SEGURO PARA TELEMÓVEIS (Empilhamento Vertical) */
         @media (max-width: 800px) {
             .app-layout.split-active { 
-                grid-template-columns: 1fr; 
-                grid-template-rows: 1fr 1fr; /* Divide meio a meio na horizontal: Topo=Preview, Baixo=Chat */
+                flex-direction: column-reverse; /* Coloca o Chat em baixo e o Preview em cima */
             }
-            .app-layout.split-active .chat-section { 
-                border-left: none; 
-                border-top: 2px solid var(--border); 
+            .app-layout.split-active .chat-section {
+                height: 50%;
+            }
+            .app-layout.split-active .sandbox-section { 
+                width: 100%;
+                height: 50%; 
+                border-left: none;
+                border-bottom: 2px solid var(--border);
             }
             .browser-address { width: 40%; }
         }
@@ -123,7 +127,31 @@
 <body>
 
     <div class="app-layout" id="main-layout">
-        <!-- LADO ESQUERDO: Visualizador Sandbox Live -->
+        <!-- O CHAT VEM PRIMEIRO: Garante carregamento imediato e sem bloqueios -->
+        <div class="chat-section" id="chat-area">
+            <div id="welcome-screen">
+                <span class="hero-bee">🐝</span>
+                <h1>Honey IA</h1>
+                <p>A tua arquiteta digital. Crie aplicações, websites ou explore ideias incríveis com uma execução premium.</p>
+            </div>
+
+            <div class="chat-container" id="chat-box"></div>
+
+            <!-- Barra de entrada contida no fluxo vertical flex -->
+            <div class="input-area" id="input-zone">
+                <div class="input-wrapper">
+                    <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
+                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
+                    </button>
+                    <input type="text" class="chat-input" id="user-input" placeholder="Peça um site, app ou faça uma pergunta..." onkeypress="verificarTeclado(event)">
+                    <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISUALIZADOR SANDBOX (Alinhado dinamicamente via Flexbox) -->
         <div class="sandbox-section" id="sandbox-panel">
             <div class="sandbox-header">
                 <div class="browser-dots">
@@ -136,29 +164,6 @@
             </div>
             <div class="sandbox-body">
                 <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
-            </div>
-        </div>
-
-        <!-- LADO DIREITO: Chat e Entrada de Mensagem -->
-        <div class="chat-section" id="chat-area">
-            <div id="welcome-screen">
-                <span class="hero-bee">🐝</span>
-                <h1>Honey IA</h1>
-                <p>A tua arquiteta digital. Crie aplicações, websites ou explore ideias incríveis com uma execução premium.</p>
-            </div>
-
-            <div class="chat-container" id="chat-box"></div>
-
-            <div class="input-area" id="input-zone">
-                <div class="input-wrapper">
-                    <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
-                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
-                    </button>
-                    <input type="text" class="chat-input" id="user-input" placeholder="Peça um site, app ou faça uma pergunta..." onkeypress="verificarTeclado(event)">
-                    <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -215,17 +220,10 @@
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            let textoLimpo = texto.replace(/```[\s\S]*?```/g, '[Código omitido na leitura]');
+            let textoLimpo = texto.replace(/```[\s\S]*?```/g, '[Código omitido]');
             textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ').trim();
-
             const fala = new SpeechSynthesisUtterance(textoLimpo);
-            const idioma = detectarIdiomaTexto(textoLimpo);
-            fala.lang = idioma;
-
-            let vozes = window.speechSynthesis.getVoices();
-            let voz = vozes.find(v => v.lang.toLowerCase().includes(idioma.split('-')[0]));
-            if (voz) fala.voice = voz;
-
+            fala.lang = detectarIdiomaTexto(textoLimpo);
             window.speechSynthesis.speak(fala);
         }
     }
@@ -247,4 +245,93 @@
     }
 
     function extrairCodigoHTML(texto) {
-        const match = texto.match(/```html([\s\S]*?)
+        const match = texto.match(/```html([\s\S]*?)```/);
+        return match ? match[1].trim() : null;
+    }
+
+    function carregarNoSandbox(codigoHTML) {
+        mainLayout.classList.add('split-active');
+        const blob = new Blob([codigoHTML], { type: 'text/html' });
+        sandboxIframe.src = URL.createObjectURL(blob);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 200);
+    }
+
+    function fecharSandbox() {
+        mainLayout.classList.remove('split-active');
+    }
+
+    async function enviarMensagem() {
+        const promptText = userInput.value.trim();
+        if (!promptText) return;
+
+        if (welcomeScreen.style.opacity !== '0') {
+            welcomeScreen.style.opacity = '0';
+            setTimeout(() => welcomeScreen.style.visibility = 'hidden', 400);
+        }
+
+        criarBalao(promptText, 'user-msg');
+        userInput.value = "";
+        sendBtn.disabled = true;
+
+        const honeyBalao = criarBalao("", 'honey-msg');
+        const spanTexto = document.createElement('span');
+        spanTexto.className = 'msg-text';
+        spanTexto.textContent = "...";
+        honeyBalao.appendChild(spanTexto);
+
+        try {
+            const response = await fetch('/gerar-gratis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptText })
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.sucesso) {
+                efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
+                    const btnGroup = document.createElement('div');
+                    btnGroup.className = 'btn-group';
+
+                    const btnOuvir = document.createElement('button');
+                    btnOuvir.className = 'premium-btn';
+                    btnOuvir.innerHTML = `Ouvir`;
+                    btnOuvir.onclick = () => falarTexto(data.codigo);
+                    btnGroup.appendChild(btnOuvir);
+
+                    const codigoDetectado = extrairCodigoHTML(data.codigo);
+                    if (codigoDetectado) {
+                        const btnVisualizar = document.createElement('button');
+                        btnVisualizar.className = 'premium-btn visualize-btn';
+                        btnVisualizar.innerHTML = `Visualizar App`;
+                        btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
+                        btnGroup.appendChild(btnVisualizar);
+
+                        carregarNoSandbox(codigoDetectado);
+                    }
+                    honeyBalao.appendChild(btnGroup);
+                });
+            } else {
+                spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
+            }
+        } catch (err) {
+            spanTexto.textContent = "Erro de ligação ao servidor de elite.";
+        } finally {
+            sendBtn.disabled = false;
+        }
+    }
+
+    function criarBalao(texto, classe) {
+        const div = document.createElement('div');
+        div.className = `message ${classe}`;
+        if (texto !== "") {
+            const span = document.createElement('span');
+            span.textContent = texto;
+            div.appendChild(span);
+        }
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
+    }
+</script>
+</body>
+</html>
