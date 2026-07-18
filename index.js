@@ -6,16 +6,22 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // Assume que o teu index.html está numa pasta 'public'
 
-// Configuração da API do Google (Certifica-te que tens a chave no teu ficheiro .env)
+// Tenta servir os ficheiros da pasta 'public', se não existir, serve da raiz '.'
+app.use(express.static('public'));
+app.use(express.static('.'));
+
+// Configuração da API do Google
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
 app.post('/gerar-gratis', async (req, res) => {
     const { prompt } = req.body;
 
+    if (!prompt) {
+        return res.status(400).json({ sucesso: false, erro: "O prompt não pode estar vazio." });
+    }
+
     try {
-        // Configuramos a instrução de sistema aqui dentro para garantir que ela obedece
         const model = genAI.getGenerativeModel({ 
             model: "gemini-1.5-flash",
             systemInstruction: `
@@ -48,7 +54,8 @@ app.post('/gerar-gratis', async (req, res) => {
     }
 });
 
+// O Render define a variável PORT automaticamente, se não, usa a 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Honey IA está a correr na porta ${PORT}`);
+    console.log(`Honey IA está a correr com sucesso na porta ${PORT}`);
 });
