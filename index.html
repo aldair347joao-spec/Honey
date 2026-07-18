@@ -32,7 +32,7 @@
         .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; font-family: 'Inter', sans-serif; }
         .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
 
-        /* Barra de Input Inferior Ajustada (Proteção Total contra esmagamento) */
+        /* Barra de Input Inferior Ajustada */
         .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
         .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; gap: 5px; }
         .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
@@ -40,7 +40,7 @@
         .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
         .chat-input::placeholder { color: #5a5a75; }
         
-        /* Botões de Ação com tamanho e proporções fixas garantidas */
+        /* Botões de Ação */
         .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
         .send-btn { background: var(--gold); color: #000; }
@@ -63,7 +63,7 @@
     <!-- Histórico de Chat -->
     <div class="chat-container" id="chat-box"></div>
 
-    <!-- Barra de Input Sem Esmagamento -->
+    <!-- Barra de Input -->
     <div class="input-area">
         <div class="input-wrapper">
             <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
@@ -85,6 +85,20 @@
 
     let reconhecimentoVoz;
     let estaGravando = false;
+    let listaDeVozes = [];
+
+    // Carregamento Prévio e Forçado de Vozes do Sistema (Crucial para Android)
+    function carregarVozes() {
+        if ('speechSynthesis' in window) {
+            listaDeVozes = window.speechSynthesis.getVoices();
+        }
+    }
+    carregarVozes();
+    if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            listaDeVozes = window.speechSynthesis.getVoices();
+        };
+    }
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -123,23 +137,51 @@
         }
     }
 
-    // Leitor de Voz Inteligente e Fluido
+    // Leitor de Voz Feminino Blindado contra Erros de Caracteres
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
 
-            let textoParaLer = texto.trim();
+            // Limpa emojis, caracteres corrompidos (como ) e símbolos de programação
+            let textoLimpo = texto.replace(/[\uFFFD\u24C2\u1F00-\u1FFFF\u2700-\u27BF\uE000-\uF8FF]/g, '');
+            textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ');
+            textoLimpo = textoLimpo.trim();
             
-            // Se houver qualquer indício de código estruturado, muda para mensagem amigável
-            if (textoParaLer.includes('{') || textoParaLer.includes('function') || textoParaLer.includes('class ') || textoParaLer.includes('def ')) {
-                textoParaLer = "Aqui está o projeto e o código limpo que solicitou. Já pode ver e copiar diretamente do seu ecrã!";
+            if (textoLimpo.includes('function') || textoLimpo.includes('class ') || textoLimpo.includes('def ')) {
+                textoLimpo = "Aqui está o projeto e o código limpo que solicitou. Já pode ver e copiar diretamente do seu ecrã!";
             }
 
-            const fala = new SpeechSynthesisUtterance(textoParaLer);
-            fala.lang = 'pt-PT'; 
-            fala.rate = 1.0;
+            const fala = new SpeechSynthesisUtterance(textoLimpo);
+            
+            // Forçar voz em Português
+            fala.lang = 'pt-PT';
+
+            // Algoritmo de procura por Voz Feminina Nativa
+            if (listaDeVozes.length === 0) {
+                listaDeVozes = window.speechSynthesis.getVoices();
+            }
+
+            // Tenta encontrar vozes com marcas femininas conhecidas em português
+            const vozFeminina = listaDeVozes.find(v => 
+                (v.lang.includes('pt-') || v.lang.includes('PT-')) && 
+                (v.name.toLowerCase().includes('female') || 
+                 v.name.toLowerCase().includes('maria') || 
+                 v.name.toLowerCase().includes('francisca') || 
+                 v.name.toLowerCase().includes('mulher') || 
+                 v.name.toLowerCase().includes('google'))
+            );
+
+            if (vozFeminina) {
+                fala.voice = vozFeminina;
+            }
+
+            // Ajustes finos para garantir tom mais agudo e feminino mesmo nas vozes padrão
+            fala.pitch = 1.25; // Torna o timbre mais agudo (feminino)
+            fala.rate = 1.05;  // Velocidade de fala fluida e natural
 
             window.speechSynthesis.speak(fala);
+        } else {
+            alert("O seu navegador bloqueou ou não suporta a saída de voz.");
         }
     }
 
