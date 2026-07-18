@@ -22,7 +22,7 @@ app.post('/gerar-gratis', async (req, res) => {
     }
 
     try {
-        // Chamada à API da Groq utilizando o Llama 3
+        // Chamada à API da Groq utilizando o modelo atualizado Llama 3.1
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
@@ -42,7 +42,7 @@ app.post('/gerar-gratis', async (req, res) => {
                     content: prompt
                 }
             ],
-            model: "llama3-8b-8192",
+            model: "llama-3.1-8b-instant", // <--- LINHA ATUALIZADA AQUI!
             temperature: 0.7
         });
 
