@@ -3,33 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA | Global Chat</title>
+    <title>Honey IA | Premium Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #08080c; --card: #12121a; --border: #1f1f2e; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease; text-align: center; padding: 20px; }
+        #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
         .hero-bee { font-size: 80px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        #welcome-screen h1 { font-size: 36px; color: var(--gold); margin-bottom: 10px; font-weight: 600; }
+        #welcome-screen h1 { font-size: 36px; color: var(--gold); margin-bottom: 10px; font-weight: 600; letter-spacing: -1px; }
+        #welcome-screen p { color: #8a8a9e; max-width: 400px; font-size: 16px; line-height: 1.5; }
+
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 120px; z-index: 1; }
         
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 100%; margin: 0 auto; padding-bottom: 120px; }
-        .message { padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; max-width: 85%; word-wrap: break-word; white-space: pre-wrap; animation: fadeIn 0.3s ease; }
+        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
         .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
         
-        .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; }
+        .msg-text { width: 100%; display: block; }
 
-        .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; }
-        .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
-        .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; }
-        .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; font-family: 'Inter', sans-serif; }
+        .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
+
+        .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
+        .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; gap: 5px; }
+        .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
+        
+        .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
+        .chat-input::placeholder { color: #5a5a75; }
+        
+        .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
         .send-btn { background: var(--gold); color: #000; }
-        .recording { color: #ff4a4a !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .send-btn:hover { background: var(--gold-dark); transform: scale(1.05); }
+        .send-btn:disabled { background: #232330; color: #5a5a75; cursor: not-allowed; transform: none; }
+        
+        .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.15) !important; border: 1px solid rgba(255, 74, 74, 0.3); }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -37,98 +50,176 @@
     <div id="welcome-screen">
         <span class="hero-bee">🐝</span>
         <h1>Honey IA</h1>
-        <p>Your multilingual assistant.</p>
+        <p>A tua assistente virtual inteligente. Converse ou peça para criar projetos incríveis em qualquer idioma.</p>
     </div>
 
     <div class="chat-container" id="chat-box"></div>
 
     <div class="input-area">
         <div class="input-wrapper">
-            <button class="action-btn" id="mic-btn" onclick="alternarGravacao()">🎙️</button>
-            <input type="text" class="chat-input" id="user-input" placeholder="Type or speak..." onkeypress="verificarTeclado(event)">
-            <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()">➤</button>
+            <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
+                <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
+            </button>
+            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte ou peça um projeto..." onkeypress="verificarTeclado(event)">
+            <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 
 <script>
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const micBtn = document.getElementById('mic-btn');
 
-    // Configuração de Voz Multilíngue
+    let reconhecimentoVoz;
+    let estaGravando = false;
+
+    // Configuração de Reconhecimento Multilíngue Livre
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        reconhecimentoVoz = new SpeechRecognition();
+        reconhecimentoVoz.continuous = false;
+        reconhecimentoVoz.interimResults = false;
+        reconhecimentoVoz.lang = undefined; // Auto-detecta com base no teclado/sistema do utilizador
+
+        reconhecimentoVoz.onresult = (event) => {
+            const textoDitado = event.results[0][0].transcript;
+            if(textoDitado.trim() !== "") {
+                userInput.value = textoDitado;
+                enviarMensagem();
+            }
+        };
+
+        reconhecimentoVoz.onend = () => {
+            estaGravando = false;
+            micBtn.classList.remove('recording');
+        };
+    }
+
+    function alternarGravacao() {
+        if (!reconhecimentoVoz) return alert("Microfone indisponível.");
+        if (estaGravando) {
+            reconhecimentoVoz.stop();
+        } else {
+            estaGravando = true;
+            micBtn.classList.add('recording');
+            reconhecimentoVoz.start();
+        }
+    }
+
+    // Detetor Dinâmico de Idioma para ajustar o sotaque do motor de áudio
+    function detectarIdiomaTexto(texto) {
+        const txt = texto.toLowerCase();
+        if (txt.match(/hello|thank you|i am|welcome|what|your/i)) return 'en-US';
+        if (txt.match(/hola|gracias|buenos|estoy/i)) return 'es-ES';
+        if (txt.match(/bonjour|merci|salut/i)) return 'fr-FR';
+        if (txt.match(/ciao|grazie/i)) return 'it-IT';
+        return 'pt-PT'; // Padrão
+    }
+
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            const fala = new SpeechSynthesisUtterance(texto);
+
+            let textoLimpo = texto.replace(/[\uFFFD\u24C2\u1F00-\u1FFFF\u2700-\u27BF\uE000-\uF8FF]/g, '');
+            textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ');
+            textoLimpo = textoLimpo.trim();
+
+            const fala = new SpeechSynthesisUtterance(textoLimpo);
+            const idiomaDetectado = detectarIdiomaTexto(textoLimpo);
+            fala.lang = idiomaDetectado;
+
+            let vozes = window.speechSynthesis.getVoices();
+            let vozAdequada = vozes.find(v => v.lang.toLowerCase().includes(idiomaDetectado.split('-')[0]));
             
-            // Tenta detetar o idioma pelo texto (Podes adicionar mais aqui)
-            // Se não detetar, o navegador usa o padrão do sistema
-            fala.lang = 'pt-PT'; // Default
-            if (texto.match(/hello|you|my|name|what/i)) fala.lang = 'en-US';
-            else if (texto.match(/hola|gracias|buenos/i)) fala.lang = 'es-ES';
-            else if (texto.match(/bonjour|merci|salut/i)) fala.lang = 'fr-FR';
-            else if (texto.match(/ciao|grazie/i)) fala.lang = 'it-IT';
+            if (vozAdequada) fala.voice = vozAdequada;
+
+            fala.pitch = 1.0; 
+            fala.rate = 1.0;  
 
             window.speechSynthesis.speak(fala);
         }
     }
 
-    // Reconhecimento de voz inteligente (aceita qualquer língua configurada no teclado do telemóvel)
-    if ('webkitSpeechRecognition' in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = undefined; // Auto-detect baseado no sistema
+    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
 
-        recognition.onresult = (event) => {
-            userInput.value = event.results[0][0].transcript;
-            enviarMensagem();
-        };
-        
-        window.alternarGravacao = () => {
-            document.getElementById('mic-btn').classList.add('recording');
-            recognition.start();
-        };
+    function efeitoDigitarAoVivo(containerTexto, texto, callback) {
+        let i = 0;
+        containerTexto.textContent = ""; 
+        function digitar() {
+            if (i < texto.length) {
+                containerTexto.textContent += texto.charAt(i);
+                i++;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                setTimeout(digitar, 15);
+            } else { if(callback) callback(); }
+        }
+        digitar();
     }
 
     async function enviarMensagem() {
-        const text = userInput.value.trim();
-        if (!text) return;
+        const promptText = userInput.value.trim();
+        if (!promptText) return;
 
-        document.getElementById('welcome-screen').style.opacity = '0';
-        criarBalao(text, 'user-msg');
+        if (welcomeScreen.style.opacity !== '0') {
+            welcomeScreen.style.opacity = '0';
+            setTimeout(() => welcomeScreen.style.visibility = 'hidden', 500);
+        }
+
+        criarBalao(promptText, 'user-msg');
         userInput.value = "";
+        sendBtn.disabled = true;
 
-        const msgDiv = criarBalao("...", 'honey-msg');
-        
+        const honeyBalao = criarBalao("", 'honey-msg');
+        const spanTexto = document.createElement('span');
+        spanTexto.className = 'msg-text';
+        spanTexto.textContent = "...";
+        honeyBalao.appendChild(spanTexto);
+
         try {
-            const res = await fetch('/gerar-gratis', {
+            const response = await fetch('/gerar-gratis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: text })
+                body: JSON.stringify({ prompt: promptText })
             });
-            const data = await res.json();
-            msgDiv.textContent = data.codigo;
-            
-            const btn = document.createElement('button');
-            btn.className = 'audio-play-btn';
-            btn.textContent = "🔊 Listen / Ouvir";
-            btn.onclick = () => falarTexto(data.codigo);
-            msgDiv.appendChild(btn);
-        } catch (e) {
-            msgDiv.textContent = "Error.";
+            const data = await response.json();
+            if (response.ok && data.sucesso) {
+                efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
+                    const btnOuvir = document.createElement('button');
+                    btnOuvir.className = 'audio-play-btn';
+                    
+                    const idioma = detectarIdiomaTexto(data.codigo);
+                    // Traduz o botão dinamicamente para manter o requinte
+                    let textoBotao = "Ouvir Resposta";
+                    if (idioma === 'en-US') textoBotao = "Listen Response";
+                    else if (idioma === 'es-ES') textoBotao = "Escuchar Respuesta";
+                    else if (idioma === 'fr-FR') textoBotao = "Écouter la Réponse";
+
+                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="margin-right:2px;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> ${textoBotao}`;
+                    btnOuvir.onclick = () => falarTexto(data.codigo);
+                    honeyBalao.appendChild(btnOuvir);
+                });
+            } else {
+                spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
+            }
+        } catch (err) {
+            spanTexto.textContent = "Erro de ligação.";
+        } finally {
+            sendBtn.disabled = false;
         }
     }
 
-    function criarBalao(txt, cls) {
+    function criarBalao(texto, classe) {
         const div = document.createElement('div');
-        div.className = `message ${cls}`;
-        div.textContent = txt;
+        div.className = `message ${classe}`;
+        div.textContent = texto;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
         return div;
     }
-    
-    function verificarTeclado(e) { if (e.key === 'Enter') enviarMensagem(); }
 </script>
 </body>
 </html>
