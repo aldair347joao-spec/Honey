@@ -1,98 +1,54 @@
 const express = require('express');
-const https = require('https');
-const path = require('path');
+const cors = require('cors');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
+
 const app = express();
-
-// Procura a chave nas variáveis de ambiente do Render, ou usa uma string vazia se não configurada
-const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
-
-// Configurações essenciais do Express
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static('public')); // Assume que o teu index.html está numa pasta 'public'
 
-// Rota principal para carregar a página de chat
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Configuração da API do Google (Certifica-te que tens a chave no teu ficheiro .env)
+const genAI = new GoogleGenerativeAI(process.env.API_KEY);
 
-// Rota POST que o teu index.html consome
 app.post('/gerar-gratis', async (req, res) => {
-    const promptUtilizador = req.body.prompt;
-
-    if (!promptUtilizador) {
-        return res.status(400).json({ sucesso: false, erro: "O comando ou pergunta não pode estar vazio." });
-    }
+    const { prompt } = req.body;
 
     try {
-        const respostaIA = await conectarMotorGroq(promptUtilizador);
-        return res.json({ sucesso: true, codigo: respostaIA });
-    } catch (erro) {
-        console.error("Erro no processamento:", erro);
-        return res.status(500).json({ sucesso: false, erro: erro });
+        // Configuramos a instrução de sistema aqui dentro para garantir que ela obedece
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            systemInstruction: `
+                You are Honey IA, an elegant, friendly, and highly intelligent virtual assistant.
+                
+                CRITICAL LANGUAGE RULE:
+                1. Detect the language of the user's input immediately.
+                2. Respond strictly in the SAME language as the user's input. 
+                3. If the user speaks English, answer in English. If they speak Portuguese, answer in Portuguese. 
+                4. Maintain a professional yet warm tone in every language.
+                
+                Do not deviate from these language rules under any circumstances.
+            `
+        });
+
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
+
+        res.json({ 
+            sucesso: true, 
+            codigo: responseText 
+        });
+
+    } catch (error) {
+        console.error("Erro na API:", error);
+        res.status(500).json({ 
+            sucesso: false, 
+            erro: "Ocorreu um erro ao processar o seu pedido." 
+        });
     }
 });
 
-// FUNÇÃO AUXILIAR COM A NOVA PERSONALIDADE INTELIGENTE E HUMANA
-function conectarMotorGroq(promptText) {
-    return new Promise((resolve, reject) => {
-        if (!GROQ_API_KEY) {
-            return reject("Chave GROQ_API_KEY não configurada no painel do Render.");
-        }
-
-        // Criamos o corpo dos dados com o System Prompt ajustado para evitar respostas puramente técnicas
-        const corpoDados = JSON.stringify({
-            model: "llama-3.1-8b-instant",
-            messages: [
-                { 
-                    role: "system", 
-                    content: "Você é a Honey IA, uma assistente virtual inteligente, amigável, acolhedora e profissional. Responda SEMPRE em português de forma natural, curta e conversacional. Regra crucial: Se o utilizador fizer perguntas normais, saudações ou apenas conversar, dialogue normalmente como um ser humano simpático faria. SÓ forneça códigos, scripts, blocos de programação ou projetos se o cliente pedir explicitamente usando palavras como 'crie um código', 'programe', 'gere um script' ou 'faça um projeto'." 
-                },
-                { role: "user", content: promptText }
-            ]
-        });
-
-        const opcoes = {
-            hostname: 'api.groq.com',
-            port: 443,
-            path: '/openai/v1/chat/completions',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY.trim()}`,
-                'Content-Length': Buffer.byteLength(corpoDados)
-            }
-        };
-
-        const requisicao = https.request(opcoes, (respostaServidor) => {
-            let dadosAcumulados = '';
-            respostaServidor.on('data', (chunk) => { dadosAcumulados += chunk; });
-            
-            respostaServidor.on('end', () => {
-                try {
-                    const respostaJson = JSON.parse(dadosAcumulados);
-                    if (respostaServidor.statusCode === 200 && respostaJson.choices && respostaJson.choices[0]) {
-                        resolve(respostaJson.choices[0].message.content);
-                    } else {
-                        const detalheErro = respostaJson.error ? respostaJson.error.message : `Status HTTP ${respostaServidor.statusCode}`;
-                        reject(`Erro na API Groq: ${detalheErro}`);
-                    }
-                } catch (e) {
-                    reject("Falha ao interpretar a resposta da inteligência artificial.");
-                }
-            });
-        });
-
-        requisicao.on('error', (erroDeRede) => {
-            reject(`Falha de rede física: ${erroDeRede.message}`);
-        });
-
-        requisicao.write(corpoDados);
-        requisicao.end();
-    });
-}
-
-// Configuração da porta do servidor para o Render
-const PORTA = process.env.PORT || 3000;
-app.listen(PORTA, () => {
-    console.log(`Honey IA a rodar com sucesso na porta ${PORTA}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Honey IA está a correr na porta ${PORT}`);
 });
