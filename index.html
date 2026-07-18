@@ -24,7 +24,7 @@
         .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
-        .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); font-family: monospace; font-size: 14px; }
+        .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
         
         .msg-text { width: 100%; display: block; }
 
@@ -32,18 +32,18 @@
         .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; font-family: 'Inter', sans-serif; }
         .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
 
-        /* Barra de Input Inferior (Altura aumentada para maior elegância) */
+        /* Barra de Input Inferior Ajustada (Proteção Total contra esmagamento) */
         .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
-        .input-wrapper { max-width: 600px; width: 92%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 10px 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; }
+        .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; gap: 5px; }
         .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
         
-        .chat-input { flex: 1; background: none; border: none; padding: 8px 12px; color: #fff; font-size: 16px; outline: none; }
+        .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
         .chat-input::placeholder { color: #5a5a75; }
         
-        /* Botões de Ação */
-        .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; }
+        /* Botões de Ação com tamanho e proporções fixas garantidas */
+        .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
-        .send-btn { background: var(--gold); color: #000; margin-left: 5px; }
+        .send-btn { background: var(--gold); color: #000; }
         .send-btn:hover { background: var(--gold-dark); transform: scale(1.05); }
         .send-btn:disabled { background: #232330; color: #5a5a75; cursor: not-allowed; transform: none; }
         
@@ -57,19 +57,19 @@
     <div id="welcome-screen">
         <span class="hero-bee">🐝</span>
         <h1>Honey IA</h1>
-        <p>A inteligência artificial que transforma as tuas ideias em códigos limpos e funcionais instantaneamente.</p>
+        <p>A tua assistente virtual inteligente. Converse ou peça para criar projetos incríveis.</p>
     </div>
 
     <!-- Histórico de Chat -->
     <div class="chat-container" id="chat-box"></div>
 
-    <!-- Barra de Input Melhorada -->
+    <!-- Barra de Input Sem Esmagamento -->
     <div class="input-area">
         <div class="input-wrapper">
             <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
                 <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
             </button>
-            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte à Honey IA..." onkeypress="verificarTeclado(event)">
+            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte ou peça um projeto à Honey..." onkeypress="verificarTeclado(event)">
             <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -101,10 +101,6 @@
             }
         };
 
-        reconhecimentoVoz.onerror = (e) => {
-            console.error(e.error);
-        };
-
         reconhecimentoVoz.onend = () => {
             estaGravando = false;
             micBtn.classList.remove('recording');
@@ -127,16 +123,16 @@
         }
     }
 
-    // Filtro inteligente para impedir o travamento da voz com códigos
+    // Leitor de Voz Inteligente e Fluido
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
 
             let textoParaLer = texto.trim();
             
-            // Se a resposta contiver código (detectado por chaves ou palavras-chave de programação)
-            if (textoParaLer.includes('{') || textoParaLer.includes('function') || textoParaLer.includes('const')) {
-                textoParaLer = "Aqui está o código limpo que gerou para si. Pode copiá-lo diretamente do ecrã.";
+            // Se houver qualquer indício de código estruturado, muda para mensagem amigável
+            if (textoParaLer.includes('{') || textoParaLer.includes('function') || textoParaLer.includes('class ') || textoParaLer.includes('def ')) {
+                textoParaLer = "Aqui está o projeto e o código limpo que solicitou. Já pode ver e copiar diretamente do seu ecrã!";
             }
 
             const fala = new SpeechSynthesisUtterance(textoParaLer);
@@ -184,7 +180,7 @@
         const honeyBalao = criarBalao("", 'honey-msg');
         const spanTexto = document.createElement('span');
         spanTexto.className = 'msg-text';
-        spanTexto.textContent = "[Honey IA está a pensar...]";
+        spanTexto.textContent = "[Honey IA está a responder...]";
         honeyBalao.appendChild(spanTexto);
 
         try {
