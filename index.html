@@ -3,43 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA | Espaço de Trabalho</title>
+    <title>Honey IA | Premium Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #ffb700; --bg: #050508; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #fff; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .box { background: #111116; padding: 30px; border-radius: 20px; width: 100%; max-width: 600px; border: 1px solid #222; text-align: center; }
-        h1 { color: var(--gold); margin-bottom: 5px; }
-        textarea, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #050508; color: #fff; box-sizing: border-box; font-size: 16px; }
-        textarea { resize: vertical; font-family: inherit; }
-        button { background: var(--gold); color: #000; font-weight: bold; cursor: pointer; border: none; transition: background 0.2s; }
-        button:hover { background: #e0a100; }
-        button:disabled { background: #555; color: #aaa; cursor: not-allowed; }
-        pre { background: #000; padding: 15px; border-radius: 8px; text-align: left; overflow-x: auto; max-height: 300px; font-size: 13px; border: 1px solid #222; white-space: pre-wrap; word-wrap: break-word; }
+        :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #08080c; --card: #12121a; --border: #1f1f2e; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Ecrã de Boas-Vindas Animado */
+        #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
+        .hero-bee { font-size: 80px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        #welcome-screen h1 { font-size: 36px; color: var(--gold); margin-bottom: 10px; font-weight: 600; letter-spacing: -1px; }
+        #welcome-screen p { color: #8a8a9e; max-width: 400px; font-size: 16px; line-height: 1.5; }
+
+        /* Área Principal do Chat */
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 800px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 100px; }
+        
+        /* Balões de Mensagem */
+        .message { display: flex; flex-direction: column; max-width: 80px; width: fit-content; max-width: 75%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
+        .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        
+        /* Botão de Áudio no Balão da IA */
+        .audio-play-btn { background: none; border: none; color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 8px; font-size: 12px; font-weight: 600; gap: 5px; }
+
+        /* Barra de Input Inferior Fixa (Estilo ChatGPT) */
+        .input-area { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, var(--bg) 30%); padding: 20px; display: flex; justify-content: center; z-index: 5; }
+        .input-wrapper { max-width: 800px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 6px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: border-color 0.2s; }
+        .input-wrapper:focus-within { border-color: var(--gold); }
+        
+        .chat-input { flex: 1; background: none; border: none; padding: 12px; color: #fff; font-size: 16px; outline: none; }
+        .chat-input::placeholder { color: #5a5a75; }
+        
+        /* Botões de Ação */
+        .action-btn { background: none; border: none; color: #8a8a9e; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; margin-left: 5px; }
+        .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
+        .send-btn { background: var(--gold); color: #000; }
+        .send-btn:hover { background: var(--gold-dark); color: #000; transform: scale(1.05); }
+        .send-btn:disabled { background: #232330; color: #5a5a75; cursor: not-allowed; transform: none; }
+        
+        .recording { animation: pulse 1.5s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.1) !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h1 style="margin: 0; text-align: left;">Honey IA 🐝</h1>
-    <p style="color: #888; text-align: left; margin-bottom: 15px;">Insira a sua ideia abaixo para gerar código limpo automaticamente.</p>
-    
-    <textarea id="prompt" rows="6" placeholder="Descreva o site ou a aplicação que pretende criar..."></textarea>
-    <button id="btn-compilar" onclick="simularCompilacaoGratis()">Compilar com Honey IA</button>
-    
-    <h4 style="text-align: left; margin-bottom: 5px; color: var(--gold);">Resultado da Compilação:</h4>
-    <pre id="output">Aguardando comandos...</pre>
-</div>
+    <!-- Ecrã Inicial de Boas-Vindas -->
+    <div id="welcome-screen">
+        <span class="hero-bee">🐝</span>
+        <h1>Honey IA</h1>
+        <p>A inteligência artificial que transforma as tuas ideias em códigos limpos e funcionais instantaneamente.</p>
+    </div>
+
+    <!-- Histórico de Chat -->
+    <div class="chat-container" id="chat-box"></div>
+
+    <!-- Barra de Input Estilo ChatGPT -->
+    <div class="input-area">
+        <div class="input-wrapper">
+            <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
+            </button>
+            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte qualquer coisa à Honey IA..." onkeypress="verificarTeclado(event)">
+            <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
 
 <script>
-    async function simularCompilacaoGratis() {
-        const promptText = document.getElementById('prompt').value.trim();
-        if (!promptText) return alert("Por favor, descreva o seu projeto!");
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const micBtn = document.getElementById('mic-btn');
 
-        const output = document.getElementById('output');
-        const btn = document.getElementById('btn-compilar');
-        
-        output.innerText = "[Honey IA] Conectando ao motor e gerando código...";
-        btn.disabled = true;
+    let reconhecimentoVoz;
+    let estaGravando = false;
+
+    // Configuração do Reconhecimento de Voz (Nativo do Navegador)
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        reconhecimentoVoz = new SpeechRecognition();
+        reconhecimentoVoz.lang = 'pt-PT';
+        reconhecimentoVoz.continuous = false;
+
+        reconhecimentoVoz.onresult = (event) => {
+            const textoDitado = event.results[0][0].transcript;
+            userInput.value = textoDitado;
+            enviarMensagem();
+        };
+
+        reconhecimentoVoz.onend = () => {
+            estaGravando = false;
+            micBtn.classList.remove('recording');
+        };
+    }
+
+    function alternarGravacao() {
+        if (!reconhecimentoVoz) return alert("O seu navegador não suporta entrada de áudio.");
+        if (estaGravando) {
+            reconhecimentoVoz.stop();
+        } else {
+            estaGravando = true;
+            micBtn.classList.add('recording');
+            reconhecimentoVoz.start();
+        }
+    }
+
+    function falarTexto(texto) {
+        if ('speechSynthesis' in window) {
+            // Remove marcações simples de código ou símbolos estranhos para leitura limpa
+            const textoLimpo = texto.replace(/[`*#]/g, '');
+            const fala = new SpeechSynthesisUtterance(textoLimpo);
+            fala.lang = 'pt-PT';
+            window.speechSynthesis.speak(fala);
+        }
+    }
+
+    function verificarTeclado(event) {
+        if (event.key === 'Enter') enviarMensagem();
+    }
+
+    // Efeito de Digitação ao Vivo (Streaming Simulado)
+    function efeitoDigitarAoVivo(elemento, texto, callback) {
+        let i = 0;
+        elemento.innerText = "";
+        function digitar() {
+            if (i < texto.length) {
+                elemento.innerText += texto.charAt(i);
+                i++;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                setTimeout(digitar, 15); // Velocidade de saída da escrita
+            } else {
+                if(callback) callback();
+            }
+        }
+        digitar();
+    }
+
+    async function enviarMensagem() {
+        const promptText = userInput.value.trim();
+        if (!promptText) return;
+
+        // Esconder ecrã de boas-vindas na primeira mensagem
+        if (welcomeScreen.style.opacity !== '0') {
+            welcomeScreen.style.opacity = '0';
+            setTimeout(() => welcomeScreen.style.visibility = 'hidden', 500);
+        }
+
+        // Adicionar balão do utilizador
+        criarBalao(promptText, 'user-msg');
+        userInput.value = "";
+        sendBtn.disabled = true;
+
+        // Adicionar balão temporário de carregamento para a Honey IA
+        const honeyBalao = criarBalao("[Honey IA está a pensar...]", 'honey-msg');
 
         try {
             const response = await fetch('/gerar-gratis', {
@@ -49,17 +170,35 @@
             });
 
             const data = await response.json();
-            
+
             if (response.ok && data.sucesso) {
-                output.innerText = data.codigo;
+                // Executa a escrita ao vivo e ativa a voz logo a seguir
+                efeitoDigitarAoVivo(honeyBalao, data.codigo, () => {
+                    // Adiciona o botão de ouvir após o término da escrita
+                    const btnOuvir = document.createElement('button');
+                    btnOuvir.className = 'audio-play-btn';
+                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> Ouvir Resposta`;
+                    btnOuvir.onclick = () => falarTexto(data.codigo);
+                    honeyBalao.appendChild(btnOuvir);
+                });
             } else {
-                output.innerText = "[ERRO DO MOTOR] " + (data.erro || "Falha ao compilar o prompt.");
+                honeyBalao.innerText = "[ERRO] " + (data.erro || "Falha ao processar comando.");
             }
         } catch (err) {
-            output.innerText = "[ERRO DE CONEXÃO] Não foi possível comunicar com o servidor da Honey IA.";
+            honeyBalao.innerText = "[ERRO DE LIGAÇÃO] Sem resposta do servidor.";
         } finally {
-            btn.disabled = false;
+            sendBtn.disabled = false;
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
+    }
+
+    function criarBalao(texto, classe) {
+        const div = document.createElement('div');
+        div.className = `message ${classe}`;
+        div.innerText = texto;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return div;
     }
 </script>
 </body>
