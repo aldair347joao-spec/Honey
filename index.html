@@ -77,13 +77,12 @@
     let reconhecimentoVoz;
     let estaGravando = false;
 
-    // Configuração de Reconhecimento Multilíngue Livre
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         reconhecimentoVoz = new SpeechRecognition();
         reconhecimentoVoz.continuous = false;
         reconhecimentoVoz.interimResults = false;
-        reconhecimentoVoz.lang = undefined; // Auto-detecta com base no teclado/sistema do utilizador
+        reconhecimentoVoz.lang = undefined; 
 
         reconhecimentoVoz.onresult = (event) => {
             const textoDitado = event.results[0][0].transcript;
@@ -110,14 +109,13 @@
         }
     }
 
-    // Detetor Dinâmico de Idioma para ajustar o sotaque do motor de áudio
     function detectarIdiomaTexto(texto) {
         const txt = texto.toLowerCase();
         if (txt.match(/hello|thank you|i am|welcome|what|your/i)) return 'en-US';
         if (txt.match(/hola|gracias|buenos|estoy/i)) return 'es-ES';
         if (txt.match(/bonjour|merci|salut/i)) return 'fr-FR';
         if (txt.match(/ciao|grazie/i)) return 'it-IT';
-        return 'pt-PT'; // Padrão
+        return 'pt-PT'; 
     }
 
     function falarTexto(texto) {
@@ -192,7 +190,6 @@
                     btnOuvir.className = 'audio-play-btn';
                     
                     const idioma = detectarIdiomaTexto(data.codigo);
-                    // Traduz o botão dinamicamente para manter o requinte
                     let textoBotao = "Ouvir Resposta";
                     if (idioma === 'en-US') textoBotao = "Listen Response";
                     else if (idioma === 'es-ES') textoBotao = "Escuchar Respuesta";
@@ -215,7 +212,11 @@
     function criarBalao(texto, classe) {
         const div = document.createElement('div');
         div.className = `message ${classe}`;
-        div.textContent = texto;
+        if (texto !== "") {
+            const span = document.createElement('span');
+            span.textContent = texto;
+            div.appendChild(span);
+        }
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
         return div;
