@@ -2,19 +2,19 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honey IA | Elite Premium Assistant</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #060609; --card: #0f0f16; --border: #1a1a26; --preview-bg: #14141f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; display: flex; overflow: hidden; position: relative; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; overflow: hidden; position: relative; width: 100%; }
         
         /* Layout Principal Split Screen */
         .app-layout { display: flex; width: 100%; height: 100%; position: relative; }
         
         /* Área do Chat */
-        .chat-section { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; transition: all 0.4s ease; }
+        .chat-section { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; transition: all 0.4s ease; width: 100%; }
         
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
         .hero-bee { font-size: 70px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
@@ -55,7 +55,7 @@
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); opacity: 0.9; } }
 
         /* Painel Sandbox de Teste Live (Lado Direito) */
-        .sandbox-section { flex: 0; width: 0%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), width 0.4s ease; overflow: hidden; position: relative; }
+        .sandbox-section { flex: 0; width: 0%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), width 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; position: relative; }
         .sandbox-section.active { flex: 1.1; width: 55%; }
 
         /* Top Bar Estilo Navegador Premium */
@@ -66,15 +66,43 @@
         .dot.green { background: #27c93f; }
         .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 20px; font-size: 12px; color: #8a8a9e; width: 45%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; letter-spacing: 0.3px; }
         
-        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 55px); background: #ffffff; position: relative; }
-        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; }
+        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 55px); background: #ffffff; position: relative; margin: 0; padding: 0; }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; display: block; margin: 0; padding: 0; }
 
-        /* Ajustes responsivos para quando a aba abrir */
+        .close-sandbox { display: none; }
+
+        /* REGRAS CRÍTICAS DE RESPONSIVIDADE MOBILE (FIX PARA O ERRO DO PRINT) */
         @media (max-width: 900px) {
-            .sandbox-section.active { position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 10; }
-            .close-sandbox { display: flex !important; }
+            .sandbox-section {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100% !important;
+                height: 100%;
+                z-index: 999;
+                border-left: none;
+                transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+            .sandbox-section.active {
+                right: 0;
+                width: 100% !important;
+                flex: none;
+            }
+            .browser-address { width: 60%; }
+            .close-sandbox { 
+                display: inline-flex !important; 
+                background: rgba(255, 74, 74, 0.1); 
+                border-color: rgba(255, 74, 74, 0.2); 
+                color: #ff4a4a;
+                padding: 6px 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            .close-sandbox:hover {
+                background: rgba(255, 74, 74, 0.2);
+                border-color: #ff4a4a;
+            }
         }
-        .close-sandbox { display: none; margin-left: auto; }
     </style>
 </head>
 <body>
@@ -103,7 +131,7 @@
             </div>
         </div>
 
-        <!-- Secção Sandbox Live Premium -->
+        <!-- Secção Sandbox Live Premium Corrigida -->
         <div class="sandbox-section" id="sandbox-panel">
             <div class="sandbox-header">
                 <div class="browser-dots">
@@ -112,7 +140,7 @@
                     <div class="dot green"></div>
                 </div>
                 <div class="browser-address" id="live-url">honey-ia://sandbox-preview</div>
-                <button class="premium-btn close-sandbox" onclick="fecharSandbox()" style="padding: 5px 10px; border-radius: 8px;">Fechar X</button>
+                <button class="premium-btn close-sandbox" onclick="fecharSandbox()">Fechar ×</button>
             </div>
             <div class="sandbox-body">
                 <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
@@ -128,8 +156,6 @@
     const micBtn = document.getElementById('mic-btn');
     const sandboxPanel = document.getElementById('sandbox-panel');
     const sandboxIframe = document.getElementById('sandbox-preview');
-    const chatArea = document.getElementById('chat-area');
-    const inputZone = document.getElementById('input-zone');
 
     let reconhecimentoVoz;
     let estaGravando = false;
@@ -174,7 +200,7 @@
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-            let textoLimpo = texto.replace(/```[\s\S]*?```/g, '[Código omitido na leitura]'); // Não lê blocos de código gigantes
+            let textoLimpo = texto.replace(/```[\s\S]*?```/g, '[Código omitido na leitura]');
             textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ').trim();
 
             const fala = new SpeechSynthesisUtterance(textoLimpo);
@@ -199,13 +225,12 @@
                 containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 8); // Digitação mais rápida para códigos
+                setTimeout(digitar, 5); // Otimizado para renderização ágil
             } else { if(callback) callback(); }
         }
         digitar();
     }
 
-    // Extrai o bloco de código HTML limpo da resposta em Markdown
     function extrairCodigoHTML(texto) {
         const match = texto.match(/```html([\s\S]*?)```/);
         return match ? match[1].trim() : null;
@@ -213,12 +238,8 @@
 
     function carregarNoSandbox(codigoHTML) {
         sandboxPanel.classList.add('active');
-        // Redimensiona dinamicamente a barra de inputs se necessário
-        setTimeout(() => {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 400);
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 400);
 
-        // Injeta com segurança o código gerado no iframe de testes
         const blob = new Blob([codigoHTML], { type: 'text/html' });
         sandboxIframe.src = URL.createObjectURL(blob);
     }
@@ -259,14 +280,12 @@
                     const btnGroup = document.createElement('div');
                     btnGroup.className = 'btn-group';
 
-                    // Botão de Áudio
                     const btnOuvir = document.createElement('button');
                     btnOuvir.className = 'premium-btn';
                     btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg> Ouvir`;
                     btnOuvir.onclick = () => falarTexto(data.codigo);
                     btnGroup.appendChild(btnOuvir);
 
-                    // Verifica se a resposta contém código executável para abrir o Sandbox
                     const codigoDetectado = extrairCodigoHTML(data.codigo);
                     if (codigoDetectado) {
                         const btnVisualizar = document.createElement('button');
@@ -275,7 +294,6 @@
                         btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
                         btnGroup.appendChild(btnVisualizar);
 
-                        // Auto-executa o ecrã dividido imediatamente para impressionar o cliente
                         carregarNoSandbox(codigoDetectado);
                     }
 
