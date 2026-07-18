@@ -10,19 +10,38 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; width: 100vw; }
         
-        /* Layout Principal Baseado em Grid Dinâmico */
+        /* Layout Principal - Padrão: Apenas o Chat ocupa tudo */
         .app-layout { 
             display: grid; 
-            grid-template-columns: 1fr 0fr; /* Inicialmente 100% chat, 0% sandbox */
+            grid-template-columns: 1fr; 
             width: 100%; 
             height: 100%; 
-            transition: grid-template-columns 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
         }
         
-        /* Quando ativo, divide exatamente ao meio na vertical */
-        .app-layout.split-active { 
-            grid-template-columns: 1fr 1fr; 
+        /* Quando ativo em computadores/tablets: Divide 50% / 50% na Vertical */
+        @media (min-width: 801px) {
+            .app-layout.split-active { 
+                grid-template-columns: 1fr 1fr; /* Esquerda: Sandbox | Direita: Chat */
+            }
         }
+
+        /* LADO ESQUERDO: Painel Sandbox (Oculto por padrão no arranque) */
+        .sandbox-section { 
+            display: none; 
+            flex-direction: column; 
+            height: 100%; 
+            background: var(--preview-bg); 
+            overflow: hidden; 
+            position: relative; 
+            width: 100%;
+        }
+
+        /* Ativa a exibição da sandbox quando a classe split-active for disparada */
+        .app-layout.split-active .sandbox-section {
+            display: flex; 
+            animation: slideInLeft 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         
         /* LADO DIREITO: Secção do Chat e Conversa */
         .chat-section { 
@@ -31,12 +50,11 @@
             height: 100%; 
             position: relative; 
             background: var(--bg);
-            border-left: 0px solid var(--border);
-            transition: border-left 0.3s ease;
             overflow: hidden;
+            width: 100%;
         }
         .app-layout.split-active .chat-section {
-            border-left: 1px solid var(--border); /* Divisória premium entre as duas metades */
+            border-left: 1px solid var(--border); 
         }
         
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
@@ -77,62 +95,35 @@
         .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.12) !important; border: 1px solid rgba(255, 74, 74, 0.25); }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); opacity: 0.9; } }
 
-        /* LADO ESQUERDO: Painel Sandbox Automático e Responsivo */
-        .sandbox-section { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            background: var(--preview-bg); 
-            overflow: hidden; 
-            position: relative; 
-            width: 100%;
-        }
-
         /* Top Bar Navegador Premium */
-        .sandbox-header { height: 55px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
-        .browser-dots { display: flex; gap: 8px; align-items: center; }
-        .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
+        .sandbox-header { height: 50px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; flex-shrink: 0; }
+        .browser-dots { display: flex; gap: 6px; align-items: center; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 15px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; letter-spacing: 0.3px; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 5px 15px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; }
         
-        .sandbox-body { 
-            flex: 1; 
-            width: 100%; 
-            height: calc(100% - 55px); 
-            background: #14141f; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
-        
-        /* O Iframe é forçado a ser fluido e responsivo simulando viewport flexível */
-        .sandbox-iframe { 
-            width: 100%; 
-            height: 100%; 
-            border: none; 
-            background: #ffffff; 
-            border-radius: 12px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-            transition: all 0.3s ease;
-        }
+        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 50px); background: #14141f; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* COMPORTAMENTO MOBILE: Passa a empilhar se o ecrã físico for muito pequeno */
+        /* RESPONSIVIDADE PARA TELEMÓVEIS (Evita que o layout quebre ou se sobreponha) */
         @media (max-width: 800px) {
             .app-layout.split-active { 
                 grid-template-columns: 1fr; 
-                grid-template-rows: 1fr 1fr; /* Divide meio a meio na horizontal em telemóveis pequenos */
+                grid-template-rows: 1fr 1fr; /* Divide meio a meio na horizontal: Topo=Preview, Baixo=Chat */
             }
-            .app-layout.split-active .chat-section { order: 2; border-left: none; border-top: 1px solid var(--border); }
-            .app-layout.split-active .sandbox-section { order: 1; }
+            .app-layout.split-active .chat-section { 
+                border-left: none; 
+                border-top: 2px solid var(--border); 
+            }
+            .browser-address { width: 40%; }
         }
     </style>
 </head>
 <body>
 
     <div class="app-layout" id="main-layout">
-        <!-- LADO ESQUERDO: Visualizador Sandbox -->
+        <!-- LADO ESQUERDO: Visualizador Sandbox Live -->
         <div class="sandbox-section" id="sandbox-panel">
             <div class="sandbox-header">
                 <div class="browser-dots">
@@ -148,7 +139,7 @@
             </div>
         </div>
 
-        <!-- LADO DIREITO: Chat e Input da Honey IA -->
+        <!-- LADO DIREITO: Chat e Entrada de Mensagem -->
         <div class="chat-section" id="chat-area">
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
@@ -249,106 +240,11 @@
                 containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 4); // Digitação rápida de alta performance
+                setTimeout(digitar, 4); 
             } else { if(callback) callback(); }
         }
         digitar();
     }
 
     function extrairCodigoHTML(texto) {
-        const match = texto.match(/```html([\s\S]*?)```/);
-        return match ? match[1].trim() : null;
-    }
-
-    function carregarNoSandbox(codigoHTML) {
-        // Ativa a divisão perfeita de 50%/50% via Grid
-        mainLayout.classList.add('split-active');
-        
-        // Injeta o código com suporte nativo a responsividade
-        const blob = new Blob([codigoHTML], { type: 'text/html' });
-        sandboxIframe.src = URL.createObjectURL(blob);
-        
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 300);
-    }
-
-    function fecharSandbox() {
-        mainLayout.classList.remove('split-active');
-    }
-
-    async function enviarMensagem() {
-        const promptText = userInput.value.trim();
-        if (!promptText) return;
-
-        if (welcomeScreen.style.opacity !== '0') {
-            welcomeScreen.style.opacity = '0';
-            setTimeout(() => welcomeScreen.style.visibility = 'hidden', 500);
-        }
-
-        criarBalao(promptText, 'user-msg');
-        userInput.value = "";
-        sendBtn.disabled = true;
-
-        const honeyBalao = criarBalao("", 'honey-msg');
-        const spanTexto = document.createElement('span');
-        spanTexto.className = 'msg-text';
-        spanTexto.textContent = "...";
-        honeyBalao.appendChild(spanTexto);
-
-        try {
-            const response = await fetch('/gerar-gratis', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: promptText })
-            });
-            const data = await response.json();
-            
-            if (response.ok && data.sucesso) {
-                efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
-                    const btnGroup = document.createElement('div');
-                    btnGroup.className = 'btn-group';
-
-                    const btnOuvir = document.createElement('button');
-                    btnOuvir.className = 'premium-btn';
-                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg> Ouvir`;
-                    btnOuvir.onclick = () => falarTexto(data.codigo);
-                    btnGroup.appendChild(btnOuvir);
-
-                    const codigoDetectado = extrairCodigoHTML(data.codigo);
-                    if (codigoDetectado) {
-                        const btnVisualizar = document.createElement('button');
-                        btnVisualizar.className = 'premium-btn visualize-btn';
-                        btnVisualizar.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Atualizar Visualização`;
-                        btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
-                        btnGroup.appendChild(btnVisualizar);
-
-                        // Carrega instantaneamente mantendo o chat ao lado direito
-                        carregarNoSandbox(codigoDetectado);
-                    }
-
-                    honeyBalao.appendChild(btnGroup);
-                });
-            } else {
-                spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
-            }
-        } catch (err) {
-            spanTexto.textContent = "Erro de ligação ao servidor de elite.";
-        } finally {
-            sendBtn.disabled = false;
-        }
-    }
-
-    function criarBalao(texto, classe) {
-        const div = document.createElement('div');
-        div.className = `message ${classe}`;
-        if (texto !== "") {
-            const span = document.createElement('span');
-            span.textContent = texto;
-            div.appendChild(span);
-        }
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        return div;
-    }
-</script>
-</body>
-</html>
+        const match = texto.match(/```html([\s\S]*?)
