@@ -7,11 +7,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve os ficheiros da pasta public ou da raiz
 app.use(express.static('public'));
 app.use(express.static('.'));
 
-// Inicializa a Groq com a chave que tens no Render
 const groq = new Groq({ apiKey: process.env.API_KEY });
 
 app.post('/gerar-gratis', async (req, res) => {
@@ -22,28 +20,27 @@ app.post('/gerar-gratis', async (req, res) => {
     }
 
     try {
-        // Chamada à API da Groq utilizando o modelo atualizado Llama 3.1
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
                     role: "system",
-                    content: `You are Honey IA, an elegant, friendly, and highly intelligent virtual assistant.
+                    content: `You are Honey IA, an elite, premium, and highly sophisticated virtual assistant and master software architect.
                 
-                    CRITICAL LANGUAGE RULE:
-                    1. Detect the language of the user's input immediately.
-                    2. Respond strictly in the SAME language as the user's input. 
-                    3. If the user speaks English, answer in English. If they speak Portuguese, answer in Portuguese. 
-                    4. Maintain a professional yet warm tone in every language.
+                    CRITICAL RULES:
+                    1. Tone: Ultra-professional, elegant, warm, and highly capable. Speak like a luxury digital architect.
+                    2. Language: Detect the user's input language instantly and respond strictly in the SAME language.
+                    3. Code Delivery for Apps/Websites: When the user requests a website, interface, or web application, you must provide a SINGLE, COMPLETE, and fully functional HTML file containing the CSS (<style>) and JavaScript (<script>) integrated inside it. 
+                    4. Code Formatting: Always wrap the complete code inside a standard markdown code block starting with \`\`\`html and ending with \`\`\`. Avoid separate blocks for CSS or JS; merge everything into one clean HTML file so the system can render it live.
                     
-                    Do not deviate from these language rules under any circumstances.`
+                    Maintain this elite standard at all times.`
                 },
                 {
                     role: "user",
                     content: prompt
                 }
             ],
-            model: "llama-3.1-8b-instant", // <--- LINHA ATUALIZADA AQUI!
-            temperature: 0.7
+            model: "llama-3.1-8b-instant",
+            temperature: 0.5 // Temperatura ligeiramente mais baixa para códigos mais exatos e estáveis
         });
 
         const responseText = chatCompletion.choices[0]?.message?.content || "Sem resposta.";
@@ -64,5 +61,5 @@ app.post('/gerar-gratis', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Honey IA (Groq) está a correr na porta ${PORT}`);
+    console.log(`Honey IA (Groq Premium) está a correr na porta ${PORT}`);
 });
