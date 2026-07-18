@@ -10,7 +10,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        /* Ecrã de Boas-Vindas Ajustado (Não cobre o input) */
+        /* Ecrã de Boas-Vindas */
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 90px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
         .hero-bee { font-size: 80px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
@@ -18,34 +18,38 @@
         #welcome-screen p { color: #8a8a9e; max-width: 400px; font-size: 16px; line-height: 1.5; }
 
         /* Área Principal do Chat */
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 800px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 100px; z-index: 1; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 110px; z-index: 1; }
         
-        /* Balões de Mensagem (Correção do tamanho máximo) */
-        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; }
+        /* Balões de Mensagem Ajustados */
+        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
         .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
         
-        /* Botão de Áudio no Balão da IA */
-        .audio-play-btn { background: none; border: none; color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 8px; font-size: 12px; font-weight: 600; gap: 5px; }
+        /* Texto dentro do balão */
+        .msg-text { width: 100%; display: block; }
 
-        /* Barra de Input Inferior Fixa Garantida */
-        .input-area { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, var(--bg) 30%); padding: 20px; display: flex; justify-content: center; z-index: 5; }
-        .input-wrapper { max-width: 800px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 6px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: border-color 0.2s; }
-        .input-wrapper:focus-within { border-color: var(--gold); }
+        /* Botão de Áudio Premium */
+        .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 10px; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; }
+        .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
+
+        /* Barra de Input Estilizada e Elegante (Flutuante) */
+        .input-area { position: fixed; bottom: 15px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
+        .input-wrapper { max-width: 600px; width: 92%; background: var(--card); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 6px 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; }
+        .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
         
-        .chat-input { flex: 1; background: none; border: none; padding: 12px; color: #fff; font-size: 16px; outline: none; }
+        .chat-input { flex: 1; background: none; border: none; padding: 10px 12px; color: #fff; font-size: 15px; outline: none; }
         .chat-input::placeholder { color: #5a5a75; }
         
         /* Botões de Ação */
-        .action-btn { background: none; border: none; color: #8a8a9e; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; margin-left: 5px; }
+        .action-btn { background: none; border: none; color: #8a8a9e; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
-        .send-btn { background: var(--gold); color: #000; }
-        .send-btn:hover { background: var(--gold-dark); color: #000; transform: scale(1.05); }
+        .send-btn { background: var(--gold); color: #000; margin-left: 5px; }
+        .send-btn:hover { background: var(--gold-dark); transform: scale(1.05); }
         .send-btn:disabled { background: #232330; color: #5a5a75; cursor: not-allowed; transform: none; }
         
-        .recording { animation: pulse 1.5s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.1) !important; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.15) !important; border: 1px solid rgba(255, 74, 74, 0.3); }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -60,13 +64,13 @@
     <!-- Histórico de Chat -->
     <div class="chat-container" id="chat-box"></div>
 
-    <!-- Barra de Input Estilo ChatGPT -->
+    <!-- Barra de Input Estilo ChatGPT Corrigida -->
     <div class="input-area">
         <div class="input-wrapper">
             <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
             </button>
-            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte qualquer coisa à Honey IA..." onkeypress="verificarTeclado(event)">
+            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte à Honey IA..." onkeypress="verificarTeclado(event)">
             <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -83,16 +87,25 @@
     let reconhecimentoVoz;
     let estaGravando = false;
 
+    // Inicialização melhorada do microfone
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         reconhecimentoVoz = new SpeechRecognition();
-        reconhecimentoVoz.lang = 'pt-PT';
+        reconhecimentoVoz.lang = 'pt-BR'; // Mudado para pt-BR para maior compatibilidade de captação global
         reconhecimentoVoz.continuous = false;
+        reconhecimentoVoz.interimResults = false;
 
         reconhecimentoVoz.onresult = (event) => {
             const textoDitado = event.results[0][0].transcript;
-            userInput.value = textoDitado;
-            enviarMensagem();
+            if(textoDitado.trim() !== "") {
+                userInput.value = textoDitado;
+                enviarMensagem();
+            }
+        };
+
+        reconhecimentoVoz.onerror = (e) => {
+            console.error("Erro no microfone: ", e.error);
+            alert("Erro no microfone ou permissão negada. Verifique as configurações do navegador.");
         };
 
         reconhecimentoVoz.onend = () => {
@@ -102,22 +115,42 @@
     }
 
     function alternarGravacao() {
-        if (!reconhecimentoVoz) return alert("O seu navegador não suporta entrada de áudio.");
+        if (!reconhecimentoVoz) return alert("O seu navegador não suporta ou bloqueou a entrada de áudio.");
         if (estaGravando) {
             reconhecimentoVoz.stop();
         } else {
-            estaGravando = true;
-            micBtn.classList.add('recording');
-            reconhecimentoVoz.start();
+            try {
+                estaGravando = true;
+                micBtn.classList.add('recording');
+                reconhecimentoVoz.start();
+            } catch(err) {
+                estaGravando = false;
+                micBtn.classList.remove('recording');
+            }
         }
     }
 
+    // Função de Voz Refatorada de Alta Performance
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
-            const textoLimpo = texto.replace(/[`*#]/g, '');
+            // Cancelar qualquer áudio pendente imediatamente antes de falar
+            window.speechSynthesis.cancel();
+
+            const textoLimpo = texto.replace(/[`*#\[\]\-]/g, ' ');
             const fala = new SpeechSynthesisUtterance(textoLimpo);
-            fala.lang = 'pt-PT';
+            
+            // Tenta detetar vozes em português instaladas no telemóvel
+            const vozes = window.speechSynthesis.getVoices();
+            const vozPT = vozes.find(v => v.lang.includes('pt-PT') || v.lang.includes('pt-BR'));
+            if (vozPT) fala.voice = vozPT;
+
+            fala.lang = 'pt-BR'; 
+            fala.rate = 1.0; // Velocidade natural
+            fala.pitch = 1.0;
+
             window.speechSynthesis.speak(fala);
+        } else {
+            alert("A reprodução de voz não é suportada neste navegador.");
         }
     }
 
@@ -125,15 +158,17 @@
         if (event.key === 'Enter') enviarMensagem();
     }
 
-    function efeitoDigitarAoVivo(elemento, texto, callback) {
+    // Correção dos espaços no Efeito de Digitação ao Vivo
+    function efeitoDigitarAoVivo(containerTexto, texto, callback) {
         let i = 0;
-        elemento.innerText = "";
+        containerTexto.textContent = ""; 
+        
         function digitar() {
             if (i < texto.length) {
-                elemento.innerText += texto.charAt(i);
+                containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 15);
+                setTimeout(digitar, 20);
             } else {
                 if(callback) callback();
             }
@@ -154,7 +189,12 @@
         userInput.value = "";
         sendBtn.disabled = true;
 
-        const honeyBalao = criarBalao("[Honey IA está a pensar...]", 'honey-msg');
+        // Criar estrutura interna estável para o balão da Honey IA
+        const honeyBalao = criarBalao("", 'honey-msg');
+        const spanTexto = document.createElement('span');
+        spanTexto.className = 'msg-text';
+        spanTexto.textContent = "[Honey IA está a pensar...]";
+        honeyBalao.appendChild(spanTexto);
 
         try {
             const response = await fetch('/gerar-gratis', {
@@ -166,7 +206,7 @@
             const data = await response.json();
 
             if (response.ok && data.sucesso) {
-                efeitoDigitarAoVivo(honeyBalao, data.codigo, () => {
+                efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
                     const btnOuvir = document.createElement('button');
                     btnOuvir.className = 'audio-play-btn';
                     btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> Ouvir Resposta`;
@@ -174,10 +214,10 @@
                     honeyBalao.appendChild(btnOuvir);
                 });
             } else {
-                honeyBalao.innerText = "[ERRO] " + (data.erro || "Falha ao processar comando.");
+                spanTexto.textContent = "[ERRO] " + (data.erro || "Falha ao processar comando.");
             }
         } catch (err) {
-            honeyBalao.innerText = "[ERRO DE LIGAÇÃO] Sem resposta do servidor.";
+            spanTexto.textContent = "[ERRO DE LIGAÇÃO] Sem resposta do servidor.";
         } finally {
             sendBtn.disabled = false;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -187,10 +227,18 @@
     function criarBalao(texto, classe) {
         const div = document.createElement('div');
         div.className = `message ${classe}`;
-        div.innerText = texto;
+        div.textContent = texto;
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
         return div;
+    }
+
+    // Permite carregar a lista de vozes do sistema em background (essencial para Android/Chrome)
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = window.speechSynthesis.getVoices;
+        }
     }
 </script>
 </body>
