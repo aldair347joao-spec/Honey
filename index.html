@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,17 +10,14 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        /* Ecrã de Boas-Vindas */
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
         .hero-bee { font-size: 80px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         #welcome-screen h1 { font-size: 36px; color: var(--gold); margin-bottom: 10px; font-weight: 600; letter-spacing: -1px; }
         #welcome-screen p { color: #8a8a9e; max-width: 400px; font-size: 16px; line-height: 1.5; }
 
-        /* Área Principal do Chat */
         .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 120px; z-index: 1; }
         
-        /* Balões de Mensagem */
         .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
@@ -28,11 +25,9 @@
         
         .msg-text { width: 100%; display: block; }
 
-        /* Botão de Áudio Premium */
         .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; font-family: 'Inter', sans-serif; }
         .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
 
-        /* Barra de Input Inferior Ajustada */
         .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
         .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; gap: 5px; }
         .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
@@ -40,7 +35,6 @@
         .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
         .chat-input::placeholder { color: #5a5a75; }
         
-        /* Botões de Ação */
         .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
         .send-btn { background: var(--gold); color: #000; }
@@ -53,23 +47,20 @@
 </head>
 <body>
 
-    <!-- Ecrã Inicial de Boas-Vindas -->
     <div id="welcome-screen">
         <span class="hero-bee">🐝</span>
         <h1>Honey IA</h1>
         <p>A tua assistente virtual inteligente. Converse ou peça para criar projetos incríveis.</p>
     </div>
 
-    <!-- Histórico de Chat -->
     <div class="chat-container" id="chat-box"></div>
 
-    <!-- Barra de Input -->
     <div class="input-area">
         <div class="input-wrapper">
             <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
                 <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
             </button>
-            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte ou peça um projeto à Honey..." onkeypress="verificarTeclado(event)">
+            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte ou peça um projeto..." onkeypress="verificarTeclado(event)">
             <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -85,20 +76,14 @@
 
     let reconhecimentoVoz;
     let estaGravando = false;
-    let listaDeVozes = [];
 
-    // Carregamento Prévio e Forçado de Vozes do Sistema (Crucial para Android)
+    // Inicialização forçada das vozes (Crucial para Android)
+    let vozesDisponiveis = [];
     function carregarVozes() {
-        if ('speechSynthesis' in window) {
-            listaDeVozes = window.speechSynthesis.getVoices();
-        }
+        vozesDisponiveis = window.speechSynthesis.getVoices();
     }
+    window.speechSynthesis.onvoiceschanged = carregarVozes;
     carregarVozes();
-    if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = () => {
-            listaDeVozes = window.speechSynthesis.getVoices();
-        };
-    }
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -122,86 +107,57 @@
     }
 
     function alternarGravacao() {
-        if (!reconhecimentoVoz) return alert("O microfone não está disponível.");
+        if (!reconhecimentoVoz) return alert("Microfone indisponível.");
         if (estaGravando) {
             reconhecimentoVoz.stop();
         } else {
-            try {
-                estaGravando = true;
-                micBtn.classList.add('recording');
-                reconhecimentoVoz.start();
-            } catch(err) {
-                estaGravando = false;
-                micBtn.classList.remove('recording');
-            }
+            estaGravando = true;
+            micBtn.classList.add('recording');
+            reconhecimentoVoz.start();
         }
     }
 
-    // Leitor de Voz Feminino Blindado contra Erros de Caracteres
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
 
-            // Limpa emojis, caracteres corrompidos (como ) e símbolos de programação
             let textoLimpo = texto.replace(/[\uFFFD\u24C2\u1F00-\u1FFFF\u2700-\u27BF\uE000-\uF8FF]/g, '');
             textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ');
             textoLimpo = textoLimpo.trim();
             
             if (textoLimpo.includes('function') || textoLimpo.includes('class ') || textoLimpo.includes('def ')) {
-                textoLimpo = "Aqui está o projeto e o código limpo que solicitou. Já pode ver e copiar diretamente do seu ecrã!";
+                textoLimpo = "Aqui está o projeto que solicitou. Pode consultar o código no seu ecrã.";
             }
 
             const fala = new SpeechSynthesisUtterance(textoLimpo);
             
-            // Forçar voz em Português
+            // Força o idioma para o sintetizador
             fala.lang = 'pt-PT';
 
-            // Algoritmo de procura por Voz Feminina Nativa
-            if (listaDeVozes.length === 0) {
-                listaDeVozes = window.speechSynthesis.getVoices();
-            }
+            // Tenta selecionar voz em português se disponível
+            let vozes = window.speechSynthesis.getVoices();
+            let vozPt = vozes.find(v => v.lang.toLowerCase().includes('pt'));
+            if (vozPt) fala.voice = vozPt;
 
-            // Tenta encontrar vozes com marcas femininas conhecidas em português
-            const vozFeminina = listaDeVozes.find(v => 
-                (v.lang.includes('pt-') || v.lang.includes('PT-')) && 
-                (v.name.toLowerCase().includes('female') || 
-                 v.name.toLowerCase().includes('maria') || 
-                 v.name.toLowerCase().includes('francisca') || 
-                 v.name.toLowerCase().includes('mulher') || 
-                 v.name.toLowerCase().includes('google'))
-            );
-
-            if (vozFeminina) {
-                fala.voice = vozFeminina;
-            }
-
-            // Ajustes finos para garantir tom mais agudo e feminino mesmo nas vozes padrão
-            fala.pitch = 1.25; // Torna o timbre mais agudo (feminino)
-            fala.rate = 1.05;  // Velocidade de fala fluida e natural
+            fala.pitch = 1.0; 
+            fala.rate = 1.0;  
 
             window.speechSynthesis.speak(fala);
-        } else {
-            alert("O seu navegador bloqueou ou não suporta a saída de voz.");
         }
     }
 
-    function verificarTeclado(event) {
-        if (event.key === 'Enter') enviarMensagem();
-    }
+    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
 
     function efeitoDigitarAoVivo(containerTexto, texto, callback) {
         let i = 0;
         containerTexto.textContent = ""; 
-        
         function digitar() {
             if (i < texto.length) {
                 containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
                 setTimeout(digitar, 15);
-            } else {
-                if(callback) callback();
-            }
+            } else { if(callback) callback(); }
         }
         digitar();
     }
@@ -222,7 +178,7 @@
         const honeyBalao = criarBalao("", 'honey-msg');
         const spanTexto = document.createElement('span');
         spanTexto.className = 'msg-text';
-        spanTexto.textContent = "[Honey IA está a responder...]";
+        spanTexto.textContent = "[A pensar...]";
         honeyBalao.appendChild(spanTexto);
 
         try {
@@ -231,25 +187,22 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: promptText })
             });
-
             const data = await response.json();
-
             if (response.ok && data.sucesso) {
                 efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
                     const btnOuvir = document.createElement('button');
                     btnOuvir.className = 'audio-play-btn';
-                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> Ouvir Resposta`;
+                    btnOuvir.innerHTML = "Ouvir Resposta";
                     btnOuvir.onclick = () => falarTexto(data.codigo);
                     honeyBalao.appendChild(btnOuvir);
                 });
             } else {
-                spanTexto.textContent = "[ERRO] " + (data.erro || "Falha ao processar comando.");
+                spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
             }
         } catch (err) {
-            spanTexto.textContent = "[ERRO DE LIGAÇÃO] Sem resposta do servidor.";
+            spanTexto.textContent = "Erro de ligação.";
         } finally {
             sendBtn.disabled = false;
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
     }
 
