@@ -1,46 +1,52 @@
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
 const https = require('https');
-
+const path = require('path');
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Serve o ficheiro HTML principal
+// Procura a chave nas variáveis de ambiente do Render, ou usa uma string vazia se não configurada
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
+
+// Configurações essenciais do Express
+app.use(express.json());
+app.use(express.static(path.join(__dirname)));
+
+// Rota principal para carregar a página de chat
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Chave de acesso à API da Groq
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+// Rota POST que o teu index.html consome
+app.post('/gerar-gratis', async (req, res) => {
+    const promptUtilizador = req.body.prompt;
 
-// Base de dados temporária de teste
-let users = [
-    { identifier: "admin@honey.com", password: "Password123", pago: true, verificado: true }
-];
-let codigosVerificacao = {}; 
+    if (!promptUtilizador) {
+        return res.status(400).json({ sucesso: false, erro: "O comando ou pergunta não pode estar vazio." });
+    }
 
-// Validação de senha forte
-function validarSenha(senha) {
-    const temOitoCaracteres = senha.length >= 8;
-    const temMaiuscula = /[A-Z]/.test(senha);
-    const temNumero = /[0-9]/.test(senha);
-    return temOitoCaracteres && temMaiuscula && temNumero;
-}
+    try {
+        const respostaIA = await conectarMotorGroq(promptUtilizador);
+        return res.json({ sucesso: true, codigo: respostaIA });
+    } catch (erro) {
+        console.error("Erro no processamento:", erro);
+        return res.status(500).json({ sucesso: false, erro: erro });
+    }
+});
 
-// FUNÇÃO AUXILIAR PARA LIGAÇÃO À GROQ USANDO O MODELO ATUALIZADO
+// FUNÇÃO AUXILIAR COM A NOVA PERSONALIDADE INTELIGENTE E HUMANA
 function conectarMotorGroq(promptText) {
     return new Promise((resolve, reject) => {
         if (!GROQ_API_KEY) {
             return reject("Chave GROQ_API_KEY não configurada no painel do Render.");
         }
 
+        // Criamos o corpo dos dados com o System Prompt ajustado para evitar respostas puramente técnicas
         const corpoDados = JSON.stringify({
-            model: "llama-3.1-8b-instant", // Atualizado para o modelo ativo na API
+            model: "llama-3.1-8b-instant",
             messages: [
-                { role: "system", content: "Você é a Honey IA. Gere apenas código limpo, sem introduções ou explicações." },
+                { 
+                    role: "system", 
+                    content: "Você é a Honey IA, uma assistente virtual inteligente, amigável, acolhedora e profissional. Responda SEMPRE em português de forma natural, curta e conversacional. Regra crucial: Se o utilizador fizer perguntas normais, saudações ou apenas conversar, dialogue normalmente como um ser humano simpático faria. SÓ forneça códigos, scripts, blocos de programação ou projetos se o cliente pedir explicitamente usando palavras como 'crie um código', 'programe', 'gere um script' ou 'faça um projeto'." 
+                },
                 { role: "user", content: promptText }
             ]
         });
@@ -85,100 +91,8 @@ function conectarMotorGroq(promptText) {
     });
 }
 
-// ROTA: Gerar o 1º Código (100% Grátis e sem conta)
-app.post('/gerar-gratis', async (req, res) => {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ sucesso: false, erro: "Descreva o seu projeto." });
-
-    try {
-        const codigoGerado = await conectarMotorGroq(prompt);
-        res.json({ sucesso: true, codigo: codigoGerado });
-    } catch (erroDoMotor) {
-        console.error(erroDoMotor);
-        res.status(500).json({ sucesso: false, erro: erroDoMotor });
-    }
-});
-
-// ROTA: Iniciar Cadastro
-app.post('/register/init', (req, res) => {
-    const { identifier, password } = req.body;
-
-    if (!identifier || !password) {
-        return res.status(400).json({ erro: "Preencha todos os campos." });
-    }
-
-    if (!validarSenha(password)) {
-        return res.status(400).json({ 
-            erro: "A palavra-passe deve ter pelo menos 8 caracteres, uma letra maiúscula e um número." 
-        });
-    }
-
-    const existe = users.find(u => u.identifier === identifier);
-    if (existe) return res.status(400).json({ erro: "Este utilizador já está registado." });
-
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    codigosVerificacao[identifier] = { codigo, password };
-
-    console.log(`\n[HONEY IA SECURITY] Código para ${identifier}: ${codigo}\n`);
-
-    res.json({ 
-        sucesso: true, 
-        msg: "Código de verificação gerado!", 
-        codigoSimulado: codigo 
-    });
-});
-
-// ROTA: Confirmar Código OTP
-app.post('/register/confirm', (req, res) => {
-    const { identifier, codigoInserido } = req.body;
-    const dadosProvisorios = codigosVerificacao[identifier];
-
-    if (!dadosProvisorios) {
-        return res.status(400).json({ erro: "Sessão expirada. Tente registar-se novamente." });
-    }
-
-    if (dadosProvisorios.codigo !== codigoInserido) {
-        return res.status(400).json({ erro: "Código de verificação incorreto." });
-    }
-
-    users.push({
-        identifier: identifier,
-        password: dadosProvisorios.password,
-        pago: false, 
-        verificado: true
-    });
-
-    delete codigosVerificacao[identifier];
-    res.json({ sucesso: true, msg: "Cadastro confirmado! Agora efetue o pagamento para libertar o acesso ilimitado." });
-});
-
-// ROTA: Login
-app.post('/login', (req, res) => {
-    const { identifier, password } = req.body;
-    const user = users.find(u => u.identifier === identifier && u.password === password);
-    
-    if (!user) {
-        return res.status(401).json({ erro: "Credenciais inválidas ou conta não registada." });
-    }
-    
-    res.json({ sucesso: true, user: { identifier: user.identifier, pago: user.pago } });
-});
-
-// ROTA: Gerar Código com Honey IA (Ilimitado após cadastro e pagamento)
-app.post('/gerar', async (req, res) => {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ sucesso: false, erro: "Descreva o seu projeto." });
-
-    try {
-        const codigoGerado = await conectarMotorGroq(prompt);
-        res.json({ sucesso: true, codigo: codigoGerado });
-    } catch (erroDoMotor) {
-        res.status(500).json({ sucesso: false, erro: erroDoMotor });
-    }
-});
-
-// CONFIGURAÇÃO DA PORTA DINÂMICA DO RENDER
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🍯 Honey IA ativa na porta correta: ${PORT}`);
+// Configuração da porta do servidor para o Render
+const PORTA = process.env.PORT || 3000;
+app.listen(PORTA, () => {
+    console.log(`Honey IA a rodar com sucesso na porta ${PORTA}`);
 });
