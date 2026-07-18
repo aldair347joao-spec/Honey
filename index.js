@@ -1,18 +1,18 @@
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Groq = require('groq-sdk');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Tenta servir os ficheiros da pasta 'public', se não existir, serve da raiz '.'
+// Serve os ficheiros da pasta public ou da raiz
 app.use(express.static('public'));
 app.use(express.static('.'));
 
-// Configuração da API do Google
-const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+// Inicializa a Groq com a chave que tens no Render
+const groq = new Groq({ apiKey: process.env.API_KEY });
 
 app.post('/gerar-gratis', async (req, res) => {
     const { prompt } = req.body;
@@ -22,23 +22,31 @@ app.post('/gerar-gratis', async (req, res) => {
     }
 
     try {
-        const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: `
-                You are Honey IA, an elegant, friendly, and highly intelligent virtual assistant.
+        // Chamada à API da Groq utilizando o Llama 3
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: "system",
+                    content: `You are Honey IA, an elegant, friendly, and highly intelligent virtual assistant.
                 
-                CRITICAL LANGUAGE RULE:
-                1. Detect the language of the user's input immediately.
-                2. Respond strictly in the SAME language as the user's input. 
-                3. If the user speaks English, answer in English. If they speak Portuguese, answer in Portuguese. 
-                4. Maintain a professional yet warm tone in every language.
-                
-                Do not deviate from these language rules under any circumstances.
-            `
+                    CRITICAL LANGUAGE RULE:
+                    1. Detect the language of the user's input immediately.
+                    2. Respond strictly in the SAME language as the user's input. 
+                    3. If the user speaks English, answer in English. If they speak Portuguese, answer in Portuguese. 
+                    4. Maintain a professional yet warm tone in every language.
+                    
+                    Do not deviate from these language rules under any circumstances.`
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ],
+            model: "llama3-8b-8192",
+            temperature: 0.7
         });
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const responseText = chatCompletion.choices[0]?.message?.content || "Sem resposta.";
 
         res.json({ 
             sucesso: true, 
@@ -46,16 +54,15 @@ app.post('/gerar-gratis', async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Erro na API:", error);
+        console.error("Erro na API da Groq:", error);
         res.status(500).json({ 
             sucesso: false, 
-            erro: "Ocorreu um erro ao processar o seu pedido." 
+            erro: "Ocorreu um erro ao processar o seu pedido na Groq." 
         });
     }
 });
 
-// O Render define a variável PORT automaticamente, se não, usa a 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Honey IA está a correr com sucesso na porta ${PORT}`);
+    console.log(`Honey IA (Groq) está a correr na porta ${PORT}`);
 });
