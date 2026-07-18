@@ -3,67 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA | Premium Chat</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Honey IA | Elite Premium Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #08080c; --card: #12121a; --border: #1f1f2e; }
+        :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #060609; --card: #0f0f16; --border: #1a1a26; --preview-bg: #14141f; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; overflow: hidden; position: relative; }
+        
+        /* Layout Principal Split Screen */
+        .app-layout { display: flex; width: 100%; height: 100%; position: relative; }
+        
+        /* Área do Chat */
+        .chat-section { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; transition: all 0.4s ease; }
         
         #welcome-screen { position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 100px); background: var(--bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2; transition: opacity 0.5s ease, visibility 0.5s; text-align: center; padding: 20px; }
-        .hero-bee { font-size: 80px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        #welcome-screen h1 { font-size: 36px; color: var(--gold); margin-bottom: 10px; font-weight: 600; letter-spacing: -1px; }
-        #welcome-screen p { color: #8a8a9e; max-width: 400px; font-size: 16px; line-height: 1.5; }
+        .hero-bee { font-size: 70px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        #welcome-screen h1 { font-size: 38px; color: var(--gold); margin-bottom: 12px; font-weight: 600; letter-spacing: -1px; }
+        #welcome-screen p { color: #8a8a9e; max-width: 420px; font-size: 15px; line-height: 1.6; font-weight: 300; }
 
-        .chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-width: 600px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 120px; z-index: 1; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 30px 20px; display: flex; flex-direction: column; gap: 24px; max-width: 680px; width: 100%; margin: 0 auto; scroll-behavior: smooth; padding-bottom: 140px; }
         
-        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 18px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
-        .honey-msg { background: var(--card); color: #f1f1f6; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 15px 20px; border-radius: 20px; line-height: 1.6; font-size: 15px; animation: fadeIn 0.3s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; box-shadow: 0 4px 15px rgba(255,183,0,0.15); }
+        .honey-msg { background: var(--card); color: #e4e4ed; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
         
         .msg-text { width: 100%; display: block; }
 
-        .audio-play-btn { background: rgba(255, 183, 0, 0.1); border: 1px solid rgba(255, 183, 0, 0.2); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; margin-top: 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; gap: 6px; width: fit-content; transition: background 0.2s; font-family: 'Inter', sans-serif; }
-        .audio-play-btn:hover { background: rgba(255, 183, 0, 0.2); }
+        /* Botões Premium */
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .premium-btn { background: rgba(255, 183, 0, 0.06); border: 1px solid rgba(255, 183, 0, 0.15); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
+        .premium-btn:hover { background: rgba(255, 183, 0, 0.15); border-color: var(--gold); transform: translateY(-1px); }
+        .visualize-btn { background: rgba(0, 230, 118, 0.08); border-color: rgba(0, 230, 118, 0.2); color: #00e676; }
+        .visualize-btn:hover { background: rgba(0, 230, 118, 0.2); border-color: #00e676; }
 
-        .input-area { position: fixed; bottom: 20px; left: 0; width: 100%; padding: 0 15px; display: flex; justify-content: center; z-index: 5; background: transparent; }
-        .input-wrapper { max-width: 600px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 8px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: border-color 0.2s, transform 0.2s; gap: 5px; }
-        .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); }
+        /* Barra de Input */
+        .input-area { position: fixed; bottom: 24px; left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: center; z-index: 5; background: transparent; pointer-events: none; }
+        .input-wrapper { max-width: 640px; width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 10px 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.7); transition: all 0.2s; gap: 6px; pointer-events: auto; }
+        .input-wrapper:focus-within { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255,183,0,0.05); }
         
-        .chat-input { flex: 1; background: none; border: none; padding: 8px 4px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
-        .chat-input::placeholder { color: #5a5a75; }
+        .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 16px; outline: none; min-width: 0; }
+        .chat-input::placeholder { color: #4e4e66; }
         
-        .action-btn { background: none; border: none; color: #8a8a9e; width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
-        .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.1); }
+        .action-btn { background: none; border: none; color: #73738c; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.08); }
         .send-btn { background: var(--gold); color: #000; }
-        .send-btn:hover { background: var(--gold-dark); transform: scale(1.05); }
-        .send-btn:disabled { background: #232330; color: #5a5a75; cursor: not-allowed; transform: none; }
+        .send-btn:hover { background: var(--gold-dark); transform: scale(1.04); }
+        .send-btn:disabled { background: #181824; color: #4e4e66; cursor: not-allowed; transform: none; }
+        .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.12) !important; border: 1px solid rgba(255, 74, 74, 0.25); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); opacity: 0.9; } }
+
+        /* Painel Sandbox de Teste Live (Lado Direito) */
+        .sandbox-section { flex: 0; width: 0%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: flex 0.4s cubic-bezier(0.25, 1, 0.5, 1), width 0.4s ease; overflow: hidden; position: relative; }
+        .sandbox-section.active { flex: 1.1; width: 55%; }
+
+        /* Top Bar Estilo Navegador Premium */
+        .sandbox-header { height: 55px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
+        .browser-dots { display: flex; gap: 8px; align-items: center; }
+        .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 20px; font-size: 12px; color: #8a8a9e; width: 45%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; letter-spacing: 0.3px; }
         
-        .recording { animation: pulse 1.2s infinite; color: #ff4a4a !important; background: rgba(255, 74, 74, 0.15) !important; border: 1px solid rgba(255, 74, 74, 0.3); }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 55px); background: #ffffff; position: relative; }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; }
+
+        /* Ajustes responsivos para quando a aba abrir */
+        @media (max-width: 900px) {
+            .sandbox-section.active { position: absolute; right: 0; top: 0; width: 100%; height: 100%; z-index: 10; }
+            .close-sandbox { display: flex !important; }
+        }
+        .close-sandbox { display: none; margin-left: auto; }
     </style>
 </head>
 <body>
 
-    <div id="welcome-screen">
-        <span class="hero-bee">🐝</span>
-        <h1>Honey IA</h1>
-        <p>A tua assistente virtual inteligente. Converse ou peça para criar projetos incríveis em qualquer idioma.</p>
-    </div>
+    <div class="app-layout">
+        <!-- Secção da Conversa -->
+        <div class="chat-section" id="chat-area">
+            <div id="welcome-screen">
+                <span class="hero-bee">🐝</span>
+                <h1>Honey IA</h1>
+                <p>A tua arquiteta digital. Crie aplicações, websites ou explore ideias incríveis com uma execução premium.</p>
+            </div>
 
-    <div class="chat-container" id="chat-box"></div>
+            <div class="chat-container" id="chat-box"></div>
 
-    <div class="input-area">
-        <div class="input-wrapper">
-            <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
-                <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
-            </button>
-            <input type="text" class="chat-input" id="user-input" placeholder="Pergunte ou peça um projeto..." onkeypress="verificarTeclado(event)">
-            <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar comando">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
+            <div class="input-area" id="input-zone">
+                <div class="input-wrapper">
+                    <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
+                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
+                    </button>
+                    <input type="text" class="chat-input" id="user-input" placeholder="Peça um site, app ou faça uma pergunta..." onkeypress="verificarTeclado(event)">
+                    <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()" title="Enviar">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secção Sandbox Live Premium -->
+        <div class="sandbox-section" id="sandbox-panel">
+            <div class="sandbox-header">
+                <div class="browser-dots">
+                    <div class="dot"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="browser-address" id="live-url">honey-ia://sandbox-preview</div>
+                <button class="premium-btn close-sandbox" onclick="fecharSandbox()" style="padding: 5px 10px; border-radius: 8px;">Fechar X</button>
+            </div>
+            <div class="sandbox-body">
+                <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
+            </div>
         </div>
     </div>
 
@@ -73,6 +126,10 @@
     const sendBtn = document.getElementById('send-btn');
     const welcomeScreen = document.getElementById('welcome-screen');
     const micBtn = document.getElementById('mic-btn');
+    const sandboxPanel = document.getElementById('sandbox-panel');
+    const sandboxIframe = document.getElementById('sandbox-preview');
+    const chatArea = document.getElementById('chat-area');
+    const inputZone = document.getElementById('input-zone');
 
     let reconhecimentoVoz;
     let estaGravando = false;
@@ -82,7 +139,6 @@
         reconhecimentoVoz = new SpeechRecognition();
         reconhecimentoVoz.continuous = false;
         reconhecimentoVoz.interimResults = false;
-        reconhecimentoVoz.lang = undefined; 
 
         reconhecimentoVoz.onresult = (event) => {
             const textoDitado = event.results[0][0].transcript;
@@ -91,7 +147,6 @@
                 enviarMensagem();
             }
         };
-
         reconhecimentoVoz.onend = () => {
             estaGravando = false;
             micBtn.classList.remove('recording');
@@ -100,9 +155,8 @@
 
     function alternarGravacao() {
         if (!reconhecimentoVoz) return alert("Microfone indisponível.");
-        if (estaGravando) {
-            reconhecimentoVoz.stop();
-        } else {
+        if (estaGravando) { reconhecimentoVoz.stop(); } 
+        else {
             estaGravando = true;
             micBtn.classList.add('recording');
             reconhecimentoVoz.start();
@@ -111,32 +165,25 @@
 
     function detectarIdiomaTexto(texto) {
         const txt = texto.toLowerCase();
-        if (txt.match(/hello|thank you|i am|welcome|what|your/i)) return 'en-US';
-        if (txt.match(/hola|gracias|buenos|estoy/i)) return 'es-ES';
-        if (txt.match(/bonjour|merci|salut/i)) return 'fr-FR';
-        if (txt.match(/ciao|grazie/i)) return 'it-IT';
+        if (txt.match(/hello|thank you|i am/i)) return 'en-US';
+        if (txt.match(/hola|gracias/i)) return 'es-ES';
+        if (txt.match(/bonjour|merci/i)) return 'fr-FR';
         return 'pt-PT'; 
     }
 
     function falarTexto(texto) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
-
-            let textoLimpo = texto.replace(/[\uFFFD\u24C2\u1F00-\u1FFFF\u2700-\u27BF\uE000-\uF8FF]/g, '');
-            textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ');
-            textoLimpo = textoLimpo.trim();
+            let textoLimpo = texto.replace(/```[\s\S]*?```/g, '[Código omitido na leitura]'); // Não lê blocos de código gigantes
+            textoLimpo = textoLimpo.replace(/[`*#\[\]\-\{\}\(\)\<\>]/g, ' ').trim();
 
             const fala = new SpeechSynthesisUtterance(textoLimpo);
-            const idiomaDetectado = detectarIdiomaTexto(textoLimpo);
-            fala.lang = idiomaDetectado;
+            const idioma = detectarIdiomaTexto(textoLimpo);
+            fala.lang = idioma;
 
             let vozes = window.speechSynthesis.getVoices();
-            let vozAdequada = vozes.find(v => v.lang.toLowerCase().includes(idiomaDetectado.split('-')[0]));
-            
-            if (vozAdequada) fala.voice = vozAdequada;
-
-            fala.pitch = 1.0; 
-            fala.rate = 1.0;  
+            let voz = vozes.find(v => v.lang.toLowerCase().includes(idioma.split('-')[0]));
+            if (voz) fala.voice = voz;
 
             window.speechSynthesis.speak(fala);
         }
@@ -152,10 +199,32 @@
                 containerTexto.textContent += texto.charAt(i);
                 i++;
                 chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 15);
+                setTimeout(digitar, 8); // Digitação mais rápida para códigos
             } else { if(callback) callback(); }
         }
         digitar();
+    }
+
+    // Extrai o bloco de código HTML limpo da resposta em Markdown
+    function extrairCodigoHTML(texto) {
+        const match = texto.match(/```html([\s\S]*?)```/);
+        return match ? match[1].trim() : null;
+    }
+
+    function carregarNoSandbox(codigoHTML) {
+        sandboxPanel.classList.add('active');
+        // Redimensiona dinamicamente a barra de inputs se necessário
+        setTimeout(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 400);
+
+        // Injeta com segurança o código gerado no iframe de testes
+        const blob = new Blob([codigoHTML], { type: 'text/html' });
+        sandboxIframe.src = URL.createObjectURL(blob);
+    }
+
+    function fecharSandbox() {
+        sandboxPanel.classList.remove('active');
     }
 
     async function enviarMensagem() {
@@ -184,26 +253,39 @@
                 body: JSON.stringify({ prompt: promptText })
             });
             const data = await response.json();
+            
             if (response.ok && data.sucesso) {
                 efeitoDigitarAoVivo(spanTexto, data.codigo, () => {
-                    const btnOuvir = document.createElement('button');
-                    btnOuvir.className = 'audio-play-btn';
-                    
-                    const idioma = detectarIdiomaTexto(data.codigo);
-                    let textoBotao = "Ouvir Resposta";
-                    if (idioma === 'en-US') textoBotao = "Listen Response";
-                    else if (idioma === 'es-ES') textoBotao = "Escuchar Respuesta";
-                    else if (idioma === 'fr-FR') textoBotao = "Écouter la Réponse";
+                    const btnGroup = document.createElement('div');
+                    btnGroup.className = 'btn-group';
 
-                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="margin-right:2px;"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg> ${textoBotao}`;
+                    // Botão de Áudio
+                    const btnOuvir = document.createElement('button');
+                    btnOuvir.className = 'premium-btn';
+                    btnOuvir.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg> Ouvir`;
                     btnOuvir.onclick = () => falarTexto(data.codigo);
-                    honeyBalao.appendChild(btnOuvir);
+                    btnGroup.appendChild(btnOuvir);
+
+                    // Verifica se a resposta contém código executável para abrir o Sandbox
+                    const codigoDetectado = extrairCodigoHTML(data.codigo);
+                    if (codigoDetectado) {
+                        const btnVisualizar = document.createElement('button');
+                        btnVisualizar.className = 'premium-btn visualize-btn';
+                        btnVisualizar.innerHTML = `<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg> Visualizar App`;
+                        btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
+                        btnGroup.appendChild(btnVisualizar);
+
+                        // Auto-executa o ecrã dividido imediatamente para impressionar o cliente
+                        carregarNoSandbox(codigoDetectado);
+                    }
+
+                    honeyBalao.appendChild(btnGroup);
                 });
             } else {
                 spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
             }
         } catch (err) {
-            spanTexto.textContent = "Erro de ligação.";
+            spanTexto.textContent = "Erro de ligação ao servidor de elite.";
         } finally {
             sendBtn.disabled = false;
         }
