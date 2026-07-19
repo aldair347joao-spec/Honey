@@ -133,7 +133,7 @@
             padding: 16px 22px; 
             border-radius: 22px; 
             line-height: 1.7; 
-            font-size: 15px; /* Letra ligeiramente maior e mais legível */
+            font-size: 15px; 
             animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
             position: relative; 
             word-wrap: break-word; 
@@ -196,6 +196,9 @@
         
         .action-btn { background: none; border: none; color: #787893; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.08); }
+        .mic-btn.recording { color: #ff4a4a; background: rgba(255,74,74,0.1); animation: pulseRecord 1.5s infinite; }
+        @keyframes pulseRecord { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .send-btn { background: var(--gold); color: #030305; transition: transform 0.2s, background-color 0.2s; }
         .send-btn:hover { background: var(--gold-dark); transform: scale(1.02); }
         .send-btn:disabled { background: #141420; color: #44445c; cursor: not-allowed; transform: none; }
@@ -316,9 +319,10 @@
     }
 
     function alternarGravacao() {
-        if (!reconhecimentoVoz) return alert("Microfone indisponível.");
-        if (estaGravando) { reconhecimentoVoz.stop(); } 
-        else {
+        if (!reconhecimentoVoz) return alert("Microfone indisponível ou não suportado neste navegador.");
+        if (estaGravando) { 
+            reconhecimentoVoz.stop(); 
+        } else {
             estaGravando = true;
             micBtn.classList.add('recording');
             reconhecimentoVoz.start();
@@ -344,12 +348,11 @@
         }
     }
 
-    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
+    function verificarTeclado(event) { 
+        if (event.key === 'Enter') enviarMensagem(); 
+    }
 
-    /* FUNÇÃO DE SCROLL DINÂMICO INTELIGENTE (ESTILO CHATGPT) */
     function atualizarScrollInteligente(deveForcar = false) {
-        // Se o utilizador já estiver perto do fundo (menos de 150px de distância), o scroll acompanha o texto.
-        // Se ele subiu para ler, o scroll não mexe para não causar confusão.
         const margemFundo = 150;
         const estaNoFundo = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < margemFundo;
         
@@ -365,9 +368,11 @@
             if (i < texto.length) {
                 containerTexto.textContent += texto.charAt(i);
                 i++;
-                atualizarScrollInteligente(); // Scroll suave e controlado
+                atualizarScrollInteligente(); 
                 setTimeout(digitar, 5); 
-            } else { if(callback) callback(); }
+            } else { 
+                if(callback) callback(); 
+            }
         }
         digitar();
     }
@@ -392,7 +397,7 @@
         const promptText = userInput.value.trim();
         if (!promptText) return;
 
-        if (welcomeScreen.style.opacity !== '0') {
+        if (welcomeScreen && welcomeScreen.style.opacity !== '0') {
             welcomeScreen.style.opacity = '0';
             setTimeout(() => welcomeScreen.style.visibility = 'hidden', 400);
         }
@@ -440,7 +445,7 @@
                     atualizarScrollInteligente(true);
                 });
             } else {
-                spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
+                spanTexto.textContent = "Erro: " + (data.erro || "Falha ao processar requisição.");
             }
         } catch (err) {
             spanTexto.textContent = "Erro de ligação ao servidor de elite.";
