@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Honey IA | Elite Premium Assistant</title>
+    <title>Honey IA | Elite Premium Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -39,18 +39,28 @@
         }
 
         .app-layout.split-active .sandbox-section { display: flex; animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .app-layout.fullscreen-active .chat-section { display: none; }
+        .app-layout.fullscreen-active .sandbox-section { width: 100%; display: flex; border-left: none; }
+        
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
         #welcome-screen { 
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 520px; text-align: center; padding: 24px; z-index: 1; transition: opacity 0.4s ease, visibility 0.4s; 
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 680px; text-align: center; padding: 24px; z-index: 1; transition: opacity 0.4s ease, visibility 0.4s; 
         }
-        .hero-bee { font-size: 64px; animation: float 3.5s ease-in-out infinite; margin-bottom: 24px; display: inline-block; filter: drop-shadow(0 10px 20px rgba(255, 183, 0, 0.2)); }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .hero-bee { font-size: 54px; animation: float 3.5s ease-in-out infinite; margin-bottom: 16px; display: inline-block; filter: drop-shadow(0 10px 20px rgba(255, 183, 0, 0.2)); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         
-        #welcome-screen h1 { font-size: 40px; color: #fff; margin-bottom: 16px; font-weight: 700; letter-spacing: -1.5px; background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #welcome-screen p { color: var(--text-muted); font-size: 15.5px; line-height: 1.65; max-width: 440px; margin: 0 auto; }
+        #welcome-screen h1 { font-size: 36px; color: #fff; margin-bottom: 12px; font-weight: 700; letter-spacing: -1.5px; background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #welcome-screen p { color: var(--text-muted); font-size: 15px; line-height: 1.6; max-width: 480px; margin: 0 auto 32px auto; }
 
-        /* DESIGN PREMIUM SEM IMPUREZAS VISUAIS */
+        /* CARDS DE SUGESTÃO INTELIGENTES */
+        .suggestion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 600px; margin: 0 auto; }
+        .suggestion-card { background: #0b0b12; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; text-align: left; cursor: pointer; transition: all 0.2s ease; }
+        .suggestion-card:hover { border-color: rgba(255, 183, 0, 0.25); background: rgba(255, 183, 0, 0.01); transform: translateY(-2px); }
+        .suggestion-card h3 { font-size: 13.5px; color: var(--gold); font-weight: 600; margin-bottom: 4px; }
+        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
+
+        /* CONTAINER DE CONVERSA */
         .chat-container { 
             flex: 1; overflow-y: auto; padding: 40px 24px 140px 24px; display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
         }
@@ -59,33 +69,19 @@
         .row-user { align-items: flex-end; }
         .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 28px; }
 
-        .msg-body { 
-            font-size: 15.5px; line-height: 1.85; color: var(--text-main); word-wrap: break-word; width: 100%;
-        }
+        .msg-body { font-size: 15.5px; line-height: 1.85; color: var(--text-main); word-wrap: break-word; width: 100%; }
         
-        /* Balão invisível e sofisticado para o Utilizador */
         .row-user .msg-body { text-align: right; color: #fff; max-width: 80%; font-weight: 400; background: rgba(255, 183, 0, 0.02); padding: 12px 20px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.06); white-space: pre-wrap; }
         
-        /* Estilização interna estilo Gemini */
         .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 6px; font-size: 16px; }
         .msg-paragraph { margin-bottom: 14px; }
 
-        /* Animação suave por blocos */
-        .premium-fade-in { 
-            animation: elegantFade 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-        @keyframes elegantFade { 
-            from { opacity: 0; transform: translateY(6px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
+        .premium-fade-in { animation: elegantFade 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes elegantFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
         /* BARRA DE ENTRADA */
-        .input-area { 
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 24px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 70%, transparent); z-index: 10;
-        }
-        .input-wrapper { 
-            width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 10px 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 8px; 
-        }
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 24px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 70%, transparent); z-index: 10; }
+        .input-wrapper { width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 10px 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 8px; }
         .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.3); }
         .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15.5px; outline: none; }
         .chat-input::placeholder { color: #48485e; }
@@ -99,31 +95,32 @@
         .send-btn:hover { background: var(--gold-dark); }
         .send-btn:disabled { background: #12121a; color: #38384d; cursor: not-allowed; }
 
-        .btn-group { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; width: 100%; animation: elegantFade 0.4s ease; }
+        .btn-group { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; width: 100%; }
         .premium-btn { background: rgba(255, 183, 0, 0.03); border: 1px solid rgba(255, 183, 0, 0.1); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
         .premium-btn:hover { background: rgba(255, 183, 0, 0.08); border-color: var(--gold); }
         .visualize-btn { background: rgba(0, 230, 118, 0.03); border-color: rgba(0, 230, 118, 0.15); color: #00e676; }
         .visualize-btn:hover { background: rgba(0, 230, 118, 0.08); border-color: #00e676; }
 
-        /* INDICADOR DE CARREGAMENTO */
         .typing-indicator { display: flex; gap: 6px; padding: 12px 4px; align-items: center; }
         .typing-indicator span { width: 7px; height: 7px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.2; } 40% { transform: scale(1); opacity: 1; } }
 
-        /* SANDBOX */
+        /* SANDBOX COM BOTÕES EXTRA */
         .sandbox-header { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
         .browser-dots { display: flex; gap: 6px; }
         .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; color: var(--text-muted); width: 50%; text-align: center; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; color: var(--text-muted); width: 40%; text-align: center; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         
+        .sandbox-actions { display: flex; gap: 8px; }
         .sandbox-body { flex: 1; padding: 12px; background: #07070c; }
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
+            .suggestion-grid { grid-template-columns: 1fr; }
             .app-layout.split-active { flex-direction: column-reverse; }
             .app-layout.split-active .chat-section { height: 52%; }
             .app-layout.split-active .sandbox-section { width: 100%; height: 48%; border-left: none; border-bottom: 1px solid var(--border); }
@@ -138,7 +135,26 @@
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
                 <h1>Honey IA</h1>
-                <p>A tua arquiteta digital. Desenvolve aplicações, websites e explora ideias de elite com uma execução premium impecável.</p>
+                <p>A tua arquiteta digital para desenvolvimento de software, consultoria executiva e gestão de negócios de elite.</p>
+                
+                <div class="suggestion-grid">
+                    <div class="suggestion-card" onclick="usarSugestao('Desenha uma folha de fecho de caixa diário e plano de viabilidade financeira em HTML completo.')">
+                        <h3>📈 Gestão & Finanças</h3>
+                        <p>Criar simulação financeira, fluxo de caixa ou cálculo de payback.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="usarSugestao('Cria uma aplicação de painel de controlo (Dashboard) elegante para monitorização de vendas e logística.')">
+                        <h3>💻 Criadores de Software</h3>
+                        <p>Desenvolver interfaces puras, apps e testar código na Sandbox.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços executivos.')">
+                        <h3>🏢 Governança & Empresas</h3>
+                        <p>Estrutura de cargos, contratos e relatórios corporativos.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="usarSugestao('Cria um modelo moderno e isolado de convite digital elegante para um evento formal.')">
+                        <h3>✨ Design & Cultura</h3>
+                        <p>Ideias criativas, redação de elite e designs personalizados.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="chat-container" id="chat-box"></div>
@@ -160,7 +176,10 @@
             <div class="sandbox-header">
                 <div class="browser-dots"><div class="dot"></div><div class="dot yellow"></div><div class="dot green"></div></div>
                 <div class="browser-address">honey-ia://live-preview-premium</div>
-                <button class="premium-btn" onclick="fecharSandbox()" style="color: #ff4a4a; border-color: rgba(255,74,74,0.2);">Ocultar</button>
+                <div class="sandbox-actions">
+                    <button class="premium-btn" onclick="alternarEcraCheioSandbox()" id="fs-btn">Ecrã Cheio</button>
+                    <button class="premium-btn" onclick="fecharSandbox()" style="color: #ff4a4a; border-color: rgba(255,74,74,0.2);">Ocultar</button>
+                </div>
             </div>
             <div class="sandbox-body">
                 <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
@@ -179,20 +198,16 @@
 
     let reconhecimentoVoz;
     let estaGravando = false;
+    let memoriaConversa = JSON.parse(localStorage.getItem('honey_ia_history')) || [];
+
+    window.onload = () => { if (memoriaConversa.length > 0) { esconderWelcome(); carregarHistoricoLocal(); } };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         reconhecimentoVoz = new SpeechRecognition();
         reconhecimentoVoz.continuous = false;
         reconhecimentoVoz.interimResults = false;
-
-        reconhecimentoVoz.onresult = (event) => {
-            const textoDitado = event.results[0][0].transcript;
-            if(textoDitado.trim() !== "") {
-                userInput.value = textoDitado;
-                enviarMensagem();
-            }
-        };
+        reconhecimentoVoz.onresult = (e) => { userInput.value = e.results[0][0].transcript; enviarMensagem(); };
         reconhecimentoVoz.onend = () => { estaGravando = false; micBtn.classList.remove('recording'); };
     }
 
@@ -202,44 +217,37 @@
         else { estaGravando = true; micBtn.classList.add('recording'); reconhecimentoVoz.start(); }
     }
 
-    function falarTexto(texto) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            let limpo = texto.replace(/```[\s\S]*?```/g, '[Código]');
-            const fala = new SpeechSynthesisUtterance(limpo.replace(/[`*#\[\]\-]/g, ' '));
-            fala.lang = 'pt-PT';
-            window.speechSynthesis.speak(fala);
-        }
+    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
+    function usarSugestao(texto) { userInput.value = texto; enviarMensagem(); }
+    
+    function esconderWelcome() {
+        if (welcomeScreen) { welcomeScreen.style.opacity = '0'; setTimeout(() => welcomeScreen.style.visibility = 'hidden', 400); }
     }
 
-    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
-
     function formatarMarkdownParaHtml(texto) {
-        // Converte os blocos de código markdown para evitar renderização incorreta na UI
-        let textoFormatado = texto.replace(/```[\s\S]*?```/g, (match) => {
-            return `<div style="background: #12121a; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #a5a5b5; margin: 10px 0; overflow-x: auto;">[Código Estruturado no Painel Lateral]</div>`;
+        let textoFormatado = texto.replace(/```html([\s\S]*?)```/g, (match, code) => {
+            const codeId = "code_" + Math.random().toString(36).substr(2, 9);
+            window[codeId] = code.trim();
+            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0; position: relative;">
+                <div style="font-family: monospace; font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">⚡ Aplicação estruturada pronta para visualização.</div>
+                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')" style="padding: 4px 10px; font-size: 11px;">Copiar Código</button>
+            </div>`;
         });
-        
-        // Converte as marcações de negrito **texto** em tags HTML reais <strong>
         textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        // Divide o texto em parágrafos estruturados
         return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
     }
 
-    // RENDERIZAÇÃO ESTÁTICA FLUIDA (EVITA EMPURRAR O ECRÃ)
+    function copiarTextoCodigo(codeId) {
+        navigator.clipboard.writeText(window[codeId]);
+        alert("Código copiado para a área de transferência!");
+    }
+
     function renderizarConteudoElegante(container, texto, callback) {
         container.innerHTML = "";
-        
-        // Converte toda a resposta estruturada para HTML de uma vez só
-        const htmlFinal = formatarMarkdownParaHtml(texto);
-        
-        // Insere o conteúdo com uma animação suave de opacidade geral, sem mexer no scroll
         const wrapper = document.createElement('div');
         wrapper.className = 'premium-fade-in';
-        wrapper.innerHTML = htmlFinal;
+        wrapper.innerHTML = formatarMarkdownParaHtml(texto);
         container.appendChild(wrapper);
-        
         if (callback) callback();
     }
 
@@ -254,22 +262,21 @@
         sandboxIframe.src = URL.createObjectURL(blob);
     }
 
-    function fecharSandbox() { mainLayout.classList.remove('split-active'); }
+    function fecharSandbox() { mainLayout.classList.remove('split-active'); mainLayout.classList.remove('fullscreen-active'); }
+    function alternarEcraCheioSandbox() { 
+        mainLayout.classList.toggle('fullscreen-active'); 
+        document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
+    }
 
     async function enviarMensagem() {
         const promptText = userInput.value.trim();
         if (!promptText) return;
 
-        if (welcomeScreen && welcomeScreen.style.opacity !== '0') {
-            welcomeScreen.style.opacity = '0';
-            setTimeout(() => welcomeScreen.style.visibility = 'hidden', 400);
-        }
-
+        esconderWelcome();
         criarLinhaMensagem(promptText, 'row-user');
         userInput.value = "";
         sendBtn.disabled = true;
 
-        // O Scroll automático APENAS acontece aqui (quando o utilizador envia a pergunta)
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const linhaHoney = criarLinhaMensagem("", 'row-honey');
@@ -285,39 +292,22 @@
                 body: JSON.stringify({ prompt: promptText })
             });
             const data = await response.json();
-            
             linhaHoney.innerHTML = "";
 
             if (response.ok && data.sucesso) {
-                // Renderiza sem forçar a descida da tela enquanto lês
                 renderizarConteudoElegante(linhaHoney, data.codigo, () => {
-                    const btnGroup = document.createElement('div');
-                    btnGroup.className = 'btn-group';
-
-                    const btnOuvir = document.createElement('button');
-                    btnOuvir.className = 'premium-btn';
-                    btnOuvir.textContent = `Ouvir`;
-                    btnOuvir.onclick = () => falarTexto(data.codigo);
-                    btnGroup.appendChild(btnOuvir);
-
                     const codigoDetectado = extrairCodigoHTML(data.codigo);
-                    if (codigoDetectado) {
-                        const btnVisualizar = document.createElement('button');
-                        btnVisualizar.className = 'premium-btn visualize-btn';
-                        btnVisualizar.textContent = `Visualizar App`;
-                        btnVisualizar.onclick = () => carregarNoSandbox(codigoDetectado);
-                        btnGroup.appendChild(btnVisualizar);
-
-                        carregarNoSandbox(codigoDetectado);
-                    }
-                    linhaHoney.appendChild(btnGroup);
+                    if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
+                    
+                    // Guardar no Histórico Local
+                    memoriaConversa.push({ prompt: promptText, resposta: data.codigo });
+                    localStorage.setItem('honey_ia_history', JSON.stringify(memoriaConversa));
                 });
             } else {
-                linhaHoney.textContent = "Erro: " + (data.erro || "Falha na requisição.");
+                linhaHoney.textContent = "Erro ao processar pedido corporativo.";
             }
         } catch (err) {
-            linhaHoney.innerHTML = "";
-            linhaHoney.textContent = "Erro de ligação ao servidor de elite.";
+            linhaHoney.innerHTML = "Erro crítico de conexão com o núcleo.";
         } finally {
             sendBtn.disabled = false;
         }
@@ -326,14 +316,24 @@
     function criarLinhaMensagem(texto, classeLinha) {
         const row = document.createElement('div');
         row.className = `row-message ${classeLinha}`;
-        
         const body = document.createElement('div');
         body.className = 'msg-body';
         body.textContent = texto;
-        
         row.appendChild(body);
         chatBox.appendChild(row);
         return body;
+    }
+
+    function carregarHistoricoLocal() {
+        memoriaConversa.forEach(item => {
+            criarLinhaMensagem(item.prompt, 'row-user');
+            const linhaHoney = criarLinhaMensagem("", 'row-honey');
+            renderizarConteudoElegante(linhaHoney, item.resposta, () => {
+                const codigoDetectado = extrairCodigoHTML(item.resposta);
+                if (codigoDetectado) carregarNoSandbox(codigoDetectado);
+            });
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 </script>
 </body>
