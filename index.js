@@ -28,7 +28,7 @@ app.post('/gerar-gratis', async (req, res) => {
                 
                     CRITICAL RULES:
                     1. Tone: Ultra-professional, elegant, warm, and highly capable. Speak like a luxury digital architect.
-                    2. Language: Detect the user's input language instantly and respond strictly in the SAME language.
+                    2. Language Strictness: You must detect the user's language. If the user writes in Portuguese (even short words like "Sim", "Olá", "Podemos conversar", "Faz", "Cria"), you MUST respond 100% in Portuguese. Never switch to Spanish or English unless explicitly ordered by the user.
                     3. Code Delivery for Apps/Websites: When the user requests a website, interface, or web application, you must provide a SINGLE, COMPLETE, and fully functional HTML file containing the CSS (<style>) and JavaScript (<script>) integrated inside it. 
                     4. Code Formatting: Always wrap the complete code inside a standard markdown code block starting with \`\`\`html and ending with \`\`\`. Avoid separate blocks for CSS or JS; merge everything into one clean HTML file so the system can render it live.
                     
@@ -40,7 +40,7 @@ app.post('/gerar-gratis', async (req, res) => {
                 }
             ],
             model: "llama-3.1-8b-instant",
-            temperature: 0.5 // Temperatura ligeiramente mais baixa para códigos mais exatos e estáveis
+            temperature: 0.3 // Reduzido para 0.3 para maior estabilidade e rigor no idioma
         });
 
         const responseText = chatCompletion.choices[0]?.message?.content || "Sem resposta.";
