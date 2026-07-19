@@ -10,8 +10,8 @@
             --gold: #ffb700; 
             --gold-dark: #cc9200; 
             --bg: #030305; 
-            --card: #0b0b11; 
-            --border: #12121a; 
+            --card: #0b0b12; 
+            --border: #141420; 
             --preview-bg: #0d0d14; 
             --text-main: #f1f1f6;
             --text-muted: #8e8e9f;
@@ -44,49 +44,94 @@
         
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
+        /* CORREÇÃO CRÍTICA DA PÁGINA INICIAL (RESPONSIVIDADE PURA) */
         #welcome-screen { 
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 680px; text-align: center; padding: 24px; z-index: 1; transition: opacity 0.4s ease, visibility 0.4s; 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 90px); /* Deixa espaço exato para a barra de input */
+            overflow-y: auto; /* Permite rolar suavemente em telemóveis pequenos */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            z-index: 1; 
+            transition: opacity 0.3s ease, visibility 0.3s; 
+            scrollbar-width: none;
         }
-        .hero-bee { font-size: 54px; animation: float 3.5s ease-in-out infinite; margin-bottom: 16px; display: inline-block; filter: drop-shadow(0 10px 20px rgba(255, 183, 0, 0.2)); }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        
-        #welcome-screen h1 { font-size: 36px; color: #fff; margin-bottom: 12px; font-weight: 700; letter-spacing: -1.5px; background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #welcome-screen p { color: var(--text-muted); font-size: 15px; line-height: 1.6; max-width: 480px; margin: 0 auto 32px auto; }
+        #welcome-screen::-webkit-scrollbar { display: none; }
 
-        /* CARDS DE SUGESTÃO INTELIGENTES */
-        .suggestion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 600px; margin: 0 auto; }
-        .suggestion-card { background: #0b0b12; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; text-align: left; cursor: pointer; transition: all 0.2s ease; }
-        .suggestion-card:hover { border-color: rgba(255, 183, 0, 0.25); background: rgba(255, 183, 0, 0.01); transform: translateY(-2px); }
-        .suggestion-card h3 { font-size: 13.5px; color: var(--gold); font-weight: 600; margin-bottom: 4px; }
+        .hero-bee { font-size: 48px; animation: float 3.5s ease-in-out infinite; margin-bottom: 12px; display: inline-block; filter: drop-shadow(0 10px 20px rgba(255, 183, 0, 0.2)); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
+        #welcome-screen h1 { font-size: 32px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1px; background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #welcome-screen p { color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 460px; margin: 0 auto 28px auto; text-align: center; }
+
+        /* BADGE DE ELITE PARA APPS E SITES RESPONSIVOS */
+        .feature-badge {
+            background: rgba(255, 183, 0, 0.06);
+            border: 1px solid rgba(255, 183, 0, 0.15);
+            color: var(--gold);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        /* CARDS DE SUGESTÃO INTELIGENTES (CORRIGIDOS) */
+        .suggestion-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            width: 100%;
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+        .suggestion-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 16px; 
+            padding: 16px; 
+            text-align: left; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        .suggestion-card:hover { border-color: rgba(255, 183, 0, 0.3); background: rgba(255, 183, 0, 0.02); transform: translateY(-2px); }
+        .suggestion-card h3 { font-size: 14px; color: #fff; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
         .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
 
         /* CONTAINER DE CONVERSA */
         .chat-container { 
-            flex: 1; overflow-y: auto; padding: 40px 24px 140px 24px; display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 30px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
         }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
         .row-user { align-items: flex-end; }
-        .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 28px; }
+        .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 24px; }
 
-        .msg-body { font-size: 15.5px; line-height: 1.85; color: var(--text-main); word-wrap: break-word; width: 100%; }
+        .msg-body { font-size: 15px; line-height: 1.75; color: var(--text-main); word-wrap: break-word; width: 100%; }
         
-        .row-user .msg-body { text-align: right; color: #fff; max-width: 80%; font-weight: 400; background: rgba(255, 183, 0, 0.02); padding: 12px 20px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.06); white-space: pre-wrap; }
+        .row-user .msg-body { text-align: right; color: #fff; max-width: 85%; font-weight: 400; background: rgba(255, 183, 0, 0.03); padding: 12px 18px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.08); white-space: pre-wrap; }
         
-        .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 6px; font-size: 16px; }
-        .msg-paragraph { margin-bottom: 14px; }
+        .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 4px; }
+        .msg-paragraph { margin-bottom: 12px; }
 
-        .premium-fade-in { animation: elegantFade 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        @keyframes elegantFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
+        @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* BARRA DE ENTRADA */
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 24px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 70%, transparent); z-index: 10; }
-        .input-wrapper { width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 28px; display: flex; align-items: center; padding: 10px 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 8px; }
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 80%, transparent); z-index: 10; }
+        .input-wrapper { width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); transition: border-color 0.2s; gap: 6px; }
         .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.3); }
-        .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15.5px; outline: none; }
+        .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15px; outline: none; }
         .chat-input::placeholder { color: #48485e; }
         
-        .action-btn { background: none; border: none; color: #62627a; width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn { background: none; border: none; color: #62627a; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.05); }
         .mic-btn.recording { color: #ff4a4a; background: rgba(255,74,74,0.08); animation: pulseRecord 1.5s infinite; }
         @keyframes pulseRecord { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
@@ -95,19 +140,19 @@
         .send-btn:hover { background: var(--gold-dark); }
         .send-btn:disabled { background: #12121a; color: #38384d; cursor: not-allowed; }
 
-        .btn-group { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; width: 100%; }
-        .premium-btn { background: rgba(255, 183, 0, 0.03); border: 1px solid rgba(255, 183, 0, 0.1); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; width: 100%; }
+        .premium-btn { background: rgba(255, 183, 0, 0.03); border: 1px solid rgba(255, 183, 0, 0.1); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 500; gap: 6px; transition: all 0.2s; }
         .premium-btn:hover { background: rgba(255, 183, 0, 0.08); border-color: var(--gold); }
         .visualize-btn { background: rgba(0, 230, 118, 0.03); border-color: rgba(0, 230, 118, 0.15); color: #00e676; }
         .visualize-btn:hover { background: rgba(0, 230, 118, 0.08); border-color: #00e676; }
 
-        .typing-indicator { display: flex; gap: 6px; padding: 12px 4px; align-items: center; }
-        .typing-indicator span { width: 7px; height: 7px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator { display: flex; gap: 5px; padding: 10px 4px; align-items: center; }
+        .typing-indicator span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
         .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.2; } 40% { transform: scale(1); opacity: 1; } }
 
-        /* SANDBOX COM BOTÕES EXTRA */
+        /* SANDBOX */
         .sandbox-header { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
         .browser-dots { display: flex; gap: 6px; }
         .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
@@ -119,8 +164,15 @@
         .sandbox-body { flex: 1; padding: 12px; background: #07070c; }
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
+        /* AJUSTES DE TELEMÓVEL INTELEIGENTES */
         @media (max-width: 800px) {
-            .suggestion-grid { grid-template-columns: 1fr; }
+            #welcome-screen { padding-top: 24px; padding-bottom: 40px; }
+            #welcome-screen h1 { font-size: 26px; }
+            .suggestion-grid { grid-template-columns: 1fr; gap: 10px; }
+            .suggestion-card { padding: 12px 14px; }
+            .suggestion-card h3 { font-size: 13px; }
+            .suggestion-card p { font-size: 12px; }
+            
             .app-layout.split-active { flex-direction: column-reverse; }
             .app-layout.split-active .chat-section { height: 52%; }
             .app-layout.split-active .sandbox-section { width: 100%; height: 48%; border-left: none; border-bottom: 1px solid var(--border); }
@@ -134,25 +186,26 @@
         <div class="chat-section" id="chat-area">
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
+                <div class="feature-badge">Websites Responsivos & Apps de Topo</div>
                 <h1>Honey IA</h1>
-                <p>A tua arquiteta digital para desenvolvimento de software, consultoria executiva e gestão de negócios de elite.</p>
+                <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
                 <div class="suggestion-grid">
-                    <div class="suggestion-card" onclick="usarSugestao('Desenha uma folha de fecho de caixa diário e plano de viabilidade financeira em HTML completo.')">
-                        <h3>📈 Gestão & Finanças</h3>
-                        <p>Criar simulação financeira, fluxo de caixa ou cálculo de payback.</p>
-                    </div>
-                    <div class="suggestion-card" onclick="usarSugestao('Cria uma aplicação de painel de controlo (Dashboard) elegante para monitorização de vendas e logística.')">
+                    <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
                         <h3>💻 Criadores de Software</h3>
-                        <p>Desenvolver interfaces puras, apps e testar código na Sandbox.</p>
+                        <p>Cria apps completas, sites responsivos de topo e visualiza na Sandbox.</p>
                     </div>
-                    <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços executivos.')">
+                    <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado.')">
+                        <h3>📈 Gestão & Finanças</h3>
+                        <p>Simulações financeiras completas, fluxo de caixa e cálculo de payback.</p>
+                    </div>
+                    <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
                         <h3>🏢 Governança & Empresas</h3>
-                        <p>Estrutura de cargos, contratos e relatórios corporativos.</p>
+                        <p>Diferenciação de cargos executivos, atas, minutas e relatórios de elite.</p>
                     </div>
-                    <div class="suggestion-card" onclick="usarSugestao('Cria um modelo moderno e isolado de convite digital elegante para um evento formal.')">
+                    <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
                         <h3>✨ Design & Cultura</h3>
-                        <p>Ideias criativas, redação de elite e designs personalizados.</p>
+                        <p>Redação premium, composições criativas e expressões personalizadas.</p>
                     </div>
                 </div>
             </div>
@@ -164,7 +217,7 @@
                     <button class="action-btn" id="mic-btn" onclick="alternarGravacao()">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
                     </button>
-                    <input type="text" class="chat-input" id="user-input" placeholder="Peça um site, app ou faça uma pergunta..." onkeypress="verificarTeclado(event)">
+                    <input type="text" class="chat-input" id="user-input" placeholder="Pede um site, app ou faz uma pergunta..." onkeypress="verificarTeclado(event)">
                     <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()">
                         <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -225,116 +278,4 @@
     }
 
     function formatarMarkdownParaHtml(texto) {
-        let textoFormatado = texto.replace(/```html([\s\S]*?)```/g, (match, code) => {
-            const codeId = "code_" + Math.random().toString(36).substr(2, 9);
-            window[codeId] = code.trim();
-            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0; position: relative;">
-                <div style="font-family: monospace; font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">⚡ Aplicação estruturada pronta para visualização.</div>
-                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')" style="padding: 4px 10px; font-size: 11px;">Copiar Código</button>
-            </div>`;
-        });
-        textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
-    }
-
-    function copiarTextoCodigo(codeId) {
-        navigator.clipboard.writeText(window[codeId]);
-        alert("Código copiado para a área de transferência!");
-    }
-
-    function renderizarConteudoElegante(container, texto, callback) {
-        container.innerHTML = "";
-        const wrapper = document.createElement('div');
-        wrapper.className = 'premium-fade-in';
-        wrapper.innerHTML = formatarMarkdownParaHtml(texto);
-        container.appendChild(wrapper);
-        if (callback) callback();
-    }
-
-    function extrairCodigoHTML(texto) {
-        const match = texto.match(/```html([\s\S]*?)```/);
-        return match ? match[1].trim() : null;
-    }
-
-    function carregarNoSandbox(codigoHTML) {
-        mainLayout.classList.add('split-active');
-        const blob = new Blob([codigoHTML], { type: 'text/html' });
-        sandboxIframe.src = URL.createObjectURL(blob);
-    }
-
-    function fecharSandbox() { mainLayout.classList.remove('split-active'); mainLayout.classList.remove('fullscreen-active'); }
-    function alternarEcraCheioSandbox() { 
-        mainLayout.classList.toggle('fullscreen-active'); 
-        document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
-    }
-
-    async function enviarMensagem() {
-        const promptText = userInput.value.trim();
-        if (!promptText) return;
-
-        esconderWelcome();
-        criarLinhaMensagem(promptText, 'row-user');
-        userInput.value = "";
-        sendBtn.disabled = true;
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        const linhaHoney = criarLinhaMensagem("", 'row-honey');
-        const indicador = document.createElement('div');
-        indicador.className = 'typing-indicator';
-        indicador.innerHTML = '<span></span><span></span><span></span>';
-        linhaHoney.appendChild(indicador);
-
-        try {
-            const response = await fetch('/gerar-gratis', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: promptText })
-            });
-            const data = await response.json();
-            linhaHoney.innerHTML = "";
-
-            if (response.ok && data.sucesso) {
-                renderizarConteudoElegante(linhaHoney, data.codigo, () => {
-                    const codigoDetectado = extrairCodigoHTML(data.codigo);
-                    if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
-                    
-                    // Guardar no Histórico Local
-                    memoriaConversa.push({ prompt: promptText, resposta: data.codigo });
-                    localStorage.setItem('honey_ia_history', JSON.stringify(memoriaConversa));
-                });
-            } else {
-                linhaHoney.textContent = "Erro ao processar pedido corporativo.";
-            }
-        } catch (err) {
-            linhaHoney.innerHTML = "Erro crítico de conexão com o núcleo.";
-        } finally {
-            sendBtn.disabled = false;
-        }
-    }
-
-    function criarLinhaMensagem(texto, classeLinha) {
-        const row = document.createElement('div');
-        row.className = `row-message ${classeLinha}`;
-        const body = document.createElement('div');
-        body.className = 'msg-body';
-        body.textContent = texto;
-        row.appendChild(body);
-        chatBox.appendChild(row);
-        return body;
-    }
-
-    function carregarHistoricoLocal() {
-        memoriaConversa.forEach(item => {
-            criarLinhaMensagem(item.prompt, 'row-user');
-            const linhaHoney = criarLinhaMensagem("", 'row-honey');
-            renderizarConteudoElegante(linhaHoney, item.resposta, () => {
-                const codigoDetectado = extrairCodigoHTML(item.resposta);
-                if (codigoDetectado) carregarNoSandbox(codigoDetectado);
-            });
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-</script>
-</body>
-</html>
+        let textoFormatado = texto.replace(/```html([\s\S]*?)
