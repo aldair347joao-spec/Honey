@@ -28,7 +28,7 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        .app-layout { display: flex; flex-direction: row; width: 100%; height: 100%; }
+        .app-layout { display: flex; flex-direction: row; width: 100%; height: 100%; position: relative; }
 
         .chat-section { 
             flex: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg); overflow: hidden; position: relative;
@@ -44,7 +44,90 @@
         
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* PÁGINA INICIAL ULTRA-PREMIUM REESTRUTURADA */
+        /* BOTÃO FLUTUANTE DE HISTÓRICO NO TOPO */
+        .history-btn-header {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            background: rgba(11, 11, 18, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: var(--text-muted);
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .history-btn-header:hover {
+            border-color: var(--gold);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(255, 183, 0, 0.1);
+        }
+
+        /* PAINEL LATERAL DE HISTÓRICO (OVERLAY) */
+        #history-panel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 380px;
+            height: 100%;
+            background: #05050a;
+            border-left: 1px solid var(--border);
+            z-index: 100;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        #history-panel.active { right: 0; }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .history-header h2 { font-size: 18px; color: #fff; font-weight: 600; }
+        
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+        }
+        .history-list::-webkit-scrollbar { width: 4px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        
+        .history-item {
+            padding: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .history-item:hover {
+            border-color: rgba(255, 183, 0, 0.3);
+            color: #fff;
+            background: rgba(255, 183, 0, 0.01);
+        }
+
+        /* PÁGINA INICIAL ULTRA-PREMIUM */
         #welcome-screen { 
             position: absolute;
             top: 0;
@@ -55,10 +138,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            padding: 80px 20px 40px 20px; /* Aumentado padding-top para o botão não sobrepor */
             z-index: 5; 
             background: var(--bg);
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             scrollbar-width: none;
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
@@ -124,7 +207,6 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 183, 0, 0.05);
         }
         
-        /* ÍCONES PREMIUM EM VETOR GRADIENTE */
         .card-icon-wrapper {
             background: linear-gradient(135deg, #12121f, #07070d);
             border: 1px solid rgba(255, 183, 0, 0.15);
@@ -149,7 +231,7 @@
 
         /* CONTAINER DE CONVERSA */
         .chat-container { 
-            flex: 1; overflow-y: auto; padding: 30px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 80px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
         }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
@@ -166,7 +248,7 @@
         .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
         @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* BARRA DE ENTRADA FIXA MÓVEL */
+        /* BARRA DE ENTRADA FIXA */
         .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 80%, transparent); z-index: 10; }
         .input-wrapper { width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); transition: border-color 0.2s; gap: 6px; }
         .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.3); }
@@ -208,7 +290,7 @@
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
-            #welcome-screen { padding-top: 24px; padding-bottom: 40px; }
+            #welcome-screen { padding-top: 80px; padding-bottom: 40px; }
             #welcome-screen h1 { font-size: 26px; }
             .suggestion-card { padding: 14px; gap: 12px; }
             .suggestion-card h3 { font-size: 13.5px; }
@@ -224,9 +306,25 @@
 <body>
 
     <div class="app-layout" id="main-layout">
+        
+        <!-- BOTÃO DE HISTÓRICO INDEPENDENTE -->
+        <button class="history-btn-header" onclick="alternarPainelHistorico()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Histórico
+        </button>
+
+        <!-- PAINEL LATERAL DE HISTÓRICO OCULTO -->
+        <div id="history-panel">
+            <div class="history-header">
+                <h2>Histórico</h2>
+                <button class="action-btn" onclick="alternarPainelHistorico()" style="color: var(--text-muted);">✕</button>
+            </div>
+            <div class="history-list" id="history-list"></div>
+        </div>
+
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL SOBERANO -->
+            <!-- ECRÃ INICIAL (Sempre Visível no window.onload) -->
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
                 <div class="feature-badge">Websites Responsivos & Apps de Topo</div>
@@ -234,7 +332,6 @@
                 <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
                 <div class="suggestion-grid">
-                    <!-- TÓPICO 1: SOFTWARE -->
                     <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
                         <div class="card-icon-wrapper">
                             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -245,7 +342,6 @@
                         </div>
                     </div>
                     
-                    <!-- TÓPICO 2: FINANÇAS -->
                     <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
                         <div class="card-icon-wrapper">
                             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
@@ -256,7 +352,6 @@
                         </div>
                     </div>
                     
-                    <!-- TÓPICO 3: GOVERNANÇA -->
                     <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
                         <div class="card-icon-wrapper">
                             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -267,7 +362,6 @@
                         </div>
                     </div>
                     
-                    <!-- TÓPICO 4: DESIGN -->
                     <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
                         <div class="card-icon-wrapper">
                             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
@@ -321,16 +415,16 @@
     const welcomeScreen = document.getElementById('welcome-screen');
     const micBtn = document.getElementById('mic-btn');
     const sandboxIframe = document.getElementById('sandbox-preview');
+    const historyPanel = document.getElementById('history-panel');
+    const historyList = document.getElementById('history-list');
 
     let reconhecimentoVoz;
     let estaGravando = false;
     let memoriaConversa = JSON.parse(localStorage.getItem('honey_ia_history')) || [];
 
-    // Carrega o histórico silenciosamente no fundo, sem tirar a tela inicial de vista
+    // O Ecrã Inicial agora aparece SEMPRE no onload, sem desviar para o histórico automaticamente.
     window.onload = () => { 
-        if (memoriaConversa.length > 0) { 
-            carregarHistoricoLocal(); 
-        } 
+        console.log("Núcleo Honey IA pronto. Ecrã inicial premium carregado.");
     };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -351,7 +445,6 @@
     function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
     function usarSugestao(texto) { userInput.value = texto; enviarMensagem(); }
     
-    // Remove o ecrã inicial de forma limpa e irreversível apenas quando a conversa se inicia
     function destruirWelcome() {
         if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
             welcomeScreen.style.opacity = '0'; 
@@ -363,4 +456,154 @@
     }
 
     function formatarMarkdownParaHtml(texto) {
-        let textoFormatado = texto.replace(/```html([\s\S]*?)
+        let textoFormatado = texto.replace(/```html([\s\S]*?)```/g, (match, code) => {
+            const codeId = "code_" + Math.random().toString(36).substr(2, 9);
+            window[codeId] = code.trim();
+            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0; position: relative;">
+                <div style="font-family: monospace; font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">⚡ Aplicação estruturada pronta para visualização.</div>
+                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')" style="padding: 4px 10px; font-size: 11px;">Copiar Código</button>
+            </div>`;
+        });
+        textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
+    }
+
+    function copiarTextoCodigo(codeId) {
+        navigator.clipboard.writeText(window[codeId]);
+        alert("Código copiado para a área de transferência!");
+    }
+
+    function renderizarConteudoElegante(container, texto, callback) {
+        container.innerHTML = "";
+        const wrapper = document.createElement('div');
+        wrapper.className = 'premium-fade-in';
+        wrapper.innerHTML = formatarMarkdownParaHtml(texto);
+        container.appendChild(wrapper);
+        if (callback) callback();
+    }
+
+    function extrairCodigoHTML(texto) {
+        const match = texto.match(/```html([\s\S]*?)```/);
+        return match ? match[1].trim() : null;
+    }
+
+    function carregarNoSandbox(codigoHTML) {
+        mainLayout.classList.add('split-active');
+        const blob = new Blob([codigoHTML], { type: 'text/html' });
+        sandboxIframe.src = URL.createObjectURL(blob);
+    }
+
+    function fecharSandbox() { mainLayout.classList.remove('split-active'); mainLayout.classList.remove('fullscreen-active'); }
+    function alternarEcraCheioSandbox() { 
+        mainLayout.classList.toggle('fullscreen-active'); 
+        document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
+    }
+
+    /* CONTROLO EXCLUSIVO DO PAINEL DE HISTÓRICO */
+    function alternarPainelHistorico() {
+        if (historyPanel.classList.contains('active')) {
+            historyPanel.classList.remove('active');
+        } else {
+            historyPanel.classList.add('active');
+            renderizarListaHistorico();
+        }
+    }
+
+    function renderizarListaHistorico() {
+        historyList.innerHTML = "";
+        if (memoriaConversa.length === 0) {
+            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico de interações.</div>`;
+            return;
+        }
+        // Inverte a ordem para mostrar as interações mais recentes primeiro
+        [...memoriaConversa].reverse().forEach((item, indexOriginal) => {
+            const indexReal = memoriaConversa.length - 1 - indexOriginal;
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.textContent = item.prompt.length > 45 ? item.prompt.substring(0, 45) + "..." : item.prompt;
+            div.onclick = () => resgatarSessaoHistorico(indexReal);
+            historyList.appendChild(div);
+        });
+    }
+
+    function resgatarSessaoHistorico(index) {
+        destruirWelcome();
+        fecharSandbox();
+        alternarPainelHistorico(); // Fecha o drawer
+        chatBox.innerHTML = ""; // Limpa o ecran para focar na conversa antiga escolhida
+        
+        const item = memoriaConversa[index];
+        criarLinhaMensagem(item.prompt, 'row-user');
+        const linhaHoney = criarLinhaMensagem("", 'row-honey');
+        renderizarConteudoElegante(linhaHoney, item.resposta, () => {
+            const codigoDetectado = extrairCodigoHTML(item.resposta);
+            if (codigoDetectado) carregarNoSandbox(codigoDetectado);
+        });
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+    }
+
+    async function enviarMensagem() {
+        const promptText = userInput.value.trim();
+        if (!promptText) return;
+
+        // Se o utilizador estava a ver uma sessão antiga e digitou algo novo no input, 
+        // o chatBox limpa automaticamente para iniciar a "nova conversa com a Honey" separada
+        if (welcomeScreen.style.display === 'none' && chatBox.innerHTML !== "" && !historyPanel.classList.contains('active')) {
+             chatBox.innerHTML = ""; 
+             fecharSandbox();
+        }
+
+        destruirWelcome(); 
+        criarLinhaMensagem(promptText, 'row-user');
+        userInput.value = "";
+        sendBtn.disabled = true;
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const mergeHoney = criarLinhaMensagem("", 'row-honey');
+        const indicador = document.createElement('div');
+        indicador.className = 'typing-indicator';
+        indicador.innerHTML = '<span></span><span></span><span></span>';
+        mergeHoney.appendChild(indicador);
+
+        try {
+            const response = await fetch('/gerar-gratis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptText })
+            });
+            const data = await response.json();
+            mergeHoney.innerHTML = "";
+
+            if (response.ok && data.sucesso) {
+                renderizarConteudoElegante(mergeHoney, data.codigo, () => {
+                    const codigoDetectado = extrairCodigoHTML(data.codigo);
+                    if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
+                    
+                    memoriaConversa.push({ prompt: promptText, resposta: data.codigo });
+                    localStorage.setItem('honey_ia_history', JSON.stringify(memoriaConversa));
+                });
+            } else {
+                mergeHoney.textContent = "Erro ao processar pedido corporativo.";
+            }
+        } catch (err) {
+            mergeHoney.innerHTML = "Erro crítico de conexão com o núcleo.";
+        } finally {
+            sendBtn.disabled = false;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    function criarLinhaMensagem(texto, classeLinha) {
+        const row = document.createElement('div');
+        row.className = `row-message ${classeLinha}`;
+        const body = document.createElement('div');
+        body.className = 'msg-body';
+        body.textContent = texto;
+        row.appendChild(body);
+        chatBox.appendChild(row);
+        return body;
+    }
+</script>
+</body>
+</html>
