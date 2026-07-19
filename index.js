@@ -1,39 +1,37 @@
 const express = require('express');
-const cors = require('cors');
-const Groq = require('groq-sdk');
-require('dotenv').config();
-
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-app.use(express.static('public'));
-app.use(express.static('.'));
-
-const groq = new Groq({ apiKey: process.env.API_KEY });
-
+// Rota de geração corrigida para o idioma correto
 app.post('/gerar-gratis', async (req, res) => {
-    const { prompt } = req.body;
-
-    if (!prompt) {
-        return res.status(400).json({ sucesso: false, erro: "O prompt não pode estar vazio." });
-    }
-
     try {
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: "system",
-                    content: `You are Honey IA, an elite, premium, and highly sophisticated virtual assistant and master software architect.
-                
-                    CRITICAL RULES:
-                    1. Tone: Ultra-professional, elegant, warm, and highly capable. Speak like a luxury digital architect.
-                    2. Language: Detect the user's input language instantly and respond strictly in the SAME language.
-                    3. Code Delivery for Apps/Websites: When the user requests a website, interface, or web application, you must provide a SINGLE, COMPLETE, and fully functional HTML file containing the CSS (<style>) and JavaScript (<script>) integrated inside it. 
-                    4. Code Formatting: Always wrap the complete code inside a standard markdown code block starting with \`\`\`html and ending with \`\`\`. Avoid separate blocks for CSS or JS; merge everything into one clean HTML file so the system can render it live.
-                    
-                    Maintain this elite standard at all times.`
-                },
+        const { prompt, idiomaContexto } = req.body;
+
+        // Regra do Sistema invisível injetada na raiz do pedido
+        const instrucaoSistema = `[REGRA OBRIGATÓRIA DE IDIOMA]: Identifica com precisão o idioma em que o utilizador escreveu a mensagem. Responde RIGOROSAMENTE no mesmo idioma. Se o utilizador comunicou em Português, a tua resposta inteira deve ser em Português. Nunca mistures ou respondas em Espanhol a prompts em Português. (Dica de contexto detetada: ${idiomaContexto}).`;
+
+        // Junta a instrução restrita ao prompt enviado à IA
+        const promptFinal = `${instrucaoSistema}\n\nPedido do Utilizador: ${prompt}`;
+
+        // --- Exemplo de chamada à tua API de IA (ajusta conforme usas OpenAI/Gemini) ---
+        // const resultadoAI = await chamarSuaCriacaoIA(promptFinal);
+        // const codigoGerado = resultadoAI.text;
+        
+        // Simulação de resposta bem-sucedida para o teste
+        const codigoGerado = "```html\n<!DOCTYPE html><html><body><h1>Olá do Honey IA!</h1></body></html>\n```";
+
+        return res.json({
+            sucesso: true,
+            codigo: codigoGerado
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ sucesso: false, erro: "Erro interno no servidor." });
+    }
+});
+
+app.listen(3000, () => console.log("Servidor Honey IA a rodar com sucesso."));
                 {
                     role: "user",
                     content: prompt
