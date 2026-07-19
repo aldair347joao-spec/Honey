@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Honey IA | Elite Premium Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #ffb700; --gold-dark: #cc9200; --bg: #060609; --card: #0f0f16; --border: #1a1a26; --preview-bg: #14141f; }
+        :root { 
+            --gold: #ffb700; 
+            --gold-dark: #cc9200; 
+            --bg: #030305; 
+            --card: #0b0b11; 
+            --border: #161622; 
+            --preview-bg: #0d0d14; 
+            --text-main: #f1f1f6;
+            --text-muted: #8e8e9f;
+        }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         
-        /* Uso de dvh (Dynamic Viewport Height) para se ajustar perfeitamente com ou sem teclado */
         body { 
             background: var(--bg); 
-            color: #fff; 
+            color: var(--text-main); 
             height: 100vh; 
             height: 100dvh; 
             overflow: hidden; 
             width: 100vw; 
+            -webkit-font-smoothing: antialiased;
         }
         
         .app-layout { 
@@ -51,18 +61,18 @@
 
         .app-layout.split-active .sandbox-section {
             display: flex;
-            animation: slideInRight 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* Ecrã de Boas-Vindas Centralizado */
+        /* ECRÃ DE BOAS-VINDAS ULTRA PREMIUM */
         #welcome-screen { 
             position: absolute; 
             top: 45%; 
             left: 50%; 
             transform: translate(-50%, -50%); 
             width: 100%; 
-            max-width: 450px;
+            max-width: 520px;
             background: transparent; 
             display: flex; 
             flex-direction: column; 
@@ -71,72 +81,148 @@
             z-index: 1; 
             transition: opacity 0.4s ease, visibility 0.4s; 
             text-align: center; 
-            padding: 20px; 
+            padding: 24px; 
         }
-        .hero-bee { font-size: 60px; animation: float 3s ease-in-out infinite; margin-bottom: 20px; display: inline-block; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        #welcome-screen h1 { font-size: 34px; color: var(--gold); margin-bottom: 12px; font-weight: 600; letter-spacing: -1px; }
-        #welcome-screen p { color: #8a8a9e; font-size: 14px; line-height: 1.6; font-weight: 300; }
+        .hero-bee { 
+            font-size: 64px; 
+            animation: float 3.5s ease-in-out infinite; 
+            margin-bottom: 24px; 
+            display: inline-block;
+            filter: drop-shadow(0 10px 20px rgba(255, 183, 0, 0.2));
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        
+        #welcome-screen h1 { 
+            font-size: 40px; 
+            color: #fff; 
+            margin-bottom: 16px; 
+            font-weight: 700; 
+            letter-spacing: -1.5px; 
+            background: linear-gradient(135deg, #fff 40%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #welcome-screen p { 
+            color: var(--text-muted); 
+            font-size: 15.5px; 
+            line-height: 1.65; 
+            font-weight: 400; 
+            max-width: 440px;
+        }
 
+        /* CONTENTOR DE MENSAGENS (ESTILO CHATGPT) */
         .chat-container { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 20px 20px 100px 20px; /* Padding inferior generoso para as mensagens não ficarem atrás do input */
+            padding: 24px 24px 120px 24px; 
             display: flex; 
             flex-direction: column; 
-            gap: 20px; 
+            gap: 28px; 
             width: 100%; 
-            max-width: 680px; 
+            max-width: 720px; 
             margin: 0 auto; 
-            scroll-behavior: smooth; 
             z-index: 2;
         }
         
-        .message { display: flex; flex-direction: column; width: fit-content; max-width: 85%; padding: 14px 18px; border-radius: 20px; line-height: 1.6; font-size: 14px; animation: fadeIn 0.2s ease; position: relative; word-wrap: break-word; white-space: pre-wrap; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .user-msg { background: var(--gold); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; box-shadow: 0 4px 15px rgba(255,183,0,0.15); }
-        .honey-msg { background: var(--card); color: #e4e4ed; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        /* ESTILO DOS BALÕES DE TEXTO MELHORADO */
+        .message { 
+            display: flex; 
+            flex-direction: column; 
+            width: fit-content; 
+            max-width: 88%; 
+            padding: 16px 22px; 
+            border-radius: 22px; 
+            line-height: 1.7; 
+            font-size: 15px; /* Letra ligeiramente maior e mais legível */
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            position: relative; 
+            word-wrap: break-word; 
+            white-space: pre-wrap; 
+            letter-spacing: -0.1px;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* BARRA DE CONVERSA FIXA NO FUNDO DA SECÇÃO */
+        .user-msg { 
+            background: linear-gradient(135deg, var(--gold) 0%, #ffa600 100%); 
+            color: #030305; 
+            align-self: flex-end; 
+            border-bottom-right-radius: 4px; 
+            font-weight: 500; 
+            box-shadow: 0 8px 20px rgba(255,183,0,0.12); 
+        }
+        .honey-msg { 
+            background: var(--card); 
+            color: var(--text-main); 
+            align-self: flex-start; 
+            border-bottom-left-radius: 4px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15); 
+        }
+        
+        /* BARRA DE CONVERSA ELEGANTE */
         .input-area { 
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%; 
-            padding: 20px; 
+            padding: 24px; 
             display: flex; 
             justify-content: center; 
-            background: linear-gradient(to top, var(--bg) 70%, transparent); /* Degradê elegante */
+            background: linear-gradient(to top, var(--bg) 60%, transparent);
             z-index: 10;
         }
-        .input-wrapper { width: 100%; max-width: 600px; background: var(--card); border: 1px solid var(--border); border-radius: 30px; display: flex; align-items: center; padding: 6px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transition: all 0.2s; gap: 6px; }
-        .input-wrapper:focus-within { border-color: var(--gold); }
+        .input-wrapper { 
+            width: 100%; 
+            max-width: 640px; 
+            background: rgba(11, 11, 17, 0.85); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: 32px; 
+            display: flex; 
+            align-items: center; 
+            padding: 8px 14px; 
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5); 
+            transition: border-color 0.2s, box-shadow 0.2s; 
+            gap: 8px; 
+        }
+        .input-wrapper:focus-within { 
+            border-color: rgba(255, 183, 0, 0.4); 
+            box-shadow: 0 16px 40px rgba(255,183,0,0.03), 0 0 0 1px rgba(255, 183, 0, 0.2);
+        }
         
-        .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 15px; outline: none; min-width: 0; }
-        .chat-input::placeholder { color: #4e4e66; }
+        .chat-input { flex: 1; background: none; border: none; padding: 8px 6px; color: #fff; font-size: 15.5px; outline: none; min-width: 0; font-weight: 400; }
+        .chat-input::placeholder { color: #52526b; }
         
-        .action-btn { background: none; border: none; color: #73738c; width: 38px; height: 38px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+        .action-btn { background: none; border: none; color: #787893; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.08); }
-        .send-btn { background: var(--gold); color: #000; }
-        .send-btn:disabled { background: #181824; color: #4e4e66; cursor: not-allowed; }
+        .send-btn { background: var(--gold); color: #030305; transition: transform 0.2s, background-color 0.2s; }
+        .send-btn:hover { background: var(--gold-dark); transform: scale(1.02); }
+        .send-btn:disabled { background: #141420; color: #44445c; cursor: not-allowed; transform: none; }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-        .premium-btn { background: rgba(255, 183, 0, 0.06); border: 1px solid rgba(255, 183, 0, 0.15); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 12px; font-size: 13px; font-weight: 500; gap: 6px; transition: all 0.2s; }
-        .visualize-btn { background: rgba(0, 230, 118, 0.08); border-color: rgba(0, 230, 118, 0.2); color: #00e676; }
+        /* Grupos de Botões Premium */
+        .btn-group { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+        .premium-btn { background: rgba(255, 183, 0, 0.05); border: 1px solid rgba(255, 183, 0, 0.15); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 14px; font-size: 13.5px; font-weight: 500; gap: 8px; transition: all 0.2s; }
+        .premium-btn:hover { background: rgba(255, 183, 0, 0.12); border-color: var(--gold); }
+        .visualize-btn { background: rgba(0, 230, 118, 0.06); border-color: rgba(0, 230, 118, 0.18); color: #00e676; }
+        .visualize-btn:hover { background: rgba(0, 230, 118, 0.12); border-color: #00e676; }
 
-        /* Top Bar Navegador Sandbox */
-        .sandbox-header { height: 50px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; flex-shrink: 0; }
+        /* Interface do Navegador Sandbox */
+        .sandbox-header { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
         .browser-dots { display: flex; gap: 6px; align-items: center; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; }
+        .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
         .dot.yellow { background: #ffbd2e; }
         .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; font-size: 11px; color: #8a8a9e; width: 50%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 300; }
+        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; color: var(--text-muted); width: 55%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
         
-        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 50px); background: #14141f; display: flex; align-items: center; justify-content: center; padding: 10px; }
-        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; border-radius: 8px; }
+        .sandbox-body { flex: 1; width: 100%; height: calc(100% - 52px); background: #0c0c12; display: flex; align-items: center; justify-content: center; padding: 12px; }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.4); }
 
-        /* COMPORTAMENTO SEGURO PARA TELEMÓVEIS (Divisão Vertical Limpa) */
+        /* RESPONSIVIDADE ADAPTATIVA MOBILE */
         @media (max-width: 800px) {
+            #welcome-screen h1 { font-size: 32px; }
+            #welcome-screen p { font-size: 14.5px; }
+            
             .app-layout.split-active { 
                 flex-direction: column-reverse; 
             }
@@ -149,7 +235,8 @@
                 border-left: none;
                 border-bottom: 2px solid var(--border);
             }
-            .browser-address { width: 40%; }
+            .browser-address { width: 45%; }
+            .message { max-width: 90%; font-size: 14.5px; }
         }
     </style>
 </head>
@@ -161,12 +248,12 @@
             <div id="welcome-screen">
                 <span class="hero-bee">🐝</span>
                 <h1>Honey IA</h1>
-                <p>A tua arquiteta digital. Crie aplicações, websites ou explore ideias incríveis com uma execução premium.</p>
+                <p>A tua arquiteta digital. Desenvolve aplicações, websites e explora ideias de elite com uma execução premium impecável.</p>
             </div>
 
             <div class="chat-container" id="chat-box"></div>
 
-            <!-- Barra de entrada perfeitamente ancorada embaixo -->
+            <!-- Barra de entrada -->
             <div class="input-area" id="input-zone">
                 <div class="input-wrapper">
                     <button class="action-btn" id="mic-btn" onclick="alternarGravacao()" title="Conversar por voz">
@@ -189,7 +276,7 @@
                     <div class="dot green"></div>
                 </div>
                 <div class="browser-address" id="live-url">honey-ia://live-preview-premium</div>
-                <button class="premium-btn" onclick="fecharSandbox()" style="padding: 5px 10px; border-radius: 8px; font-size: 11px; border-color: rgba(255,74,74,0.3); color: #ff4a4a; background: rgba(255,74,74,0.05);">Ocultar</button>
+                <button class="premium-btn" onclick="fecharSandbox()" style="padding: 6px 12px; border-radius: 10px; font-size: 11px; border-color: rgba(255,74,74,0.3); color: #ff4a4a; background: rgba(255,74,74,0.04);">Ocultar</button>
             </div>
             <div class="sandbox-body">
                 <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
@@ -259,6 +346,18 @@
 
     function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
 
+    /* FUNÇÃO DE SCROLL DINÂMICO INTELIGENTE (ESTILO CHATGPT) */
+    function atualizarScrollInteligente(deveForcar = false) {
+        // Se o utilizador já estiver perto do fundo (menos de 150px de distância), o scroll acompanha o texto.
+        // Se ele subiu para ler, o scroll não mexe para não causar confusão.
+        const margemFundo = 150;
+        const estaNoFundo = (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight) < margemFundo;
+        
+        if (estaNoFundo || deveForcar) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
     function efeitoDigitarAoVivo(containerTexto, texto, callback) {
         let i = 0;
         containerTexto.textContent = ""; 
@@ -266,8 +365,8 @@
             if (i < texto.length) {
                 containerTexto.textContent += texto.charAt(i);
                 i++;
-                chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(digitar, 4); 
+                atualizarScrollInteligente(); // Scroll suave e controlado
+                setTimeout(digitar, 5); 
             } else { if(callback) callback(); }
         }
         digitar();
@@ -282,7 +381,7 @@
         mainLayout.classList.add('split-active');
         const blob = new Blob([codigoHTML], { type: 'text/html' });
         sandboxIframe.src = URL.createObjectURL(blob);
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 200);
+        setTimeout(() => { atualizarScrollInteligente(true); }, 250);
     }
 
     function fecharSandbox() {
@@ -338,6 +437,7 @@
                         carregarNoSandbox(codigoDetectado);
                     }
                     honeyBalao.appendChild(btnGroup);
+                    atualizarScrollInteligente(true);
                 });
             } else {
                 spanTexto.textContent = "Erro: " + (data.erro || "Falha.");
@@ -358,7 +458,7 @@
             div.appendChild(span);
         }
         chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        atualizarScrollInteligente(true);
         return div;
     }
 </script>
