@@ -133,7 +133,6 @@
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
 
-        /* ÍCONE CENTRAL 3D */
         .hero-bee-wrapper {
             position: relative;
             margin-bottom: 12px;
@@ -186,7 +185,6 @@
             display: inline-block;
         }
 
-        /* CONTAINER DE SUGESTÕES ESTÁVEL E HÍBRIDO */
         .suggestion-viewport {
             width: 100%;
             max-width: 620px;
@@ -211,7 +209,6 @@
             will-change: transform;
         }
 
-        /* Quando o utilizador interage, a animação CSS é pausada instantaneamente */
         .suggestion-viewport.user-interacted .suggestion-track {
             animation-play-state: paused !important;
         }
@@ -273,7 +270,7 @@
 
         /* CONTAINER CHAT */
         .chat-container { 
-            flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5; scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5;
         }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
@@ -368,7 +365,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMIUM 3D COM CONTROLO DE SCROLL E TEMPORIZADOR DE 10S -->
+            <!-- ECRÃ INICIAL PREMIUM 3D -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -578,7 +575,7 @@
     }
 
     // -------------------------------------------------------------
-    // 2. CONTROLO DO CARROSSEL AUTÔNOMO + TEMPORIZADOR (10 SEGUNDOS)
+    // 2. CONTROLO DO CARROSSEL AUTÔNOMO
     // -------------------------------------------------------------
     let resumeTimer = null;
 
@@ -586,17 +583,13 @@
         const viewport = document.getElementById('suggestion-viewport');
 
         function pausarEAgendarRetoma() {
-            // Pausa a animação via CSS
             viewport.classList.add('user-interacted');
-            
-            // Reinicia o contador de 10 segundos
             clearTimeout(resumeTimer);
             resumeTimer = setTimeout(() => {
                 viewport.classList.remove('user-interacted');
-            }, 10000); // 10 segundos após a última interação
+            }, 10000);
         }
 
-        // Deteta interações de rato, toque e scroll no container
         viewport.addEventListener('mouseenter', pausarEAgendarRetoma);
         viewport.addEventListener('mousemove', pausarEAgendarRetoma);
         viewport.addEventListener('wheel', pausarEAgendarRetoma, { passive: true });
@@ -605,7 +598,7 @@
     }
 
     // -------------------------------------------------------------
-    // 3. INTERAÇÃO 3D TILT MULTI-PLATAFORMA
+    // 3. INTERAÇÃO 3D TILT
     // -------------------------------------------------------------
     function initCard3DTilt() {
         const cards = document.querySelectorAll('.suggestion-card');
@@ -641,7 +634,7 @@
     }
 
     // -------------------------------------------------------------
-    // 4. LÓGICA PRINCIPAL (CHAT, SANDBOX, HISTÓRICO)
+    // 4. LÓGICA PRINCIPAL (CHAT COM CONTEXTO CONTINUO E RESPOSTAS PREMIUM)
     // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
@@ -655,7 +648,18 @@
 
     let reconhecimentoVoz;
     let estaGravando = false;
-    let memoriaConversa = JSON.parse(localStorage.getItem('honey_ia_history')) || [];
+    
+    // Lista para sessões guardadas no LocalStorage
+    let memoriaSessoes = JSON.parse(localStorage.getItem('honey_ia_sessions')) || [];
+    
+    // Array que guarda as mensagens da conversa ATUAL para dar contexto à IA
+    let historicoConversa = [];
+
+    // System Prompt Premium para definir a postura corporativa da IA
+    const SYSTEM_INSTRUCTION = `És a Honey IA, uma assistente corporativa e arquiteta digital de elite.
+Teu tom de voz deve ser sempre altamente profissional, executivo, cortês e objetivo.
+Evita saudações informais ou conversas desnecessárias. Entrega análises claras, códigos estruturados e soluções de engenharia ou negócios de alto nível.
+Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e totalmente funcional.`;
 
     window.onload = () => { 
         init3DBackground();
@@ -707,7 +711,7 @@
 
     function copiarTextoCodigo(codeId) {
         navigator.clipboard.writeText(window[codeId]);
-        alert("Código copiado!");
+        alert("Código copiado para a área de transferência.");
     }
 
     function renderizarConteudoElegante(container, texto, callback) {
@@ -747,15 +751,16 @@
 
     function renderizarListaHistorico() {
         historyList.innerHTML = "";
-        if (memoriaConversa.length === 0) {
-            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico.</div>`;
+        if (memoriaSessoes.length === 0) {
+            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico de conversas.</div>`;
             return;
         }
-        [...memoriaConversa].reverse().forEach((item, indexOriginal) => {
-            const indexReal = memoriaConversa.length - 1 - indexOriginal;
+        [...memoriaSessoes].reverse().forEach((sessao, indexOriginal) => {
+            const indexReal = memoriaSessoes.length - 1 - indexOriginal;
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.textContent = item.prompt.length > 45 ? item.prompt.substring(0, 45) + "..." : item.prompt;
+            const titulo = sessao.mensagens[0] ? sessao.mensagens[0].texto : "Sessão sem título";
+            div.textContent = titulo.length > 45 ? titulo.substring(0, 45) + "..." : titulo;
             div.onclick = () => resgatarSessaoHistorico(indexReal);
             historyList.appendChild(div);
         });
@@ -767,32 +772,42 @@
         alternarPainelHistorico();
         chatBox.innerHTML = "";
         
-        const item = memoriaConversa[index];
-        criarLinhaMensagem(item.prompt, 'row-user');
-        const linhaHoney = criarLinhaMensagem("", 'row-honey');
-        renderizarConteudoElegante(linhaHoney, item.resposta, () => {
-            const codigoDetectado = extrairCodigoHTML(item.resposta);
-            if (codigoDetectado) carregarNoSandbox(codigoDetectado);
+        const sessao = memoriaSessoes[index];
+        
+        // Reconstroi o histórico ativo
+        historicoConversa = [];
+        
+        sessao.mensagens.forEach(msg => {
+            historicoConversa.push(msg);
+            const classeLinha = msg.role === 'user' ? 'row-user' : 'row-honey';
+            const body = criarLinhaMensagem("", classeLinha);
+            if (msg.role === 'user') {
+                body.textContent = msg.texto;
+            } else {
+                renderizarConteudoElegante(body, msg.texto, () => {
+                    const codigo = extrairCodigoHTML(msg.texto);
+                    if (codigo) carregarNoSandbox(codigo);
+                });
+            }
         });
-        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
     }
 
     async function enviarMensagem() {
         const promptText = userInput.value.trim();
         if (!promptText) return;
 
-        if (welcomeScreen.style.display === 'none' && chatBox.innerHTML !== "" && !historyPanel.classList.contains('active')) {
-             chatBox.innerHTML = ""; 
-             fecharSandbox();
-        }
-
         destruirWelcome(); 
+        
+        // Exibe a mensagem do utilizador no ecrã
         criarLinhaMensagem(promptText, 'row-user');
+        
+        // Guarda no histórico local para contexto
+        historicoConversa.push({ role: 'user', texto: promptText });
+        
         userInput.value = "";
         sendBtn.disabled = true;
 
-        chatBox.scrollTop = chatBox.scrollHeight;
-
+        // Cria a linha de resposta da Honey IA com indicador de digitação
         const mergeHoney = criarLinhaMensagem("", 'row-honey');
         const indicador = document.createElement('div');
         indicador.className = 'typing-indicator';
@@ -800,31 +815,55 @@
         mergeHoney.appendChild(indicador);
 
         try {
+            // Envia o histórico completo para manter o contexto contínuo
             const response = await fetch('/gerar-gratis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: promptText })
+                body: JSON.stringify({ 
+                    prompt: promptText,
+                    historico: historicoConversa,
+                    systemInstruction: SYSTEM_INSTRUCTION
+                })
             });
+            
             const data = await response.json();
             mergeHoney.innerHTML = "";
 
             if (response.ok && data.sucesso) {
-                renderizarConteudoElegante(mergeHoney, data.codigo, () => {
-                    const codigoDetectado = extrairCodigoHTML(data.codigo);
+                const respostaTexto = data.codigo;
+                
+                // Regista a resposta no histórico contínuo
+                historicoConversa.push({ role: 'model', texto: respostaTexto });
+
+                // Renderiza o texto suavemente (sem dar scroll forçado para o fundo)
+                renderizarConteudoElegante(mergeHoney, respostaTexto, () => {
+                    const codigoDetectado = extrairCodigoHTML(respostaTexto);
                     if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
-                    
-                    memoriaConversa.push({ prompt: promptText, resposta: data.codigo });
-                    localStorage.setItem('honey_ia_history', JSON.stringify(memoriaConversa));
                 });
+
+                // Atualiza/Guarda a sessão no LocalStorage
+                salvarSessaoNoStorage();
+
             } else {
-                mergeHoney.textContent = "Erro ao processar pedido corporativo.";
+                mergeHoney.textContent = "Não foi possível processar o pedido corporativo.";
             }
         } catch (err) {
-            mergeHoney.innerHTML = "Erro crítico de conexão com o núcleo.";
+            mergeHoney.innerHTML = "Erro de ligação com o servidor da plataforma.";
         } finally {
             sendBtn.disabled = false;
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
+    }
+
+    function salvarSessaoNoStorage() {
+        if (historicoConversa.length === 0) return;
+        
+        // Verifica se já existe uma sessão em curso ou cria uma nova
+        if (memoriaSessoes.length === 0 || memoriaSessoes[memoriaSessoes.length - 1].finalizada) {
+            memoriaSessoes.push({ mensagens: [...historicoConversa], finalizada: false });
+        } else {
+            memoriaSessoes[memoriaSessoes.length - 1].mensagens = [...historicoConversa];
+        }
+        localStorage.setItem('honey_ia_sessions', JSON.stringify(memoriaSessoes));
     }
 
     function criarLinhaMensagem(texto, classeLinha) {
