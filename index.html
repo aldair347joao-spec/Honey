@@ -112,7 +112,7 @@
         }
         .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
 
-        /* PÁGINA INICIAL COM SCROLL CORRIGIDO */
+        /* PÁGINA INICIAL */
         #welcome-screen { 
             position: absolute;
             top: 0;
@@ -186,34 +186,39 @@
             display: inline-block;
         }
 
-        /* PAINEL DE MARQUEE INTERATIVO 3D */
+        /* CONTAINER DE SUGESTÕES ESTÁVEL E HÍBRIDO */
         .suggestion-viewport {
             width: 100%;
             max-width: 620px;
             height: 280px;
-            overflow: hidden;
+            overflow-y: auto;
             position: relative;
             margin: 0 auto;
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
             perspective: 1000px;
-            cursor: grab;
-            user-select: none;
-            touch-action: pan-y;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
-        .suggestion-viewport:active {
-            cursor: grabbing;
-        }
+        .suggestion-viewport::-webkit-scrollbar { display: none; }
 
         .suggestion-track {
             display: flex;
             flex-direction: column;
             gap: 14px;
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            animation: scrollContinuo 18s linear infinite;
             will-change: transform;
+        }
+
+        /* Quando o utilizador interage, a animação CSS é pausada instantaneamente */
+        .suggestion-viewport.user-interacted .suggestion-track {
+            animation-play-state: paused !important;
+        }
+
+        @keyframes scrollContinuo {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
         }
 
         .suggestion-card { 
@@ -232,13 +237,14 @@
             transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s, background 0.3s;
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .suggestion-card:hover, .suggestion-card:active { 
             border-color: rgba(255, 183, 0, 0.6); 
             background: rgba(20, 20, 32, 0.95);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 183, 0, 0.25);
-            transform: translateZ(25px) scale(1.02);
+            transform: translateZ(25px) scale(1.01);
             z-index: 10;
         }
         
@@ -362,7 +368,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMIUM 3D COM CARROSSEL CONTINUO E ARRASTO MANUAL -->
+            <!-- ECRÃ INICIAL PREMIUM 3D COM CONTROLO DE SCROLL E TEMPORIZADOR DE 10S -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -416,7 +422,7 @@
                             </div>
                         </div>
 
-                        <!-- LOTE 2 (DUPLICADO PARA LOOP INFINITO PERFEITO) -->
+                        <!-- LOTE 2 (DUPLICADO PARA LOOP INFINITO) -->
                         <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
                             <div class="card-icon-wrapper">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -495,7 +501,7 @@
 
 <script>
     // -------------------------------------------------------------
-    // 1. ENGINE 3D FLUIDO & GEOMÉTRICO (ONDA TRIDIMENSIONAL DOURADA)
+    // 1. THREE.JS 3D BACKGROUND
     // -------------------------------------------------------------
     let scene, camera, renderer, meshMesh, geometry;
     let count = 0;
@@ -572,107 +578,30 @@
     }
 
     // -------------------------------------------------------------
-    // 2. SISTEMA DE CARROSSEL AUTÔNOMO + ARRASTO MANUAL & TEMPORIZADOR (10s)
+    // 2. CONTROLO DO CARROSSEL AUTÔNOMO + TEMPORIZADOR (10 SEGUNDOS)
     // -------------------------------------------------------------
-    let trackY = 0;
-    let speed = 0.6; // Velocidade da animação automática
-    let autoPlay = true;
-    let isDragging = false;
-    let startY = 0;
-    let initialTrackY = 0;
-    let resumeTimeout = null;
-    let halfHeight = 0;
+    let resumeTimer = null;
 
-    function initInteractiveMarquee() {
+    function initMarqueeController() {
         const viewport = document.getElementById('suggestion-viewport');
-        const track = document.getElementById('suggestion-track');
-
-        // Calcula a metade da altura total para efetuar o loop infinito sem falhas
-        halfHeight = track.scrollHeight / 2;
-
-        function loopAnimation() {
-            if (autoPlay && !isDragging) {
-                trackY -= speed;
-                if (Math.abs(trackY) >= halfHeight) {
-                    trackY = 0;
-                }
-                track.style.transform = `translateY(${trackY}px)`;
-            }
-            requestAnimationFrame(loopAnimation);
-        }
 
         function pausarEAgendarRetoma() {
-            autoPlay = false;
-            clearTimeout(resumeTimeout);
-            resumeTimeout = setTimeout(() => {
-                autoPlay = true;
-            }, 10000); // 10 Segundos de inatividade antes de voltar a rodar sozinho
+            // Pausa a animação via CSS
+            viewport.classList.add('user-interacted');
+            
+            // Reinicia o contador de 10 segundos
+            clearTimeout(resumeTimer);
+            resumeTimer = setTimeout(() => {
+                viewport.classList.remove('user-interacted');
+            }, 10000); // 10 segundos após a última interação
         }
 
-        // --- ARRASTO COM RATO (DESKTOP) ---
-        viewport.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startY = e.clientY;
-            initialTrackY = trackY;
-            pausarEAgendarRetoma();
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const deltaY = e.clientY - startY;
-            trackY = initialTrackY + deltaY;
-
-            // Ajuste dos limites para loop infinito durante o arrasto
-            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
-            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
-
-            track.style.transform = `translateY(${trackY}px)`;
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                pausarEAgendarRetoma();
-            }
-        });
-
-        // --- ARRASTO COM TOQUE (MOBILE) ---
-        viewport.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 0) return;
-            isDragging = true;
-            startY = e.touches[0].clientY;
-            initialTrackY = trackY;
-            pausarEAgendarRetoma();
-        }, { passive: true });
-
-        viewport.addEventListener('touchmove', (e) => {
-            if (!isDragging || e.touches.length === 0) return;
-            const deltaY = e.touches[0].clientY - startY;
-            trackY = initialTrackY + deltaY;
-
-            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
-            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
-
-            track.style.transform = `translateY(${trackY}px)`;
-        }, { passive: true });
-
-        viewport.addEventListener('touchend', () => {
-            isDragging = false;
-            pausarEAgendarRetoma();
-        });
-
-        // --- RODA DO RATO (WHEEL / SCROLL) ---
-        viewport.addEventListener('wheel', (e) => {
-            pausarEAgendarRetoma();
-            trackY -= e.deltaY * 0.5;
-
-            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
-            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
-
-            track.style.transform = `translateY(${trackY}px)`;
-        }, { passive: true });
-
-        loopAnimation();
+        // Deteta interações de rato, toque e scroll no container
+        viewport.addEventListener('mouseenter', pausarEAgendarRetoma);
+        viewport.addEventListener('mousemove', pausarEAgendarRetoma);
+        viewport.addEventListener('wheel', pausarEAgendarRetoma, { passive: true });
+        viewport.addEventListener('touchstart', pausarEAgendarRetoma, { passive: true });
+        viewport.addEventListener('touchmove', pausarEAgendarRetoma, { passive: true });
     }
 
     // -------------------------------------------------------------
@@ -690,10 +619,10 @@
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
                 
-                const rotateX = ((y - centerY) / centerY) * -10;
-                const rotateY = ((x - centerX) / centerX) * 10;
+                const rotateX = ((y - centerY) / centerY) * -8;
+                const rotateY = ((x - centerX) / centerX) * 8;
 
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(25px) scale(1.02)`;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px) scale(1.01)`;
             }
 
             function resetTilt() {
@@ -730,7 +659,7 @@
 
     window.onload = () => { 
         init3DBackground();
-        initInteractiveMarquee();
+        initMarqueeController();
         initCard3DTilt();
     };
 
@@ -751,7 +680,6 @@
 
     function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
     function usarSugestao(texto) { 
-        if (isDragging) return; // Evita disparo acidental ao terminar o arrasto
         userInput.value = texto; 
         enviarMensagem(); 
     }
