@@ -4,33 +4,42 @@ import Groq from 'groq-sdk';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Aumentar o limite para permitir o envio de imagens/ficheiros em Base64
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Servir os ficheiros estáticos da pasta 'public' (onde fica o teu index.html)
-app.use(express.static('public'));
+// Aponta para a raiz, onde está o teu index.html
+app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Rota principal para carregar o index.html da raiz
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Rota de processamento para a IA com suporte a Imagens, PDF, Word e Excel
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        let model = "llama-3.3-70b-versatile"; // Modelo ultra-rápido para texto/documentos
+        let model = "llama-3.3-70b-versatile"; 
         let content = [];
         let textoExtraidoDoDocumento = "";
 
-        // PROCESSAMENTO DE FICHEIROS ANEXADOS
         if (anexoBase64) {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS (JPG, PNG, WEBP, GIF) -> Visão Computacional do Groq
+            // 1. IMAGENS -> Modelo de Visão do Groq
             if (type.startsWith('image/')) {
                 model = "llama-3.2-11b-vision-preview";
                 content.push({
@@ -40,17 +49,17 @@ app.post('/gerar-gratis', async (req, res) => {
                     }
                 });
             } 
-            // 2. DOCUMENTOS PDF
+            // 2. PDF
             else if (type === 'application/pdf' || type.includes('pdf')) {
                 const pdfData = await pdfParse(buffer);
                 textoExtraidoDoDocumento = pdfData.text;
             } 
-            // 3. DOCUMENTOS WORD (.docx, .doc)
+            // 3. WORD (.docx, .doc)
             else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
                 const result = await mammoth.extractRawText({ buffer: buffer });
                 textoExtraidoDoDocumento = result.value;
             } 
-            // 4. PLANILHAS EXCEL / CSV (.xlsx, .xls, .csv)
+            // 4. EXCEL / CSV (.xlsx, .xls, .csv)
             else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
                 const workbook = XLSX.read(buffer, { type: 'buffer' });
                 workbook.SheetNames.forEach(sheetName => {
@@ -61,7 +70,6 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        // MONTAGEM DO PROMPT FINAL
         let textoPromptFinal = prompt || "Por favor, analisa o conteúdo e os detalhes do anexo.";
         if (textoExtraidoDoDocumento) {
             textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO ANEXADO]:\n${textoExtraidoDoDocumento}`;
@@ -72,7 +80,6 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
-        // CHAMADA À API DO GROQ
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
