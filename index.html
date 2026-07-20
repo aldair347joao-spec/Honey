@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Honey IA | Elite Premium Platform</title>
+    <title>Honey IA | Elite Corporate & Financial Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Engine 3D Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Engine de Gestão e Exportação do Excel (SheetJS) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
         :root { 
             --gold: #ffb700; 
             --gold-dark: #cc9200; 
             --bg: #030305; 
-            --card: rgba(14, 14, 22, 0.75); 
+            --card: rgba(14, 14, 22, 0.85); 
             --border: rgba(255, 183, 0, 0.15); 
             --preview-bg: #0d0d14; 
             --text-main: #f1f1f6;
             --text-muted: #8e8e9f;
+            --green-excel: #107c41;
         }
         
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -58,220 +61,129 @@
             pointer-events: none;
         }
 
-        /* BOTÃO HISTÓRICO HEADER */
-        .history-btn-header {
+        /* BOTÃO MENU HAMBÚRGUER (CANTO SUPERIOR ESQUERDO) */
+        .menu-hamburger-btn {
             position: absolute;
             top: 18px;
-            right: 18px;
-            z-index: 20;
+            left: 18px;
+            z-index: 30;
             background: rgba(11, 11, 18, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: var(--text-muted);
-            font-size: 12.5px;
-            font-weight: 500;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            color: var(--gold);
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 5px;
         }
-        .history-btn-header:hover {
+        .menu-hamburger-btn:hover {
             border-color: var(--gold);
-            color: #fff;
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.2);
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.25);
+            transform: scale(1.05);
+        }
+        .menu-hamburger-btn span {
+            width: 20px;
+            height: 2px;
+            background-color: var(--gold);
+            border-radius: 2px;
+            transition: all 0.3s;
         }
 
-        /* PAINEL LATERAL DE HISTÓRICO */
-        #history-panel {
+        /* PAINEL MENU OCULTO LATERAL */
+        #sidebar-menu {
             position: fixed;
             top: 0;
-            right: -100%;
+            left: -100%;
             width: 100%;
-            max-width: 380px;
+            max-width: 360px;
             height: 100%;
-            background: rgba(5, 5, 10, 0.96);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid var(--border);
+            background: rgba(6, 6, 12, 0.97);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid var(--border);
             z-index: 100;
-            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 30px 20px;
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 24px 20px;
             display: flex;
             flex-direction: column;
+            gap: 20px;
+            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
         }
-        #history-panel.active { right: 0; }
+        #sidebar-menu.active { left: 0; }
+
+        .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+        .menu-header h2 { font-size: 18px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .history-header h2 { font-size: 18px; color: #fff; font-weight: 600; }
-        
-        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .history-item {
-            padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 13px; color: var(--text-muted); transition: all 0.2s; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+        .menu-nav-tabs { display: flex; gap: 8px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .menu-tab-btn { flex: 1; padding: 8px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); background: none; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .menu-tab-btn.active { background: var(--gold); color: #000; }
+
+        .menu-content-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .menu-section-title { font-size: 11px; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; font-weight: 700; margin-top: 10px; }
+
+        .sidebar-item {
+            padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 13px; color: var(--text-main); transition: all 0.2s; display: flex; align-items: center; justify-content: space-between;
         }
-        .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
+        .sidebar-item:hover { border-color: var(--gold); background: rgba(255, 183, 0, 0.08); color: #fff; }
+
+        /* MODAL PLANOS PREMIUM */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .plans-container { background: #0a0a10; border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 850px; padding: 32px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 24px; }
+        .plan-card { background: rgba(18, 18, 28, 0.8); border: 1px solid var(--border); border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 14px; position: relative; }
+        .plan-card.featured { border-color: var(--gold); background: linear-gradient(180deg, rgba(255, 183, 0, 0.08) 0%, rgba(18, 18, 28, 0.9) 100%); }
+        .plan-card h3 { font-size: 20px; color: #fff; }
+        .plan-price { font-size: 28px; font-weight: 700; color: var(--gold); }
+        .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--text-muted); }
+        .plan-features li { display: flex; align-items: center; gap: 6px; }
 
         /* PÁGINA INICIAL */
         #welcome-screen { 
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 50px 20px 140px 20px;
-            z-index: 5; 
-            background: transparent;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            scrollbar-width: none;
-            perspective: 1200px;
-            -webkit-overflow-scrolling: touch;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 60px 20px 140px 20px; z-index: 5; background: transparent; transition: opacity 0.3s ease, transform 0.3s ease; scrollbar-width: none; perspective: 1200px; -webkit-overflow-scrolling: touch;
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
 
-        .hero-bee-wrapper {
-            position: relative;
-            margin-bottom: 12px;
-            display: inline-block;
-        }
-        .hero-bee-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90px;
-            height: 90px;
-            background: radial-gradient(circle, rgba(255,183,0,0.35) 0%, rgba(0,0,0,0) 70%);
-            filter: blur(20px);
-            border-radius: 50%;
-            animation: pulseGlow 3s ease-in-out infinite alternate;
-        }
+        .hero-bee-wrapper { position: relative; margin-bottom: 12px; display: inline-block; }
+        .hero-bee-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: radial-gradient(circle, rgba(255,183,0,0.35) 0%, rgba(0,0,0,0) 70%); filter: blur(20px); border-radius: 50%; animation: pulseGlow 3s ease-in-out infinite alternate; }
         @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } }
 
-        .hero-bee { 
-            font-size: 52px; 
-            position: relative;
-            z-index: 2;
-            animation: float3D 4s ease-in-out infinite; 
-            display: inline-block; 
-            filter: drop-shadow(0 15px 25px rgba(255, 183, 0, 0.3)); 
-        }
-        @keyframes float3D { 
-            0%, 100% { transform: translateY(0) rotate(0deg); } 
-            50% { transform: translateY(-12px) rotate(3deg); } 
-        }
+        .hero-bee { font-size: 52px; position: relative; z-index: 2; animation: float3D 4s ease-in-out infinite; display: inline-block; filter: drop-shadow(0 15px 25px rgba(255, 183, 0, 0.3)); }
+        @keyframes float3D { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
         
-        #welcome-screen h1 { 
-            font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
-        }
-        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; line-height: 1.45; max-width: 480px; margin: 0 auto 20px auto; text-align: center; }
+        #welcome-screen h1 { font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; line-height: 1.45; max-width: 500px; margin: 0 auto 20px auto; text-align: center; }
 
-        .feature-badge {
-            background: rgba(255, 183, 0, 0.08);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 183, 0, 0.25);
-            color: var(--gold);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            font-weight: 600;
-            padding: 5px 14px;
-            border-radius: 20px;
-            margin-bottom: 12px;
-            display: inline-block;
-        }
+        .feature-badge { background: rgba(255, 183, 0, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 183, 0, 0.25); color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-bottom: 12px; display: inline-block; }
 
-        .suggestion-viewport {
-            width: 100%;
-            max-width: 620px;
-            height: 280px;
-            overflow-y: auto;
-            position: relative;
-            margin: 0 auto;
-            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-            perspective: 1000px;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
+        .suggestion-viewport { width: 100%; max-width: 620px; height: 280px; overflow-y: auto; position: relative; margin: 0 auto; mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); perspective: 1000px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
         .suggestion-viewport::-webkit-scrollbar { display: none; }
 
-        .suggestion-track {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            width: 100%;
-            animation: scrollContinuo 18s linear infinite;
-            will-change: transform;
-        }
+        .suggestion-track { display: flex; flex-direction: column; gap: 14px; width: 100%; animation: scrollContinuo 18s linear infinite; will-change: transform; }
+        .suggestion-viewport.user-interacted .suggestion-track { animation-play-state: paused !important; }
 
-        .suggestion-viewport.user-interacted .suggestion-track {
-            animation-play-state: paused !important;
-        }
+        @keyframes scrollContinuo { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
 
-        @keyframes scrollContinuo {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
-        }
-
-        .suggestion-card { 
-            background: var(--card); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border); 
-            border-radius: 18px; 
-            padding: 16px 18px; 
-            text-align: left; 
-            cursor: pointer; 
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transform-style: preserve-3d;
-            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s, background 0.3s;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .suggestion-card:hover, .suggestion-card:active { 
-            border-color: rgba(255, 183, 0, 0.6); 
-            background: rgba(20, 20, 32, 0.95);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 183, 0, 0.25);
-            transform: translateZ(25px) scale(1.01);
-            z-index: 10;
-        }
+        .suggestion-card { background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 16px; transform-style: preserve-3d; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s, background 0.3s; position: relative; overflow: hidden; flex-shrink: 0; }
+        .suggestion-card:hover, .suggestion-card:active { border-color: rgba(255, 183, 0, 0.6); background: rgba(20, 20, 32, 0.95); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 183, 0, 0.25); transform: translateZ(25px) scale(1.01); z-index: 10; }
         
-        .card-icon-wrapper {
-            background: linear-gradient(135deg, rgba(255,183,0,0.12), rgba(11,11,18,0.9));
-            border: 1px solid rgba(255, 183, 0, 0.25);
-            padding: 12px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gold);
-            transform: translateZ(15px);
-            transition: all 0.3s ease;
-            flex-shrink: 0;
-        }
-        .suggestion-card:hover .card-icon-wrapper {
-            color: #fff;
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.5);
-        }
+        .card-icon-wrapper { background: linear-gradient(135deg, rgba(255,183,0,0.12), rgba(11,11,18,0.9)); border: 1px solid rgba(255, 183, 0, 0.25); padding: 12px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--gold); transform: translateZ(15px); transition: all 0.3s ease; flex-shrink: 0; }
+        .suggestion-card:hover .card-icon-wrapper { color: #fff; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 0 15px rgba(255, 183, 0, 0.5); }
 
         .card-content { flex: 1; transform: translateZ(10px); }
         .suggestion-card h3 { font-size: 14.5px; color: #fff; font-weight: 600; margin-bottom: 3px; }
         .suggestion-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
 
         /* CONTAINER CHAT */
-        .chat-container { 
-            flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5;
-        }
+        .chat-container { flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 780px; margin: 0 auto; z-index: 5; }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
         .row-user { align-items: flex-end; }
@@ -283,13 +195,34 @@
         .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 4px; }
         .msg-paragraph { margin-bottom: 12px; }
 
+        /* BOTÃO DE EXCEL DENTRO DA CONVERSA */
+        .excel-download-btn {
+            background: linear-gradient(135deg, #107c41, #0b582e);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            box-shadow: 0 4px 15px rgba(16, 124, 65, 0.3);
+            transition: all 0.2s;
+        }
+        .excel-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 124, 65, 0.5);
+            background: linear-gradient(135deg, #128c4a, #0d6837);
+        }
+
         .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
         @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* BARRA FIXA DE INPUT */
-        .input-area { 
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; 
-        }
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; }
         .input-wrapper { width: 100%; max-width: 680px; background: rgba(11, 11, 18, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 6px; }
         .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.4); }
         .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15px; outline: none; }
@@ -327,12 +260,10 @@
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
-            #welcome-screen { padding-top: 40px; padding-bottom: 140px; }
+            #welcome-screen { padding-top: 50px; padding-bottom: 140px; }
             #welcome-screen h1 { font-size: 26px; }
             .suggestion-viewport { height: 260px; }
             .suggestion-card { padding: 14px 16px; gap: 12px; }
-            .suggestion-card h3 { font-size: 13.5px; }
-            .suggestion-card p { font-size: 11.5px; }
             
             .app-layout.split-active { flex-direction: column-reverse; }
             .app-layout.split-active .chat-section { height: 52%; }
@@ -346,23 +277,70 @@
     <!-- CANVAS THREE.JS -->
     <canvas id="canvas-3d"></canvas>
 
-    <div class="app-layout" id="main-layout">
-        
-        <!-- BOTÃO HISTÓRICO -->
-        <button class="history-btn-header" onclick="alternarPainelHistorico()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Histórico
-        </button>
+    <!-- BOTÃO HAMBÚRGUER (3 LINHAS - OCULTO NO CANTO ESQUERDO) -->
+    <button class="menu-hamburger-btn" onclick="alternarMenuOculto()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
 
-        <!-- PAINEL LATERAL DE HISTÓRICO -->
-        <div id="history-panel">
-            <div class="history-header">
-                <h2>Histórico</h2>
-                <button class="action-btn" onclick="alternarPainelHistorico()" style="color: var(--text-muted);">✕</button>
-            </div>
-            <div class="history-list" id="history-list"></div>
+    <!-- PAINEL MENU LATERAL COMPLETO -->
+    <div id="sidebar-menu">
+        <div class="menu-header">
+            <h2><span>🐝</span> Honey Hub</h2>
+            <button class="action-btn" onclick="alternarMenuOculto()" style="color: var(--text-muted);">✕</button>
         </div>
 
+        <div class="menu-nav-tabs">
+            <button class="menu-tab-btn active" id="tab-btn-hist" onclick="mudarAbaMenu('historico')">Histórico</button>
+            <button class="menu-tab-btn" id="tab-btn-proj" onclick="mudarAbaMenu('projectos')">Projectos</button>
+            <button class="menu-tab-btn" id="tab-btn-plan" onclick="mudarAbaMenu('planos')">Planos</button>
+        </div>
+
+        <div class="menu-content-area" id="menu-content-area">
+            <!-- CONTEÚDO DINÂMICO VIA JAVASCRIPT -->
+        </div>
+    </div>
+
+    <!-- MODAL DE PLANOS -->
+    <div class="modal-overlay" id="plans-modal">
+        <div class="plans-container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="color: #fff; font-size: 24px;">Planos Corporativos Honey IA</h2>
+                <button class="action-btn" onclick="fecharModalPlanos()" style="color: var(--text-muted); font-size: 20px;">✕</button>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 6px;">Escolha o nível de acesso ideal para o seu ecossistema empresarial.</p>
+            
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <h3>Pro Creator</h3>
+                    <div class="plan-price">Acesso Padrão</div>
+                    <ul class="plan-features">
+                        <li>✓ Geração de Apps & Dashboards</li>
+                        <li>✓ Modelos Financeiros em Excel</li>
+                        <li>✓ Contexto de Conversa Contínuo</li>
+                    </ul>
+                    <button class="premium-btn" style="margin-top: 10px; justify-content: center;">Plano Atual</button>
+                </div>
+
+                <div class="plan-card featured">
+                    <div style="position: absolute; top: -12px; right: 20px; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 10px;">MAIS POPULAR</div>
+                    <h3>Executive Suite</h3>
+                    <div class="plan-price">Empresarial</div>
+                    <ul class="plan-features">
+                        <li>✓ Todas as funcionalidades Pro</li>
+                        <li>✓ Exportação Avançada em Excel com Fórmulas</li>
+                        <li>✓ Consultoria Financeira Dedicada</li>
+                        <li>✓ Suporte Prioritário 24/7</li>
+                    </ul>
+                    <button class="send-btn" style="padding: 10px; border-radius: 10px; cursor: pointer; border: none; font-weight: 600; margin-top: 10px;">Subscrever Suite</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-layout" id="main-layout">
+        
         <div class="chat-section" id="chat-area">
             
             <!-- ECRÃ INICIAL PREMIUM 3D -->
@@ -372,13 +350,23 @@
                     <span class="hero-bee">🐝</span>
                 </div>
                 
-                <div class="feature-badge">Plataforma Digital de Inteligência Avançada</div>
+                <div class="feature-badge">Plataforma Executiva & Contabilidade Inteligente</div>
                 <h1>Honey IA</h1>
-                <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
+                <p>Engenharia de software, consultoria executiva e mapas financeiros avançados em Excel para empresários e contabilistas.</p>
                 
                 <div class="suggestion-viewport" id="suggestion-viewport">
                     <div class="suggestion-track" id="suggestion-track">
-                        <!-- LOTE 1 DE CARTÕES -->
+                        <!-- SUGGESTION CARDS -->
+                        <div class="suggestion-card" onclick="usarSugestao('Cria uma tabela financeira avançada em Excel com fluxo de caixa, margem de lucro e totais automáticos para um negócio retail.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Contabilidade & Excel</h3>
+                                <p>Mapas de amortização, fecho de caixa e folhas `.xlsx` prontas.</p>
+                            </div>
+                        </div>
+
                         <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
                             <div class="card-icon-wrapper">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
@@ -386,16 +374,6 @@
                             <div class="card-content">
                                 <h3>Criadores de Software</h3>
                                 <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Gestão & Finanças</h3>
-                                <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
                             </div>
                         </div>
                         
@@ -408,55 +386,15 @@
                                 <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
                             </div>
                         </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Design & Cultura</h3>
-                                <p>Redação premium, artes isoladas limpas e composições criativas.</p>
-                            </div>
-                        </div>
 
-                        <!-- LOTE 2 (DUPLICADO PARA LOOP INFINITO) -->
-                        <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
+                        <!-- DUPLICADO PARA LOOP -->
+                        <div class="suggestion-card" onclick="usarSugestao('Cria uma tabela financeira avançada em Excel com fluxo de caixa, margem de lucro e totais automáticos para um negócio retail.')">
                             <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </div>
                             <div class="card-content">
-                                <h3>Criadores de Software</h3>
-                                <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Gestão & Finanças</h3>
-                                <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
-                            </div>
-                        </div>
-
-                        <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Governança & Empresas</h3>
-                                <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Design & Cultura</h3>
-                                <p>Redação premium, artes isoladas limpas e composições criativas.</p>
+                                <h3>Contabilidade & Excel</h3>
+                                <p>Mapas de amortização, fecho de caixa e folhas `.xlsx` prontas.</p>
                             </div>
                         </div>
                     </div>
@@ -472,7 +410,7 @@
                     <button class="action-btn" id="mic-btn" onclick="alternarGravacao()">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
                     </button>
-                    <input type="text" class="chat-input" id="user-input" placeholder="Pede um site, app ou faz uma pergunta..." onkeypress="verificarTeclado(event)">
+                    <input type="text" class="chat-input" id="user-input" placeholder="Pede um plano financeiro em Excel, site ou app..." onkeypress="verificarTeclado(event)">
                     <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()">
                         <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
@@ -554,9 +492,7 @@
 
     function animate3D() {
         requestAnimationFrame(animate3D);
-
         count += 0.02;
-
         const pos = geometry.attributes.position;
         for (let i = 0; i < pos.count; i++) {
             const u = pos.getX(i);
@@ -575,66 +511,107 @@
     }
 
     // -------------------------------------------------------------
-    // 2. CONTROLO DO CARROSSEL AUTÔNOMO
+    // 2. CONTROLO DO MENU HAMBÚRGUER E MODAIS
     // -------------------------------------------------------------
-    let resumeTimer = null;
+    const sidebarMenu = document.getElementById('sidebar-menu');
+    const menuContentArea = document.getElementById('menu-content-area');
+    let projectosGuardados = [];
 
-    function initMarqueeController() {
-        const viewport = document.getElementById('suggestion-viewport');
-
-        function pausarEAgendarRetoma() {
-            viewport.classList.add('user-interacted');
-            clearTimeout(resumeTimer);
-            resumeTimer = setTimeout(() => {
-                viewport.classList.remove('user-interacted');
-            }, 10000);
+    function alternarMenuOculto() {
+        sidebarMenu.classList.toggle('active');
+        if (sidebarMenu.classList.contains('active')) {
+            mudarAbaMenu('historico');
         }
-
-        viewport.addEventListener('mouseenter', pausarEAgendarRetoma);
-        viewport.addEventListener('mousemove', pausarEAgendarRetoma);
-        viewport.addEventListener('wheel', pausarEAgendarRetoma, { passive: true });
-        viewport.addEventListener('touchstart', pausarEAgendarRetoma, { passive: true });
-        viewport.addEventListener('touchmove', pausarEAgendarRetoma, { passive: true });
     }
 
-    // -------------------------------------------------------------
-    // 3. INTERAÇÃO 3D TILT
-    // -------------------------------------------------------------
-    function initCard3DTilt() {
-        const cards = document.querySelectorAll('.suggestion-card');
+    function mudarAbaMenu(aba) {
+        document.querySelectorAll('.menu-tab-btn').forEach(btn => btn.classList.remove('active'));
         
-        cards.forEach(card => {
-            function applyTilt(clientX, clientY) {
-                const rect = card.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-                
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                const rotateX = ((y - centerY) / centerY) * -8;
-                const rotateY = ((x - centerX) / centerX) * 8;
+        if (aba === 'historico') {
+            document.getElementById('tab-btn-hist').classList.add('active');
+            renderizarHistoricoNoMenu();
+        } else if (aba === 'projectos') {
+            document.getElementById('tab-btn-proj').classList.add('active');
+            renderizarProjectosNoMenu();
+        } else if (aba === 'planos') {
+            document.getElementById('tab-btn-plan').classList.add('active');
+            renderizarPlanosNoMenu();
+        }
+    }
 
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px) scale(1.01)`;
-            }
-
-            function resetTilt() {
-                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) scale(1)`;
-            }
-
-            card.addEventListener('mousemove', (e) => applyTilt(e.clientX, e.clientY));
-            card.addEventListener('mouseleave', resetTilt);
-
-            card.addEventListener('touchstart', (e) => {
-                if(e.touches.length > 0) applyTilt(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
-            
-            card.addEventListener('touchend', resetTilt);
+    function renderizarHistoricoNoMenu() {
+        menuContentArea.innerHTML = `<div class="menu-section-title">Conversas Recentes</div>`;
+        if (memoriaSessoes.length === 0) {
+            menuContentArea.innerHTML += `<div style="color: var(--text-muted); font-size: 13px; padding: 10px;">Sem conversas guardadas.</div>`;
+            return;
+        }
+        [...memoriaSessoes].reverse().forEach((sessao, indexOriginal) => {
+            const indexReal = memoriaSessoes.length - 1 - indexOriginal;
+            const item = document.createElement('div');
+            item.className = 'sidebar-item';
+            const titulo = sessao.mensagens[0] ? sessao.mensagens[0].texto : "Sessão sem título";
+            item.innerHTML = `<span>💬 ${titulo.length > 32 ? titulo.substring(0, 32) + "..." : titulo}</span>`;
+            item.onclick = () => { resgatarSessaoHistorico(indexReal); alternarMenuOculto(); };
+            menuContentArea.appendChild(item);
         });
     }
 
+    function renderizarProjectosNoMenu() {
+        menuContentArea.innerHTML = `<div class="menu-section-title">Projectos & Ficheiros Gerados</div>`;
+        if (projectosGuardados.length === 0) {
+            menuContentArea.innerHTML += `<div style="color: var(--text-muted); font-size: 13px; padding: 10px;">Ainda não foram gerados ficheiros Excel ou Web Apps.</div>`;
+            return;
+        }
+        projectosGuardados.forEach(proj => {
+            const item = document.createElement('div');
+            item.className = 'sidebar-item';
+            item.innerHTML = `<span>${proj.tipo === 'excel' ? '📊' : '⚡'} ${proj.nome}</span>`;
+            item.onclick = () => {
+                if (proj.tipo === 'excel') descarregarFicheiroExcelDirecto(proj.dados, proj.nome);
+                else carregarNoSandbox(proj.codigo);
+                alternarMenuOculto();
+            };
+            menuContentArea.appendChild(item);
+        });
+    }
+
+    function renderizarPlanosNoMenu() {
+        menuContentArea.innerHTML = `
+            <div class="menu-section-title">Nível de Subscrição</div>
+            <div class="sidebar-item" onclick="abrirModalPlanos()" style="border-color: var(--gold); background: rgba(255,183,0,0.1);">
+                <div>
+                    <strong style="color: var(--gold);">Honey Enterprise</strong>
+                    <div style="font-size: 11px; color: var(--text-muted);">Acesso total a todas as ferramentas</div>
+                </div>
+                <span>⚡</span>
+            </div>
+            <button class="send-btn" onclick="abrirModalPlanos()" style="width: 100%; padding: 10px; border-radius: 10px; margin-top: 10px; cursor: pointer;">Ver Todos os Planos</button>
+        `;
+    }
+
+    function abrirModalPlanos() { document.getElementById('plans-modal').classList.add('active'); }
+    function fecharModalPlanos() { document.getElementById('plans-modal').classList.remove('active'); }
+
     // -------------------------------------------------------------
-    // 4. LÓGICA PRINCIPAL (CHAT COM CONTEXTO CONTINUO E RESPOSTAS PREMIUM)
+    // 3. ENGINE DE EXCEL AUTOMÁTICO (SHEETJS)
+    // -------------------------------------------------------------
+    function extrairBlocoExcelJSON(texto) {
+        const match = texto.match(/```excel([\s\S]*?)```/);
+        if (match) {
+            try { return JSON.parse(match[1].trim()); } catch(e) { return null; }
+        }
+        return null;
+    }
+
+    function descarregarFicheiroExcelDirecto(dadosExcel, nomeFicheiro = "Relatorio_Honey_IA.xlsx") {
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(dadosExcel);
+        XLSX.utils.book_append_sheet(wb, ws, "Relatório Financas");
+        XLSX.writeFile(wb, nomeFicheiro.endsWith('.xlsx') ? nomeFicheiro : `${nomeFicheiro}.xlsx`);
+    }
+
+    // -------------------------------------------------------------
+    // 4. LÓGICA PRINCIPAL DO CHAT
     // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
@@ -643,29 +620,32 @@
     const welcomeScreen = document.getElementById('welcome-screen');
     const micBtn = document.getElementById('mic-btn');
     const sandboxIframe = document.getElementById('sandbox-preview');
-    const historyPanel = document.getElementById('history-panel');
-    const historyList = document.getElementById('history-list');
 
     let reconhecimentoVoz;
     let estaGravando = false;
-    
-    // Lista para sessões guardadas no LocalStorage
     let memoriaSessoes = JSON.parse(localStorage.getItem('honey_ia_sessions')) || [];
-    
-    // Array que guarda as mensagens da conversa ATUAL para dar contexto à IA
     let historicoConversa = [];
 
-    // System Prompt Premium para definir a postura corporativa da IA
-    const SYSTEM_INSTRUCTION = `És a Honey IA, uma assistente corporativa e arquiteta digital de elite.
-Teu tom de voz deve ser sempre altamente profissional, executivo, cortês e objetivo.
-Evita saudações informais ou conversas desnecessárias. Entrega análises claras, códigos estruturados e soluções de engenharia ou negócios de alto nível.
-Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e totalmente funcional.`;
+    // System Prompt focado em Excel + Respostas Corporativas
+    const SYSTEM_INSTRUCTION = `És a Honey IA, a assistente corporativa e arquiteta financeira/digital de elite.
+Teu tom de voz deve ser sempre altamente profissional, executivo e analítico.
 
-    window.onload = () => { 
-        init3DBackground();
-        initMarqueeController();
-        initCard3DTilt();
-    };
+INSTRUÇÃO ESPECIAL PARA EXCEL & TABELAS CONTÁBEIS:
+Sempre que o utilizador pedir relatórios financeiros, folhas de caixa, tabelas de contabilidade, balanços, margens de lucro ou mapas de amortização:
+1. Explica brevemente o relatório no texto com um tom executivo.
+2. Fornece OBRIGATORIAMENTE um bloco de código especial com a tag \`\`\`excel contendo um JSON VÁLIDO com um ARRAY DE OBJECTOS para ser exportado diretamente para Excel (.xlsx).
+Exemplo exato de resposta Excel:
+\`\`\`excel
+[
+  {"Item": "Receita Vendas", "Janeiro": 150000, "Fevereiro": 180000, "Total": 330000},
+  {"Item": "Custos Operacionais", "Janeiro": 80000, "Fevereiro": 95000, "Total": 175000},
+  {"Item": "Lucro Líquido", "Janeiro": 70000, "Fevereiro": 85000, "Total": 155000}
+]
+\`\`\`
+
+Quando entregares código HTML/CSS/JS, usa a tag normal \`\`\`html.`;
+
+    window.onload = () => { init3DBackground(); };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -683,10 +663,7 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
     }
 
     function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
-    function usarSugestao(texto) { 
-        userInput.value = texto; 
-        enviarMensagem(); 
-    }
+    function usarSugestao(texto) { userInput.value = texto; enviarMensagem(); }
     
     function destruirWelcome() {
         if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
@@ -697,16 +674,51 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
     }
 
     function formatarMarkdownParaHtml(texto) {
-        let textoFormatado = texto.replace(/```html([\s\S]*?)```/g, (match, code) => {
+        let textoFormatado = texto;
+
+        // Trata códigos HTML
+        textoFormatado = textoFormatado.replace(/```html([\s\S]*?)```/g, (match, code) => {
             const codeId = "code_" + Math.random().toString(36).substr(2, 9);
             window[codeId] = code.trim();
-            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0; position: relative;">
-                <div style="font-family: monospace; font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">⚡ Aplicação estruturada pronta para visualização.</div>
-                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')" style="padding: 4px 10px; font-size: 11px;">Copiar Código</button>
+            
+            // Regista nos projetos
+            projectosGuardados.push({ tipo: 'web', nome: 'Aplicação Web Interactive', codigo: code.trim() });
+
+            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0;">
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px;">⚡ Aplicação/Dashboard gerado e pronto na Sandbox.</div>
+                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')">Copiar Código HTML</button>
             </div>`;
         });
+
+        // Trata códigos Excel
+        textoFormatado = textoFormatado.replace(/```excel([\s\S]*?)```/g, (match, jsonString) => {
+            const excelId = "excel_" + Math.random().toString(36).substr(2, 9);
+            try {
+                const parsedJSON = JSON.parse(jsonString.trim());
+                window[excelId] = parsedJSON;
+                
+                // Regista nos projetos
+                projectosGuardados.push({ tipo: 'excel', nome: 'Relatório Excel / Mapa Contábil', dados: parsedJSON });
+
+                return `<div style="background: rgba(16, 124, 65, 0.08); border: 1px solid rgba(16, 124, 65, 0.3); padding: 16px; border-radius: 14px; margin: 16px 0;">
+                    <div style="color: #2eef82; font-size: 13px; font-weight: 600; margin-bottom: 4px;">📊 Tabela Contábil & Financeira Pronta</div>
+                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Os dados foram estruturados com sucesso para utilização em folha de cálculo.</div>
+                    <button class="excel-download-btn" onclick="descarregarExcelPorId('${excelId}')">
+                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        Baixar Ficheiro Excel (.xlsx)
+                    </button>
+                </div>`;
+            } catch(e) {
+                return `<div style="color: #ff4a4a; font-size: 12px;">[Erro ao gerar ficheiro Excel automático]</div>`;
+            }
+        });
+
         textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
+    }
+
+    function descarregarExcelPorId(excelId) {
+        if (window[excelId]) descarregarFicheiroExcelDirecto(window[excelId]);
     }
 
     function copiarTextoCodigo(codeId) {
@@ -740,41 +752,12 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
         document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
     }
 
-    function alternarPainelHistorico() {
-        if (historyPanel.classList.contains('active')) {
-            historyPanel.classList.remove('active');
-        } else {
-            historyPanel.classList.add('active');
-            renderizarListaHistorico();
-        }
-    }
-
-    function renderizarListaHistorico() {
-        historyList.innerHTML = "";
-        if (memoriaSessoes.length === 0) {
-            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico de conversas.</div>`;
-            return;
-        }
-        [...memoriaSessoes].reverse().forEach((sessao, indexOriginal) => {
-            const indexReal = memoriaSessoes.length - 1 - indexOriginal;
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            const titulo = sessao.mensagens[0] ? sessao.mensagens[0].texto : "Sessão sem título";
-            div.textContent = titulo.length > 45 ? titulo.substring(0, 45) + "..." : titulo;
-            div.onclick = () => resgatarSessaoHistorico(indexReal);
-            historyList.appendChild(div);
-        });
-    }
-
     function resgatarSessaoHistorico(index) {
         destruirWelcome();
         fecharSandbox();
-        alternarPainelHistorico();
         chatBox.innerHTML = "";
         
         const sessao = memoriaSessoes[index];
-        
-        // Reconstroi o histórico ativo
         historicoConversa = [];
         
         sessao.mensagens.forEach(msg => {
@@ -798,16 +781,12 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
 
         destruirWelcome(); 
         
-        // Exibe a mensagem do utilizador no ecrã
         criarLinhaMensagem(promptText, 'row-user');
-        
-        // Guarda no histórico local para contexto
         historicoConversa.push({ role: 'user', texto: promptText });
         
         userInput.value = "";
         sendBtn.disabled = true;
 
-        // Cria a linha de resposta da Honey IA com indicador de digitação
         const mergeHoney = criarLinhaMensagem("", 'row-honey');
         const indicador = document.createElement('div');
         indicador.className = 'typing-indicator';
@@ -815,7 +794,6 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
         mergeHoney.appendChild(indicador);
 
         try {
-            // Envia o histórico completo para manter o contexto contínuo
             const response = await fetch('/gerar-gratis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -831,17 +809,13 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
 
             if (response.ok && data.sucesso) {
                 const respostaTexto = data.codigo;
-                
-                // Regista a resposta no histórico contínuo
                 historicoConversa.push({ role: 'model', texto: respostaTexto });
 
-                // Renderiza o texto suavemente (sem dar scroll forçado para o fundo)
                 renderizarConteudoElegante(mergeHoney, respostaTexto, () => {
                     const codigoDetectado = extrairCodigoHTML(respostaTexto);
                     if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
                 });
 
-                // Atualiza/Guarda a sessão no LocalStorage
                 salvarSessaoNoStorage();
 
             } else {
@@ -856,8 +830,6 @@ Quando entregares código HTML/CSS/JS, garante que ele é responsivo, moderno e 
 
     function salvarSessaoNoStorage() {
         if (historicoConversa.length === 0) return;
-        
-        // Verifica se já existe uma sessão em curso ou cria uma nova
         if (memoriaSessoes.length === 0 || memoriaSessoes[memoriaSessoes.length - 1].finalizada) {
             memoriaSessoes.push({ mensagens: [...historicoConversa], finalizada: false });
         } else {
