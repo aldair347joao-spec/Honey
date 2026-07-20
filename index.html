@@ -186,7 +186,7 @@
             display: inline-block;
         }
 
-        /* PAINEL DE MARQUEE / CARROSSEL 3D CONTINUO */
+        /* PAINEL DE MARQUEE INTERATIVO 3D */
         .suggestion-viewport {
             width: 100%;
             max-width: 620px;
@@ -197,6 +197,12 @@
             mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
             -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
             perspective: 1000px;
+            cursor: grab;
+            user-select: none;
+            touch-action: pan-y;
+        }
+        .suggestion-viewport:active {
+            cursor: grabbing;
         }
 
         .suggestion-track {
@@ -207,19 +213,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            animation: scrollUp3D 16s linear infinite;
             will-change: transform;
-        }
-
-        /* Pausa o carrossel automático ao passar o rato ou tocar */
-        .suggestion-viewport:hover .suggestion-track,
-        .suggestion-viewport:active .suggestion-track {
-            animation-play-state: paused;
-        }
-
-        @keyframes scrollUp3D {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-50%); }
         }
 
         .suggestion-card { 
@@ -368,7 +362,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMIUM 3D COM CARROSSEL CONTINUO -->
+            <!-- ECRÃ INICIAL PREMIUM 3D COM CARROSSEL CONTINUO E ARRASTO MANUAL -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -379,8 +373,8 @@
                 <h1>Honey IA</h1>
                 <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
-                <div class="suggestion-viewport">
-                    <div class="suggestion-track">
+                <div class="suggestion-viewport" id="suggestion-viewport">
+                    <div class="suggestion-track" id="suggestion-track">
                         <!-- LOTE 1 DE CARTÕES -->
                         <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
                             <div class="card-icon-wrapper">
@@ -578,7 +572,111 @@
     }
 
     // -------------------------------------------------------------
-    // 2. INTERAÇÃO 3D TILT MULTI-PLATAFORMA
+    // 2. SISTEMA DE CARROSSEL AUTÔNOMO + ARRASTO MANUAL & TEMPORIZADOR (10s)
+    // -------------------------------------------------------------
+    let trackY = 0;
+    let speed = 0.6; // Velocidade da animação automática
+    let autoPlay = true;
+    let isDragging = false;
+    let startY = 0;
+    let initialTrackY = 0;
+    let resumeTimeout = null;
+    let halfHeight = 0;
+
+    function initInteractiveMarquee() {
+        const viewport = document.getElementById('suggestion-viewport');
+        const track = document.getElementById('suggestion-track');
+
+        // Calcula a metade da altura total para efetuar o loop infinito sem falhas
+        halfHeight = track.scrollHeight / 2;
+
+        function loopAnimation() {
+            if (autoPlay && !isDragging) {
+                trackY -= speed;
+                if (Math.abs(trackY) >= halfHeight) {
+                    trackY = 0;
+                }
+                track.style.transform = `translateY(${trackY}px)`;
+            }
+            requestAnimationFrame(loopAnimation);
+        }
+
+        function pausarEAgendarRetoma() {
+            autoPlay = false;
+            clearTimeout(resumeTimeout);
+            resumeTimeout = setTimeout(() => {
+                autoPlay = true;
+            }, 10000); // 10 Segundos de inatividade antes de voltar a rodar sozinho
+        }
+
+        // --- ARRASTO COM RATO (DESKTOP) ---
+        viewport.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            initialTrackY = trackY;
+            pausarEAgendarRetoma();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaY = e.clientY - startY;
+            trackY = initialTrackY + deltaY;
+
+            // Ajuste dos limites para loop infinito durante o arrasto
+            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
+            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
+
+            track.style.transform = `translateY(${trackY}px)`;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                pausarEAgendarRetoma();
+            }
+        });
+
+        // --- ARRASTO COM TOQUE (MOBILE) ---
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 0) return;
+            isDragging = true;
+            startY = e.touches[0].clientY;
+            initialTrackY = trackY;
+            pausarEAgendarRetoma();
+        }, { passive: true });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length === 0) return;
+            const deltaY = e.touches[0].clientY - startY;
+            trackY = initialTrackY + deltaY;
+
+            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
+            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
+
+            track.style.transform = `translateY(${trackY}px)`;
+        }, { passive: true });
+
+        viewport.addEventListener('touchend', () => {
+            isDragging = false;
+            pausarEAgendarRetoma();
+        });
+
+        // --- RODA DO RATO (WHEEL / SCROLL) ---
+        viewport.addEventListener('wheel', (e) => {
+            pausarEAgendarRetoma();
+            trackY -= e.deltaY * 0.5;
+
+            if (trackY > 0) trackY = -halfHeight + (trackY % halfHeight);
+            if (Math.abs(trackY) >= halfHeight) trackY = trackY % halfHeight;
+
+            track.style.transform = `translateY(${trackY}px)`;
+        }, { passive: true });
+
+        loopAnimation();
+    }
+
+    // -------------------------------------------------------------
+    // 3. INTERAÇÃO 3D TILT MULTI-PLATAFORMA
     // -------------------------------------------------------------
     function initCard3DTilt() {
         const cards = document.querySelectorAll('.suggestion-card');
@@ -614,7 +712,7 @@
     }
 
     // -------------------------------------------------------------
-    // 3. LÓGICA PRINCIPAL (CHAT, SANDBOX, HISTÓRICO)
+    // 4. LÓGICA PRINCIPAL (CHAT, SANDBOX, HISTÓRICO)
     // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
@@ -632,6 +730,7 @@
 
     window.onload = () => { 
         init3DBackground();
+        initInteractiveMarquee();
         initCard3DTilt();
     };
 
@@ -651,7 +750,11 @@
     }
 
     function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
-    function usarSugestao(texto) { userInput.value = texto; enviarMensagem(); }
+    function usarSugestao(texto) { 
+        if (isDragging) return; // Evita disparo acidental ao terminar o arrasto
+        userInput.value = texto; 
+        enviarMensagem(); 
+    }
     
     function destruirWelcome() {
         if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
