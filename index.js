@@ -1,71 +1,107 @@
-const express = require('express');
-const cors = require('cors');
-const Groq = require('groq-sdk');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import Groq from 'groq-sdk';
+import pdfParse from 'pdf-parse';
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
 
 const app = express();
+
+// Aumentar o limite para permitir o envio de imagens/ficheiros em Base64
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
-app.use(express.json());
 
+// Servir os ficheiros estáticos da pasta 'public' (onde fica o teu index.html)
 app.use(express.static('public'));
-app.use(express.static('.'));
 
-const groq = new Groq({ apiKey: process.env.API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.post('/gerar-gratis', async (req, res) => {
-    const { prompt } = req.body;
-
-    if (!prompt) {
-        return res.status(400).json({ sucesso: false, erro: "O prompt não pode estar vazio." });
-    }
-
     try {
+        const { prompt, anexoBase64, mimeType } = req.body;
+
+        let model = "llama-3.3-70b-versatile"; // Modelo ultra-rápido para texto/documentos
+        let content = [];
+        let textoExtraidoDoDocumento = "";
+
+        // PROCESSAMENTO DE FICHEIROS ANEXADOS
+        if (anexoBase64) {
+            const buffer = Buffer.from(anexoBase64, 'base64');
+            const type = mimeType ? mimeType.toLowerCase() : '';
+
+            // 1. IMAGENS (JPG, PNG, WEBP, GIF) -> Visão Computacional do Groq
+            if (type.startsWith('image/')) {
+                model = "llama-3.2-11b-vision-preview";
+                content.push({
+                    type: "image_url",
+                    image_url: {
+                        url: `data:${type};base64,${anexoBase64}`
+                    }
+                });
+            } 
+            // 2. DOCUMENTOS PDF
+            else if (type === 'application/pdf' || type.includes('pdf')) {
+                const pdfData = await pdfParse(buffer);
+                textoExtraidoDoDocumento = pdfData.text;
+            } 
+            // 3. DOCUMENTOS WORD (.docx, .doc)
+            else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
+                const result = await mammoth.extractRawText({ buffer: buffer });
+                textoExtraidoDoDocumento = result.value;
+            } 
+            // 4. PLANILHAS EXCEL / CSV (.xlsx, .xls, .csv)
+            else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
+                const workbook = XLSX.read(buffer, { type: 'buffer' });
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    textoExtraidoDoDocumento += `\n--- Aba: ${sheetName} ---\n`;
+                    textoExtraidoDoDocumento += XLSX.utils.sheet_to_csv(sheet);
+                });
+            }
+        }
+
+        // MONTAGEM DO PROMPT FINAL
+        let textoPromptFinal = prompt || "Por favor, analisa o conteúdo e os detalhes do anexo.";
+        if (textoExtraidoDoDocumento) {
+            textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO ANEXADO]:\n${textoExtraidoDoDocumento}`;
+        }
+
+        content.push({
+            type: "text",
+            text: textoPromptFinal
+        });
+
+        // CHAMADA À API DO GROQ
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 {
                     role: "system",
-                    content: `You are Honey IA, an elite, premium, and highly sophisticated virtual assistant and master software architect designed for entrepreneurs, software creators, and companies.
-                
-                    CRITICAL EXPERTISE & CAPABILITIES:
-                    1. For Entrepreneurs & Small Businesses: Master of corporate financial planning, cash flow management, payback periods, and small business valuations.
-                    2. For Software Creators: Master of clean architecture, frontend/backend engineering, and producing bug-free, isolated, fully functional single-file web applications.
-                    3. For Companies: Expert in corporate governance, executive roles (e.g., distinguishing CEO from Board President), and drafting clear standard agreements/contracts.
-                    4. Cultural & General Customization: Expert in creative writing, wedding/event invitation text structure, and localized cultural or linguistic expressions when requested.
-
-                    CRITICAL RESPONSIVENESS & RULES:
-                    1. Tone: Ultra-professional, elegant, warm, and highly capable. Speak like a luxury digital architect.
-                    2. Language Strictness: Detect the user's language. If they write in Portuguese (even short words like "Sim", "Olá", "Faz", "Cria"), you MUST respond 100% in Portuguese.
-                    3. Code Delivery: For websites or web apps, provide a SINGLE, COMPLETE HTML file containing CSS (<style>) and JavaScript (<script>) inside it.
-                    4. Code Formatting: Wrap the complete code inside a standard markdown code block starting with \`\`\`html and ending with \`\`\`. Merge everything into one file so the system can render it live.
-                    
-                    Maintain this elite standard at all times.`
+                    content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
                 },
                 {
                     role: "user",
-                    content: prompt
+                    content: content
                 }
             ],
-            model: "llama-3.1-8b-instant",
-            temperature: 0.3
+            model: model,
+            temperature: 0.2
         });
 
-        const responseText = chatCompletion.choices[0]?.message?.content || "Sem resposta.";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Sem resposta do modelo.";
 
-        res.json({ 
-            sucesso: true, 
-            codigo: responseText 
-        });
+        return res.json({ sucesso: true, resposta: respostaTexto });
 
     } catch (error) {
-        console.error("Erro na API da Groq:", error);
-        res.status(500).json({ 
+        console.error("Erro no processamento:", error);
+        return res.status(500).json({ 
             sucesso: false, 
-            erro: "Ocorreu um erro ao processar o seu pedido na Groq." 
+            erro: "Ocorreu um erro ao processar o ficheiro ou ao comunicar com a IA." 
         });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Honey IA (Groq Premium) está a correr na porta ${PORT}`);
+    console.log(`Servidor Honey IA a rodar na porta ${PORT}`);
 });
