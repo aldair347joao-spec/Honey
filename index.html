@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Honey IA | Elite Corporate & Financial Platform</title>
+    <title>Honey IA | Enterprise Suite 5.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Engine 3D Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Engine de Gestão e Exportação do Excel (SheetJS) -->
+    <!-- Engine de Gestão do Excel (SheetJS) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -50,104 +50,39 @@
         
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* CANVAS 3D NO BACKGROUND */
         #canvas-3d {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;
         }
 
-        /* BOTÃO MENU HAMBÚRGUER (CANTO SUPERIOR ESQUERDO) */
-        .menu-hamburger-btn {
-            position: absolute;
-            top: 18px;
-            left: 18px;
-            z-index: 30;
-            background: rgba(11, 11, 18, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            color: var(--gold);
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+        /* HEADER SUPERIOR E CONTROLES */
+        .top-header-controls {
+            position: absolute; top: 18px; left: 18px; right: 18px; z-index: 30; display: flex; justify-content: space-between; align-items: center; pointer-events: none;
         }
-        .menu-hamburger-btn:hover {
-            border-color: var(--gold);
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.25);
-            transform: scale(1.05);
-        }
-        .menu-hamburger-btn span {
-            width: 20px;
-            height: 2px;
-            background-color: var(--gold);
-            border-radius: 2px;
-            transition: all 0.3s;
-        }
+        .top-header-controls * { pointer-events: auto; }
 
-        /* BOTÃO AUTENTICAÇÃO (CANTO SUPERIOR DIREITO) */
+        .header-left, .header-right { display: flex; gap: 10px; align-items: center; }
+
+        .icon-btn-header {
+            background: rgba(11, 11, 18, 0.85); backdrop-filter: blur(12px); border: 1px solid var(--border); width: 42px; height: 42px; border-radius: 12px; color: var(--gold); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn-header:hover { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 183, 0, 0.25); transform: scale(1.05); }
+
         .auth-trigger-btn {
-            position: absolute;
-            top: 18px;
-            right: 18px;
-            z-index: 30;
-            background: rgba(11, 11, 18, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            padding: 0 16px;
-            height: 42px;
-            border-radius: 12px;
-            color: var(--gold);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
+            background: rgba(11, 11, 18, 0.85); backdrop-filter: blur(12px); border: 1px solid var(--border); padding: 0 16px; height: 42px; border-radius: 12px; color: var(--gold); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
         }
-        .auth-trigger-btn:hover {
-            border-color: var(--gold);
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.25);
-            transform: translateY(-1px);
-        }
+        .auth-trigger-btn:hover { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 183, 0, 0.25); transform: translateY(-1px); }
 
-        /* PAINEL MENU OCULTO LATERAL */
+        /* PAINEL MENU LATERAL */
         #sidebar-menu {
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            max-width: 360px;
-            height: 100%;
-            background: rgba(6, 6, 12, 0.97);
-            backdrop-filter: blur(25px);
-            border-right: 1px solid var(--border);
-            z-index: 100;
-            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 24px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
+            position: fixed; top: 0; left: -100%; width: 100%; max-width: 380px; height: 100%; background: rgba(6, 6, 12, 0.97); backdrop-filter: blur(25px); border-right: 1px solid var(--border); z-index: 100; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
         }
         #sidebar-menu.active { left: 0; }
 
         .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
         .menu-header h2 { font-size: 18px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         
-        .menu-nav-tabs { display: flex; gap: 8px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .menu-tab-btn { flex: 1; padding: 8px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); background: none; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .menu-nav-tabs { display: flex; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .menu-tab-btn { flex: 1; padding: 8px 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); background: none; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
         .menu-tab-btn.active { background: var(--gold); color: #000; }
 
         .menu-content-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
@@ -158,903 +93,324 @@
         }
         .sidebar-item:hover { border-color: var(--gold); background: rgba(255, 183, 0, 0.08); color: #fff; }
 
-        /* MODAIS GERAIS */
+        /* MODAIS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); z-index: 200; display: none; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-overlay.active { display: flex; }
         
-        .plans-container { background: #0a0a10; border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 850px; padding: 32px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 24px; }
-        .plan-card { background: rgba(18, 18, 28, 0.8); border: 1px solid var(--border); border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 14px; position: relative; }
-        .plan-card.featured { border-color: var(--gold); background: linear-gradient(180deg, rgba(255, 183, 0, 0.08) 0%, rgba(18, 18, 28, 0.9) 100%); }
-        .plan-card h3 { font-size: 20px; color: #fff; }
-        .plan-price { font-size: 28px; font-weight: 700; color: var(--gold); }
-        .plan-features { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--text-muted); }
-        .plan-features li { display: flex; align-items: center; gap: 6px; }
+        .modal-card { background: #0a0a10; border: 1px solid var(--border); border-radius: 24px; width: 100%; max-width: 500px; padding: 28px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
 
-        /* MODAL DE AUTENTICAÇÃO */
-        .auth-card {
-            background: rgba(10, 10, 16, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 420px;
-            padding: 32px 28px;
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
+        /* BARRA SELEÇÃO DE AGENTE E REGIONALIZAÇÃO */
+        .agent-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
+        .agent-bar::-webkit-scrollbar { display: none; }
+        .agent-chip {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 20px; font-size: 11.5px; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
         }
+        .agent-chip.active { background: rgba(255,183,0,0.15); border-color: var(--gold); color: #fff; font-weight: 600; }
 
-        .auth-close-btn { position: absolute; top: 18px; right: 18px; color: var(--text-muted); }
-        .auth-header { text-align: center; margin-bottom: 20px; }
-        .auth-logo { font-size: 36px; display: block; margin-bottom: 6px; }
-        .auth-header h2 { font-size: 20px; color: #fff; font-weight: 700; }
-        .auth-header p { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
-
-        .social-auth-group { display: flex; flex-direction: column; gap: 10px; }
-        .social-btn {
-            width: 100%; padding: 11px 16px; border-radius: 12px; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff;
-        }
-        .social-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); }
-
-        .auth-divider { display: flex; align-items: center; margin: 18px 0; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        .auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.08); }
-        .auth-divider span { padding: 0 10px; }
-
-        .auth-form { display: flex; flex-direction: column; gap: 12px; }
-        .auth-input-group { display: flex; flex-direction: column; gap: 6px; text-align: left; }
-        .auth-input-group label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-        .auth-input-group input {
-            width: 100%; padding: 11px 14px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: #fff; font-size: 13.5px; outline: none; transition: border-color 0.2s;
-        }
-        .auth-input-group input:focus { border-color: var(--gold); }
-        .auth-submit-btn { width: 100%; padding: 12px; border-radius: 10px; border: none; margin-top: 6px; cursor: pointer; }
-        
-        .btn-link { background: none; border: none; color: var(--gold); font-size: 12px; cursor: pointer; margin-top: 6px; text-decoration: underline; }
-        .auth-footer-text { margin-top: 18px; font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.4; }
-        .auth-footer-text a { color: var(--gold); text-decoration: none; }
-
-        .hidden { display: none !important; }
+        /* ATALHO QUICK COMMAND (CTRL + K) */
+        #quick-command-modal .modal-card { max-width: 600px; }
+        .cmd-input { width: 100%; padding: 14px 18px; background: rgba(0,0,0,0.5); border: 1px solid var(--gold); border-radius: 14px; color: #fff; font-size: 16px; outline: none; margin-bottom: 12px; }
 
         /* PÁGINA INICIAL */
         #welcome-screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 60px 20px 140px 20px; z-index: 5; background: transparent; transition: opacity 0.3s ease, transform 0.3s ease; scrollbar-width: none; perspective: 1200px; -webkit-overflow-scrolling: touch;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 80px 20px 140px 20px; z-index: 5; background: transparent; transition: opacity 0.3s ease; scrollbar-width: none;
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
 
-        .hero-bee-wrapper { position: relative; margin-bottom: 12px; display: inline-block; }
-        .hero-bee-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90px; height: 90px; background: radial-gradient(circle, rgba(255,183,0,0.35) 0%, rgba(0,0,0,0) 70%); filter: blur(20px); border-radius: 50%; animation: pulseGlow 3s ease-in-out infinite alternate; }
-        @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } }
-
         .hero-bee { font-size: 52px; position: relative; z-index: 2; animation: float3D 4s ease-in-out infinite; display: inline-block; filter: drop-shadow(0 15px 25px rgba(255, 183, 0, 0.3)); }
-        @keyframes float3D { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+        @keyframes float3D { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         
-        #welcome-screen h1 { font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
-        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; line-height: 1.45; max-width: 500px; margin: 0 auto 20px auto; text-align: center; }
+        #welcome-screen h1 { font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; max-width: 500px; margin: 0 auto 20px auto; text-align: center; line-height: 1.5; }
 
-        .feature-badge { background: rgba(255, 183, 0, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 183, 0, 0.25); color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; padding: 5px 14px; border-radius: 20px; margin-bottom: 12px; display: inline-block; }
-
-        .suggestion-viewport { width: 100%; max-width: 620px; height: 280px; overflow-y: auto; position: relative; margin: 0 auto; mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%); perspective: 1000px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-        .suggestion-viewport::-webkit-scrollbar { display: none; }
-
-        .suggestion-track { display: flex; flex-direction: column; gap: 14px; width: 100%; animation: scrollContinuo 18s linear infinite; will-change: transform; }
-        .suggestion-viewport.user-interacted .suggestion-track { animation-play-state: paused !important; }
-
-        @keyframes scrollContinuo { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
-
-        .suggestion-card { background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 18px; padding: 16px 18px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 16px; transform-style: preserve-3d; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s, background 0.3s; position: relative; overflow: hidden; flex-shrink: 0; }
-        .suggestion-card:hover, .suggestion-card:active { border-color: rgba(255, 183, 0, 0.6); background: rgba(20, 20, 32, 0.95); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 183, 0, 0.25); transform: translateZ(25px) scale(1.01); z-index: 10; }
-        
-        .card-icon-wrapper { background: linear-gradient(135deg, rgba(255,183,0,0.12), rgba(11,11,18,0.9)); border: 1px solid rgba(255, 183, 0, 0.25); padding: 12px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--gold); transform: translateZ(15px); transition: all 0.3s ease; flex-shrink: 0; }
-        .suggestion-card:hover .card-icon-wrapper { color: #fff; background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 0 15px rgba(255, 183, 0, 0.5); }
-
-        .card-content { flex: 1; transform: translateZ(10px); }
-        .suggestion-card h3 { font-size: 14.5px; color: #fff; font-weight: 600; margin-bottom: 3px; }
-        .suggestion-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
-
-        /* CONTAINER CHAT */
-        .chat-container { flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 780px; margin: 0 auto; z-index: 5; }
+        /* CHAT CONTAINER */
+        .chat-container { flex: 1; overflow-y: auto; padding: 90px 20px 150px 20px; display: flex; flex-direction: column; gap: 28px; width: 100%; max-width: 800px; margin: 0 auto; z-index: 5; }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
         .row-user { align-items: flex-end; }
-        .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 24px; }
+        .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 20px; }
 
         .msg-body { font-size: 15px; line-height: 1.75; color: var(--text-main); word-wrap: break-word; width: 100%; }
         .row-user .msg-body { text-align: right; color: #fff; max-width: 85%; font-weight: 400; background: rgba(255, 183, 0, 0.05); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.12); white-space: pre-wrap; }
-        
-        .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 4px; }
-        .msg-paragraph { margin-bottom: 12px; }
 
-        /* BOTÃO DE EXCEL DENTRO DA CONVERSA */
-        .excel-download-btn {
-            background: linear-gradient(135deg, #107c41, #0b582e);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 12px;
-            box-shadow: 0 4px 15px rgba(16, 124, 65, 0.3);
-            transition: all 0.2s;
-        }
-        .excel-download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 124, 65, 0.5);
-            background: linear-gradient(135deg, #128c4a, #0d6837);
-        }
-
-        .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
-        @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* BARRA FIXA DE INPUT */
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; }
-        .input-wrapper { width: 100%; max-width: 680px; background: rgba(11, 11, 18, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 6px; }
-        .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.4); }
+        /* BARRA DE INPUT COM ANEXO DE FICHEIROS */
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; }
+        .input-wrapper { width: 100%; max-width: 720px; background: rgba(11, 11, 18, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); gap: 6px; }
         .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15px; outline: none; }
-        .chat-input::placeholder { color: #48485e; }
         
         .action-btn { background: none; border: none; color: #62627a; width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .action-btn:hover { color: var(--gold); background: rgba(255, 183, 0, 0.05); }
-        .mic-btn.recording { color: #ff4a4a; background: rgba(255,74,74,0.08); animation: pulseRecord 1.5s infinite; }
-        @keyframes pulseRecord { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
         .send-btn { background: var(--gold); color: #030305; font-weight: 600; }
-        .send-btn:hover { background: var(--gold-dark); }
-        .send-btn:disabled { background: #12121a; color: #38384d; cursor: not-allowed; }
-
-        .premium-btn { background: rgba(255, 183, 0, 0.03); border: 1px solid rgba(255, 183, 0, 0.1); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 500; gap: 6px; transition: all 0.2s; }
-        .premium-btn:hover { background: rgba(255, 183, 0, 0.08); border-color: var(--gold); }
-
-        .typing-indicator { display: flex; gap: 5px; padding: 10px 4px; align-items: center; }
-        .typing-indicator span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.2; } 40% { transform: scale(1); opacity: 1; } }
+        
+        .file-preview-badge { display: none; background: rgba(255, 183, 0, 0.15); border: 1px solid var(--gold); border-radius: 8px; padding: 4px 10px; font-size: 11px; color: var(--gold); margin-bottom: 6px; align-self: center; }
 
         /* SANDBOX */
-        .sandbox-section { flex: 1; }
         .sandbox-header { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-        .browser-dots { display: flex; gap: 6px; }
-        .dot { width: 11px; height: 11px; border-radius: 50%; background: #ff5f56; }
-        .dot.yellow { background: #ffbd2e; }
-        .dot.green { background: #27c93f; }
-        .browser-address { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 6px 12px; font-size: 11.5px; color: var(--text-muted); width: 40%; text-align: center; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-        
-        .sandbox-actions { display: flex; gap: 8px; }
         .sandbox-body { flex: 1; padding: 12px; background: #07070c; height: calc(100% - 52px); }
-        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; }
 
-        @media (max-width: 800px) {
-            #welcome-screen { padding-top: 50px; padding-bottom: 140px; }
-            #welcome-screen h1 { font-size: 26px; }
-            .suggestion-viewport { height: 260px; }
-            .suggestion-card { padding: 14px 16px; gap: 12px; }
-            
-            .app-layout.split-active { flex-direction: column-reverse; }
-            .app-layout.split-active .chat-section { height: 52%; }
-            .app-layout.split-active .sandbox-section { width: 100%; height: 48%; border-left: none; border-bottom: 1px solid var(--border); }
-            .row-user .msg-body { max-width: 100%; }
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- CANVAS THREE.JS -->
     <canvas id="canvas-3d"></canvas>
 
-    <!-- BOTÃO HAMBÚRGUER (CANTO SUPERIOR ESQUERDO) -->
-    <button class="menu-hamburger-btn" onclick="alternarMenuOculto()">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
-
-    <!-- BOTÃO DE LOGIN / ENTRAR (CANTO SUPERIOR DIREITO) -->
-    <button class="auth-trigger-btn" id="btn-open-auth" onclick="abrirModalAuth()">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-        </svg>
-        <span>Entrar / Registar</span>
-    </button>
+    <!-- HEADER SUPERIOR DE AÇÕES -->
+    <div class="top-header-controls">
+        <div class="header-left">
+            <button class="icon-btn-header" onclick="alternarMenuOculto()" title="Menu">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <button class="icon-btn-header" onclick="abrirModalQuickCommand()" title="Comandos Rápidos (Ctrl+K)">
+                <span style="font-size: 11px; font-weight: 700;">⌘K</span>
+            </button>
+        </div>
+        <div class="header-right">
+            <button class="auth-trigger-btn" id="btn-open-auth" onclick="abrirModalAuth()">
+                <span>Entrar / Registar</span>
+            </button>
+        </div>
+    </div>
 
     <!-- PAINEL MENU LATERAL COMPLETO -->
     <div id="sidebar-menu">
         <div class="menu-header">
-            <h2><span>🐝</span> Honey Hub</h2>
+            <h2><span>🐝</span> Honey Suite 5.0</h2>
             <button class="action-btn" onclick="alternarMenuOculto()" style="color: var(--text-muted);">✕</button>
         </div>
 
         <div class="menu-nav-tabs">
             <button class="menu-tab-btn active" id="tab-btn-hist" onclick="mudarAbaMenu('historico')">Histórico</button>
             <button class="menu-tab-btn" id="tab-btn-proj" onclick="mudarAbaMenu('projectos')">Projectos</button>
-            <button class="menu-tab-btn" id="tab-btn-plan" onclick="mudarAbaMenu('planos')">Planos</button>
+            <button class="menu-tab-btn" id="tab-btn-pref" onclick="mudarAbaMenu('preferencias')">Preferências</button>
         </div>
 
-        <div class="menu-content-area" id="menu-content-area">
-            <!-- CONTEÚDO DINÂMICO VIA JAVASCRIPT -->
+        <div class="menu-content-area" id="menu-content-area"></div>
+    </div>
+
+    <!-- MODAL ATALHOS RÁPIDOS (CTRL + K) -->
+    <div class="modal-overlay" id="quick-command-modal">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <h3 style="color:#fff;">Comando Executivo Rápido</h3>
+                <button class="action-btn" onclick="fecharModalQuickCommand()">✕</button>
+            </div>
+            <input type="text" class="cmd-input" id="quick-cmd-input" placeholder="Ex: Criar folha de fecho de caixa em Excel..." onkeypress="executarCmdTeclado(event)">
+            <p style="font-size: 12px; color: var(--text-muted);">Pressione <kbd>Enter</kbd> para enviar diretamente para a IA.</p>
         </div>
     </div>
 
-    <!-- MODAL DE AUTENTICAÇÃO -->
+    <!-- MODAL DE AUTENTICAÇÃO E REGIONALIZAÇÃO -->
     <div class="modal-overlay" id="auth-modal">
-        <div class="auth-card">
-            <button class="action-btn auth-close-btn" onclick="fecharModalAuth()">✕</button>
-            
-            <div class="auth-header">
-                <span class="auth-logo">🐝</span>
-                <h2>Aceder à Honey IA</h2>
-                <p>Entre na sua conta corporativa para sincronizar os seus projetos e ficheiros.</p>
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                <h3 style="color:#fff;">Acesso à Plataforma</h3>
+                <button class="action-btn" onclick="fecharModalAuth()">✕</button>
             </div>
-
-            <!-- OPÇÕES DE LOGIN SOCIAL E TELEFONE -->
-            <div class="social-auth-group">
-                <button class="social-btn google-btn" onclick="autenticarGoogle()">
-                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12.5s.7 2.8 1.9 5.2l3.7-2.9z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 17C3.7 20.7 7.5 24 12 24z"/></svg>
-                    Continuar com Google
-                </button>
-
-                <button class="social-btn phone-btn" onclick="alternarMetodoAuth('telefone')">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    Entrar com Número de Telefone
-                </button>
-            </div>
-
-            <div class="auth-divider">
-                <span>ou conta Honey IA</span>
-            </div>
-
-            <!-- FORMULÁRIO EMAIL / SENHA -->
-            <form id="form-auth-email" onsubmit="processarLoginEmail(event)" class="auth-form">
-                <div class="auth-input-group">
-                    <label for="auth-email">E-mail Corporativo</label>
-                    <input type="email" id="auth-email" placeholder="seu.nome@empresa.com" required>
-                </div>
-                <div class="auth-input-group">
-                    <label for="auth-password">Palavra-passe</label>
-                    <input type="password" id="auth-password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="send-btn auth-submit-btn">Entrar na Conta</button>
-            </form>
-
-            <!-- FORMULÁRIO TELEFONE (OCULTO POR PADRÃO) -->
-            <form id="form-auth-phone" onsubmit="processarLoginTelefone(event)" class="auth-form hidden">
-                <div class="auth-input-group">
-                    <label for="auth-phone-num">Número de Telefone</label>
-                    <input type="tel" id="auth-phone-num" placeholder="+244 9XX XXX XXX" required>
-                </div>
-                <button type="submit" class="send-btn auth-submit-btn">Enviar Código SMS</button>
-                <button type="button" class="btn-link" onclick="alternarMetodoAuth('email')">Voltar para E-mail e redes sociais</button>
-            </form>
-
-            <div class="auth-footer-text">
-                Ao continuar, concorda com os <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a> da Honey IA.
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE PLANOS -->
-    <div class="modal-overlay" id="plans-modal">
-        <div class="plans-container">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="color: #fff; font-size: 24px;">Planos Corporativos Honey IA</h2>
-                <button class="action-btn" onclick="fecharModalPlanos()" style="color: var(--text-muted); font-size: 20px;">✕</button>
-            </div>
-            <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 6px;">Escolha o nível de acesso ideal para o seu ecossistema empresarial.</p>
-            
-            <div class="plans-grid">
-                <div class="plan-card">
-                    <h3>Pro Creator</h3>
-                    <div class="plan-price">Acesso Padrão</div>
-                    <ul class="plan-features">
-                        <li>✓ Geração de Apps & Dashboards</li>
-                        <li>✓ Modelos Financeiros em Excel</li>
-                        <li>✓ Contexto de Conversa Contínuo</li>
-                    </ul>
-                    <button class="premium-btn" style="margin-top: 10px; justify-content: center;">Plano Atual</button>
-                </div>
-
-                <div class="plan-card featured">
-                    <div style="position: absolute; top: -12px; right: 20px; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 10px;">MAIS POPULAR</div>
-                    <h3>Executive Suite</h3>
-                    <div class="plan-price">Empresarial</div>
-                    <ul class="plan-features">
-                        <li>✓ Todas as funcionalidades Pro</li>
-                        <li>✓ Exportação Avançada em Excel com Fórmulas</li>
-                        <li>✓ Consultoria Financeira Dedicada</li>
-                        <li>✓ Suporte Prioritário 24/7</li>
-                    </ul>
-                    <button class="send-btn" style="padding: 10px; border-radius: 10px; cursor: pointer; border: none; font-weight: 600; margin-top: 10px;">Subscrever Suite</button>
-                </div>
-            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Inicie sessão para ativar a sincronização automática e o modo ilimitado.</p>
+            <button class="auth-trigger-btn" style="width: 100%; justify-content: center; margin-bottom: 10px;" onclick="simularLogin('Utilizador Pro')">Continuar com Google</button>
+            <button class="auth-trigger-btn" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); color: #fff;" onclick="simularLogin('Empresa Cliente')">Entrar com Telefone / E-mail</button>
         </div>
     </div>
 
     <div class="app-layout" id="main-layout">
-        
-        <div class="chat-section" id="chat-area">
+        <div class="chat-section">
             
-            <!-- ECRÃ INICIAL PREMIUM 3D -->
             <div id="welcome-screen">
-                <div class="hero-bee-wrapper">
-                    <div class="hero-bee-glow"></div>
-                    <span class="hero-bee">🐝</span>
-                </div>
-                
-                <div class="feature-badge">Plataforma Executiva & Contabilidade Inteligente</div>
+                <span class="hero-bee">🐝</span>
                 <h1>Honey IA</h1>
-                <p>Engenharia de software, consultoria executiva e mapas financeiros avançados em Excel para empresários e contabilistas.</p>
-                
-                <div class="suggestion-viewport" id="suggestion-viewport">
-                    <div class="suggestion-track" id="suggestion-track">
-                        <!-- SUGGESTION CARDS -->
-                        <div class="suggestion-card" onclick="usarSugestao('Cria uma tabela financeira avançada em Excel com fluxo de caixa, margem de lucro e totais automáticos para um negócio retail.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Contabilidade & Excel</h3>
-                                <p>Mapas de amortização, fecho de caixa e folhas `.xlsx` prontas.</p>
-                            </div>
-                        </div>
-
-                        <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Criadores de Software</h3>
-                                <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Governança & Empresas</h3>
-                                <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
-                            </div>
-                        </div>
-
-                        <!-- DUPLICADO PARA LOOP -->
-                        <div class="suggestion-card" onclick="usarSugestao('Cria uma tabela financeira avançada em Excel com fluxo de caixa, margem de lucro e totais automáticos para um negócio retail.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Contabilidade & Excel</h3>
-                                <p>Mapas de amortização, fecho de caixa e folhas `.xlsx` prontas.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p>Plataforma Executiva de Inteligência Artificial, Finanças & Engenharia.</p>
             </div>
 
-            <!-- CHAT AREA -->
             <div class="chat-container" id="chat-box"></div>
 
-            <!-- CAMPO DE ENTRADA FIXO -->
             <div class="input-area">
+                <!-- SELETOR DE AGENTES E IDIOMA REGIONAL -->
+                <div class="agent-bar">
+                    <div class="agent-chip active" id="agent-fin" onclick="selecionarAgente('fin', 'Finanças & Contabilidade')">📊 Contabilidade & Excel</div>
+                    <div class="agent-chip" id="agent-dev" onclick="selecionarAgente('dev', 'Engenharia & Software')">⚡ Web & Engenharia</div>
+                    <div class="agent-chip" id="agent-gov" onclick="selecionarAgente('gov', 'Governança & Minutas')">🏛️ Jurídico & Governança</div>
+                    <div class="agent-chip" id="agent-lang" onclick="alternarRegionalizacao()">🌍 Modo: Angola / PT</div>
+                </div>
+
+                <div class="file-preview-badge" id="file-badge">📄 Ficheiro Anexado: <span id="file-name"></span></div>
+
                 <div class="input-wrapper">
-                    <button class="action-btn" id="mic-btn" onclick="alternarGravacao()">
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.61V21h2v-3.39c3.28-.41 6-3.19 6-6.61h-1.7z"/></svg>
+                    <!-- UPLOAD DE FICHEIRO -->
+                    <input type="file" id="file-input" style="display:none" onchange="processarFicheiro(event)">
+                    <button class="action-btn" onclick="document.getElementById('file-input').click()" title="Anexar PDF/Excel/Imagem">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
                     </button>
-                    <input type="text" class="chat-input" id="user-input" placeholder="Pede um plano financeiro em Excel, site ou app..." onkeypress="verificarTeclado(event)">
-                    <button class="action-btn send-btn" id="send-btn" onclick="enviarMensagem()">
+                    <input type="text" class="chat-input" id="user-input" placeholder="Escreva a mensagem ou comando corporativo..." onkeypress="verificarTeclado(event)">
+                    <button class="action-btn send-btn" onclick="enviarMensagem()">
                         <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- SANDBOX -->
         <div class="sandbox-section" id="sandbox-panel">
             <div class="sandbox-header">
-                <div class="browser-dots"><div class="dot"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                <div class="browser-address">honey-ia://live-preview-premium</div>
-                <div class="sandbox-actions">
-                    <button class="premium-btn" onclick="alternarEcraCheioSandbox()" id="fs-btn">Ecrã Cheio</button>
-                    <button class="premium-btn" onclick="fecharSandbox()" style="color: #ff4a4a; border-color: rgba(255,74,74,0.2);">Ocultar</button>
-                </div>
+                <span style="font-size:12px; color:var(--text-muted);">Visualização em Tempo Real</span>
+                <button class="action-btn" onclick="fecharSandbox()" style="color:#ff4a4a;">✕</button>
             </div>
             <div class="sandbox-body">
-                <iframe class="sandbox-iframe" id="sandbox-preview" sandbox="allow-scripts"></iframe>
+                <iframe class="sandbox-iframe" id="sandbox-preview"></iframe>
             </div>
         </div>
     </div>
 
 <script>
-    // -------------------------------------------------------------
     // 1. THREE.JS 3D BACKGROUND
-    // -------------------------------------------------------------
-    let scene, camera, renderer, meshMesh, geometry;
-    let count = 0;
-    let mouseX = 0, mouseY = 0;
-
-    function init3DBackground() {
+    let scene, camera, renderer, meshMesh, geometry, count = 0;
+    function init3D() {
         const canvas = document.getElementById('canvas-3d');
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.set(0, -150, 400);
-
         geometry = new THREE.PlaneGeometry(1200, 1200, 32, 32);
-        
-        const material = new THREE.MeshBasicMaterial({
-            color: 0xffb700,
-            wireframe: true,
-            transparent: true,
-            opacity: 0.12
-        });
-
+        const material = new THREE.MeshBasicMaterial({ color: 0xffb700, wireframe: true, transparent: true, opacity: 0.1 });
         meshMesh = new THREE.Mesh(geometry, material);
         meshMesh.rotation.x = -Math.PI / 3;
         scene.add(meshMesh);
-
         renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('touchmove', onTouchMove, { passive: true });
-        window.addEventListener('resize', onWindowResize);
-
-        animate3D();
+        animate();
     }
-
-    function onMove(e) {
-        mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
-        mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
-    }
-
-    function onTouchMove(e) {
-        if (e.touches.length > 0) {
-            mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.05;
-            mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.05;
-        }
-    }
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function animate3D() {
-        requestAnimationFrame(animate3D);
+    function animate() {
+        requestAnimationFrame(animate);
         count += 0.02;
         const pos = geometry.attributes.position;
         for (let i = 0; i < pos.count; i++) {
-            const u = pos.getX(i);
-            const v = pos.getY(i);
-            const z = Math.sin(u * 0.01 + count) * 18 + Math.cos(v * 0.01 + count) * 18;
-            pos.setZ(i, z);
+            pos.setZ(i, Math.sin(pos.getX(i) * 0.01 + count) * 15);
         }
         pos.needsUpdate = true;
-
-        meshMesh.rotation.z = count * 0.05 + (mouseX * 0.002);
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY - camera.position.y) * 0.05;
-        camera.lookAt(scene.position);
-
         renderer.render(scene, camera);
     }
 
-    // -------------------------------------------------------------
-    // 2. CONTROLO DO MENU HAMBÚRGUER E MODAIS
-    // -------------------------------------------------------------
-    const sidebarMenu = document.getElementById('sidebar-menu');
-    const menuContentArea = document.getElementById('menu-content-area');
-    let projectosGuardados = [];
-
-    function alternarMenuOculto() {
-        sidebarMenu.classList.toggle('active');
-        if (sidebarMenu.classList.contains('active')) {
-            mudarAbaMenu('historico');
-        }
-    }
-
-    function mudarAbaMenu(aba) {
-        document.querySelectorAll('.menu-tab-btn').forEach(btn => btn.classList.remove('active'));
-        
-        if (aba === 'historico') {
-            document.getElementById('tab-btn-hist').classList.add('active');
-            renderizarHistoricoNoMenu();
-        } else if (aba === 'projectos') {
-            document.getElementById('tab-btn-proj').classList.add('active');
-            renderizarProjectosNoMenu();
-        } else if (aba === 'planos') {
-            document.getElementById('tab-btn-plan').classList.add('active');
-            renderizarPlanosNoMenu();
-        }
-    }
-
-    function renderizarHistoricoNoMenu() {
-        menuContentArea.innerHTML = `<div class="menu-section-title">Conversas Recentes</div>`;
-        if (memoriaSessoes.length === 0) {
-            menuContentArea.innerHTML += `<div style="color: var(--text-muted); font-size: 13px; padding: 10px;">Sem conversas guardadas.</div>`;
-            return;
-        }
-        [...memoriaSessoes].reverse().forEach((sessao, indexOriginal) => {
-            const indexReal = memoriaSessoes.length - 1 - indexOriginal;
-            const item = document.createElement('div');
-            item.className = 'sidebar-item';
-            const titulo = sessao.mensagens[0] ? sessao.mensagens[0].texto : "Sessão sem título";
-            item.innerHTML = `<span>💬 ${titulo.length > 32 ? titulo.substring(0, 32) + "..." : titulo}</span>`;
-            item.onclick = () => { resgatarSessaoHistorico(indexReal); alternarMenuOculto(); };
-            menuContentArea.appendChild(item);
-        });
-    }
-
-    function renderizarProjectosNoMenu() {
-        menuContentArea.innerHTML = `<div class="menu-section-title">Projectos & Ficheiros Gerados</div>`;
-        if (projectosGuardados.length === 0) {
-            menuContentArea.innerHTML += `<div style="color: var(--text-muted); font-size: 13px; padding: 10px;">Ainda não foram gerados ficheiros Excel ou Web Apps.</div>`;
-            return;
-        }
-        projectosGuardados.forEach(proj => {
-            const item = document.createElement('div');
-            item.className = 'sidebar-item';
-            item.innerHTML = `<span>${proj.tipo === 'excel' ? '📊' : '⚡'} ${proj.nome}</span>`;
-            item.onclick = () => {
-                if (proj.tipo === 'excel') descarregarFicheiroExcelDirecto(proj.dados, proj.nome);
-                else carregarNoSandbox(proj.codigo);
-                alternarMenuOculto();
-            };
-            menuContentArea.appendChild(item);
-        });
-    }
-
-    function renderizarPlanosNoMenu() {
-        menuContentArea.innerHTML = `
-            <div class="menu-section-title">Nível de Subscrição</div>
-            <div class="sidebar-item" onclick="abrirModalPlanos()" style="border-color: var(--gold); background: rgba(255,183,0,0.1);">
-                <div>
-                    <strong style="color: var(--gold);">Honey Enterprise</strong>
-                    <div style="font-size: 11px; color: var(--text-muted);">Acesso total a todas as ferramentas</div>
-                </div>
-                <span>⚡</span>
-            </div>
-            <button class="send-btn" onclick="abrirModalPlanos()" style="width: 100%; padding: 10px; border-radius: 10px; margin-top: 10px; cursor: pointer;">Ver Todos os Planos</button>
-        `;
-    }
-
-    function abrirModalPlanos() { document.getElementById('plans-modal').classList.add('active'); }
-    function fecharModalPlanos() { document.getElementById('plans-modal').classList.remove('active'); }
-
-    // -------------------------------------------------------------
-    // 3. AUTENTICAÇÃO E GESTÃO DE UTILIZADOR
-    // -------------------------------------------------------------
-    let usuarioLogado = JSON.parse(localStorage.getItem('honey_ia_user')) || null;
-
-    function atualizarEstadoUsuarioUI() {
-        const btnTrigger = document.getElementById('btn-open-auth');
-        if (usuarioLogado) {
-            btnTrigger.innerHTML = `
-                <span style="color: var(--gold);">🐝</span>
-                <span>${usuarioLogado.nome || usuarioLogado.identificador}</span>
-            `;
-        } else {
-            btnTrigger.innerHTML = `
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                <span>Entrar / Registar</span>
-            `;
-        }
-    }
-
-    function abrirModalAuth() {
-        if (usuarioLogado) {
-            if (confirm(`Sessão iniciada como ${usuarioLogado.identificador}. Deseja terminar a sessão?`)) {
-                usuarioLogado = null;
-                localStorage.removeItem('honey_ia_user');
-                atualizarEstadoUsuarioUI();
-            }
-            return;
-        }
-        document.getElementById('auth-modal').classList.add('active');
-    }
-
-    function fecharModalAuth() {
-        document.getElementById('auth-modal').classList.remove('active');
-    }
-
-    function alternarMetodoAuth(metodo) {
-        const formEmail = document.getElementById('form-auth-email');
-        const formPhone = document.getElementById('form-auth-phone');
-        
-        if (metodo === 'telefone') {
-            formEmail.classList.add('hidden');
-            formPhone.classList.remove('hidden');
-        } else {
-            formPhone.classList.add('hidden');
-            formEmail.classList.remove('hidden');
-        }
-    }
-
-    function autenticarGoogle() {
-        efetuarLoginSucesso({ identificador: "utilizador.google@gmail.com", nome: "Utilizador Google", metodo: "google" });
-    }
-
-    function processarLoginEmail(e) {
-        e.preventDefault();
-        const email = document.getElementById('auth-email').value;
-        efetuarLoginSucesso({ identificador: email, nome: email.split('@')[0], metodo: "email" });
-    }
-
-    function processarLoginTelefone(e) {
-        e.preventDefault();
-        const telefone = document.getElementById('auth-phone-num').value;
-        efetuarLoginSucesso({ identificador: telefone, nome: telefone, metodo: "telefone" });
-    }
-
-    function efetuarLoginSucesso(dadosUsuario) {
-        usuarioLogado = dadosUsuario;
-        localStorage.setItem('honey_ia_user', JSON.stringify(usuarioLogado));
-        atualizarEstadoUsuarioUI();
-        fecharModalAuth();
-        alert(`Boas-vindas à Honey IA! Sessão iniciada com sucesso.`);
-    }
-
-    // -------------------------------------------------------------
-    // 4. ENGINE DE EXCEL AUTOMÁTICO (SHEETJS)
-    // -------------------------------------------------------------
-    function extrairBlocoExcelJSON(texto) {
-        const match = texto.match(/```excel([\s\S]*?)```/);
-        if (match) {
-            try { return JSON.parse(match[1].trim()); } catch(e) { return null; }
-        }
-        return null;
-    }
-
-    function descarregarFicheiroExcelDirecto(dadosExcel, nomeFicheiro = "Relatorio_Honey_IA.xlsx") {
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(dadosExcel);
-        XLSX.utils.book_append_sheet(wb, ws, "Relatório Financas");
-        XLSX.writeFile(wb, nomeFicheiro.endsWith('.xlsx') ? nomeFicheiro : `${nomeFicheiro}.xlsx`);
-    }
-
-    // -------------------------------------------------------------
-    // 5. LÓGICA PRINCIPAL DO CHAT
-    // -------------------------------------------------------------
-    const mainLayout = document.getElementById('main-layout');
-    const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const micBtn = document.getElementById('mic-btn');
-    const sandboxIframe = document.getElementById('sandbox-preview');
-
-    let reconhecimentoVoz;
-    let estaGravando = false;
-    let memoriaSessoes = JSON.parse(localStorage.getItem('honey_ia_sessions')) || [];
+    // 2. ESTADO DA APLICAÇÃO & ATALHOS GLOBAIS (CTRL+K)
+    let agenteAtivo = 'Finanças & Contabilidade';
+    let ficheiroAnexado = null;
+    let usuario = JSON.parse(localStorage.getItem('honey_user')) || null;
+    let memoriaSessoes = JSON.parse(localStorage.getItem('honey_sessions')) || [];
     let historicoConversa = [];
 
-    const SYSTEM_INSTRUCTION = `És a Honey IA, a assistente corporativa e arquiteta financeira/digital de elite.
-Teu tom de voz deve ser sempre altamente profissional, executivo e analítico.
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            abrirModalQuickCommand();
+        }
+    });
 
-INSTRUÇÃO ESPECIAL PARA EXCEL & TABELAS CONTÁBEIS:
-Sempre que o utilizador pedir relatórios financeiros, folhas de caixa, tabelas de contabilidade, balanços, margens de lucro ou mapas de amortização:
-1. Explica brevemente o relatório no texto com um tom executivo.
-2. Fornece OBRIGATORIAMENTE um bloco de código especial com a tag \`\`\`excel contendo um JSON VÁLIDO com um ARRAY DE OBJECTOS para ser exportado diretamente para Excel (.xlsx).
-Exemplo exato de resposta Excel:
-\`\`\`excel
-[
-  {"Item": "Receita Vendas", "Janeiro": 150000, "Fevereiro": 180000, "Total": 330000},
-  {"Item": "Custos Operacionais", "Janeiro": 80000, "Fevereiro": 95000, "Total": 175000},
-  {"Item": "Lucro Líquido", "Janeiro": 70000, "Fevereiro": 85000, "Total": 155000}
-]
-\`\`\`
-
-Quando entregares código HTML/CSS/JS, usa a tag normal \`\`\`html.`;
-
-    window.onload = () => { 
-        init3DBackground();
-        atualizarEstadoUsuarioUI();
-    };
-
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        reconhecimentoVoz = new SpeechRecognition();
-        reconhecimentoVoz.continuous = false;
-        reconhecimentoVoz.interimResults = false;
-        reconhecimentoVoz.onresult = (e) => { userInput.value = e.results[0][0].transcript; enviarMensagem(); };
-        reconhecimentoVoz.onend = () => { estaGravando = false; micBtn.classList.remove('recording'); };
-    }
-
-    function alternarGravacao() {
-        if (!reconhecimentoVoz) return alert("Microfone indisponível.");
-        if (estaGravando) { reconhecimentoVoz.stop(); } 
-        else { estaGravando = true; micBtn.classList.add('recording'); reconhecimentoVoz.start(); }
-    }
-
-    function verificarTeclado(event) { if (event.key === 'Enter') enviarMensagem(); }
-    function usarSugestao(texto) { userInput.value = texto; enviarMensagem(); }
-    
-    function destruirWelcome() {
-        if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
-            welcomeScreen.style.opacity = '0'; 
-            welcomeScreen.style.transform = 'translateY(-15px)';
-            setTimeout(() => { welcomeScreen.style.display = 'none'; }, 300);
+    function abrirModalQuickCommand() { document.getElementById('quick-command-modal').classList.add('active'); document.getElementById('quick-cmd-input').focus(); }
+    function fecharModalQuickCommand() { document.getElementById('quick-command-modal').classList.remove('active'); }
+    function executarCmdTeclado(e) {
+        if (e.key === 'Enter') {
+            const val = document.getElementById('quick-cmd-input').value;
+            if (val) {
+                fecharModalQuickCommand();
+                document.getElementById('user-input').value = val;
+                enviarMensagem();
+            }
         }
     }
 
-    function formatarMarkdownParaHtml(texto) {
-        let textoFormatado = texto;
-
-        textoFormatado = textoFormatado.replace(/```html([\s\S]*?)```/g, (match, code) => {
-            const codeId = "code_" + Math.random().toString(36).substr(2, 9);
-            window[codeId] = code.trim();
-            projectosGuardados.push({ tipo: 'web', nome: 'Aplicação Web Interactive', codigo: code.trim() });
-
-            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0;">
-                <div style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 8px;">⚡ Aplicação/Dashboard gerado e pronto na Sandbox.</div>
-                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')">Copiar Código HTML</button>
-            </div>`;
-        });
-
-        textoFormatado = textoFormatado.replace(/```excel([\s\S]*?)```/g, (match, jsonString) => {
-            const excelId = "excel_" + Math.random().toString(36).substr(2, 9);
-            try {
-                const parsedJSON = JSON.parse(jsonString.trim());
-                window[excelId] = parsedJSON;
-                projectosGuardados.push({ tipo: 'excel', nome: 'Relatório Excel / Mapa Contábil', dados: parsedJSON });
-
-                return `<div style="background: rgba(16, 124, 65, 0.08); border: 1px solid rgba(16, 124, 65, 0.3); padding: 16px; border-radius: 14px; margin: 16px 0;">
-                    <div style="color: #2eef82; font-size: 13px; font-weight: 600; margin-bottom: 4px;">📊 Tabela Contábil & Financeira Pronta</div>
-                    <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">Os dados foram estruturados com sucesso para utilização em folha de cálculo.</div>
-                    <button class="excel-download-btn" onclick="descarregarExcelPorId('${excelId}')">
-                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                        Baixar Ficheiro Excel (.xlsx)
-                    </button>
-                </div>`;
-            } catch(e) {
-                return `<div style="color: #ff4a4a; font-size: 12px;">[Erro ao gerar ficheiro Excel automático]</div>`;
-            }
-        });
-
-        textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
+    // 3. SELEÇÃO DE AGENTE E REGIONALIZAÇÃO
+    function selecionarAgente(id, nome) {
+        document.querySelectorAll('.agent-chip').forEach(c => c.classList.remove('active'));
+        document.getElementById(`agent-${id}`).classList.add('active');
+        agenteAtivo = nome;
     }
 
-    function descarregarExcelPorId(excelId) {
-        if (window[excelId]) descarregarFicheiroExcelDirecto(window[excelId]);
+    function alternarRegionalizacao() {
+        alert("Modo Regional Ativo: Otimizado para contexto financeiro, fiscal e cambial (Angola / Kwanza / IVA / PTM).");
     }
 
-    function copiarTextoCodigo(codeId) {
-        navigator.clipboard.writeText(window[codeId]);
-        alert("Código copiado para a área de transferência.");
+    // 4. UPLOAD DE FICHEIROS
+    function processarFicheiro(e) {
+        const file = e.target.files[0];
+        if (file) {
+            ficheiroAnexado = file.name;
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-badge').style.display = 'block';
+        }
     }
 
-    function renderizarConteudoElegante(container, texto, callback) {
-        container.innerHTML = "";
-        const wrapper = document.createElement('div');
-        wrapper.className = 'premium-fade-in';
-        wrapper.innerHTML = formatarMarkdownParaHtml(texto);
-        container.appendChild(wrapper);
-        if (callback) callback();
-    }
-
-    function extrairCodigoHTML(texto) {
-        const match = texto.match(/```html([\s\S]*?)```/);
-        return match ? match[1].trim() : null;
-    }
-
-    function carregarNoSandbox(codigoHTML) {
-        mainLayout.classList.add('split-active');
-        const blob = new Blob([codigoHTML], { type: 'text/html' });
-        sandboxIframe.src = URL.createObjectURL(blob);
-    }
-
-    function fecharSandbox() { mainLayout.classList.remove('split-active'); mainLayout.classList.remove('fullscreen-active'); }
-    function alternarEcraCheioSandbox() { 
-        mainLayout.classList.toggle('fullscreen-active'); 
-        document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
-    }
-
-    function resgatarSessaoHistorico(index) {
-        destruirWelcome();
-        fecharSandbox();
-        chatBox.innerHTML = "";
-        
-        const sessao = memoriaSessoes[index];
-        historicoConversa = [];
-        
-        sessao.mensagens.forEach(msg => {
-            historicoConversa.push(msg);
-            const classeLinha = msg.role === 'user' ? 'row-user' : 'row-honey';
-            const body = criarLinhaMensagem("", classeLinha);
-            if (msg.role === 'user') {
-                body.textContent = msg.texto;
-            } else {
-                renderizarConteudoElegante(body, msg.texto, () => {
-                    const codigo = extrairCodigoHTML(msg.texto);
-                    if (codigo) carregarNoSandbox(codigo);
-                });
-            }
-        });
-    }
-
+    // 5. ENVIAR MENSAGENS E PROCESSAR RESPOSTA
     async function enviarMensagem() {
-        const promptText = userInput.value.trim();
-        if (!promptText) return;
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text && !ficheiroAnexado) return;
 
-        destruirWelcome(); 
-        
-        criarLinhaMensagem(promptText, 'row-user');
-        historicoConversa.push({ role: 'user', texto: promptText });
-        
-        userInput.value = "";
-        sendBtn.disabled = true;
+        document.getElementById('welcome-screen').style.display = 'none';
 
-        const mergeHoney = criarLinhaMensagem("", 'row-honey');
-        const indicador = document.createElement('div');
-        indicador.className = 'typing-indicator';
-        indicador.innerHTML = '<span></span><span></span><span></span>';
-        mergeHoney.appendChild(indicador);
+        let mensagemFinal = text;
+        if (ficheiroAnexado) {
+            mensagemFinal += `\n[Ficheiro Anexado para Análise: ${ficheiroAnexado}]`;
+            ficheiroAnexado = null;
+            document.getElementById('file-badge').style.display = 'none';
+        }
+
+        criarLinhaMsg(mensagemFinal, 'row-user');
+        historicoConversa.push({ role: 'user', texto: mensagemFinal });
+        input.value = "";
+
+        const rowHoney = criarLinhaMsg("A processar pedido executivo...", 'row-honey');
 
         try {
             const response = await fetch('/gerar-gratis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    prompt: promptText,
+                    prompt: `[Modo Agente: ${agenteAtivo}] ${mensagemFinal}`,
                     historico: historicoConversa,
-                    systemInstruction: SYSTEM_INSTRUCTION
+                    systemInstruction: "És a Honey IA. Responde num tom altamente executivo."
                 })
             });
-            
+
             const data = await response.json();
-            mergeHoney.innerHTML = "";
-
-            if (response.ok && data.sucesso) {
-                const respostaTexto = data.codigo;
-                historicoConversa.push({ role: 'model', texto: respostaTexto });
-
-                renderizarConteudoElegante(mergeHoney, respostaTexto, () => {
-                    const codigoDetectado = extrairCodigoHTML(respostaTexto);
-                    if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
-                });
-
-                salvarSessaoNoStorage();
-
+            if (data.sucesso) {
+                rowHoney.innerHTML = formatarMarkdown(data.codigo);
+                historicoConversa.push({ role: 'model', texto: data.codigo });
             } else {
-                mergeHoney.textContent = "Não foi possível processar o pedido corporativo.";
+                rowHoney.textContent = "Não foi possível concluir o pedido.";
             }
-        } catch (err) {
-            mergeHoney.innerHTML = "Erro de ligação com o servidor da plataforma.";
-        } finally {
-            sendBtn.disabled = false;
+        } catch(e) {
+            rowHoney.textContent = "Serviço indisponível momentaneamente.";
         }
     }
 
-    function salvarSessaoNoStorage() {
-        if (historicoConversa.length === 0) return;
-        if (memoriaSessoes.length === 0 || memoriaSessoes[memoriaSessoes.length - 1].finalizada) {
-            memoriaSessoes.push({ mensagens: [...historicoConversa], finalizada: false });
-        } else {
-            memoriaSessoes[memoriaSessoes.length - 1].mensagens = [...historicoConversa];
-        }
-        localStorage.setItem('honey_ia_sessions', JSON.stringify(memoriaSessoes));
-    }
-
-    function criarLinhaMensagem(texto, classeLinha) {
+    function criarLinhaMsg(texto, classe) {
         const row = document.createElement('div');
-        row.className = `row-message ${classeLinha}`;
+        row.className = `row-message ${classe}`;
         const body = document.createElement('div');
         body.className = 'msg-body';
         body.textContent = texto;
         row.appendChild(body);
-        chatBox.appendChild(row);
+        document.getElementById('chat-box').appendChild(row);
         return body;
     }
+
+    function formatarMarkdown(txt) {
+        return txt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    }
+
+    // CONTROLE MENU E MODAIS
+    function alternarMenuOculto() { document.getElementById('sidebar-menu').classList.toggle('active'); }
+    function abrirModalAuth() { document.getElementById('auth-modal').classList.add('active'); }
+    function fecharModalAuth() { document.getElementById('auth-modal').classList.remove('active'); }
+    function fecharSandbox() { document.getElementById('main-layout').classList.remove('split-active'); }
+    function simularLogin(nome) {
+        localStorage.setItem('honey_user', JSON.stringify({ nome: nome }));
+        document.getElementById('btn-open-auth').innerHTML = `<span>🐝 ${nome}</span>`;
+        fecharModalAuth();
+    }
+    function verificarTeclado(e) { if (e.key === 'Enter') enviarMensagem(); }
+
+    window.onload = () => { init3D(); };
 </script>
 </body>
 </html>
