@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Honey IA | Elite Premium Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Importação do Three.js para o Canvas 3D -->
+    <!-- Engine 3D Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
@@ -13,8 +13,8 @@
             --gold: #ffb700; 
             --gold-dark: #cc9200; 
             --bg: #030305; 
-            --card: rgba(11, 11, 18, 0.75); 
-            --border: rgba(255, 183, 0, 0.12); 
+            --card: rgba(14, 14, 22, 0.75); 
+            --border: rgba(255, 183, 0, 0.15); 
             --preview-bg: #0d0d14; 
             --text-main: #f1f1f6;
             --text-muted: #8e8e9f;
@@ -38,7 +38,7 @@
         }
         
         .sandbox-section { 
-            display: none; flex-direction: column; width: 50%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); overflow: hidden; position: relative; z-index: 10;
+            display: none; flex-direction: column; width: 50%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); overflow: hidden; position: relative; z-index: 20;
         }
 
         .app-layout.split-active .sandbox-section { display: flex; animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -47,7 +47,7 @@
         
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* CANVAS THREE.JS NO BACKGROUND */
+        /* CANVAS 3D NO BACKGROUND */
         #canvas-3d {
             position: absolute;
             top: 0;
@@ -58,13 +58,13 @@
             pointer-events: none;
         }
 
-        /* BOTÃO DE HISTÓRICO */
+        /* BOTÃO HISTÓRICO HEADER */
         .history-btn-header {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 18px;
+            right: 18px;
             z-index: 20;
-            background: rgba(11, 11, 18, 0.8);
+            background: rgba(11, 11, 18, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             padding: 8px 16px;
@@ -92,7 +92,7 @@
             width: 100%;
             max-width: 380px;
             height: 100%;
-            background: rgba(5, 5, 10, 0.95);
+            background: rgba(5, 5, 10, 0.96);
             backdrop-filter: blur(20px);
             border-left: 1px solid var(--border);
             z-index: 100;
@@ -112,27 +112,28 @@
         }
         .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
 
-        /* PÁGINA INICIAL ULTRA-PREMIUM 3D */
+        /* PÁGINA INICIAL COM SCROLL CORRIGIDO E ESPAÇAMENTO INFERIOR */
         #welcome-screen { 
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: calc(100% - 90px);
+            height: 100%;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 70px 20px 40px 20px;
+            padding: 70px 20px 140px 20px; /* Padding inferior aumentado para permitir ver todas as tabelas acima do campo de entrada */
             z-index: 5; 
             background: transparent;
             transition: opacity 0.3s ease, transform 0.3s ease;
             scrollbar-width: none;
-            perspective: 1000px; /* Para suporte a transformações 3D dos elementos */
+            perspective: 1000px;
+            -webkit-overflow-scrolling: touch;
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
 
-        /* ABELLA HERO COM NEON OURA 3D */
+        /* ÍCONE CENTRAL 3D */
         .hero-bee-wrapper {
             position: relative;
             margin-bottom: 16px;
@@ -143,14 +144,14 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, rgba(255,183,0,0.4) 0%, rgba(0,0,0,0) 70%);
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, rgba(255,183,0,0.35) 0%, rgba(0,0,0,0) 70%);
             filter: blur(20px);
             border-radius: 50%;
             animation: pulseGlow 3s ease-in-out infinite alternate;
         }
-        @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.9; } }
+        @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } }
 
         .hero-bee { 
             font-size: 58px; 
@@ -158,17 +159,17 @@
             z-index: 2;
             animation: float3D 4s ease-in-out infinite; 
             display: inline-block; 
-            filter: drop-shadow(0 15px 30px rgba(255, 183, 0, 0.35)); 
+            filter: drop-shadow(0 15px 25px rgba(255, 183, 0, 0.3)); 
         }
         @keyframes float3D { 
-            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); } 
-            50% { transform: translateY(-14px) rotate(4deg) scale(1.05); } 
+            0%, 100% { transform: translateY(0) rotate(0deg); } 
+            50% { transform: translateY(-12px) rotate(3deg); } 
         }
         
         #welcome-screen h1 { 
-            font-size: 36px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
+            font-size: 34px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
         }
-        #welcome-screen p { color: var(--text-muted); font-size: 14.5px; line-height: 1.5; max-width: 480px; margin: 0 auto 30px auto; text-align: center; }
+        #welcome-screen p { color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 480px; margin: 0 auto 28px auto; text-align: center; }
 
         .feature-badge {
             background: rgba(255, 183, 0, 0.08);
@@ -183,16 +184,15 @@
             border-radius: 20px;
             margin-bottom: 16px;
             display: inline-block;
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.08);
         }
 
-        /* GRID DE CARTÕES COM EFEITO PARALLAX 3D (TILT) */
+        /* GRID DE CARTÕES 3D */
         .suggestion-grid { 
             display: flex;
             flex-direction: column;
             gap: 14px; 
             width: 100%;
-            max-width: 620px; 
+            max-width: 600px; 
             margin: 0 auto; 
             perspective: 1000px;
         }
@@ -203,59 +203,47 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border); 
             border-radius: 18px; 
-            padding: 20px; 
+            padding: 18px; 
             text-align: left; 
             cursor: pointer; 
             display: flex;
             align-items: flex-start;
-            gap: 18px;
+            gap: 16px;
             transform-style: preserve-3d;
-            transition: transform 0.15s ease-out, border-color 0.3s, box-shadow 0.3s;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
             position: relative;
             overflow: hidden;
         }
 
-        /* Efeito de reflexo de luz interativo no cartão */
-        .suggestion-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 183, 0, 0.12), transparent);
-            transition: left 0.6s ease;
-            pointer-events: none;
-        }
-        .suggestion-card:hover::before { left: 100%; }
-
-        .suggestion-card:hover { 
+        .suggestion-card:hover, .suggestion-card:active { 
             border-color: rgba(255, 183, 0, 0.5); 
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 183, 0, 0.15);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 183, 0, 0.12);
         }
         
         .card-icon-wrapper {
-            background: linear-gradient(135deg, rgba(255,183,0,0.1), rgba(11,11,18,0.9));
-            border: 1px solid rgba(255, 183, 0, 0.2);
+            background: linear-gradient(135deg, rgba(255,183,0,0.12), rgba(11,11,18,0.9));
+            border: 1px solid rgba(255, 183, 0, 0.25);
             padding: 12px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--gold);
-            transform: translateZ(20px); /* Projeta o ícone em 3D para fora do cartão */
+            transform: translateZ(15px);
             transition: all 0.3s ease;
         }
         .suggestion-card:hover .card-icon-wrapper {
             color: #fff;
             background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            box-shadow: 0 0 15px rgba(255, 183, 0, 0.4);
         }
 
-        .card-content { flex: 1; transform: translateZ(10px); }
+        .card-content { flex: 1; transform: translateZ(8px); }
         .suggestion-card h3 { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 4px; }
-        .suggestion-card p { font-size: 12.8px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
+        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
 
         /* CONTAINER CHAT */
         .chat-container { 
-            flex: 1; overflow-y: auto; padding: 80px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5; scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 80px 20px 140px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5; scroll-behavior: smooth;
         }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
@@ -271,10 +259,12 @@
         .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
         @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* BARRA DE ENTRADA FIXA COM GLOW */
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; }
-        .input-wrapper { width: 100%; max-width: 680px; background: rgba(11, 11, 18, 0.85); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: border-color 0.2s, box-shadow 0.2s; gap: 6px; }
-        .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.4); box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255, 183, 0, 0.1); }
+        /* BARRA FIXA DE INPUT */
+        .input-area { 
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; 
+        }
+        .input-wrapper { width: 100%; max-width: 680px; background: rgba(11, 11, 18, 0.9); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: border-color 0.2s; gap: 6px; }
+        .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.4); }
         .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15px; outline: none; }
         .chat-input::placeholder { color: #48485e; }
         
@@ -310,7 +300,7 @@
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
-            #welcome-screen { padding-top: 80px; padding-bottom: 40px; }
+            #welcome-screen { padding-top: 70px; padding-bottom: 150px; }
             #welcome-screen h1 { font-size: 28px; }
             .suggestion-card { padding: 16px; gap: 14px; }
             .suggestion-card h3 { font-size: 14px; }
@@ -325,7 +315,7 @@
 </head>
 <body>
 
-    <!-- CANVAS 3D PARA ANIMAÇÃO DE FUNDO -->
+    <!-- CANVAS THREE.JS -->
     <canvas id="canvas-3d"></canvas>
 
     <div class="app-layout" id="main-layout">
@@ -347,7 +337,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMIUIM 3D INTERATIVO -->
+            <!-- ECRÃ INICIAL PREMUIUM 3D COM SCROLL PERFEITO -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -404,7 +394,7 @@
             <!-- CHAT AREA -->
             <div class="chat-container" id="chat-box"></div>
 
-            <!-- CAMPO DE ENTRADA -->
+            <!-- CAMPO DE ENTRADA FIXO -->
             <div class="input-area">
                 <div class="input-wrapper">
                     <button class="action-btn" id="mic-btn" onclick="alternarGravacao()">
@@ -436,63 +426,56 @@
 
 <script>
     // -------------------------------------------------------------
-    // 1. ENGINE DE PARTICULAS 3D COM THREE.JS (FAVO DE MEL / SWARM)
+    // 1. ENGINE 3D FLUIDO & GEOMÉTRICO (ONDA TRIDIMENSIONAL DOURADA)
     // -------------------------------------------------------------
-    let scene, camera, renderer, particles, particleGeo;
+    let scene, camera, renderer, meshMesh, geometry;
+    let count = 0;
     let mouseX = 0, mouseY = 0;
-    let windowHalfX = window.innerWidth / 2;
-    let windowHalfY = window.innerHeight / 2;
 
     function init3DBackground() {
         const canvas = document.getElementById('canvas-3d');
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
-        camera.position.z = 1000;
+        camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.set(0, -150, 400);
 
-        // Criar geometria de partículas douradas
-        const particleCount = 280;
-        particleGeo = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const scales = new Float32Array(particleCount);
-
-        for (let i = 0; i < particleCount * 3; i += 3) {
-            positions[i] = (Math.random() - 0.5) * 1600;
-            positions[i + 1] = (Math.random() - 0.5) * 1600;
-            positions[i + 2] = (Math.random() - 0.5) * 1000;
-        }
-
-        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-        // Material com tom de ouro neon
-        const particleMaterial = new THREE.PointsMaterial({
+        // Geometria de terreno ondulado 3D
+        geometry = new THREE.PlaneGeometry(1200, 1200, 32, 32);
+        
+        const material = new THREE.MeshBasicMaterial({
             color: 0xffb700,
-            size: 4.5,
+            wireframe: true,
             transparent: true,
-            opacity: 0.65,
-            blending: THREE.AdditiveBlending
+            opacity: 0.12
         });
 
-        particles = new THREE.Points(particleGeo, particleMaterial);
-        scene.add(particles);
+        meshMesh = new THREE.Mesh(geometry, material);
+        meshMesh.rotation.x = -Math.PI / 3;
+        scene.add(meshMesh);
 
         renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        document.addEventListener('mousemove', onDocumentMouseMove);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
         window.addEventListener('resize', onWindowResize);
 
         animate3D();
     }
 
-    function onDocumentMouseMove(event) {
-        mouseX = (event.clientX - windowHalfX) * 0.05;
-        mouseY = (event.clientY - windowHalfY) * 0.05;
+    function onMove(e) {
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
+    }
+
+    function onTouchMove(e) {
+        if (e.touches.length > 0) {
+            mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.05;
+        }
     }
 
     function onWindowResize() {
-        windowHalfX = window.innerWidth / 2;
-        windowHalfY = window.innerHeight / 2;
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -501,46 +484,65 @@
     function animate3D() {
         requestAnimationFrame(animate3D);
 
-        // Suave movimento Parallax ao mover o rato
-        camera.position.x += (mouseX - camera.position.x) * 0.03;
-        camera.position.y += (-mouseY - camera.position.y) * 0.03;
-        camera.lookAt(scene.position);
+        count += 0.02;
 
-        // Rotação constante sutil do favo 3D
-        particles.rotation.y += 0.0012;
-        particles.rotation.x += 0.0006;
+        // Animação de deformação das ondas 3D em tempo real
+        const pos = geometry.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+            const u = pos.getX(i);
+            const v = pos.getY(i);
+            const z = Math.sin(u * 0.01 + count) * 18 + Math.cos(v * 0.01 + count) * 18;
+            pos.setZ(i, z);
+        }
+        pos.needsUpdate = true;
+
+        // Movimento Parallax com base na interação
+        meshMesh.rotation.z = count * 0.05 + (mouseX * 0.002);
+        camera.position.x += (mouseX - camera.position.x) * 0.05;
+        camera.position.y += (-mouseY - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
 
         renderer.render(scene, camera);
     }
 
     // -------------------------------------------------------------
-    // 2. EFEITO TILT 3D PARALLAX NOS CARTÕES AO PASSAR O RATO
+    // 2. INTERAÇÃO 3D TILT MULTI-PLATAFORMA (RATO E TOUCH MÓVEL)
     // -------------------------------------------------------------
     function initCard3DTilt() {
         const cards = document.querySelectorAll('.suggestion-card');
+        
         cards.forEach(card => {
-            card.addEventListener('mousemove', (e) => {
+            function applyTilt(clientX, clientY) {
                 const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
                 
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
                 
-                const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg tilt
-                const rotateY = ((x - centerX) / centerX) * 10;
+                const rotateX = ((y - centerY) / centerY) * -8;
+                const rotateY = ((x - centerX) / centerX) * 8;
 
                 card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-            });
+            }
 
-            card.addEventListener('mouseleave', () => {
+            function resetTilt() {
                 card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-            });
+            }
+
+            card.addEventListener('mousemove', (e) => applyTilt(e.clientX, e.clientY));
+            card.addEventListener('mouseleave', resetTilt);
+
+            card.addEventListener('touchstart', (e) => {
+                if(e.touches.length > 0) applyTilt(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            
+            card.addEventListener('touchend', resetTilt);
         });
     }
 
     // -------------------------------------------------------------
-    // 3. LÓGICA CORE DA APLICAÇÃO (CHAT, SANDBOX, HISTÓRICO)
+    // 3. LÓGICA PRINCIPAL (CHAT, SANDBOX, HISTÓRICO)
     // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
@@ -559,7 +561,6 @@
     window.onload = () => { 
         init3DBackground();
         initCard3DTilt();
-        console.log("Honey IA 3D Engine inicializada com sucesso.");
     };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -583,7 +584,7 @@
     function destruirWelcome() {
         if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
             welcomeScreen.style.opacity = '0'; 
-            welcomeScreen.style.transform = 'translateY(-15px) scale(0.98)';
+            welcomeScreen.style.transform = 'translateY(-15px)';
             setTimeout(() => { welcomeScreen.style.display = 'none'; }, 300);
         }
     }
@@ -603,7 +604,7 @@
 
     function copiarTextoCodigo(codeId) {
         navigator.clipboard.writeText(window[codeId]);
-        alert("Código copiado com sucesso!");
+        alert("Código copiado!");
     }
 
     function renderizarConteudoElegante(container, texto, callback) {
