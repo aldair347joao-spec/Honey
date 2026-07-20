@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Honey IA | Elite Premium Platform</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Importação do Three.js para o Canvas 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <style>
         :root { 
             --gold: #ffb700; 
             --gold-dark: #cc9200; 
             --bg: #030305; 
-            --card: #0b0b12; 
-            --border: #141420; 
+            --card: rgba(11, 11, 18, 0.75); 
+            --border: rgba(255, 183, 0, 0.12); 
             --preview-bg: #0d0d14; 
             --text-main: #f1f1f6;
             --text-muted: #8e8e9f;
@@ -31,11 +34,11 @@
         .app-layout { display: flex; flex-direction: row; width: 100%; height: 100%; position: relative; }
 
         .chat-section { 
-            flex: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg); overflow: hidden; position: relative;
+            flex: 1; display: flex; flex-direction: column; height: 100%; background: transparent; overflow: hidden; position: relative;
         }
         
         .sandbox-section { 
-            display: none; flex-direction: column; width: 50%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); overflow: hidden; position: relative;
+            display: none; flex-direction: column; width: 50%; height: 100%; background: var(--preview-bg); border-left: 1px solid var(--border); overflow: hidden; position: relative; z-index: 10;
         }
 
         .app-layout.split-active .sandbox-section { display: flex; animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -44,14 +47,25 @@
         
         @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* BOTÃO FLUTUANTE DE HISTÓRICO NO TOPO */
+        /* CANVAS THREE.JS NO BACKGROUND */
+        #canvas-3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* BOTÃO DE HISTÓRICO */
         .history-btn-header {
             position: absolute;
             top: 20px;
             right: 20px;
             z-index: 20;
             background: rgba(11, 11, 18, 0.8);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             padding: 8px 16px;
             border-radius: 20px;
@@ -67,10 +81,10 @@
         .history-btn-header:hover {
             border-color: var(--gold);
             color: #fff;
-            box-shadow: 0 0 10px rgba(255, 183, 0, 0.1);
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.2);
         }
 
-        /* PAINEL LATERAL DE HISTÓRICO (OVERLAY) */
+        /* PAINEL LATERAL DE HISTÓRICO */
         #history-panel {
             position: fixed;
             top: 0;
@@ -78,7 +92,8 @@
             width: 100%;
             max-width: 380px;
             height: 100%;
-            background: #05050a;
+            background: rgba(5, 5, 10, 0.95);
+            backdrop-filter: blur(20px);
             border-left: 1px solid var(--border);
             z-index: 100;
             transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -88,46 +103,16 @@
         }
         #history-panel.active { right: 0; }
         
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
         .history-header h2 { font-size: 18px; color: #fff; font-weight: 600; }
         
-        .history-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-right: 4px;
-        }
-        .history-list::-webkit-scrollbar { width: 4px; }
-        .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        
+        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .history-item {
-            padding: 14px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 13px;
-            color: var(--text-muted);
-            transition: all 0.2s;
-            text-align: left;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
+            padding: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-size: 13px; color: var(--text-muted); transition: all 0.2s; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
         }
-        .history-item:hover {
-            border-color: rgba(255, 183, 0, 0.3);
-            color: #fff;
-            background: rgba(255, 183, 0, 0.01);
-        }
+        .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
 
-        /* PÁGINA INICIAL ULTRA-PREMIUM */
+        /* PÁGINA INICIAL ULTRA-PREMIUM 3D */
         #welcome-screen { 
             position: absolute;
             top: 0;
@@ -138,100 +123,139 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 80px 20px 40px 20px; /* Aumentado padding-top para o botão não sobrepor */
+            padding: 70px 20px 40px 20px;
             z-index: 5; 
-            background: var(--bg);
+            background: transparent;
             transition: opacity 0.3s ease, transform 0.3s ease;
             scrollbar-width: none;
+            perspective: 1000px; /* Para suporte a transformações 3D dos elementos */
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
 
-        .hero-bee { font-size: 54px; animation: float 3.5s ease-in-out infinite; margin-bottom: 12px; display: inline-block; filter: drop-shadow(0 12px 24px rgba(255, 183, 0, 0.25)); }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        
-        #welcome-screen h1 { font-size: 32px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1px; background: linear-gradient(135deg, #fff 40%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
-        #welcome-screen p { color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 460px; margin: 0 auto 28px auto; text-align: center; }
-
-        .feature-badge {
-            background: rgba(255, 183, 0, 0.06);
-            border: 1px solid rgba(255, 183, 0, 0.15);
-            color: var(--gold);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 20px;
+        /* ABELLA HERO COM NEON OURA 3D */
+        .hero-bee-wrapper {
+            position: relative;
             margin-bottom: 16px;
             display: inline-block;
         }
+        .hero-bee-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255,183,0,0.4) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(20px);
+            border-radius: 50%;
+            animation: pulseGlow 3s ease-in-out infinite alternate;
+        }
+        @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; } 100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0.9; } }
 
-        /* TÓPICOS ANIMADOS EM CASCATA */
+        .hero-bee { 
+            font-size: 58px; 
+            position: relative;
+            z-index: 2;
+            animation: float3D 4s ease-in-out infinite; 
+            display: inline-block; 
+            filter: drop-shadow(0 15px 30px rgba(255, 183, 0, 0.35)); 
+        }
+        @keyframes float3D { 
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); } 
+            50% { transform: translateY(-14px) rotate(4deg) scale(1.05); } 
+        }
+        
+        #welcome-screen h1 { 
+            font-size: 36px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
+        }
+        #welcome-screen p { color: var(--text-muted); font-size: 14.5px; line-height: 1.5; max-width: 480px; margin: 0 auto 30px auto; text-align: center; }
+
+        .feature-badge {
+            background: rgba(255, 183, 0, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 183, 0, 0.25);
+            color: var(--gold);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.08);
+        }
+
+        /* GRID DE CARTÕES COM EFEITO PARALLAX 3D (TILT) */
         .suggestion-grid { 
             display: flex;
             flex-direction: column;
-            gap: 12px; 
+            gap: 14px; 
             width: 100%;
-            max-width: 600px; 
+            max-width: 620px; 
             margin: 0 auto; 
+            perspective: 1000px;
         }
         
         .suggestion-card { 
             background: var(--card); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border); 
-            border-radius: 16px; 
-            padding: 18px; 
+            border-radius: 18px; 
+            padding: 20px; 
             text-align: left; 
             cursor: pointer; 
             display: flex;
             align-items: flex-start;
-            gap: 16px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            animation: cardEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+            gap: 18px;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out, border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        
-        .suggestion-card:nth-child(1) { animation-delay: 0.1s; }
-        .suggestion-card:nth-child(2) { animation-delay: 0.2s; }
-        .suggestion-card:nth-child(3) { animation-delay: 0.3s; }
-        .suggestion-card:nth-child(4) { animation-delay: 0.4s; }
 
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Efeito de reflexo de luz interativo no cartão */
+        .suggestion-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 183, 0, 0.12), transparent);
+            transition: left 0.6s ease;
+            pointer-events: none;
         }
+        .suggestion-card:hover::before { left: 100%; }
 
         .suggestion-card:hover { 
-            border-color: rgba(255, 183, 0, 0.4); 
-            background: rgba(255, 183, 0, 0.03); 
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 183, 0, 0.05);
+            border-color: rgba(255, 183, 0, 0.5); 
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 183, 0, 0.15);
         }
         
         .card-icon-wrapper {
-            background: linear-gradient(135deg, #12121f, #07070d);
-            border: 1px solid rgba(255, 183, 0, 0.15);
-            padding: 10px;
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,183,0,0.1), rgba(11,11,18,0.9));
+            border: 1px solid rgba(255, 183, 0, 0.2);
+            padding: 12px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--gold);
-            transition: transform 0.3s ease;
+            transform: translateZ(20px); /* Projeta o ícone em 3D para fora do cartão */
+            transition: all 0.3s ease;
         }
         .suggestion-card:hover .card-icon-wrapper {
-            transform: rotate(-5deg) scale(1.1);
             color: #fff;
             background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            border-color: transparent;
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.4);
         }
 
-        .card-content { flex: 1; }
-        .suggestion-card h3 { font-size: 14.5px; color: #fff; font-weight: 600; margin-bottom: 4px; }
-        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
+        .card-content { flex: 1; transform: translateZ(10px); }
+        .suggestion-card h3 { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 4px; }
+        .suggestion-card p { font-size: 12.8px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
 
-        /* CONTAINER DE CONVERSA */
+        /* CONTAINER CHAT */
         .chat-container { 
-            flex: 1; overflow-y: auto; padding: 80px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 2; scroll-behavior: smooth;
+            flex: 1; overflow-y: auto; padding: 80px 20px 120px 20px; display: flex; flex-direction: column; gap: 32px; width: 100%; max-width: 760px; margin: 0 auto; z-index: 5; scroll-behavior: smooth;
         }
         
         .row-message { display: flex; flex-direction: column; width: 100%; position: relative; }
@@ -239,8 +263,7 @@
         .row-honey { align-items: flex-start; border-bottom: 1px solid rgba(22, 22, 34, 0.4); padding-bottom: 24px; }
 
         .msg-body { font-size: 15px; line-height: 1.75; color: var(--text-main); word-wrap: break-word; width: 100%; }
-        
-        .row-user .msg-body { text-align: right; color: #fff; max-width: 85%; font-weight: 400; background: rgba(255, 183, 0, 0.03); padding: 12px 18px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.08); white-space: pre-wrap; }
+        .row-user .msg-body { text-align: right; color: #fff; max-width: 85%; font-weight: 400; background: rgba(255, 183, 0, 0.05); backdrop-filter: blur(10px); padding: 12px 18px; border-radius: 18px; border: 1px solid rgba(255, 183, 0, 0.12); white-space: pre-wrap; }
         
         .msg-body strong { color: #fff; font-weight: 600; display: inline-block; margin-top: 4px; }
         .msg-paragraph { margin-bottom: 12px; }
@@ -248,10 +271,10 @@
         .premium-fade-in { animation: elegantFade 0.3s ease forwards; }
         @keyframes elegantFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* BARRA DE ENTRADA FIXA */
-        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 80%, transparent); z-index: 10; }
-        .input-wrapper { width: 100%; max-width: 680px; background: #0b0b12; border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); transition: border-color 0.2s; gap: 6px; }
-        .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.3); }
+        /* BARRA DE ENTRADA FIXA COM GLOW */
+        .input-area { position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 20px; display: flex; justify-content: center; background: linear-gradient(to top, var(--bg) 85%, transparent); z-index: 10; }
+        .input-wrapper { width: 100%; max-width: 680px; background: rgba(11, 11, 18, 0.85); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; display: flex; align-items: center; padding: 8px 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); transition: border-color 0.2s, box-shadow 0.2s; gap: 6px; }
+        .input-wrapper:focus-within { border-color: rgba(255, 183, 0, 0.4); box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255, 183, 0, 0.1); }
         .chat-input { flex: 1; background: none; border: none; padding: 6px; color: #fff; font-size: 15px; outline: none; }
         .chat-input::placeholder { color: #48485e; }
         
@@ -260,15 +283,12 @@
         .mic-btn.recording { color: #ff4a4a; background: rgba(255,74,74,0.08); animation: pulseRecord 1.5s infinite; }
         @keyframes pulseRecord { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        .send-btn { background: var(--gold); color: #030305; }
+        .send-btn { background: var(--gold); color: #030305; font-weight: 600; }
         .send-btn:hover { background: var(--gold-dark); }
         .send-btn:disabled { background: #12121a; color: #38384d; cursor: not-allowed; }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; width: 100%; }
         .premium-btn { background: rgba(255, 183, 0, 0.03); border: 1px solid rgba(255, 183, 0, 0.1); color: var(--gold); cursor: pointer; display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 500; gap: 6px; transition: all 0.2s; }
         .premium-btn:hover { background: rgba(255, 183, 0, 0.08); border-color: var(--gold); }
-        .visualize-btn { background: rgba(0, 230, 118, 0.03); border-color: rgba(0, 230, 118, 0.15); color: #00e676; }
-        .visualize-btn:hover { background: rgba(0, 230, 118, 0.08); border-color: #00e676; }
 
         .typing-indicator { display: flex; gap: 5px; padding: 10px 4px; align-items: center; }
         .typing-indicator span { width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
@@ -276,7 +296,7 @@
         .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
         @keyframes bounce { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.2; } 40% { transform: scale(1); opacity: 1; } }
 
-        /* PAINEL SANDBOX DE VISUALIZAÇÃO */
+        /* SANDBOX */
         .sandbox-section { flex: 1; }
         .sandbox-header { height: 52px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
         .browser-dots { display: flex; gap: 6px; }
@@ -291,9 +311,9 @@
 
         @media (max-width: 800px) {
             #welcome-screen { padding-top: 80px; padding-bottom: 40px; }
-            #welcome-screen h1 { font-size: 26px; }
-            .suggestion-card { padding: 14px; gap: 12px; }
-            .suggestion-card h3 { font-size: 13.5px; }
+            #welcome-screen h1 { font-size: 28px; }
+            .suggestion-card { padding: 16px; gap: 14px; }
+            .suggestion-card h3 { font-size: 14px; }
             .suggestion-card p { font-size: 12px; }
             
             .app-layout.split-active { flex-direction: column-reverse; }
@@ -305,15 +325,18 @@
 </head>
 <body>
 
+    <!-- CANVAS 3D PARA ANIMAÇÃO DE FUNDO -->
+    <canvas id="canvas-3d"></canvas>
+
     <div class="app-layout" id="main-layout">
         
-        <!-- BOTÃO DE HISTÓRICO INDEPENDENTE -->
+        <!-- BOTÃO HISTÓRICO -->
         <button class="history-btn-header" onclick="alternarPainelHistorico()">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Histórico
         </button>
 
-        <!-- PAINEL LATERAL DE HISTÓRICO OCULTO -->
+        <!-- PAINEL LATERAL DE HISTÓRICO -->
         <div id="history-panel">
             <div class="history-header">
                 <h2>Histórico</h2>
@@ -324,10 +347,14 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL (Sempre Visível no window.onload) -->
+            <!-- ECRÃ INICIAL PREMIUIM 3D INTERATIVO -->
             <div id="welcome-screen">
-                <span class="hero-bee">🐝</span>
-                <div class="feature-badge">Websites Responsivos & Apps de Topo</div>
+                <div class="hero-bee-wrapper">
+                    <div class="hero-bee-glow"></div>
+                    <span class="hero-bee">🐝</span>
+                </div>
+                
+                <div class="feature-badge">Plataforma Digital de Inteligência Avançada</div>
                 <h1>Honey IA</h1>
                 <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
@@ -374,7 +401,7 @@
                 </div>
             </div>
 
-            <!-- ÁREA DO CHAT -->
+            <!-- CHAT AREA -->
             <div class="chat-container" id="chat-box"></div>
 
             <!-- CAMPO DE ENTRADA -->
@@ -391,7 +418,7 @@
             </div>
         </div>
 
-        <!-- PRÉ-VISUALIZAÇÃO (SANDBOX) -->
+        <!-- SANDBOX -->
         <div class="sandbox-section" id="sandbox-panel">
             <div class="sandbox-header">
                 <div class="browser-dots"><div class="dot"></div><div class="dot yellow"></div><div class="dot green"></div></div>
@@ -408,6 +435,113 @@
     </div>
 
 <script>
+    // -------------------------------------------------------------
+    // 1. ENGINE DE PARTICULAS 3D COM THREE.JS (FAVO DE MEL / SWARM)
+    // -------------------------------------------------------------
+    let scene, camera, renderer, particles, particleGeo;
+    let mouseX = 0, mouseY = 0;
+    let windowHalfX = window.innerWidth / 2;
+    let windowHalfY = window.innerHeight / 2;
+
+    function init3DBackground() {
+        const canvas = document.getElementById('canvas-3d');
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.z = 1000;
+
+        // Criar geometria de partículas douradas
+        const particleCount = 280;
+        particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const scales = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 1600;
+            positions[i + 1] = (Math.random() - 0.5) * 1600;
+            positions[i + 2] = (Math.random() - 0.5) * 1000;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Material com tom de ouro neon
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0xffb700,
+            size: 4.5,
+            transparent: true,
+            opacity: 0.65,
+            blending: THREE.AdditiveBlending
+        });
+
+        particles = new THREE.Points(particleGeo, particleMaterial);
+        scene.add(particles);
+
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        document.addEventListener('mousemove', onDocumentMouseMove);
+        window.addEventListener('resize', onWindowResize);
+
+        animate3D();
+    }
+
+    function onDocumentMouseMove(event) {
+        mouseX = (event.clientX - windowHalfX) * 0.05;
+        mouseY = (event.clientY - windowHalfY) * 0.05;
+    }
+
+    function onWindowResize() {
+        windowHalfX = window.innerWidth / 2;
+        windowHalfY = window.innerHeight / 2;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate3D() {
+        requestAnimationFrame(animate3D);
+
+        // Suave movimento Parallax ao mover o rato
+        camera.position.x += (mouseX - camera.position.x) * 0.03;
+        camera.position.y += (-mouseY - camera.position.y) * 0.03;
+        camera.lookAt(scene.position);
+
+        // Rotação constante sutil do favo 3D
+        particles.rotation.y += 0.0012;
+        particles.rotation.x += 0.0006;
+
+        renderer.render(scene, camera);
+    }
+
+    // -------------------------------------------------------------
+    // 2. EFEITO TILT 3D PARALLAX NOS CARTÕES AO PASSAR O RATO
+    // -------------------------------------------------------------
+    function initCard3DTilt() {
+        const cards = document.querySelectorAll('.suggestion-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -10; // Max 10 deg tilt
+                const rotateY = ((x - centerX) / centerX) * 10;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 3. LÓGICA CORE DA APLICAÇÃO (CHAT, SANDBOX, HISTÓRICO)
+    // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
     const userInput = document.getElementById('user-input');
@@ -422,9 +556,10 @@
     let estaGravando = false;
     let memoriaConversa = JSON.parse(localStorage.getItem('honey_ia_history')) || [];
 
-    // O Ecrã Inicial agora aparece SEMPRE no onload, sem desviar para o histórico automaticamente.
     window.onload = () => { 
-        console.log("Núcleo Honey IA pronto. Ecrã inicial premium carregado.");
+        init3DBackground();
+        initCard3DTilt();
+        console.log("Honey IA 3D Engine inicializada com sucesso.");
     };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -448,10 +583,8 @@
     function destruirWelcome() {
         if (welcomeScreen && welcomeScreen.style.display !== 'none') { 
             welcomeScreen.style.opacity = '0'; 
-            welcomeScreen.style.transform = 'translateY(-10px)';
-            setTimeout(() => {
-                welcomeScreen.style.display = 'none'; 
-            }, 300);
+            welcomeScreen.style.transform = 'translateY(-15px) scale(0.98)';
+            setTimeout(() => { welcomeScreen.style.display = 'none'; }, 300);
         }
     }
 
@@ -470,7 +603,7 @@
 
     function copiarTextoCodigo(codeId) {
         navigator.clipboard.writeText(window[codeId]);
-        alert("Código copiado para a área de transferência!");
+        alert("Código copiado com sucesso!");
     }
 
     function renderizarConteudoElegante(container, texto, callback) {
@@ -499,7 +632,6 @@
         document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
     }
 
-    /* CONTROLO EXCLUSIVO DO PAINEL DE HISTÓRICO */
     function alternarPainelHistorico() {
         if (historyPanel.classList.contains('active')) {
             historyPanel.classList.remove('active');
@@ -512,10 +644,9 @@
     function renderizarListaHistorico() {
         historyList.innerHTML = "";
         if (memoriaConversa.length === 0) {
-            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico de interações.</div>`;
+            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico.</div>`;
             return;
         }
-        // Inverte a ordem para mostrar as interações mais recentes primeiro
         [...memoriaConversa].reverse().forEach((item, indexOriginal) => {
             const indexReal = memoriaConversa.length - 1 - indexOriginal;
             const div = document.createElement('div');
@@ -529,8 +660,8 @@
     function resgatarSessaoHistorico(index) {
         destruirWelcome();
         fecharSandbox();
-        alternarPainelHistorico(); // Fecha o drawer
-        chatBox.innerHTML = ""; // Limpa o ecran para focar na conversa antiga escolhida
+        alternarPainelHistorico();
+        chatBox.innerHTML = "";
         
         const item = memoriaConversa[index];
         criarLinhaMensagem(item.prompt, 'row-user');
@@ -546,8 +677,6 @@
         const promptText = userInput.value.trim();
         if (!promptText) return;
 
-        // Se o utilizador estava a ver uma sessão antiga e digitou algo novo no input, 
-        // o chatBox limpa automaticamente para iniciar a "nova conversa com a Honey" separada
         if (welcomeScreen.style.display === 'none' && chatBox.innerHTML !== "" && !historyPanel.classList.contains('active')) {
              chatBox.innerHTML = ""; 
              fecharSandbox();
