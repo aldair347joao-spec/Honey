@@ -112,7 +112,7 @@
         }
         .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
 
-        /* PÁGINA INICIAL COM SCROLL CORRIGIDO E ESPAÇAMENTO INFERIOR */
+        /* PÁGINA INICIAL COM SCROLL CORRIGIDO */
         #welcome-screen { 
             position: absolute;
             top: 0;
@@ -123,12 +123,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 70px 20px 140px 20px; /* Padding inferior aumentado para permitir ver todas as tabelas acima do campo de entrada */
+            padding: 50px 20px 140px 20px;
             z-index: 5; 
             background: transparent;
             transition: opacity 0.3s ease, transform 0.3s ease;
             scrollbar-width: none;
-            perspective: 1000px;
+            perspective: 1200px;
             -webkit-overflow-scrolling: touch;
         }
         #welcome-screen::-webkit-scrollbar { display: none; }
@@ -136,7 +136,7 @@
         /* ÍCONE CENTRAL 3D */
         .hero-bee-wrapper {
             position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: inline-block;
         }
         .hero-bee-glow {
@@ -154,7 +154,7 @@
         @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } }
 
         .hero-bee { 
-            font-size: 58px; 
+            font-size: 52px; 
             position: relative;
             z-index: 2;
             animation: float3D 4s ease-in-out infinite; 
@@ -167,9 +167,9 @@
         }
         
         #welcome-screen h1 { 
-            font-size: 34px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
+            font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
         }
-        #welcome-screen p { color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 480px; margin: 0 auto 28px auto; text-align: center; }
+        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; line-height: 1.45; max-width: 480px; margin: 0 auto 20px auto; text-align: center; }
 
         .feature-badge {
             background: rgba(255, 183, 0, 0.08);
@@ -180,44 +180,72 @@
             text-transform: uppercase;
             letter-spacing: 1.2px;
             font-weight: 600;
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 20px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             display: inline-block;
         }
 
-        /* GRID DE CARTÕES 3D */
-        .suggestion-grid { 
-            display: flex;
-            flex-direction: column;
-            gap: 14px; 
+        /* PAINEL DE MARQUEE / CARROSSEL 3D CONTINUO */
+        .suggestion-viewport {
             width: 100%;
-            max-width: 600px; 
-            margin: 0 auto; 
+            max-width: 620px;
+            height: 280px;
+            overflow: hidden;
+            position: relative;
+            margin: 0 auto;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
             perspective: 1000px;
         }
-        
+
+        .suggestion-track {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scrollUp3D 16s linear infinite;
+            will-change: transform;
+        }
+
+        /* Pausa o carrossel automático ao passar o rato ou tocar */
+        .suggestion-viewport:hover .suggestion-track,
+        .suggestion-viewport:active .suggestion-track {
+            animation-play-state: paused;
+        }
+
+        @keyframes scrollUp3D {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
         .suggestion-card { 
             background: var(--card); 
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border); 
             border-radius: 18px; 
-            padding: 18px; 
+            padding: 16px 18px; 
             text-align: left; 
             cursor: pointer; 
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 16px;
             transform-style: preserve-3d;
-            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s, background 0.3s;
             position: relative;
             overflow: hidden;
         }
 
         .suggestion-card:hover, .suggestion-card:active { 
-            border-color: rgba(255, 183, 0, 0.5); 
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 183, 0, 0.12);
+            border-color: rgba(255, 183, 0, 0.6); 
+            background: rgba(20, 20, 32, 0.95);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 183, 0, 0.25);
+            transform: translateZ(25px) scale(1.02);
+            z-index: 10;
         }
         
         .card-icon-wrapper {
@@ -231,15 +259,17 @@
             color: var(--gold);
             transform: translateZ(15px);
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
         .suggestion-card:hover .card-icon-wrapper {
             color: #fff;
             background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            box-shadow: 0 0 15px rgba(255, 183, 0, 0.5);
         }
 
-        .card-content { flex: 1; transform: translateZ(8px); }
-        .suggestion-card h3 { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 4px; }
-        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
+        .card-content { flex: 1; transform: translateZ(10px); }
+        .suggestion-card h3 { font-size: 14.5px; color: #fff; font-weight: 600; margin-bottom: 3px; }
+        .suggestion-card p { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
 
         /* CONTAINER CHAT */
         .chat-container { 
@@ -300,11 +330,12 @@
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
-            #welcome-screen { padding-top: 70px; padding-bottom: 150px; }
-            #welcome-screen h1 { font-size: 28px; }
-            .suggestion-card { padding: 16px; gap: 14px; }
-            .suggestion-card h3 { font-size: 14px; }
-            .suggestion-card p { font-size: 12px; }
+            #welcome-screen { padding-top: 40px; padding-bottom: 140px; }
+            #welcome-screen h1 { font-size: 26px; }
+            .suggestion-viewport { height: 260px; }
+            .suggestion-card { padding: 14px 16px; gap: 12px; }
+            .suggestion-card h3 { font-size: 13.5px; }
+            .suggestion-card p { font-size: 11.5px; }
             
             .app-layout.split-active { flex-direction: column-reverse; }
             .app-layout.split-active .chat-section { height: 52%; }
@@ -337,7 +368,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMUIUM 3D COM SCROLL PERFEITO -->
+            <!-- ECRÃ INICIAL PREMIUM 3D COM CARROSSEL CONTINUO -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -348,44 +379,88 @@
                 <h1>Honey IA</h1>
                 <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
-                <div class="suggestion-grid">
-                    <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
-                        <div class="card-icon-wrapper">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                <div class="suggestion-viewport">
+                    <div class="suggestion-track">
+                        <!-- LOTE 1 DE CARTÕES -->
+                        <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Criadores de Software</h3>
+                                <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <h3>Criadores de Software</h3>
-                            <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
+                        
+                        <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Gestão & Finanças</h3>
+                                <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
-                        <div class="card-icon-wrapper">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        
+                        <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Governança & Empresas</h3>
+                                <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <h3>Gestão & Finanças</h3>
-                            <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
+                        
+                        <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Design & Cultura</h3>
+                                <p>Redação premium, artes isoladas limpas e composições criativas.</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
-                        <div class="card-icon-wrapper">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+
+                        <!-- LOTE 2 (DUPLICADO PARA LOOP INFINITO PERFEITO) -->
+                        <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Criadores de Software</h3>
+                                <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <h3>Governança & Empresas</h3>
-                            <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
+                        
+                        <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Gestão & Finanças</h3>
+                                <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
-                        <div class="card-icon-wrapper">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+
+                        <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Governança & Empresas</h3>
+                                <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <h3>Design & Cultura</h3>
-                            <p>Redação premium, artes isoladas limpas e composições criativas.</p>
+                        
+                        <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
+                            <div class="card-icon-wrapper">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                            </div>
+                            <div class="card-content">
+                                <h3>Design & Cultura</h3>
+                                <p>Redação premium, artes isoladas limpas e composições criativas.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -438,7 +513,6 @@
         camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.set(0, -150, 400);
 
-        // Geometria de terreno ondulado 3D
         geometry = new THREE.PlaneGeometry(1200, 1200, 32, 32);
         
         const material = new THREE.MeshBasicMaterial({
@@ -486,7 +560,6 @@
 
         count += 0.02;
 
-        // Animação de deformação das ondas 3D em tempo real
         const pos = geometry.attributes.position;
         for (let i = 0; i < pos.count; i++) {
             const u = pos.getX(i);
@@ -496,7 +569,6 @@
         }
         pos.needsUpdate = true;
 
-        // Movimento Parallax com base na interação
         meshMesh.rotation.z = count * 0.05 + (mouseX * 0.002);
         camera.position.x += (mouseX - camera.position.x) * 0.05;
         camera.position.y += (-mouseY - camera.position.y) * 0.05;
@@ -506,7 +578,7 @@
     }
 
     // -------------------------------------------------------------
-    // 2. INTERAÇÃO 3D TILT MULTI-PLATAFORMA (RATO E TOUCH MÓVEL)
+    // 2. INTERAÇÃO 3D TILT MULTI-PLATAFORMA
     // -------------------------------------------------------------
     function initCard3DTilt() {
         const cards = document.querySelectorAll('.suggestion-card');
@@ -520,14 +592,14 @@
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
                 
-                const rotateX = ((y - centerY) / centerY) * -8;
-                const rotateY = ((x - centerX) / centerX) * 8;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
 
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(25px) scale(1.02)`;
             }
 
             function resetTilt() {
-                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) scale(1)`;
             }
 
             card.addEventListener('mousemove', (e) => applyTilt(e.clientX, e.clientY));
