@@ -13,8 +13,8 @@
             --gold: #ffb700; 
             --gold-dark: #cc9200; 
             --bg: #030305; 
-            --card: rgba(14, 14, 22, 0.85); 
-            --border: rgba(255, 183, 0, 0.2); 
+            --card: rgba(14, 14, 22, 0.75); 
+            --border: rgba(255, 183, 0, 0.15); 
             --preview-bg: #0d0d14; 
             --text-main: #f1f1f6;
             --text-muted: #8e8e9f;
@@ -112,26 +112,31 @@
         }
         .history-item:hover { border-color: rgba(255, 183, 0, 0.4); color: #fff; background: rgba(255, 183, 0, 0.05); }
 
-        /* PÁGINA INICIAL COM NAVEGAÇÃO 3D */
+        /* PÁGINA INICIAL COM SCROLL CORRIGIDO E ESPAÇAMENTO INFERIOR */
         #welcome-screen { 
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px 100px 20px;
+            padding: 70px 20px 140px 20px; /* Padding inferior aumentado para permitir ver todas as tabelas acima do campo de entrada */
             z-index: 5; 
             background: transparent;
             transition: opacity 0.3s ease, transform 0.3s ease;
-            overflow: hidden;
+            scrollbar-width: none;
+            perspective: 1000px;
+            -webkit-overflow-scrolling: touch;
         }
+        #welcome-screen::-webkit-scrollbar { display: none; }
 
+        /* ÍCONE CENTRAL 3D */
         .hero-bee-wrapper {
             position: relative;
-            margin-bottom: 8px;
+            margin-bottom: 16px;
             display: inline-block;
         }
         .hero-bee-glow {
@@ -139,8 +144,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             background: radial-gradient(circle, rgba(255,183,0,0.35) 0%, rgba(0,0,0,0) 70%);
             filter: blur(20px);
             border-radius: 50%;
@@ -149,7 +154,7 @@
         @keyframes pulseGlow { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; } }
 
         .hero-bee { 
-            font-size: 50px; 
+            font-size: 58px; 
             position: relative;
             z-index: 2;
             animation: float3D 4s ease-in-out infinite; 
@@ -158,134 +163,83 @@
         }
         @keyframes float3D { 
             0%, 100% { transform: translateY(0) rotate(0deg); } 
-            50% { transform: translateY(-10px) rotate(3deg); } 
+            50% { transform: translateY(-12px) rotate(3deg); } 
         }
         
         #welcome-screen h1 { 
-            font-size: 32px; color: #fff; margin-bottom: 6px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
+            font-size: 34px; color: #fff; margin-bottom: 8px; font-weight: 700; letter-spacing: -1.2px; background: linear-gradient(135deg, #ffffff 30%, var(--gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
         }
-        #welcome-screen p { color: var(--text-muted); font-size: 13.5px; line-height: 1.45; max-width: 480px; margin: 0 auto 15px auto; text-align: center; }
+        #welcome-screen p { color: var(--text-muted); font-size: 14px; line-height: 1.5; max-width: 480px; margin: 0 auto 28px auto; text-align: center; }
 
         .feature-badge {
             background: rgba(255, 183, 0, 0.08);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 183, 0, 0.25);
             color: var(--gold);
-            font-size: 10.5px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1.2px;
             font-weight: 600;
-            padding: 5px 14px;
+            padding: 6px 16px;
             border-radius: 20px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: inline-block;
         }
 
-        /* CARROSSEL ÓRBITA 3D FLUTUANTE */
-        .carousel-3d-stage {
-            width: 100%;
-            max-width: 700px;
-            height: 250px;
-            position: relative;
-            perspective: 1000px;
-            margin-top: 10px;
+        /* GRID DE CARTÕES 3D */
+        .suggestion-grid { 
             display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: pan-y;
-        }
-
-        .carousel-3d-track {
+            flex-direction: column;
+            gap: 14px; 
             width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 600px; 
+            margin: 0 auto; 
+            perspective: 1000px;
         }
-
+        
         .suggestion-card { 
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            width: 310px;
-            margin-left: -155px;
             background: var(--card); 
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border); 
-            border-radius: 20px; 
-            padding: 20px; 
+            border-radius: 18px; 
+            padding: 18px; 
             text-align: left; 
             cursor: pointer; 
             display: flex;
             align-items: flex-start;
             gap: 16px;
-            user-select: none;
-            transition: opacity 0.5s, border-color 0.3s, box-shadow 0.3s;
+            transform-style: preserve-3d;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .suggestion-card.active-card {
-            border-color: rgba(255, 183, 0, 0.7);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 183, 0, 0.2);
+        .suggestion-card:hover, .suggestion-card:active { 
+            border-color: rgba(255, 183, 0, 0.5); 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 183, 0, 0.12);
         }
         
         .card-icon-wrapper {
-            background: linear-gradient(135deg, rgba(255,183,0,0.15), rgba(11,11,18,0.9));
-            border: 1px solid rgba(255, 183, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255,183,0,0.12), rgba(11,11,18,0.9));
+            border: 1px solid rgba(255, 183, 0, 0.25);
             padding: 12px;
             border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--gold);
-            flex-shrink: 0;
+            transform: translateZ(15px);
+            transition: all 0.3s ease;
         }
-        .active-card .card-icon-wrapper {
+        .suggestion-card:hover .card-icon-wrapper {
             color: #fff;
             background: linear-gradient(135deg, var(--gold-dark), var(--gold));
         }
 
-        .card-content { flex: 1; }
-        .suggestion-card h3 { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 6px; }
-        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: left; }
-
-        /* NAVEGAÇÃO E INDICADORES DO CARROSSEL */
-        .carousel-controls {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-top: 10px;
-            z-index: 10;
-        }
-        .carousel-nav-btn {
-            background: rgba(14, 14, 22, 0.8);
-            border: 1px solid var(--border);
-            color: var(--gold);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .carousel-nav-btn:hover { background: var(--gold); color: #000; }
-
-        .carousel-dots { display: flex; gap: 8px; }
-        .carousel-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .carousel-dot.active {
-            background: var(--gold);
-            width: 20px;
-            border-radius: 10px;
-        }
+        .card-content { flex: 1; transform: translateZ(8px); }
+        .suggestion-card h3 { font-size: 15px; color: #fff; font-weight: 600; margin-bottom: 4px; }
+        .suggestion-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; margin: 0; text-align: left; }
 
         /* CONTAINER CHAT */
         .chat-container { 
@@ -346,12 +300,11 @@
         .sandbox-iframe { width: 100%; height: 100%; border: none; background: #fff; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         @media (max-width: 800px) {
-            #welcome-screen { padding-top: 40px; }
-            #welcome-screen h1 { font-size: 26px; }
-            .carousel-3d-stage { height: 230px; }
-            .suggestion-card { width: 280px; margin-left: -140px; padding: 16px; gap: 12px; }
+            #welcome-screen { padding-top: 70px; padding-bottom: 150px; }
+            #welcome-screen h1 { font-size: 28px; }
+            .suggestion-card { padding: 16px; gap: 14px; }
             .suggestion-card h3 { font-size: 14px; }
-            .suggestion-card p { font-size: 11.5px; }
+            .suggestion-card p { font-size: 12px; }
             
             .app-layout.split-active { flex-direction: column-reverse; }
             .app-layout.split-active .chat-section { height: 52%; }
@@ -384,7 +337,7 @@
 
         <div class="chat-section" id="chat-area">
             
-            <!-- ECRÃ INICIAL PREMIUM COM CARROSSEL ÓRBITA 3D -->
+            <!-- ECRÃ INICIAL PREMUIUM 3D COM SCROLL PERFEITO -->
             <div id="welcome-screen">
                 <div class="hero-bee-wrapper">
                     <div class="hero-bee-glow"></div>
@@ -395,60 +348,47 @@
                 <h1>Honey IA</h1>
                 <p>A tua arquiteta digital para engenharia de software, consultoria executiva e gestão de negócios de elite.</p>
                 
-                <!-- STAGE 3D PARA OS CARTÕES -->
-                <div class="carousel-3d-stage" id="carousel-stage">
-                    <div class="carousel-3d-track" id="carousel-track">
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Criadores de Software</h3>
-                                <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
-                            </div>
+                <div class="suggestion-grid">
+                    <div class="suggestion-card" onclick="usarSugestao('Desenha um Dashboard moderno e responsivo em HTML completo para gestão de e-commerce e logística.')">
+                        <div class="card-icon-wrapper">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                         </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Gestão & Finanças</h3>
-                                <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
-                            </div>
+                        <div class="card-content">
+                            <h3>Criadores de Software</h3>
+                            <p>Cria apps completas, sites responsivos de topo e engenharia pura.</p>
                         </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Governança & Empresas</h3>
-                                <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
-                            </div>
+                    </div>
+                    
+                    <div class="suggestion-card" onclick="usarSugestao('Cria uma folha de fecho de caixa diário e plano de viabilidade financeira automatizado em HTML.')">
+                        <div class="card-icon-wrapper">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                         </div>
-                        
-                        <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
-                            <div class="card-icon-wrapper">
-                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-                            </div>
-                            <div class="card-content">
-                                <h3>Design & Cultura</h3>
-                                <p>Redação premium, artes isoladas limpas e composições criativas.</p>
-                            </div>
+                        <div class="card-content">
+                            <h3>Gestão & Finanças</h3>
+                            <p>Simulações completas, fluxos de caixa e cálculo de payback real.</p>
                         </div>
-
+                    </div>
+                    
+                    <div class="suggestion-card" onclick="usarSugestao('Escreve uma minuta standard profissional de contrato de prestação de serviços corporativos.')">
+                        <div class="card-icon-wrapper">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <h3>Governança & Empresas</h3>
+                            <p>Diferenciação de cargos executivos, minutas e contratos corporativos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestion-card" onclick="usarSugestao('Cria o design e a estrutura de texto isolada para um convite digital de noivado elegante.')">
+                        <div class="card-icon-wrapper">
+                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                        </div>
+                        <div class="card-content">
+                            <h3>Design & Cultura</h3>
+                            <p>Redação premium, artes isoladas limpas e composições criativas.</p>
+                        </div>
                     </div>
                 </div>
-
-                <!-- CONTROLOGOS DO CARROSSEL 3D -->
-                <div class="carousel-controls">
-                    <button class="carousel-nav-btn" onclick="rodarCarrossel(-1)">‹</button>
-                    <div class="carousel-dots" id="carousel-dots"></div>
-                    <button class="carousel-nav-btn" onclick="rodarCarrossel(1)">›</button>
-                </div>
-
             </div>
 
             <!-- CHAT AREA -->
@@ -486,7 +426,7 @@
 
 <script>
     // -------------------------------------------------------------
-    // 1. THREE.JS ONDA GEOMÉTRICA DOURADA NO BACKGROUND
+    // 1. ENGINE 3D FLUIDO & GEOMÉTRICO (ONDA TRIDIMENSIONAL DOURADA)
     // -------------------------------------------------------------
     let scene, camera, renderer, meshMesh, geometry;
     let count = 0;
@@ -498,6 +438,7 @@
         camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.set(0, -150, 400);
 
+        // Geometria de terreno ondulado 3D
         geometry = new THREE.PlaneGeometry(1200, 1200, 32, 32);
         
         const material = new THREE.MeshBasicMaterial({
@@ -515,24 +456,37 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        window.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        window.addEventListener('resize', onWindowResize);
 
         animate3D();
     }
 
+    function onMove(e) {
+        mouseX = (e.clientX - window.innerWidth / 2) * 0.05;
+        mouseY = (e.clientY - window.innerHeight / 2) * 0.05;
+    }
+
+    function onTouchMove(e) {
+        if (e.touches.length > 0) {
+            mouseX = (e.touches[0].clientX - window.innerWidth / 2) * 0.05;
+            mouseY = (e.touches[0].clientY - window.innerHeight / 2) * 0.05;
+        }
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     function animate3D() {
         requestAnimationFrame(animate3D);
+
         count += 0.02;
 
+        // Animação de deformação das ondas 3D em tempo real
         const pos = geometry.attributes.position;
         for (let i = 0; i < pos.count; i++) {
             const u = pos.getX(i);
@@ -542,6 +496,7 @@
         }
         pos.needsUpdate = true;
 
+        // Movimento Parallax com base na interação
         meshMesh.rotation.z = count * 0.05 + (mouseX * 0.002);
         camera.position.x += (mouseX - camera.position.x) * 0.05;
         camera.position.y += (-mouseY - camera.position.y) * 0.05;
@@ -551,110 +506,43 @@
     }
 
     // -------------------------------------------------------------
-    // 2. SISTEMA DE CARROSSEL 3D EM ÓRBITA CILÍNDRICA (SWIPE + CLICK)
+    // 2. INTERAÇÃO 3D TILT MULTI-PLATAFORMA (RATO E TOUCH MÓVEL)
     // -------------------------------------------------------------
-    let currentIndex = 0;
-    const cards = document.querySelectorAll('.suggestion-card');
-    const totalCards = cards.length;
-    const radius = window.innerWidth < 800 ? 220 : 280; // Raio da órbita 3D
-    const angleStep = 360 / totalCards;
+    function initCard3DTilt() {
+        const cards = document.querySelectorAll('.suggestion-card');
+        
+        cards.forEach(card => {
+            function applyTilt(clientX, clientY) {
+                const rect = card.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -8;
+                const rotateY = ((x - centerX) / centerX) * 8;
 
-    function init3DCarousel() {
-        const dotsContainer = document.getElementById('carousel-dots');
-        dotsContainer.innerHTML = "";
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            }
 
-        cards.forEach((card, index) => {
-            // Criar dots
-            const dot = document.createElement('div');
-            dot.className = `carousel-dot ${index === 0 ? 'active' : ''}`;
-            dot.onclick = () => irParaCartao(index);
-            dotsContainer.appendChild(dot);
-        });
+            function resetTilt() {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            }
 
-        atualizarPosicaoCarrossel();
-        setupGestureSupport();
-    }
+            card.addEventListener('mousemove', (e) => applyTilt(e.clientX, e.clientY));
+            card.addEventListener('mouseleave', resetTilt);
 
-    function atualizarPosicaoCarrossel() {
-        cards.forEach((card, index) => {
-            const offset = (index - currentIndex + totalCards) % totalCards;
-            let angle = offset * angleStep;
+            card.addEventListener('touchstart', (e) => {
+                if(e.touches.length > 0) applyTilt(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
             
-            if (angle > 180) angle -= 360;
-
-            const radian = (angle * Math.PI) / 180;
-            const x = Math.sin(radian) * radius;
-            const z = Math.cos(radian) * radius - radius;
-            const rotateY = angle;
-
-            const isActive = offset === 0;
-            
-            card.style.transform = `translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg)`;
-            card.style.opacity = Math.max(0.2, Math.cos(radian));
-            card.style.filter = isActive ? 'none' : 'blur(2px)';
-            card.style.pointerEvents = isActive ? 'auto' : 'none';
-
-            if (isActive) {
-                card.classList.add('active-card');
-            } else {
-                card.classList.remove('active-card');
-            }
-        });
-
-        // Atualizar Dots
-        const dots = document.querySelectorAll('.carousel-dot');
-        dots.forEach((dot, idx) => {
-            dot.classList.toggle('active', idx === currentIndex);
-        });
-    }
-
-    function rodarCarrossel(direcao) {
-        currentIndex = (currentIndex + direcao + totalCards) % totalCards;
-        atualizarPosicaoCarrossel();
-    }
-
-    function irParaCartao(index) {
-        currentIndex = index;
-        atualizarPosicaoCarrossel();
-    }
-
-    // Suporte para Gestos Touch/Mouse Drag no Carrossel
-    function setupGestureSupport() {
-        const stage = document.getElementById('carousel-stage');
-        let startX = 0;
-        let isDragging = false;
-
-        stage.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        }, { passive: true });
-
-        stage.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            const diffX = startX - e.changedTouches[0].clientX;
-            if (Math.abs(diffX) > 40) {
-                rodarCarrossel(diffX > 0 ? 1 : -1);
-            }
-            isDragging = false;
-        });
-
-        stage.addEventListener('mousedown', (e) => {
-            startX = e.clientX;
-            isDragging = true;
-        });
-
-        stage.addEventListener('mouseup', (e) => {
-            if (!isDragging) return;
-            const diffX = startX - e.clientX;
-            if (Math.abs(diffX) > 40) {
-                rodarCarrossel(diffX > 0 ? 1 : -1);
-            }
-            isDragging = false;
+            card.addEventListener('touchend', resetTilt);
         });
     }
 
     // -------------------------------------------------------------
-    // 3. LÓGICA DO CHAT E PREVIEW
+    // 3. LÓGICA PRINCIPAL (CHAT, SANDBOX, HISTÓRICO)
     // -------------------------------------------------------------
     const mainLayout = document.getElementById('main-layout');
     const chatBox = document.getElementById('chat-box');
@@ -672,7 +560,7 @@
 
     window.onload = () => { 
         init3DBackground();
-        init3DCarousel();
+        initCard3DTilt();
     };
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -702,4 +590,150 @@
     }
 
     function formatarMarkdownParaHtml(texto) {
-        let textoFormatado = texto.replace(/```html([\s\S]*?)
+        let textoFormatado = texto.replace(/```html([\s\S]*?)```/g, (match, code) => {
+            const codeId = "code_" + Math.random().toString(36).substr(2, 9);
+            window[codeId] = code.trim();
+            return `<div style="background: #0b0b12; border: 1px solid var(--border); padding: 14px; border-radius: 12px; margin: 16px 0; position: relative;">
+                <div style="font-family: monospace; font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px;">⚡ Aplicação estruturada pronta para visualização.</div>
+                <button class="premium-btn" onclick="copiarTextoCodigo('${codeId}')" style="padding: 4px 10px; font-size: 11px;">Copiar Código</button>
+            </div>`;
+        });
+        textoFormatado = textoFormatado.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return textoFormatado.split('\n').map(p => p.trim() ? `<div class="msg-paragraph">${p}</div>` : '').join('');
+    }
+
+    function copiarTextoCodigo(codeId) {
+        navigator.clipboard.writeText(window[codeId]);
+        alert("Código copiado!");
+    }
+
+    function renderizarConteudoElegante(container, texto, callback) {
+        container.innerHTML = "";
+        const wrapper = document.createElement('div');
+        wrapper.className = 'premium-fade-in';
+        wrapper.innerHTML = formatarMarkdownParaHtml(texto);
+        container.appendChild(wrapper);
+        if (callback) callback();
+    }
+
+    function extrairCodigoHTML(texto) {
+        const match = texto.match(/```html([\s\S]*?)```/);
+        return match ? match[1].trim() : null;
+    }
+
+    function carregarNoSandbox(codigoHTML) {
+        mainLayout.classList.add('split-active');
+        const blob = new Blob([codigoHTML], { type: 'text/html' });
+        sandboxIframe.src = URL.createObjectURL(blob);
+    }
+
+    function fecharSandbox() { mainLayout.classList.remove('split-active'); mainLayout.classList.remove('fullscreen-active'); }
+    function alternarEcraCheioSandbox() { 
+        mainLayout.classList.toggle('fullscreen-active'); 
+        document.getElementById('fs-btn').textContent = mainLayout.classList.contains('fullscreen-active') ? "Dividir Ecrã" : "Ecrã Cheio";
+    }
+
+    function alternarPainelHistorico() {
+        if (historyPanel.classList.contains('active')) {
+            historyPanel.classList.remove('active');
+        } else {
+            historyPanel.classList.add('active');
+            renderizarListaHistorico();
+        }
+    }
+
+    function renderizarListaHistorico() {
+        historyList.innerHTML = "";
+        if (memoriaConversa.length === 0) {
+            historyList.innerHTML = `<div style="color: var(--text-muted); font-size: 13px; padding: 10px; text-align: center;">Sem histórico.</div>`;
+            return;
+        }
+        [...memoriaConversa].reverse().forEach((item, indexOriginal) => {
+            const indexReal = memoriaConversa.length - 1 - indexOriginal;
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.textContent = item.prompt.length > 45 ? item.prompt.substring(0, 45) + "..." : item.prompt;
+            div.onclick = () => resgatarSessaoHistorico(indexReal);
+            historyList.appendChild(div);
+        });
+    }
+
+    function resgatarSessaoHistorico(index) {
+        destruirWelcome();
+        fecharSandbox();
+        alternarPainelHistorico();
+        chatBox.innerHTML = "";
+        
+        const item = memoriaConversa[index];
+        criarLinhaMensagem(item.prompt, 'row-user');
+        const linhaHoney = criarLinhaMensagem("", 'row-honey');
+        renderizarConteudoElegante(linhaHoney, item.resposta, () => {
+            const codigoDetectado = extrairCodigoHTML(item.resposta);
+            if (codigoDetectado) carregarNoSandbox(codigoDetectado);
+        });
+        setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+    }
+
+    async function enviarMensagem() {
+        const promptText = userInput.value.trim();
+        if (!promptText) return;
+
+        if (welcomeScreen.style.display === 'none' && chatBox.innerHTML !== "" && !historyPanel.classList.contains('active')) {
+             chatBox.innerHTML = ""; 
+             fecharSandbox();
+        }
+
+        destruirWelcome(); 
+        criarLinhaMensagem(promptText, 'row-user');
+        userInput.value = "";
+        sendBtn.disabled = true;
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const mergeHoney = criarLinhaMensagem("", 'row-honey');
+        const indicador = document.createElement('div');
+        indicador.className = 'typing-indicator';
+        indicador.innerHTML = '<span></span><span></span><span></span>';
+        mergeHoney.appendChild(indicador);
+
+        try {
+            const response = await fetch('/gerar-gratis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptText })
+            });
+            const data = await response.json();
+            mergeHoney.innerHTML = "";
+
+            if (response.ok && data.sucesso) {
+                renderizarConteudoElegante(mergeHoney, data.codigo, () => {
+                    const codigoDetectado = extrairCodigoHTML(data.codigo);
+                    if (codigoDetectado) { carregarNoSandbox(codigoDetectado); }
+                    
+                    memoriaConversa.push({ prompt: promptText, resposta: data.codigo });
+                    localStorage.setItem('honey_ia_history', JSON.stringify(memoriaConversa));
+                });
+            } else {
+                mergeHoney.textContent = "Erro ao processar pedido corporativo.";
+            }
+        } catch (err) {
+            mergeHoney.innerHTML = "Erro crítico de conexão com o núcleo.";
+        } finally {
+            sendBtn.disabled = false;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    function criarLinhaMensagem(texto, classeLinha) {
+        const row = document.createElement('div');
+        row.className = `row-message ${classeLinha}`;
+        const body = document.createElement('div');
+        body.className = 'msg-body';
+        body.textContent = texto;
+        row.appendChild(body);
+        chatBox.appendChild(row);
+        return body;
+    }
+</script>
+</body>
+</html>
