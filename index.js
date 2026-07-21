@@ -72,7 +72,8 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt || "Por favor, analisa este documento e diz-me claramente do que se trata.";
+        let textoPromptFinal = prompt ? `${prompt} (Responda estritamente em Português).` : "Faz um resumo claro e direto deste ficheiro/imagem em Português.";
+        
         if (textoExtraidoDoDocumento) {
             textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO]:\n${textoExtraidoDoDocumento}`;
         }
@@ -82,13 +83,13 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
-        // Prompt de Sistema refinado para respostas diretas e humanas
-        const systemPrompt = `És a Honey IA, uma assistente virtual inteligente, direta e amigável.
-REGRAS IMPORTANTES DE RESPOSTA:
-1. Responde SEMPRE diretamente ao utilizador, de forma clara, bem estruturada e fácil de ler.
-2. NUNCA mostres raciocínios técnicos como "O utilizador enviou...", "Análise da Imagem:" ou "Cabeçalho:".
-3. Quando o utilizador te mandar um contrato, documento ou imagem, resume de imediato: O que é o documento, quem são as partes envolvidas, os valores/serviços e as datas principais.
-4. Usa marcações limpas (negrito, listas) para tornar a leitura agradável.`;
+        // System Prompt com regras estritas de idioma e formato de resposta
+        const systemPrompt = `És a Honey IA.
+REGRAS OBRIGATÓRIAS:
+1. Responde EXCLUSIVAMENTE em Português. Nunca uses inglês.
+2. Faz apenas um resumo claro e direto do conteúdo do documento/imagem.
+3. PROIBIDO incluir raciocínio interno, frases como "The user wants me to...", "Analyze the image", ou análises técnicas em inglês.
+4. Apresenta diretamente os pontos principais: tipo de documento, partes envolvidas, serviços/valores e datas de forma organizada.`;
 
         let chatCompletion;
         
@@ -99,7 +100,7 @@ REGRAS IMPORTANTES DE RESPOSTA:
                     { role: "user", content: content }
                 ],
                 model: primaryModel,
-                temperature: 0.3
+                temperature: 0.1
             });
         } catch (primaryError) {
             console.warn(`Modelo ${primaryModel} falhou. Tentando modelo alternativo ${fallbackModel}...`, primaryError.message);
@@ -109,7 +110,7 @@ REGRAS IMPORTANTES DE RESPOSTA:
                     { role: "user", content: content }
                 ],
                 model: fallbackModel,
-                temperature: 0.3
+                temperature: 0.1
             });
         }
 
