@@ -16,17 +16,17 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Aponta para a raiz, onde está o teu index.html
+// Servir os ficheiros estáticos da raiz
 app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Rota principal para carregar o index.html da raiz
+// Rota principal para carregar o index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rota de processamento para a IA com suporte a Imagens, PDF, Word e Excel
+// Rota de processamento com visão e extração de ficheiros
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
@@ -39,9 +39,9 @@ app.post('/gerar-gratis', async (req, res) => {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS -> Modelo de Visão do Groq
+            // 1. IMAGENS -> Modelo de Visão
             if (type.startsWith('image/')) {
-                model = "llama-3.2-11b-vision-preview";
+                model = "llama-3.2-90b-vision-preview"; // Modelo atualizado e mais robusto
                 content.push({
                     type: "image_url",
                     image_url: {
@@ -100,10 +100,10 @@ app.post('/gerar-gratis', async (req, res) => {
         return res.json({ sucesso: true, resposta: respostaTexto });
 
     } catch (error) {
-        console.error("Erro no processamento:", error);
+        console.error("Erro detalhado no servidor:", error);
         return res.status(500).json({ 
             sucesso: false, 
-            erro: "Ocorreu um erro ao processar o ficheiro ou ao comunicar com a IA." 
+            erro: error.message || "Ocorreu um erro ao processar o ficheiro ou ao comunicar com a IA." 
         });
     }
 });
