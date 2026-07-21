@@ -21,7 +21,7 @@ app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Rota principal para carregar o index.html
+// Rota principal
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -31,8 +31,7 @@ app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        let primaryModel = "llama-3.3-70b-versatile";
-        let fallbackModel = "llama-3.1-8b-instant";
+        let selectedModel = "llama-3.3-70b-versatile"; // Modelo padrão para texto
         let content = [];
         let textoExtraidoDoDocumento = "";
 
@@ -40,10 +39,9 @@ app.post('/gerar-gratis', async (req, res) => {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS -> Visão
+            // 1. IMAGENS -> Visão com o modelo ativo da Groq
             if (type.startsWith('image/')) {
-                primaryModel = "qwen/qwen3.6-27b";
-                fallbackModel = "llama-3.2-11b-vision-preview";
+                selectedModel = "llama-3.2-11b-vision-preview";
                 content.push({
                     type: "image_url",
                     image_url: {
@@ -72,7 +70,7 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt ? `${prompt} (Responda estritamente em Português).` : "Faz um resumo claro e direto deste ficheiro/imagem em Português.";
+        let textoPromptFinal = prompt ? prompt : "Resume as informações principais deste ficheiro/imagem de forma clara e natural.";
         
         if (textoExtraidoDoDocumento) {
             textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO]:\n${textoExtraidoDoDocumento}`;
@@ -83,38 +81,24 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
-        // System Prompt com regras estritas de idioma e formato de resposta
-        const systemPrompt = `És a Honey IA.
-REGRAS OBRIGATÓRIAS:
-1. Responde EXCLUSIVAMENTE em Português. Nunca uses inglês.
-2. Faz apenas um resumo claro e direto do conteúdo do documento/imagem.
-3. PROIBIDO incluir raciocínio interno, frases como "The user wants me to...", "Analyze the image", ou análises técnicas em inglês.
-4. Apresenta diretamente os pontos principais: tipo de documento, partes envolvidas, serviços/valores e datas de forma organizada.`;
+        // Prompt do sistema ajustado para tom natural e resposta fluida
+        const systemPrompt = `És a Honey IA, uma assistente inteligente, prestativa e com um tom de conversa humano e natural.
 
-        let chatCompletion;
-        
-        try {
-            chatCompletion = await groq.chat.completions.create({
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: content }
-                ],
-                model: primaryModel,
-                temperature: 0.1
-            });
-        } catch (primaryError) {
-            console.warn(`Modelo ${primaryModel} falhou. Tentando modelo alternativo ${fallbackModel}...`, primaryError.message);
-            chatCompletion = await groq.chat.completions.create({
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: content }
-                ],
-                model: fallbackModel,
-                temperature: 0.1
-            });
-        }
+DIRETRIZES DE COMUNICAÇÃO:
+1. IDIOMA: Responde no idioma principal da conversa ou do documento. Se o utilizador pedir explicitamente para responder noutra língua (ex: inglês, francês, espanhol), atende ao pedido normalmente.
+2. ANEXOS E DOCUMENTOS: Quando o utilizador enviar uma imagem ou documento, resume o conteúdo de forma clara, amigável e direta ao ponto. Explica o que é o documento, quem envolve, valores ou datas importantes sem parecer um relatório técnico robótico.
+3. CONVERSAÇÃO: Fala diretamente com o utilizador. NUNCA incluas raciocínio interno, notas de análise nem termos como "Header:", "Parties:" ou "The user wants...".`;
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui ler o documento claramente.";
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: content }
+            ],
+            model: selectedModel,
+            temperature: 0.4
+        });
+
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o documento.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
