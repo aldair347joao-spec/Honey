@@ -16,7 +16,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Servir arquivos estáticos
+// Servir arquivos estáticos da raiz
 app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -26,13 +26,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rota de processamento
+// Rota de processamento com fallback de modelos
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        // Modelo padrão de texto
-        let model = "llama-3.3-70b-versatile"; 
+        // Modelos primário e secundário para texto/visão
+        let primaryModel = "llama-3.3-70b-versatile";
+        let fallbackModel = "llama-3.1-8b-instant";
         let content = [];
         let textoExtraidoDoDocumento = "";
 
@@ -40,9 +41,10 @@ app.post('/gerar-gratis', async (req, res) => {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS -> Modelo de Visão da Groq
+            // 1. IMAGENS -> Visão
             if (type.startsWith('image/')) {
-                model = "llama-3.2-11b-vision-preview";
+                primaryModel = "qwen/qwen3.6-27b";
+                fallbackModel = "llama-3.2-11b-vision-preview";
                 content.push({
                     type: "image_url",
                     image_url: {
@@ -81,27 +83,42 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: "system",
-                    content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
-                },
-                {
-                    role: "user",
-                    content: content
-                }
-            ],
-            model: model,
-            temperature: 0.2
-        });
+        let chatCompletion;
+        
+        // Tenta o modelo principal; se falhar, aciona o fallback
+        try {
+            chatCompletion = await groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
+                    },
+                    { role: "user", content: content }
+                ],
+                model: primaryModel,
+                temperature: 0.2
+            });
+        } catch (primaryError) {
+            console.warn(`Modelo ${primaryModel} falhou. Tentando modelo alternativo ${fallbackModel}...`, primaryError.message);
+            chatCompletion = await groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
+                    },
+                    { role: "user", content: content }
+                ],
+                model: fallbackModel,
+                temperature: 0.2
+            });
+        }
 
         const respostaTexto = chatCompletion.choices[0]?.message?.content || "Sem resposta do modelo.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
     } catch (error) {
-        console.error("Erro no processamento:", error);
+        console.error("Erro detalhado no servidor:", error);
         return res.status(500).json({ 
             sucesso: false, 
             erro: error.message || "Ocorreu um erro ao processar o ficheiro ou ao comunicar com a IA." 
