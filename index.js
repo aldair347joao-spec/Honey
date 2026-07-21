@@ -16,7 +16,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Servir arquivos estáticos da raiz
+// Servir ficheiros estáticos da raiz
 app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -26,12 +26,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rota de processamento com fallback de modelos
+// Rota de processamento
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        // Modelos primário e secundário para texto/visão
         let primaryModel = "llama-3.3-70b-versatile";
         let fallbackModel = "llama-3.1-8b-instant";
         let content = [];
@@ -73,9 +72,9 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt || "Por favor, analisa o conteúdo e os detalhes do anexo.";
+        let textoPromptFinal = prompt || "Por favor, analisa este documento e diz-me claramente do que se trata.";
         if (textoExtraidoDoDocumento) {
-            textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO ANEXADO]:\n${textoExtraidoDoDocumento}`;
+            textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO]:\n${textoExtraidoDoDocumento}`;
         }
 
         content.push({
@@ -83,45 +82,46 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
+        // Prompt de Sistema refinado para respostas diretas e humanas
+        const systemPrompt = `És a Honey IA, uma assistente virtual inteligente, direta e amigável.
+REGRAS IMPORTANTES DE RESPOSTA:
+1. Responde SEMPRE diretamente ao utilizador, de forma clara, bem estruturada e fácil de ler.
+2. NUNCA mostres raciocínios técnicos como "O utilizador enviou...", "Análise da Imagem:" ou "Cabeçalho:".
+3. Quando o utilizador te mandar um contrato, documento ou imagem, resume de imediato: O que é o documento, quem são as partes envolvidas, os valores/serviços e as datas principais.
+4. Usa marcações limpas (negrito, listas) para tornar a leitura agradável.`;
+
         let chatCompletion;
         
-        // Tenta o modelo principal; se falhar, aciona o fallback
         try {
             chatCompletion = await groq.chat.completions.create({
                 messages: [
-                    {
-                        role: "system",
-                        content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
-                    },
+                    { role: "system", content: systemPrompt },
                     { role: "user", content: content }
                 ],
                 model: primaryModel,
-                temperature: 0.2
+                temperature: 0.3
             });
         } catch (primaryError) {
             console.warn(`Modelo ${primaryModel} falhou. Tentando modelo alternativo ${fallbackModel}...`, primaryError.message);
             chatCompletion = await groq.chat.completions.create({
                 messages: [
-                    {
-                        role: "system",
-                        content: "És a Honey IA, assistente executiva especialista em análise de documentos, imagens, contratos, finanças e engenharia."
-                    },
+                    { role: "system", content: systemPrompt },
                     { role: "user", content: content }
                 ],
                 model: fallbackModel,
-                temperature: 0.2
+                temperature: 0.3
             });
         }
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Sem resposta do modelo.";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui ler o documento claramente.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
     } catch (error) {
-        console.error("Erro detalhado no servidor:", error);
+        console.error("Erro no servidor:", error);
         return res.status(500).json({ 
             sucesso: false, 
-            erro: error.message || "Ocorreu um erro ao processar o ficheiro ou ao comunicar com a IA." 
+            erro: error.message || "Ocorreu um erro ao processar o ficheiro." 
         });
     }
 });
