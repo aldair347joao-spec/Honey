@@ -4,6 +4,7 @@ import Groq from 'groq-sdk';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
+import Tesseract from 'tesseract.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -31,31 +32,18 @@ app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        // Lista de modelos de visão para tentar em sequência (Fallback automático)
-        const visionModels = [
-            "llama-3.2-11b-vision-preview",
-            "llama-3.2-90b-vision-preview",
-            "llama-3.3-70b-versatile"
-        ];
-
-        let selectedModel = "llama-3.3-70b-versatile"; 
-        let content = [];
+        const mainModel = "llama-3.3-70b-versatile";
         let textoExtraidoDoDocumento = "";
-        let isImage = false;
 
         if (anexoBase64) {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS
+            // 1. IMAGENS -> OCR nativo com Tesseract (português/inglês)
             if (type.startsWith('image/')) {
-                isImage = true;
-                content.push({
-                    type: "image_url",
-                    image_url: {
-                        url: `data:${type};base64,${anexoBase64}`
-                    }
-                });
+                console.log("A extrair texto da imagem via OCR...");
+                const { data: { text } } = await Tesseract.recognize(buffer, 'por+eng');
+                textoExtraidoDoDocumento = text;
             } 
             // 2. PDF
             else if (type === 'application/pdf' || type.includes('pdf')) {
@@ -78,62 +66,30 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt ? prompt : "Resuma o conteúdo e as informações deste ficheiro de forma clara e natural.";
+        let textoPromptFinal = prompt ? prompt : "Resuma o conteúdo e as informações deste documento de forma clara e natural.";
         
         if (textoExtraidoDoDocumento) {
-            textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO]:\n${textoExtraidoDoDocumento}`;
+            textoPromptFinal += `\n\n[TEXTO LIDO DO ANEXO/IMAGEM]:\n${textoExtraidoDoDocumento}`;
         }
 
-        content.push({
-            type: "text",
-            text: textoPromptFinal
-        });
-
-        const systemPrompt = `És a Honey IA, uma assistente virtual clara, direta e natural.
+        const systemPrompt = `És a Honey IA, uma assistente virtual clara, prestativa e natural.
 
 DIRETRIZES DE RESPOSTA:
-1. Responde de forma amigável, humana e direta ao ponto.
-2. Quando o utilizador enviar um documento ou imagem, resume claramente as informações principais (de que se trata, intervenientes, valores, datas).
-3. NUNCA mostres raciocínios técnicos, análises de estrutura ("Header:", "Parties:") ou notas internas em inglês.
-4. Fala na língua da interação (português por defeito), mas responde noutro idioma se o utilizador o solicitar explicitamente.`;
+1. Responde de forma amigável, fluida e direta ao ponto.
+2. Quando receberes o conteúdo de um documento ou imagem, resume as informações essenciais com clareza (ex: o tipo de documento, as partes envolvidas, o serviço/objeto, datas e valores importantes).
+3. NUNCA mostres raciocínios técnicos internos, análises de cabeçalho nem observações em inglês (como "Header:", "Parties:", "The user wants...").
+4. Mantém o idioma principal da interação (português por defeito), mas adapta-te se o utilizador pedir para responder noutro idioma.`;
 
-        let chatCompletion;
+        const chatCompletion = await groq.chat.completions.create({
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: textoPromptFinal }
+            ],
+            model: mainModel,
+            temperature: 0.3
+        });
 
-        // Se for imagem, tenta os modelos de visão um a um até um funcionar
-        if (isImage) {
-            let success = false;
-            for (const modelCandidate of visionModels) {
-                try {
-                    chatCompletion = await groq.chat.completions.create({
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: content }
-                        ],
-                        model: modelCandidate,
-                        temperature: 0.3
-                    });
-                    success = true;
-                    break; // Funcionou, sai do loop
-                } catch (err) {
-                    console.warn(`Modelo de visão ${modelCandidate} falhou. Tentando o próximo...`);
-                }
-            }
-            if (!success) {
-                throw new Error("Nenhum modelo de visão disponível de momento no fornecedor.");
-            }
-        } else {
-            // Processamento normal de texto/documentos
-            chatCompletion = await groq.chat.completions.create({
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: content }
-                ],
-                model: selectedModel,
-                temperature: 0.3
-            });
-        }
-
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o ficheiro.";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o ficheiro enviado.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
