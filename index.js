@@ -31,17 +31,25 @@ app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        let selectedModel = "llama-3.3-70b-versatile"; // Modelo padrão para texto
+        // Lista de modelos de visão para tentar em sequência (Fallback automático)
+        const visionModels = [
+            "llama-3.2-11b-vision-preview",
+            "llama-3.2-90b-vision-preview",
+            "llama-3.3-70b-versatile"
+        ];
+
+        let selectedModel = "llama-3.3-70b-versatile"; 
         let content = [];
         let textoExtraidoDoDocumento = "";
+        let isImage = false;
 
         if (anexoBase64) {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS -> Visão com o modelo ativo da Groq
+            // 1. IMAGENS
             if (type.startsWith('image/')) {
-                selectedModel = "llama-3.2-11b-vision-preview";
+                isImage = true;
                 content.push({
                     type: "image_url",
                     image_url: {
@@ -70,7 +78,7 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt ? prompt : "Resume as informações principais deste ficheiro/imagem de forma clara e natural.";
+        let textoPromptFinal = prompt ? prompt : "Resuma o conteúdo e as informações deste ficheiro de forma clara e natural.";
         
         if (textoExtraidoDoDocumento) {
             textoPromptFinal += `\n\n[CONTEÚDO EXTRAÍDO DO DOCUMENTO]:\n${textoExtraidoDoDocumento}`;
@@ -81,24 +89,51 @@ app.post('/gerar-gratis', async (req, res) => {
             text: textoPromptFinal
         });
 
-        // Prompt do sistema ajustado para tom natural e resposta fluida
-        const systemPrompt = `És a Honey IA, uma assistente inteligente, prestativa e com um tom de conversa humano e natural.
+        const systemPrompt = `És a Honey IA, uma assistente virtual clara, direta e natural.
 
-DIRETRIZES DE COMUNICAÇÃO:
-1. IDIOMA: Responde no idioma principal da conversa ou do documento. Se o utilizador pedir explicitamente para responder noutra língua (ex: inglês, francês, espanhol), atende ao pedido normalmente.
-2. ANEXOS E DOCUMENTOS: Quando o utilizador enviar uma imagem ou documento, resume o conteúdo de forma clara, amigável e direta ao ponto. Explica o que é o documento, quem envolve, valores ou datas importantes sem parecer um relatório técnico robótico.
-3. CONVERSAÇÃO: Fala diretamente com o utilizador. NUNCA incluas raciocínio interno, notas de análise nem termos como "Header:", "Parties:" ou "The user wants...".`;
+DIRETRIZES DE RESPOSTA:
+1. Responde de forma amigável, humana e direta ao ponto.
+2. Quando o utilizador enviar um documento ou imagem, resume claramente as informações principais (de que se trata, intervenientes, valores, datas).
+3. NUNCA mostres raciocínios técnicos, análises de estrutura ("Header:", "Parties:") ou notas internas em inglês.
+4. Fala na língua da interação (português por defeito), mas responde noutro idioma se o utilizador o solicitar explicitamente.`;
 
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: content }
-            ],
-            model: selectedModel,
-            temperature: 0.4
-        });
+        let chatCompletion;
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o documento.";
+        // Se for imagem, tenta os modelos de visão um a um até um funcionar
+        if (isImage) {
+            let success = false;
+            for (const modelCandidate of visionModels) {
+                try {
+                    chatCompletion = await groq.chat.completions.create({
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: content }
+                        ],
+                        model: modelCandidate,
+                        temperature: 0.3
+                    });
+                    success = true;
+                    break; // Funcionou, sai do loop
+                } catch (err) {
+                    console.warn(`Modelo de visão ${modelCandidate} falhou. Tentando o próximo...`);
+                }
+            }
+            if (!success) {
+                throw new Error("Nenhum modelo de visão disponível de momento no fornecedor.");
+            }
+        } else {
+            // Processamento normal de texto/documentos
+            chatCompletion = await groq.chat.completions.create({
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: content }
+                ],
+                model: selectedModel,
+                temperature: 0.3
+            });
+        }
+
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o ficheiro.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
