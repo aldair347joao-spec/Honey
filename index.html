@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA — Inteligência Artificial de Alta Performance</title>
+    <title>Honey IA — Plataforma Executiva de Inteligência Artificial</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,23 +25,22 @@
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            50: '#fffbe1',
-                            100: '#fff3b8',
-                            400: '#facc15',
-                            500: '#eab308',
-                            600: '#ca8a04',
+                        honey: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            glow: 'rgba(245, 158, 11, 0.15)'
                         },
-                        dark: {
-                            bg: '#0a0b0f',
-                            card: 'rgba(18, 20, 29, 0.7)',
+                        obsidian: {
+                            base: '#0b0c10',
+                            card: '#13151c',
                             border: 'rgba(255, 255, 255, 0.08)',
+                            hover: 'rgba(255, 255, 255, 0.04)'
                         }
                     },
                     boxShadow: {
-                        '3d-gold': '0 20px 40px -15px rgba(234, 179, 8, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
-                        '3d-card': '0 30px 60px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
-                        'glow': '0 0 50px -10px rgba(234, 179, 8, 0.25)'
+                        'premium': '0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.08)',
+                        'gold-glow': '0 0 25px -5px rgba(245, 158, 11, 0.3)',
                     }
                 }
             }
@@ -50,120 +49,207 @@
 
     <style>
         body {
-            background-color: #0a0b0f;
+            background-color: #0b0c10;
             color: #f3f4f6;
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(234, 179, 8, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(202, 138, 4, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 90%, rgba(217, 119, 6, 0.03) 0%, transparent 40%);
             background-attachment: fixed;
         }
 
-        /* Efeito Glassmorphism com Efeito 3D */
-        .glass-panel {
-            background: rgba(15, 17, 26, 0.75);
+        .glass-header {
+            background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
+        }
+
+        .glass-card {
+            background: rgba(19, 21, 28, 0.7);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glass-button {
-            background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .glass-card:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        .glass-button:hover {
-            transform: translateY(-2px) scale(1.01);
-            box-shadow: 0 20px 35px -10px rgba(234, 179, 8, 0.4);
-        }
-
-        /* Animação suave para mensagens */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(10, 11, 15, 0.5);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(234, 179, 8, 0.4);
-        }
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden">
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-honey-500/30 selection:text-honey-400">
 
-    <!-- Cabeçalho Topo (Header) -->
-    <header class="sticky top-0 z-50 w-full glass-panel border-b border-white/10 px-6 py-4">
+    <!-- Header Fixo -->
+    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-4 md:px-8 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
-            <!-- Logo com Efeito 3D e Gradiente -->
+            <!-- Lado Esquerdo: Botão Menu + Command K + Marca -->
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-400 flex items-center justify-center shadow-3d-gold">
-                    <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-brand-400">
-                        Honey IA
-                    </span>
-                    <span class="text-[10px] text-gray-400 tracking-wider uppercase font-semibold">Pro Enterprise</span>
+                <button id="btn-open-menu" title="Menu principal" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-300 hover:text-white transition">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+
+                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-xs text-gray-400 hover:text-gray-200 transition">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    <span class="font-medium">Procurar...</span>
+                    <kbd class="px-1.5 py-0.5 text-[10px] bg-white/10 rounded font-mono border border-white/10">⌘K</kbd>
+                </button>
+
+                <div class="h-5 w-[1px] bg-white/10 hidden sm:block"></div>
+
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center shadow-gold-glow">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold tracking-tight text-white block leading-none">Honey IA</span>
+                        <span class="text-[10px] text-honey-400 font-semibold tracking-wider uppercase">Executive Pro</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Botões / Status no Topo -->
-            <div class="flex items-center gap-4">
-                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-300">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Sistemas operacionais
+            <!-- Lado Direito: Status e Badge Pro -->
+            <div class="flex items-center gap-3">
+                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[12px] font-medium text-emerald-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Servidor Ativo
                 </div>
-                
-                <button class="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition">
-                    <i data-lucide="crown" class="w-4 h-4 text-brand-400"></i>
+
+                <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 border border-honey-500/30 text-honey-400 font-semibold text-xs">
+                    <i data-lucide="crown" class="w-4 h-4"></i>
                     <span>Utilizador Pro</span>
-                </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Área Principal de Chat -->
+    <!-- Menu Lateral (Drawer Modal) -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-card border-r border-obsidian-border z-50 -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
+        <div class="space-y-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
+                    <span class="font-bold text-white text-base">Honey IA Suite</span>
+                </div>
+                <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <nav class="space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-honey-500/10 text-honey-400 font-medium text-sm">
+                    <i data-lucide="message-square" class="w-4 h-4"></i> Nova Conversa
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Documentos Processados
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="calculator" class="w-4 h-4"></i> Finanças & Tabelas
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="code-2" class="w-4 h-4"></i> Engenharia & Código
+                </a>
+            </nav>
+        </div>
+
+        <div class="pt-4 border-t border-white/10 space-y-3">
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
+                <div class="text-xs">
+                    <div class="font-bold text-white">Sua Conta Executiva</div>
+                    <div class="text-gray-400">Status: Ativo</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Modal Command K -->
+    <div id="cmdk-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-start justify-center pt-20 px-4">
+        <div id="cmdk-modal" class="bg-obsidian-card border border-obsidian-border rounded-2xl w-full max-w-lg p-4 shadow-2xl scale-95 transition-transform duration-200">
+            <div class="flex items-center gap-3 px-3 pb-3 border-b border-white/10">
+                <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                <input id="cmdk-input" type="text" placeholder="Escreva um comando ou pesquisa..." class="w-full bg-transparent text-sm text-white focus:outline-none">
+                <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
+            </div>
+            <div class="py-3 text-xs text-gray-400 space-y-2">
+                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões de Atálho</div>
+                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Analisar contrato de prestação de serviço')">
+                    <span>📄 Analisar minuta ou contrato</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
+                </div>
+                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extrair resumo e valores da tabela em anexo')">
+                    <span>📊 Extrair dados de planilha ou tabela</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-between gap-6">
         
-        <!-- Boas-vindas / Cabeçalho da Conversa (Desaparece quando inicia a conversa) -->
-        <div id="welcome-section" class="text-center py-8 space-y-3 animate-fade-in">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium">
-                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Inteligência Multimodal Ativa
+        <!-- Boas-vindas / Seleção de Área (Desaparece ao enviar mensagem) -->
+        <div id="welcome-section" class="py-8 space-y-8 animate-fade-in">
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial de Última Geração
+                </div>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Como posso ajudar a sua gestão hoje?
+                </h1>
+                <p class="text-sm md:text-base text-gray-400 max-w-lg mx-auto">
+                    Análise de documentos, síntese de contratos, leitura de imagens ou apoio em engenharia e finanças.
+                </p>
             </div>
-            <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-                Em que posso ajudar hoje?
-            </h1>
-            <p class="text-sm md:text-base text-gray-400 max-w-lg mx-auto">
-                Analise documentos, imagens, contratos ou faça perguntas complexas em segundos.
-            </p>
-        </div>
 
-        <!-- Contentor de Mensagens do Chat -->
-        <div id="chat-container" class="flex-1 space-y-4 overflow-y-auto min-h-[300px] max-h-[60vh] pr-2">
-            <!-- As mensagens serão inseridas aqui via JavaScript -->
-        </div>
-
-        <!-- Área de Entrada de Dados (Input 3D Glassmorphism) -->
-        <div class="sticky bottom-4 w-full">
-            <form id="chat-form" class="glass-panel rounded-2xl p-3 shadow-3d-card relative flex flex-col gap-3 border border-white/10">
+            <!-- Cards de Sugestões de Atalho Unificados (Sem duplicados) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
-                <!-- Pré-visualização do Ficheiro Anexado -->
+                <div onclick="insertPrompt('Preciso de analisar e resumir este documento/contrato de forma clara.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Contratos & Minutas</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Resumo de cláusulas, verificação de prazos e termos legais.</p>
+                </div>
+
+                <div onclick="insertPrompt('Analise estes dados de engenharia/código e apresente um diagnóstico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Engenharia & Tecnologias</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Cálculos, análise de código, especificações técnicas e projetos.</p>
+                </div>
+
+                <div onclick="insertPrompt('Extraia o resumo financeiro, totais e dados chave desta planilha.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-1">Finanças & Planilhas</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Extração automática de relatórios, ficheiros Excel e PDF.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Contentor do Chat -->
+        <div id="chat-container" class="flex-1 space-y-4 overflow-y-auto min-h-[250px] max-h-[55vh] pr-1"></div>
+
+        <!-- Área do Prompt / Input -->
+        <div class="sticky bottom-4 w-full">
+            <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
+                
+                <!-- Indicator de Anexo -->
                 <div id="file-preview-container" class="hidden items-center justify-between bg-white/5 p-2 px-3 rounded-xl border border-white/10">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <i data-lucide="file-text" class="w-5 h-5 text-brand-400 flex-shrink-0"></i>
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
                         <span id="file-preview-name" class="text-xs text-gray-200 truncate font-medium">documento.pdf</span>
                     </div>
                     <button type="button" id="remove-file-btn" class="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
@@ -171,15 +257,13 @@
                     </button>
                 </div>
 
-                <!-- Campo de Texto Principal -->
+                <!-- Campo de Entrada -->
                 <div class="flex items-center gap-3">
-                    <!-- Botão de Anexo -->
-                    <label for="file-input" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0">
+                    <label for="file-input" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Imagem, PDF, Word ou Excel">
                         <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
 
-                    <!-- Textarea -->
                     <textarea 
                         id="user-input" 
                         rows="1" 
@@ -187,26 +271,25 @@
                         class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5"
                     ></textarea>
 
-                    <!-- Botão de Enviar -->
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="glass-button p-3 rounded-xl text-black font-bold flex items-center justify-center shadow-3d-gold flex-shrink-0"
+                        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-honey-600 to-honey-400 hover:opacity-95 text-black font-bold flex items-center justify-center shadow-gold-glow flex-shrink-0 transition transform active:scale-95"
                     >
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
                 </div>
             </form>
+            
             <div class="text-center mt-2">
-                <span class="text-[11px] text-gray-500">Honey IA v2.5 Enterprise — Processamento ultra-rápido</span>
+                <span class="text-[11px] text-gray-500 font-medium">Honey IA Enterprise v2.5 — Segurança e encriptação end-to-end</span>
             </div>
         </div>
 
     </main>
 
-    <!-- Lógica de Frontend -->
+    <!-- JavaScript Integrado -->
     <script>
-        // Inicializar Ícones Lucide
         lucide.createIcons();
 
         const chatContainer = document.getElementById('chat-container');
@@ -218,16 +301,84 @@
         const filePreviewName = document.getElementById('file-preview-name');
         const removeFileBtn = document.getElementById('remove-file-btn');
 
+        // Controlo do Drawer (Menu Lateral)
+        const btnOpenMenu = document.getElementById('btn-open-menu');
+        const btnCloseMenu = document.getElementById('btn-close-menu');
+        const drawerMenu = document.getElementById('drawer-menu');
+        const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+        function toggleDrawer(open) {
+            if (open) {
+                drawerBackdrop.classList.remove('pointer-events-none', 'opacity-0');
+                drawerMenu.classList.remove('-translate-x-full');
+            } else {
+                drawerBackdrop.classList.add('pointer-events-none', 'opacity-0');
+                drawerMenu.classList.add('-translate-x-full');
+            }
+        }
+
+        btnOpenMenu.addEventListener('click', () => toggleDrawer(true));
+        btnCloseMenu.addEventListener('click', () => toggleDrawer(false));
+        drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
+
+        // Controlo do Command K (Modal de Pesquisa)
+        const btnCmdK = document.getElementById('btn-cmd-k');
+        const btnCloseCmdK = document.getElementById('btn-close-cmdk');
+        const cmdkBackdrop = document.getElementById('cmdk-backdrop');
+        const cmdkModal = document.getElementById('cmdk-modal');
+        const cmdkInput = document.getElementById('cmdk-input');
+
+        function toggleCmdK(open) {
+            if (open) {
+                cmdkBackdrop.classList.remove('pointer-events-none', 'opacity-0');
+                cmdkModal.classList.remove('scale-95');
+                cmdkInput.focus();
+            } else {
+                cmdkBackdrop.classList.add('pointer-events-none', 'opacity-0');
+                cmdkModal.classList.add('scale-95');
+            }
+        }
+
+        btnCmdK.addEventListener('click', () => toggleCmdK(true));
+        btnCloseCmdK.addEventListener('click', () => toggleCmdK(false));
+        cmdkBackdrop.addEventListener('click', (e) => {
+            if (e.target === cmdkBackdrop) toggleCmdK(false);
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleCmdK(true);
+            }
+            if (e.key === 'Escape') {
+                toggleCmdK(false);
+                toggleDrawer(false);
+            }
+        });
+
         let currentFileBase64 = null;
         let currentFileMimeType = null;
 
-        // Ajustar altura da textarea automaticamente
+        function insertPrompt(promptText) {
+            userInput.value = promptText;
+            userInput.focus();
+            userInput.style.height = userInput.scrollHeight + 'px';
+            toggleCmdK(false);
+        }
+
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
             userInput.style.height = userInput.scrollHeight + 'px';
         });
 
-        // Lidar com seleção de ficheiros
+        // Permitir enviar com Enter (Shift+Enter para nova linha)
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -244,7 +395,6 @@
             }
         });
 
-        // Remover ficheiro anexado
         removeFileBtn.addEventListener('click', () => {
             currentFileBase64 = null;
             currentFileMimeType = null;
@@ -253,18 +403,17 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // Adicionar mensagens à interface
         function appendMessage(role, text) {
-            welcomeSection.classList.add('hidden');
+            if (welcomeSection) welcomeSection.classList.add('hidden');
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3 ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in`;
+            msgDiv.className = `flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`;
 
             const bubble = document.createElement('div');
             bubble.className = isUser 
-                ? 'bg-brand-500/20 border border-brand-500/30 text-white p-4 rounded-2xl max-w-[85%] text-sm shadow-sm'
-                : 'glass-panel text-gray-100 p-4 rounded-2xl max-w-[85%] text-sm border border-white/10 shadow-3d-card';
+                ? 'bg-honey-500/20 border border-honey-500/30 text-white p-4 rounded-2xl max-w-[85%] text-sm shadow-sm'
+                : 'bg-obsidian-card text-gray-100 p-4 rounded-2xl max-w-[85%] text-sm border border-obsidian-border shadow-premium';
 
             bubble.innerHTML = text.replace(/\n/g, '<br>');
             msgDiv.appendChild(bubble);
@@ -272,39 +421,34 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Submissão do Formulário
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = userInput.value.trim();
 
             if (!text && !currentFileBase64) return;
 
-            // Mostrar mensagem do utilizador
             let userDisplay = text;
             if (currentFileBase64 && !text) {
-                userDisplay = "📎 [Documento Anexado]";
+                userDisplay = "📎 [Documento Anexado para Análise]";
             }
             appendMessage('user', userDisplay);
 
-            // Guardar dados atuais antes do reset
             const payload = {
                 prompt: text,
                 anexoBase64: currentFileBase64,
                 mimeType: currentFileMimeType
             };
 
-            // Limpar inputs
             userInput.value = '';
             userInput.style.height = 'auto';
             removeFileBtn.click();
 
-            // Mensagem de a carregar (Skeleton/Loader)
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start animate-fade-in';
+            loadingDiv.className = 'flex gap-3 justify-start';
             loadingDiv.innerHTML = `
-                <div class="glass-panel text-brand-400 p-4 rounded-2xl text-sm border border-white/10 flex items-center gap-2">
+                <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-sm border border-obsidian-border flex items-center gap-2.5">
                     <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span>A analisar dados com a Honey IA...</span>
+                    <span>Honey IA a analisar dados...</span>
                 </div>
             `;
             chatContainer.appendChild(loadingDiv);
@@ -324,12 +468,12 @@
                 if (data.sucesso) {
                     appendMessage('assistant', data.resposta);
                 } else {
-                    appendMessage('assistant', `⚠️ Ops: ${data.erro}`);
+                    appendMessage('assistant', `⚠️ Erro: ${data.erro}`);
                 }
 
             } catch (err) {
                 loadingDiv.remove();
-                appendMessage('assistant', '⚠️ Não foi possível conectar ao servidor. Verifica a ligação.');
+                appendMessage('assistant', '⚠️ Erro ao comunicar com o servidor. Verifica a ligação.');
             }
         });
     </script>
