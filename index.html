@@ -80,7 +80,7 @@
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Estilização Executiva do Conteúdo das Respostas (Com suporte total a dispositivos móveis) */
+        /* Estilização Executiva das Respostas */
         .markdown-content {
             font-size: 0.95rem;
             line-height: 1.8;
@@ -88,12 +88,8 @@
             word-break: break-word;
             overflow-wrap: break-word;
         }
-        .markdown-content p {
-            margin-bottom: 0.95rem;
-        }
-        .markdown-content p:last-child {
-            margin-bottom: 0;
-        }
+        .markdown-content p { margin-bottom: 0.95rem; }
+        .markdown-content p:last-child { margin-bottom: 0; }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
@@ -157,7 +153,7 @@
             color: #e5e7eb;
         }
 
-        /* Container Especial para Tabelas Responsivas sem Corte */
+        /* Wrapper para Tabelas Responsivas */
         .table-responsive-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -170,7 +166,7 @@
 
         .markdown-content table {
             width: 100%;
-            min-width: 480px; /* Impede que a tabela esmague e força o scroll suave */
+            min-width: 480px;
             border-collapse: collapse;
             font-size: 0.875rem;
         }
@@ -272,7 +268,7 @@
                     <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
                     <div class="text-xs">
                         <div class="font-bold text-white">Sua Conta</div>
-                        <div id="usage-counter" class="text-gray-400">Criações grátis: 0 / 2</div>
+                        <div id="usage-counter" class="text-gray-400">Projetos criados: 0 / 2</div>
                     </div>
                 </div>
             </div>
@@ -302,15 +298,15 @@
                         <h3 class="text-xl font-bold text-white">Plano Inicial</h3>
                         <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
                         <ul class="space-y-2.5 text-xs text-gray-300 pt-2">
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Pareceres executivos com a Honey IA</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises complexas grátis</li>
-                            <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Suporte para ficheiros pesados limitado</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversas e consultas executivas ilimitadas</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises de projetos complexos grátis</li>
+                            <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Criação contínua de projetos complexos</li>
                         </ul>
                     </div>
                     <button onclick="closePlansModal()" class="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition">Plano Atual</button>
                 </div>
 
-                <!-- Plano Pro / Mensal & Anual -->
+                <!-- Plano Pro -->
                 <div class="bg-gradient-to-b from-honey-500/10 to-transparent border-2 border-honey-500/50 rounded-2xl p-6 flex flex-col justify-between relative shadow-gold-glow">
                     <div class="absolute -top-3 right-4 bg-honey-500 text-black text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Recomendado</div>
                     <div class="space-y-4">
@@ -325,7 +321,7 @@
                         <div id="price-display" class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
 
                         <ul class="space-y-2.5 text-xs text-gray-200 pt-2">
-                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas de projetos</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel/OCR</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Modelos avançados de Gestão & Engenharia</li>
                         </ul>
@@ -457,7 +453,7 @@
 
     </main>
 
-    <!-- JavaScript Integrado -->
+    <!-- JavaScript Integrado e Corrigido -->
     <script>
         lucide.createIcons();
 
@@ -468,7 +464,7 @@
         function updateUsageUI() {
             const counterEl = document.getElementById('usage-counter');
             if (counterEl) {
-                counterEl.textContent = `Criações grátis: ${usageCount} / ${MAX_FREE_USAGE}`;
+                counterEl.textContent = `Projetos criados: ${usageCount} / ${MAX_FREE_USAGE}`;
             }
         }
         updateUsageUI();
@@ -638,7 +634,6 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // Função Premium para Renderizar Mensagens Executivas (Sem cortes)
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
@@ -652,7 +647,6 @@
                 bubble.innerText = text;
                 msgDiv.appendChild(bubble);
             } else {
-                // Avatar da Honey IA
                 const avatar = document.createElement('div');
                 avatar.className = 'w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center flex-shrink-0 shadow-gold-glow mt-1';
                 avatar.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-black"></i>';
@@ -660,12 +654,10 @@
                 const bubble = document.createElement('div');
                 bubble.className = 'bg-obsidian-card text-gray-100 p-4 md:p-6 rounded-2xl rounded-tl-xs w-full max-w-[92%] sm:max-w-[88%] border border-obsidian-border shadow-premium space-y-2 overflow-hidden';
 
-                // Renderiza com Markdown executivo e encapsula tabelas
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content';
                 
                 let rawHtml = marked.parse(text);
-                // Embrulha tabelas num container com rolagem horizontal suave no telemóvel
                 rawHtml = rawHtml.replace(/<table>/g, '<div class="table-responsive-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
                 
                 parsedContent.innerHTML = rawHtml;
@@ -680,17 +672,25 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // Verifica se é uma solicitação explícita de criação de projeto funcional/completo ou envio de ficheiro
+        function isProjectCreationRequest(text, hasFile) {
+            if (hasFile) return true;
+            const keywords = ['criar projeto', 'construir projeto', 'desenvolver projeto', 'projeto completo', 'projeto funcional', 'sistema completo', 'aplicação completa', 'código completo'];
+            const lowerText = text.toLowerCase();
+            return keywords.some(kw => lowerText.includes(kw));
+        }
+
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = userInput.value.trim();
 
             if (!text && !currentFileBase64) return;
 
-            const isCreationRequest = currentFileBase64 || text.length > 20;
+            const isCreation = isProjectCreationRequest(text, !!currentFileBase64);
 
-            if (isCreationRequest && usageCount >= MAX_FREE_USAGE) {
+            // Bloqueia e abre DIRETAMENTE o modal de planos sem adicionar mensagem no chat
+            if (isCreation && usageCount >= MAX_FREE_USAGE) {
                 openPlansModal();
-                appendMessage('assistant', '⚠️ **Limite Atingido:** Atingiu o limite de 2 criações/análises grátis no Plano Inicial. Escolha o plano **Pro Executivo** para ter acesso ilimitado.');
                 return;
             }
 
@@ -718,7 +718,7 @@
                 </div>
                 <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-xs font-semibold border border-obsidian-border flex items-center gap-2.5 shadow-premium">
                     <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span>A Honey IA está a analisar o seu pedido...</span>
+                    <span>A Honey IA está a processar o seu pedido...</span>
                 </div>
             `;
             chatContainer.appendChild(loadingDiv);
@@ -738,7 +738,7 @@
                 if (data.sucesso) {
                     appendMessage('assistant', data.resposta);
                     
-                    if (isCreationRequest) {
+                    if (isCreation) {
                         usageCount++;
                         localStorage.setItem('honey_usage_count', usageCount);
                         updateUsageUI();
