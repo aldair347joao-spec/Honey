@@ -16,6 +16,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Marked.js para Renderização Premium de Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -74,6 +77,85 @@
             border-color: rgba(245, 158, 11, 0.4);
             transform: translateY(-2px);
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Estilização Premium do Conteúdo das Respostas */
+        .markdown-content {
+            font-size: 0.9375rem; /* 15px */
+            line-height: 1.7;
+            color: #e5e7eb;
+        }
+        .markdown-content p {
+            margin-bottom: 0.85rem;
+        }
+        .markdown-content p:last-child {
+            margin-bottom: 0;
+        }
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            color: #ffffff;
+            font-weight: 700;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .markdown-content h1 { font-size: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.4rem; }
+        .markdown-content h2 { font-size: 1.1rem; color: #fbbf24; }
+        .markdown-content h3 { font-size: 1.0rem; }
+        .markdown-content ul, .markdown-content ol {
+            margin-top: 0.4rem;
+            margin-bottom: 0.85rem;
+            padding-left: 1.25rem;
+        }
+        .markdown-content ul { list-style-type: disc; }
+        .markdown-content ol { list-style-type: decimal; }
+        .markdown-content li { margin-bottom: 0.3rem; }
+        .markdown-content strong { color: #ffffff; font-weight: 600; }
+        .markdown-content blockquote {
+            border-left: 3px solid #f59e0b;
+            padding-left: 0.85rem;
+            margin: 0.85rem 0;
+            color: #d1d5db;
+            background: rgba(245, 158, 11, 0.05);
+            padding-top: 0.4rem;
+            padding-bottom: 0.4rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .markdown-content code {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fbbf24;
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-family: monospace;
+        }
+        .markdown-content pre {
+            background: #08090c;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.85rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 0.85rem 0;
+        }
+        .markdown-content pre code {
+            background: transparent;
+            padding: 0;
+            color: #e5e7eb;
+        }
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+        .markdown-content th, .markdown-content td {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.6rem 0.8rem;
+            text-align: left;
+        }
+        .markdown-content th {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            font-weight: 700;
         }
 
         ::-webkit-scrollbar { width: 5px; }
@@ -205,7 +287,6 @@
                         <div class="inline-block px-3 py-1 rounded-full bg-honey-500/20 text-xs text-honey-400 font-semibold">Pro Executivo</div>
                         <h3 class="text-xl font-bold text-white">Acesso Ilimitado</h3>
                         
-                        <!-- Toggle Mensal/Anual -->
                         <div class="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
                             <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
                             <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual (-2% Desc.)</button>
@@ -226,13 +307,10 @@
                 </div>
             </div>
 
-            <!-- Métodos de Pagamento Aceites -->
             <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
                 <span>Pagamento seguro encriptado:</span>
                 <div class="flex items-center gap-4 text-white font-bold text-xs">
-                    <span class="flex items-center gap-1"><i data-lucide="credit-card" class="w-4 h-4 text-honey-400"></i> VISA / Mastercard</span>
-                    <span class="flex items-center gap-1"><i data-lucide="wallet" class="w-4 h-4 text-blue-400"></i> PayPal</span>
-                    <span class="flex items-center gap-1"><i data-lucide="smartphone" class="w-4 h-4 text-emerald-400"></i> Google Pay</span>
+                    <span class="flex items-center gap-1"><i data-lucide="credit-card" class="w-4 h-4 text-honey-400"></i> Multicaixa Express / Visa</span>
                 </div>
             </div>
         </div>
@@ -303,7 +381,8 @@
             </div>
         </div>
 
-        <div id="chat-container" class="flex-1 space-y-4 overflow-y-auto min-h-[250px] max-h-[55vh] pr-1"></div>
+        <!-- Área de Conversa Aprimorada -->
+        <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto min-h-[300px] max-h-[60vh] pr-2"></div>
 
         <div class="sticky bottom-4 w-full">
             <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
@@ -393,7 +472,6 @@
         btnCloseMenu.addEventListener('click', () => toggleDrawer(false));
         drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
 
-        // Ações das opções do Menu
         function resetChat() {
             chatContainer.innerHTML = '';
             welcomeSection.classList.remove('hidden');
@@ -445,8 +523,7 @@
         }
 
         function startCheckout() {
-            const amount = selectedBilling === 'monthly' ? '$10.00' : '$118.00';
-            alert(`A redirecionar para o Gateway de Pagamento Seguro (Visa / PayPal / Google Pay)\nValor a cobrar: ${amount}`);
+            openPlansModal();
         }
 
         // Command K
@@ -531,21 +608,40 @@
             filePreviewContainer.classList.remove('flex');
         });
 
+        // Função Premium para Renderizar Balões de Conversa
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`;
+            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start`;
 
-            const bubble = document.createElement('div');
-            bubble.className = isUser 
-                ? 'bg-honey-500/20 border border-honey-500/30 text-white p-4 rounded-2xl max-w-[85%] text-sm shadow-sm'
-                : 'bg-obsidian-card text-gray-100 p-4 rounded-2xl max-w-[85%] text-sm border border-obsidian-border shadow-premium';
+            if (isUser) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bg-gradient-to-r from-honey-600/30 to-honey-500/20 border border-honey-500/40 text-white p-4 rounded-2xl rounded-tr-xs max-w-[85%] sm:max-w-[75%] text-sm shadow-md font-medium';
+                bubble.innerText = text;
+                msgDiv.appendChild(bubble);
+            } else {
+                // Avatar da Honey IA
+                const avatar = document.createElement('div');
+                avatar.className = 'w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center flex-shrink-0 shadow-gold-glow mt-1';
+                avatar.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-black"></i>';
 
-            bubble.innerHTML = text.replace(/\n/g, '<br>');
-            msgDiv.appendChild(bubble);
+                const bubble = document.createElement('div');
+                bubble.className = 'bg-obsidian-card text-gray-100 p-5 rounded-2xl rounded-tl-xs max-w-[90%] sm:max-w-[80%] border border-obsidian-border shadow-premium space-y-2';
+
+                // Renderiza com Markdown
+                const parsedContent = document.createElement('div');
+                parsedContent.className = 'markdown-content';
+                parsedContent.innerHTML = marked.parse(text);
+
+                bubble.appendChild(parsedContent);
+                msgDiv.appendChild(avatar);
+                msgDiv.appendChild(bubble);
+            }
+
             chatContainer.appendChild(msgDiv);
+            lucide.createIcons();
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
@@ -555,12 +651,11 @@
 
             if (!text && !currentFileBase64) return;
 
-            // Verificar limite de utilização se for uma ação de criação/análise
             const isCreationRequest = currentFileBase64 || text.length > 20;
 
             if (isCreationRequest && usageCount >= MAX_FREE_USAGE) {
                 openPlansModal();
-                appendMessage('assistant', '⚠️ **Limite atingido:** Atingiu o limite de 2 criações/análises grátis no Plano Inicial. Por favor, escolha o plano **Pro Executivo** ($10/mês) para continuar.');
+                appendMessage('assistant', '⚠️ **Limite Atingido:** Atingiu o limite de 2 criações/análises grátis no Plano Inicial. Escolha o plano **Pro Executivo** para ter acesso ilimitado.');
                 return;
             }
 
@@ -581,11 +676,14 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start';
+            loadingDiv.className = 'flex gap-3 justify-start items-center';
             loadingDiv.innerHTML = `
-                <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-sm border border-obsidian-border flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
+                </div>
+                <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-xs font-semibold border border-obsidian-border flex items-center gap-2.5 shadow-premium">
                     <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span>Honey IA a analisar dados...</span>
+                    <span>A Honey IA está a estruturar a sua resposta...</span>
                 </div>
             `;
             chatContainer.appendChild(loadingDiv);
@@ -605,7 +703,6 @@
                 if (data.sucesso) {
                     appendMessage('assistant', data.resposta);
                     
-                    // Incrementar o uso e atualizar estado
                     if (isCreationRequest) {
                         usageCount++;
                         localStorage.setItem('honey_usage_count', usageCount);
@@ -617,7 +714,7 @@
 
             } catch (err) {
                 loadingDiv.remove();
-                appendMessage('assistant', '⚠️ Erro ao comunicar com o servidor. Verifica a ligação.');
+                appendMessage('assistant', '⚠️ Erro ao comunicar com o servidor. Por favor, verifique a ligação.');
             }
         });
     </script>
