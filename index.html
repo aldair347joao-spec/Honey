@@ -76,7 +76,6 @@
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Scrollbar customizada */
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
@@ -89,7 +88,6 @@
     <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-4 md:px-8 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
-            <!-- Lado Esquerdo: Botão Menu + Command K + Marca -->
             <div class="flex items-center gap-3">
                 <button id="btn-open-menu" title="Menu principal" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-300 hover:text-white transition">
                     <i data-lucide="menu" class="w-5 h-5"></i>
@@ -103,7 +101,7 @@
 
                 <div class="h-5 w-[1px] bg-white/10 hidden sm:block"></div>
 
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center shadow-gold-glow">
                         <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
                     </div>
@@ -114,22 +112,16 @@
                 </div>
             </div>
 
-            <!-- Lado Direito: Status e Badge Pro -->
             <div class="flex items-center gap-3">
-                <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[12px] font-medium text-emerald-400">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Servidor Ativo
-                </div>
-
-                <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 border border-honey-500/30 text-honey-400 font-semibold text-xs">
+                <button onclick="openPlansModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 hover:bg-honey-500/30 border border-honey-500/30 text-honey-400 font-semibold text-xs transition">
                     <i data-lucide="crown" class="w-4 h-4"></i>
-                    <span>Utilizador Pro</span>
-                </div>
+                    <span id="header-plan-label">Planos / Pro</span>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Menu Lateral (Drawer Modal) -->
+    <!-- Menu Lateral (Drawer) -->
     <div id="drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
     <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-card border-r border-obsidian-border z-50 -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
         <div class="space-y-6">
@@ -143,32 +135,108 @@
                 </button>
             </div>
 
-            <nav class="space-y-1">
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-honey-500/10 text-honey-400 font-medium text-sm">
-                    <i data-lucide="message-square" class="w-4 h-4"></i> Nova Conversa
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+            <nav class="space-y-1.5">
+                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-honey-500/10 text-honey-400 font-medium text-sm hover:bg-honey-500/20 transition">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conversa
+                </button>
+                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
                     <i data-lucide="file-text" class="w-4 h-4"></i> Documentos Processados
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+                </button>
+                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
                     <i data-lucide="calculator" class="w-4 h-4"></i> Finanças & Tabelas
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
+                </button>
+                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
                     <i data-lucide="code-2" class="w-4 h-4"></i> Engenharia & Código
-                </a>
+                </button>
+                <button onclick="openPlansModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-honey-400 hover:bg-honey-500/10 text-sm font-semibold transition mt-4 border border-honey-500/20">
+                    <i data-lucide="gem" class="w-4 h-4"></i> Ver Planos & Subscrição
+                </button>
             </nav>
         </div>
 
         <div class="pt-4 border-t border-white/10 space-y-3">
-            <div class="flex items-center gap-3 px-2">
-                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
-                <div class="text-xs">
-                    <div class="font-bold text-white">Sua Conta Executiva</div>
-                    <div class="text-gray-400">Status: Ativo</div>
+            <div class="flex items-center justify-between px-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
+                    <div class="text-xs">
+                        <div class="font-bold text-white">Sua Conta</div>
+                        <div id="usage-counter" class="text-gray-400">Gerações grátis: 0 / 2</div>
+                    </div>
                 </div>
             </div>
         </div>
     </aside>
+
+    <!-- Modal de Planos & Subscrição -->
+    <div id="plans-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div id="plans-modal" class="bg-obsidian-card border border-obsidian-border rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Escolha o seu Plano
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Desbloqueie todo o potencial da Honey IA sem limitações.</p>
+                </div>
+                <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Plano Livre -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="inline-block px-3 py-1 rounded-full bg-white/10 text-xs text-gray-300 font-semibold">Gratuito</div>
+                        <h3 class="text-xl font-bold text-white">Plano Inicial</h3>
+                        <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
+                        <ul class="space-y-2.5 text-xs text-gray-300 pt-2">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversa livre com a Honey IA</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises complexas grátis</li>
+                            <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Suporte para ficheiros pesados limitado</li>
+                        </ul>
+                    </div>
+                    <button onclick="closePlansModal()" class="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition">Plano Atual</button>
+                </div>
+
+                <!-- Plano Pro / Mensal & Anual -->
+                <div class="bg-gradient-to-b from-honey-500/10 to-transparent border-2 border-honey-500/50 rounded-2xl p-6 flex flex-col justify-between relative shadow-gold-glow">
+                    <div class="absolute -top-3 right-4 bg-honey-500 text-black text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Recomendado</div>
+                    <div class="space-y-4">
+                        <div class="inline-block px-3 py-1 rounded-full bg-honey-500/20 text-xs text-honey-400 font-semibold">Pro Executivo</div>
+                        <h3 class="text-xl font-bold text-white">Acesso Ilimitado</h3>
+                        
+                        <!-- Toggle Mensal/Anual -->
+                        <div class="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
+                            <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
+                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual (-2% Desc.)</button>
+                        </div>
+
+                        <div id="price-display" class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
+
+                        <ul class="space-y-2.5 text-xs text-gray-200 pt-2">
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Modelos avançados de Gestão & Engenharia</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="startCheckout()" class="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:opacity-90 text-black font-extrabold text-xs shadow-gold-glow transition flex items-center justify-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4"></i> Subscrever Agora
+                    </button>
+                </div>
+            </div>
+
+            <!-- Métodos de Pagamento Aceites -->
+            <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
+                <span>Pagamento seguro encriptado:</span>
+                <div class="flex items-center gap-4 text-white font-bold text-xs">
+                    <span class="flex items-center gap-1"><i data-lucide="credit-card" class="w-4 h-4 text-honey-400"></i> VISA / Mastercard</span>
+                    <span class="flex items-center gap-1"><i data-lucide="wallet" class="w-4 h-4 text-blue-400"></i> PayPal</span>
+                    <span class="flex items-center gap-1"><i data-lucide="smartphone" class="w-4 h-4 text-emerald-400"></i> Google Pay</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Command K -->
     <div id="cmdk-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-start justify-center pt-20 px-4">
@@ -179,7 +247,7 @@
                 <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
             </div>
             <div class="py-3 text-xs text-gray-400 space-y-2">
-                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões de Atálho</div>
+                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões</div>
                 <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Analisar contrato de prestação de serviço')">
                     <span>📄 Analisar minuta ou contrato</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
@@ -195,7 +263,6 @@
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-between gap-6">
         
-        <!-- Boas-vindas / Seleção de Área (Desaparece ao enviar mensagem) -->
         <div id="welcome-section" class="py-8 space-y-8 animate-fade-in">
             <div class="text-center space-y-3">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
@@ -209,9 +276,7 @@
                 </p>
             </div>
 
-            <!-- Cards de Sugestões de Atalho Unificados (Sem duplicados) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
                 <div onclick="insertPrompt('Preciso de analisar e resumir este documento/contrato de forma clara.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
                     <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <i data-lucide="file-check-2" class="w-5 h-5"></i>
@@ -235,18 +300,14 @@
                     <h3 class="text-sm font-bold text-white mb-1">Finanças & Planilhas</h3>
                     <p class="text-xs text-gray-400 leading-relaxed">Extração automática de relatórios, ficheiros Excel e PDF.</p>
                 </div>
-
             </div>
         </div>
 
-        <!-- Contentor do Chat -->
         <div id="chat-container" class="flex-1 space-y-4 overflow-y-auto min-h-[250px] max-h-[55vh] pr-1"></div>
 
-        <!-- Área do Prompt / Input -->
         <div class="sticky bottom-4 w-full">
             <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
                 
-                <!-- Indicator de Anexo -->
                 <div id="file-preview-container" class="hidden items-center justify-between bg-white/5 p-2 px-3 rounded-xl border border-white/10">
                     <div class="flex items-center gap-2.5 overflow-hidden">
                         <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
@@ -257,9 +318,8 @@
                     </button>
                 </div>
 
-                <!-- Campo de Entrada -->
                 <div class="flex items-center gap-3">
-                    <label for="file-input" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Imagem, PDF, Word ou Excel">
+                    <label for="file-input" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Ficheiro">
                         <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
@@ -292,6 +352,18 @@
     <script>
         lucide.createIcons();
 
+        // Estado do Utilizador e Limite Grátis
+        let usageCount = parseInt(localStorage.getItem('honey_usage_count') || '0');
+        const MAX_FREE_USAGE = 2;
+
+        function updateUsageUI() {
+            const counterEl = document.getElementById('usage-counter');
+            if (counterEl) {
+                counterEl.textContent = `Criações grátis: ${usageCount} / ${MAX_FREE_USAGE}`;
+            }
+        }
+        updateUsageUI();
+
         const chatContainer = document.getElementById('chat-container');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
@@ -301,7 +373,7 @@
         const filePreviewName = document.getElementById('file-preview-name');
         const removeFileBtn = document.getElementById('remove-file-btn');
 
-        // Controlo do Drawer (Menu Lateral)
+        // Drawer
         const btnOpenMenu = document.getElementById('btn-open-menu');
         const btnCloseMenu = document.getElementById('btn-close-menu');
         const drawerMenu = document.getElementById('drawer-menu');
@@ -321,7 +393,63 @@
         btnCloseMenu.addEventListener('click', () => toggleDrawer(false));
         drawerBackdrop.addEventListener('click', () => toggleDrawer(false));
 
-        // Controlo do Command K (Modal de Pesquisa)
+        // Ações das opções do Menu
+        function resetChat() {
+            chatContainer.innerHTML = '';
+            welcomeSection.classList.remove('hidden');
+            toggleDrawer(false);
+        }
+
+        function triggerMenuAction(type) {
+            toggleDrawer(false);
+            if (type === 'Documentos') {
+                insertPrompt('Gostaria de processar e analisar uma minuta ou documento oficial.');
+            } else if (type === 'Finanças') {
+                insertPrompt('Preciso de estruturar um relatório financeiro ou calcular margens.');
+            } else if (type === 'Engenharia') {
+                insertPrompt('Ajuda-me a rever este código ou especificação técnica de engenharia.');
+            }
+        }
+
+        // Modal de Planos
+        const plansBackdrop = document.getElementById('plans-backdrop');
+        const plansModal = document.getElementById('plans-modal');
+        let selectedBilling = 'monthly';
+
+        function openPlansModal() {
+            toggleDrawer(false);
+            plansBackdrop.classList.remove('pointer-events-none', 'opacity-0');
+            plansModal.classList.remove('scale-95');
+        }
+
+        function closePlansModal() {
+            plansBackdrop.classList.add('pointer-events-none', 'opacity-0');
+            plansModal.classList.add('scale-95');
+        }
+
+        function setBilling(type) {
+            selectedBilling = type;
+            const btnM = document.getElementById('btn-billing-monthly');
+            const btnY = document.getElementById('btn-billing-yearly');
+            const priceDisp = document.getElementById('price-display');
+
+            if (type === 'monthly') {
+                btnM.className = 'flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition';
+                btnY.className = 'flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition';
+                priceDisp.innerHTML = '$10 <span class="text-xs font-normal text-gray-400">/mês</span>';
+            } else {
+                btnY.className = 'flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition';
+                btnM.className = 'flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition';
+                priceDisp.innerHTML = '$118 <span class="text-xs font-normal text-gray-400">/ano</span>';
+            }
+        }
+
+        function startCheckout() {
+            const amount = selectedBilling === 'monthly' ? '$10.00' : '$118.00';
+            alert(`A redirecionar para o Gateway de Pagamento Seguro (Visa / PayPal / Google Pay)\nValor a cobrar: ${amount}`);
+        }
+
+        // Command K
         const btnCmdK = document.getElementById('btn-cmd-k');
         const btnCloseCmdK = document.getElementById('btn-close-cmdk');
         const cmdkBackdrop = document.getElementById('cmdk-backdrop');
@@ -353,6 +481,7 @@
             if (e.key === 'Escape') {
                 toggleCmdK(false);
                 toggleDrawer(false);
+                closePlansModal();
             }
         });
 
@@ -371,7 +500,6 @@
             userInput.style.height = userInput.scrollHeight + 'px';
         });
 
-        // Permitir enviar com Enter (Shift+Enter para nova linha)
         userInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -427,6 +555,15 @@
 
             if (!text && !currentFileBase64) return;
 
+            // Verificar limite de utilização se for uma ação de criação/análise
+            const isCreationRequest = currentFileBase64 || text.length > 20;
+
+            if (isCreationRequest && usageCount >= MAX_FREE_USAGE) {
+                openPlansModal();
+                appendMessage('assistant', '⚠️ **Limite atingido:** Atingiu o limite de 2 criações/análises grátis no Plano Inicial. Por favor, escolha o plano **Pro Executivo** ($10/mês) para continuar.');
+                return;
+            }
+
             let userDisplay = text;
             if (currentFileBase64 && !text) {
                 userDisplay = "📎 [Documento Anexado para Análise]";
@@ -467,6 +604,13 @@
 
                 if (data.sucesso) {
                     appendMessage('assistant', data.resposta);
+                    
+                    // Incrementar o uso e atualizar estado
+                    if (isCreationRequest) {
+                        usageCount++;
+                        localStorage.setItem('honey_usage_count', usageCount);
+                        updateUsageUI();
+                    }
                 } else {
                     appendMessage('assistant', `⚠️ Erro: ${data.erro}`);
                 }
