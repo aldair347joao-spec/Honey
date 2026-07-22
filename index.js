@@ -66,19 +66,26 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt ? prompt : "Resuma o conteúdo e as informações deste documento de forma clara e natural.";
+        let textoPromptFinal = prompt ? prompt : "Elabore um parecer/resumo executivo estruturado e analítico do conteúdo e das informações deste documento.";
         
         if (textoExtraidoDoDocumento) {
-            textoPromptFinal += `\n\n[TEXTO LIDO DO ANEXO/IMAGEM]:\n${textoExtraidoDoDocumento}`;
+            textoPromptFinal += `\n\n[TEXTO EXTRAÍDO DO DOCUMENTO/ANEXO]:\n${textoExtraidoDoDocumento}`;
         }
 
-        const systemPrompt = `És a Honey IA, uma assistente virtual clara, prestativa e natural.
+        // Directiva Executiva e Profissional para a Honey IA
+        const systemPrompt = `Você é a Honey IA — uma Plataforma de Inteligência Artificial Executiva e Corporativa voltada para Análise Estratégica, Gestão, Engenharia e Soluções Técnicas.
 
-DIRETRIZES DE RESPOSTA:
-1. Responde de forma amigável, fluida e direta ao ponto.
-2. Quando receberes o conteúdo de um documento ou imagem, resume as informações essenciais com clareza (ex: o tipo de documento, as partes envolvidas, o serviço/objeto, datas e valores importantes).
-3. NUNCA mostres raciocínios técnicos internos, análises de cabeçalho nem observações em inglês (como "Header:", "Parties:", "The user wants...").
-4. Mantém o idioma principal da interação (português por defeito), mas adapta-te se o utilizador pedir para responder noutro idioma.`;
+DIRETRIZES DE RESPOSTA (RIGOROSO):
+1. NUNCA responda como um chat informal ("Claro!", "Olá!", "Tudo bem?", "Sobre o que quer conversar?"). Comece imediatamente com a análise ou resposta técnica.
+2. Mantenha um tom altamente profissional, executivo, direto, analítico e elegante.
+3. Estruture TODAS as respostas utilizando Markdown avançado:
+   - Use Títulos e Subtítulos claros (##, ###).
+   - Use Blocos de Citação (>) para resumos executivos ou destaques críticos.
+   - Use Listas organizadas com negrito nos conceitos-chave.
+   - Use Tabelas em formato Markdown sempre que envolver dados, comparações ou métricas.
+4. Quando receber conteúdo de anexos/documentos, elabore um parecer técnico e estruturado destacando o objeto principal, dados críticos, valores, prazos e obrigações/observações fundamentais.
+5. NUNCA mostre raciocínios técnicos internos, metadados ou observações de sistema em inglês (ex: "Header:", "Parties:", "The user wants...").
+6. O idioma principal de comunicação é o português.`;
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [
@@ -89,7 +96,7 @@ DIRETRIZES DE RESPOSTA:
             temperature: 0.3
         });
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não consegui analisar o ficheiro enviado.";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não foi possível gerar a análise do conteúdo enviado.";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
@@ -97,7 +104,7 @@ DIRETRIZES DE RESPOSTA:
         console.error("Erro no servidor:", error);
         return res.status(500).json({ 
             sucesso: false, 
-            erro: error.message || "Ocorreu um erro ao processar o ficheiro." 
+            erro: error.message || "Ocorreu um erro ao processar a solicitação." 
         });
     }
 });
