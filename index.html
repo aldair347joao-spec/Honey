@@ -80,11 +80,13 @@
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Estilização Executiva do Conteúdo das Respostas */
+        /* Estilização Executiva do Conteúdo das Respostas (Com suporte total a dispositivos móveis) */
         .markdown-content {
             font-size: 0.95rem;
             line-height: 1.8;
             color: #d1d5db;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .markdown-content p {
             margin-bottom: 0.95rem;
@@ -154,18 +156,27 @@
             padding: 0;
             color: #e5e7eb;
         }
+
+        /* Container Especial para Tabelas Responsivas sem Corte */
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            margin: 1.2rem 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(19, 21, 28, 0.5);
+            -webkit-overflow-scrolling: touch;
+        }
+
         .markdown-content table {
             width: 100%;
+            min-width: 480px; /* Impede que a tabela esmague e força o scroll suave */
             border-collapse: collapse;
-            margin: 1.2rem 0;
             font-size: 0.875rem;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .markdown-content th, .markdown-content td {
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0.7rem 0.9rem;
+            padding: 0.75rem 0.95rem;
             text-align: left;
         }
         .markdown-content th {
@@ -177,7 +188,7 @@
             letter-spacing: 0.05em;
         }
 
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
@@ -401,7 +412,7 @@
         </div>
 
         <!-- Área de Conversa Executiva -->
-        <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto min-h-[300px] max-h-[60vh] pr-2"></div>
+        <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto min-h-[300px] max-h-[68vh] pr-1 pb-4"></div>
 
         <div class="sticky bottom-4 w-full">
             <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
@@ -627,13 +638,13 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // Função Premium para Renderizar Mensagens Executivas
+        // Função Premium para Renderizar Mensagens Executivas (Sem cortes)
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full`;
+            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full my-2`;
 
             if (isUser) {
                 const bubble = document.createElement('div');
@@ -647,12 +658,17 @@
                 avatar.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-black"></i>';
 
                 const bubble = document.createElement('div');
-                bubble.className = 'bg-obsidian-card text-gray-100 p-5 md:p-6 rounded-2xl rounded-tl-xs w-full max-w-[95%] sm:max-w-[88%] border border-obsidian-border shadow-premium space-y-2';
+                bubble.className = 'bg-obsidian-card text-gray-100 p-4 md:p-6 rounded-2xl rounded-tl-xs w-full max-w-[92%] sm:max-w-[88%] border border-obsidian-border shadow-premium space-y-2 overflow-hidden';
 
-                // Renderiza com Markdown executivo
+                // Renderiza com Markdown executivo e encapsula tabelas
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content';
-                parsedContent.innerHTML = marked.parse(text);
+                
+                let rawHtml = marked.parse(text);
+                // Embrulha tabelas num container com rolagem horizontal suave no telemóvel
+                rawHtml = rawHtml.replace(/<table>/g, '<div class="table-responsive-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
+                
+                parsedContent.innerHTML = rawHtml;
 
                 bubble.appendChild(parsedContent);
                 msgDiv.appendChild(avatar);
@@ -695,14 +711,14 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start items-center w-full';
+            loadingDiv.className = 'flex gap-3 justify-start items-center w-full my-2';
             loadingDiv.innerHTML = `
                 <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
                 </div>
                 <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-xs font-semibold border border-obsidian-border flex items-center gap-2.5 shadow-premium">
                     <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span>A Honey IA está a estruturar o parecer executivo...</span>
+                    <span>A Honey IA está a analisar o seu pedido...</span>
                 </div>
             `;
             chatContainer.appendChild(loadingDiv);
