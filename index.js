@@ -17,17 +17,17 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Servir ficheiros estáticos da raiz
+// Servir ficheiros estáticos a partir do diretório raiz
 app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Rota principal
+// Rota principal da aplicação
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Rota de processamento
+// Endpoint para processamento e geração de respostas
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
@@ -39,23 +39,23 @@ app.post('/gerar-gratis', async (req, res) => {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. IMAGENS -> OCR nativo com Tesseract (português/inglês)
+            // 1. Processamento de Imagens via OCR Tesseract (PT / EN)
             if (type.startsWith('image/')) {
                 console.log("A extrair texto da imagem via OCR...");
                 const { data: { text } } = await Tesseract.recognize(buffer, 'por+eng');
                 textoExtraidoDoDocumento = text;
             } 
-            // 2. PDF
+            // 2. Processamento de Documentos PDF
             else if (type === 'application/pdf' || type.includes('pdf')) {
                 const pdfData = await pdfParse(buffer);
                 textoExtraidoDoDocumento = pdfData.text;
             } 
-            // 3. WORD (.docx, .doc)
+            // 3. Processamento de Documentos Word (.docx, .doc)
             else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
                 const result = await mammoth.extractRawText({ buffer: buffer });
                 textoExtraidoDoDocumento = result.value;
             } 
-            // 4. EXCEL / CSV (.xlsx, .xls, .csv)
+            // 4. Processamento de Planilhas Excel / CSV (.xlsx, .xls, .csv)
             else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
                 const workbook = XLSX.read(buffer, { type: 'buffer' });
                 workbook.SheetNames.forEach(sheetName => {
@@ -72,7 +72,7 @@ app.post('/gerar-gratis', async (req, res) => {
             textoPromptFinal += `\n\n[TEXTO EXTRAÍDO DO DOCUMENTO/ANEXO]:\n${textoExtraidoDoDocumento}`;
         }
 
-        // Directiva Executiva, Fluida e Colaborativa para a Honey IA
+        // System Prompt Otimizado para Respostas Executivas e Fluidez Colaborativa
         const systemPrompt = `Você é a Honey IA — uma Plataforma Executiva de Inteligência Artificial para Análise Estratégica, Gestão, Engenharia e Soluções Técnicas.
 
 DIRETRIZES DE COMUNICAÇÃO E ESTILO:
