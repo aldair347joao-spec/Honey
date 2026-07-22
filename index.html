@@ -11,10 +11,10 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
     <!-- Marked.js para Renderização Premium de Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -26,6 +26,7 @@
                 extend: {
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
                         honey: {
@@ -79,46 +80,58 @@
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Estilização Premium do Conteúdo das Respostas */
+        /* Estilização Executiva do Conteúdo das Respostas */
         .markdown-content {
-            font-size: 0.9375rem; /* 15px */
-            line-height: 1.7;
-            color: #e5e7eb;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #d1d5db;
         }
         .markdown-content p {
-            margin-bottom: 0.85rem;
+            margin-bottom: 0.95rem;
         }
         .markdown-content p:last-child {
             margin-bottom: 0;
         }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
             font-weight: 700;
-            margin-top: 1.2rem;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
+            margin-top: 1.4rem;
+            margin-bottom: 0.6rem;
+            letter-spacing: -0.01em;
         }
-        .markdown-content h1 { font-size: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.4rem; }
-        .markdown-content h2 { font-size: 1.1rem; color: #fbbf24; }
-        .markdown-content h3 { font-size: 1.0rem; }
+        .markdown-content h1 { 
+            font-size: 1.3rem; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            padding-bottom: 0.4rem; 
+            color: #ffffff;
+        }
+        .markdown-content h2 { 
+            font-size: 1.15rem; 
+            color: #fbbf24; 
+            border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+            padding-bottom: 0.3rem;
+        }
+        .markdown-content h3 { font-size: 1.05rem; color: #f3f4f6; }
         .markdown-content ul, .markdown-content ol {
             margin-top: 0.4rem;
-            margin-bottom: 0.85rem;
+            margin-bottom: 0.95rem;
             padding-left: 1.25rem;
         }
         .markdown-content ul { list-style-type: disc; }
         .markdown-content ol { list-style-type: decimal; }
-        .markdown-content li { margin-bottom: 0.3rem; }
+        .markdown-content li { margin-bottom: 0.4rem; }
         .markdown-content strong { color: #ffffff; font-weight: 600; }
         .markdown-content blockquote {
             border-left: 3px solid #f59e0b;
-            padding-left: 0.85rem;
-            margin: 0.85rem 0;
-            color: #d1d5db;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #e5e7eb;
             background: rgba(245, 158, 11, 0.05);
-            padding-top: 0.4rem;
-            padding-bottom: 0.4rem;
-            border-radius: 0 8px 8px 0;
+            padding-top: 0.6rem;
+            padding-bottom: 0.6rem;
+            border-radius: 0 10px 10px 0;
+            font-style: normal;
         }
         .markdown-content code {
             background: rgba(255, 255, 255, 0.08);
@@ -131,10 +144,10 @@
         .markdown-content pre {
             background: #08090c;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0.85rem;
+            padding: 1rem;
             border-radius: 12px;
             overflow-x: auto;
-            margin: 0.85rem 0;
+            margin: 1rem 0;
         }
         .markdown-content pre code {
             background: transparent;
@@ -144,18 +157,24 @@
         .markdown-content table {
             width: 100%;
             border-collapse: collapse;
-            margin: 1rem 0;
+            margin: 1.2rem 0;
             font-size: 0.875rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .markdown-content th, .markdown-content td {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 0.6rem 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.7rem 0.9rem;
             text-align: left;
         }
         .markdown-content th {
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
             font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
         }
 
         ::-webkit-scrollbar { width: 5px; }
@@ -188,7 +207,7 @@
                         <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
                     </div>
                     <div>
-                        <span class="text-lg font-bold tracking-tight text-white block leading-none">Honey IA</span>
+                        <span class="text-lg font-bold tracking-tight text-white block leading-none font-display">Honey IA</span>
                         <span class="text-[10px] text-honey-400 font-semibold tracking-wider uppercase">Executive Pro</span>
                     </div>
                 </div>
@@ -242,7 +261,7 @@
                     <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
                     <div class="text-xs">
                         <div class="font-bold text-white">Sua Conta</div>
-                        <div id="usage-counter" class="text-gray-400">Gerações grátis: 0 / 2</div>
+                        <div id="usage-counter" class="text-gray-400">Criações grátis: 0 / 2</div>
                     </div>
                 </div>
             </div>
@@ -254,7 +273,7 @@
         <div id="plans-modal" class="bg-obsidian-card border border-obsidian-border rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2 font-display">
                         <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Escolha o seu Plano
                     </h2>
                     <p class="text-xs text-gray-400 mt-1">Desbloqueie todo o potencial da Honey IA sem limitações.</p>
@@ -272,7 +291,7 @@
                         <h3 class="text-xl font-bold text-white">Plano Inicial</h3>
                         <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
                         <ul class="space-y-2.5 text-xs text-gray-300 pt-2">
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversa livre com a Honey IA</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Pareceres executivos com a Honey IA</li>
                             <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises complexas grátis</li>
                             <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Suporte para ficheiros pesados limitado</li>
                         </ul>
@@ -296,7 +315,7 @@
 
                         <ul class="space-y-2.5 text-xs text-gray-200 pt-2">
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel/OCR</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Modelos avançados de Gestão & Engenharia</li>
                         </ul>
                     </div>
@@ -325,12 +344,12 @@
                 <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
             </div>
             <div class="py-3 text-xs text-gray-400 space-y-2">
-                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões</div>
-                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Analisar contrato de prestação de serviço')">
+                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões Executivas</div>
+                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Elabore um parecer técnico e resumido sobre este contrato de prestação de serviço.')">
                     <span>📄 Analisar minuta ou contrato</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
                 </div>
-                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extrair resumo e valores da tabela em anexo')">
+                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extraia os dados financeiros principais, totais e crie uma tabela resumo.')">
                     <span>📊 Extrair dados de planilha ou tabela</span>
                     <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
                 </div>
@@ -344,44 +363,44 @@
         <div id="welcome-section" class="py-8 space-y-8 animate-fade-in">
             <div class="text-center space-y-3">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
-                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial de Última Geração
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial Executiva de Última Geração
                 </div>
-                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight font-display">
                     Como posso ajudar a sua gestão hoje?
                 </h1>
                 <p class="text-sm md:text-base text-gray-400 max-w-lg mx-auto">
-                    Análise de documentos, síntese de contratos, leitura de imagens ou apoio em engenharia e finanças.
+                    Análise técnica de documentos, síntese executiva de contratos, leitura de ficheiros e suporte em engenharia e finanças.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div onclick="insertPrompt('Preciso de analisar e resumir este documento/contrato de forma clara.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Solicito uma análise executiva e resumo estruturado deste documento.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
                     <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <i data-lucide="file-check-2" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Contratos & Minutas</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Resumo de cláusulas, verificação de prazos e termos legais.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Parecer técnico de cláusulas, prazos e obrigações principais.</p>
                 </div>
 
-                <div onclick="insertPrompt('Analise estes dados de engenharia/código e apresente um diagnóstico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Analise estes dados de engenharia/código e elabore um parecer técnico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
                     <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <i data-lucide="cpu" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Engenharia & Tecnologias</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Cálculos, análise de código, especificações técnicas e projetos.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Diagnóstico técnico, cálculos, análise de arquitetura e código.</p>
                 </div>
 
-                <div onclick="insertPrompt('Extraia o resumo financeiro, totais e dados chave desta planilha.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Extraia os dados financeiros, métricas e estruture uma tabela executiva.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
                     <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                         <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Finanças & Planilhas</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Extração automática de relatórios, ficheiros Excel e PDF.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Extração automática e relatórios estruturados de Excel e PDF.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Área de Conversa Aprimorada -->
+        <!-- Área de Conversa Executiva -->
         <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto min-h-[300px] max-h-[60vh] pr-2"></div>
 
         <div class="sticky bottom-4 w-full">
@@ -406,7 +425,7 @@
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Escreva a sua mensagem ou anexe um documento..." 
+                        placeholder="Instrua a Honey IA ou anexe um documento para parecer..." 
                         class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5"
                     ></textarea>
 
@@ -481,11 +500,11 @@
         function triggerMenuAction(type) {
             toggleDrawer(false);
             if (type === 'Documentos') {
-                insertPrompt('Gostaria de processar e analisar uma minuta ou documento oficial.');
+                insertPrompt('Solicito a análise e elaboração de parecer sobre este documento.');
             } else if (type === 'Finanças') {
-                insertPrompt('Preciso de estruturar um relatório financeiro ou calcular margens.');
+                insertPrompt('Preciso de estruturar um relatório financeiro analítico.');
             } else if (type === 'Engenharia') {
-                insertPrompt('Ajuda-me a rever este código ou especificação técnica de engenharia.');
+                insertPrompt('Forneça uma avaliação técnica sobre este projeto/código.');
             }
         }
 
@@ -608,13 +627,13 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // Função Premium para Renderizar Balões de Conversa
+        // Função Premium para Renderizar Mensagens Executivas
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start`;
+            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full`;
 
             if (isUser) {
                 const bubble = document.createElement('div');
@@ -628,9 +647,9 @@
                 avatar.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-black"></i>';
 
                 const bubble = document.createElement('div');
-                bubble.className = 'bg-obsidian-card text-gray-100 p-5 rounded-2xl rounded-tl-xs max-w-[90%] sm:max-w-[80%] border border-obsidian-border shadow-premium space-y-2';
+                bubble.className = 'bg-obsidian-card text-gray-100 p-5 md:p-6 rounded-2xl rounded-tl-xs w-full max-w-[95%] sm:max-w-[88%] border border-obsidian-border shadow-premium space-y-2';
 
-                // Renderiza com Markdown
+                // Renderiza com Markdown executivo
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content';
                 parsedContent.innerHTML = marked.parse(text);
@@ -661,7 +680,7 @@
 
             let userDisplay = text;
             if (currentFileBase64 && !text) {
-                userDisplay = "📎 [Documento Anexado para Análise]";
+                userDisplay = "📎 [Documento Anexado para Análise Executiva]";
             }
             appendMessage('user', userDisplay);
 
@@ -676,14 +695,14 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start items-center';
+            loadingDiv.className = 'flex gap-3 justify-start items-center w-full';
             loadingDiv.innerHTML = `
                 <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
                 </div>
                 <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-xs font-semibold border border-obsidian-border flex items-center gap-2.5 shadow-premium">
                     <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span>A Honey IA está a estruturar a sua resposta...</span>
+                    <span>A Honey IA está a estruturar o parecer executivo...</span>
                 </div>
             `;
             chatContainer.appendChild(loadingDiv);
