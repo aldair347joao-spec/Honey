@@ -80,72 +80,79 @@
             box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Estilização Executiva das Respostas */
+        /* Estilização Acessível e Expandida do Chat */
         .markdown-content {
-            font-size: 0.95rem;
+            font-size: 1.05rem; /* Fonte ampliada para facilidade de leitura */
             line-height: 1.8;
-            color: #d1d5db;
+            color: #e5e7eb;
             word-break: break-word;
             overflow-wrap: break-word;
         }
-        .markdown-content p { margin-bottom: 0.95rem; }
+        
+        @media (min-width: 768px) {
+            .markdown-content {
+                font-size: 1.15rem; /* Fonte ainda maior em ecrãs médios/grandes */
+            }
+        }
+
+        .markdown-content p { margin-bottom: 1.1rem; }
         .markdown-content p:last-child { margin-bottom: 0; }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
             font-weight: 700;
-            margin-top: 1.4rem;
-            margin-bottom: 0.6rem;
+            margin-top: 1.6rem;
+            margin-bottom: 0.8rem;
             letter-spacing: -0.01em;
         }
         .markdown-content h1 { 
-            font-size: 1.3rem; 
+            font-size: 1.5rem; 
             border-bottom: 1px solid rgba(255,255,255,0.1); 
-            padding-bottom: 0.4rem; 
+            padding-bottom: 0.5rem; 
             color: #ffffff;
         }
         .markdown-content h2 { 
-            font-size: 1.15rem; 
+            font-size: 1.35rem; 
             color: #fbbf24; 
             border-bottom: 1px solid rgba(245, 158, 11, 0.15);
-            padding-bottom: 0.3rem;
+            padding-bottom: 0.4rem;
         }
-        .markdown-content h3 { font-size: 1.05rem; color: #f3f4f6; }
+        .markdown-content h3 { font-size: 1.2rem; color: #f3f4f6; }
         .markdown-content ul, .markdown-content ol {
-            margin-top: 0.4rem;
-            margin-bottom: 0.95rem;
-            padding-left: 1.25rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1.1rem;
+            padding-left: 1.5rem;
         }
         .markdown-content ul { list-style-type: disc; }
         .markdown-content ol { list-style-type: decimal; }
-        .markdown-content li { margin-bottom: 0.4rem; }
-        .markdown-content strong { color: #ffffff; font-weight: 600; }
+        .markdown-content li { margin-bottom: 0.5rem; }
+        .markdown-content strong { color: #ffffff; font-weight: 700; }
         .markdown-content blockquote {
-            border-left: 3px solid #f59e0b;
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: #e5e7eb;
-            background: rgba(245, 158, 11, 0.05);
-            padding-top: 0.6rem;
-            padding-bottom: 0.6rem;
-            border-radius: 0 10px 10px 0;
+            border-left: 4px solid #f59e0b;
+            padding-left: 1.2rem;
+            margin: 1.2rem 0;
+            color: #f3f4f6;
+            background: rgba(245, 158, 11, 0.08);
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-radius: 0 12px 12px 0;
             font-style: normal;
         }
         .markdown-content code {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             color: #fbbf24;
-            padding: 0.15rem 0.4rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 6px;
-            font-size: 0.85em;
+            font-size: 0.9em;
             font-family: monospace;
         }
         .markdown-content pre {
             background: #08090c;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 12px;
+            padding: 1.2rem;
+            border-radius: 14px;
             overflow-x: auto;
-            margin: 1rem 0;
+            margin: 1.2rem 0;
         }
         .markdown-content pre code {
             background: transparent;
@@ -157,7 +164,7 @@
         .table-responsive-wrapper {
             width: 100%;
             overflow-x: auto;
-            margin: 1.2rem 0;
+            margin: 1.4rem 0;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(19, 21, 28, 0.5);
@@ -166,13 +173,13 @@
 
         .markdown-content table {
             width: 100%;
-            min-width: 480px;
+            min-width: 500px;
             border-collapse: collapse;
-            font-size: 0.875rem;
+            font-size: 1rem;
         }
         .markdown-content th, .markdown-content td {
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0.75rem 0.95rem;
+            padding: 0.85rem 1.1rem;
             text-align: left;
         }
         .markdown-content th {
@@ -180,49 +187,49 @@
             color: #fbbf24;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             letter-spacing: 0.05em;
         }
 
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-honey-500/30 selection:text-honey-400">
 
-    <!-- Header Fixo -->
-    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-4 md:px-8 py-3.5">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <!-- Header Fixo Tela Cheia -->
+    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-3 md:px-8 py-3.5">
+        <div class="w-full mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
-                <button id="btn-open-menu" title="Menu principal" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-300 hover:text-white transition">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
+                <button id="btn-open-menu" title="Menu principal" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-200 hover:text-white transition">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
 
-                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-xs text-gray-400 hover:text-gray-200 transition">
-                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-sm text-gray-300 hover:text-gray-100 transition">
+                    <i data-lucide="search" class="w-4 h-4"></i>
                     <span class="font-medium">Procurar...</span>
-                    <kbd class="px-1.5 py-0.5 text-[10px] bg-white/10 rounded font-mono border border-white/10">⌘K</kbd>
+                    <kbd class="px-1.5 py-0.5 text-[11px] bg-white/10 rounded font-mono border border-white/10">⌘K</kbd>
                 </button>
 
-                <div class="h-5 w-[1px] bg-white/10 hidden sm:block"></div>
+                <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
 
                 <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center shadow-gold-glow">
-                        <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center shadow-gold-glow">
+                        <i data-lucide="sparkles" class="w-6 h-6 text-black"></i>
                     </div>
                     <div>
-                        <span class="text-lg font-bold tracking-tight text-white block leading-none font-display">Honey IA</span>
-                        <span class="text-[10px] text-honey-400 font-semibold tracking-wider uppercase">Executive Pro</span>
+                        <span class="text-xl font-bold tracking-tight text-white block leading-none font-display">Honey IA</span>
+                        <span class="text-[11px] text-honey-400 font-semibold tracking-wider uppercase">Executive Pro</span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="openPlansModal()" class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 hover:bg-honey-500/30 border border-honey-500/30 text-honey-400 font-semibold text-xs transition">
-                    <i data-lucide="crown" class="w-4 h-4"></i>
+                <button onclick="openPlansModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 hover:bg-honey-500/30 border border-honey-500/30 text-honey-400 font-bold text-xs sm:text-sm transition">
+                    <i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                     <span id="header-plan-label">Planos / Pro</span>
                 </button>
             </div>
@@ -235,29 +242,29 @@
         <div class="space-y-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
-                    <span class="font-bold text-white text-base">Honey IA Suite</span>
+                    <i data-lucide="sparkles" class="w-6 h-6 text-honey-400"></i>
+                    <span class="font-bold text-white text-lg">Honey IA Suite</span>
                 </div>
-                <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                <button id="btn-close-menu" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
 
-            <nav class="space-y-1.5">
-                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-honey-500/10 text-honey-400 font-medium text-sm hover:bg-honey-500/20 transition">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conversa
+            <nav class="space-y-2">
+                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-honey-500/10 text-honey-400 font-semibold text-base hover:bg-honey-500/20 transition">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Nova Conversa
                 </button>
-                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="file-text" class="w-4 h-4"></i> Documentos Processados
+                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
+                    <i data-lucide="file-text" class="w-5 h-5"></i> Documentos Processados
                 </button>
-                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="calculator" class="w-4 h-4"></i> Finanças & Tabelas
+                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
+                    <i data-lucide="calculator" class="w-5 h-5"></i> Finanças & Tabelas
                 </button>
-                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="code-2" class="w-4 h-4"></i> Engenharia & Código
+                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
+                    <i data-lucide="code-2" class="w-5 h-5"></i> Engenharia & Código
                 </button>
-                <button onclick="openPlansModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-honey-400 hover:bg-honey-500/10 text-sm font-semibold transition mt-4 border border-honey-500/20">
-                    <i data-lucide="gem" class="w-4 h-4"></i> Ver Planos & Subscrição
+                <button onclick="openPlansModal()" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-honey-400 hover:bg-honey-500/10 text-base font-bold transition mt-4 border border-honey-500/20">
+                    <i data-lucide="gem" class="w-5 h-5"></i> Ver Planos & Subscrição
                 </button>
             </nav>
         </div>
@@ -265,8 +272,8 @@
         <div class="pt-4 border-t border-white/10 space-y-3">
             <div class="flex items-center justify-between px-2">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-honey-400">EX</div>
-                    <div class="text-xs">
+                    <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm text-honey-400">EX</div>
+                    <div class="text-xs sm:text-sm">
                         <div class="font-bold text-white">Sua Conta</div>
                         <div id="usage-counter" class="text-gray-400">Projetos criados: 0 / 2</div>
                     </div>
@@ -283,10 +290,10 @@
                     <h2 class="text-2xl font-extrabold text-white flex items-center gap-2 font-display">
                         <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Escolha o seu Plano
                     </h2>
-                    <p class="text-xs text-gray-400 mt-1">Desbloqueie todo o potencial da Honey IA sem limitações.</p>
+                    <p class="text-sm text-gray-400 mt-1">Desbloqueie todo o potencial da Honey IA sem limitações.</p>
                 </div>
                 <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                    <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
 
@@ -297,13 +304,13 @@
                         <div class="inline-block px-3 py-1 rounded-full bg-white/10 text-xs text-gray-300 font-semibold">Gratuito</div>
                         <h3 class="text-xl font-bold text-white">Plano Inicial</h3>
                         <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
-                        <ul class="space-y-2.5 text-xs text-gray-300 pt-2">
+                        <ul class="space-y-2.5 text-xs sm:text-sm text-gray-300 pt-2">
                             <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversas e consultas executivas ilimitadas</li>
                             <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises de projetos complexos grátis</li>
                             <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Criação contínua de projetos complexos</li>
                         </ul>
                     </div>
-                    <button onclick="closePlansModal()" class="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-white font-semibold text-xs hover:bg-white/5 transition">Plano Atual</button>
+                    <button onclick="closePlansModal()" class="mt-6 w-full py-3 rounded-xl border border-white/20 text-white font-bold text-sm hover:bg-white/5 transition">Plano Atual</button>
                 </div>
 
                 <!-- Plano Pro -->
@@ -314,28 +321,28 @@
                         <h3 class="text-xl font-bold text-white">Acesso Ilimitado</h3>
                         
                         <div class="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
-                            <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
-                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual (-2% Desc.)</button>
+                            <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
+                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual (-2% Desc.)</button>
                         </div>
 
                         <div id="price-display" class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
 
-                        <ul class="space-y-2.5 text-xs text-gray-200 pt-2">
+                        <ul class="space-y-2.5 text-xs sm:text-sm text-gray-200 pt-2">
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas de projetos</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel/OCR</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Modelos avançados de Gestão & Engenharia</li>
                         </ul>
                     </div>
 
-                    <button onclick="startCheckout()" class="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:opacity-90 text-black font-extrabold text-xs shadow-gold-glow transition flex items-center justify-center gap-2">
-                        <i data-lucide="credit-card" class="w-4 h-4"></i> Subscrever Agora
+                    <button onclick="startCheckout()" class="mt-6 w-full py-3.5 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:opacity-90 text-black font-extrabold text-sm shadow-gold-glow transition flex items-center justify-center gap-2">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i> Subscrever Agora
                     </button>
                 </div>
             </div>
 
             <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
                 <span>Pagamento seguro encriptado:</span>
-                <div class="flex items-center gap-4 text-white font-bold text-xs">
+                <div class="flex items-center gap-4 text-white font-bold text-xs sm:text-sm">
                     <span class="flex items-center gap-1"><i data-lucide="credit-card" class="w-4 h-4 text-honey-400"></i> Multicaixa Express / Visa</span>
                 </div>
             </div>
@@ -344,110 +351,111 @@
 
     <!-- Modal Command K -->
     <div id="cmdk-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-start justify-center pt-20 px-4">
-        <div id="cmdk-modal" class="bg-obsidian-card border border-obsidian-border rounded-2xl w-full max-w-lg p-4 shadow-2xl scale-95 transition-transform duration-200">
+        <div id="cmdk-modal" class="bg-obsidian-card border border-obsidian-border rounded-2xl w-full max-w-xl p-4 shadow-2xl scale-95 transition-transform duration-200">
             <div class="flex items-center gap-3 px-3 pb-3 border-b border-white/10">
                 <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
-                <input id="cmdk-input" type="text" placeholder="Escreva um comando ou pesquisa..." class="w-full bg-transparent text-sm text-white focus:outline-none">
+                <input id="cmdk-input" type="text" placeholder="Escreva um comando ou pesquisa..." class="w-full bg-transparent text-base text-white focus:outline-none">
                 <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
             </div>
-            <div class="py-3 text-xs text-gray-400 space-y-2">
-                <div class="px-3 text-[10px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões Executivas</div>
-                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Elabore um parecer técnico e resumido sobre este contrato de prestação de serviço.')">
+            <div class="py-3 text-xs sm:text-sm text-gray-400 space-y-2">
+                <div class="px-3 text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões Executivas</div>
+                <div class="p-2.5 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Elabore um parecer técnico e resumido sobre este contrato de prestação de serviço.')">
                     <span>📄 Analisar minuta ou contrato</span>
-                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
                 </div>
-                <div class="p-2 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extraia os dados financeiros principais, totais e crie uma tabela resumo.')">
+                <div class="p-2.5 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extraia os dados financeiros principais, totais e crie uma tabela resumo.')">
                     <span>📊 Extrair dados de planilha ou tabela</span>
-                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-gray-500"></i>
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Conteúdo Principal -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-between gap-6">
+    <!-- Conteúdo Principal FULL WIDTH (Aproveitando toda a tela) -->
+    <main class="flex-1 w-full px-2 sm:px-4 md:px-6 py-3 flex flex-col justify-between gap-4">
         
-        <div id="welcome-section" class="py-8 space-y-8 animate-fade-in">
+        <div id="welcome-section" class="py-6 space-y-6 animate-fade-in max-w-5xl mx-auto w-full">
             <div class="text-center space-y-3">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
-                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> Inteligência Artificial Executiva de Última Geração
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs sm:text-sm font-semibold">
+                    <i data-lucide="zap" class="w-4 h-4"></i> Inteligência Artificial Executiva de Última Geração
                 </div>
-                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight font-display">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-display">
                     Como posso ajudar a sua gestão hoje?
                 </h1>
-                <p class="text-sm md:text-base text-gray-400 max-w-lg mx-auto">
+                <p class="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
                     Análise técnica de documentos, síntese executiva de contratos, leitura de ficheiros e suporte em engenharia e finanças.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div onclick="insertPrompt('Solicito uma análise executiva e resumo estruturado deste documento.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="file-check-2" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Contratos & Minutas</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Parecer técnico de cláusulas, prazos e obrigações principais.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Contratos & Minutas</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Parecer técnico de cláusulas, prazos e obrigações principais.</p>
                 </div>
 
                 <div onclick="insertPrompt('Analise estes dados de engenharia/código e elabore um parecer técnico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="cpu" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Engenharia & Tecnologias</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Diagnóstico técnico, cálculos, análise de arquitetura e código.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Engenharia & Tecnologias</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Diagnóstico técnico, cálculos, análise de arquitetura e código.</p>
                 </div>
 
                 <div onclick="insertPrompt('Extraia os dados financeiros, métricas e estruture uma tabela executiva.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Finanças & Planilhas</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Extração automática e relatórios estruturados de Excel e PDF.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Finanças & Planilhas</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">Extração automática e relatórios estruturados de Excel e PDF.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Área de Conversa Executiva -->
-        <div id="chat-container" class="flex-1 space-y-6 overflow-y-auto min-h-[300px] max-h-[68vh] pr-1 pb-4"></div>
+        <!-- Área de Conversa Executiva em Tela Cheia -->
+        <div id="chat-container" class="flex-1 w-full space-y-4 overflow-y-auto min-h-[350px] max-h-[72vh] px-1 pb-4"></div>
 
-        <div class="sticky bottom-4 w-full">
+        <!-- Barra de Entrada de Texto Ocupando Toda a Largura -->
+        <div class="sticky bottom-2 w-full">
             <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
                 
                 <div id="file-preview-container" class="hidden items-center justify-between bg-white/5 p-2 px-3 rounded-xl border border-white/10">
                     <div class="flex items-center gap-2.5 overflow-hidden">
-                        <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
-                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-medium">documento.pdf</span>
+                        <i data-lucide="paperclip" class="w-5 h-5 text-honey-400 flex-shrink-0"></i>
+                        <span id="file-preview-name" class="text-sm text-gray-200 truncate font-medium">documento.pdf</span>
                     </div>
                     <button type="button" id="remove-file-btn" class="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                        <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <label for="file-input" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Ficheiro">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+                    <label for="file-input" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Ficheiro">
+                        <i data-lucide="paperclip" class="w-6 h-6"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
 
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Instrua a Honey IA ou anexe um documento para parecer..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5"
+                        placeholder="Instrua a Honey IA ou anexe um documento..." 
+                        class="w-full bg-transparent text-base sm:text-lg text-white placeholder-gray-400 focus:outline-none resize-none max-h-36 py-1.5"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="w-10 h-10 rounded-xl bg-gradient-to-tr from-honey-600 to-honey-400 hover:opacity-95 text-black font-bold flex items-center justify-center shadow-gold-glow flex-shrink-0 transition transform active:scale-95"
+                        class="w-12 h-12 rounded-xl bg-gradient-to-tr from-honey-600 to-honey-400 hover:opacity-95 text-black font-bold flex items-center justify-center shadow-gold-glow flex-shrink-0 transition transform active:scale-95"
                     >
-                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <i data-lucide="send" class="w-6 h-6"></i>
                     </button>
                 </div>
             </form>
             
             <div class="text-center mt-2">
-                <span class="text-[11px] text-gray-500 font-medium">Honey IA Enterprise v2.5 — Segurança e encriptação end-to-end</span>
+                <span class="text-xs text-gray-500 font-medium">Honey IA Enterprise v2.5 — Segurança e encriptação end-to-end</span>
             </div>
         </div>
 
@@ -538,12 +546,12 @@
             const priceDisp = document.getElementById('price-display');
 
             if (type === 'monthly') {
-                btnM.className = 'flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition';
-                btnY.className = 'flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition';
+                btnM.className = 'flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition';
+                btnY.className = 'flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition';
                 priceDisp.innerHTML = '$10 <span class="text-xs font-normal text-gray-400">/mês</span>';
             } else {
-                btnY.className = 'flex-1 py-1.5 rounded-lg font-bold bg-honey-500 text-black transition';
-                btnM.className = 'flex-1 py-1.5 rounded-lg font-bold text-gray-400 hover:text-white transition';
+                btnY.className = 'flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition';
+                btnM.className = 'flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition';
                 priceDisp.innerHTML = '$118 <span class="text-xs font-normal text-gray-400">/ano</span>';
             }
         }
@@ -639,20 +647,20 @@
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3.5 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full my-2`;
+            msgDiv.className = `flex gap-3 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full my-3`;
 
             if (isUser) {
                 const bubble = document.createElement('div');
-                bubble.className = 'bg-gradient-to-r from-honey-600/30 to-honey-500/20 border border-honey-500/40 text-white p-4 rounded-2xl rounded-tr-xs max-w-[85%] sm:max-w-[75%] text-sm shadow-md font-medium';
+                bubble.className = 'bg-gradient-to-r from-honey-600/40 to-honey-500/20 border border-honey-500/50 text-white p-4 sm:p-5 rounded-2xl rounded-tr-xs max-w-[95%] sm:max-w-[85%] text-base sm:text-lg shadow-md font-medium';
                 bubble.innerText = text;
                 msgDiv.appendChild(bubble);
             } else {
                 const avatar = document.createElement('div');
-                avatar.className = 'w-9 h-9 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center flex-shrink-0 shadow-gold-glow mt-1';
-                avatar.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-black"></i>';
+                avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center flex-shrink-0 shadow-gold-glow mt-1';
+                avatar.innerHTML = '<i data-lucide="sparkles" class="w-6 h-6 text-black"></i>';
 
                 const bubble = document.createElement('div');
-                bubble.className = 'bg-obsidian-card text-gray-100 p-4 md:p-6 rounded-2xl rounded-tl-xs w-full max-w-[92%] sm:max-w-[88%] border border-obsidian-border shadow-premium space-y-2 overflow-hidden';
+                bubble.className = 'bg-obsidian-card text-gray-100 p-4 sm:p-6 rounded-2xl rounded-tl-xs w-full max-w-[98%] sm:max-w-[95%] border border-obsidian-border shadow-premium space-y-2 overflow-hidden';
 
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content';
@@ -711,13 +719,13 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start items-center w-full my-2';
+            loadingDiv.className = 'flex gap-3 justify-start items-center w-full my-3';
             loadingDiv.innerHTML = `
-                <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i>
+                <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-honey-400"></i>
                 </div>
-                <div class="bg-obsidian-card text-honey-400 p-4 rounded-2xl text-xs font-semibold border border-obsidian-border flex items-center gap-2.5 shadow-premium">
-                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                <div class="bg-obsidian-card text-honey-400 p-4 sm:p-5 rounded-2xl text-sm sm:text-base font-semibold border border-obsidian-border flex items-center gap-3 shadow-premium">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
                     <span>A Honey IA está a processar o seu pedido...</span>
                 </div>
             `;
