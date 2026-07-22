@@ -11,12 +11,12 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
-    <!-- Marked.js para Renderização Premium de Markdown -->
+    <!-- Marked.js para Renderização de Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
@@ -38,8 +38,7 @@
                         obsidian: {
                             base: '#0b0c10',
                             card: '#13151c',
-                            border: 'rgba(255, 255, 255, 0.08)',
-                            hover: 'rgba(255, 255, 255, 0.04)'
+                            border: 'rgba(255, 255, 255, 0.08)'
                         }
                     },
                     boxShadow: {
@@ -56,8 +55,7 @@
             background-color: #0b0c10;
             color: #f3f4f6;
             background-image: 
-                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 90%, rgba(217, 119, 6, 0.03) 0%, transparent 40%);
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
             background-attachment: fixed;
         }
 
@@ -68,76 +66,83 @@
         }
 
         .glass-card {
-            background: rgba(19, 21, 28, 0.7);
+            background: rgba(19, 21, 28, 0.6);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s ease;
         }
 
         .glass-card:hover {
             border-color: rgba(245, 158, 11, 0.4);
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(245, 158, 11, 0.15);
         }
 
-        /* Estilização Acessível e Expandida do Chat */
+        /* Estilo Aberto e Expandido do Conteúdo */
         .markdown-content {
-            font-size: 1.05rem; /* Fonte ampliada para facilidade de leitura */
+            font-size: 1.125rem; /* ~18px para leitura grande e clara */
             line-height: 1.8;
             color: #e5e7eb;
-            word-break: break-word;
-            overflow-wrap: break-word;
+            width: 100%;
         }
-        
+
         @media (min-width: 768px) {
             .markdown-content {
-                font-size: 1.15rem; /* Fonte ainda maior em ecrãs médios/grandes */
+                font-size: 1.2rem; /* ~19px em ecrãs maiores */
             }
         }
 
-        .markdown-content p { margin-bottom: 1.1rem; }
-        .markdown-content p:last-child { margin-bottom: 0; }
+        .markdown-content p { 
+            margin-bottom: 1.25rem; 
+        }
+
+        .markdown-content p:last-child { 
+            margin-bottom: 0; 
+        }
+
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
             font-weight: 700;
-            margin-top: 1.6rem;
+            margin-top: 1.8rem;
             margin-bottom: 0.8rem;
-            letter-spacing: -0.01em;
         }
+
         .markdown-content h1 { 
-            font-size: 1.5rem; 
+            font-size: 1.6rem; 
             border-bottom: 1px solid rgba(255,255,255,0.1); 
             padding-bottom: 0.5rem; 
-            color: #ffffff;
         }
+
         .markdown-content h2 { 
-            font-size: 1.35rem; 
+            font-size: 1.4rem; 
             color: #fbbf24; 
-            border-bottom: 1px solid rgba(245, 158, 11, 0.15);
-            padding-bottom: 0.4rem;
         }
-        .markdown-content h3 { font-size: 1.2rem; color: #f3f4f6; }
+
+        .markdown-content h3 { 
+            font-size: 1.25rem; 
+        }
+
         .markdown-content ul, .markdown-content ol {
             margin-top: 0.5rem;
-            margin-bottom: 1.1rem;
+            margin-bottom: 1.25rem;
             padding-left: 1.5rem;
         }
+
         .markdown-content ul { list-style-type: disc; }
         .markdown-content ol { list-style-type: decimal; }
         .markdown-content li { margin-bottom: 0.5rem; }
         .markdown-content strong { color: #ffffff; font-weight: 700; }
+
+        /* Destaque Fluido sem Caixa Pesada */
         .markdown-content blockquote {
             border-left: 4px solid #f59e0b;
-            padding-left: 1.2rem;
-            margin: 1.2rem 0;
+            padding: 0.75rem 0 0.75rem 1.25rem;
+            margin: 1.25rem 0;
             color: #f3f4f6;
-            background: rgba(245, 158, 11, 0.08);
-            padding-top: 0.8rem;
-            padding-bottom: 0.8rem;
+            background: rgba(245, 158, 11, 0.05);
             border-radius: 0 12px 12px 0;
-            font-style: normal;
         }
+
         .markdown-content code {
             background: rgba(255, 255, 255, 0.1);
             color: #fbbf24;
@@ -146,72 +151,68 @@
             font-size: 0.9em;
             font-family: monospace;
         }
+
         .markdown-content pre {
-            background: #08090c;
+            background: #13151c;
             border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 1.2rem;
             border-radius: 14px;
             overflow-x: auto;
             margin: 1.2rem 0;
         }
+
         .markdown-content pre code {
             background: transparent;
             padding: 0;
             color: #e5e7eb;
         }
 
-        /* Wrapper para Tabelas Responsivas */
+        /* Tabelas Fluídas de Largura Total */
         .table-responsive-wrapper {
             width: 100%;
             overflow-x: auto;
-            margin: 1.4rem 0;
+            margin: 1.5rem 0;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(19, 21, 28, 0.5);
-            -webkit-overflow-scrolling: touch;
         }
 
         .markdown-content table {
             width: 100%;
-            min-width: 500px;
             border-collapse: collapse;
-            font-size: 1rem;
         }
+
         .markdown-content th, .markdown-content td {
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0.85rem 1.1rem;
+            padding: 0.9rem 1.2rem;
             text-align: left;
         }
+
         .markdown-content th {
             background: rgba(245, 158, 11, 0.15);
             color: #fbbf24;
             font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.05em;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-honey-500/30 selection:text-honey-400">
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden">
 
-    <!-- Header Fixo Tela Cheia -->
-    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-3 md:px-8 py-3.5">
+    <!-- Header Fixo -->
+    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-4 md:px-8 py-3.5">
         <div class="w-full mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
-                <button id="btn-open-menu" title="Menu principal" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-200 hover:text-white transition">
+                <button id="btn-open-menu" title="Menu principal" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-200 transition">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
 
-                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-sm text-gray-300 hover:text-gray-100 transition">
+                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-sm text-gray-300 transition">
                     <i data-lucide="search" class="w-4 h-4"></i>
                     <span class="font-medium">Procurar...</span>
-                    <kbd class="px-1.5 py-0.5 text-[11px] bg-white/10 rounded font-mono border border-white/10">⌘K</kbd>
+                    <kbd class="px-1.5 py-0.5 text-[11px] bg-white/10 rounded font-mono">⌘K</kbd>
                 </button>
 
                 <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
@@ -238,7 +239,7 @@
 
     <!-- Menu Lateral (Drawer) -->
     <div id="drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-card border-r border-obsidian-border z-50 -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-card border-r border-obsidian-border z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between shadow-2xl">
         <div class="space-y-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -270,19 +271,17 @@
         </div>
 
         <div class="pt-4 border-t border-white/10 space-y-3">
-            <div class="flex items-center justify-between px-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm text-honey-400">EX</div>
-                    <div class="text-xs sm:text-sm">
-                        <div class="font-bold text-white">Sua Conta</div>
-                        <div id="usage-counter" class="text-gray-400">Projetos criados: 0 / 2</div>
-                    </div>
+            <div class="flex items-center gap-3 px-2">
+                <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm text-honey-400">EX</div>
+                <div class="text-xs sm:text-sm">
+                    <div class="font-bold text-white">Sua Conta</div>
+                    <div id="usage-counter" class="text-gray-400">Projetos criados: 0 / 2</div>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- Modal de Planos & Subscrição -->
+    <!-- Modal de Planos -->
     <div id="plans-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
         <div id="plans-modal" class="bg-obsidian-card border border-obsidian-border rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
@@ -298,7 +297,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Plano Livre -->
                 <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
                     <div class="space-y-4">
                         <div class="inline-block px-3 py-1 rounded-full bg-white/10 text-xs text-gray-300 font-semibold">Gratuito</div>
@@ -306,14 +304,12 @@
                         <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
                         <ul class="space-y-2.5 text-xs sm:text-sm text-gray-300 pt-2">
                             <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversas e consultas executivas ilimitadas</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises de projetos complexos grátis</li>
-                            <li class="flex items-center gap-2 text-gray-500"><i data-lucide="x" class="w-4 h-4"></i> Criação contínua de projetos complexos</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises de projetos grátis</li>
                         </ul>
                     </div>
                     <button onclick="closePlansModal()" class="mt-6 w-full py-3 rounded-xl border border-white/20 text-white font-bold text-sm hover:bg-white/5 transition">Plano Atual</button>
                 </div>
 
-                <!-- Plano Pro -->
                 <div class="bg-gradient-to-b from-honey-500/10 to-transparent border-2 border-honey-500/50 rounded-2xl p-6 flex flex-col justify-between relative shadow-gold-glow">
                     <div class="absolute -top-3 right-4 bg-honey-500 text-black text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Recomendado</div>
                     <div class="space-y-4">
@@ -322,7 +318,7 @@
                         
                         <div class="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
                             <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
-                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual (-2% Desc.)</button>
+                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual</button>
                         </div>
 
                         <div id="price-display" class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
@@ -330,20 +326,12 @@
                         <ul class="space-y-2.5 text-xs sm:text-sm text-gray-200 pt-2">
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas de projetos</li>
                             <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel/OCR</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Modelos avançados de Gestão & Engenharia</li>
                         </ul>
                     </div>
 
                     <button onclick="startCheckout()" class="mt-6 w-full py-3.5 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:opacity-90 text-black font-extrabold text-sm shadow-gold-glow transition flex items-center justify-center gap-2">
                         <i data-lucide="credit-card" class="w-5 h-5"></i> Subscrever Agora
                     </button>
-                </div>
-            </div>
-
-            <div class="mt-6 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-gray-400 gap-2">
-                <span>Pagamento seguro encriptado:</span>
-                <div class="flex items-center gap-4 text-white font-bold text-xs sm:text-sm">
-                    <span class="flex items-center gap-1"><i data-lucide="credit-card" class="w-4 h-4 text-honey-400"></i> Multicaixa Express / Visa</span>
                 </div>
             </div>
         </div>
@@ -354,70 +342,60 @@
         <div id="cmdk-modal" class="bg-obsidian-card border border-obsidian-border rounded-2xl w-full max-w-xl p-4 shadow-2xl scale-95 transition-transform duration-200">
             <div class="flex items-center gap-3 px-3 pb-3 border-b border-white/10">
                 <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
-                <input id="cmdk-input" type="text" placeholder="Escreva um comando ou pesquisa..." class="w-full bg-transparent text-base text-white focus:outline-none">
+                <input id="cmdk-input" type="text" placeholder="Escreva um comando..." class="w-full bg-transparent text-base text-white focus:outline-none">
                 <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
-            </div>
-            <div class="py-3 text-xs sm:text-sm text-gray-400 space-y-2">
-                <div class="px-3 text-[11px] font-semibold tracking-wider text-gray-500 uppercase">Sugestões Executivas</div>
-                <div class="p-2.5 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Elabore um parecer técnico e resumido sobre este contrato de prestação de serviço.')">
-                    <span>📄 Analisar minuta ou contrato</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
-                </div>
-                <div class="p-2.5 hover:bg-white/5 rounded-xl cursor-pointer flex items-center justify-between text-gray-200" onclick="insertPrompt('Extraia os dados financeiros principais, totais e crie uma tabela resumo.')">
-                    <span>📊 Extrair dados de planilha ou tabela</span>
-                    <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500"></i>
-                </div>
             </div>
         </div>
     </div>
 
-    <!-- Conteúdo Principal FULL WIDTH (Aproveitando toda a tela) -->
-    <main class="flex-1 w-full px-2 sm:px-4 md:px-6 py-3 flex flex-col justify-between gap-4">
+    <!-- CONTEÚDO PRINCIPAL (LAYOUT TOTALMENTE ABERTO) -->
+    <main class="flex-1 w-full px-3 sm:px-6 md:px-10 py-4 flex flex-col justify-between gap-4">
         
-        <div id="welcome-section" class="py-6 space-y-6 animate-fade-in max-w-5xl mx-auto w-full">
+        <!-- Boas-vindas -->
+        <div id="welcome-section" class="py-8 space-y-6 animate-fade-in max-w-4xl mx-auto w-full">
             <div class="text-center space-y-3">
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs sm:text-sm font-semibold">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Inteligência Artificial Executiva de Última Geração
+                    <i data-lucide="zap" class="w-4 h-4"></i> Inteligência Artificial Executiva
                 </div>
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-display">
-                    Como posso ajudar a sua gestão hoje?
+                    Como posso ajudar hoje?
                 </h1>
-                <p class="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
-                    Análise técnica de documentos, síntese executiva de contratos, leitura de ficheiros e suporte em engenharia e finanças.
+                <p class="text-base sm:text-lg text-gray-300">
+                    Análise técnica de documentos, pareceres, finanças e engenharia.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div onclick="insertPrompt('Solicito uma análise executiva e resumo estruturado deste documento.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="file-check-2" class="w-6 h-6"></i>
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-white mb-1">Contratos & Minutas</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed">Parecer técnico de cláusulas, prazos e obrigações principais.</p>
+                    <p class="text-xs text-gray-400">Parecer técnico de cláusulas e obrigações.</p>
                 </div>
 
                 <div onclick="insertPrompt('Analise estes dados de engenharia/código e elabore um parecer técnico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="cpu" class="w-6 h-6"></i>
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-1">Engenharia & Tecnologias</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed">Diagnóstico técnico, cálculos, análise de arquitetura e código.</p>
+                    <h3 class="text-base font-bold text-white mb-1">Engenharia & Código</h3>
+                    <p class="text-xs text-gray-400">Diagnósticos técnicos e soluções de código.</p>
                 </div>
 
                 <div onclick="insertPrompt('Extraia os dados financeiros, métricas e estruture uma tabela executiva.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-base font-bold text-white mb-1">Finanças & Planilhas</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed">Extração automática e relatórios estruturados de Excel e PDF.</p>
+                    <p class="text-xs text-gray-400">Extração de dados e tabelas estruturadas.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Área de Conversa Executiva em Tela Cheia -->
-        <div id="chat-container" class="flex-1 w-full space-y-4 overflow-y-auto min-h-[350px] max-h-[72vh] px-1 pb-4"></div>
+        <!-- Área do Chat Flutuante e Aberta (Sem Caixas de Fundo) -->
+        <div id="chat-container" class="flex-1 w-full space-y-6 overflow-y-auto min-h-[350px] max-h-[75vh] px-1 pb-6"></div>
 
-        <!-- Barra de Entrada de Texto Ocupando Toda a Largura -->
+        <!-- Barra de Input Fixo na Parte Inferior -->
         <div class="sticky bottom-2 w-full">
             <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
                 
@@ -440,7 +418,7 @@
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Instrua a Honey IA ou anexe um documento..." 
+                        placeholder="Instrua a Honey IA ou anexe um ficheiro..." 
                         class="w-full bg-transparent text-base sm:text-lg text-white placeholder-gray-400 focus:outline-none resize-none max-h-36 py-1.5"
                     ></textarea>
 
@@ -461,11 +439,10 @@
 
     </main>
 
-    <!-- JavaScript Integrado e Corrigido -->
+    <!-- Script de Renderização Limpa -->
     <script>
         lucide.createIcons();
 
-        // Estado do Utilizador e Limite Grátis
         let usageCount = parseInt(localStorage.getItem('honey_usage_count') || '0');
         const MAX_FREE_USAGE = 2;
 
@@ -486,7 +463,6 @@
         const filePreviewName = document.getElementById('file-preview-name');
         const removeFileBtn = document.getElementById('remove-file-btn');
 
-        // Drawer
         const btnOpenMenu = document.getElementById('btn-open-menu');
         const btnCloseMenu = document.getElementById('btn-close-menu');
         const drawerMenu = document.getElementById('drawer-menu');
@@ -523,10 +499,8 @@
             }
         }
 
-        // Modal de Planos
         const plansBackdrop = document.getElementById('plans-backdrop');
         const plansModal = document.getElementById('plans-modal');
-        let selectedBilling = 'monthly';
 
         function openPlansModal() {
             toggleDrawer(false);
@@ -540,7 +514,6 @@
         }
 
         function setBilling(type) {
-            selectedBilling = type;
             const btnM = document.getElementById('btn-billing-monthly');
             const btnY = document.getElementById('btn-billing-yearly');
             const priceDisp = document.getElementById('price-display');
@@ -560,18 +533,15 @@
             openPlansModal();
         }
 
-        // Command K
         const btnCmdK = document.getElementById('btn-cmd-k');
         const btnCloseCmdK = document.getElementById('btn-close-cmdk');
         const cmdkBackdrop = document.getElementById('cmdk-backdrop');
         const cmdkModal = document.getElementById('cmdk-modal');
-        const cmdkInput = document.getElementById('cmdk-input');
 
         function toggleCmdK(open) {
             if (open) {
                 cmdkBackdrop.classList.remove('pointer-events-none', 'opacity-0');
                 cmdkModal.classList.remove('scale-95');
-                cmdkInput.focus();
             } else {
                 cmdkBackdrop.classList.add('pointer-events-none', 'opacity-0');
                 cmdkModal.classList.add('scale-95');
@@ -580,21 +550,6 @@
 
         btnCmdK.addEventListener('click', () => toggleCmdK(true));
         btnCloseCmdK.addEventListener('click', () => toggleCmdK(false));
-        cmdkBackdrop.addEventListener('click', (e) => {
-            if (e.target === cmdkBackdrop) toggleCmdK(false);
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                toggleCmdK(true);
-            }
-            if (e.key === 'Escape') {
-                toggleCmdK(false);
-                toggleDrawer(false);
-                closePlansModal();
-            }
-        });
 
         let currentFileBase64 = null;
         let currentFileMimeType = null;
@@ -642,37 +597,40 @@
             filePreviewContainer.classList.remove('flex');
         });
 
+        // RENDERIZAÇÃO LIMPA E SEM CAIXA ENVOLVENTE
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
             const isUser = role === 'user';
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3 ${isUser ? 'justify-end' : 'justify-start'} items-start w-full my-3`;
-
+            
             if (isUser) {
-                const bubble = document.createElement('div');
-                bubble.className = 'bg-gradient-to-r from-honey-600/40 to-honey-500/20 border border-honey-500/50 text-white p-4 sm:p-5 rounded-2xl rounded-tr-xs max-w-[95%] sm:max-w-[85%] text-base sm:text-lg shadow-md font-medium';
-                bubble.innerText = text;
-                msgDiv.appendChild(bubble);
+                msgDiv.className = 'flex justify-end w-full my-4';
+                
+                const userBubble = document.createElement('div');
+                userBubble.className = 'bg-honey-500/20 border border-honey-500/40 text-white px-5 py-3.5 rounded-2xl rounded-tr-xs max-w-[88%] text-base sm:text-lg font-medium shadow-sm';
+                userBubble.innerText = text;
+                
+                msgDiv.appendChild(userBubble);
             } else {
-                const avatar = document.createElement('div');
-                avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center flex-shrink-0 shadow-gold-glow mt-1';
-                avatar.innerHTML = '<i data-lucide="sparkles" class="w-6 h-6 text-black"></i>';
+                msgDiv.className = 'flex flex-col gap-2 w-full my-6 animate-fade-in';
 
-                const bubble = document.createElement('div');
-                bubble.className = 'bg-obsidian-card text-gray-100 p-4 sm:p-6 rounded-2xl rounded-tl-xs w-full max-w-[98%] sm:max-w-[95%] border border-obsidian-border shadow-premium space-y-2 overflow-hidden';
+                // Cabeçalho discreto da IA
+                const aiHeader = document.createElement('div');
+                aiHeader.className = 'flex items-center gap-2 text-honey-400 font-bold text-sm tracking-wide uppercase font-display';
+                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i> Honey IA';
 
+                // Conteúdo totalmente aberto e sem fundo de caixa
                 const parsedContent = document.createElement('div');
-                parsedContent.className = 'markdown-content';
+                parsedContent.className = 'markdown-content pl-1';
                 
                 let rawHtml = marked.parse(text);
                 rawHtml = rawHtml.replace(/<table>/g, '<div class="table-responsive-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
                 
                 parsedContent.innerHTML = rawHtml;
 
-                bubble.appendChild(parsedContent);
-                msgDiv.appendChild(avatar);
-                msgDiv.appendChild(bubble);
+                msgDiv.appendChild(aiHeader);
+                msgDiv.appendChild(parsedContent);
             }
 
             chatContainer.appendChild(msgDiv);
@@ -680,7 +638,6 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Verifica se é uma solicitação explícita de criação de projeto funcional/completo ou envio de ficheiro
         function isProjectCreationRequest(text, hasFile) {
             if (hasFile) return true;
             const keywords = ['criar projeto', 'construir projeto', 'desenvolver projeto', 'projeto completo', 'projeto funcional', 'sistema completo', 'aplicação completa', 'código completo'];
@@ -696,7 +653,6 @@
 
             const isCreation = isProjectCreationRequest(text, !!currentFileBase64);
 
-            // Bloqueia e abre DIRETAMENTE o modal de planos sem adicionar mensagem no chat
             if (isCreation && usageCount >= MAX_FREE_USAGE) {
                 openPlansModal();
                 return;
@@ -719,15 +675,10 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex gap-3 justify-start items-center w-full my-3';
+            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 font-semibold text-base';
             loadingDiv.innerHTML = `
-                <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-honey-400"></i>
-                </div>
-                <div class="bg-obsidian-card text-honey-400 p-4 sm:p-5 rounded-2xl text-sm sm:text-base font-semibold border border-obsidian-border flex items-center gap-3 shadow-premium">
-                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                    <span>A Honey IA está a processar o seu pedido...</span>
-                </div>
+                <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+                <span>A Honey IA está a processar...</span>
             `;
             chatContainer.appendChild(loadingDiv);
             lucide.createIcons();
