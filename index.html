@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Executive Spatial Suite</title>
+    <title>Honey IA — Platform</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,10 +14,10 @@
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Google Fonts: Syne (Headings de Luxo/Tech) & Plus Jakarta Sans (Interface) -->
+    <!-- Google Fonts: Inter & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -25,8 +25,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        display: ['Syne', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
                         honey: {
@@ -36,14 +36,10 @@
                             600: '#d97706',
                         },
                         obsidian: {
-                            deep: '#050608',
-                            base: '#0a0c10',
-                            card: 'rgba(18, 21, 31, 0.75)',
+                            deep: '#07080a',
+                            base: '#0d0f14',
+                            card: '#131722',
                         }
-                    },
-                    boxShadow: {
-                        '3d-glow': '0 20px 50px -10px rgba(245, 158, 11, 0.25), 0 0 15px rgba(245, 158, 11, 0.2)',
-                        '3d-card': '0 30px 60px -12px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.15)',
                     }
                 }
             }
@@ -52,330 +48,279 @@
 
     <style>
         body {
-            background-color: #050608;
+            background-color: #07080a;
             color: #f3f4f6;
-            overflow-x: hidden;
-            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-            perspective: 1200px; /* Habilita perspetiva 3D global */
+            font-family: 'Inter', sans-serif;
         }
 
-        /* Fundos Tridimensionais e Malha Néon */
-        .ambient-mesh {
+        .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* Fundo Dinâmico Subtil */
+        .ambient-glow {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background: 
-                radial-gradient(circle at 50% -10%, rgba(245, 158, 11, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 85% 90%, rgba(217, 119, 6, 0.08) 0%, transparent 40%);
+            background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* LOGÓTIPO 3D HOLOGRÁFICO */
-        .logo-3d-box {
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.4s ease, box-shadow 0.4s ease;
-            background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
-            box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6);
-        }
-
-        .logo-3d-box::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 0.85rem;
-            background: linear-gradient(135deg, rgba(255,255,255,0.4), transparent);
-            z-index: -1;
-            transform: translateZ(-5px);
-        }
-
-        .group:hover .logo-3d-box {
-            transform: rotateY(15deg) rotateX(10deg) translateZ(5px);
-            box-shadow: 0 15px 30px -5px rgba(245, 158, 11, 0.7), inset 0 2px 6px rgba(255, 255, 255, 0.8);
-        }
-
-        /* CARTÕES COM EFEITO TILT 3D E CAMADAS */
-        .card-3d-container {
-            perspective: 1000px;
-        }
-
+        /* Cartões com Efeito Elevação 3D Clean */
         .card-3d {
-            transform-style: preserve-3d;
-            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease, border-color 0.4s ease;
-            background: rgba(15, 18, 27, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(19, 23, 34, 0.75);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
         }
 
-        .card-3d:hover {
-            transform: translateY(-8px) rotateX(4deg) rotateY(-2deg) scale(1.02);
+        .card-3d:active, .card-3d:hover {
+            transform: translateY(-4px);
             border-color: rgba(245, 158, 11, 0.4);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 25px rgba(245, 158, 11, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.2);
-        }
-
-        /* Efeito de projeção interna para o ícone do cartão (Camada 3D extra) */
-        .card-3d-icon {
-            transform: translateZ(20px);
-            transition: transform 0.4s ease;
-        }
-        .card-3d:hover .card-3d-icon {
-            transform: translateZ(35px) scale(1.1);
+            box-shadow: 0 12px 30px -4px rgba(245, 158, 11, 0.15), 0 4px 12px rgba(0,0,0,0.8);
         }
 
         .glass-header {
-            background: rgba(10, 12, 16, 0.8);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(7, 8, 10, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         /* Estilização Markdown */
         .markdown-content {
-            font-size: 1.05rem;
-            line-height: 1.8;
+            font-size: 0.95rem;
+            line-height: 1.7;
             color: #e2e8f0;
         }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            font-family: 'Syne', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
             font-weight: 700;
-            margin-top: 1.5rem;
-            margin-bottom: 0.6rem;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
         }
         .markdown-content h2 { color: #fbbf24; }
         .markdown-content ul { list-style-type: disc; margin-left: 1.2rem; }
-        .markdown-content ol { list-style-type: decimal; margin-left: 1.2rem; }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col justify-between relative selection:bg-honey-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-honey-500 selection:text-black">
 
-    <div class="ambient-mesh"></div>
+    <div class="ambient-glow"></div>
 
     <!-- Header Fixo -->
-    <header class="sticky top-0 z-40 w-full glass-header px-4 md:px-8 py-3.5">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <header class="sticky top-0 z-40 w-full glass-header px-3 sm:px-6 py-3">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
             
-            <div class="flex items-center gap-4">
-                <button id="btn-open-menu" title="Menu" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition active:scale-95">
+            <div class="flex items-center gap-3">
+                <button id="btn-open-menu" title="Menu" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition active:scale-95">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <!-- LOGÓTIPO RECONSTRUÍDO 3D -->
-                <div class="flex items-center gap-3 cursor-pointer group" onclick="resetChat()">
-                    <div class="logo-3d-box w-10 h-10 rounded-xl flex items-center justify-center">
-                        <i data-lucide="cpu" class="w-5 h-5 text-black"></i>
+                <!-- LOGÓTIPO ABELHA RAINHA COM COROA ENCAIXADA -->
+                <div class="flex items-center gap-2.5 cursor-pointer group" onclick="resetChat()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 via-honey-500 to-honey-600 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/25 group-hover:scale-105 transition">
+                        <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-black stroke-current stroke-[1.8]" stroke-linecap="round" stroke-linejoin="round">
+                            <!-- Coroa Pequena Encaixada no Topo da Cabeça -->
+                            <path d="M10.2 6.8L11 4.5l1 2.3 1-2.3 0.8 2.3h-3.6z" fill="black" stroke="black" stroke-width="0.5" stroke-linejoin="round"/>
+                            <!-- Cabeça da Abelha -->
+                            <circle cx="12" cy="8.5" r="2" fill="black" stroke="none" />
+                            <!-- Corpo / Abdómen -->
+                            <path d="M12 11c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z" />
+                            <!-- Listras do Abdómen -->
+                            <path d="M8.5 14h7M9 17h6" stroke="#f59e0b" stroke-width="1.5" />
+                            <!-- Asas -->
+                            <path d="M7 11C5.5 9.5 4.5 8 5.5 6.5s2.5 0.5 3.5 2.5" />
+                            <path d="M17 11c1.5-1.5 2.5-3 1.5-4.5s-2.5 0.5-3.5 2.5" />
+                        </svg>
                     </div>
                     <div class="flex flex-col">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl font-extrabold tracking-tight text-white font-display">HONEY<span class="text-honey-400">.IA</span></span>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-honey-500/15 border border-honey-500/30 text-honey-400 tracking-widest uppercase">3D PRO</span>
-                        </div>
-                        <span class="text-[9px] text-gray-400 font-semibold tracking-widest uppercase block -mt-1">Executive Spatial Platform</span>
+                        <span class="text-lg font-bold text-white font-display tracking-tight leading-none">Honey<span class="text-honey-400">.IA</span></span>
+                        <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">Enterprise</span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button onclick="openPlansModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-honey-500/20 via-honey-500/10 to-transparent hover:bg-honey-500/30 border border-honey-500/40 text-honey-400 font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-3d-glow">
-                    <i data-lucide="crown" class="w-4 h-4 text-honey-400"></i>
-                    <span>Planos Pro</span>
-                </button>
-            </div>
+            <button onclick="openPlansModal()" class="px-3 py-1.5 rounded-xl bg-honey-500/10 hover:bg-honey-500/20 border border-honey-500/30 text-honey-400 font-bold text-xs transition flex items-center gap-1.5">
+                <i data-lucide="crown" class="w-3.5 h-3.5 text-honey-400"></i>
+                <span>Pro</span>
+            </button>
         </div>
     </header>
 
-    <!-- Menu Lateral Drawer -->
-    <div id="drawer-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-base border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between shadow-2xl">
+    <!-- Drawer Lateral -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-72 bg-obsidian-base border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-5 flex flex-col justify-between">
         <div class="space-y-6">
             <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-honey-500/20 border border-honey-500/30 flex items-center justify-center text-honey-400">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-honey-500/20 border border-honey-500/30 flex items-center justify-center text-honey-400">
                         <i data-lucide="sparkles" class="w-4 h-4"></i>
                     </div>
-                    <span class="font-bold text-white text-base font-display">Honey IA Suite</span>
+                    <span class="font-bold text-white text-sm font-display">Honey IA Suite</span>
                 </div>
-                <button id="btn-close-menu" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition">
+                <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg transition">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <nav class="space-y-2">
-                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-honey-500/20 to-transparent border border-honey-500/30 text-honey-400 font-bold text-sm hover:brightness-125 transition">
-                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Nova Conversa
+            <nav class="space-y-1.5">
+                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-honey-500/10 border border-honey-500/30 text-honey-400 font-semibold text-xs hover:bg-honey-500/20 transition">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conversa
                 </button>
-                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="file-check-2" class="w-5 h-5 text-honey-400"></i> Análise de Contratos
+                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                    <i data-lucide="file-check-2" class="w-4 h-4 text-honey-400"></i> Análise de Contratos
                 </button>
-                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5 text-honey-400"></i> Relatórios Financeiros
+                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-honey-400"></i> Relatórios Financeiros
                 </button>
-                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
-                    <i data-lucide="cpu" class="w-5 h-5 text-honey-400"></i> Engenharia & Código
+                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                    <i data-lucide="cpu" class="w-4 h-4 text-honey-400"></i> Engenharia & Código
                 </button>
             </nav>
         </div>
 
         <div class="pt-4 border-t border-white/10">
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                <div class="w-8 h-8 rounded-lg bg-honey-500 flex items-center justify-center font-bold text-black text-xs">EX</div>
-                <div class="text-xs">
-                    <div class="font-bold text-white">Sessão Ativa</div>
-                    <div id="usage-counter" class="text-gray-400">Uso: 0 / 2 projetos</div>
-                </div>
-            </div>
+            <div class="text-xs text-gray-400 font-medium" id="usage-counter">Uso: 0 / 2 projetos</div>
         </div>
     </aside>
 
-    <!-- Modal de Planos -->
-    <div id="plans-backdrop" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
-        <div id="plans-modal" class="bg-obsidian-base border border-white/10 rounded-3xl w-full max-w-2xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2 font-display">
-                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Subscrição Executive Pro
-                    </h2>
-                    <p class="text-xs text-gray-400 mt-1">Produtividade avançada sem limites.</p>
-                </div>
-                <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+    <!-- Modal Planos -->
+    <div id="plans-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div id="plans-modal" class="bg-obsidian-card border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl scale-95 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold text-white font-display flex items-center gap-2">
+                    <i data-lucide="crown" class="w-5 h-5 text-honey-400"></i> Planos Honey IA
+                </h2>
+                <button onclick="closePlansModal()" class="p-1 text-gray-400 hover:text-white rounded-lg transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
-                    <div class="space-y-3">
-                        <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-[10px] text-gray-300 font-bold uppercase">Standard</span>
-                        <h3 class="text-lg font-bold text-white font-display">Gratuito</h3>
-                        <div class="text-2xl font-extrabold text-white">$0</div>
+            <div class="space-y-3">
+                <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-white text-sm">Plano Gratuito</div>
+                        <div class="text-xs text-gray-400">2 Análises / dia</div>
                     </div>
-                    <button onclick="closePlansModal()" class="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-white font-bold text-xs hover:bg-white/5 transition">Plano Atual</button>
+                    <span class="text-xs font-bold text-gray-400">Ativo</span>
                 </div>
-
-                <div class="bg-gradient-to-b from-honey-500/20 to-transparent border-2 border-honey-500/50 rounded-2xl p-5 flex flex-col justify-between shadow-3d-glow">
-                    <div class="space-y-3">
-                        <span class="inline-block px-3 py-1 rounded-full bg-honey-500/20 text-[10px] text-honey-400 font-bold uppercase">Pro Spatial</span>
-                        <h3 class="text-lg font-bold text-white font-display">Acesso Total</h3>
-                        <div class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
+                <div class="p-4 rounded-xl bg-honey-500/10 border border-honey-500/40 flex justify-between items-center">
+                    <div>
+                        <div class="font-bold text-white text-sm">Plano Pro</div>
+                        <div class="text-xs text-gray-400">Acesso ilimitado + Groq Llama3</div>
                     </div>
-                    <button onclick="alert('Redirecionando para o pagamento...')" class="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 text-black font-extrabold text-xs shadow-3d-glow transition">Ativar Agora</button>
+                    <button onclick="alert('Redirecionando...')" class="px-3 py-1.5 rounded-lg bg-honey-500 text-black font-bold text-xs">Ativar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-36 flex flex-col justify-between relative z-10">
+    <!-- MAIN CONTEÚDO -->
+    <main class="flex-1 w-full max-w-3xl mx-auto px-4 pt-4 pb-28 flex flex-col justify-between relative z-10">
         
-        <!-- Hero Section com Cartões 3D Spatial -->
-        <div id="welcome-section" class="py-4 space-y-10">
+        <!-- Welcome Section -->
+        <div id="welcome-section" class="py-2 space-y-6">
             
-            <div class="text-center space-y-4">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/30 text-honey-400 text-xs font-bold tracking-wide shadow-3d-glow">
-                    <span class="w-2 h-2 rounded-full bg-honey-400 animate-pulse"></span>
-                    <span>MOTOR GROQ LLAMA3 ATIVADO</span>
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-honey-400 animate-pulse"></span>
+                    <span>MOTOR GROQ LLAMA3</span>
                 </div>
 
-                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-display leading-tight">
-                    O que vamos <span class="text-transparent bg-clip-text bg-gradient-to-r from-honey-300 via-honey-400 to-honey-600">resolver hoje?</span>
+                <h1 class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight">
+                    O que vamos <span class="text-honey-400">resolver hoje?</span>
                 </h1>
 
-                <p class="text-sm sm:text-base text-gray-400 max-w-lg mx-auto leading-relaxed">
-                    Escolha um módulo de trabalho inteligente ou carregue o seu ficheiro.
+                <p class="text-xs sm:text-sm text-gray-400 max-w-md mx-auto">
+                    Escolha uma categoria ou envie diretamente o seu documento.
                 </p>
             </div>
 
-            <!-- Cartões 3D com Perspetiva Espacial -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 card-3d-container">
+            <!-- Cartões de Atalho -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 
-                <div onclick="insertPrompt('Elabore um parecer executivo minucioso sobre este documento, sublinhando riscos e cláusulas críticas.')" class="card-3d p-6 rounded-2xl cursor-pointer group">
-                    <div class="card-3d-icon w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 shadow-3d-glow">
-                        <i data-lucide="file-check-2" class="w-6 h-6"></i>
+                <div onclick="insertPrompt('Elabore um parecer executivo sobre este documento, sublinhando riscos e cláusulas críticas.')" class="card-3d p-4 rounded-xl cursor-pointer group">
+                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-2 font-display flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
                         Contratos
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Análise técnica de cláusulas e obrigações.</p>
+                    <p class="text-[11px] text-gray-400">Análise de cláusulas e obrigações.</p>
                 </div>
 
-                <div onclick="insertPrompt('Analise este código/projeto técnico, identifique falhas e forneça a solução otimizada.')" class="card-3d p-6 rounded-2xl cursor-pointer group">
-                    <div class="card-3d-icon w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 shadow-3d-glow">
-                        <i data-lucide="cpu" class="w-6 h-6"></i>
+                <div onclick="insertPrompt('Analise este projeto técnico ou código, identifique falhas e forneça a solução.')" class="card-3d p-4 rounded-xl cursor-pointer group">
+                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-2 font-display flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
                         Engenharia
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Diagnósticos de arquitetura e código.</p>
+                    <p class="text-[11px] text-gray-400">Diagnóstico de projetos e código.</p>
                 </div>
 
-                <div onclick="insertPrompt('Extraia os dados financeiros principais deste documento e estruture uma tabela clara.')" class="card-3d p-6 rounded-2xl cursor-pointer group">
-                    <div class="card-3d-icon w-12 h-12 rounded-xl bg-honey-500/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 shadow-3d-glow">
-                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                <div onclick="insertPrompt('Extraia os dados financeiros principais deste documento e estruture em tabela.')" class="card-3d p-4 rounded-xl cursor-pointer group">
+                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-2 font-display flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
                         Finanças
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Extração de tabelas e balanços estruturados.</p>
+                    <p class="text-[11px] text-gray-400">Extração de dados e tabelas.</p>
                 </div>
 
             </div>
         </div>
 
-        <!-- Conversa -->
-        <div id="chat-container" class="w-full space-y-6 overflow-y-auto px-1"></div>
+        <!-- Chat Container -->
+        <div id="chat-container" class="w-full space-y-4"></div>
 
     </main>
 
-    <!-- Floating Input Container -->
-    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-5 bg-gradient-to-t from-black via-black/90 to-transparent pt-8">
-        <div class="max-w-4xl mx-auto">
-            <form id="chat-form" class="bg-obsidian-card border border-white/10 rounded-2xl p-2.5 sm:p-3 shadow-3d-card focus-within:border-honey-500/50 transition duration-300 relative">
+    <!-- CAIXA DE MENSAGEM FIXA NA PARTE INFERIOR -->
+    <div class="fixed bottom-0 left-0 w-full z-30 p-3 bg-gradient-to-t from-obsidian-deep via-obsidian-deep to-transparent">
+        <div class="max-w-3xl mx-auto">
+            <form id="chat-form" class="bg-obsidian-card border border-white/10 rounded-xl p-2 shadow-xl focus-within:border-honey-500/50 transition">
                 
-                <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-2.5 px-3.5 rounded-xl border border-honey-500/20 mb-2">
-                    <div class="flex items-center gap-2.5 overflow-hidden">
-                        <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
-                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-semibold">documento.pdf</span>
+                <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-2 rounded-lg border border-honey-500/20 mb-2">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <i data-lucide="paperclip" class="w-3.5 h-3.5 text-honey-400 flex-shrink-0"></i>
+                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-medium">documento.pdf</span>
                     </div>
                     <button type="button" id="remove-file-btn" class="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <label for="file-input" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+                <div class="flex items-center gap-2">
+                    <label for="file-input" class="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
+                        <i data-lucide="paperclip" class="w-4 h-4"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
 
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Instrua a Honey IA ou anexe um ficheiro..." 
-                        class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-2"
+                        placeholder="Escreva a sua mensagem..." 
+                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-24 py-1.5"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-honey-600 via-honey-500 to-honey-400 hover:brightness-110 text-black font-extrabold flex items-center justify-center shadow-3d-glow flex-shrink-0 transition transform active:scale-95"
+                        class="w-9 h-9 rounded-lg bg-honey-500 hover:bg-honey-400 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-95"
                     >
-                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
                 </div>
             </form>
-            
-            <div class="text-center mt-2.5">
-                <span class="text-[10px] text-gray-500 font-medium tracking-wide">Honey IA Spatial Enterprise — Segurança e Encriptação de Nível Bancário</span>
-            </div>
         </div>
     </div>
 
-    <!-- Script de Lógica -->
     <script>
         lucide.createIcons();
 
@@ -388,7 +333,6 @@
         }
         updateUsageUI();
 
-        // Elementos do Chat
         const chatContainer = document.getElementById('chat-container');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
@@ -398,7 +342,6 @@
         const filePreviewName = document.getElementById('file-preview-name');
         const removeFileBtn = document.getElementById('remove-file-btn');
 
-        // Drawer
         const btnOpenMenu = document.getElementById('btn-open-menu');
         const btnCloseMenu = document.getElementById('btn-close-menu');
         const drawerMenu = document.getElementById('drawer-menu');
@@ -432,7 +375,6 @@
             else if (type === 'Engenharia') insertPrompt('Forneça uma avaliação técnica sobre este projeto/código.');
         }
 
-        // Modais de Planos
         const plansBackdrop = document.getElementById('plans-backdrop');
         const plansModal = document.getElementById('plans-modal');
 
@@ -500,19 +442,17 @@
             const msgDiv = document.createElement('div');
             
             if (isUser) {
-                msgDiv.className = 'flex justify-end w-full my-3';
-                
+                msgDiv.className = 'flex justify-end w-full my-2';
                 const userBubble = document.createElement('div');
-                userBubble.className = 'bg-gradient-to-r from-honey-500/20 to-honey-600/20 border border-honey-500/40 text-white px-5 py-3 rounded-2xl rounded-tr-xs max-w-[88%] text-sm font-medium shadow-md';
+                userBubble.className = 'bg-honey-500/20 border border-honey-500/40 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[88%] text-xs sm:text-sm font-medium';
                 userBubble.innerText = text;
-                
                 msgDiv.appendChild(userBubble);
             } else {
-                msgDiv.className = 'flex flex-col gap-2 w-full my-6';
+                msgDiv.className = 'flex flex-col gap-1.5 w-full my-4';
 
                 const aiHeader = document.createElement('div');
-                aiHeader.className = 'flex items-center gap-2 text-honey-400 font-bold text-xs tracking-wider uppercase font-display';
-                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-honey-400"></i> Honey IA';
+                aiHeader.className = 'flex items-center gap-1.5 text-honey-400 font-bold text-xs uppercase font-display';
+                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5 text-honey-400"></i> Honey IA';
 
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content pl-1';
@@ -556,10 +496,10 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 font-semibold text-sm animate-pulse';
+            loadingDiv.className = 'flex items-center gap-2 text-honey-400 py-3 font-medium text-xs animate-pulse';
             loadingDiv.innerHTML = `
-                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                <span>A Honey IA está a processar...</span>
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                <span>A Honey IA está a analisar...</span>
             `;
             chatContainer.appendChild(loadingDiv);
             lucide.createIcons();
