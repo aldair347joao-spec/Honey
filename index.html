@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honey IA — Central de Inteligência Enterprise</title>
     
-    <!-- Tailwind CSS & Lucide Icons -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Marked.js para renderizar Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -141,13 +140,13 @@
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
-                <button id="btn-open-menu" class="p-2 rounded-xl bg-white/[0.04] border border-white/10 text-gray-300 transition active:scale-95">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
+                <button id="btn-open-menu" class="p-2 rounded-xl bg-white/[0.04] border border-white/10 text-gray-300 transition active:scale-95 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
                 </button>
 
                 <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
                     <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]">
-                        <i data-lucide="crown" class="w-4 h-4"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294l5.122-3.84a.5.5 0 0 1 .78.528l-2.73 12.28A2 2 0 0 1 18.125 20H5.875a2 2 0 0 1-1.953-1.868L1.192 5.852a.5.5 0 0 1 .78-.528l5.122 3.84a1 1 0 0 0 1.516-.294z"/></svg>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm font-extrabold tracking-tight text-white leading-none">HONEY IA</span>
@@ -157,7 +156,7 @@
             </div>
 
             <button onclick="openPlansModal()" class="px-3 py-1.5 rounded-xl bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition">
-                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 <span>Planos Pro</span>
             </button>
         </div>
@@ -170,11 +169,11 @@
             <div class="flex items-center justify-between pb-4 border-b border-white/10">
                 <span class="font-bold text-white text-base">Histórico de Projetos</span>
                 <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             </div>
             <button onclick="createNewSession()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white font-semibold text-sm transition active:scale-95">
-                <i data-lucide="plus" class="w-4 h-4 text-gold-400"></i> Novo Projeto
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Novo Projeto
             </button>
             <div id="sessions-list" class="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar"></div>
         </div>
@@ -190,10 +189,10 @@
     <div id="preview-backdrop" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity flex flex-col p-2 sm:p-6">
         <div class="flex justify-between items-center bg-[#090D16] border border-white/10 p-3 rounded-t-2xl">
             <span class="text-xs font-bold text-gold-400 flex items-center gap-2">
-                <i data-lucide="eye" class="w-4 h-4"></i> Live Preview — Honey IA
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Live Preview — Honey IA
             </span>
             <button onclick="closePreviewModal()" class="p-1 text-gray-400 hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
         </div>
         <iframe id="preview-frame" class="w-full h-full bg-white rounded-b-2xl border border-white/10"></iframe>
@@ -204,10 +203,10 @@
         <div id="plans-modal" class="bg-[#090D16] border border-gold-500/40 rounded-2xl w-full max-w-md p-6 shadow-2xl scale-95 transition-transform relative">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    <i data-lucide="crown" class="w-5 h-5 text-gold-400"></i> Honey IA Pro
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294l5.122-3.84a.5.5 0 0 1 .78.528l-2.73 12.28A2 2 0 0 1 18.125 20H5.875a2 2 0 0 1-1.953-1.868L1.192 5.852a.5.5 0 0 1 .78-.528l5.122 3.84a1 1 0 0 0 1.516-.294z"/></svg> Honey IA Pro
                 </h2>
                 <button onclick="closePlansModal()" class="p-1 text-gray-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
             </div>
             <div class="p-4 rounded-xl bg-gold-500/10 border border-gold-500/20 space-y-4">
@@ -222,7 +221,7 @@
     </div>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-2 pb-44 relative z-10 flex flex-col justify-center">
+    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-4 pb-48 relative z-10 flex flex-col justify-center">
         
         <!-- HERO / BOAS VINDAS -->
         <div id="welcome-section" class="space-y-4">
@@ -239,21 +238,21 @@
             <!-- PILLS HORIZONTAIS -->
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:justify-center">
                 <button onclick="insertPrompt('Crie a estrutura e o código completo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
-                    <i data-lucide="code-2" class="w-3.5 h-3.5 text-gold-400"></i> Apps & Web
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Apps & Web
                 </button>
                 <button onclick="insertPrompt('Crie o conceito de marca e arte para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
-                    <i data-lucide="palette" class="w-3.5 h-3.5 text-gold-400"></i> Logos & Design
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.65 0-.43-.17-.83-.44-1.13-.27-.3-.44-.7-.44-1.13 0-.93.77-1.7 1.7-1.7h2.15c2.95 0 5.33-2.38 5.33-5.33 0-5.02-4.52-9.06-10-9.06z"/></svg> Logos & Design
                 </button>
                 <button onclick="insertPrompt('Escreva um roteiro comercial de vídeo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
-                    <i data-lucide="video" class="w-3.5 h-3.5 text-gold-400"></i> Vídeos
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><rect width="20" height="14" x="2" y="5" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg> Vídeos
                 </button>
             </div>
 
             <!-- GRID 2x2 -->
             <div class="grid grid-cols-2 gap-2.5">
                 <div onclick="insertPrompt('Crie o código completo de um site para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
-                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/30 text-gold-400 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Sites & Apps</h3>
@@ -262,8 +261,8 @@
                 </div>
 
                 <div onclick="insertPrompt('Crie o conceito de marca e flyer para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
-                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/30 text-gold-400 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.7-.72 1.7-1.65 0-.43-.17-.83-.44-1.13-.27-.3-.44-.7-.44-1.13 0-.93.77-1.7 1.7-1.7h2.15c2.95 0 5.33-2.38 5.33-5.33 0-5.02-4.52-9.06-10-9.06z"/></svg>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Branding & Arts</h3>
@@ -272,8 +271,8 @@
                 </div>
 
                 <div onclick="insertPrompt('Escreva um roteiro de anúncio para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
-                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="film" class="w-3.5 h-3.5"></i>
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/30 text-gold-400 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><polygon points="10 9 15 12 10 15 10 9"/></svg>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Produção de Vídeo</h3>
@@ -282,8 +281,8 @@
                 </div>
 
                 <div onclick="insertPrompt('Elabore um plano estratégico para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
-                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/30 text-gold-400 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Auditoria & Negócios</h3>
@@ -298,7 +297,7 @@
 
     </main>
 
-    <!-- BARRA DE INPUT FLUTUANTE (NOVA UI REESTRUTURADA) -->
+    <!-- BARRA DE INPUT FLUTUANTE -->
     <div class="fixed bottom-0 left-0 w-full px-3 pb-3 pt-2 z-30 bg-gradient-to-t from-[#05070B] via-[#05070B]/95 to-transparent backdrop-blur-md">
         <div class="max-w-md sm:max-w-2xl mx-auto space-y-2">
 
@@ -318,7 +317,7 @@
             <!-- CARD DE INPUT INTEGRADO -->
             <form id="chat-form" class="bg-[#0D131F]/90 backdrop-blur-2xl rounded-2xl p-2.5 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] focus-within:border-gold-500/50 transition-all flex flex-col gap-2">
                 
-                <!-- TOPO INTERNO DA CAIXA: SELETOR DE MODO -->
+                <!-- TOPO INTERNO DA CAIXA -->
                 <div class="flex items-center justify-between px-1 pt-0.5 border-b border-white/[0.05] pb-1.5">
                     <select id="mode-selector" class="bg-gold-500/10 border border-gold-500/30 text-gold-400 text-[10px] font-bold py-0.5 px-2 rounded-lg focus:outline-none cursor-pointer">
                         <option value="dev" class="bg-[#090D16] text-white">⚡ Mod: Fullstack Dev</option>
@@ -330,10 +329,10 @@
                     <span class="text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Honey IA v2.0</span>
                 </div>
 
-                <!-- CORPO DA CAIXA: TEXTAREA + BOTÕES DE AÇÃO -->
+                <!-- CORPO DA CAIXA: TEXTAREA + BOTÕES -->
                 <div class="flex items-end gap-2 px-1">
-                    <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0 mb-0.5">
-                        <i data-lucide="paperclip" class="w-4 h-4"></i>
+                    <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0 mb-0.5 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx">
                     </label>
 
@@ -348,7 +347,7 @@
                         type="submit" 
                         class="p-2.5 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] active:scale-95 transition mb-0.5"
                     >
-                        <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                     </button>
                 </div>
             </form>
@@ -358,8 +357,6 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        lucide.createIcons();
-
         let usageCount = parseInt(localStorage.getItem('honey_usage_count') || '0');
         let sessions = JSON.parse(localStorage.getItem('honey_sessions') || '[]');
         let currentSessionId = localStorage.getItem('honey_current_session_id') || null;
@@ -379,16 +376,15 @@
                 item.className = `p-3 rounded-xl cursor-pointer flex items-center justify-between text-xs font-medium transition ${isActive ? 'bg-gold-500/15 text-gold-300 border border-gold-500/30' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`;
                 item.innerHTML = `
                     <div class="flex items-center gap-2 truncate flex-1" onclick="loadSession('${session.id}')">
-                        <i data-lucide="message-square" class="w-3.5 h-3.5 text-gold-400"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold-400"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <span class="truncate">${session.title}</span>
                     </div>
                     <button onclick="deleteSession('${session.id}', event)" class="p-1 hover:text-red-400">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     </button>
                 `;
                 container.appendChild(item);
             });
-            lucide.createIcons();
         }
 
         function createNewSession() {
@@ -490,7 +486,6 @@
             }
         });
 
-        // LIVE PREVIEW FUNCTIONS
         function openPreview(code) {
             const backdrop = document.getElementById('preview-backdrop');
             const iframe = document.getElementById('preview-frame');
@@ -541,11 +536,11 @@
                 aiHeader.className = 'flex items-center justify-between border-b border-white/10 pb-2 mb-1';
                 aiHeader.innerHTML = `
                     <div class="flex items-center gap-1.5 text-gold-400 font-extrabold text-xs tracking-wide">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> HONEY IA SOLUTION
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg> HONEY IA SOLUTION
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="copyMessageText('${msgId}')" title="Copiar" class="p-1 hover:text-white text-gray-400">
-                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                         </button>
                     </div>
                 `;
@@ -572,7 +567,6 @@
                             clearInterval(timer);
                             parsedContent.classList.remove('typing-cursor');
                             addQuickActionsToCode(parsedContent, text);
-                            lucide.createIcons();
                         }
                     }, 12);
                 } else {
@@ -582,11 +576,92 @@
             }
 
             chatContainer.appendChild(msgDiv);
-            lucide.createIcons();
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function addQuickActionsToCode(container, text) {
             const hasCode = text.includes('```html') || text.includes('```');
             if (hasCode) {
-                const rawCodeMatch = text.match(/```(?:html)?([\s\S]*?)
+                const rawCodeMatch = text.match(/```(?:html)?([\s\S]*?)```/);
+                const rawCode = rawCodeMatch ? rawCodeMatch[1].trim() : text;
+
+                const actionsBar = document.createElement('div');
+                actionsBar.className = 'flex items-center gap-2 mt-3 pt-2 border-t border-white/5';
+                actionsBar.innerHTML = `
+                    <button onclick='openPreview(${JSON.stringify(rawCode)})' class="px-2.5 py-1 rounded-lg bg-gold-500/20 text-gold-300 border border-gold-500/30 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Live Preview
+                    </button>
+                    <button onclick='downloadHtml(${JSON.stringify(rawCode)})' class="px-2.5 py-1 rounded-lg bg-white/5 text-gray-300 border border-white/10 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar .html
+                    </button>
+                `;
+                container.appendChild(actionsBar);
+            }
+        }
+
+        function copyMessageText(msgId) {
+            const el = document.querySelector(`#${msgId} .msg-body`);
+            if (el) {
+                navigator.clipboard.writeText(el.innerText);
+                alert('Conteúdo copiado!');
+            }
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const mode = document.getElementById('mode-selector').value;
+
+            if (!currentSessionId) createNewSession();
+
+            let session = sessions.find(s => s.id === currentSessionId);
+            if (session) {
+                if (session.messages.length === 0) session.title = text.substring(0, 20) + '...';
+                session.messages.push({ role: 'user', text: text });
+                saveSessions();
+            }
+
+            appendMessageUI('user', text, false);
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'flex items-center gap-2 text-gold-400 py-3 font-semibold text-xs animate-pulse my-2 border-b border-white/5';
+            loadingDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> A estruturar a solução...`;
+            chatContainer.appendChild(loadingDiv);
+
+            try {
+                const response = await fetch('/gerar-gratis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: text, modo: mode })
+                });
+
+                const data = await response.json();
+                loadingDiv.remove();
+
+                if (data.sucesso) {
+                    if (session) {
+                        session.messages.push({ role: 'assistant', text: data.resposta });
+                        saveSessions();
+                    }
+                    appendMessageUI('assistant', data.resposta, true);
+                    usageCount += 1;
+                    localStorage.setItem('honey_usage_count', usageCount.toString());
+                    updateUsageUI();
+                } else {
+                    appendMessageUI('assistant', `⚠️ **Aviso:** ${data.erro}`, false);
+                }
+            } catch (err) {
+                loadingDiv.remove();
+                appendMessageUI('assistant', '⚠️ **Erro:** Falha ao comunicar com o servidor.', false);
+            }
+        });
+
+        if (sessions.length === 0) createNewSession();
+        else loadSession(currentSessionId || sessions[0].id);
+    </script>
+</body>
+</html>
