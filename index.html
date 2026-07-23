@@ -67,7 +67,7 @@
             z-index: 0;
         }
 
-        /* Cartões com Efeito Elevação 3D Clean */
+        /* Cartões 3D Premium */
         .card-3d {
             background: rgba(19, 23, 34, 0.75);
             backdrop-filter: blur(12px);
@@ -118,22 +118,15 @@
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <!-- LOGÓTIPO ABELHA RAINHA COM COROA ENCAIXADA -->
-                <div class="flex items-center gap-2.5 cursor-pointer group" onclick="resetChat()">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 via-honey-500 to-honey-600 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/25 group-hover:scale-105 transition">
-                        <svg viewBox="0 0 24 24" fill="none" class="w-full h-full text-black stroke-current stroke-[1.8]" stroke-linecap="round" stroke-linejoin="round">
-                            <!-- Coroa Pequena Encaixada no Topo da Cabeça -->
-                            <path d="M10.2 6.8L11 4.5l1 2.3 1-2.3 0.8 2.3h-3.6z" fill="black" stroke="black" stroke-width="0.5" stroke-linejoin="round"/>
-                            <!-- Cabeça da Abelha -->
-                            <circle cx="12" cy="8.5" r="2" fill="black" stroke="none" />
-                            <!-- Corpo / Abdómen -->
-                            <path d="M12 11c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z" />
-                            <!-- Listras do Abdómen -->
-                            <path d="M8.5 14h7M9 17h6" stroke="#f59e0b" stroke-width="1.5" />
-                            <!-- Asas -->
-                            <path d="M7 11C5.5 9.5 4.5 8 5.5 6.5s2.5 0.5 3.5 2.5" />
-                            <path d="M17 11c1.5-1.5 2.5-3 1.5-4.5s-2.5 0.5-3.5 2.5" />
-                        </svg>
+                <!-- LOGÓTIPO PREMIUM ABELHA RAINHA -->
+                <div class="flex items-center gap-3 cursor-pointer group" onclick="resetChat()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 via-honey-500/10 to-amber-600/20 border border-honey-500/40 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/10 group-hover:scale-105 transition">
+                        <!-- Imagem do Logótipo HD Abelha Rainha Real -->
+                        <img 
+                            src="https://img.icons8.com/?size=100&id=114321&format=png" 
+                            alt="Honey IA Logo" 
+                            class="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]"
+                        >
                     </div>
                     <div class="flex flex-col">
                         <span class="text-lg font-bold text-white font-display tracking-tight leading-none">Honey<span class="text-honey-400">.IA</span></span>
@@ -154,10 +147,8 @@
     <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-72 bg-obsidian-base border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-5 flex flex-col justify-between">
         <div class="space-y-6">
             <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-honey-500/20 border border-honey-500/30 flex items-center justify-center text-honey-400">
-                        <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    </div>
+                <div class="flex items-center gap-2.5">
+                    <img src="https://img.icons8.com/?size=100&id=114321&format=png" class="w-6 h-6 object-contain" alt="Honey Logo">
                     <span class="font-bold text-white text-sm font-display">Honey IA Suite</span>
                 </div>
                 <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg transition">
