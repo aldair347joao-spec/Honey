@@ -64,8 +64,8 @@
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            width: 350px;
-            height: 350px;
+            width: 380px;
+            height: 380px;
             background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
             filter: blur(60px);
             pointer-events: none;
@@ -217,7 +217,7 @@
     </div>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-4 pb-32 relative z-10 flex flex-col justify-center">
+    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-4 pb-36 relative z-10 flex flex-col justify-center">
         
         <!-- HERO / BOAS VINDAS -->
         <div id="welcome-section" class="space-y-5">
@@ -296,6 +296,21 @@
     <!-- BARRA DE INPUT FLUTUANTE -->
     <div class="fixed bottom-3 left-0 w-full px-4 z-30">
         <div class="max-w-md sm:max-w-2xl mx-auto">
+            
+            <!-- CHIPS DE PROMPT RÁPIDO -->
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-2 px-1">
+                <button type="button" onclick="insertPrompt('Cria uma landing page moderna para ')" class="px-2.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+                    ⚡ Landing Page
+                </button>
+                <button type="button" onclick="insertPrompt('Cria um roteiro de vídeo de 30 segundos para ')" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+                    🎬 Roteiro de Vídeo
+                </button>
+                <button type="button" onclick="insertPrompt('Gera uma estrutura de plano de negócios para ')" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+                    📊 Plano de Negócio
+                </button>
+            </div>
+
+            <!-- FORMULÁRIO -->
             <form id="chat-form" class="glass-card rounded-2xl p-2 flex items-center gap-2 border border-white/10 shadow-2xl">
                 
                 <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0">
