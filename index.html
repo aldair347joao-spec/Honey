@@ -5,34 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honey IA — Inteligência Artificial</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Marked.js para respostas -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Componente 3D Real (Google Model-Viewer para objetos 3D reais e fotorrealistas) -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        amberGold: '#FFB800',
-                        brightYellow: '#FFE500',
-                        vibrantOrange: '#FF3D00'
-                    }
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { amberGold: '#FFB800', brightYellow: '#FFD700' }
                 }
             }
         }
@@ -40,348 +26,185 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
         body { 
-            background: #030303;
+            background: #070709;
             color: #FFFFFF; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
         }
 
-        /* LUZ DOURADA NÉON VIVA */
-        .ai-glow-vibrant {
-            position: absolute;
-            top: 45%;
+        /* Glow de Fundo Suave */
+        .bg-glow {
+            position: fixed;
+            top: 20%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, rgba(255, 184, 0, 0.3) 0%, rgba(255, 61, 0, 0.15) 40%, transparent 70%);
-            filter: blur(100px);
+            transform: translateX(-50%);
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 184, 0, 0.15) 0%, transparent 70%);
+            filter: blur(60px);
             pointer-events: none;
             z-index: 1;
         }
 
-        /* TEXTO COM GRADIENTE DOURADO VIVO */
-        .text-vibrant-gradient {
-            background: linear-gradient(135deg, #FFFFFF 20%, #FFE500 55%, #FF3D00 100%);
+        /* Texto Gradiente Limpo */
+        .text-vibrant {
+            background: linear-gradient(135deg, #FFFFFF 40%, #FFD700 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* ABELHA REAL 3D ANIMADA NO FUNDO DA PÁGINA */
-        .bg-bee-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -55%);
-            width: 100vw;
-            height: 80vh;
-            max-width: 900px;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.85;
-            filter: drop-shadow(0 0 45px rgba(255, 184, 0, 0.5));
-            animation: floatingRealBee 6s ease-in-out infinite;
+        /* Input Sem Caixas Rígidas */
+        .chat-container {
+            background: rgba(18, 18, 22, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 184, 0, 0.25);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        /* Movimento suave de voo no ar */
-        @keyframes floatingRealBee {
-            0%, 100% { transform: translate(-50%, -55%) translateY(0px) rotate(0deg); }
-            50% { transform: translate(-50%, -55%) translateY(-30px) rotate(2deg); }
-        }
-
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            --poster-color: transparent;
-        }
-
-        /* CAIXA DE CONVERSA - VIDRO ULTRA PREMIUM */
-        .glass-box-vibrant {
-            background: rgba(12, 10, 6, 0.75);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 2px solid rgba(255, 184, 0, 0.4);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 184, 0, 0.25);
-        }
-
-        .glass-box-vibrant:focus-within {
-            border-color: rgba(255, 229, 0, 0.9);
-            box-shadow: 0 0 50px rgba(255, 184, 0, 0.45), 0 25px 60px rgba(0, 0, 0, 0.95);
+        .chat-container:focus-within {
+            border-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 25px rgba(255, 184, 0, 0.2);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .markdown-content { font-size: 1rem; line-height: 1.75; color: #F8FAFC; }
-        .markdown-content h2 { font-size: 1.25rem; font-weight: 800; color: #FFE500; margin-top: 1rem; }
-        .markdown-content code { background: rgba(255, 229, 0, 0.2); padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; color: #FFE500; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-amberGold selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative px-4">
 
-    <!-- CANVAS DA REDE NEURONAL -->
-    <canvas id="neural-bg" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-60"></canvas>
+    <!-- CANVAS DE FUNDO SUAVIZADO (NÃO POLUÍDO) -->
+    <canvas id="neural-bg" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-25"></canvas>
     
-    <!-- EFEITO LUZ VIBRANTE DE FUNDO -->
-    <div class="ai-glow-vibrant"></div>
+    <div class="bg-glow"></div>
 
-    <!-- ABELHA 3D REAL ANIMADA A VOAR NO FUNDO DA PÁGINA -->
-    <div class="bg-bee-container">
-        <model-viewer 
-            src="https://modelviewer.dev/shared-assets/models/Bee.glb" 
-            alt="Abelha 3D Real Animada" 
-            autoplay 
-            animation-name="*"
-            auto-rotate-delay="0"
-            camera-controls="false"
-            disable-zoom
-            disable-pan
-            shadow-intensity="2"
-            exposure="1.3"
-            camera-orbit="0deg 75deg 2.5m"
-            field-of-view="30deg">
-        </model-viewer>
-    </div>
-
-    <!-- HEADER / BARRA SUPERIOR -->
-    <header class="relative z-20 w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+    <!-- HEADER / LOGO LIMPO E GARANTIDO -->
+    <header class="relative z-20 w-full py-5 flex items-center justify-between max-w-2xl mx-auto">
         <div class="flex items-center gap-3 cursor-pointer" onclick="resetPage()">
-            
-            <!-- LOGÓTIPO DE ABELHA REAL 3D -->
-            <div class="w-12 h-12 rounded-2xl bg-amberGold/20 border-2 border-amberGold/60 flex items-center justify-center shadow-[0_0_25px_rgba(255,184,0,0.5)] overflow-hidden">
-                <model-viewer 
-                    src="https://modelviewer.dev/shared-assets/models/Bee.glb" 
-                    alt="Logo Abelha Real 3D" 
-                    autoplay 
-                    interaction-prompt="none"
-                    camera-controls="false"
-                    disable-zoom
-                    exposure="1.4"
-                    camera-orbit="45deg 75deg 2m">
-                </model-viewer>
+            <!-- Ícone Abelha 3D/HD Estilizado por SVG Neon -->
+            <div class="w-10 h-10 rounded-xl bg-amberGold/10 border border-amberGold/30 flex items-center justify-center text-amberGold shadow-[0_0_15px_rgba(255,184,0,0.2)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2l2.5 5 5.5.8-4 3.9 1 5.5-5-2.6-5 2.6 1-5.5-4-3.9 5.5-.8z"/>
+                    <circle cx="12" cy="12" r="3" fill="#FFD700"/>
+                </svg>
             </div>
 
             <div class="flex flex-col">
-                <span class="text-xl font-black tracking-wider text-white leading-none">HONEY <span class="text-brightYellow">IA</span></span>
-                <span class="text-[10px] font-extrabold text-amberGold tracking-widest uppercase mt-1">Enterprise Engine</span>
+                <span class="text-base font-black tracking-wider text-white leading-none">HONEY <span class="text-brightYellow">IA</span></span>
+                <span class="text-[9px] font-bold text-amberGold tracking-widest uppercase mt-0.5">Enterprise Engine</span>
             </div>
         </div>
 
-        <button class="px-4 py-2 rounded-xl bg-amberGold/15 border border-amberGold/40 text-xs font-black text-brightYellow flex items-center gap-2 shadow-[0_0_20px_rgba(255,184,0,0.3)]">
-            <span class="w-2.5 h-2.5 rounded-full bg-brightYellow animate-ping"></span>
+        <div class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>Ativo</span>
-        </button>
+        </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL (CENTRALIZADO) -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-6 w-full max-w-3xl mx-auto">
+    <!-- CONTEÚDO PRINCIPAL CENTRAL -->
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center w-full max-w-xl mx-auto py-4">
         
-        <!-- SECÇÃO HERO -->
-        <div id="hero-section" class="text-center space-y-4 mb-8 transition-all duration-500">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amberGold/20 border border-amberGold/50 text-brightYellow text-xs font-extrabold shadow-[0_0_20px_rgba(255,184,0,0.3)] mb-2">
-                <span>🐝 Sistema de Inteligência Honey</span>
-            </div>
-            <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+        <!-- TITULO HERO LIMPO -->
+        <div id="hero-section" class="text-center space-y-3 mb-6 transition-all">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
                 Em que podemos <br/>
-                <span class="text-vibrant-gradient">avançar hoje?</span>
+                <span class="text-vibrant">avançar hoje?</span>
             </h1>
-            <p class="text-xs sm:text-sm text-gray-200 max-w-md mx-auto leading-relaxed font-semibold">
-                Sistemas fullstack, gestão de marca, engenharia de prompts e automação instantânea.
+            <p class="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                Desenvolvimento fullstack, arquitetura de marcas e inteligência estratégica.
             </p>
         </div>
 
-        <!-- ÁREA DE CHAT (OCULTA NO INÍCIO) -->
-        <div id="chat-stream" class="w-full space-y-4 mb-6 hidden max-h-[55vh] overflow-y-auto no-scrollbar pr-1"></div>
+        <!-- ÁREA DE RESPOSTAS -->
+        <div id="chat-stream" class="w-full space-y-4 mb-4 hidden max-h-[50vh] overflow-y-auto no-scrollbar"></div>
 
-        <!-- CAIXA DE CONVERSA PRINCIPAL (POSICIONADA AO MEIO) -->
+        <!-- CAIXA DE CONVERSA PRINCIPAL -->
         <div class="w-full">
-            <form id="ai-form" class="glass-box-vibrant rounded-3xl p-4 transition-all duration-300">
+            <form id="ai-form" class="chat-container rounded-2xl p-3">
                 
-                <!-- SELECTOR DE MODOS -->
-                <div class="flex items-center justify-between px-2 pb-3 mb-3 border-b border-amberGold/25">
-                    <select id="mode-selector" class="bg-amberGold/20 border border-amberGold/50 text-brightYellow text-xs font-black py-1.5 px-3 rounded-xl focus:outline-none cursor-pointer">
-                        <option value="dev" class="bg-[#0C0A06] text-white">⚡ Fullstack Dev</option>
-                        <option value="designer" class="bg-[#0C0A06] text-white">🎨 UI/UX Design</option>
-                        <option value="copy" class="bg-[#0C0A06] text-white">✍️ Copywriting</option>
-                        <option value="biz" class="bg-[#0C0A06] text-white">📈 Estratégia Biz</option>
+                <!-- SELETOR DISCRETO -->
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 px-1">
+                    <select id="mode-selector" class="bg-transparent text-amberGold text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="dev" class="bg-[#121216] text-white">⚡ Fullstack Dev</option>
+                        <option value="designer" class="bg-[#121216] text-white">🎨 UI/UX Design</option>
+                        <option value="copy" class="bg-[#121216] text-white">✍️ Copywriting</option>
                     </select>
 
-                    <span class="text-[10px] text-amberGold font-mono font-black tracking-widest">HONEY-PRO v2.0</span>
+                    <span class="text-[9px] text-gray-500 font-mono">v2.0</span>
                 </div>
 
-                <!-- CAMPO DE TEXTO E BOTÃO -->
-                <div class="flex items-end gap-2 px-1">
-                    <label for="file-upload" class="p-3.5 rounded-2xl bg-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0 flex items-center justify-center hover:bg-amberGold/30">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <!-- CAMPO E BOTÃO -->
+                <div class="flex items-center gap-2">
+                    <label for="file-upload" class="p-2 text-gray-400 hover:text-white cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
 
                     <textarea 
                         id="prompt-input" 
-                        rows="2" 
-                        placeholder="Escreva a sua mensagem para a Honey IA..." 
-                        class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none resize-none max-h-32 py-1.5 font-medium"
+                        rows="1" 
+                        placeholder="Escreva a sua ideia..." 
+                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none py-1"
                     ></textarea>
 
                     <button 
                         type="submit" 
-                        class="p-4 rounded-2xl bg-gradient-to-r from-amberGold via-brightYellow to-amberGold hover:brightness-110 text-black font-black flex items-center justify-center flex-shrink-0 shadow-[0_0_30px_rgba(255,184,0,0.7)] active:scale-95 transition"
+                        class="p-2.5 rounded-xl bg-amberGold hover:bg-brightYellow text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-95"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                     </button>
                 </div>
             </form>
 
-            <!-- SUGESTÕES RÁPIDAS -->
-            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-5 flex-wrap">
-                <button onclick="setPrompt('Criar uma Landing Page completa para ')" class="px-4 py-1.5 rounded-full bg-amberGold/15 border border-amberGold/40 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-bold transition active:scale-95 shadow-[0_0_10px_rgba(255,184,0,0.1)]">
-                    ⚡ Landing Page
+            <!-- CHIPS DE SUGESTÃO -->
+            <div id="quick-chips" class="flex items-center justify-center gap-1.5 mt-3 flex-wrap">
+                <button onclick="setPrompt('Criar Landing Page para ')" class="px-3 py-1 rounded-lg bg-white/[0.03] text-gray-400 hover:text-amberGold text-[11px] border border-white/5">
+                    Landing Page
                 </button>
-                <button onclick="setPrompt('Criar um conceito de marca e logo para ')" class="px-4 py-1.5 rounded-full bg-amberGold/15 border border-amberGold/40 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-bold transition active:scale-95 shadow-[0_0_10px_rgba(255,184,0,0.1)]">
-                    🎨 Branding & Arte
-                </button>
-                <button onclick="setPrompt('Escrever um roteiro de vídeo comercial para ')" class="px-4 py-1.5 rounded-full bg-amberGold/15 border border-amberGold/40 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-bold transition active:scale-95 shadow-[0_0_10px_rgba(255,184,0,0.1)]">
-                    🎬 Roteiro de Vídeo
+                <button onclick="setPrompt('Conceito de Marca para ')" class="px-3 py-1 rounded-lg bg-white/[0.03] text-gray-400 hover:text-amberGold text-[11px] border border-white/5">
+                    Branding
                 </button>
             </div>
         </div>
 
     </main>
 
-    <!-- FOOTER -->
-    <footer class="relative z-20 w-full px-4 py-4 text-center text-xs text-amberGold/70 font-bold">
-        Honey IA Enterprise © 2026 — Plataforma de Inteligência Artificial
+    <footer class="relative z-20 w-full py-3 text-center text-[10px] text-gray-600">
+        Honey IA © 2026
     </footer>
 
-    <!-- SCRIPT DE ANIMAÇÃO E LÓGICA DO CHAT -->
     <script>
-        // REDE NEURONAL COM PARTÍCULAS DOURADAS INTENSAS
+        // REDE NEURONAL MUITO MAIS SUAVE E ESPANÇADA
         const canvas = document.getElementById('neural-bg');
         const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resize(); window.addEventListener('resize', resize);
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        const particles = Array.from({ length: 55 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.6,
-            vy: (Math.random() - 0.5) * 0.6,
-            radius: Math.random() * 2.2 + 1
+        const particles = Array.from({ length: 25 }, () => ({
+            x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3
         }));
 
-        function drawNeuralNetwork() {
+        function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'rgba(255, 229, 0, 0.9)';
-            ctx.strokeStyle = 'rgba(255, 184, 0, 0.18)';
-
+            ctx.fillStyle = '#FFB800'; ctx.strokeStyle = 'rgba(255, 184, 0, 0.1)';
             particles.forEach((p, i) => {
-                p.x += p.vx;
-                p.y += p.vy;
-
+                p.x += p.vx; p.y += p.vy;
                 if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
                 if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-
+                ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2); ctx.fill();
                 for (let j = i + 1; j < particles.length; j++) {
-                    const p2 = particles[j];
-                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-                    if (dist < 140) {
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p2.x, p2.y);
-                        ctx.stroke();
-                    }
+                    const dist = Math.hypot(p.x - particles[j].x, p.y - particles[j].y);
+                    if (dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke(); }
                 }
             });
-
-            requestAnimationFrame(drawNeuralNetwork);
+            requestAnimationFrame(draw);
         }
-        drawNeuralNetwork();
+        draw();
 
-        // LÓGICA DE ENVIO DO CHAT
         const promptInput = document.getElementById('prompt-input');
-        const aiForm = document.getElementById('ai-form');
-        const heroSection = document.getElementById('hero-section');
-        const chatStream = document.getElementById('chat-stream');
-        const quickChips = document.getElementById('quick-chips');
-
-        function setPrompt(text) {
-            promptInput.value = text;
-            promptInput.focus();
-        }
-
-        function resetPage() {
-            heroSection.classList.remove('hidden');
-            quickChips.classList.remove('hidden');
-            chatStream.classList.add('hidden');
-            chatStream.innerHTML = '';
-            promptInput.value = '';
-        }
-
-        aiForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = promptInput.value.trim();
-            if (!text) return;
-
-            heroSection.classList.add('hidden');
-            quickChips.classList.add('hidden');
-            chatStream.classList.remove('hidden');
-
-            const userBubble = document.createElement('div');
-            userBubble.className = 'flex justify-end w-full my-2';
-            userBubble.innerHTML = `<div class="bg-amberGold/35 border border-amberGold/60 text-white px-5 py-3 rounded-2xl font-semibold max-w-[90%] sm:max-w-[85%]">${text}</div>`;
-            chatStream.appendChild(userBubble);
-
-            promptInput.value = '';
-
-            const loader = document.createElement('div');
-            loader.className = 'flex items-center gap-2 text-brightYellow text-xs font-bold py-3 animate-pulse';
-            loader.innerHTML = `<svg class="animate-spin h-4 w-4 text-brightYellow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> A processar modelo neural...`;
-            chatStream.appendChild(loader);
-
-            chatStream.scrollTop = chatStream.scrollHeight;
-
-            try {
-                const response = await fetch('/gerar-gratis', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, modo: document.getElementById('mode-selector').value })
-                });
-
-                const data = await response.json();
-                loader.remove();
-
-                const aiBubble = document.createElement('div');
-                aiBubble.className = 'p-5 rounded-2xl bg-white/[0.04] border border-amberGold/40 text-sm space-y-2';
-                
-                if (data.sucesso) {
-                    aiBubble.innerHTML = `<div class="text-brightYellow font-black text-xs uppercase tracking-wider mb-2">Honey IA</div><div class="markdown-content">${marked.parse(data.resposta)}</div>`;
-                } else {
-                    aiBubble.innerHTML = `<div class="text-red-400 font-bold">Aviso</div><p>${data.erro}</p>`;
-                }
-
-                chatStream.appendChild(aiBubble);
-                chatStream.scrollTop = chatStream.scrollHeight;
-
-            } catch (err) {
-                loader.remove();
-                const errBubble = document.createElement('div');
-                errBubble.className = 'p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-                errBubble.innerText = 'Falha de ligação ao servidor.';
-                chatStream.appendChild(errBubble);
-            }
-        });
+        function setPrompt(text) { promptInput.value = text; promptInput.focus(); }
+        function resetPage() { document.getElementById('hero-section').classList.remove('hidden'); document.getElementById('chat-stream').classList.add('hidden'); }
     </script>
 </body>
 </html>
