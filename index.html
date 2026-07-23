@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Next-Gen Enterprise AI</title>
+    <title>Honey IA — Enterprise Artificial Intelligence</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,13 +14,13 @@
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- html2pdf.js para Exportação Profissional -->
+    <!-- html2pdf.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Outfit, Space Grotesk & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -28,7 +28,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        sans: ['Outfit', 'sans-serif'],
                         display: ['Space Grotesk', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
@@ -39,11 +39,11 @@
                             500: '#f59e0b',
                             600: '#d97706',
                         },
-                        dark: {
-                            bg: '#050608',
-                            surface: '#0a0d14',
-                            card: 'rgba(15, 18, 26, 0.75)',
-                            border: 'rgba(255, 255, 255, 0.08)'
+                        obsidian: {
+                            bg: '#030406',
+                            surface: '#080a0f',
+                            card: 'rgba(12, 16, 24, 0.65)',
+                            border: 'rgba(255, 255, 255, 0.07)'
                         }
                     }
                 }
@@ -53,84 +53,109 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { background-color: #050608; color: #f3f4f6; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
-
-        .ambient-glow {
-            position: fixed; top: -20vh; left: 50%; transform: translateX(-50%);
-            width: 140vw; height: 80vh;
-            background: radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.05) 40%, transparent 70%);
-            pointer-events: none; z-index: 0; filter: blur(60px);
+        
+        body { 
+            background-color: #030406; 
+            color: #f3f4f6; 
+            font-family: 'Outfit', sans-serif; 
+            overflow-x: hidden; 
         }
 
-        .glass-panel {
-            background: rgba(13, 16, 24, 0.75);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        /* Fundo com Auréola Luminescente Dinâmica */
+        .aurora-bg {
+            position: fixed;
+            top: -25vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 70vh;
+            background: radial-gradient(ellipse at 50% 20%, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.03) 45%, transparent 75%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(80px);
+        }
+
+        /* Vidro Liquido e Painéis Futuristas */
+        .liquid-glass {
+            background: rgba(10, 14, 22, 0.65);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
 
-        .glass-card-interactive {
-            background: rgba(13, 16, 24, 0.6);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        .liquid-card {
+            background: rgba(12, 16, 24, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .glass-card-interactive:hover {
-            transform: translateY(-4px) scale(1.01);
+
+        .liquid-card:hover {
+            transform: translateY(-5px) scale(1.008);
             border-color: rgba(245, 158, 11, 0.4);
-            box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.18), inset 0 0 15px rgba(245, 158, 11, 0.08);
+            box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.05);
         }
 
-        .text-gold-gradient {
-            background: linear-gradient(135deg, #FFFFFF 10%, #FBBF24 60%, #D97706 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        /* Gradiente Metálico de Ouro */
+        .gold-metallic-text {
+            background: linear-gradient(135deg, #FFFFFF 20%, #FBBF24 65%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .bee-glow { filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6)); }
+        /* Brilho da Abelha */
+        .bee-glow {
+            filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.5));
+        }
 
-        .markdown-content { font-size: 0.95rem; line-height: 1.7; color: #e2e8f0; }
+        /* Markdown Styling Executivo */
+        .markdown-content { font-size: 0.95rem; line-height: 1.8; color: #e2e8f0; }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Space Grotesk', sans-serif; color: #ffffff; font-weight: 700;
-            margin-top: 1.4rem; margin-bottom: 0.6rem;
+            margin-top: 1.5rem; margin-bottom: 0.75rem; letter-spacing: -0.02em;
         }
         .markdown-content h2 { color: #fbbf24; }
         .markdown-content ul { list-style-type: disc; margin-left: 1.4rem; }
         .markdown-content code {
-            background: rgba(255,255,255,0.08); padding: 0.2rem 0.4rem; border-radius: 0.375rem;
+            background: rgba(255, 255, 255, 0.07); padding: 0.2rem 0.5rem; border-radius: 0.5rem;
             font-family: 'JetBrains Mono', monospace; color: #fde047; font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* Cursor Pulsante de Streaming */
+        /* Cursor Pulsante */
         .typing-cursor::after {
-            content: '❚'; color: #fbbf24; animation: blink 0.8s infinite; margin-left: 2px;
+            content: '❚'; color: #fbbf24; animation: blink 0.8s infinite; margin-left: 3px;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-honey-500 selection:text-black">
 
-    <div class="ambient-glow"></div>
+    <div class="aurora-bg"></div>
 
     <!-- OVERLAY DE DRAG & DROP GLOBAL -->
-    <div id="drop-overlay" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 hidden flex-col items-center justify-center gap-4 border-4 border-dashed border-honey-400 transition-all pointer-events-none">
-        <div class="p-6 rounded-full bg-honey-500/20 text-honey-400 bee-glow">
+    <div id="drop-overlay" class="fixed inset-0 bg-obsidian-bg/95 backdrop-blur-3xl z-50 hidden flex-col items-center justify-center gap-5 border-2 border-honey-500/50 transition-all pointer-events-none">
+        <div class="p-8 rounded-3xl bg-honey-500/10 text-honey-400 bee-glow border border-honey-500/30">
             <i data-lucide="upload-cloud" class="w-16 h-16 animate-bounce"></i>
         </div>
-        <h2 class="text-2xl font-extrabold text-white font-display">Solte o documento aqui</h2>
-        <p class="text-sm text-gray-400">A Honey IA iniciará o processamento instantâneo</p>
+        <h2 class="text-3xl font-extrabold text-white font-display">Solte o seu documento aqui</h2>
+        <p class="text-sm text-gray-400 font-medium">Análise e auditoria instantânea por IA Enterprise</p>
     </div>
 
-    <!-- HEADER / NAVBAR -->
-    <header class="sticky top-0 z-40 w-full bg-dark-bg/80 backdrop-blur-2xl border-b border-white/[0.06] px-4 sm:px-8 py-3.5">
+    <!-- HEADER / NAVBAR PREMIUM -->
+    <header class="sticky top-0 z-40 w-full bg-obsidian-bg/70 backdrop-blur-3xl border-b border-white/[0.06] px-4 sm:px-8 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-4">
-                <button id="btn-open-menu" class="p-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-gray-300 transition active:scale-95">
+                <button id="btn-open-menu" class="p-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-gray-300 transition active:scale-95 shadow-lg">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
+                <!-- LOGO E MARCA HONEY IA -->
                 <div class="flex items-center gap-3 cursor-pointer group" onclick="resetChat()">
-                    <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-b from-white/10 to-black/60 border border-honey-500/40 flex items-center justify-center p-1.5 bee-glow group-hover:scale-105 transition duration-300">
+                    <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-b from-white/10 via-black/80 to-black border border-honey-500/40 flex items-center justify-center p-1.5 bee-glow group-hover:scale-105 transition duration-500">
                         <svg viewBox="0 0 100 100" class="w-full h-full">
                             <polygon points="36,22 42,32 50,20 58,32 64,22 62,36 38,36" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>
                             <circle cx="50" cy="18" r="2.5" fill="#FDE047"/>
@@ -154,17 +179,17 @@
             </div>
 
             <!-- SELETOR DE MODOS DE RACIOCÍNIO -->
-            <div class="hidden sm:flex items-center p-1 rounded-2xl bg-white/[0.03] border border-white/10">
-                <button id="mode-fast" onclick="setAiMode('fast')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow">
-                    ⚡ Rápido
+            <div class="hidden sm:flex items-center p-1 rounded-2xl bg-white/[0.03] border border-white/10 shadow-inner">
+                <button id="mode-fast" onclick="setAiMode('fast')" class="px-4 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow-lg">
+                    ⚡ Modo Rápido
                 </button>
-                <button id="mode-audit" onclick="setAiMode('audit')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition">
+                <button id="mode-audit" onclick="setAiMode('audit')" class="px-4 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition">
                     🔬 Auditoria Profunda
                 </button>
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="openPlansModal()" class="relative group overflow-hidden px-4 py-2 rounded-2xl bg-gradient-to-r from-honey-500/20 via-amber-500/10 to-honey-500/20 border border-honey-500/50 text-honey-400 font-bold text-xs transition-all active:scale-95 shadow-lg">
+                <button onclick="openPlansModal()" class="relative group overflow-hidden px-4 py-2 rounded-2xl bg-gradient-to-r from-honey-500/20 via-amber-500/10 to-honey-500/20 border border-honey-500/50 text-honey-400 font-bold text-xs transition-all active:scale-95 shadow-xl">
                     <span class="relative z-10 flex items-center gap-2">
                         <i data-lucide="crown" class="w-4 h-4 text-honey-400"></i>
                         <span>Planos Pro</span>
@@ -174,9 +199,9 @@
         </div>
     </header>
 
-    <!-- MENU LATERAL (DRAWER) COM HISTÓRICO -->
-    <div id="drawer-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-dark-surface/95 border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between backdrop-blur-2xl">
+    <!-- DRAWER / MENU LATERAL -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-lg z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-surface/95 border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between backdrop-blur-3xl">
         <div class="space-y-6 flex-1 flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-4 border-b border-white/10">
                 <span class="font-extrabold text-white text-base font-display">Histórico de Sessões</span>
@@ -185,11 +210,10 @@
                 </button>
             </div>
 
-            <button onclick="createNewSession()" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-honey-500/20 to-amber-500/10 border border-honey-500/40 text-honey-300 font-bold text-xs hover:border-honey-400 transition">
+            <button onclick="createNewSession()" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-honey-500/20 to-amber-500/10 border border-honey-500/40 text-honey-300 font-bold text-xs hover:border-honey-400 transition shadow-lg">
                 <i data-lucide="plus-circle" class="w-4 h-4 text-honey-400"></i> Nova Conversa
             </button>
 
-            <!-- Lista de Sessões Anteriores -->
             <div id="sessions-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
         </div>
 
@@ -201,13 +225,13 @@
         </div>
     </aside>
 
-    <!-- MODAL DE PLANOS -->
-    <div id="plans-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
-        <div id="plans-modal" class="bg-dark-surface border border-honey-500/30 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl scale-95 transition-transform duration-300 relative overflow-hidden">
+    <!-- MODAL DE PLANOS DE SUBSCRIÇÃO PRO -->
+    <div id="plans-backdrop" class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div id="plans-modal" class="bg-obsidian-surface border border-honey-500/30 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl scale-95 transition-transform duration-300 relative overflow-hidden">
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-2xl font-extrabold text-white font-display flex items-center gap-2">
-                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Planos Honey IA
+                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Planos Honey IA Enterprise
                     </h2>
                 </div>
                 <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
@@ -218,76 +242,76 @@
             <div class="space-y-4">
                 <div class="p-6 rounded-2xl bg-gradient-to-br from-honey-500/25 via-amber-500/10 to-transparent border border-honey-500/60 flex flex-col gap-4">
                     <div>
-                        <span class="text-[10px] bg-honey-500 text-black font-extrabold px-2.5 py-0.5 rounded-md uppercase">Plano Enterprise</span>
-                        <h3 class="text-xl font-extrabold text-white font-display mt-2">Ilimitado & Prioritário</h3>
-                        <p class="text-xs text-gray-300 mt-1">Exportação ilimitada de relatórios em PDF, leitura de múltiplos documentos e velocidade máxima do motor Groq Llama 3.</p>
+                        <span class="text-[10px] bg-honey-500 text-black font-extrabold px-2.5 py-0.5 rounded-md uppercase">Plano Pro</span>
+                        <h3 class="text-xl font-extrabold text-white font-display mt-2">Acesso Total & Prioritário</h3>
+                        <p class="text-xs text-gray-300 mt-1 leading-relaxed">Análises ilimitadas, leitura de múltiplos documentos simultâneos, exportação direta para PDF e velocidade máxima do motor Groq Llama 3.</p>
                     </div>
 
-                    <button onclick="alert('Redirecionando para ativação Pro...')" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-honey-400 to-honey-600 text-black font-extrabold text-xs shadow-lg">
-                        Ativar Acesso Pro
+                    <button onclick="alert('Redirecionando para a ativação do Plano Pro...')" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-honey-400 to-honey-600 text-black font-extrabold text-xs shadow-xl active:scale-95 transition">
+                        Ativar Subscrição Pro
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTEÚDO PRINCIPAL -->
+    <!-- CONTEÚDO PRINCIPAL (MAIN) -->
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-36 flex flex-col justify-between relative z-10">
         
-        <!-- HERO LANDING -->
+        <!-- HERO / LANDING SECTION ULTRA-PREMIUM -->
         <div id="welcome-section" class="py-6 sm:py-12 space-y-12">
-            <div class="text-center space-y-5 max-w-3xl mx-auto">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-honey-500/10 border border-honey-500/30 text-honey-400 text-xs font-extrabold tracking-wide">
+            <div class="text-center space-y-6 max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-honey-500/10 border border-honey-500/30 text-honey-400 text-xs font-extrabold tracking-widest uppercase shadow-inner">
                     <i data-lucide="sparkles" class="w-4 h-4 text-honey-400 animate-pulse"></i>
-                    <span>INTELIGÊNCIA ARTIFICIAL DE ALTA PRECISÃO</span>
+                    <span>SISTEMA DE INTELIGÊNCIA ARTIFICIAL EMPRESARIAL</span>
                 </div>
 
-                <h1 class="text-4xl sm:text-6xl font-extrabold text-white font-display tracking-tight leading-[1.1]">
-                    Transforme documentos complexos em <span class="text-gold-gradient">decisões instantâneas.</span>
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-white font-display tracking-tight leading-[1.15]">
+                    Transforme documentos em <span class="gold-metallic-text">decisões estratégicas.</span>
                 </h1>
 
                 <p class="text-sm sm:text-lg text-gray-400 font-normal leading-relaxed max-w-2xl mx-auto">
-                    Submeta contratos, balancetes financeiros ou ficheiros técnicos e receba auditorias executivas geradas em segundos.
+                    Submeta contratos, demonstrativos financeiros ou códigos de engenharia e obtenha pareceres executivos e auditorias instantâneas.
                 </p>
             </div>
 
-            <!-- CARDS DE ATALHO -->
+            <!-- CARDS INTERATIVOS DE AÇÃO -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div onclick="insertPrompt('Elabore um parecer executivo rigoroso sobre este contrato, sublinhando cláusulas de risco e obrigações.')" class="glass-card-interactive p-6 rounded-3xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Elabore um parecer executivo rigoroso sobre este contrato, sublinhando cláusulas de risco e obrigações.')" class="liquid-card p-6 rounded-3xl cursor-pointer group">
+                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition duration-300">
                         <i data-lucide="file-text" class="w-6 h-6"></i>
                     </div>
                     <h3 class="text-lg font-extrabold text-white mb-2 font-display">Contratos Jurídicos</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Auditoria completa de cláusulas, verificação de conformidade e riscos ocultos.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Auditoria profunda de cláusulas, verificação de conformidade e identificação de riscos.</p>
                 </div>
 
-                <div onclick="insertPrompt('Extraia os indicadores chave deste documento financeiro e apresente uma tabela estruturada com conclusões.')" class="glass-card-interactive p-6 rounded-3xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Extraia os indicadores chave deste documento financeiro e apresente uma tabela estruturada com conclusões.')" class="liquid-card p-6 rounded-3xl cursor-pointer group">
+                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition duration-300">
                         <i data-lucide="trending-up" class="w-6 h-6"></i>
                     </div>
                     <h3 class="text-lg font-extrabold text-white mb-2 font-display">Relatórios Financeiros</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Extração de tabelas, análise de margens e resumo executivo de custos.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Extração de tabelas, análise de margens de lucro e resumo executivo de custos.</p>
                 </div>
 
-                <div onclick="insertPrompt('Analise este diagrama, circuito ou código técnico. Identifique potenciais falhas e sugira otimizações.')" class="glass-card-interactive p-6 rounded-3xl cursor-pointer group">
-                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Analise este diagrama, circuito ou código técnico. Identifique potenciais falhas e sugira otimizações.')" class="liquid-card p-6 rounded-3xl cursor-pointer group">
+                    <div class="w-12 h-12 rounded-2xl bg-honey-500/20 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-5 group-hover:scale-110 transition duration-300">
                         <i data-lucide="cpu" class="w-6 h-6"></i>
                     </div>
                     <h3 class="text-lg font-extrabold text-white mb-2 font-display">Engenharia & Código</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Diagnóstico de projetos, revisão de circuitos e arquitetura de software.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Diagnóstico de projetos, revisão de circuitos e otimização de sistemas de software.</p>
                 </div>
             </div>
         </div>
 
-        <!-- ÁREA DE CHAT -->
+        <!-- CONTEXTO DO CHAT -->
         <div id="chat-container" class="w-full space-y-6"></div>
 
     </main>
 
-    <!-- FLOATING CONSOLE INPUT -->
-    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-6 bg-gradient-to-t from-dark-bg via-dark-bg/95 to-transparent pointer-events-none">
+    <!-- FLOATING CONSOLE BAR -->
+    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-6 bg-gradient-to-t from-obsidian-bg via-obsidian-bg/95 to-transparent pointer-events-none">
         <div class="max-w-3xl mx-auto pointer-events-auto">
-            <form id="chat-form" class="glass-panel rounded-3xl p-3 shadow-2xl focus-within:border-honey-500/60 transition-all">
+            <form id="chat-form" class="liquid-glass rounded-3xl p-3 shadow-2xl focus-within:border-honey-500/60 transition-all duration-300">
                 
                 <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-3 rounded-2xl border border-honey-500/30 mb-2">
                     <div class="flex items-center gap-3 overflow-hidden">
@@ -300,7 +324,7 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <label for="file-input" class="p-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
+                    <label for="file-input" class="p-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Documento">
                         <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
@@ -308,14 +332,14 @@
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Envie uma instrução ou anexe um documento..." 
+                        placeholder="Escreva uma mensagem ou anexe um documento..." 
                         class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-2.5 font-medium"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="w-12 h-12 rounded-2xl bg-gradient-to-r from-honey-400 to-honey-600 text-black font-extrabold flex items-center justify-center flex-shrink-0 transition active:scale-95 shadow-xl shadow-honey-500/25"
+                        class="w-12 h-12 rounded-2xl bg-gradient-to-r from-honey-400 to-honey-600 hover:from-honey-300 hover:to-honey-500 text-black font-extrabold flex items-center justify-center flex-shrink-0 transition active:scale-95 shadow-xl shadow-honey-500/25"
                     >
                         <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
@@ -324,12 +348,12 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT DE ELITE INTEGRADO -->
+    <!-- JAVASCRIPT DE INTEGRAÇÃO COMPLETA -->
     <script>
         lucide.createIcons();
 
-        // ESTADO GLOBAL DA APLICAÇÃO
-        let currentAiMode = 'fast'; // 'fast' ou 'audit'
+        // ESTADO GLOBAL
+        let currentAiMode = 'fast'; 
         let usageCount = parseInt(localStorage.getItem('honey_usage_count') || '0');
         const MAX_FREE_USAGE = 2;
 
@@ -342,22 +366,22 @@
         }
         updateUsageUI();
 
-        // CONTROLO DE MODOS DA IA
+        // CONTROLO DE MODOS
         function setAiMode(mode) {
             currentAiMode = mode;
             const btnFast = document.getElementById('mode-fast');
             const btnAudit = document.getElementById('mode-audit');
 
             if (mode === 'fast') {
-                btnFast.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow";
-                btnAudit.className = "px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition";
+                btnFast.className = "px-4 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow-lg";
+                btnAudit.className = "px-4 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition";
             } else {
-                btnAudit.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow";
-                btnFast.className = "px-3 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition";
+                btnAudit.className = "px-4 py-1.5 rounded-xl text-xs font-bold text-black bg-honey-400 transition shadow-lg";
+                btnFast.className = "px-4 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-white transition";
             }
         }
 
-        // SISTEMA DE NAVEGAÇÃO DE SESSÕES (HISTÓRICO)
+        // HISTÓRICO DE SESSÕES
         function renderSessionsList() {
             const container = document.getElementById('sessions-list');
             container.innerHTML = '';
@@ -475,7 +499,7 @@
             plansModal.classList.add('scale-95');
         }
 
-        // SUPORTE A DRAG & DROP GLOBAL DE FICHEIROS
+        // DRAG & DROP
         const dropOverlay = document.getElementById('drop-overlay');
 
         window.addEventListener('dragover', (e) => {
@@ -546,7 +570,7 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // RENDERIZAÇÃO DE MENSAGENS E AÇÕES (COPIAR, EXPORTAR PDF, REGERAR)
+        // RENDERIZAÇÃO DE MENSAGENS E AÇÕES
         function appendMessageUI(role, text, animate = true) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
@@ -561,7 +585,7 @@
                 userBubble.innerText = text;
                 msgDiv.appendChild(userBubble);
             } else {
-                msgDiv.className = 'flex flex-col gap-3 w-full my-6 glass-panel p-6 rounded-3xl border border-white/10 relative group';
+                msgDiv.className = 'flex flex-col gap-3 w-full my-6 liquid-glass p-6 rounded-3xl border border-white/10 relative group';
                 msgDiv.id = msgId;
 
                 const aiHeader = document.createElement('div');
@@ -570,7 +594,6 @@
                     <div class="flex items-center gap-2.5 text-honey-400 font-extrabold text-xs uppercase font-display tracking-wider">
                         <i data-lucide="sparkles" class="w-4 h-4 text-honey-400"></i> Parecer Executivo Honey IA
                     </div>
-                    <!-- AÇÕES RÁPIDAS DAS MENSAGENS -->
                     <div class="flex items-center gap-1 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
                         <button onclick="copyMessageText('${msgId}')" title="Copiar Texto" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
                             <i data-lucide="copy" class="w-3.5 h-3.5"></i>
@@ -604,7 +627,7 @@
                             parsedContent.classList.remove('typing-cursor');
                             lucide.createIcons();
                         }
-                    }, 25);
+                    }, 20);
                 } else {
                     parsedContent.innerHTML = marked.parse(text);
                 }
@@ -619,7 +642,7 @@
             const el = document.querySelector(`#${msgId} .msg-body`);
             if (el) {
                 navigator.clipboard.writeText(el.innerText);
-                alert('Conteúdo copiado para a área de transferência!');
+                alert('Conteúdo copiado com sucesso!');
             }
         }
 
@@ -637,7 +660,7 @@
             }
         }
 
-        // SUBMISSÃO DO FORMULÁRIO E INTEGRAÇÃO DE API
+        // SUBMISSÃO DE PEDIDOS
         chatForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = userInput.value.trim();
@@ -648,10 +671,9 @@
 
             let userDisplay = text;
             if (currentFileBase64 && !text) {
-                userDisplay = "📎 [Documento Submetido para Análise]";
+                userDisplay = "📎 [Documento Submetido para Processamento]";
             }
 
-            // Atualiza sessão
             let session = sessions.find(s => s.id === currentSessionId);
             if (session) {
                 if (session.messages.length === 0 && text) {
@@ -679,7 +701,7 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 px-6 glass-panel rounded-2xl border border-honey-500/30 font-semibold text-xs animate-pulse my-4';
+            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 px-6 liquid-glass rounded-2xl border border-honey-500/30 font-semibold text-xs animate-pulse my-4';
             loadingDiv.innerHTML = `
                 <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
                 <span>A Honey IA está a examinar os dados (${currentAiMode === 'audit' ? 'Modo Auditoria' : 'Modo Rápido'})...</span>
@@ -713,7 +735,7 @@
 
             } catch (err) {
                 loadingDiv.remove();
-                appendMessageUI('assistant', '⚠️ **Erro de Conectividade:** Não foi possível estabelecer ligação ao servidor.', false);
+                appendMessageUI('assistant', '⚠️ **Erro de Conectividade:** Não foi possível estabelecer ligação com o servidor.', false);
             }
         });
 
