@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HONEY IA — Enterprise</title>
+    <title>HONEY IA</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,41 +29,26 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
-        body { 
-            background-color: #090806;
-            color: #FFFFFF; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            overflow-x: hidden; 
-            min-height: 100vh;
-        }
+        body { background-color: #090806; color: #FFFFFF; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; min-height: 100vh; }
 
-        /* Efeito Glow Central Discreto */
         .ambient-glow {
             position: fixed;
-            top: 35%;
+            top: 30%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(255, 199, 0, 0.12) 0%, rgba(255, 153, 0, 0.03) 60%, transparent 100%);
-            filter: blur(70px);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 199, 0, 0.12) 0%, rgba(255, 153, 0, 0.02) 60%, transparent 100%);
+            filter: blur(60px);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* Caixa de Chat Elegante */
         .chat-input-box {
             background: rgba(18, 16, 12, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 199, 0, 0.25);
-            transition: all 0.2s ease;
-        }
-
-        .chat-input-box:focus-within {
-            border-color: rgba(255, 199, 0, 0.6);
-            box-shadow: 0 0 25px rgba(255, 199, 0, 0.15);
         }
 
         .text-gradient {
@@ -72,25 +56,32 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-honeyYellow selection:text-black">
 
     <div class="ambient-glow"></div>
 
-    <!-- HEADER LIMPO -->
+    <!-- CABEÇALHO -->
     <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-xl mx-auto">
-        <div class="flex items-center gap-3 cursor-pointer" onclick="resetPage()">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
             
-            <!-- LOGO ABELHA NATIVO (SVG - NUNCA QUEBRA) -->
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honeyYellow/20 to-honeyAmber/10 border border-honeyYellow/40 flex items-center justify-center text-honeyYellow shadow-[0_0_15px_rgba(255,199,0,0.2)]">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2L15 8L21 9L16.5 13.5L18 19.5L12 16.5L6 19.5L7.5 13.5L3 9L9 8L12 2Z" fill="#FFC700" fill-opacity="0.2"/>
-                    <path d="M12 2v14.5"/>
-                    <path d="M7 9h10"/>
-                    <path d="M8 13h8"/>
+            <!-- ABELHA EM SVG REAL (SEM LINKS EXTERNOS, SEM ESTRELAS) -->
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honeyYellow/20 to-honeyAmber/10 border border-honeyYellow/40 flex items-center justify-center shadow-[0_0_15px_rgba(255,199,0,0.2)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Corpo da Abelha -->
+                    <ellipse cx="12" cy="13" rx="5" ry="6" fill="#FFC700" />
+                    <!-- Listras da Abelha -->
+                    <path d="M7.5 11H16.5" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M7.2 14H16.8" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M8.5 17H15.5" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
+                    <!-- Asas -->
+                    <path d="M8 8.5C5.5 5.5 3.5 8 6.5 10.5L7.5 11" stroke="#FFC700" stroke-width="1.5" stroke-linecap="round" fill="rgba(255, 199, 0, 0.2)"/>
+                    <path d="M16 8.5C18.5 5.5 20.5 8 17.5 10.5L16.5 11" stroke="#FFC700" stroke-width="1.5" stroke-linecap="round" fill="rgba(255, 199, 0, 0.2)"/>
+                    <!-- Cabeça / Antenas -->
+                    <circle cx="12" cy="6" r="2.5" fill="#FFC700" />
+                    <path d="M11 4L9.5 2" stroke="#FFC700" stroke-width="1.2" stroke-linecap="round"/>
+                    <path d="M13 4L14.5 2" stroke="#FFC700" stroke-width="1.2" stroke-linecap="round"/>
                 </svg>
             </div>
 
@@ -110,7 +101,7 @@
     <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-2 w-full max-w-xl mx-auto">
         
         <!-- HERO -->
-        <div id="hero-section" class="text-center space-y-3 mb-6 transition-all">
+        <div id="hero-section" class="text-center space-y-3 mb-6">
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-honeyYellow/10 border border-honeyYellow/30 text-honeyYellow text-[11px] font-bold tracking-wide">
                 ⚡ Sistema Honey IA
             </div>
@@ -125,14 +116,10 @@
             </p>
         </div>
 
-        <!-- HISTÓRICO DE MENSAGENS -->
-        <div id="chat-stream" class="w-full space-y-4 mb-4 hidden max-h-[52vh] overflow-y-auto no-scrollbar px-1"></div>
-
-        <!-- INPUT CONTAINER -->
+        <!-- CAIXA DE MENSAGEM -->
         <div class="w-full">
             <form id="ai-form" class="chat-input-box rounded-2xl p-3">
                 
-                <!-- SELETOR DE MODO -->
                 <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10 px-1">
                     <select id="mode-selector" class="bg-transparent text-honeyYellow text-xs font-bold focus:outline-none cursor-pointer">
                         <option value="dev" class="bg-[#12100C] text-white">⚡ Fullstack Dev</option>
@@ -143,7 +130,6 @@
                     <span class="text-[9px] text-gray-400 font-mono tracking-wider">HONEY-PRO v2.0</span>
                 </div>
 
-                <!-- ÁREA DE DIGITAÇÃO -->
                 <div class="flex items-center gap-2">
                     <label for="file-upload" class="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
@@ -166,15 +152,15 @@
                 </div>
             </form>
 
-            <!-- CHIPS DE ATALHO -->
+            <!-- BUTTONS -->
             <div id="quick-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                <button onclick="setPrompt('Criar Landing Page para ')" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
+                <button onclick="document.getElementById('prompt-input').value='Criar Landing Page para '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
                     ⚡ Landing Page
                 </button>
-                <button onclick="setPrompt('Conceito de Branding para ')" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
+                <button onclick="document.getElementById('prompt-input').value='Conceito de Branding para '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
                     🎨 Branding & Arte
                 </button>
-                <button onclick="setPrompt('Escrever Roteiro de Vídeo sobre ')" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
+                <button onclick="document.getElementById('prompt-input').value='Escrever Roteiro de Vídeo sobre '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
                     🎬 Roteiro de Vídeo
                 </button>
             </div>
@@ -186,18 +172,5 @@
         Honey IA © 2026 — Enterprise Engine
     </footer>
 
-    <script>
-        const promptInput = document.getElementById('prompt-input');
-        
-        function setPrompt(text) { 
-            promptInput.value = text; 
-            promptInput.focus(); 
-        }
-
-        function resetPage() { 
-            document.getElementById('hero-section').classList.remove('hidden'); 
-            document.getElementById('chat-stream').classList.add('hidden'); 
-        }
-    </script>
 </body>
 </html>
