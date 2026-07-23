@@ -93,9 +93,9 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .glass-card:hover {
+        .glass-card:hover, .glass-card:active {
             border-color: rgba(245, 158, 11, 0.35);
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 12px 30px -8px rgba(245, 158, 11, 0.15);
         }
 
@@ -109,6 +109,10 @@
         .gold-glow {
             filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
         }
+
+        /* Esconder scrollbar nas pills mobile */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Markdown Styling */
         .markdown-content { font-size: 0.95rem; line-height: 1.75; color: #E5E7EB; }
@@ -232,15 +236,15 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL (MAIN) -->
-    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-36 flex flex-col justify-between relative z-10">
+    <!-- CONTEÚDO PRINCIPAL (MAIN COM ESPAÇAMENTO INFERIOR OTIMIZADO) -->
+    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-48 flex flex-col justify-between relative z-10">
         
-        <!-- HERO / BOAS-VINDAS ENTERPRISE ATUALIZADO -->
-        <div id="welcome-section" class="py-6 sm:py-10 space-y-8">
-            <div class="text-center space-y-4 max-w-2xl mx-auto">
+        <!-- HERO / BOAS-VINDAS ENTERPRISE OTIMIZADO -->
+        <div id="welcome-section" class="py-4 sm:py-8 space-y-6">
+            <div class="text-center space-y-3.5 max-w-2xl mx-auto">
                 
-                <!-- Status Badge com Indicador Pulsante -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-[11px] font-bold tracking-wider uppercase">
+                <!-- Status Badge Glow Premium -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 text-[10px] sm:text-[11px] font-bold tracking-wider uppercase shadow-[0_0_12px_rgba(245,158,11,0.15)]">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
@@ -248,65 +252,65 @@
                     <span>Motor de Inteligência Empresarial & Criativa</span>
                 </div>
 
-                <h1 class="text-3xl sm:text-5xl font-extrabold text-white font-display tracking-tight leading-tight">
+                <h1 class="text-2xl sm:text-5xl font-extrabold text-white font-display tracking-tight leading-tight">
                     Transforme ideias em <br/>
                     <span class="gold-gradient-text">Sites, Design & Estratégia</span>
                 </h1>
 
-                <p class="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-xl mx-auto">
+                <p class="text-[11px] sm:text-sm text-gray-400 leading-relaxed max-w-xl mx-auto px-2">
                     A Honey IA desenvolve aplicações premium, projeta identidades visuais, cria roteiros publicitários e audita processos corporativos em segundos.
                 </p>
 
-                <!-- Badges de Capacidades Rápidas -->
-                <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
-                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site responsivo para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="code-2" class="w-3 h-3 text-gold-400"></i> Apps & Web Responsivo
+                <!-- Pills com Scroll Horizontal no Telemóvel -->
+                <div class="flex items-center justify-start sm:justify-center gap-2 pt-1 overflow-x-auto no-scrollbar px-1 py-1 -mx-2 sm:mx-0">
+                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site responsivo para: ')" class="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-[10px] text-gray-300 font-medium transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="code-2" class="w-3 h-3 text-gold-400"></i> Apps & Web
                     </button>
-                    <button onclick="insertPrompt('Crie o conceito de logotipo e flyer publicitário para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="palette" class="w-3 h-3 text-gold-400"></i> Logos & Flyers
+                    <button onclick="insertPrompt('Crie o conceito de logotipo e flyer publicitário para: ')" class="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-[10px] text-gray-300 font-medium transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="palette" class="w-3 h-3 text-gold-400"></i> Logos & Design
                     </button>
-                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo de anúncios para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="video" class="w-3 h-3 text-gold-400"></i> Vídeos Publicitários
+                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo de anúncios para: ')" class="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-[10px] text-gray-300 font-medium transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="video" class="w-3 h-3 text-gold-400"></i> Vídeos
                     </button>
-                    <button onclick="insertPrompt('Elabore um plano estratégico de negócios para resolver: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
-                        <i data-lucide="briefcase" class="w-3 h-3 text-gold-400"></i> Consultoria Executiva
+                    <button onclick="insertPrompt('Elabore um plano estratégico de negócios para resolver: ')" class="px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-[10px] text-gray-300 font-medium transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="briefcase" class="w-3 h-3 text-gold-400"></i> Consultoria
                     </button>
                 </div>
             </div>
 
             <!-- CARDS DE CAPACIDADES -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 
-                <div onclick="insertPrompt('Crie a estrutura completa e o código de um site premium para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Crie a estrutura completa e o código de um site premium para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer group">
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
                         <i data-lucide="code-2" class="w-4 h-4"></i>
                     </div>
                     <h3 class="text-xs font-bold text-white mb-1 font-display">Sites & Apps Premium</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Desenvolvimento completo e código pronto.</p>
+                    <p class="text-[10px] text-gray-400 leading-snug">Desenvolvimento completo e código pronto.</p>
                 </div>
 
-                <div onclick="insertPrompt('Elabore a identidade visual e o conceito de um logo/flyer para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Elabore a identidade visual e o conceito de um logo/flyer para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer group">
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
                         <i data-lucide="palette" class="w-4 h-4"></i>
                     </div>
                     <h3 class="text-xs font-bold text-white mb-1 font-display">Logos & Design</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Branding, conceitos e flyers publicitários.</p>
+                    <p class="text-[10px] text-gray-400 leading-snug">Branding, conceitos e flyers publicitários.</p>
                 </div>
 
-                <div onclick="insertPrompt('Escreva o roteiro para um vídeo comercial de alta conversão para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Escreva o roteiro para um vídeo comercial de alta conversão para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer group">
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
                         <i data-lucide="video" class="w-4 h-4"></i>
                     </div>
                     <h3 class="text-xs font-bold text-white mb-1 font-display">Vídeos Publicitários</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Roteiros comerciais e anúncios impactantes.</p>
+                    <p class="text-[10px] text-gray-400 leading-snug">Roteiros comerciais e anúncios impactantes.</p>
                 </div>
 
-                <div onclick="insertPrompt('Faça uma auditoria e plano de ação estratégico para resolver o problema: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                <div onclick="insertPrompt('Faça uma auditoria e plano de ação estratégico para resolver o problema: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer group">
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
                         <i data-lucide="briefcase" class="w-4 h-4"></i>
                     </div>
                     <h3 class="text-xs font-bold text-white mb-1 font-display">Soluções Corporativas</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Auditorias, contratos e gestão de negócios.</p>
+                    <p class="text-[10px] text-gray-400 leading-snug">Auditorias, contratos e gestão de negócios.</p>
                 </div>
 
             </div>
@@ -364,7 +368,7 @@
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="p-2.5 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-95 shadow-lg"
+                        class="p-2.5 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-90 shadow-[0_0_15px_rgba(251,191,36,0.25)]"
                     >
                         <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                     </button>
