@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Platform</title>
+    <title>Honey IA — Enterprise Suite</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,10 +14,10 @@
     <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Google Fonts: Inter & Space Grotesk -->
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -25,7 +25,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
                         display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
@@ -35,10 +35,11 @@
                             500: '#f59e0b',
                             600: '#d97706',
                         },
-                        obsidian: {
-                            deep: '#07080a',
-                            base: '#0d0f14',
-                            card: '#131722',
+                        dark: {
+                            bg: '#050608',
+                            surface: '#0c0e14',
+                            card: 'rgba(18, 22, 33, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.08)'
                         }
                     }
                 }
@@ -47,10 +48,15 @@
     </script>
 
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            background-color: #07080a;
+            background-color: #050608;
             color: #f3f4f6;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
         }
 
         .font-display {
@@ -58,34 +64,64 @@
             letter-spacing: -0.02em;
         }
 
-        .ambient-glow {
+        /* Fundo Mesh Ambient */
+        .glow-bg {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120vw;
+            height: 60vh;
+            background: radial-gradient(circle at 50% 20%, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.04) 45%, transparent 70%);
             pointer-events: none;
             z-index: 0;
+            filter: blur(40px);
         }
 
-        .card-3d {
-            background: rgba(19, 23, 34, 0.75);
-            backdrop-filter: blur(12px);
+        /* Card Glass Ultra Premium */
+        .glass-card {
+            background: rgba(15, 18, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.05) inset;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .card-3d:active, .card-3d:hover {
-            transform: translateY(-4px);
-            border-color: rgba(245, 158, 11, 0.4);
-            box-shadow: 0 12px 30px -4px rgba(245, 158, 11, 0.15), 0 4px 12px rgba(0,0,0,0.8);
+        .glass-card:active, .glass-card:hover {
+            transform: translateY(-2px) scale(1.005);
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.15), 0 0 20px rgba(245, 158, 11, 0.1) inset;
         }
 
         .glass-header {
-            background: rgba(7, 8, 10, 0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(5, 6, 8, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
+        /* Gradiente Dourado Textual */
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FFF 20%, #FBBF24 70%, #D97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-glow-icon {
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 99px;
+        }
+
+        /* Markdown Styling */
         .markdown-content {
             font-size: 0.95rem;
             line-height: 1.7;
@@ -104,33 +140,33 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-honey-500 selection:text-black">
 
-    <div class="ambient-glow"></div>
+    <div class="glow-bg"></div>
 
-    <!-- Header Fixo -->
-    <header class="sticky top-0 z-40 w-full glass-header px-3 sm:px-6 py-3">
-        <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <!-- Header Fixo Luxo -->
+    <header class="sticky top-0 z-40 w-full glass-header px-4 sm:px-8 py-3.5">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
             
-            <div class="flex items-center gap-3">
-                <button id="btn-open-menu" title="Menu" class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition active:scale-95">
+            <div class="flex items-center gap-3.5">
+                <button id="btn-open-menu" title="Menu" class="p-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-gray-300 transition active:scale-95">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <!-- LOGÓTIPO ABELHA RAINHA (TOPO) -->
+                <!-- LOGÓTIPO PRINCIPAL ABELHA RAINHA -->
                 <div class="flex items-center gap-3 cursor-pointer group" onclick="resetChat()">
-                    <div class="w-10 h-10 rounded-xl bg-obsidian-card border border-honey-500/30 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/10 group-hover:scale-105 transition">
-                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]">
+                    <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-b from-white/10 to-black/40 border border-honey-500/40 flex items-center justify-center p-1.5 gold-glow-icon group-hover:scale-105 transition duration-300">
+                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
                             <polygon points="36,22 42,32 50,20 58,32 64,22 62,36 38,36" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>
                             <circle cx="50" cy="18" r="2.5" fill="#FDE047"/>
                             <circle cx="36" cy="20" r="2" fill="#FDE047"/>
                             <circle cx="64" cy="20" r="2" fill="#FDE047"/>
                             <path d="M44 38 C40 32, 35 30, 32 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
                             <path d="M56 38 C60 32, 65 30, 68 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                            <ellipse cx="50" cy="42" rx="9" ry="7" fill="#131722" stroke="#F59E0B" stroke-width="2"/>
+                            <ellipse cx="50" cy="42" rx="9" ry="7" fill="#0c0e14" stroke="#F59E0B" stroke-width="2"/>
                             <ellipse cx="45" cy="41" rx="2" ry="3" fill="#F59E0B"/>
                             <ellipse cx="55" cy="41" rx="2" ry="3" fill="#F59E0B"/>
                             <path d="M42 48 C20 35, 12 55, 38 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
                             <path d="M58 48 C80 35, 88 55, 62 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
-                            <path d="M40 48 Q50 46 60 48 C66 65, 60 88, 50 94 C40 88, 34 65, 40 48 Z" fill="#131722" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round"/>
+                            <path d="M40 48 Q50 46 60 48 C66 65, 60 88, 50 94 C40 88, 34 65, 40 48 Z" fill="#0c0e14" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round"/>
                             <path d="M38 57 Q50 61 62 57" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
                             <path d="M38 67 Q50 72 62 67" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
                             <path d="M41 77 Q50 81 59 77" fill="none" stroke="#FBBF24" stroke-width="3" stroke-linecap="round"/>
@@ -138,188 +174,198 @@
                         </svg>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-lg font-bold text-white font-display tracking-tight leading-none">Honey<span class="text-honey-400">.IA</span></span>
-                        <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">Enterprise</span>
+                        <span class="text-lg font-extrabold text-white font-display tracking-tight leading-none">Honey<span class="text-honey-400">.IA</span></span>
+                        <span class="text-[9px] text-amber-400/80 font-bold uppercase tracking-widest mt-1 flex items-center gap-1">
+                            <span class="w-1 h-1 rounded-full bg-honey-400 animate-ping"></span> Enterprise
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <button onclick="openPlansModal()" class="px-3 py-1.5 rounded-xl bg-honey-500/10 hover:bg-honey-500/20 border border-honey-500/30 text-honey-400 font-bold text-xs transition flex items-center gap-1.5">
-                <i data-lucide="crown" class="w-3.5 h-3.5 text-honey-400"></i>
-                <span>Pro</span>
+            <!-- Botão PRO com brilho -->
+            <button onclick="openPlansModal()" class="relative group overflow-hidden px-4 py-2 rounded-2xl bg-gradient-to-r from-honey-500/20 via-amber-500/10 to-honey-500/20 border border-honey-500/40 text-honey-400 font-bold text-xs transition-all active:scale-95 shadow-lg shadow-honey-500/10">
+                <span class="relative z-10 flex items-center gap-2">
+                    <i data-lucide="crown" class="w-3.5 h-3.5 text-honey-400"></i>
+                    <span>Upgrade Pro</span>
+                </span>
+                <div class="absolute inset-0 bg-gradient-to-r from-honey-500/0 via-honey-500/30 to-honey-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
             </button>
         </div>
     </header>
 
-    <!-- Drawer Lateral -->
-    <div id="drawer-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-72 bg-obsidian-base border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-5 flex flex-col justify-between">
+    <!-- Drawer Lateral Ultra-Stylized -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-dark-surface/95 border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between backdrop-blur-2xl">
         <div class="space-y-6">
-            <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                
-                <!-- LOGÓTIPO ABELHA RAINHA (MENU LATERAL) -->
-                <div class="flex items-center gap-2.5">
-                    <div class="w-7 h-7 rounded-lg bg-obsidian-card border border-honey-500/30 flex items-center justify-center p-1 shadow-md shadow-honey-500/10">
-                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_4px_rgba(245,158,11,0.6)]">
+            <div class="flex items-center justify-between pb-5 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-b from-white/10 to-black/40 border border-honey-500/40 flex items-center justify-center p-1 gold-glow-icon">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
                             <polygon points="36,22 42,32 50,20 58,32 64,22 62,36 38,36" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>
                             <circle cx="50" cy="18" r="2.5" fill="#FDE047"/>
-                            <circle cx="36" cy="20" r="2" fill="#FDE047"/>
-                            <circle cx="64" cy="20" r="2" fill="#FDE047"/>
-                            <path d="M44 38 C40 32, 35 30, 32 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M56 38 C60 32, 65 30, 68 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-                            <ellipse cx="50" cy="42" rx="9" ry="7" fill="#131722" stroke="#F59E0B" stroke-width="2"/>
+                            <path d="M44 38 C40 32, 35 30, 32 32" fill="none" stroke="#F59E0B" stroke-width="2"/>
+                            <path d="M56 38 C60 32, 65 30, 68 32" fill="none" stroke="#F59E0B" stroke-width="2"/>
+                            <ellipse cx="50" cy="42" rx="9" ry="7" fill="#0c0e14" stroke="#F59E0B" stroke-width="2"/>
                             <ellipse cx="45" cy="41" rx="2" ry="3" fill="#F59E0B"/>
                             <ellipse cx="55" cy="41" rx="2" ry="3" fill="#F59E0B"/>
                             <path d="M42 48 C20 35, 12 55, 38 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
                             <path d="M58 48 C80 35, 88 55, 62 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
-                            <path d="M40 48 Q50 46 60 48 C66 65, 60 88, 50 94 C40 88, 34 65, 40 48 Z" fill="#131722" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round"/>
-                            <path d="M38 57 Q50 61 62 57" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
-                            <path d="M38 67 Q50 72 62 67" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
-                            <path d="M41 77 Q50 81 59 77" fill="none" stroke="#FBBF24" stroke-width="3" stroke-linecap="round"/>
-                            <polygon points="48,93 52,93 50,98" fill="#F59E0B"/>
+                            <path d="M40 48 Q50 46 60 48 C66 65, 60 88, 50 94 C40 88, 34 65, 40 48 Z" fill="#0c0e14" stroke="#F59E0B" stroke-width="2.2"/>
+                            <path d="M38 57 Q50 61 62 57" fill="none" stroke="#FBBF24" stroke-width="3.5"/>
+                            <path d="M38 67 Q50 72 62 67" fill="none" stroke="#FBBF24" stroke-width="3.5"/>
                         </svg>
                     </div>
-                    <span class="font-bold text-white text-sm font-display">Honey IA Suite</span>
+                    <span class="font-extrabold text-white text-base font-display">Honey IA Suite</span>
                 </div>
-
-                <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg transition">
+                <button id="btn-close-menu" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <nav class="space-y-1.5">
-                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-honey-500/10 border border-honey-500/30 text-honey-400 font-semibold text-xs hover:bg-honey-500/20 transition">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nova Conversa
+            <nav class="space-y-2">
+                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-honey-500/20 to-amber-500/10 border border-honey-500/40 text-honey-300 font-bold text-xs hover:border-honey-400 transition shadow-lg shadow-honey-500/5">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-honey-400"></i> Nova Conversa
                 </button>
-                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-300 hover:text-white hover:bg-white/[0.05] text-xs font-medium transition">
                     <i data-lucide="file-check-2" class="w-4 h-4 text-honey-400"></i> Análise de Contratos
                 </button>
-                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-300 hover:text-white hover:bg-white/[0.05] text-xs font-medium transition">
                     <i data-lucide="bar-chart-3" class="w-4 h-4 text-honey-400"></i> Relatórios Financeiros
                 </button>
-                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-xs transition">
+                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-300 hover:text-white hover:bg-white/[0.05] text-xs font-medium transition">
                     <i data-lucide="cpu" class="w-4 h-4 text-honey-400"></i> Engenharia & Código
                 </button>
             </nav>
         </div>
 
-        <div class="pt-4 border-t border-white/10">
-            <div class="text-xs text-gray-400 font-medium" id="usage-counter">Uso: 0 / 2 projetos</div>
+        <div class="pt-5 border-t border-white/10">
+            <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                <span class="text-xs text-gray-400 font-medium" id="usage-counter">Uso: 0 / 2 projetos</span>
+                <span class="text-[10px] bg-honey-500/20 text-honey-400 px-2 py-0.5 rounded-md font-bold">Gratuito</span>
+            </div>
         </div>
     </aside>
 
-    <!-- Modal Planos -->
-    <div id="plans-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
-        <div id="plans-modal" class="bg-obsidian-card border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl scale-95 transition-transform duration-300">
-            <div class="flex justify-between items-center mb-5">
-                <h2 class="text-xl font-bold text-white font-display flex items-center gap-2">
-                    <i data-lucide="crown" class="w-5 h-5 text-honey-400"></i> Planos Honey IA
+    <!-- Modal Planos Premium -->
+    <div id="plans-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div id="plans-modal" class="bg-dark-surface border border-honey-500/30 rounded-3xl w-full max-w-lg p-6 sm:p-8 shadow-2xl scale-95 transition-transform duration-300 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-honey-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-extrabold text-white font-display flex items-center gap-2.5">
+                    <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Planos Honey IA
                 </h2>
-                <button onclick="closePlansModal()" class="p-1 text-gray-400 hover:text-white rounded-lg transition">
+                <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="space-y-3">
-                <div class="p-4 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+            
+            <div class="space-y-4">
+                <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex justify-between items-center">
                     <div>
                         <div class="font-bold text-white text-sm">Plano Gratuito</div>
-                        <div class="text-xs text-gray-400">2 Análises / dia</div>
+                        <div class="text-xs text-gray-400 mt-0.5">2 Análises por dia</div>
                     </div>
-                    <span class="text-xs font-bold text-gray-400">Ativo</span>
+                    <span class="text-xs font-bold bg-white/10 text-gray-300 px-3 py-1.5 rounded-xl">Ativo</span>
                 </div>
-                <div class="p-4 rounded-xl bg-honey-500/10 border border-honey-500/40 flex justify-between items-center">
+
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-honey-500/20 via-amber-500/10 to-transparent border border-honey-500/50 flex justify-between items-center relative overflow-hidden shadow-xl">
                     <div>
-                        <div class="font-bold text-white text-sm">Plano Pro</div>
-                        <div class="text-xs text-gray-400">Acesso ilimitado + Groq Llama3</div>
+                        <div class="font-extrabold text-white text-base font-display flex items-center gap-2">
+                            Plano Pro <span class="text-[10px] bg-honey-500 text-black font-extrabold px-2 py-0.5 rounded-md">POWERED BY GROQ</span>
+                        </div>
+                        <div class="text-xs text-gray-300 mt-1">Análises ilimitadas + Processamento Ultra-Rápido</div>
                     </div>
-                    <button onclick="alert('Redirecionando...')" class="px-3 py-1.5 rounded-lg bg-honey-500 text-black font-bold text-xs">Ativar</button>
+                    <button onclick="alert('Redirecionando para o checkout...')" class="px-4 py-2.5 rounded-xl bg-honey-500 hover:bg-honey-400 text-black font-extrabold text-xs transition shadow-lg shadow-honey-500/20 active:scale-95 flex-shrink-0">
+                        Ativar Pro
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTEÚDO -->
-    <main class="flex-1 w-full max-w-3xl mx-auto px-4 pt-4 pb-28 flex flex-col justify-between relative z-10">
+    <!-- MAIN CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-32 flex flex-col justify-between relative z-10">
         
         <!-- Welcome Section -->
-        <div id="welcome-section" class="py-2 space-y-6">
+        <div id="welcome-section" class="py-4 space-y-8">
             
-            <div class="text-center space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs font-semibold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-honey-400 animate-pulse"></span>
-                    <span>MOTOR GROQ LLAMA3</span>
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/30 text-honey-400 text-xs font-bold tracking-wide shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-honey-400 animate-pulse"></span>
+                    <span>MOTOR LLAMA3 ULTRA-SPEED</span>
                 </div>
 
-                <h1 class="text-2xl sm:text-4xl font-bold text-white font-display tracking-tight">
-                    O que vamos <span class="text-honey-400">resolver hoje?</span>
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-white font-display tracking-tight leading-tight">
+                    O que vamos <span class="gold-gradient-text">resolver hoje?</span>
                 </h1>
 
-                <p class="text-xs sm:text-sm text-gray-400 max-w-md mx-auto">
-                    Escolha uma categoria ou envie diretamente o seu documento.
+                <p class="text-xs sm:text-base text-gray-400 max-w-lg mx-auto font-normal">
+                    Selecione uma especialidade abaixo ou submeta diretamente o seu documento para análise instantânea.
                 </p>
             </div>
 
-            <!-- Cartões de Atalho -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Cartões de Atalho Premium (Vidro Focado) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 
-                <div onclick="insertPrompt('Elabore um parecer executivo sobre este documento, sublinhando riscos e cláusulas críticas.')" class="card-3d p-4 rounded-xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                <div onclick="insertPrompt('Elabore um parecer executivo sobre este documento, sublinhando riscos e cláusulas críticas.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-honey-500/20 to-amber-600/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 shadow-md shadow-honey-500/10">
+                        <i data-lucide="file-check-2" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
                         Contratos
-                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-[11px] text-gray-400">Análise de cláusulas e obrigações.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Análise jurídica, validação de cláusulas e riscos.</p>
                 </div>
 
-                <div onclick="insertPrompt('Analise este projeto técnico ou código, identifique falhas e forneça a solução.')" class="card-3d p-4 rounded-xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                <div onclick="insertPrompt('Analise este projeto técnico ou código, identifique falhas e forneça a solução.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-honey-500/20 to-amber-600/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 shadow-md shadow-honey-500/10">
+                        <i data-lucide="cpu" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
                         Engenharia
-                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-[11px] text-gray-400">Diagnóstico de projetos e código.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Diagnóstico de arquitetura, circuitos e código.</p>
                 </div>
 
-                <div onclick="insertPrompt('Extraia os dados financeiros principais deste documento e estruture em tabela.')" class="card-3d p-4 rounded-xl cursor-pointer group">
-                    <div class="w-9 h-9 rounded-lg bg-honey-500/10 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <div onclick="insertPrompt('Extraia os dados financeiros principais deste documento e estruture em tabela.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-honey-500/20 to-amber-600/10 border border-honey-500/30 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300 shadow-md shadow-honey-500/10">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1 font-display flex items-center justify-between">
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
                         Finanças
-                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-honey-400 transition"></i>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
                     </h3>
-                    <p class="text-[11px] text-gray-400">Extração de dados e tabelas.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Auditoria de planilhas, custos e relatórios.</p>
                 </div>
 
             </div>
         </div>
 
         <!-- Chat Container -->
-        <div id="chat-container" class="w-full space-y-4"></div>
+        <div id="chat-container" class="w-full space-y-5"></div>
 
     </main>
 
-    <!-- CAIXA DE MENSAGEM FIXA NA PARTE INFERIOR -->
-    <div class="fixed bottom-0 left-0 w-full z-30 p-3 bg-gradient-to-t from-obsidian-deep via-obsidian-deep to-transparent">
-        <div class="max-w-3xl mx-auto">
-            <form id="chat-form" class="bg-obsidian-card border border-white/10 rounded-xl p-2 shadow-xl focus-within:border-honey-500/50 transition">
+    <!-- CAIXA DE MENSAGEM FLUTUANTE ULTRA-MODERNA -->
+    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-5 bg-gradient-to-t from-dark-bg via-dark-bg/90 to-transparent pointer-events-none">
+        <div class="max-w-3xl mx-auto pointer-events-auto">
+            <form id="chat-form" class="glass-card rounded-2xl p-2.5 shadow-2xl focus-within:border-honey-500/60 transition-all duration-300">
                 
-                <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-2 rounded-lg border border-honey-500/20 mb-2">
-                    <div class="flex items-center gap-2 overflow-hidden">
-                        <i data-lucide="paperclip" class="w-3.5 h-3.5 text-honey-400 flex-shrink-0"></i>
-                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-medium">documento.pdf</span>
+                <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-2.5 rounded-xl border border-honey-500/30 mb-2">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
+                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-semibold">documento.pdf</span>
                     </div>
                     <button type="button" id="remove-file-btn" class="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <label for="file-input" class="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
+                <div class="flex items-center gap-2.5">
+                    <label for="file-input" class="p-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
                         <i data-lucide="paperclip" class="w-4 h-4"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
@@ -328,13 +374,13 @@
                         id="user-input" 
                         rows="1" 
                         placeholder="Escreva a sua mensagem..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-24 py-1.5"
+                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-28 py-2 font-medium"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="w-9 h-9 rounded-lg bg-honey-500 hover:bg-honey-400 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-95"
+                        class="w-10 h-10 rounded-xl bg-gradient-to-r from-honey-400 to-honey-600 hover:from-honey-300 hover:to-honey-500 text-black font-extrabold flex items-center justify-center flex-shrink-0 transition active:scale-95 shadow-lg shadow-honey-500/20"
                     >
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
@@ -466,18 +512,18 @@
             if (isUser) {
                 msgDiv.className = 'flex justify-end w-full my-2';
                 const userBubble = document.createElement('div');
-                userBubble.className = 'bg-honey-500/20 border border-honey-500/40 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[88%] text-xs sm:text-sm font-medium';
+                userBubble.className = 'bg-gradient-to-r from-honey-500/20 to-amber-500/20 border border-honey-500/40 text-white px-5 py-3 rounded-2xl rounded-tr-xs max-w-[88%] text-xs sm:text-sm font-medium shadow-md';
                 userBubble.innerText = text;
                 msgDiv.appendChild(userBubble);
             } else {
-                msgDiv.className = 'flex flex-col gap-1.5 w-full my-4';
+                msgDiv.className = 'flex flex-col gap-2 w-full my-4';
 
                 const aiHeader = document.createElement('div');
-                aiHeader.className = 'flex items-center gap-1.5 text-honey-400 font-bold text-xs uppercase font-display';
-                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-3.5 h-3.5 text-honey-400"></i> Honey IA';
+                aiHeader.className = 'flex items-center gap-2 text-honey-400 font-extrabold text-xs uppercase font-display';
+                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-honey-400"></i> Honey IA';
 
                 const parsedContent = document.createElement('div');
-                parsedContent.className = 'markdown-content pl-1';
+                parsedContent.className = 'markdown-content pl-2';
                 
                 let rawHtml = marked.parse(text);
                 parsedContent.innerHTML = rawHtml;
@@ -518,10 +564,10 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-2 text-honey-400 py-3 font-medium text-xs animate-pulse';
+            loadingDiv.className = 'flex items-center gap-2 text-honey-400 py-3 font-semibold text-xs animate-pulse';
             loadingDiv.innerHTML = `
                 <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                <span>A Honey IA está a analisar...</span>
+                <span>A Honey IA está a analisar o pedido...</span>
             `;
             chatContainer.appendChild(loadingDiv);
             lucide.createIcons();
