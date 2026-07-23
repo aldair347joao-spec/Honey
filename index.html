@@ -223,7 +223,7 @@
             
             <div class="p-5 rounded-xl bg-gradient-to-br from-gold-500/15 to-transparent border border-gold-500/40 space-y-4">
                 <p class="text-xs text-gray-300 leading-relaxed">
-                    Acesse ao máximo poder de geração: criação illimitada de código para sites/apps, briefings de vídeos publicitários, conceitos de marca e análises executivas profundas.
+                    Acesse ao máximo poder de geração: criação ilimitada de código para sites/apps, briefings de vídeos publicitários, conceitos de marca e análises executivas profundas.
                 </p>
                 <button onclick="alert('Redirecionando para o checkout Pro...')" class="w-full py-3 rounded-xl bg-gold-400 text-black font-bold text-xs shadow-lg hover:bg-gold-300 transition">
                     Desbloquear Acesso Pro
@@ -235,56 +235,78 @@
     <!-- CONTEÚDO PRINCIPAL (MAIN) -->
     <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-36 flex flex-col justify-between relative z-10">
         
-        <!-- HERO / BOAS-VINDAS ENTERPRISE -->
+        <!-- HERO / BOAS-VINDAS ENTERPRISE ATUALIZADO -->
         <div id="welcome-section" class="py-6 sm:py-10 space-y-8">
             <div class="text-center space-y-4 max-w-2xl mx-auto">
+                
+                <!-- Status Badge com Indicador Pulsante -->
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-[11px] font-bold tracking-wider uppercase">
-                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                    <span>Soluções Inteligentes para Negócios & Pessoas</span>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
+                    </span>
+                    <span>Motor de Inteligência Empresarial & Criativa</span>
                 </div>
 
                 <h1 class="text-3xl sm:text-5xl font-extrabold text-white font-display tracking-tight leading-tight">
-                    O que vamos criar ou <br/><span class="gold-gradient-text">resolver hoje?</span>
+                    Transforme ideias em <br/>
+                    <span class="gold-gradient-text">Sites, Design & Estratégia</span>
                 </h1>
 
-                <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                    Sua assistente de elite para desenvolvimento de software, criação de marcas, design publicitário, estratégia de vídeo e consultoria de negócios.
+                <p class="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-xl mx-auto">
+                    A Honey IA desenvolve aplicações premium, projeta identidades visuais, cria roteiros publicitários e audita processos corporativos em segundos.
                 </p>
+
+                <!-- Badges de Capacidades Rápidas -->
+                <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site responsivo para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
+                        <i data-lucide="code-2" class="w-3 h-3 text-gold-400"></i> Apps & Web Responsivo
+                    </button>
+                    <button onclick="insertPrompt('Crie o conceito de logotipo e flyer publicitário para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
+                        <i data-lucide="palette" class="w-3 h-3 text-gold-400"></i> Logos & Flyers
+                    </button>
+                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo de anúncios para: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
+                        <i data-lucide="video" class="w-3 h-3 text-gold-400"></i> Vídeos Publicitários
+                    </button>
+                    <button onclick="insertPrompt('Elabore um plano estratégico de negócios para resolver: ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-[11px] text-gray-300 font-medium transition flex items-center gap-1.5">
+                        <i data-lucide="briefcase" class="w-3 h-3 text-gold-400"></i> Consultoria Executiva
+                    </button>
+                </div>
             </div>
 
-            <!-- CARDS DE CAPACIDADES DA IA -->
+            <!-- CARDS DE CAPACIDADES -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 
-                <div onclick="insertPrompt('Crie a estrutura completa e o design responsivo para um site/aplicativo profissional focado no seguinte setor: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Crie a estrutura completa e o código de um site premium para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
                     <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="code-2" class="w-4 h-4"></i>
                     </div>
                     <h3 class="text-xs font-bold text-white mb-1 font-display">Sites & Apps Premium</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Desenvolvimento front-end, UI/UX e código pronto.</p>
+                    <p class="text-[11px] text-gray-400 leading-snug">Desenvolvimento completo e código pronto.</p>
                 </div>
 
-                <div onclick="insertPrompt('Elabore um conceito criativo de logotipo e a identidade visual completa para a minha empresa de: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Elabore a identidade visual e o conceito de um logo/flyer para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
                     <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="palette" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="text-xs font-bold text-white mb-1 font-display">Logotipos & Flyers</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Design gráfico, branding e artes publicitárias.</p>
+                    <h3 class="text-xs font-bold text-white mb-1 font-display">Logos & Design</h3>
+                    <p class="text-[11px] text-gray-400 leading-snug">Branding, conceitos e flyers publicitários.</p>
                 </div>
 
-                <div onclick="insertPrompt('Crie o roteiro completo e o conceito para um vídeo publicitário de alto impacto sobre: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Escreva o roteiro para um vídeo comercial de alta conversão para: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
                     <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="video" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="text-xs font-bold text-white mb-1 font-display">Vídeos Comerciais</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Roteiros persuasivos, cenas e chamadas de ação.</p>
+                    <h3 class="text-xs font-bold text-white mb-1 font-display">Vídeos Publicitários</h3>
+                    <p class="text-[11px] text-gray-400 leading-snug">Roteiros comerciais e anúncios impactantes.</p>
                 </div>
 
-                <div onclick="insertPrompt('Análise estratégica empresarial: ajude-me a solucionar o seguinte desafio no meu negócio: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
+                <div onclick="insertPrompt('Faça uma auditoria e plano de ação estratégico para resolver o problema: ')" class="glass-card p-4 rounded-2xl cursor-pointer group">
                     <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="briefcase" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="text-xs font-bold text-white mb-1 font-display">Soluções de Negócio</h3>
-                    <p class="text-[11px] text-gray-400 leading-snug">Consultoria, auditoria e planos de ação para empresas.</p>
+                    <h3 class="text-xs font-bold text-white mb-1 font-display">Soluções Corporativas</h3>
+                    <p class="text-[11px] text-gray-400 leading-snug">Auditorias, contratos e gestão de negócios.</p>
                 </div>
 
             </div>
@@ -301,7 +323,7 @@
             
             <!-- POPUP DE ATALHOS -->
             <div id="shortcut-popover" class="absolute bottom-full mb-2 left-0 w-60 glass-panel rounded-xl p-2 hidden shadow-2xl border border-gold-500/20">
-                <div class="text-[10px] font-bold text-gold-400 uppercase tracking-wider px-2 py-1 border-b border-white/5">Comandos Rápido</div>
+                <div class="text-[10px] font-bold text-gold-400 uppercase tracking-wider px-2 py-1 border-b border-white/5">Comandos Rápidos</div>
                 <button onclick="applyShortcut('/site ')" class="w-full text-left px-2 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition flex items-center gap-2">
                     <span class="text-gold-400 font-mono font-bold">/site</span> — Criar estrutura web
                 </button>
