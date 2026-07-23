@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Inteligência Artificial Enterprise</title>
+    <title>Honey IA — Inteligência Artificial</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Marked.js para renderização de respostas -->
+    <!-- Marked.js para respostas -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <!-- Google Fonts -->
@@ -26,12 +26,9 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        gold: {
-                            300: '#FDE68A',
-                            400: '#FBBF24',
-                            500: '#F59E0B',
-                            600: '#D97706',
-                        }
+                        amberGold: '#FFB800',
+                        brightYellow: '#FFD700',
+                        vibrantOrange: '#FF5722'
                     }
                 }
             }
@@ -42,155 +39,213 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
-            background-color: #030508; 
-            color: #F8FAFC; 
+            background: radial-gradient(circle at 50% 30%, #1a1000 0%, #080705 60%, #020202 100%);
+            color: #FFFFFF; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
         }
 
-        /* Efeito Glow Central */
-        .ai-glow {
+        /* Efeito de Luz Viva Central */
+        .ai-glow-vibrant {
             position: absolute;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.05) 40%, transparent 70%);
-            filter: blur(80px);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 184, 0, 0.25) 0%, rgba(255, 87, 34, 0.08) 45%, transparent 75%);
+            filter: blur(90px);
             pointer-events: none;
             z-index: 1;
         }
 
-        /* Texto Gradiente Gold */
-        .text-gold-gradient {
-            background: linear-gradient(135deg, #FFFFFF 30%, #FBBF24 70%, #D97706 100%);
+        /* Gradiente de Texto Vibrante */
+        .text-vibrant-gradient {
+            background: linear-gradient(135deg, #FFFFFF 20%, #FFD700 60%, #FF5722 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Vidro Premium */
-        .glass-box {
-            background: rgba(10, 15, 26, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        /* ANIMAÇÃO DA ABELHA 3D NO FUNDO */
+        .bg-bee-3d {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 380px;
+            height: 380px;
+            opacity: 0.18;
+            filter: drop-shadow(0 0 35px rgba(255, 184, 0, 0.6));
+            animation: floatBee 7s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 2;
         }
 
-        .glass-box:focus-within {
-            border-color: rgba(245, 158, 11, 0.5);
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.25), 0 20px 50px rgba(0, 0, 0, 0.7);
+        @keyframes floatBee {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) translateY(-25px) rotate(3deg); }
+        }
+
+        /* Caixa de Conversa Vidro Premium Vibrante */
+        .glass-box-vibrant {
+            background: rgba(18, 14, 8, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1.5px solid rgba(255, 184, 0, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 184, 0, 0.15);
+        }
+
+        .glass-box-vibrant:focus-within {
+            border-color: rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 40px rgba(255, 184, 0, 0.35), 0 20px 60px rgba(0, 0, 0, 0.9);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .markdown-content { 
-            font-size: 0.95rem; 
-            line-height: 1.7; 
-            color: #E2E8F0; 
-        }
-        .markdown-content h2 { font-size: 1.1rem; font-weight: 700; color: #FBBF24; margin-top: 1rem; }
-        .markdown-content code { background: rgba(255, 255, 255, 0.1); padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; color: #FDE047; }
+        .markdown-content { font-size: 1rem; line-height: 1.75; color: #F1F5F9; }
+        .markdown-content h2 { font-size: 1.25rem; font-weight: 700; color: #FFD700; margin-top: 1rem; }
+        .markdown-content code { background: rgba(255, 215, 0, 0.15); padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; color: #FFD700; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-gold-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-amberGold selection:text-black">
 
-    <!-- CANVAS DE FUNDO ANIMADO (REDE NEURONAL DE IA) -->
-    <canvas id="neural-bg" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-40"></canvas>
+    <!-- CANVAS DA REDE NEURONAL -->
+    <canvas id="neural-bg" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-50"></canvas>
     
-    <!-- EFEITO DE LUZ GLOW -->
-    <div class="ai-glow"></div>
+    <!-- LUZ DE FUNDO VIBRANTE -->
+    <div class="ai-glow-vibrant"></div>
 
-    <!-- HEADER / BARRA SUPERIOR -->
-    <header class="relative z-20 w-full px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetPage()">
-            <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 font-bold shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294l5.122-3.84a.5.5 0 0 1 .78.528l-2.73 12.28A2 2 0 0 1 18.125 20H5.875a2 2 0 0 1-1.953-1.868L1.192 5.852a.5.5 0 0 1 .78-.528l5.122 3.84a1 1 0 0 0 1.516-.294z"/></svg>
+    <!-- ELEMENTO 3D DA ABELHA NO FUNDO -->
+    <div class="bg-bee-3d">
+        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+            <!-- Asas Traseiras Glossy -->
+            <ellipse cx="65" cy="65" rx="45" ry="25" transform="rotate(-35 65 65)" fill="url(#wingGrad)" opacity="0.7"/>
+            <ellipse cx="135" cy="65" rx="45" ry="25" transform="rotate(35 135 65)" fill="url(#wingGrad)" opacity="0.7"/>
+            
+            <!-- Corpo Esférico 3D da Abelha -->
+            <circle cx="100" cy="115" r="55" fill="url(#beeBody3D)"/>
+            
+            <!-- Listras Preto/Gold 3D -->
+            <path d="M50 105 C70 95, 130 95, 150 105 C145 120, 130 135, 100 135 C70 135, 55 120, 50 105 Z" fill="#0A0A0A" opacity="0.85"/>
+            <path d="M58 125 C75 120, 125 120, 142 125 C135 140, 120 152, 100 152 C80 152, 65 140, 58 125 Z" fill="#FFD700"/>
+
+            <!-- Olhos 3D Glossy -->
+            <circle cx="80" cy="95" r="8" fill="#000"/><circle cx="82" cy="93" r="3" fill="#FFF"/>
+            <circle cx="120" cy="95" r="8" fill="#000"/><circle cx="122" cy="93" r="3" fill="#FFF"/>
+
+            <!-- Definições de Gradientes para Efeito 3D -->
+            <defs>
+                <radialGradient id="beeBody3D" cx="30%" cy="30%" r="70%">
+                    <stop offset="0%" stop-color="#FFE57F"/>
+                    <stop offset="40%" stop-color="#FFB800"/>
+                    <stop offset="85%" stop-color="#E65100"/>
+                    <stop offset="100%" stop-color="#3E2723"/>
+                </radialGradient>
+                <linearGradient id="wingGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#FFD700" stop-opacity="0.2"/>
+                </linearGradient>
+            </defs>
+        </svg>
+    </div>
+
+    <!-- HEADER -->
+    <header class="relative z-20 w-full px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="resetPage()">
+            <!-- Ícone do Logo Abelha 3D -->
+            <div class="w-10 h-10 rounded-2xl bg-amberGold/20 border border-amberGold/50 flex items-center justify-center text-brightYellow shadow-[0_0_20px_rgba(255,184,0,0.4)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3C10 3 8 5 8 7C8 8.5 9 10 10 11C7 12 5 14 5 17C5 20 8 22 12 22C16 22 19 20 19 17C19 14 17 12 14 11C15 10 16 8.5 16 7C16 5 14 3 12 3Z" fill="url(#logoBee)"/>
+                    <defs>
+                        <linearGradient id="logoBee" x1="5" y1="3" x2="19" y2="22">
+                            <stop offset="0%" stop-color="#FFD700"/>
+                            <stop offset="100%" stop-color="#FF5722"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
             <div class="flex flex-col">
-                <span class="text-base font-extrabold tracking-tight text-white leading-none">HONEY IA</span>
-                <span class="text-[9px] font-bold text-gold-400 tracking-widest uppercase mt-0.5">Enterprise Engine</span>
+                <span class="text-lg font-black tracking-wider text-white leading-none">HONEY <span class="text-brightYellow">IA</span></span>
+                <span class="text-[9px] font-bold text-amberGold tracking-widest uppercase mt-0.5">Engine de Alta Performance</span>
             </div>
         </div>
 
-        <button class="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-gray-300 transition active:scale-95 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Sistema Online</span>
+        <button class="px-4 py-2 rounded-xl bg-amberGold/10 border border-amberGold/30 text-xs font-bold text-brightYellow flex items-center gap-2 shadow-[0_0_15px_rgba(255,184,0,0.2)]">
+            <span class="w-2.5 h-2.5 rounded-full bg-brightYellow animate-ping"></span>
+            <span>Ativo</span>
         </button>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL (CENTRALIZADO) -->
     <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-6 w-full max-w-3xl mx-auto">
         
-        <!-- SECÇÃO HERO (TÍTULO E BOAS-VINDAS) -->
+        <!-- SECÇÃO HERO -->
         <div id="hero-section" class="text-center space-y-4 mb-8 transition-all duration-500">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-medium mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-                <span>Modelo Neural de Alta Performance</span>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amberGold/15 border border-amberGold/40 text-brightYellow text-xs font-bold shadow-[0_0_15px_rgba(255,184,0,0.2)] mb-2">
+                <span>🐝 Sistema de Inteligência Honey</span>
             </div>
-            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
                 Em que podemos <br/>
-                <span class="text-gold-gradient">avançar hoje?</span>
+                <span class="text-vibrant-gradient">avançar hoje?</span>
             </h1>
-            <p class="text-xs sm:text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
-                Desenvolvimento fullstack, arquitetura de marcas, roteiros e inteligência estratégica instantânea.
+            <p class="text-xs sm:text-sm text-gray-300 max-w-md mx-auto leading-relaxed font-medium">
+                Sistemas fullstack, gestão de marca, engenharia de prompts e automação instantânea.
             </p>
         </div>
 
-        <!-- ÁREA DE RESPOSTAS / CHAT (OCULTA NO INÍCIO) -->
-        <div id="chat-stream" class="w-full space-y-4 mb-6 hidden max-h-[50vh] overflow-y-auto no-scrollbar pr-1"></div>
+        <!-- ÁREA DE CHAT (OCULTA NO INÍCIO) -->
+        <div id="chat-stream" class="w-full space-y-4 mb-6 hidden max-h-[55vh] overflow-y-auto no-scrollbar pr-1"></div>
 
-        <!-- CAIXA DE CONVERSA PRINCIPAL (NO CENTRO) -->
+        <!-- CAIXA DE CONVERSA PRINCIPAL -->
         <div class="w-full">
-            <form id="ai-form" class="glass-box rounded-3xl p-3 transition-all duration-300">
+            <form id="ai-form" class="glass-box-vibrant rounded-3xl p-3.5 transition-all duration-300">
                 
-                <!-- OPÇÕES / MODOS -->
-                <div class="flex items-center justify-between px-2 pb-2 mb-2 border-b border-white/[0.06]">
-                    <select id="mode-selector" class="bg-gold-500/10 border border-gold-500/20 text-gold-400 text-xs font-semibold py-1 px-2.5 rounded-xl focus:outline-none cursor-pointer">
-                        <option value="dev" class="bg-[#0A0F1A] text-white">⚡ Fullstack Dev</option>
-                        <option value="designer" class="bg-[#0A0F1A] text-white">🎨 UI/UX Design</option>
-                        <option value="copy" class="bg-[#0A0F1A] text-white">✍️ Copywriting</option>
-                        <option value="biz" class="bg-[#0A0F1A] text-white">📈 Estratégia Biz</option>
+                <!-- SELECTOR DE MODOS -->
+                <div class="flex items-center justify-between px-2 pb-2.5 mb-2.5 border-b border-amberGold/20">
+                    <select id="mode-selector" class="bg-amberGold/20 border border-amberGold/40 text-brightYellow text-xs font-bold py-1.5 px-3 rounded-xl focus:outline-none cursor-pointer">
+                        <option value="dev" class="bg-[#120E08] text-white">⚡ Fullstack Dev</option>
+                        <option value="designer" class="bg-[#120E08] text-white">🎨 UI/UX Design</option>
+                        <option value="copy" class="bg-[#120E08] text-white">✍️ Copywriting</option>
+                        <option value="biz" class="bg-[#120E08] text-white">📈 Estratégia Biz</option>
                     </select>
 
-                    <span class="text-[10px] text-gray-500 font-mono tracking-wider">HONEY-v2.0</span>
+                    <span class="text-[10px] text-amberGold font-mono font-bold tracking-widest">HONEY-PRO v2.0</span>
                 </div>
 
                 <!-- CAMPO DE TEXTO E BOTÃO -->
                 <div class="flex items-end gap-2 px-1">
-                    <label for="file-upload" class="p-2.5 rounded-2xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    <label for="file-upload" class="p-3 rounded-2xl bg-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0 flex items-center justify-center hover:bg-amberGold/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
 
                     <textarea 
                         id="prompt-input" 
                         rows="2" 
-                        placeholder="Descreva a sua ideia ou projeto..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5"
+                        placeholder="Escreva a sua mensagem para a Honey IA..." 
+                        class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none resize-none max-h-32 py-1.5 font-medium"
                     ></textarea>
 
                     <button 
                         type="submit" 
-                        class="p-3 rounded-2xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.4)] active:scale-95 transition"
+                        class="p-3.5 rounded-2xl bg-gradient-to-r from-amberGold to-brightYellow hover:from-brightYellow hover:to-amberGold text-black font-extrabold flex items-center justify-center flex-shrink-0 shadow-[0_0_25px_rgba(255,184,0,0.6)] active:scale-95 transition"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                     </button>
                 </div>
             </form>
 
             <!-- SUGESTÕES RÁPIDAS ABAIXO DA CAIXA -->
             <div id="quick-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap">
-                <button onclick="setPrompt('Criar uma Landing Page completa para ')" class="px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-gray-400 hover:text-gold-300 hover:border-gold-500/30 text-xs font-medium transition active:scale-95">
+                <button onclick="setPrompt('Criar uma Landing Page completa para ')" class="px-3.5 py-1.5 rounded-full bg-amberGold/10 border border-amberGold/30 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-semibold transition active:scale-95">
                     ⚡ Landing Page
                 </button>
-                <button onclick="setPrompt('Criar um conceito de marca e logo para ')" class="px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-gray-400 hover:text-gold-300 hover:border-gold-500/30 text-xs font-medium transition active:scale-95">
+                <button onclick="setPrompt('Criar um conceito de marca e logo para ')" class="px-3.5 py-1.5 rounded-full bg-amberGold/10 border border-amberGold/30 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-semibold transition active:scale-95">
                     🎨 Branding & Arte
                 </button>
-                <button onclick="setPrompt('Escrever um roteiro de vídeo comercial para ')" class="px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-gray-400 hover:text-gold-300 hover:border-gold-500/30 text-xs font-medium transition active:scale-95">
+                <button onclick="setPrompt('Escrever um roteiro de vídeo comercial para ')" class="px-3.5 py-1.5 rounded-full bg-amberGold/10 border border-amberGold/30 text-gray-200 hover:text-brightYellow hover:border-brightYellow text-xs font-semibold transition active:scale-95">
                     🎬 Roteiro de Vídeo
                 </button>
             </div>
@@ -199,13 +254,13 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="relative z-20 w-full px-4 py-4 text-center text-xs text-gray-600">
-        Honey IA Enterprise © 2026 — Inteligência Artificial Avançada
+    <footer class="relative z-20 w-full px-4 py-4 text-center text-xs text-amberGold/60 font-medium">
+        Honey IA Enterprise © 2026 — Plataforma de Inteligência Artificial
     </footer>
 
-    <!-- SCRIPT DE ANIMAÇÃO DA REDE NEURONAL & LÓGICA DA PÁGINA -->
+    <!-- SCRIPT DE ANIMAÇÃO E CHAT -->
     <script>
-        // 1. CANVAS DA REDE NEURONAL (FUNDO DE IA)
+        // REDE NEURONAL COM PARTICULAS DOURADAS VIVAS
         const canvas = document.getElementById('neural-bg');
         const ctx = canvas.getContext('2d');
 
@@ -216,18 +271,18 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        const particles = Array.from({ length: 45 }, () => ({
+        const particles = Array.from({ length: 50 }, () => ({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: (Math.random() - 0.5) * 0.4,
-            radius: Math.random() * 1.8 + 1
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: (Math.random() - 0.5) * 0.5,
+            radius: Math.random() * 2 + 1
         }));
 
         function drawNeuralNetwork() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'rgba(245, 158, 11, 0.6)';
-            ctx.strokeStyle = 'rgba(245, 158, 11, 0.08)';
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+            ctx.strokeStyle = 'rgba(255, 184, 0, 0.12)';
 
             particles.forEach((p, i) => {
                 p.x += p.vx;
@@ -243,7 +298,7 @@
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
                     const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-                    if (dist < 130) {
+                    if (dist < 140) {
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(p2.x, p2.y);
@@ -256,7 +311,7 @@
         }
         drawNeuralNetwork();
 
-        // 2. INTERAÇÃO E LÓGICA DO CHAT
+        // LÓGICA DO CHAT
         const promptInput = document.getElementById('prompt-input');
         const aiForm = document.getElementById('ai-form');
         const heroSection = document.getElementById('hero-section');
@@ -281,23 +336,20 @@
             const text = promptInput.value.trim();
             if (!text) return;
 
-            // Transição visual: oculta o hero para focar na resposta
             heroSection.classList.add('hidden');
             quickChips.classList.add('hidden');
             chatStream.classList.remove('hidden');
 
-            // Adiciona pergunta do utilizador
             const userBubble = document.createElement('div');
             userBubble.className = 'flex justify-end w-full my-2';
-            userBubble.innerHTML = `<div class="bg-gold-500/20 border border-gold-500/30 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs text-xs sm:text-sm font-medium max-w-[85%]">${text}</div>`;
+            userBubble.innerHTML = `<div class="bg-amberGold/30 border border-amberGold/50 text-white px-5 py-3 rounded-2xl font-medium max-w-[90%] sm:max-w-[85%]">${text}</div>`;
             chatStream.appendChild(userBubble);
 
             promptInput.value = '';
 
-            // Indicador de carregamento
             const loader = document.createElement('div');
-            loader.className = 'flex items-center gap-2 text-gold-400 text-xs font-semibold py-3 animate-pulse';
-            loader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> A processar modelo neural...`;
+            loader.className = 'flex items-center gap-2 text-brightYellow text-xs font-bold py-3 animate-pulse';
+            loader.innerHTML = `<svg class="animate-spin h-4 w-4 text-brightYellow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> A processar modelo neural...`;
             chatStream.appendChild(loader);
 
             chatStream.scrollTop = chatStream.scrollHeight;
@@ -313,10 +365,10 @@
                 loader.remove();
 
                 const aiBubble = document.createElement('div');
-                aiBubble.className = 'p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-xs sm:text-sm space-y-2';
+                aiBubble.className = 'p-5 rounded-2xl bg-white/[0.04] border border-amberGold/30 text-sm space-y-2';
                 
                 if (data.sucesso) {
-                    aiBubble.innerHTML = `<div class="text-gold-400 font-bold text-xs uppercase tracking-wider mb-1">Honey IA</div><div class="markdown-content">${marked.parse(data.resposta)}</div>`;
+                    aiBubble.innerHTML = `<div class="text-brightYellow font-black text-xs uppercase tracking-wider mb-2">Honey IA</div><div class="markdown-content">${marked.parse(data.resposta)}</div>`;
                 } else {
                     aiBubble.innerHTML = `<div class="text-red-400 font-bold">Aviso</div><p>${data.erro}</p>`;
                 }
