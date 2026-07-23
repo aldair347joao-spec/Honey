@@ -118,15 +118,42 @@
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <!-- LOGÓTIPO PREMIUM ABELHA RAINHA -->
+                <!-- LOGÓTIPO ABELHA RAINHA ILUSTRADA EM SVG INTERNO -->
                 <div class="flex items-center gap-3 cursor-pointer group" onclick="resetChat()">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/20 via-honey-500/10 to-amber-600/20 border border-honey-500/40 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/10 group-hover:scale-105 transition">
-                        <!-- Imagem do Logótipo HD Abelha Rainha Real -->
-                        <img 
-                            src="https://img.icons8.com/?size=100&id=114321&format=png" 
-                            alt="Honey IA Logo" 
-                            class="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]"
-                        >
+                    <div class="w-10 h-10 rounded-xl bg-obsidian-card border border-honey-500/30 flex items-center justify-center p-1.5 shadow-lg shadow-honey-500/10 group-hover:scale-105 transition">
+                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_6px_rgba(245,158,11,0.6)]">
+                            <!-- Coroa Real Ouro sobre a Cabeça -->
+                            <polygon points="36,22 42,32 50,20 58,32 64,22 62,36 38,36" fill="#FBBF24" stroke="#D97706" stroke-width="2" stroke-linejoin="round"/>
+                            <circle cx="50" cy="18" r="2.5" fill="#FDE047"/>
+                            <circle cx="36" cy="20" r="2" fill="#FDE047"/>
+                            <circle cx="64" cy="20" r="2" fill="#FDE047"/>
+
+                            <!-- Antenas -->
+                            <path d="M44 38 C40 32, 35 30, 32 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M56 38 C60 32, 65 30, 68 32" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+
+                            <!-- Cabeça da Abelha -->
+                            <ellipse cx="50" cy="42" rx="9" ry="7" fill="#131722" stroke="#F59E0B" stroke-width="2"/>
+                            
+                            <!-- Olhos -->
+                            <ellipse cx="45" cy="41" rx="2" ry="3" fill="#F59E0B"/>
+                            <ellipse cx="55" cy="41" rx="2" ry="3" fill="#F59E0B"/>
+
+                            <!-- Asas Espessas Translúcidas -->
+                            <path d="M42 48 C20 35, 12 55, 38 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
+                            <path d="M58 48 C80 35, 88 55, 62 58 Z" fill="rgba(251, 191, 36, 0.25)" stroke="#FBBF24" stroke-width="1.8"/>
+
+                            <!-- Abdómen da Rainha (Corpo Curvado com Listras Douradas) -->
+                            <path d="M40 48 Q50 46 60 48 C66 65, 60 88, 50 94 C40 88, 34 65, 40 48 Z" fill="#131722" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round"/>
+                            
+                            <!-- Listras do Abdómen -->
+                            <path d="M38 57 Q50 61 62 57" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
+                            <path d="M38 67 Q50 72 62 67" fill="none" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
+                            <path d="M41 77 Q50 81 59 77" fill="none" stroke="#FBBF24" stroke-width="3" stroke-linecap="round"/>
+
+                            <!-- Ferrão Real -->
+                            <polygon points="48,93 52,93 50,98" fill="#F59E0B"/>
+                        </svg>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-lg font-bold text-white font-display tracking-tight leading-none">Honey<span class="text-honey-400">.IA</span></span>
@@ -148,7 +175,9 @@
         <div class="space-y-6">
             <div class="flex items-center justify-between pb-4 border-b border-white/10">
                 <div class="flex items-center gap-2.5">
-                    <img src="https://img.icons8.com/?size=100&id=114321&format=png" class="w-6 h-6 object-contain" alt="Honey Logo">
+                    <div class="w-6 h-6 rounded-lg bg-honey-500/20 border border-honey-500/30 flex items-center justify-center text-honey-400">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
                     <span class="font-bold text-white text-sm font-display">Honey IA Suite</span>
                 </div>
                 <button id="btn-close-menu" class="p-1.5 text-gray-400 hover:text-white rounded-lg transition">
