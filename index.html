@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HONEY IA</title>
+    <title>HONEY IA — Enterprise Platform</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons (Biblioteca Profissional de Ícones) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Fontes Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -18,9 +23,9 @@
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: { 
-                        honeyYellow: '#FFC700',
-                        honeyAmber: '#FF9900',
-                        darkBg: '#090806'
+                        honeyGold: '#F59E0B',
+                        honeyYellow: '#FBBF24',
+                        darkCore: '#0B0A08'
                     }
                 }
             }
@@ -29,148 +34,172 @@
 
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { background-color: #090806; color: #FFFFFF; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; min-height: 100vh; }
+        
+        body { 
+            background-color: #0B0A08;
+            color: #F3F4F6; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            overflow-x: hidden; 
+            min-height: 100vh;
+        }
 
+        /* Ambient Glow ultra suave */
         .ambient-glow {
             position: fixed;
-            top: 30%;
+            top: 25%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(255, 199, 0, 0.12) 0%, rgba(255, 153, 0, 0.02) 60%, transparent 100%);
-            filter: blur(60px);
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+            filter: blur(80px);
             pointer-events: none;
             z-index: 0;
         }
 
-        .chat-input-box {
-            background: rgba(18, 16, 12, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 199, 0, 0.25);
+        /* Input Card Minimalista estilo ChatGPT/Claude */
+        .prompt-container {
+            background: rgba(18, 17, 14, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .prompt-container:focus-within {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
         }
 
         .text-gradient {
-            background: linear-gradient(135deg, #FFFFFF 40%, #FFC700 80%, #FF9900 100%);
+            background: linear-gradient(135deg, #FFFFFF 30%, #FBBF24 80%, #F59E0B 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-honeyYellow selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-honeyGold selection:text-black">
 
     <div class="ambient-glow"></div>
 
-    <!-- CABEÇALHO -->
-    <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-xl mx-auto">
+    <!-- CABEÇALHO ENTERPRISE -->
+    <header class="relative z-10 w-full px-6 py-5 flex items-center justify-between max-w-2xl mx-auto">
         <div class="flex items-center gap-3 cursor-pointer" onclick="location.reload()">
             
-            <!-- ABELHA EM SVG REAL (SEM LINKS EXTERNOS, SEM ESTRELAS) -->
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honeyYellow/20 to-honeyAmber/10 border border-honeyYellow/40 flex items-center justify-center shadow-[0_0_15px_rgba(255,199,0,0.2)]">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Corpo da Abelha -->
-                    <ellipse cx="12" cy="13" rx="5" ry="6" fill="#FFC700" />
-                    <!-- Listras da Abelha -->
-                    <path d="M7.5 11H16.5" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M7.2 14H16.8" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M8.5 17H15.5" stroke="#090806" stroke-width="1.5" stroke-linecap="round"/>
-                    <!-- Asas -->
-                    <path d="M8 8.5C5.5 5.5 3.5 8 6.5 10.5L7.5 11" stroke="#FFC700" stroke-width="1.5" stroke-linecap="round" fill="rgba(255, 199, 0, 0.2)"/>
-                    <path d="M16 8.5C18.5 5.5 20.5 8 17.5 10.5L16.5 11" stroke="#FFC700" stroke-width="1.5" stroke-linecap="round" fill="rgba(255, 199, 0, 0.2)"/>
-                    <!-- Cabeça / Antenas -->
-                    <circle cx="12" cy="6" r="2.5" fill="#FFC700" />
-                    <path d="M11 4L9.5 2" stroke="#FFC700" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M13 4L14.5 2" stroke="#FFC700" stroke-width="1.2" stroke-linecap="round"/>
-                </svg>
+            <!-- LOGO ABELHA PROFISSIONAL (LUCIDE ICON) -->
+            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <i data-lucide="bot" class="w-5 h-5"></i>
             </div>
 
             <div class="flex flex-col">
-                <span class="text-base font-black tracking-wider text-white leading-none">HONEY <span class="text-honeyYellow">IA</span></span>
-                <span class="text-[9px] font-bold text-amber-400/80 tracking-widest uppercase mt-1">Enterprise Engine</span>
+                <span class="text-sm font-extrabold tracking-wider text-white leading-none">HONEY <span class="text-amber-400">IA</span></span>
+                <span class="text-[9px] font-bold text-gray-400 tracking-widest uppercase mt-1">Enterprise Engine</span>
             </div>
         </div>
 
-        <div class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Ativo</span>
+        <!-- INDICADOR DE STATUS LIMPO -->
+        <div class="flex items-center gap-2 text-xs font-medium text-emerald-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[11px] font-semibold tracking-wide">Ativo</span>
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-2 w-full max-w-xl mx-auto">
+    <!-- CONTEÚDO PRINCIPAL (FULLSCREEN & FLUIDO) -->
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-2xl mx-auto">
         
-        <!-- HERO -->
-        <div id="hero-section" class="text-center space-y-3 mb-6">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-honeyYellow/10 border border-honeyYellow/30 text-honeyYellow text-[11px] font-bold tracking-wide">
-                ⚡ Sistema Honey IA
+        <!-- HERO SECTION -->
+        <div id="hero-section" class="text-center space-y-4 mb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>Sistema Honey IA</span>
             </div>
             
-            <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+            <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
                 Em que podemos <br/>
                 <span class="text-gradient">avançar hoje?</span>
             </h1>
             
-            <p class="text-xs text-gray-400 max-w-xs mx-auto font-medium leading-relaxed">
-                Sistemas fullstack, gestão de marca, engenharia de prompts e automação instantânea.
+            <p class="text-xs sm:text-sm text-gray-400 max-w-sm mx-auto font-normal leading-relaxed">
+                Desenvolvimento fullstack, arquitetura de marcas e inteligência estratégica.
             </p>
         </div>
 
-        <!-- CAIXA DE MENSAGEM -->
-        <div class="w-full">
-            <form id="ai-form" class="chat-input-box rounded-2xl p-3">
+        <!-- CONTAINER DE INPUT -->
+        <div class="w-full max-w-xl">
+            <form id="ai-form" class="prompt-container rounded-2xl p-3 shadow-2xl">
                 
-                <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10 px-1">
-                    <select id="mode-selector" class="bg-transparent text-honeyYellow text-xs font-bold focus:outline-none cursor-pointer">
-                        <option value="dev" class="bg-[#12100C] text-white">⚡ Fullstack Dev</option>
-                        <option value="designer" class="bg-[#12100C] text-white">🎨 Branding & Arte</option>
-                        <option value="copy" class="bg-[#12100C] text-white">🎬 Roteiro de Vídeo</option>
-                    </select>
+                <!-- SELETOR DE MODO SLIM -->
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.06] px-1">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="code-2" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <select id="mode-selector" class="bg-transparent text-amber-400 text-xs font-bold focus:outline-none cursor-pointer">
+                            <option value="dev" class="bg-[#12110E] text-white">Fullstack Dev</option>
+                            <option value="designer" class="bg-[#12110E] text-white">Branding & Design</option>
+                            <option value="copy" class="bg-[#12110E] text-white">Estratégia & Roteiros</option>
+                        </select>
+                    </div>
 
-                    <span class="text-[9px] text-gray-400 font-mono tracking-wider">HONEY-PRO v2.0</span>
+                    <span class="text-[10px] text-gray-500 font-mono">HONEY-PRO v2.0</span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <label for="file-upload" class="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <!-- CAMPO DE MENSAGEM & BOTÕES -->
+                <div class="flex items-end gap-2 pt-1">
+                    <label for="file-upload" class="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition flex-shrink-0">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
 
                     <textarea 
                         id="prompt-input" 
-                        rows="1" 
+                        rows="2" 
                         placeholder="Escreva a sua mensagem para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none py-1 font-medium"
+                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none py-1 font-normal leading-relaxed"
                     ></textarea>
 
                     <button 
                         type="submit" 
-                        class="p-2.5 rounded-xl bg-gradient-to-r from-honeyYellow to-honeyAmber text-black font-extrabold flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(255,199,0,0.3)] active:scale-95 transition"
+                        class="p-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-extrabold flex items-center justify-center flex-shrink-0 transition active:scale-95 shadow-lg shadow-amber-500/20"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        <i data-lucide="arrow-up" class="w-5 h-5 stroke-[3]"></i>
                     </button>
                 </div>
             </form>
 
-            <!-- BUTTONS -->
-            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap">
-                <button onclick="document.getElementById('prompt-input').value='Criar Landing Page para '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
-                    ⚡ Landing Page
+            <!-- CHIPS DE AÇÃO RÁPIDA (MINIMALISTAS) -->
+            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap">
+                <button onclick="setPrompt('Criar Landing Page para ')" class="px-3.5 py-1.5 rounded-lg bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 text-gray-300 hover:text-amber-400 text-xs font-medium transition flex items-center gap-1.5">
+                    <i data-lucide="layout" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Landing Page</span>
                 </button>
-                <button onclick="document.getElementById('prompt-input').value='Conceito de Branding para '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
-                    🎨 Branding & Arte
+                <button onclick="setPrompt('Conceito de Branding para ')" class="px-3.5 py-1.5 rounded-lg bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 text-gray-300 hover:text-amber-400 text-xs font-medium transition flex items-center gap-1.5">
+                    <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Branding & Arte</span>
                 </button>
-                <button onclick="document.getElementById('prompt-input').value='Escrever Roteiro de Vídeo sobre '; document.getElementById('prompt-input').focus();" class="px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-honeyYellow/10 border border-white/10 hover:border-honeyYellow/30 text-gray-300 hover:text-honeyYellow text-xs font-semibold transition">
-                    🎬 Roteiro de Vídeo
+                <button onclick="setPrompt('Escrever Roteiro para ')" class="px-3.5 py-1.5 rounded-lg bg-white/[0.03] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 text-gray-300 hover:text-amber-400 text-xs font-medium transition flex items-center gap-1.5">
+                    <i data-lucide="video" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Roteiro de Vídeo</span>
                 </button>
             </div>
         </div>
 
     </main>
 
-    <footer class="relative z-10 w-full py-3 text-center text-[10px] text-gray-500 font-medium">
+    <!-- RODAPÉ CLEAN -->
+    <footer class="relative z-10 w-full py-4 text-center text-[10px] text-gray-500 font-medium tracking-wide">
         Honey IA © 2026 — Enterprise Engine
     </footer>
 
+    <script>
+        // Inicializa os ícones do Lucide
+        lucide.createIcons();
+
+        const promptInput = document.getElementById('prompt-input');
+        
+        function setPrompt(text) { 
+            promptInput.value = text; 
+            promptInput.focus(); 
+        }
+    </script>
 </body>
 </html>
