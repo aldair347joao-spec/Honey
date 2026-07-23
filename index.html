@@ -9,9 +9,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- Marked.js & html2pdf -->
+    <!-- Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Google Fonts Executivas -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,32 +58,29 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* Ambient Kinetic Background Glow */
-        #interactive-aura {
+        /* Ambient Glow Background */
+        .bg-glow {
             position: fixed;
-            top: 0; left: 0;
-            width: 500px; height: 500px;
-            margin-left: -250px; margin-top: -250px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(217, 119, 6, 0.01) 60%, transparent 80%);
-            pointer-events: none; z-index: 1; border-radius: 50%;
-            transition: transform 0.15s ease-out; filter: blur(70px);
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+            filter: blur(60px);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        /* Header e Painéis Vidro */
-        .glass-header {
-            background: rgba(5, 7, 11, 0.85);
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.45);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        .premium-card {
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            transition: all 0.2s ease-in-out;
-        }
-        .premium-card:active {
+        .glass-card:active {
             border-color: rgba(245, 158, 11, 0.4);
             transform: scale(0.98);
         }
@@ -92,9 +88,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 
-           RESPOSTA DA IA TOTALMENTE EXPANSIVA E SEM CAIXAS 
-        */
+        /* Estilo Expansivo da Resposta no Chat */
         .chat-response-free {
             background: transparent;
             width: 100%;
@@ -104,7 +98,7 @@
 
         .markdown-content { 
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.98rem; 
+            font-size: 0.95rem; 
             line-height: 1.8; 
             color: #E2E8F0; 
             font-weight: 400;
@@ -115,17 +109,17 @@
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Plus Jakarta Sans', sans-serif; 
             color: #FFFFFF; font-weight: 700;
-            margin-top: 1.5rem; margin-bottom: 0.75rem; 
+            margin-top: 1.25rem; margin-bottom: 0.5rem; 
             letter-spacing: -0.02em;
         }
         .markdown-content h2 { 
-            font-size: 1.2rem; color: #FBBF24; 
+            font-size: 1.15rem; color: #FBBF24; 
             border-left: 3px solid #F59E0B; padding-left: 10px; 
         }
         
-        .markdown-content p { margin-bottom: 1rem; }
-        .markdown-content ul, .markdown-content ol { margin-left: 1.25rem; margin-bottom: 1rem; }
-        .markdown-content li { margin-bottom: 0.3rem; }
+        .markdown-content p { margin-bottom: 0.85rem; }
+        .markdown-content ul, .markdown-content ol { margin-left: 1.25rem; margin-bottom: 0.85rem; }
+        .markdown-content li { margin-bottom: 0.25rem; }
         
         .markdown-content code {
             background: rgba(255, 255, 255, 0.08); 
@@ -136,47 +130,41 @@
 
         .markdown-content pre {
             background: #04060A; border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 1rem 0;
+            padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.85rem 0;
         }
 
-        /* CAMPO DE DADOS DO UTILIZADOR */
-        #user-input {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.95rem; font-weight: 400; color: #FFFFFF;
-        }
-        #user-input::placeholder { color: #64748B; }
-
+        /* Efeito do Cursor a Escrever */
         .typing-cursor::after {
             content: '❚'; color: #FBBF24; animation: blink 0.7s infinite; margin-left: 2px;
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-gold-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative overflow-x-hidden selection:bg-gold-500 selection:text-black">
 
-    <div id="interactive-aura"></div>
+    <div class="bg-glow"></div>
 
-    <!-- HEADER PREMIUM -->
-    <header class="sticky top-0 z-40 w-full glass-header px-4 sm:px-8 py-3.5">
-        <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 w-full bg-[#05070B]/80 backdrop-blur-md border-b border-white/[0.06] px-4 py-3.5">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
-                <button id="btn-open-menu" class="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-200 transition">
+                <button id="btn-open-menu" class="p-2 rounded-xl bg-white/[0.04] border border-white/10 text-gray-300 transition active:scale-95">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
                 <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
-                    <div class="w-9 h-9 rounded-xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 font-bold shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-                        <i data-lucide="crown" class="w-5 h-5"></i>
+                    <div class="w-8 h-8 rounded-xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 font-bold shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                        <i data-lucide="crown" class="w-4 h-4"></i>
                     </div>
                     <div class="flex flex-col">
-                        <span class="text-base font-extrabold tracking-tight text-white leading-none">HONEY IA</span>
-                        <span class="text-[9px] font-semibold text-gold-400 tracking-widest uppercase mt-0.5">Enterprise</span>
+                        <span class="text-sm font-extrabold tracking-tight text-white leading-none">HONEY IA</span>
+                        <span class="text-[8px] font-bold text-gold-400 tracking-widest uppercase mt-0.5">Enterprise</span>
                     </div>
                 </div>
             </div>
 
-            <button onclick="openPlansModal()" class="px-3.5 py-2 rounded-xl bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition">
+            <button onclick="openPlansModal()" class="px-3 py-1.5 rounded-xl bg-gold-500/10 border border-gold-500/30 text-gold-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                 <span>Planos Pro</span>
             </button>
@@ -193,10 +181,10 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <button onclick="createNewSession()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white font-semibold text-sm transition">
+            <button onclick="createNewSession()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white font-semibold text-sm transition active:scale-95">
                 <i data-lucide="plus" class="w-4 h-4 text-gold-400"></i> Novo Projeto
             </button>
-            <div id="sessions-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+            <div id="sessions-list" class="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar"></div>
         </div>
         <div class="pt-4 border-t border-white/10">
             <div class="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
@@ -228,44 +216,39 @@
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-40 flex flex-col justify-between relative z-10">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-4 pb-32 relative z-10 flex flex-col justify-center">
         
         <!-- HERO / BOAS VINDAS -->
-        <div id="welcome-section" class="py-4 space-y-6">
-            <div class="text-center space-y-3 max-w-2xl mx-auto">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-gold-400 text-[11px] font-bold tracking-wider uppercase">
-                    Inteligência Corporativa
-                </div>
-
-                <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+        <div id="welcome-section" class="space-y-5">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
                     Engenharia de Soluções para <br/>
                     <span class="text-gold-gradient">Web, Design & Estratégia</span>
-                </h1>
-
-                <p class="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-md mx-auto">
+                </h2>
+                <p class="text-[11px] sm:text-xs text-gray-400 leading-relaxed max-w-xs sm:max-w-sm mx-auto">
                     Desenvolvimento de software, marcas, roteiros e consultoria executiva em segundos.
                 </p>
+            </div>
 
-                <!-- Pills com Scroll Horizontal -->
-                <div class="flex items-center justify-start sm:justify-center gap-2 pt-2 overflow-x-auto no-scrollbar px-1 py-1 -mx-4 sm:mx-0">
-                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site para: ')" class="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-                        <i data-lucide="code-2" class="w-3.5 h-3.5 text-gold-400"></i> Apps & Web
-                    </button>
-                    <button onclick="insertPrompt('Crie a identidade visual e flyer comercial para: ')" class="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-                        <i data-lucide="palette" class="w-3.5 h-3.5 text-gold-400"></i> Logos & Design
-                    </button>
-                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo para: ')" class="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-                        <i data-lucide="video" class="w-3.5 h-3.5 text-gold-400"></i> Vídeos
-                    </button>
-                </div>
+            <!-- PILLS HORIZONTAIS -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:justify-center">
+                <button onclick="insertPrompt('Crie a estrutura e o código completo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                    <i data-lucide="code-2" class="w-3.5 h-3.5 text-gold-400"></i> Apps & Web
+                </button>
+                <button onclick="insertPrompt('Crie o conceito de marca e arte para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                    <i data-lucide="palette" class="w-3.5 h-3.5 text-gold-400"></i> Logos & Design
+                </button>
+                <button onclick="insertPrompt('Escreva um roteiro comercial de vídeo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                    <i data-lucide="video" class="w-3.5 h-3.5 text-gold-400"></i> Vídeos
+                </button>
             </div>
 
             <!-- GRID 2x2 -->
-            <div class="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
-                <div onclick="insertPrompt('Crie o código completo de um site para: ')" class="premium-card p-4 rounded-2xl cursor-pointer flex flex-col justify-between h-32">
-                    <div class="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="code-2" class="w-4 h-4"></i>
+            <div class="grid grid-cols-2 gap-2.5">
+                <div onclick="insertPrompt('Crie o código completo de um site para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                        <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Sites & Apps</h3>
@@ -273,9 +256,9 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Crie o conceito de marca e arte para: ')" class="premium-card p-4 rounded-2xl cursor-pointer flex flex-col justify-between h-32">
-                    <div class="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="palette" class="w-4 h-4"></i>
+                <div onclick="insertPrompt('Crie o conceito de marca e flyer para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                        <i data-lucide="palette" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Branding & Arts</h3>
@@ -283,9 +266,9 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Escreva um roteiro de vídeo para: ')" class="premium-card p-4 rounded-2xl cursor-pointer flex flex-col justify-between h-32">
-                    <div class="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="film" class="w-4 h-4"></i>
+                <div onclick="insertPrompt('Escreva um roteiro de anúncio para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                        <i data-lucide="film" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Produção de Vídeo</h3>
@@ -293,9 +276,9 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Faça um plano executivo para: ')" class="premium-card p-4 rounded-2xl cursor-pointer flex flex-col justify-between h-32">
-                    <div class="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
-                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                <div onclick="insertPrompt('Elabore um plano estratégico para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
+                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                        <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
                         <h3 class="text-xs font-bold text-white mb-0.5">Auditoria & Negócios</h3>
@@ -305,31 +288,31 @@
             </div>
         </div>
 
-        <!-- CONTAINER DE MENSAGENS -->
-        <div id="chat-container" class="w-full space-y-6"></div>
+        <!-- CONTAINER MENSAGENS -->
+        <div id="chat-container" class="w-full space-y-4"></div>
 
     </main>
 
     <!-- BARRA DE INPUT FLUTUANTE -->
-    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-5 bg-gradient-to-t from-[#05070B] via-[#05070B]/95 to-transparent">
-        <div class="max-w-3xl mx-auto relative">
-            <form id="chat-form" class="premium-card rounded-2xl p-2 sm:p-2.5 flex items-center gap-2 border border-white/10 shadow-2xl">
+    <div class="fixed bottom-3 left-0 w-full px-4 z-30">
+        <div class="max-w-md sm:max-w-2xl mx-auto">
+            <form id="chat-form" class="glass-card rounded-2xl p-2 flex items-center gap-2 border border-white/10 shadow-2xl">
                 
-                <label for="file-input" class="p-2.5 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0">
+                <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0">
                     <i data-lucide="paperclip" class="w-4 h-4"></i>
-                    <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.csv">
+                    <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx">
                 </label>
 
                 <textarea 
                     id="user-input" 
                     rows="1" 
                     placeholder="Descreva o que pretende criar..." 
-                    class="w-full bg-transparent text-xs sm:text-sm focus:outline-none resize-none max-h-32 py-1.5"
+                    class="w-full bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5 px-1"
                 ></textarea>
 
                 <button 
                     type="submit" 
-                    class="p-2.5 rounded-xl bg-gold-400 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.3)] active:scale-95 transition"
+                    class="p-2.5 rounded-xl bg-gold-400 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.35)] active:scale-95 transition"
                 >
                     <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                 </button>
@@ -340,11 +323,6 @@
     <!-- JAVASCRIPT -->
     <script>
         lucide.createIcons();
-
-        const aura = document.getElementById('interactive-aura');
-        window.addEventListener('mousemove', (e) => {
-            aura.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-        });
 
         let usageCount = parseInt(localStorage.getItem('honey_usage_count') || '0');
         let sessions = JSON.parse(localStorage.getItem('honey_sessions') || '[]');
@@ -476,7 +454,6 @@
             }
         });
 
-        // RESPOSTA LIVRE E ELEGANTE DA IA
         function appendMessageUI(role, text, animate = true) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
@@ -485,13 +462,13 @@
             const msgId = 'msg_' + Date.now();
             
             if (isUser) {
-                msgDiv.className = 'flex justify-end w-full my-3';
+                msgDiv.className = 'flex justify-end w-full my-2';
                 const userBubble = document.createElement('div');
-                userBubble.className = 'bg-gold-500/20 border border-gold-500/30 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] text-xs sm:text-sm font-medium leading-relaxed';
+                userBubble.className = 'bg-gold-500/20 border border-gold-500/30 text-white px-3.5 py-2 rounded-2xl rounded-tr-xs max-w-[85%] text-xs sm:text-sm font-medium leading-relaxed';
                 userBubble.innerText = text;
                 msgDiv.appendChild(userBubble);
             } else {
-                msgDiv.className = 'flex flex-col gap-2 w-full my-4 chat-response-free group';
+                msgDiv.className = 'flex flex-col gap-2 w-full my-3 chat-response-free group';
                 msgDiv.id = msgId;
 
                 const aiHeader = document.createElement('div');
@@ -500,11 +477,9 @@
                     <div class="flex items-center gap-1.5 text-gold-400 font-extrabold text-xs tracking-wide">
                         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> HONEY IA SOLUTION
                     </div>
-                    <div class="flex items-center gap-2 opacity-80 sm:opacity-0 group-hover:opacity-100 transition">
-                        <button onclick="copyMessageText('${msgId}')" title="Copiar" class="p-1 hover:text-white text-gray-400">
-                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
+                    <button onclick="copyMessageText('${msgId}')" title="Copiar" class="p-1 hover:text-white text-gray-400">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    </button>
                 `;
 
                 const parsedContent = document.createElement('div');
