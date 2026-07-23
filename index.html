@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Inteligência Artificial</title>
+    <title>Honey IA — Enterprise Suite</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Marked.js -->
+    <!-- Marked.js para Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- Google Fonts -->
+    <!-- Fontes Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -23,9 +23,9 @@
                 extend: {
                     fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
                     colors: { 
-                        amberGold: '#FFB800', 
-                        brightYellow: '#FFEA00',
-                        neonOrange: '#FF5500'
+                        honeyGold: '#FFB800', 
+                        honeyYellow: '#FFD700',
+                        honeyDark: '#080705'
                     }
                 }
             }
@@ -36,104 +36,82 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
-            background: #050401;
+            background: #080705;
             color: #FFFFFF; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
         }
 
-        /* GLOW DE CORES VIVAS DE FUNDO */
-        .vibrant-glow {
+        /* Padrão Hexagonal Discreto (Colmeia Pro) */
+        .honeycomb-bg {
             position: fixed;
-            top: 40%;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 184, 0, 0.08) 1px, transparent 0);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Aura de Luz no Fundo */
+        .ambient-glow {
+            position: fixed;
+            top: 30%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(255, 234, 0, 0.25) 0%, rgba(255, 85, 0, 0.15) 50%, transparent 75%);
-            filter: blur(80px);
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, rgba(255, 184, 0, 0.18) 0%, rgba(255, 120, 0, 0.05) 50%, transparent 75%);
+            filter: blur(90px);
             pointer-events: none;
             z-index: 1;
         }
 
-        /* ABELHA REAL 3D ANIMADA A VOAR NO FUNDO */
-        .flying-bee-bg {
-            position: fixed;
-            top: 38%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 320px;
-            height: 320px;
-            background-image: url('https://images.unsplash.com/photo-1587049352847-81a56d773cae?q=80&w=600&auto=format&fit=crop'); /* Imagem real de abelha */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            opacity: 0.35;
-            filter: drop-shadow(0 0 35px #FFEA00) drop-shadow(0 0 15px #FF5500);
-            pointer-events: none;
-            z-index: 2;
-            animation: floatAndWing 3.5s ease-in-out infinite alternate;
+        /* Caixa de Mensagem estilo Glassmorphism */
+        .honey-glass {
+            background: rgba(18, 16, 12, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 184, 0, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 184, 0, 0.1);
         }
 
-        /* Animação de voo */
-        @keyframes floatAndWing {
-            0% { transform: translate(-50%, -50%) translateY(-15px) rotate(-2deg) scale(1); }
-            50% { transform: translate(-50%, -50%) translateY(10px) rotate(3deg) scale(1.03); }
-            100% { transform: translate(-50%, -50%) translateY(-15px) rotate(-2deg) scale(1); }
+        .honey-glass:focus-within {
+            border-color: rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 35px rgba(255, 184, 0, 0.25);
         }
 
-        /* TEXTO VIVO COM GRADIENTE */
-        .text-neon {
-            background: linear-gradient(135deg, #FFFFFF 30%, #FFEA00 70%, #FF5500 100%);
+        .text-gradient {
+            background: linear-gradient(135deg, #FFFFFF 30%, #FFD700 75%, #FF8800 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        /* CONTAINER DO CHAT VIDRO VIBRANTE */
-        .chat-box-vibrant {
-            background: rgba(15, 12, 5, 0.82);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1.5px solid rgba(255, 234, 0, 0.4);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 25px rgba(255, 184, 0, 0.2);
-        }
-
-        .chat-box-vibrant:focus-within {
-            border-color: rgba(255, 234, 0, 0.9);
-            box-shadow: 0 0 35px rgba(255, 234, 0, 0.4);
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-brightYellow selection:text-black">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-honeyGold selection:text-black">
 
-    <!-- LUZ VIVA DE FUNDO -->
-    <div class="vibrant-glow"></div>
+    <div class="honeycomb-bg"></div>
+    <div class="ambient-glow"></div>
 
-    <!-- ABELHA REAL 3D EM BACKGROUND -->
-    <div class="flying-bee-bg"></div>
-
-    <!-- HEADER / BARRA SUPERIOR -->
-    <header class="relative z-20 w-full px-5 py-4 flex items-center justify-between max-w-xl mx-auto">
+    <!-- CABEÇALHO -->
+    <header class="relative z-20 w-full px-5 py-4 flex items-center justify-between max-w-2xl mx-auto">
         <div class="flex items-center gap-3 cursor-pointer" onclick="resetPage()">
             
-            <!-- LOGÓTIPO DE ABELHA REAL NO TOPO -->
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brightYellow to-neonOrange p-[1.5px] shadow-[0_0_20px_rgba(255,234,0,0.6)]">
-                <div class="w-full h-full bg-black rounded-[14px] flex items-center justify-center overflow-hidden">
-                    <span class="text-xl">🐝</span>
-                </div>
+            <!-- LOGO ABELHA -->
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honeyGold/30 to-transparent border border-honeyGold/50 flex items-center justify-center p-1 shadow-[0_0_20px_rgba(255,184,0,0.3)]">
+                <img src="https://img.icons8.com/3d-fluency/94/bee.png" alt="Honey IA Logo" class="w-7 h-7 object-contain">
             </div>
 
             <div class="flex flex-col">
-                <span class="text-lg font-black tracking-wider text-white leading-none">HONEY <span class="text-brightYellow">IA</span></span>
-                <span class="text-[9px] font-bold text-amberGold tracking-widest uppercase mt-1">Enterprise Engine</span>
+                <span class="text-base font-black tracking-wider text-white leading-none">HONEY <span class="text-honeyYellow">IA</span></span>
+                <span class="text-[9px] font-bold text-honeyGold/80 tracking-widest uppercase mt-0.5">Enterprise Suite</span>
             </div>
         </div>
 
-        <div class="px-3.5 py-1.5 rounded-xl bg-brightYellow/10 border border-brightYellow/40 text-xs font-black text-brightYellow flex items-center gap-2 shadow-[0_0_15px_rgba(255,234,0,0.3)]">
-            <span class="w-2 h-2 rounded-full bg-brightYellow animate-ping"></span>
+        <div class="px-3 py-1 rounded-full bg-honeyGold/10 border border-honeyGold/30 text-[11px] font-bold text-honeyYellow flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,184,0,0.15)]">
+            <span class="w-1.5 h-1.5 rounded-full bg-honeyYellow animate-pulse"></span>
             <span>Ativo</span>
         </div>
     </header>
@@ -141,44 +119,44 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-4 w-full max-w-xl mx-auto">
         
-        <!-- HERO TITULO -->
-        <div id="hero-section" class="text-center space-y-3 mb-8 transition-all">
-            <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brightYellow/15 border border-brightYellow/40 text-brightYellow text-[11px] font-black tracking-wide shadow-[0_0_15px_rgba(255,234,0,0.25)]">
-                <span>🐝 Sistema Honey IA</span>
+        <!-- SAUDAÇÃO HERO -->
+        <div id="hero-section" class="text-center space-y-3 mb-6 transition-all">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-honeyGold/20 text-honeyGold text-[11px] font-semibold">
+                <span>🐝 Sistema de Inteligência Honey</span>
             </div>
             
-            <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+            <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
                 Em que podemos <br/>
-                <span class="text-neon">avançar hoje?</span>
+                <span class="text-gradient">avançar hoje?</span>
             </h1>
             
-            <p class="text-xs text-gray-300 max-w-xs mx-auto font-medium leading-relaxed">
-                Desenvolvimento fullstack, arquitetura de marcas e inteligência estratégica.
+            <p class="text-xs text-gray-400 max-w-xs mx-auto font-medium leading-relaxed">
+                Desenvolvimento fullstack, engenharia de software e inteligência estratégica.
             </p>
         </div>
 
-        <!-- CHAT STREAM -->
+        <!-- FLUXO DO CHAT (EXIBIDO DURANTE A CONVERSA) -->
         <div id="chat-stream" class="w-full space-y-4 mb-4 hidden max-h-[50vh] overflow-y-auto no-scrollbar"></div>
 
-        <!-- CAIXA DE MENSAGEM PRINCIPAL -->
+        <!-- ÁREA DE INPUT PRINCIPAL -->
         <div class="w-full">
-            <form id="ai-form" class="chat-box-vibrant rounded-3xl p-3.5 transition-all">
+            <form id="ai-form" class="honey-glass rounded-2xl p-3 transition-all">
                 
-                <!-- SELETOR -->
-                <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-brightYellow/20 px-1">
-                    <select id="mode-selector" class="bg-brightYellow/15 border border-brightYellow/40 text-brightYellow text-xs font-black py-1 px-2.5 rounded-xl focus:outline-none">
-                        <option value="dev" class="bg-[#0A0803] text-white">⚡ Fullstack Dev</option>
-                        <option value="designer" class="bg-[#0A0803] text-white">🎨 UI/UX Design</option>
-                        <option value="copy" class="bg-[#0A0803] text-white">✍️ Copywriting</option>
+                <!-- SELETOR DE MODO -->
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 px-1">
+                    <select id="mode-selector" class="bg-transparent text-honeyGold text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="dev" class="bg-[#0D0B08] text-white">⚡ Fullstack Dev Engine</option>
+                        <option value="designer" class="bg-[#0D0B08] text-white">🎨 UI/UX & Design System</option>
+                        <option value="copy" class="bg-[#0D0B08] text-white">✍️ Copywriting & Content</option>
                     </select>
 
-                    <span class="text-[10px] text-amberGold font-mono font-bold">HONEY-PRO v2.0</span>
+                    <span class="text-[9px] text-gray-500 font-mono tracking-wider">v2.0 PRO</span>
                 </div>
 
-                <!-- CAMPO DE TEXTO E BOTÃO -->
+                <!-- CAMPO E BOTÃO DE ENVIO -->
                 <div class="flex items-center gap-2">
-                    <label for="file-upload" class="p-2.5 rounded-2xl bg-white/10 text-gray-300 hover:text-white cursor-pointer hover:bg-brightYellow/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    <label for="file-upload" class="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 cursor-pointer transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
 
@@ -186,38 +164,43 @@
                         id="prompt-input" 
                         rows="1" 
                         placeholder="Escreva a sua mensagem para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-400 focus:outline-none resize-none py-1 font-medium"
+                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none py-1 font-medium"
                     ></textarea>
 
                     <button 
                         type="submit" 
-                        class="p-3 rounded-2xl bg-gradient-to-r from-brightYellow to-amberGold text-black font-black flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(255,234,0,0.6)] active:scale-95 transition"
+                        class="p-2.5 rounded-xl bg-gradient-to-r from-honeyGold to-honeyYellow text-black font-extrabold flex items-center justify-center flex-shrink-0 shadow-[0_0_18px_rgba(255,184,0,0.4)] active:scale-95 transition"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
                     </button>
                 </div>
             </form>
 
-            <!-- CHIPS -->
-            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap">
-                <button onclick="setPrompt('Criar Landing Page para ')" class="px-3.5 py-1.5 rounded-full bg-brightYellow/10 border border-brightYellow/30 text-gray-200 hover:text-brightYellow text-xs font-bold transition shadow-[0_0_10px_rgba(255,234,0,0.15)]">
-                    ⚡ Landing Page
+            <!-- CHIPS DE ATALHO -->
+            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap">
+                <button onclick="setPrompt('Criar API Node.js/Express para ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-honeyGold/10 border border-white/5 hover:border-honeyGold/30 text-gray-300 hover:text-honeyYellow text-[11px] font-medium transition">
+                    ⚡ API Node.js
                 </button>
-                <button onclick="setPrompt('Conceito de Marca para ')" class="px-3.5 py-1.5 rounded-full bg-brightYellow/10 border border-brightYellow/30 text-gray-200 hover:text-brightYellow text-xs font-bold transition shadow-[0_0_10px_rgba(255,234,0,0.15)]">
-                    🎨 Branding
+                <button onclick="setPrompt('Criar UI Tailwind responsiva para ')" class="px-3 py-1 rounded-lg bg-white/[0.03] hover:bg-honeyGold/10 border border-white/5 hover:border-honeyGold/30 text-gray-300 hover:text-honeyYellow text-[11px] font-medium transition">
+                    🎨 UI Tailwind
                 </button>
             </div>
         </div>
 
     </main>
 
-    <footer class="relative z-20 w-full py-4 text-center text-xs text-amberGold/70 font-bold">
-        Honey IA Enterprise © 2026
+    <footer class="relative z-20 w-full py-3 text-center text-[10px] text-gray-500 font-medium">
+        Honey IA Suite © 2026 — Inteligência de Alto Desempenho
     </footer>
 
     <script>
         const promptInput = document.getElementById('prompt-input');
-        function setPrompt(text) { promptInput.value = text; promptInput.focus(); }
+        
+        function setPrompt(text) { 
+            promptInput.value = text; 
+            promptInput.focus(); 
+        }
+
         function resetPage() { 
             document.getElementById('hero-section').classList.remove('hidden'); 
             document.getElementById('chat-stream').classList.add('hidden'); 
