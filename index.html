@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Central de Inteligência & Ecossistema Digital</title>
+    <title>Honey IA — Central de Inteligência Enterprise</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,10 +15,10 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Google Fonts Premium: Plus Jakarta Sans & Inter -->
+    <!-- Google Fonts Executivas: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -26,7 +26,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'Inter', '-apple-system', 'sans-serif'],
                         body: ['Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
@@ -38,10 +38,9 @@
                             600: '#D97706',
                         },
                         dark: {
-                            bg: '#080C14',
-                            surface: '#0F172A',
-                            card: '#131C2E',
-                            border: 'rgba(255, 255, 255, 0.08)'
+                            bg: '#070A10',
+                            surface: '#0D131F',
+                            border: 'rgba(255, 255, 255, 0.07)'
                         }
                     }
                 }
@@ -50,14 +49,19 @@
     </script>
 
     <style>
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            box-sizing: border-box; 
+        }
         
         body { 
-            background-color: #080C14; 
+            background-color: #070A10; 
             color: #F1F5F9; 
-            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; 
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         /* Ambient Kinetic Background */
@@ -69,58 +73,63 @@
             height: 600px;
             margin-left: -300px;
             margin-top: -300px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.07) 0%, rgba(217, 119, 6, 0.015) 55%, transparent 80%);
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, rgba(217, 119, 6, 0.01) 60%, transparent 80%);
             pointer-events: none;
             z-index: 1;
             border-radius: 50%;
             transition: transform 0.15s ease-out;
-            filter: blur(70px);
+            filter: blur(80px);
         }
 
-        /* Painel e Caixas Sólidas em Destaque */
+        /* Header limpo com efeito de vidro sofisticado */
         .glass-header {
-            background: rgba(15, 23, 42, 0.88);
+            background: rgba(7, 10, 16, 0.88);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         }
 
         .glass-panel {
-            background: #0F172A;
+            background: #0D131F;
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* Caixa de Resposta em Destaque Especial */
-        .chat-response-card {
-            background: #0F172A;
-            border: 1px solid rgba(245, 158, 11, 0.22);
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.03);
-        }
-
-        /* Tipografia de Logo Executivo */
+        /* TIPOGRAFIA DE LOGO EXECUTIVO */
         .logo-text-brand {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 800;
             letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #FFFFFF 40%, #FBBF24 85%, #D97706 100%);
+            background: linear-gradient(135deg, #FFFFFF 30%, #FBBF24 80%, #D97706 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .gold-glow {
-            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.3));
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.25));
         }
 
         /* Esconder scrollbar nas pills mobile */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Formatação de Leitura Altamente Profissional */
+        /* 
+           REPOSTA DA IA TOTALMENTE LIVRE E EXPANSIVA (SEM CAIXAS APERTADAS)
+        */
+        .chat-response-free {
+            background: transparent;
+            width: 100%;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* FORMATO DA TIPOGRAFIA PROFISSIONAL DA RESPOSTA */
         .markdown-content { 
-            font-family: 'Inter', sans-serif;
-            font-size: 1.05rem; 
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-size: 1rem; 
             line-height: 1.8; 
             color: #E2E8F0; 
+            font-weight: 400;
+            letter-spacing: -0.011em;
             word-break: break-word;
         }
 
@@ -129,40 +138,54 @@
             color: #FFFFFF; 
             font-weight: 700;
             margin-top: 1.75rem; 
-            margin-bottom: 0.85rem; 
+            margin-bottom: 0.75rem; 
             letter-spacing: -0.02em;
         }
-        .markdown-content h1 { font-size: 1.6rem; }
+        .markdown-content h1 { font-size: 1.5rem; }
         .markdown-content h2 { 
-            font-size: 1.3rem; 
+            font-size: 1.25rem; 
             color: #FBBF24; 
             border-left: 3px solid #F59E0B; 
-            padding-left: 14px; 
-            margin-top: 2rem;
+            padding-left: 12px; 
+            margin-top: 1.75rem;
         }
-        .markdown-content h3 { font-size: 1.15rem; color: #FDE68A; }
+        .markdown-content h3 { font-size: 1.1rem; color: #FDE68A; }
         
-        .markdown-content p { margin-bottom: 1.25rem; }
-        .markdown-content ul, .markdown-content ol { margin-left: 1.5rem; margin-bottom: 1.25rem; }
-        .markdown-content li { margin-bottom: 0.45rem; }
+        .markdown-content p { margin-bottom: 1.2rem; }
+        .markdown-content ul, .markdown-content ol { margin-left: 1.5rem; margin-bottom: 1.2rem; }
+        .markdown-content li { margin-bottom: 0.4rem; }
         
         .markdown-content code {
             background: rgba(255, 255, 255, 0.08); 
-            padding: 0.25rem 0.5rem; 
+            padding: 0.2rem 0.45rem; 
             border-radius: 0.375rem;
             font-family: 'JetBrains Mono', monospace; 
             color: #FDE047; 
-            font-size: 0.92rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.88rem;
         }
 
         .markdown-content pre {
-            background: #05080E;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 1.35rem;
-            border-radius: 0.85rem;
+            background: #04060A;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
             overflow-x: auto;
-            margin: 1.5rem 0;
+            margin: 1.25rem 0;
+        }
+
+        /* 
+           CAMPO DE TEXTO DO UTILIZADOR COM A MESMA FONTE ELEGANTE
+        */
+        #user-input {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            color: #FFFFFF;
+        }
+        #user-input::placeholder {
+            color: #94A3B8;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         /* Typing Cursor Effect */
@@ -172,9 +195,9 @@
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         /* Scrollbar Discreto */
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 8px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between relative selection:bg-gold-500 selection:text-black">
@@ -182,17 +205,17 @@
     <!-- Interactive Aura Glow -->
     <div id="interactive-aura"></div>
 
-    <!-- HEADER PROFISSIONAL -->
+    <!-- HEADER ENTERPRISE -->
     <header class="sticky top-0 z-40 w-full glass-header px-4 sm:px-8 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3.5">
                 <button id="btn-open-menu" class="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-200 transition active:scale-95">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <!-- BRAND LOGO COM TIPOGRAFIA PROFISSIONAL -->
-                <div class="flex items-center gap-3 cursor-pointer" onclick="resetChat()">
+                <!-- BRAND LOGO -->
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400/20 to-gold-600/10 border border-gold-500/40 flex items-center justify-center p-1.5 gold-glow">
                         <svg viewBox="0 0 100 100" class="w-full h-full">
                             <polygon points="36,22 42,32 50,20 58,32 64,22 62,36 38,36" fill="#FBBF24" stroke="#D97706" stroke-width="2"/>
@@ -206,7 +229,7 @@
                             <span class="text-xl logo-text-brand leading-none">HONEY IA</span>
                             <span class="hidden sm:inline-block px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-gold-500/20 text-gold-400 border border-gold-500/30">PRO</span>
                         </div>
-                        <span class="text-[10px] text-gray-400 font-medium tracking-widest uppercase mt-1">Enterprise Intelligence</span>
+                        <span class="text-[10px] text-gray-400 font-medium tracking-widest uppercase mt-0.5">Enterprise Intelligence</span>
                     </div>
                 </div>
             </div>
@@ -221,7 +244,7 @@
                 </button>
             </div>
 
-            <button onclick="openPlansModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-gold-500/20 via-gold-400/10 to-gold-500/20 border border-gold-500/40 text-gold-400 font-bold text-xs hover:border-gold-400 transition active:scale-95 flex items-center gap-2">
+            <button onclick="openPlansModal()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-gold-500/20 via-gold-400/10 to-gold-500/20 border border-gold-500/40 text-gold-400 font-bold text-xs hover:border-gold-400 transition active:scale-95 flex items-center gap-2">
                 <i data-lucide="crown" class="w-4 h-4"></i>
                 <span>Planos Pro</span>
             </button>
@@ -277,20 +300,19 @@
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL (ÁREA DE CONVERSA AMPLA, CONFORTÁVEL E SEM APERTO) -->
-    <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-6 pb-56 flex flex-col justify-between relative z-10">
+    <!-- ÁREA PRINCIPAL TOTALMENTE AMPLA, FLUIDA E LIVRE -->
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 pt-4 pb-60 flex flex-col justify-between relative z-10">
         
         <!-- HERO / BOAS-VINDAS -->
         <div id="welcome-section" class="py-6 sm:py-10 space-y-8">
             <div class="text-center space-y-5 max-w-3xl mx-auto">
                 
-                <!-- Status Badge -->
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-500/10 border border-gold-500/30 text-gold-400 text-xs font-bold tracking-wider uppercase">
                     <span class="flex h-2 w-2 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-gold-500"></span>
                     </span>
-                    <span>Plataforma de Inteligência Computacional & Criativa</span>
+                    <span>Inteligência Corporativa & Criativa</span>
                 </div>
 
                 <h1 class="text-3xl sm:text-5xl font-extrabold text-white font-sans tracking-tight leading-tight">
@@ -299,71 +321,71 @@
                 </h1>
 
                 <p class="text-sm sm:text-base text-gray-300 leading-relaxed max-w-2xl mx-auto font-normal">
-                    A Honey IA projeta ecossistemas web completos, identidades visuais de alta fidelidade e relatórios executivos estruturados.
+                    Desenvolvimento de software, marcas, roteiros publicitários e consultoria executiva em segundos.
                 </p>
 
                 <!-- Pills com Scroll Horizontal no Telemóvel -->
                 <div class="flex items-center justify-start sm:justify-center gap-2.5 pt-2 overflow-x-auto no-scrollbar px-1 py-1 -mx-2 sm:mx-0">
-                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site responsivo para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                    <button onclick="insertPrompt('Crie a estrutura completa e o código de um site responsivo para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                         <i data-lucide="code-2" class="w-4 h-4 text-gold-400"></i> Apps & Web
                     </button>
-                    <button onclick="insertPrompt('Crie o conceito de logotipo e flyer publicitário para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                    <button onclick="insertPrompt('Crie o conceito de logotipo e flyer publicitário para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                         <i data-lucide="palette" class="w-4 h-4 text-gold-400"></i> Logos & Design
                     </button>
-                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo de anúncios para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                    <button onclick="insertPrompt('Escreva o roteiro comercial de um vídeo de anúncios para: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                         <i data-lucide="video" class="w-4 h-4 text-gold-400"></i> Vídeos
                     </button>
-                    <button onclick="insertPrompt('Elabore um plano estratégico de negócios para resolver: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] active:bg-gold-500/20 border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                    <button onclick="insertPrompt('Elabore um plano estratégico de negócios para resolver: ')" class="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs sm:text-sm text-gray-200 font-semibold transition flex items-center gap-2 whitespace-nowrap flex-shrink-0">
                         <i data-lucide="briefcase" class="w-4 h-4 text-gold-400"></i> Consultoria
                     </button>
                 </div>
             </div>
 
             <!-- CARDS DE CAPACIDADES -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                 
-                <div onclick="insertPrompt('Crie a estrutura completa e o código de um site premium para: ')" class="glass-panel p-5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
+                <div onclick="insertPrompt('Crie a estrutura completa e o código de um site premium para: ')" class="glass-panel p-4.5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
                     <div class="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="code-2" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Sites & Apps</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Código-fonte e estrutura responsiva.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Código-fonte e estrutura completa.</p>
                 </div>
 
-                <div onclick="insertPrompt('Elabore a identidade visual e o conceito de um logo/flyer para: ')" class="glass-panel p-5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
+                <div onclick="insertPrompt('Elabore a identidade visual e o conceito de um logo/flyer para: ')" class="glass-panel p-4.5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
                     <div class="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="palette" class="w-5 h-5"></i>
                     </div>
                     <h3 class="text-sm font-bold text-white mb-1">Branding & Arts</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Logotipos e peças publicitárias.</p>
+                    <p class="text-xs text-gray-400 leading-relaxed">Logotipos e flyers comerciais.</p>
                 </div>
 
-                <div onclick="insertPrompt('Escreva o roteiro para um vídeo comercial de alta conversão para: ')" class="glass-panel p-5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
+                <div onclick="insertPrompt('Escreva o roteiro para um vídeo comercial de alta conversão para: ')" class="glass-panel p-4.5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
                     <div class="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="video" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Produção Audiovisual</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Roteiros e campanhas publicitárias.</p>
+                    <h3 class="text-sm font-bold text-white mb-1">Produção de Vídeo</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Roteiros e estratégias de anúncio.</p>
                 </div>
 
-                <div onclick="insertPrompt('Faça uma auditoria e plano de ação estratégico para resolver o problema: ')" class="glass-panel p-5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
+                <div onclick="insertPrompt('Faça uma auditoria e plano de ação estratégico para resolver o problema: ')" class="glass-panel p-4.5 rounded-2xl cursor-pointer hover:border-gold-500/40 transition group">
                     <div class="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
                         <i data-lucide="briefcase" class="w-5 h-5"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white mb-1">Auditoria Executiva</h3>
-                    <p class="text-xs text-gray-400 leading-relaxed">Modelagem de negócios e relatórios.</p>
+                    <h3 class="text-sm font-bold text-white mb-1">Auditoria & Negócios</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Planos executivos e análise.</p>
                 </div>
 
             </div>
         </div>
 
-        <!-- CONTAINER DE MENSAGENS LARGO, DESTAQUE TOTAL E ALTAMENTE LEGÍVEL -->
-        <div id="chat-container" class="w-full space-y-7"></div>
+        <!-- CONTAINER DE MENSAGENS TOTALMENTE LIVRE E EXPANSIVO -->
+        <div id="chat-container" class="w-full space-y-8"></div>
 
     </main>
 
-    <!-- FLOATING INPUT AREA PERSONALIZADA -->
-    <div class="fixed bottom-0 left-0 w-full z-30 p-4 sm:p-6 bg-gradient-to-t from-dark-bg via-dark-bg/95 to-transparent pointer-events-none">
+    <!-- FLOATING INPUT AREA TOTALMENTE INTEGRADA -->
+    <div class="fixed bottom-0 left-0 w-full z-30 p-3.5 sm:p-5 bg-gradient-to-t from-dark-bg via-dark-bg/95 to-transparent pointer-events-none">
         <div class="max-w-4xl mx-auto pointer-events-auto relative">
             
             <!-- POPUP DE ATALHOS -->
@@ -380,7 +402,7 @@
                 </button>
             </div>
 
-            <form id="chat-form" class="glass-panel rounded-2xl p-3 shadow-2xl focus-within:border-gold-500/50 transition border border-white/10">
+            <form id="chat-form" class="glass-panel rounded-2xl p-2.5 sm:p-3 shadow-2xl focus-within:border-gold-500/50 transition border border-white/10">
                 
                 <!-- PREVIEW DE FICHEIRO -->
                 <div id="file-preview-container" class="hidden items-center justify-between bg-gold-500/10 p-2.5 rounded-xl border border-gold-500/20 mb-2">
@@ -393,8 +415,8 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <label for="file-input" class="p-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-300 hover:text-gold-400 cursor-pointer transition flex-shrink-0" title="Anexar Documento">
+                <div class="flex items-center gap-2.5">
+                    <label for="file-input" class="p-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-gray-300 hover:text-gold-400 cursor-pointer transition flex-shrink-0" title="Anexar Ficheiro">
                         <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.csv">
                     </label>
@@ -402,14 +424,14 @@
                     <textarea 
                         id="user-input" 
                         rows="1" 
-                        placeholder="Descreva a sua necessidade corporativa ou digite / para comandos..." 
-                        class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-400 focus:outline-none resize-none max-h-36 py-2 font-body leading-relaxed"
+                        placeholder="Descreva a sua necessidade corporativa..." 
+                        class="w-full bg-transparent text-sm sm:text-base focus:outline-none resize-none max-h-36 py-2 leading-relaxed"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="p-3.5 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-90 shadow-[0_0_20px_rgba(251,191,36,0.35)]"
+                        class="p-3 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 transition active:scale-90 shadow-[0_0_18px_rgba(251,191,36,0.3)]"
                     >
                         <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
                     </button>
@@ -632,7 +654,7 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // RENDERIZAÇÃO DA CAIXA DE MENSAGEM DESTACADA
+        // RENDERIZAÇÃO DA RESPOSTA TOTALMENTE LIVRE (SEM CAIXAS APERTADAS)
         function appendMessageUI(role, text, animate = true) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
@@ -643,35 +665,35 @@
             if (isUser) {
                 msgDiv.className = 'flex justify-end w-full my-4';
                 const userBubble = document.createElement('div');
-                userBubble.className = 'bg-gold-500/20 border border-gold-500/40 text-white px-6 py-4 rounded-2xl rounded-tr-xs max-w-[90%] sm:max-w-[80%] text-sm sm:text-base font-medium leading-relaxed shadow-lg';
+                userBubble.className = 'bg-gold-500/20 border border-gold-500/40 text-white px-5 py-3.5 rounded-2xl rounded-tr-xs max-w-[90%] sm:max-w-[80%] text-sm sm:text-base font-medium leading-relaxed shadow-md';
                 userBubble.innerText = text;
                 msgDiv.appendChild(userBubble);
             } else {
-                // CAIXA DE CONVERSA LARGA, DESTACADA E EXTREMAMENTE CONFORTÁVEL
-                msgDiv.className = 'flex flex-col gap-4 w-full my-6 chat-response-card p-6 sm:p-8 rounded-2xl relative group';
+                // ESTRUTURA EXPANSIVA E LIVRE POR COMPLETO
+                msgDiv.className = 'flex flex-col gap-3 w-full my-6 chat-response-free group';
                 msgDiv.id = msgId;
 
                 const aiHeader = document.createElement('div');
-                aiHeader.className = 'flex items-center justify-between border-b border-white/10 pb-4';
+                aiHeader.className = 'flex items-center justify-between border-b border-white/10 pb-3 mb-1';
                 aiHeader.innerHTML = `
-                    <div class="flex items-center gap-2.5 text-gold-400 font-extrabold text-sm font-sans tracking-wide">
+                    <div class="flex items-center gap-2 text-gold-400 font-extrabold text-sm tracking-wide">
                         <i data-lucide="sparkles" class="w-4 h-4"></i> HONEY IA SOLUTION
                     </div>
                     <div class="flex items-center gap-2 opacity-90 sm:opacity-0 group-hover:opacity-100 transition">
-                        <button onclick="speakText('${msgId}')" title="Ouvir" class="p-2 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
+                        <button onclick="speakText('${msgId}')" title="Ouvir" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
                             <i data-lucide="volume-2" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="copyMessageText('${msgId}')" title="Copiar" class="p-2 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
+                        <button onclick="copyMessageText('${msgId}')" title="Copiar" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
                             <i data-lucide="copy" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="exportToPDF('${msgId}')" title="Exportar PDF" class="p-2 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
+                        <button onclick="exportToPDF('${msgId}')" title="Exportar PDF" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-300 hover:text-white transition">
                             <i data-lucide="file-down" class="w-4 h-4"></i>
                         </button>
                     </div>
                 `;
 
                 const parsedContent = document.createElement('div');
-                parsedContent.className = 'markdown-content msg-body pt-2';
+                parsedContent.className = 'markdown-content msg-body';
 
                 msgDiv.appendChild(aiHeader);
                 msgDiv.appendChild(parsedContent);
@@ -777,10 +799,10 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-3 text-gold-400 py-5 px-6 chat-response-card rounded-2xl font-semibold text-sm animate-pulse my-4';
+            loadingDiv.className = 'flex items-center gap-3 text-gold-400 py-4 font-semibold text-sm animate-pulse my-4 border-b border-white/5';
             loadingDiv.innerHTML = `
                 <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                <span>A Honey IA está a estruturar a melhor solução corporativa...</span>
+                <span>A Honey IA está a estruturar a melhor resposta...</span>
             `;
             chatContainer.appendChild(loadingDiv);
             lucide.createIcons();
