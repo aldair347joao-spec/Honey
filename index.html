@@ -137,7 +137,7 @@
     <div class="bg-glow"></div>
 
     <!-- HEADER -->
-    <header class="sticky top-0 z-40 w-full bg-[#05070B]/80 backdrop-blur-md border-b border-white/[0.06] px-4 py-3.5">
+    <header class="sticky top-0 z-40 w-full bg-[#05070B]/80 backdrop-blur-md border-b border-white/[0.06] px-4 py-3">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
@@ -222,12 +222,12 @@
     </div>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-4 pb-40 relative z-10 flex flex-col justify-center">
+    <main class="flex-1 w-full max-w-md sm:max-w-2xl mx-auto px-4 pt-2 pb-44 relative z-10 flex flex-col justify-center">
         
         <!-- HERO / BOAS VINDAS -->
-        <div id="welcome-section" class="space-y-5">
-            <div class="text-center space-y-2">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+        <div id="welcome-section" class="space-y-4">
+            <div class="text-center space-y-1.5">
+                <h2 class="text-xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
                     Engenharia de Soluções para <br/>
                     <span class="text-gold-gradient">Web, Design & Estratégia</span>
                 </h2>
@@ -238,21 +238,21 @@
 
             <!-- PILLS HORIZONTAIS -->
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:justify-center">
-                <button onclick="insertPrompt('Crie a estrutura e o código completo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                <button onclick="insertPrompt('Crie a estrutura e o código completo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
                     <i data-lucide="code-2" class="w-3.5 h-3.5 text-gold-400"></i> Apps & Web
                 </button>
-                <button onclick="insertPrompt('Crie o conceito de marca e arte para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                <button onclick="insertPrompt('Crie o conceito de marca e arte para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
                     <i data-lucide="palette" class="w-3.5 h-3.5 text-gold-400"></i> Logos & Design
                 </button>
-                <button onclick="insertPrompt('Escreva um roteiro comercial de vídeo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0">
+                <button onclick="insertPrompt('Escreva um roteiro comercial de vídeo para: ')" class="px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-[11px] font-semibold text-gray-200 whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 hover:bg-gold-500/10 transition">
                     <i data-lucide="video" class="w-3.5 h-3.5 text-gold-400"></i> Vídeos
                 </button>
             </div>
 
             <!-- GRID 2x2 -->
             <div class="grid grid-cols-2 gap-2.5">
-                <div onclick="insertPrompt('Crie o código completo de um site para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
-                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div onclick="insertPrompt('Crie o código completo de um site para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
+                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
                         <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
@@ -261,8 +261,8 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Crie o conceito de marca e flyer para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
-                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div onclick="insertPrompt('Crie o conceito de marca e flyer para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
+                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
                         <i data-lucide="palette" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
@@ -271,8 +271,8 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Escreva um roteiro de anúncio para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
-                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div onclick="insertPrompt('Escreva um roteiro de anúncio para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
+                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
                         <i data-lucide="film" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
@@ -281,8 +281,8 @@
                     </div>
                 </div>
 
-                <div onclick="insertPrompt('Elabore um plano estratégico para: ')" class="glass-card p-3.5 rounded-2xl cursor-pointer flex flex-col justify-between h-28">
-                    <div class="w-7 h-7 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
+                <div onclick="insertPrompt('Elabore um plano estratégico para: ')" class="glass-card p-3 rounded-2xl cursor-pointer flex flex-col justify-between h-24 sm:h-28">
+                    <div class="w-6 h-6 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
                         <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
                     </div>
                     <div>
@@ -298,54 +298,61 @@
 
     </main>
 
-    <!-- BARRA DE INPUT FLUTUANTE -->
-    <div class="fixed bottom-3 left-0 w-full px-4 z-30">
-        <div class="max-w-md sm:max-w-2xl mx-auto">
-            
-            <!-- CHIPS DE PROMPT RÁPIDO & SELETOR DE MODO -->
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-2 px-1">
-                
-                <!-- SELETOR DE ESPECIALISTA -->
-                <select id="mode-selector" class="bg-gold-500/10 border border-gold-500/30 text-gold-400 text-[10px] font-bold py-1 px-2 rounded-full focus:outline-none cursor-pointer">
-                    <option value="dev" class="bg-[#090D16] text-white">⚡ Mod: Fullstack Dev</option>
-                    <option value="designer" class="bg-[#090D16] text-white">🎨 Mod: UI/UX Designer</option>
-                    <option value="copy" class="bg-[#090D16] text-white">✍️ Mod: Copywriter</option>
-                    <option value="biz" class="bg-[#090D16] text-white">📈 Mod: Consultor Biz</option>
-                </select>
+    <!-- BARRA DE INPUT FLUTUANTE (NOVA UI REESTRUTURADA) -->
+    <div class="fixed bottom-0 left-0 w-full px-3 pb-3 pt-2 z-30 bg-gradient-to-t from-[#05070B] via-[#05070B]/95 to-transparent backdrop-blur-md">
+        <div class="max-w-md sm:max-w-2xl mx-auto space-y-2">
 
-                <button type="button" onclick="insertPrompt('Cria uma landing page moderna para ')" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+            <!-- CHIPS DE PROMPT RÁPIDO -->
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-1 py-0.5">
+                <button type="button" onclick="insertPrompt('Cria uma landing page moderna para ')" class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap active:scale-95 transition hover:bg-gold-500/10 hover:border-gold-500/30">
                     ⚡ Landing Page
                 </button>
-                <button type="button" onclick="insertPrompt('Cria um roteiro de vídeo de 30 segundos para ')" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+                <button type="button" onclick="insertPrompt('Cria um roteiro de vídeo de 30 segundos para ')" class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap active:scale-95 transition hover:bg-gold-500/10 hover:border-gold-500/30">
                     🎬 Roteiro de Vídeo
                 </button>
-                <button type="button" onclick="insertPrompt('Gera uma estrutura de plano de negócios para ')" class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+                <button type="button" onclick="insertPrompt('Gera uma estrutura de plano de negócios para ')" class="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-gray-300 text-[10px] font-medium whitespace-nowrap active:scale-95 transition hover:bg-gold-500/10 hover:border-gold-500/30">
                     📊 Plano de Negócio
                 </button>
             </div>
 
-            <!-- FORMULÁRIO -->
-            <form id="chat-form" class="glass-card rounded-2xl p-2 flex items-center gap-2 border border-white/10 shadow-2xl">
+            <!-- CARD DE INPUT INTEGRADO -->
+            <form id="chat-form" class="bg-[#0D131F]/90 backdrop-blur-2xl rounded-2xl p-2.5 border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] focus-within:border-gold-500/50 transition-all flex flex-col gap-2">
                 
-                <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0">
-                    <i data-lucide="paperclip" class="w-4 h-4"></i>
-                    <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx">
-                </label>
+                <!-- TOPO INTERNO DA CAIXA: SELETOR DE MODO -->
+                <div class="flex items-center justify-between px-1 pt-0.5 border-b border-white/[0.05] pb-1.5">
+                    <select id="mode-selector" class="bg-gold-500/10 border border-gold-500/30 text-gold-400 text-[10px] font-bold py-0.5 px-2 rounded-lg focus:outline-none cursor-pointer">
+                        <option value="dev" class="bg-[#090D16] text-white">⚡ Mod: Fullstack Dev</option>
+                        <option value="designer" class="bg-[#090D16] text-white">🎨 Mod: UI/UX Designer</option>
+                        <option value="copy" class="bg-[#090D16] text-white">✍️ Mod: Copywriter</option>
+                        <option value="biz" class="bg-[#090D16] text-white">📈 Mod: Consultor Biz</option>
+                    </select>
 
-                <textarea 
-                    id="user-input" 
-                    rows="1" 
-                    placeholder="Descreva o que pretende criar..." 
-                    class="w-full bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-1.5 px-1"
-                ></textarea>
+                    <span class="text-[9px] font-semibold text-gray-500 uppercase tracking-wider">Honey IA v2.0</span>
+                </div>
 
-                <button 
-                    type="submit" 
-                    class="p-2.5 rounded-xl bg-gold-400 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(251,191,36,0.35)] active:scale-95 transition"
-                >
-                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-                </button>
+                <!-- CORPO DA CAIXA: TEXTAREA + BOTÕES DE AÇÃO -->
+                <div class="flex items-end gap-2 px-1">
+                    <label for="file-input" class="p-2 rounded-xl bg-white/[0.04] text-gray-400 hover:text-white cursor-pointer transition flex-shrink-0 mb-0.5">
+                        <i data-lucide="paperclip" class="w-4 h-4"></i>
+                        <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx">
+                    </label>
+
+                    <textarea 
+                        id="user-input" 
+                        rows="1" 
+                        placeholder="Descreva o que pretende criar..." 
+                        class="w-full bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none resize-none max-h-28 py-1.5"
+                    ></textarea>
+
+                    <button 
+                        type="submit" 
+                        class="p-2.5 rounded-xl bg-gold-400 hover:bg-gold-300 text-black font-bold flex items-center justify-center flex-shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] active:scale-95 transition mb-0.5"
+                    >
+                        <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                    </button>
+                </div>
             </form>
+
         </div>
     </div>
 
@@ -579,92 +586,7 @@
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
-        // Adiciona botões de Live Preview / Download se a resposta tiver código HTML
         function addQuickActionsToCode(container, text) {
             const hasCode = text.includes('```html') || text.includes('```');
             if (hasCode) {
-                const rawCodeMatch = text.match(/```(?:html)?([\s\S]*?)```/);
-                const rawCode = rawCodeMatch ? rawCodeMatch[1].trim() : text;
-
-                const actionsBar = document.createElement('div');
-                actionsBar.className = 'flex items-center gap-2 mt-3 pt-2 border-t border-white/5';
-                actionsBar.innerHTML = `
-                    <button onclick='openPreview(${JSON.stringify(rawCode)})' class="px-2.5 py-1 rounded-lg bg-gold-500/20 text-gold-300 border border-gold-500/30 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
-                        <i data-lucide="eye" class="w-3 h-3"></i> Live Preview
-                    </button>
-                    <button onclick='downloadHtml(${JSON.stringify(rawCode)})' class="px-2.5 py-1 rounded-lg bg-white/5 text-gray-300 border border-white/10 text-[10px] font-bold flex items-center gap-1 active:scale-95 transition">
-                        <i data-lucide="download" class="w-3 h-3"></i> Baixar .html
-                    </button>
-                `;
-                container.appendChild(actionsBar);
-                lucide.createIcons();
-            }
-        }
-
-        function copyMessageText(msgId) {
-            const el = document.querySelector(`#${msgId} .msg-body`);
-            if (el) {
-                navigator.clipboard.writeText(el.innerText);
-                alert('Conteúdo copiado!');
-            }
-        }
-
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            const mode = document.getElementById('mode-selector').value;
-
-            if (!currentSessionId) createNewSession();
-
-            let session = sessions.find(s => s.id === currentSessionId);
-            if (session) {
-                if (session.messages.length === 0) session.title = text.substring(0, 20) + '...';
-                session.messages.push({ role: 'user', text: text });
-                saveSessions();
-            }
-
-            appendMessageUI('user', text, false);
-            userInput.value = '';
-            userInput.style.height = 'auto';
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-2 text-gold-400 py-3 font-semibold text-xs animate-pulse my-2 border-b border-white/5';
-            loadingDiv.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> A estruturar a solução...`;
-            chatContainer.appendChild(loadingDiv);
-            lucide.createIcons();
-
-            try {
-                const response = await fetch('/gerar-gratis', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, modo: mode })
-                });
-
-                const data = await response.json();
-                loadingDiv.remove();
-
-                if (data.sucesso) {
-                    if (session) {
-                        session.messages.push({ role: 'assistant', text: data.resposta });
-                        saveSessions();
-                    }
-                    appendMessageUI('assistant', data.resposta, true);
-                    usageCount += 1;
-                    localStorage.setItem('honey_usage_count', usageCount.toString());
-                    updateUsageUI();
-                } else {
-                    appendMessageUI('assistant', `⚠️ **Aviso:** ${data.erro}`, false);
-                }
-            } catch (err) {
-                loadingDiv.remove();
-                appendMessageUI('assistant', '⚠️ **Erro:** Falha ao comunicar com o servidor.', false);
-            }
-        });
-
-        if (sessions.length === 0) createNewSession();
-        else loadSession(currentSessionId || sessions[0].id);
-    </script>
-</body>
-</html>
+                const rawCodeMatch = text.match(/```(?:html)?([\s\S]*?)
