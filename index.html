@@ -2,22 +2,22 @@
 <html lang="pt-PT" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA — Plataforma Executiva de Inteligência Artificial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Honey IA — Executive Intelligence Suite</title>
     
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Marked.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-
-    <!-- Marked.js para Renderização de Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -30,20 +30,23 @@
                     },
                     colors: {
                         honey: {
+                            300: '#fde047',
                             400: '#fbbf24',
                             500: '#f59e0b',
                             600: '#d97706',
-                            glow: 'rgba(245, 158, 11, 0.15)'
+                            glow: 'rgba(245, 158, 11, 0.25)'
                         },
                         obsidian: {
-                            base: '#0b0c10',
-                            card: '#13151c',
+                            deep: '#07080a',
+                            base: '#0d0f14',
+                            card: '#141721',
                             border: 'rgba(255, 255, 255, 0.08)'
                         }
                     },
                     boxShadow: {
-                        'premium': '0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.08)',
-                        'gold-glow': '0 0 25px -5px rgba(245, 158, 11, 0.3)',
+                        'gold-glow': '0 0 35px -5px rgba(245, 158, 11, 0.35)',
+                        'gold-border': '0 0 15px 0 rgba(245, 158, 11, 0.2)',
+                        'card-depth': '0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(255, 255, 255, 0.05)',
                     }
                 }
             }
@@ -52,53 +55,101 @@
 
     <style>
         body {
-            background-color: #0b0c10;
+            background-color: #07080a;
             color: #f3f4f6;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
-            background-attachment: fixed;
+            overflow-x: hidden;
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
         }
 
+        /* Efeitos Âmbar de Fundo (Aura Executiva) */
+        .ambient-glow-1 {
+            position: fixed;
+            top: -10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(50px);
+        }
+
+        .ambient-glow-2 {
+            position: fixed;
+            bottom: -10%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.08) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            z-index: 0;
+            filter: blur(60px);
+        }
+
+        /* Vidro Premium High-End */
         .glass-header {
-            background: rgba(11, 12, 16, 0.85);
+            background: rgba(13, 15, 20, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-interactive {
+            background: linear-gradient(135deg, rgba(20, 23, 33, 0.7) 0%, rgba(15, 17, 24, 0.8) 100%);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-
-        .glass-card {
-            background: rgba(19, 21, 28, 0.6);
-            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s ease;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .glass-card:hover {
-            border-color: rgba(245, 158, 11, 0.4);
-            transform: translateY(-2px);
+        .glass-card-interactive::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.4), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        /* Estilo Aberto e Expandido do Conteúdo */
-        .markdown-content {
-            font-size: 1.125rem; /* ~18px para leitura grande e clara */
-            line-height: 1.8;
-            color: #e5e7eb;
-            width: 100%;
+        .glass-card-interactive:hover, .glass-card-interactive:active {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 20px rgba(245, 158, 11, 0.15);
         }
 
-        @media (min-width: 768px) {
-            .markdown-content {
-                font-size: 1.2rem; /* ~19px em ecrãs maiores */
+        .glass-card-interactive:hover::before, .glass-card-interactive:active::before {
+            opacity: 1;
+        }
+
+        /* Animações Suaves */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
-        .markdown-content p { 
-            margin-bottom: 1.25rem; 
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .markdown-content p:last-child { 
-            margin-bottom: 0; 
+        /* Estilização do Conteúdo de Resposta */
+        .markdown-content {
+            font-size: 1.1rem;
+            line-height: 1.85;
+            color: #e2e8f0;
+            width: 100%;
         }
 
+        .markdown-content p { margin-bottom: 1.2rem; }
+        .markdown-content p:last-child { margin-bottom: 0; }
         .markdown-content h1, .markdown-content h2, .markdown-content h3 {
             font-family: 'Space Grotesk', sans-serif;
             color: #ffffff;
@@ -106,131 +157,60 @@
             margin-top: 1.8rem;
             margin-bottom: 0.8rem;
         }
-
-        .markdown-content h1 { 
-            font-size: 1.6rem; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
-            padding-bottom: 0.5rem; 
-        }
-
-        .markdown-content h2 { 
-            font-size: 1.4rem; 
-            color: #fbbf24; 
-        }
-
-        .markdown-content h3 { 
-            font-size: 1.25rem; 
-        }
-
-        .markdown-content ul, .markdown-content ol {
-            margin-top: 0.5rem;
-            margin-bottom: 1.25rem;
-            padding-left: 1.5rem;
-        }
-
+        .markdown-content h2 { color: #fbbf24; font-size: 1.35rem; }
+        .markdown-content ul, .markdown-content ol { margin: 0.8rem 0 1.2rem 1.4rem; }
         .markdown-content ul { list-style-type: disc; }
         .markdown-content ol { list-style-type: decimal; }
-        .markdown-content li { margin-bottom: 0.5rem; }
-        .markdown-content strong { color: #ffffff; font-weight: 700; }
+        .markdown-content li { margin-bottom: 0.4rem; }
+        .markdown-content strong { color: #ffffff; }
 
-        /* Destaque Fluido sem Caixa Pesada */
         .markdown-content blockquote {
-            border-left: 4px solid #f59e0b;
-            padding: 0.75rem 0 0.75rem 1.25rem;
-            margin: 1.25rem 0;
-            color: #f3f4f6;
-            background: rgba(245, 158, 11, 0.05);
+            border-left: 3px solid #f59e0b;
+            padding: 0.8rem 0 0.8rem 1.2rem;
+            margin: 1.2rem 0;
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, transparent 100%);
             border-radius: 0 12px 12px 0;
         }
 
-        .markdown-content code {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fbbf24;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.9em;
-            font-family: monospace;
-        }
-
-        .markdown-content pre {
-            background: #13151c;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.2rem;
-            border-radius: 14px;
-            overflow-x: auto;
-            margin: 1.2rem 0;
-        }
-
-        .markdown-content pre code {
-            background: transparent;
-            padding: 0;
-            color: #e5e7eb;
-        }
-
-        /* Tabelas Fluídas de Largura Total */
-        .table-responsive-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .markdown-content table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .markdown-content th, .markdown-content td {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 0.9rem 1.2rem;
-            text-align: left;
-        }
-
-        .markdown-content th {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fbbf24;
-            font-weight: 700;
-        }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* Scrollbar Discreta */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.4); }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col justify-between overflow-x-hidden">
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between relative selection:bg-honey-500 selection:text-black">
 
-    <!-- Header Fixo -->
-    <header class="sticky top-0 z-40 w-full glass-header border-b border-obsidian-border px-4 md:px-8 py-3.5">
-        <div class="w-full mx-auto flex items-center justify-between">
+    <!-- Auras Luminosas de Fundo -->
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- Header Fixo Ultra-Glass -->
+    <header class="sticky top-0 z-40 w-full glass-header px-4 md:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
             
             <div class="flex items-center gap-3">
-                <button id="btn-open-menu" title="Menu principal" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-gray-200 transition">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
+                <button id="btn-open-menu" title="Menu principal" class="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-200 transition active:scale-95">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
-                <button id="btn-cmd-k" title="Pesquisar atalhos (Ctrl+K)" class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-obsidian-border text-sm text-gray-300 transition">
-                    <i data-lucide="search" class="w-4 h-4"></i>
-                    <span class="font-medium">Procurar...</span>
-                    <kbd class="px-1.5 py-0.5 text-[11px] bg-white/10 rounded font-mono">⌘K</kbd>
-                </button>
-
-                <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
-
-                <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetChat()">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 to-honey-600 flex items-center justify-center shadow-gold-glow">
-                        <i data-lucide="sparkles" class="w-6 h-6 text-black"></i>
+                <div class="flex items-center gap-2.5 cursor-pointer group" onclick="resetChat()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-honey-400 via-honey-500 to-honey-600 flex items-center justify-center shadow-gold-glow group-hover:scale-105 transition duration-300">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-black"></i>
                     </div>
                     <div>
-                        <span class="text-xl font-bold tracking-tight text-white block leading-none font-display">Honey IA</span>
-                        <span class="text-[11px] text-honey-400 font-semibold tracking-wider uppercase">Executive Pro</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-lg font-bold tracking-tight text-white font-display">Honey IA</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-honey-500/20 border border-honey-500/30 text-honey-400 uppercase tracking-widest">v2.5</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-medium tracking-wider uppercase block">Executive Suite</span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="openPlansModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-honey-500/20 to-honey-600/10 hover:bg-honey-500/30 border border-honey-500/30 text-honey-400 font-bold text-xs sm:text-sm transition">
-                    <i data-lucide="crown" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                <button onclick="openPlansModal()" class="relative group overflow-hidden px-4 py-2 rounded-xl bg-gradient-to-r from-honey-500/15 via-honey-500/10 to-transparent hover:bg-honey-500/20 border border-honey-500/30 text-honey-400 font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-gold-border">
+                    <i data-lucide="crown" class="w-4 h-4 text-honey-400 animate-pulse"></i>
                     <span id="header-plan-label">Planos / Pro</span>
                 </button>
             </div>
@@ -238,180 +218,179 @@
     </header>
 
     <!-- Menu Lateral (Drawer) -->
-    <div id="drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-card border-r border-obsidian-border z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between shadow-2xl">
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <aside id="drawer-menu" class="fixed top-0 left-0 h-full w-80 bg-obsidian-base border-r border-white/10 z-50 -translate-x-full transition-transform duration-300 p-6 flex flex-col justify-between shadow-2xl">
         <div class="space-y-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-6 h-6 text-honey-400"></i>
-                    <span class="font-bold text-white text-lg">Honey IA Suite</span>
+            <div class="flex items-center justify-between pb-4 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-honey-500/20 border border-honey-500/30 flex items-center justify-center text-honey-400">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                    <span class="font-bold text-white text-base font-display">Honey IA Executive</span>
                 </div>
                 <button id="btn-close-menu" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition">
-                    <i data-lucide="x" class="w-6 h-6"></i>
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
             <nav class="space-y-2">
-                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-honey-500/10 text-honey-400 font-semibold text-base hover:bg-honey-500/20 transition">
+                <button onclick="resetChat()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-honey-500/20 to-transparent border border-honey-500/30 text-honey-400 font-bold text-sm hover:brightness-125 transition">
                     <i data-lucide="plus-circle" class="w-5 h-5"></i> Nova Conversa
                 </button>
-                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
-                    <i data-lucide="file-text" class="w-5 h-5"></i> Documentos Processados
+                <button onclick="triggerMenuAction('Documentos')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="file-check-2" class="w-5 h-5 text-honey-400"></i> Análise de Contratos
                 </button>
-                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
-                    <i data-lucide="calculator" class="w-5 h-5"></i> Finanças & Tabelas
+                <button onclick="triggerMenuAction('Finanças')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 text-honey-400"></i> Relatórios Financeiros
                 </button>
-                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-base transition">
-                    <i data-lucide="code-2" class="w-5 h-5"></i> Engenharia & Código
-                </button>
-                <button onclick="openPlansModal()" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-honey-400 hover:bg-honey-500/10 text-base font-bold transition mt-4 border border-honey-500/20">
-                    <i data-lucide="gem" class="w-5 h-5"></i> Ver Planos & Subscrição
+                <button onclick="triggerMenuAction('Engenharia')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 text-sm transition">
+                    <i data-lucide="cpu" class="w-5 h-5 text-honey-400"></i> Engenharia & Código
                 </button>
             </nav>
         </div>
 
         <div class="pt-4 border-t border-white/10 space-y-3">
-            <div class="flex items-center gap-3 px-2">
-                <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm text-honey-400">EX</div>
-                <div class="text-xs sm:text-sm">
-                    <div class="font-bold text-white">Sua Conta</div>
-                    <div id="usage-counter" class="text-gray-400">Projetos criados: 0 / 2</div>
+            <div class="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-honey-500 to-honey-600 flex items-center justify-center font-bold text-black text-sm">EX</div>
+                <div class="text-xs">
+                    <div class="font-bold text-white">Sessão Executiva</div>
+                    <div id="usage-counter" class="text-gray-400">Uso: 0 / 2 projetos</div>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- Modal de Planos -->
-    <div id="plans-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
-        <div id="plans-modal" class="bg-obsidian-card border border-obsidian-border rounded-3xl w-full max-w-3xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300 overflow-y-auto max-h-[90vh]">
+    <!-- Modal de Planos Pro -->
+    <div id="plans-backdrop" class="fixed inset-0 bg-black/85 backdrop-blur-xl z-50 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+        <div id="plans-modal" class="bg-obsidian-card border border-white/10 rounded-3xl w-full max-w-2xl p-6 md:p-8 shadow-2xl scale-95 transition-transform duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-2xl font-extrabold text-white flex items-center gap-2 font-display">
-                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Escolha o seu Plano
+                        <i data-lucide="crown" class="w-6 h-6 text-honey-400"></i> Subscrição Executive Pro
                     </h2>
-                    <p class="text-sm text-gray-400 mt-1">Desbloqueie todo o potencial da Honey IA sem limitações.</p>
+                    <p class="text-xs sm:text-sm text-gray-400 mt-1">Produtividade ilimitada para tomada de decisões estratégicas.</p>
                 </div>
                 <button onclick="closePlansModal()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-between">
-                    <div class="space-y-4">
-                        <div class="inline-block px-3 py-1 rounded-full bg-white/10 text-xs text-gray-300 font-semibold">Gratuito</div>
-                        <h3 class="text-xl font-bold text-white">Plano Inicial</h3>
-                        <div class="text-3xl font-extrabold text-white">$0 <span class="text-xs font-normal text-gray-400">/para sempre</span></div>
-                        <ul class="space-y-2.5 text-xs sm:text-sm text-gray-300 pt-2">
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Conversas e consultas executivas ilimitadas</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 2 criações/análises de projetos grátis</li>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <span class="inline-block px-3 py-1 rounded-full bg-white/10 text-[11px] text-gray-300 font-bold uppercase tracking-wider">Gratuito</span>
+                        <h3 class="text-lg font-bold text-white">Versão Standard</h3>
+                        <div class="text-2xl font-extrabold text-white">$0</div>
+                        <ul class="space-y-2 text-xs text-gray-300 pt-2">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Consultas ilimitadas</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Até 2 análises profundas</li>
                         </ul>
                     </div>
-                    <button onclick="closePlansModal()" class="mt-6 w-full py-3 rounded-xl border border-white/20 text-white font-bold text-sm hover:bg-white/5 transition">Plano Atual</button>
+                    <button onclick="closePlansModal()" class="mt-6 w-full py-2.5 rounded-xl border border-white/20 text-white font-bold text-xs hover:bg-white/5 transition">Plano Actual</button>
                 </div>
 
-                <div class="bg-gradient-to-b from-honey-500/10 to-transparent border-2 border-honey-500/50 rounded-2xl p-6 flex flex-col justify-between relative shadow-gold-glow">
-                    <div class="absolute -top-3 right-4 bg-honey-500 text-black text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Recomendado</div>
-                    <div class="space-y-4">
-                        <div class="inline-block px-3 py-1 rounded-full bg-honey-500/20 text-xs text-honey-400 font-semibold">Pro Executivo</div>
-                        <h3 class="text-xl font-bold text-white">Acesso Ilimitado</h3>
-                        
-                        <div class="flex items-center gap-2 bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
-                            <button id="btn-billing-monthly" onclick="setBilling('monthly')" class="flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition">Mensal</button>
-                            <button id="btn-billing-yearly" onclick="setBilling('yearly')" class="flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition">Anual</button>
-                        </div>
-
-                        <div id="price-display" class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
-
-                        <ul class="space-y-2.5 text-xs sm:text-sm text-gray-200 pt-2">
-                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Criação e análise ilimitadas de projetos</li>
-                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Processamento rápido de PDF/Excel/OCR</li>
+                <div class="bg-gradient-to-b from-honey-500/15 to-transparent border-2 border-honey-500/50 rounded-2xl p-5 flex flex-col justify-between relative shadow-gold-glow">
+                    <div class="absolute -top-3 right-4 bg-honey-500 text-black text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Empresarial</div>
+                    <div class="space-y-3">
+                        <span class="inline-block px-3 py-1 rounded-full bg-honey-500/20 text-[11px] text-honey-400 font-bold uppercase tracking-wider">Pro Ilimitado</span>
+                        <h3 class="text-lg font-bold text-white">Acesso Total</h3>
+                        <div class="text-3xl font-extrabold text-white">$10 <span class="text-xs font-normal text-gray-400">/mês</span></div>
+                        <ul class="space-y-2 text-xs text-gray-200 pt-2">
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Documentos & Análises sem limites</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-honey-400"></i> Motor Groq Llama3 de alta velocidade</li>
                         </ul>
                     </div>
-
-                    <button onclick="startCheckout()" class="mt-6 w-full py-3.5 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:opacity-90 text-black font-extrabold text-sm shadow-gold-glow transition flex items-center justify-center gap-2">
-                        <i data-lucide="credit-card" class="w-5 h-5"></i> Subscrever Agora
+                    <button onclick="startCheckout()" class="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-honey-500 to-honey-600 hover:brightness-110 text-black font-extrabold text-xs shadow-gold-glow transition flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Ativar Agora
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal Command K -->
-    <div id="cmdk-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-200 flex items-start justify-center pt-20 px-4">
-        <div id="cmdk-modal" class="bg-obsidian-card border border-obsidian-border rounded-2xl w-full max-w-xl p-4 shadow-2xl scale-95 transition-transform duration-200">
-            <div class="flex items-center gap-3 px-3 pb-3 border-b border-white/10">
-                <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
-                <input id="cmdk-input" type="text" placeholder="Escreva um comando..." class="w-full bg-transparent text-base text-white focus:outline-none">
-                <button id="btn-close-cmdk" class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">ESC</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONTEÚDO PRINCIPAL (LAYOUT TOTALMENTE ABERTO) -->
-    <main class="flex-1 w-full px-3 sm:px-6 md:px-10 py-4 flex flex-col justify-between gap-4">
+    <!-- CONTEÚDO PRINCIPAL COM ESPAÇAMENTO ADEQUADO PARA MOBILE -->
+    <main class="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-36 flex flex-col justify-between relative z-10">
         
-        <!-- Boas-vindas -->
-        <div id="welcome-section" class="py-8 space-y-6 animate-fade-in max-w-4xl mx-auto w-full">
-            <div class="text-center space-y-3">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/20 text-honey-400 text-xs sm:text-sm font-semibold">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Inteligência Artificial Executiva
+        <!-- Hero Section Interativa -->
+        <div id="welcome-section" class="py-4 space-y-8 animate-fade-in-up">
+            
+            <div class="text-center space-y-4">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-honey-500/10 border border-honey-500/25 text-honey-400 text-xs font-semibold shadow-gold-border">
+                    <span class="w-2 h-2 rounded-full bg-honey-400 animate-ping"></span>
+                    <span>Inteligência Artificial Pronta</span>
                 </div>
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight font-display">
-                    Como posso ajudar hoje?
+
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight font-display leading-tight">
+                    Como posso otimizar o seu <span class="text-transparent bg-clip-text bg-gradient-to-r from-honey-300 via-honey-400 to-honey-600">trabalho hoje?</span>
                 </h1>
-                <p class="text-base sm:text-lg text-gray-300">
-                    Análise técnica de documentos, pareceres, finanças e engenharia.
+
+                <p class="text-sm sm:text-base text-gray-400 max-w-xl mx-auto leading-relaxed">
+                    Selecione um fluxo abaixo ou anexe um ficheiro para análise imediata.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div onclick="insertPrompt('Solicito uma análise executiva e resumo estruturado deste documento.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
+            <!-- Cartões de Ação Rápida (Design Vidro com Efeitos Touch/Hover) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                
+                <div onclick="insertPrompt('Elabore um parecer executivo minucioso sobre este documento, sublinhando riscos e cláusulas críticas.')" class="glass-card-interactive p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="file-check-2" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-1">Contratos & Minutas</h3>
-                    <p class="text-xs text-gray-400">Parecer técnico de cláusulas e obrigações.</p>
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
+                        Contratos & Minutas
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                    </h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Análise técnica de obrigações e riscos jurídicos.</p>
                 </div>
 
-                <div onclick="insertPrompt('Analise estes dados de engenharia/código e elabore um parecer técnico.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                <div onclick="insertPrompt('Analise este código/projeto técnico, identifique falhas e forneça a solução otimizada.')" class="glass-card-interactive p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="cpu" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-1">Engenharia & Código</h3>
-                    <p class="text-xs text-gray-400">Diagnósticos técnicos e soluções de código.</p>
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
+                        Engenharia & Código
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                    </h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Diagnósticos avançados e arquitetura de código.</p>
                 </div>
 
-                <div onclick="insertPrompt('Extraia os dados financeiros, métricas e estruture uma tabela executiva.')" class="glass-card p-5 rounded-2xl cursor-pointer group">
-                    <div class="w-10 h-10 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-3">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                <div onclick="insertPrompt('Extraia os dados financeiros principais deste documento e estruture uma tabela clara.')" class="glass-card-interactive p-5 rounded-2xl cursor-pointer group">
+                    <div class="w-11 h-11 rounded-xl bg-honey-500/10 border border-honey-500/20 text-honey-400 flex items-center justify-center mb-4 group-hover:scale-110 transition duration-300">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-base font-bold text-white mb-1">Finanças & Planilhas</h3>
-                    <p class="text-xs text-gray-400">Extração de dados e tabelas estruturadas.</p>
+                    <h3 class="text-base font-bold text-white mb-1.5 font-display flex items-center justify-between">
+                        Finanças & Tabelas
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-gray-500 group-hover:text-honey-400 transition"></i>
+                    </h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Processamento de balanços e planilhas complexas.</p>
                 </div>
+
             </div>
         </div>
 
-        <!-- Área do Chat Flutuante e Aberta (Sem Caixas de Fundo) -->
-        <div id="chat-container" class="flex-1 w-full space-y-6 overflow-y-auto min-h-[350px] max-h-[75vh] px-1 pb-6"></div>
+        <!-- Área de Conversa Flutuante (Sem Caixas de Fundo Bloqueantes) -->
+        <div id="chat-container" class="w-full space-y-6 overflow-y-auto px-1"></div>
 
-        <!-- Barra de Input Fixo na Parte Inferior -->
-        <div class="sticky bottom-2 w-full">
-            <form id="chat-form" class="bg-obsidian-card rounded-2xl p-3 shadow-premium relative flex flex-col gap-3 border border-obsidian-border focus-within:border-honey-500/50 transition">
+    </main>
+
+    <!-- Barra de Input Flutuante Fixa (Ultra-Moderna) -->
+    <div class="fixed bottom-0 left-0 w-full z-30 p-3 sm:p-5 bg-gradient-to-t from-black via-black/90 to-transparent pt-8">
+        <div class="max-w-4xl mx-auto">
+            <form id="chat-form" class="bg-obsidian-card/90 backdrop-blur-xl rounded-2xl p-2.5 sm:p-3 shadow-card-depth border border-white/10 focus-within:border-honey-500/50 transition duration-300 relative">
                 
-                <div id="file-preview-container" class="hidden items-center justify-between bg-white/5 p-2 px-3 rounded-xl border border-white/10">
+                <div id="file-preview-container" class="hidden items-center justify-between bg-honey-500/10 p-2.5 px-3.5 rounded-xl border border-honey-500/20 mb-2">
                     <div class="flex items-center gap-2.5 overflow-hidden">
-                        <i data-lucide="paperclip" class="w-5 h-5 text-honey-400 flex-shrink-0"></i>
-                        <span id="file-preview-name" class="text-sm text-gray-200 truncate font-medium">documento.pdf</span>
+                        <i data-lucide="paperclip" class="w-4 h-4 text-honey-400 flex-shrink-0"></i>
+                        <span id="file-preview-name" class="text-xs text-gray-200 truncate font-semibold">documento.pdf</span>
                     </div>
                     <button type="button" id="remove-file-btn" class="p-1 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <label for="file-input" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white cursor-pointer transition flex-shrink-0" title="Anexar Ficheiro">
-                        <i data-lucide="paperclip" class="w-6 h-6"></i>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <label for="file-input" class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-honey-400 cursor-pointer transition flex-shrink-0 active:scale-95" title="Anexar Ficheiro">
+                        <i data-lucide="paperclip" class="w-5 h-5"></i>
                         <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.xlsx,.xls,.csv">
                     </label>
 
@@ -419,27 +398,26 @@
                         id="user-input" 
                         rows="1" 
                         placeholder="Instrua a Honey IA ou anexe um ficheiro..." 
-                        class="w-full bg-transparent text-base sm:text-lg text-white placeholder-gray-400 focus:outline-none resize-none max-h-36 py-1.5"
+                        class="w-full bg-transparent text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none resize-none max-h-32 py-2"
                     ></textarea>
 
                     <button 
                         type="submit" 
                         id="send-btn" 
-                        class="w-12 h-12 rounded-xl bg-gradient-to-tr from-honey-600 to-honey-400 hover:opacity-95 text-black font-bold flex items-center justify-center shadow-gold-glow flex-shrink-0 transition transform active:scale-95"
+                        class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-honey-600 via-honey-500 to-honey-400 hover:brightness-110 text-black font-extrabold flex items-center justify-center shadow-gold-glow flex-shrink-0 transition transform active:scale-95"
                     >
-                        <i data-lucide="send" class="w-6 h-6"></i>
+                        <i data-lucide="send" class="w-5 h-5"></i>
                     </button>
                 </div>
             </form>
             
-            <div class="text-center mt-2">
-                <span class="text-xs text-gray-500 font-medium">Honey IA Enterprise v2.5 — Segurança e encriptação end-to-end</span>
+            <div class="text-center mt-2.5">
+                <span class="text-[10px] text-gray-500 font-medium tracking-wide">Honey IA Enterprise v2.5 — Segurança e Encriptação de Nível Bancário</span>
             </div>
         </div>
+    </div>
 
-    </main>
-
-    <!-- Script de Renderização Limpa -->
+    <!-- Scripts de Interatividade -->
     <script>
         lucide.createIcons();
 
@@ -449,11 +427,49 @@
         function updateUsageUI() {
             const counterEl = document.getElementById('usage-counter');
             if (counterEl) {
-                counterEl.textContent = `Projetos criados: ${usageCount} / ${MAX_FREE_USAGE}`;
+                counterEl.textContent = `Uso: ${usageCount} / ${MAX_FREE_USAGE} projetos`;
             }
         }
         updateUsageUI();
 
+        // Animação de Digitação Dinâmica no Input (Efeito Typewriter)
+        const placeholders = [
+            "Analisar minuta de contrato PDF...",
+            "Extrair balanço patrimonial em Excel...",
+            "Revisar código e encontrar erros...",
+            "Escreva uma instrução para a Honey IA..."
+        ];
+        let pIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const inputEl = document.getElementById('user-input');
+
+        function typeEffect() {
+            if (document.activeElement === inputEl || inputEl.value !== "") return;
+
+            const currentText = placeholders[pIndex];
+            if (isDeleting) {
+                inputEl.setAttribute("placeholder", currentText.substring(0, charIndex--));
+            } else {
+                inputEl.setAttribute("placeholder", currentText.substring(0, charIndex++));
+            }
+
+            let typeSpeed = isDeleting ? 30 : 60;
+
+            if (!isDeleting && charIndex === currentText.length + 1) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                pIndex = (pIndex + 1) % placeholders.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(typeEffect, typeSpeed);
+        }
+        typeEffect();
+
+        // Elementos do Chat
         const chatContainer = document.getElementById('chat-container');
         const chatForm = document.getElementById('chat-form');
         const userInput = document.getElementById('user-input');
@@ -463,6 +479,7 @@
         const filePreviewName = document.getElementById('file-preview-name');
         const removeFileBtn = document.getElementById('remove-file-btn');
 
+        // Controlo do Drawer
         const btnOpenMenu = document.getElementById('btn-open-menu');
         const btnCloseMenu = document.getElementById('btn-close-menu');
         const drawerMenu = document.getElementById('drawer-menu');
@@ -486,19 +503,17 @@
             chatContainer.innerHTML = '';
             welcomeSection.classList.remove('hidden');
             toggleDrawer(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function triggerMenuAction(type) {
             toggleDrawer(false);
-            if (type === 'Documentos') {
-                insertPrompt('Solicito a análise e elaboração de parecer sobre este documento.');
-            } else if (type === 'Finanças') {
-                insertPrompt('Preciso de estruturar um relatório financeiro analítico.');
-            } else if (type === 'Engenharia') {
-                insertPrompt('Forneça uma avaliação técnica sobre este projeto/código.');
-            }
+            if (type === 'Documentos') insertPrompt('Solicito a análise e elaboração de parecer sobre este contrato.');
+            else if (type === 'Finanças') insertPrompt('Preciso de estruturar um relatório financeiro analítico.');
+            else if (type === 'Engenharia') insertPrompt('Forneça uma avaliação técnica sobre este projeto/código.');
         }
 
+        // Modais de Planos
         const plansBackdrop = document.getElementById('plans-backdrop');
         const plansModal = document.getElementById('plans-modal');
 
@@ -513,43 +528,10 @@
             plansModal.classList.add('scale-95');
         }
 
-        function setBilling(type) {
-            const btnM = document.getElementById('btn-billing-monthly');
-            const btnY = document.getElementById('btn-billing-yearly');
-            const priceDisp = document.getElementById('price-display');
-
-            if (type === 'monthly') {
-                btnM.className = 'flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition';
-                btnY.className = 'flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition';
-                priceDisp.innerHTML = '$10 <span class="text-xs font-normal text-gray-400">/mês</span>';
-            } else {
-                btnY.className = 'flex-1 py-2 rounded-lg font-bold bg-honey-500 text-black transition';
-                btnM.className = 'flex-1 py-2 rounded-lg font-bold text-gray-400 hover:text-white transition';
-                priceDisp.innerHTML = '$118 <span class="text-xs font-normal text-gray-400">/ano</span>';
-            }
-        }
-
         function startCheckout() {
-            openPlansModal();
+            alert("A redirecionar para o checkout seguro...");
+            closePlansModal();
         }
-
-        const btnCmdK = document.getElementById('btn-cmd-k');
-        const btnCloseCmdK = document.getElementById('btn-close-cmdk');
-        const cmdkBackdrop = document.getElementById('cmdk-backdrop');
-        const cmdkModal = document.getElementById('cmdk-modal');
-
-        function toggleCmdK(open) {
-            if (open) {
-                cmdkBackdrop.classList.remove('pointer-events-none', 'opacity-0');
-                cmdkModal.classList.remove('scale-95');
-            } else {
-                cmdkBackdrop.classList.add('pointer-events-none', 'opacity-0');
-                cmdkModal.classList.add('scale-95');
-            }
-        }
-
-        btnCmdK.addEventListener('click', () => toggleCmdK(true));
-        btnCloseCmdK.addEventListener('click', () => toggleCmdK(false));
 
         let currentFileBase64 = null;
         let currentFileMimeType = null;
@@ -557,8 +539,8 @@
         function insertPrompt(promptText) {
             userInput.value = promptText;
             userInput.focus();
+            userInput.style.height = 'auto';
             userInput.style.height = userInput.scrollHeight + 'px';
-            toggleCmdK(false);
         }
 
         userInput.addEventListener('input', () => {
@@ -597,7 +579,7 @@
             filePreviewContainer.classList.remove('flex');
         });
 
-        // RENDERIZAÇÃO LIMPA E SEM CAIXA ENVOLVENTE
+        // Adicionar Mensagens ao Chat sem caixas pesadas
         function appendMessage(role, text) {
             if (welcomeSection) welcomeSection.classList.add('hidden');
 
@@ -605,28 +587,24 @@
             const msgDiv = document.createElement('div');
             
             if (isUser) {
-                msgDiv.className = 'flex justify-end w-full my-4';
+                msgDiv.className = 'flex justify-end w-full my-3 animate-fade-in-up';
                 
                 const userBubble = document.createElement('div');
-                userBubble.className = 'bg-honey-500/20 border border-honey-500/40 text-white px-5 py-3.5 rounded-2xl rounded-tr-xs max-w-[88%] text-base sm:text-lg font-medium shadow-sm';
+                userBubble.className = 'bg-gradient-to-r from-honey-500/20 to-honey-600/20 border border-honey-500/40 text-white px-5 py-3 rounded-2xl rounded-tr-xs max-w-[88%] text-sm sm:text-base font-medium shadow-sm';
                 userBubble.innerText = text;
                 
                 msgDiv.appendChild(userBubble);
             } else {
-                msgDiv.className = 'flex flex-col gap-2 w-full my-6 animate-fade-in';
+                msgDiv.className = 'flex flex-col gap-2 w-full my-6 animate-fade-in-up';
 
-                // Cabeçalho discreto da IA
                 const aiHeader = document.createElement('div');
-                aiHeader.className = 'flex items-center gap-2 text-honey-400 font-bold text-sm tracking-wide uppercase font-display';
-                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-5 h-5 text-honey-400"></i> Honey IA';
+                aiHeader.className = 'flex items-center gap-2 text-honey-400 font-bold text-xs tracking-wider uppercase font-display';
+                aiHeader.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4 text-honey-400"></i> Honey IA';
 
-                // Conteúdo totalmente aberto e sem fundo de caixa
                 const parsedContent = document.createElement('div');
                 parsedContent.className = 'markdown-content pl-1';
                 
                 let rawHtml = marked.parse(text);
-                rawHtml = rawHtml.replace(/<table>/g, '<div class="table-responsive-wrapper"><table>').replace(/<\/table>/g, '</table></div>');
-                
                 parsedContent.innerHTML = rawHtml;
 
                 msgDiv.appendChild(aiHeader);
@@ -635,14 +613,12 @@
 
             chatContainer.appendChild(msgDiv);
             lucide.createIcons();
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        function isProjectCreationRequest(text, hasFile) {
-            if (hasFile) return true;
-            const keywords = ['criar projeto', 'construir projeto', 'desenvolver projeto', 'projeto completo', 'projeto funcional', 'sistema completo', 'aplicação completa', 'código completo'];
-            const lowerText = text.toLowerCase();
-            return keywords.some(kw => lowerText.includes(kw));
+            
+            // Scroll suave até ao fundo
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
         }
 
         chatForm.addEventListener('submit', async (e) => {
@@ -650,13 +626,6 @@
             const text = userInput.value.trim();
 
             if (!text && !currentFileBase64) return;
-
-            const isCreation = isProjectCreationRequest(text, !!currentFileBase64);
-
-            if (isCreation && usageCount >= MAX_FREE_USAGE) {
-                openPlansModal();
-                return;
-            }
 
             let userDisplay = text;
             if (currentFileBase64 && !text) {
@@ -675,14 +644,13 @@
             removeFileBtn.click();
 
             const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 font-semibold text-base';
+            loadingDiv.className = 'flex items-center gap-3 text-honey-400 py-4 font-semibold text-sm animate-pulse';
             loadingDiv.innerHTML = `
-                <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
-                <span>A Honey IA está a processar...</span>
+                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                <span>A Honey IA está a analisar os dados...</span>
             `;
             chatContainer.appendChild(loadingDiv);
             lucide.createIcons();
-            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
                 const response = await fetch('/gerar-gratis', {
@@ -696,19 +664,13 @@
 
                 if (data.sucesso) {
                     appendMessage('assistant', data.resposta);
-                    
-                    if (isCreation) {
-                        usageCount++;
-                        localStorage.setItem('honey_usage_count', usageCount);
-                        updateUsageUI();
-                    }
                 } else {
-                    appendMessage('assistant', `⚠️ Erro: ${data.erro}`);
+                    appendMessage('assistant', `⚠️ Erro no processamento: ${data.erro}`);
                 }
 
             } catch (err) {
                 loadingDiv.remove();
-                appendMessage('assistant', '⚠️ Erro ao comunicar com o servidor. Por favor, verifique a ligação.');
+                appendMessage('assistant', '⚠️ Erro ao comunicar com o servidor. Por favor, verifique a sua ligação.');
             }
         });
     </script>
