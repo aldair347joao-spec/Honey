@@ -37,14 +37,13 @@
             background-color: #0A0907;
             color: #F3F4F6; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            overflow-y: scroll; /* Permite scroll nativo mas escondemos a barra */
             min-height: 100vh;
-            /* Esconde a barra de scroll visualmente, mas mantém a funcionalidade */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin: 0;
+            overflow-x: hidden;
         }
-
-        body::-webkit-scrollbar { display: none; } /* Chrome, Safari and Opera */
 
         .ambient-glow {
             position: fixed;
@@ -87,16 +86,15 @@
             color: #FBBF24;
         }
 
-        /* Área de conversação principal */
+        /* Contentor de conversação limpo e sem saltos forçados */
         #chat-container {
             display: none;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
             width: 100%;
-            max-width: 768px; /* max-w-2xl */
+            max-width: 700px;
             margin: 0 auto;
-            padding-top: 2rem;
-            padding-bottom: 10rem; /* Espaço para o input fixo */
+            padding: 1.5rem 1rem 8rem 1rem;
         }
 
         .message-user {
@@ -105,32 +103,30 @@
             background-color: #1A1814;
             color: #F3F4F6;
             border: 1px solid rgba(245, 158, 11, 0.15);
-            padding: 1rem 1.25rem;
+            padding: 0.9rem 1.1rem;
             border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .message-ai {
             align-self: flex-start;
-            max-width: 92%;
+            max-width: 95%;
             background-color: #171512;
             color: #E5E7EB;
             border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.6;
         }
 
-        /* Estilização do Markdown gerado pela IA */
-        .message-ai h2, .message-ai h3 { color: #FBBF24; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
-        .message-ai p { margin-bottom: 0.75rem; }
-        .message-ai ul, .message-ai ol { padding-left: 1.5rem; margin-bottom: 0.75rem; list-style: disc; }
-        .message-ai blockquote { border-left: 3px solid #F59E0B; padding-left: 1rem; color: #FDE68A; margin: 1rem 0; font-style: italic; background: rgba(245,158,11,0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0;}
-        .message-ai table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
-        .message-ai th, .message-ai td { border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; text-align: left; }
+        .message-ai h2, .message-ai h3 { color: #FBBF24; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.4rem; }
+        .message-ai p { margin-bottom: 0.6rem; }
+        .message-ai ul, .message-ai ol { padding-left: 1.25rem; margin-bottom: 0.6rem; list-style: disc; }
+        .message-ai blockquote { border-left: 3px solid #F59E0B; padding-left: 1rem; color: #FDE68A; margin: 0.75rem 0; font-style: italic; background: rgba(245,158,11,0.05); padding-top: 0.4rem; padding-bottom: 0.4rem; border-radius: 0 0.5rem 0.5rem 0;}
+        .message-ai table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.85rem; }
+        .message-ai th, .message-ai td { border: 1px solid rgba(255,255,255,0.1); padding: 0.4rem; text-align: left; }
         .message-ai th { background-color: #24211C; color: #FBBF24; }
-        .message-ai code { background: rgba(255,255,255,0.1); padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.85rem; color: #FBBF24; }
 
         .file-badge {
             display: inline-flex;
@@ -144,34 +140,17 @@
             color: #FBBF24;
             margin-bottom: 0.5rem;
         }
-
-        /* Input Container Fixo */
-        #input-section {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(to top, #0A0907 80%, transparent);
-            padding-bottom: 1.5rem;
-            padding-top: 1rem;
-            z-index: 30;
-            pointer-events: none; /* Permite clicar através do gradiente */
-        }
-
-        #ai-form, #suggestion-chips {
-            pointer-events: auto; /* Reativa cliques nos elementos */
-        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col relative selection:bg-amber-500 selection:text-black">
+<body>
 
     <div class="ambient-glow"></div>
 
-    <!-- CABEÇALHO (O mesmo de sempre) -->
+    <!-- CABEÇALHO -->
     <header class="relative z-20 w-full px-5 py-3 flex items-center justify-between max-w-3xl mx-auto bg-[#0A0907]/90 backdrop-blur-sm border-b border-white/5">
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
             
-            <!-- LOGÓTIPO HONEY IA (NOVO VETOR SOFISTICADO) -->
+            <!-- LOGÓTIPO TECH LIMPO E SOFISTICADO -->
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400/10 to-amber-600/5 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -183,7 +162,6 @@
                 <span class="text-xs font-black tracking-wider text-white">HONEY <span class="text-amber-400">IA</span></span>
                 <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Neural Core</span>
             </div>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400 ml-1"></i>
         </div>
 
         <div class="flex items-center gap-3">
@@ -193,11 +171,11 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL (CENTRADO) -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-3xl mx-auto">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-3xl mx-auto my-auto">
         
         <!-- ECRÃ DE BOAS-VINDAS -->
-        <div id="hero-section" class="text-center space-y-2 w-full transition-all duration-300 my-auto">
+        <div id="hero-section" class="text-center space-y-3 w-full transition-all duration-300">
             <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 shadow-sm">
                 ENGINE v2.0 ATIVA
             </span>
@@ -206,17 +184,17 @@
             </h1>
         </div>
 
-        <!-- ÁREA DE CHAT (A Página não faz scroll aqui, o conteúdo é adicionado no topo) -->
+        <!-- ÁREA DE CHAT -->
         <div id="chat-container"></div>
 
     </main>
 
-    <!-- ÁREA DE INPUT FIXA NO FUNDO (GRADIENTE SUAVE) -->
-    <div id="input-section">
+    <!-- ÁREA DE INPUT FIXA NO FUNDO -->
+    <div class="w-full fixed bottom-0 left-0 right-0 z-30 pb-4 pt-3 bg-gradient-to-t from-[#0A0907] via-[#0A0907]/90 to-transparent">
         <div class="w-full px-4 max-w-2xl mx-auto">
             <div id="file-indicator" class="hidden px-3 mb-2"></div>
 
-            <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl w-full max-w-2xl mx-auto">
+            <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl w-full">
                 <div class="flex items-center gap-2 px-1">
                     <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition flex-shrink-0" title="Anexar Documento ou Imagem">
                         <i data-lucide="plus" class="w-5 h-5"></i>
@@ -227,7 +205,7 @@
                         id="prompt-input" 
                         rows="1" 
                         placeholder="Escreva para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium max-h-32 no-scrollbar"
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium max-h-32"
                     ></textarea>
 
                     <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition flex-shrink-0">
@@ -244,11 +222,152 @@
                 </div>
             </form>
 
-            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap transition-opacity duration-300">
+            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap">
                 <button onclick="setPrompt('Elabore um parecer estratégico para otimização de processos de ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <i data-lucide="cpu" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Engenharia & Processos</span>
                 </button>
                 <button onclick="setPrompt('Faça uma análise executiva detalhada dos dados e métricas deste documento: ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>
+                    <span>Análise de Relatórios</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="relative z-10 w-full py-2 text-center text-[10px] text-neutral-500 font-medium px-4">
+        Honey IA © 2026 — Inteligência Estratégica Avançada
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const promptInput = document.getElementById('prompt-input');
+        const heroSection = document.getElementById('hero-section');
+        const chatContainer = document.getElementById('chat-container');
+        const suggestionChips = document.getElementById('suggestion-chips');
+        const aiForm = document.getElementById('ai-form');
+        const fileUpload = document.getElementById('file-upload');
+        const fileIndicator = document.getElementById('file-indicator');
+
+        let selectedFileBase64 = null;
+        let selectedFileMime = null;
+        let selectedFileName = null;
+
+        function setPrompt(text) { 
+            promptInput.value = text; 
+            promptInput.focus(); 
+        }
+
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedFileName = file.name;
+            selectedFileMime = file.type;
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                selectedFileBase64 = uploadEvent.target.result.split(',')[1];
+                fileIndicator.innerHTML = `
+                    <div class="file-badge">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        <span>Anexado: ${file.name}</span>
+                        <button type="button" onclick="removeFile()" class="ml-2 text-red-400 hover:text-red-300 font-bold">×</button>
+                    </div>
+                `;
+                fileIndicator.classList.remove('hidden');
+                lucide.createIcons();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        window.removeFile = function() {
+            selectedFileBase64 = null;
+            selectedFileMime = null;
+            selectedFileName = null;
+            fileUpload.value = '';
+            fileIndicator.classList.add('hidden');
+            fileIndicator.innerHTML = '';
+        };
+
+        aiForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userMessage = promptInput.value.trim();
+            if (!userMessage && !selectedFileBase64) return;
+
+            // Transição visual do ecrã inicial
+            heroSection.style.display = 'none';
+            suggestionChips.style.display = 'none';
+            chatContainer.style.display = 'flex';
+
+            let userHtml = userMessage;
+            if (selectedFileName) {
+                userHtml = `<div class="text-xs text-amber-400 mb-1">📄 ${selectedFileName}</div>` + userHtml;
+            }
+
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.classList.add('message-user');
+            userMsgDiv.innerHTML = userHtml;
+            chatContainer.appendChild(userMsgDiv);
+
+            const currentPrompt = userMessage;
+            const currentFileBase64 = selectedFileBase64;
+            const currentFileMime = selectedFileMime;
+
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            removeFile();
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('message-ai');
+            loadingDiv.id = 'loading-bubble';
+            loadingDiv.innerHTML = `<span class="animate-pulse text-amber-400">A processar inteligência estratégica...</span>`;
+            chatContainer.appendChild(loadingDiv);
+            
+            // REMOVIDO QUALQUER SCROLL AUTOMÁTICO: A página fica totalmente estática e o leitor controla tudo.
+
+            try {
+                const response = await fetch('/gerar-gratis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: currentPrompt,
+                        anexoBase64: currentFileBase64,
+                        mimeType: currentFileMime
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('loading-bubble').remove();
+
+                const aiMsgDiv = document.createElement('div');
+                aiMsgDiv.classList.add('message-ai');
+
+                if (data.sucesso) {
+                    aiMsgDiv.innerHTML = marked.parse(data.resposta);
+                } else {
+                    aiMsgDiv.innerHTML = `<span class="text-red-400">Erro: ${data.erro || 'Não foi possível gerar a resposta.'}</span>`;
+                }
+
+                chatContainer.appendChild(aiMsgDiv);
+                // Nenhuma função de scroll forçado é chamada aqui. O utilizador mantém o domínio total do ecrã.
+
+            } catch (err) {
+                if(document.getElementById('loading-bubble')) document.getElementById('loading-bubble').remove();
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('message-ai');
+                errorDiv.innerHTML = `<span class="text-red-400">Erro de conexão com o servidor Node.js.</span>`;
+                chatContainer.appendChild(errorDiv);
+            }
+        });
+
+        promptInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
+</body>
+</html>
