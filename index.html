@@ -3,21 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HONEY IA</title>
+    <title>HONEY IA — Inteligência Estratégica</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        honeyGold: '#F59E0B',
+                        honeyYellow: '#FBBF24',
+                        honeyDark: '#12110E',
+                        honeyCard: '#1A1814'
+                    }
                 }
             }
         }
@@ -27,68 +33,97 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
-            background-color: #171717;
-            color: #ECECEC; 
-            font-family: 'Inter', sans-serif; 
+            background-color: #0A0907;
+            color: #F3F4F6; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
         }
 
+        /* Brilho de fundo subtil e sofisticado */
+        .ambient-glow {
+            position: fixed;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .chat-box {
-            background-color: #212121;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.2s ease;
+            background-color: #171512;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            transition: all 0.25s ease;
         }
 
         .chat-box:focus-within {
-            border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #FFFFFF 30%, #FBBF24 80%, #F59E0B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .suggestion-pill {
-            background-color: #212121;
+            background-color: #171512;
             border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.2s ease;
         }
 
         .suggestion-pill:hover {
-            background-color: #2f2f2f;
-            border-color: rgba(255, 255, 255, 0.2);
+            background-color: #24211C;
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #FBBF24;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-neutral-700 selection:text-white">
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black relative">
 
-    <!-- CABEÇALHO -->
-    <header class="w-full px-4 py-4 flex items-center justify-between max-w-2xl mx-auto">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-            <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400">
-                <i data-lucide="hexagon" class="w-4 h-4"></i>
+    <div class="ambient-glow"></div>
+
+    <!-- CABEÇALHO COM IDENTIDADE HONEY -->
+    <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-2xl mx-auto">
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                <i data-lucide="hexagon" class="w-5 h-5"></i>
             </div>
-            <span class="text-sm font-semibold tracking-wide text-white">HONEY IA</span>
+            <div class="flex flex-col">
+                <span class="text-xs font-black tracking-wider text-white">HONEY <span class="text-amber-400">IA</span></span>
+                <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Enterprise</span>
+            </div>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400"></i>
         </div>
 
         <div class="flex items-center gap-3">
-            <button class="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 hover:text-white transition">
+            <button class="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500/30 transition">
                 <i data-lucide="square-pen" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="flex-1 flex flex-col justify-center items-center px-4 w-full max-w-xl mx-auto -mt-12">
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-xl mx-auto -mt-10">
         
         <div class="text-center space-y-2 mb-8">
-            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                Onde devemos começar?
+            <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                Engine v2.0 Ativa
+            </span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mt-2">
+                Em que podemos <span class="text-gradient">evoluir hoje?</span>
             </h1>
         </div>
 
         <div class="w-full">
-            <form id="ai-form" class="chat-box rounded-3xl p-3 shadow-xl">
-                <div class="flex items-center gap-2 px-2">
-                    <label for="file-upload" class="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition">
+            <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl">
+                <div class="flex items-center gap-2 px-1">
+                    <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
@@ -96,26 +131,31 @@
                     <textarea 
                         id="prompt-input" 
                         rows="1" 
-                        placeholder="Pergunte qualquer coisa" 
-                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-normal"
+                        placeholder="Escreva para a Honey IA..." 
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium"
                     ></textarea>
 
-                    <button type="button" class="p-2 text-neutral-400 hover:text-white transition">
+                    <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition">
                         <i data-lucide="mic" class="w-5 h-5"></i>
                     </button>
 
                     <button 
                         type="submit" 
-                        class="p-2 rounded-full bg-white text-black flex items-center justify-center flex-shrink-0 hover:bg-neutral-200 transition"
+                        class="p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-black flex items-center justify-center flex-shrink-0 hover:scale-105 transition shadow-lg shadow-amber-500/20"
                     >
                         <i data-lucide="arrow-up" class="w-4 h-4 stroke-[3]"></i>
                     </button>
                 </div>
             </form>
 
-            <div class="flex items-center justify-center mt-4">
-                <button onclick="setPrompt('O que você pode fazer?')" class="suggestion-pill px-4 py-2 rounded-full text-neutral-300 text-xs font-medium flex items-center gap-2">
-                    <span>O que você pode fazer?</span>
+            <div class="flex items-center justify-center gap-2 mt-4 flex-wrap">
+                <button onclick="setPrompt('Criar estrutura Fullstack para ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
+                    <i data-lucide="code" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Fullstack Dev</span>
+                </button>
+                <button onclick="setPrompt('Desenvolver identidade visual para ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
+                    <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Branding & Arte</span>
                 </button>
             </div>
         </div>
@@ -123,8 +163,8 @@
     </main>
 
     <!-- RODAPÉ -->
-    <footer class="w-full py-4 text-center text-[11px] text-neutral-500 font-normal px-4">
-        A Honey IA pode cometer erros. Verifique informações importantes.
+    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4">
+        Honey IA © 2026 — Inteligência Estratégica Avançada
     </footer>
 
     <script>
