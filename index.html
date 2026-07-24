@@ -10,7 +10,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -40,7 +40,6 @@
             min-height: 100vh;
         }
 
-        /* Brilho de fundo subtil e sofisticado */
         .ambient-glow {
             position: fixed;
             top: 25%;
@@ -48,7 +47,7 @@
             transform: translate(-50%, -50%);
             width: 300px;
             height: 300px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
             filter: blur(80px);
             pointer-events: none;
             z-index: 0;
@@ -62,7 +61,6 @@
 
         .chat-box:focus-within {
             border-color: rgba(245, 158, 11, 0.5);
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
         }
 
         .text-gradient {
@@ -82,48 +80,88 @@
             border-color: rgba(245, 158, 11, 0.3);
             color: #FBBF24;
         }
+
+        /* Estilos para o chat simulado */
+        #chat-response-area {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            padding-bottom: 2rem;
+        }
+
+        .message-user, .message-ai {
+            max-width: 80%;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .message-user {
+            align-self: flex-end;
+            background-color: #1A1814;
+            color: #F3F4F6;
+            border: 1px solid rgba(245, 158, 11, 0.1);
+        }
+
+        .message-ai {
+            align-self: flex-start;
+            background-color: #24211C;
+            color: #FBBF24;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black relative">
+<body class="min-h-screen flex flex-col justify-between relative">
 
     <div class="ambient-glow"></div>
 
-    <!-- CABEÇALHO COM IDENTIDADE HONEY -->
-    <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-2xl mx-auto">
+    <!-- CABEÇALHO -->
+    <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-3xl mx-auto">
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
-                <i data-lucide="hexagon" class="w-5 h-5"></i>
+            
+            <!-- LOGO ABELHA PROFISSIONAL (SVG INLINE) -->
+            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot-message-square"><path d="M12 2v4"/><path d="M16 20a2 2 0 0 1-2-2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 8h3"/><path d="M2 21a1 1 0 0 1-1-1v-8a8 8 0 0 1 16 0v8a1 1 0 0 1-1 1h-6l-4 4Z"/><path d="M6.6 11.2a2 2 0 1 0 0 4"/><path d="M9 18a2 2 0 1 1-4 0"/></svg>
             </div>
+            
             <div class="flex flex-col">
                 <span class="text-xs font-black tracking-wider text-white">HONEY <span class="text-amber-400">IA</span></span>
-                <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Enterprise</span>
+                <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Enterprise Suite</span>
             </div>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400"></i>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400 ml-1"></i>
         </div>
 
         <div class="flex items-center gap-3">
-            <button class="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 hover:border-amber-500/30 transition">
+            <button class="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 transition">
                 <i data-lucide="square-pen" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-xl mx-auto -mt-10">
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-2xl mx-auto">
         
-        <div class="text-center space-y-2 mb-8">
+        <!-- ECRÃ DE BOAS-VINDAS (ESCONDE-SE APÓS O ENVIO) -->
+        <div id="hero-section" class="text-center space-y-3 mb-6 w-full transition-opacity duration-500">
             <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                Engine v2.0 Ativa
+                ENGINE v2.0 ATIVA
             </span>
-            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mt-2">
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3">
                 Em que podemos <span class="text-gradient">evoluir hoje?</span>
             </h1>
         </div>
 
-        <div class="w-full">
-            <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl">
+        <!-- ÁREA DE RESPOSTA DO CHAT (INVISÍVEL INICIALMENTE) -->
+        <div id="chat-response-area" class="w-full max-w-2xl mx-auto mt-12">
+            <!-- Aqui as mensagens serão inseridas pelo JS -->
+        </div>
+
+        <!-- ÁREA DE INPUT FIXA NO FUNDO -->
+        <div class="w-full mt-auto sticky bottom-6 z-20">
+            <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl w-full max-w-2xl mx-auto">
                 <div class="flex items-center gap-2 px-1">
-                    <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition">
+                    <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition flex-shrink-0">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
@@ -132,15 +170,16 @@
                         id="prompt-input" 
                         rows="1" 
                         placeholder="Escreva para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium"
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium no-scrollbar"
                     ></textarea>
 
-                    <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition">
+                    <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition flex-shrink-0">
                         <i data-lucide="mic" class="w-5 h-5"></i>
                     </button>
 
                     <button 
                         type="submit" 
+                        id="submit-btn"
                         class="p-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 text-black flex items-center justify-center flex-shrink-0 hover:scale-105 transition shadow-lg shadow-amber-500/20"
                     >
                         <i data-lucide="arrow-up" class="w-4 h-4 stroke-[3]"></i>
@@ -148,7 +187,8 @@
                 </div>
             </form>
 
-            <div class="flex items-center justify-center gap-2 mt-4 flex-wrap">
+            <!-- CHIPS DE AÇÃO (SÓ APARECEM NO INÍCIO) -->
+            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap transition-opacity duration-500">
                 <button onclick="setPrompt('Criar estrutura Fullstack para ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <i data-lucide="code" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Fullstack Dev</span>
@@ -163,18 +203,66 @@
     </main>
 
     <!-- RODAPÉ -->
-    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4">
+    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4 mt-6">
         Honey IA © 2026 — Inteligência Estratégica Avançada
     </footer>
 
     <script>
+        // Inicializa ícones
         lucide.createIcons();
 
         const promptInput = document.getElementById('prompt-input');
+        const heroSection = document.getElementById('hero-section');
+        const chatResponseArea = document.getElementById('chat-response-area');
+        const suggestionChips = document.getElementById('suggestion-chips');
+        const aiForm = document.getElementById('ai-form');
+
+        // Função para configurar o prompt inicial
         function setPrompt(text) { 
             promptInput.value = text; 
             promptInput.focus(); 
         }
+
+        // LÓGICA DE ENVIO E RESPOSTA SIMULADA
+        aiForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userMessage = promptInput.value.trim();
+            if (!userMessage) return;
+
+            // 1. Muda o estado do ecrã
+            heroSection.style.display = 'none';
+            suggestionChips.style.display = 'none';
+            chatResponseArea.style.display = 'flex';
+            aiForm.classList.remove('mx-auto'); // Move o input para cima se necessário
+
+            // 2. Adiciona a mensagem do utilizador
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.classList.add('message-user');
+            userMsgDiv.textContent = userMessage;
+            chatResponseArea.appendChild(userMsgDiv);
+
+            // 3. Limpa o input
+            promptInput.value = '';
+            promptInput.style.height = 'auto'; // Reset height
+
+            // 4. Simula a resposta da IA (após 1 segundo)
+            setTimeout(() => {
+                const aiMsgDiv = document.createElement('div');
+                aiMsgDiv.classList.add('message-ai');
+                aiMsgDiv.innerHTML = `Processando: "${userMessage.substring(0, 30)}...".<br><br>Esta é uma simulação de resposta da Honey IA. A plataforma está agora a funcionar corretamente e pronta para integração com a tua API real.`;
+                chatResponseArea.appendChild(aiMsgDiv);
+                
+                // Scroll para o fundo
+                chatResponseArea.scrollTop = chatResponseArea.scrollHeight;
+            }, 1000);
+        });
+
+        // Auto-resize do textarea
+        promptInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
     </script>
 </body>
 </html>
