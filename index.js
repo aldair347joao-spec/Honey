@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 // Endpoint para processamento e geração de respostas
 app.post('/gerar-gratis', async (req, res) => {
     try {
-        const { prompt, anexoBase64, mimeType } = req.body;
+        const { prompt, anexoBase64, mimeType, modo } = req.body;
 
         const mainModel = "llama-3.3-70b-versatile";
         let textoExtraidoDoDocumento = "";
@@ -39,23 +39,19 @@ app.post('/gerar-gratis', async (req, res) => {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. Processamento de Imagens via OCR Tesseract (PT / EN)
             if (type.startsWith('image/')) {
                 console.log("A extrair texto da imagem via OCR...");
                 const { data: { text } } = await Tesseract.recognize(buffer, 'por+eng');
                 textoExtraidoDoDocumento = text;
             } 
-            // 2. Processamento de Documentos PDF
             else if (type === 'application/pdf' || type.includes('pdf')) {
                 const pdfData = await pdfParse(buffer);
                 textoExtraidoDoDocumento = pdfData.text;
             } 
-            // 3. Processamento de Documentos Word (.docx, .doc)
             else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
                 const result = await mammoth.extractRawText({ buffer: buffer });
                 textoExtraidoDoDocumento = result.value;
             } 
-            // 4. Processamento de Planilhas Excel / CSV (.xlsx, .xls, .csv)
             else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
                 const workbook = XLSX.read(buffer, { type: 'buffer' });
                 workbook.SheetNames.forEach(sheetName => {
@@ -72,19 +68,25 @@ app.post('/gerar-gratis', async (req, res) => {
             textoPromptFinal += `\n\n[TEXTO EXTRAÍDO DO DOCUMENTO/ANEXO]:\n${textoExtraidoDoDocumento}`;
         }
 
-        // System Prompt Otimizado para Respostas Executivas e Fluidez Colaborativa
-        const systemPrompt = `Você é a Honey IA — uma Plataforma Executiva de Inteligência Artificial para Análise Estratégica, Gestão, Engenharia e Soluções Técnicas.
+        // Definição dinâmica de personas de elite (Modos de Especialização)
+        let systemPrompt = `Você é a Honey IA — uma Plataforma Executiva de Inteligência Artificial para Análise Estratégica, Gestão, Engenharia e Soluções Técnicas.`;
 
-DIRETRIZES DE COMUNICAÇÃO E ESTILO:
-1. POSTURA E TOM: Seja um parceiro de trabalho inteligente, direto e articulado. Mantenha um tom profissional, sofisticado e prestável, evitando formalismos excessivamente rígidos ou frios.
-2. SAUDAÇÃO E FLUIDEZ: Em interações de conversa geral, responda de forma fluida e natural. Em análises de documentos ou tarefas técnicas, pode saudar brevemente antes de ir direto ao ponto.
-3. ESTRUTURA EM MARKDOWN:
+        if (modo === 'engenharia') {
+            systemPrompt = `És o Neural Core da Honey IA especializado em Engenharia, Logística, E-commerce e Otimização de Processos Industriais/Comerciais. Foca-te em margens, eficiência operacional e planeamento estratégico rigoroso.`;
+        } else if (modo === 'docente') {
+            systemPrompt = `És o Neural Core da Honey IA especializado no setor Pedagógico e Científico (focado em Física, Educação e Metodologias de Ensino). Auxilia na estruturação curricular, planeamento de aulas e rigor científico de excelência.`;
+        } else if (modo === 'software') {
+            systemPrompt = `És o Neural Core da Honey IA especializado em Arquitetura de Software, Node.js, Web Development e Inteligência Artificial. Fornece código limpo, robusto e arquitetura escalável.`;
+        }
+
+        systemPrompt += `\n\nDIRETRIZES DE COMUNICAÇÃO E ESTILO:
+1. POSTURA E TOM: Seja um parceiro de trabalho inteligente, direto e articulado. Mantenha um tom profissional, sofisticado e prestável.
+2. ESTRUTURA EM MARKDOWN:
    - Organize as respostas de forma escaneável utilizando Títulos (##, ###).
-   - Use Blocos de Citação (>) para destacar pareceres finais, resumos estratégicos ou conclusões críticas.
+   - Use Blocos de Citação (>) para destacar pareceres finais ou conclusões críticas.
    - Destaque termos importantes com **negrito**.
-   - Monte Tabelas organizadas em Markdown sempre que apresentar comparações, métricas, dados financeiros ou numéricos.
-4. PROCESSAMENTO DE DOCUMENTOS: Ao analisar anexos, apresente um parecer técnico estruturado identificando o objeto principal, pontos críticos, datas/prazos, valores e recomendações práticas.
-5. LINGUAGEM: Utilize o português (pt-PT ou pt-BR) de forma elegante e clara, sem expor raciocínios técnicos internos do sistema ou metadados em inglês.`;
+   - Monte Tabelas organizadas em Markdown sempre que apresentar comparações, métricas ou dados numéricos.
+3. LINGUAGEM: Utilize o português (pt-PT ou pt-BR) de forma elegante e clara, sem expor raciocínios técnicos internos.`;
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [
