@@ -3,26 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HONEY IA — Enterprise Platform</title>
+    <title>HONEY IA</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-                    colors: { 
-                        honeyGold: '#F59E0B',
-                        honeyYellow: '#FBBF24',
-                        darkCore: '#070605'
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                 }
             }
         }
@@ -32,186 +27,104 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         body { 
-            background-color: #070605;
-            color: #F3F4F6; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #171717;
+            color: #ECECEC; 
+            font-family: 'Inter', sans-serif; 
             overflow-x: hidden; 
             min-height: 100vh;
         }
 
-        /* Animações Fluídas */
-        @keyframes floatGlow {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.15; }
-            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.25; }
+        .chat-box {
+            background-color: #212121;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        .chat-box:focus-within {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes pulseSoft {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        .ambient-glow {
-            position: fixed;
-            top: 28%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.05) 50%, transparent 75%);
-            filter: blur(70px);
-            pointer-events: none;
-            z-index: 0;
-            animation: floatGlow 6s ease-in-out infinite;
-        }
-
-        .animate-fade-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* Container de input com efeito dinâmico */
-        .prompt-container {
-            background: linear-gradient(145deg, rgba(20, 18, 14, 0.9), rgba(12, 11, 9, 0.95));
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .prompt-container:focus-within {
-            border-color: rgba(245, 158, 11, 0.7);
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.25), 0 8px 32px rgba(0, 0, 0, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .text-gradient {
-            background: linear-gradient(135deg, #FFFFFF 20%, #FBBF24 70%, #F59E0B 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Efeito de brilho nos botões de atalho */
-        .chip-btn {
-            background: rgba(255, 255, 255, 0.03);
+        .suggestion-pill {
+            background-color: #212121;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
         }
 
-        .chip-btn:hover {
-            background: rgba(245, 158, 11, 0.12);
-            border-color: rgba(245, 158, 11, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+        .suggestion-pill:hover {
+            background-color: #2f2f2f;
+            border-color: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative selection:bg-honeyGold selection:text-black">
-
-    <div class="ambient-glow"></div>
+<body class="min-h-screen flex flex-col justify-between selection:bg-neutral-700 selection:text-white">
 
     <!-- CABEÇALHO -->
-    <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-xl mx-auto animate-fade-in">
-        <div class="flex items-center gap-3 cursor-pointer group" onclick="location.reload()">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)] group-hover:scale-105 transition duration-300">
-                <i data-lucide="hexagon" class="w-5 h-5 animate-spin" style="animation-duration: 20s;"></i>
+    <header class="w-full px-4 py-4 flex items-center justify-between max-w-2xl mx-auto">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+            <div class="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400">
+                <i data-lucide="hexagon" class="w-4 h-4"></i>
             </div>
-
-            <div class="flex flex-col">
-                <span class="text-sm font-black tracking-wider text-white leading-none">HONEY <span class="text-amber-400">IA</span></span>
-                <span class="text-[9px] font-bold text-amber-500/80 tracking-widest uppercase mt-1">Enterprise Engine</span>
-            </div>
+            <span class="text-sm font-semibold tracking-wide text-white">HONEY IA</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400"></i>
         </div>
 
-        <div class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Ativo</span>
+        <div class="flex items-center gap-3">
+            <button class="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 hover:text-white transition">
+                <i data-lucide="square-pen" class="w-4 h-4"></i>
+            </button>
         </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 py-2 w-full max-w-xl mx-auto">
+    <main class="flex-1 flex flex-col justify-center items-center px-4 w-full max-w-xl mx-auto -mt-12">
         
-        <!-- HERO -->
-        <div id="hero-section" class="text-center space-y-4 mb-6 animate-fade-in" style="animation-delay: 0.1s;">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide shadow-lg shadow-amber-500/10">
-                <i data-lucide="zap" class="w-3.5 h-3.5 animate-bounce"></i>
-                <span>Sistema Honey IA Ativo</span>
-            </div>
-            
-            <h1 class="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-                Em que podemos <br/>
-                <span class="text-gradient">avançar hoje?</span>
+        <div class="text-center space-y-2 mb-8">
+            <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+                Onde devemos começar?
             </h1>
-            
-            <p class="text-xs sm:text-sm text-gray-400 max-w-xs mx-auto font-medium leading-relaxed">
-                Desenvolvimento fullstack, arquitetura de marcas e inteligência estratégica.
-            </p>
         </div>
 
-        <!-- CONTAINER DO INPUT -->
-        <div class="w-full animate-fade-in" style="animation-delay: 0.2s;">
-            <form id="ai-form" class="prompt-container rounded-2xl p-3.5">
-                
-                <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.08] px-1">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-amber-400"></i>
-                        <select id="mode-selector" class="bg-transparent text-amber-400 text-xs font-bold focus:outline-none cursor-pointer">
-                            <option value="dev" class="bg-[#12110E] text-white">⚡ Fullstack Dev</option>
-                            <option value="designer" class="bg-[#12110E] text-white">🎨 Branding & Design</option>
-                            <option value="copy" class="bg-[#12110E] text-white">🎬 Estrutura & Roteiro</option>
-                        </select>
-                    </div>
-
-                    <span class="text-[10px] text-amber-400/60 font-mono tracking-wider">HONEY-PRO v2.0</span>
-                </div>
-
-                <div class="flex items-end gap-2 pt-1">
-                    <label for="file-upload" class="p-2.5 rounded-xl text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition flex-shrink-0">
-                        <i data-lucide="paperclip" class="w-5 h-5"></i>
+        <div class="w-full">
+            <form id="ai-form" class="chat-box rounded-3xl p-3 shadow-xl">
+                <div class="flex items-center gap-2 px-2">
+                    <label for="file-upload" class="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 cursor-pointer transition">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
                         <input type="file" id="file-upload" class="hidden">
                     </label>
 
                     <textarea 
                         id="prompt-input" 
-                        rows="2" 
-                        placeholder="Escreva a sua mensagem para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none resize-none py-1 font-medium leading-relaxed"
+                        rows="1" 
+                        placeholder="Pergunte qualquer coisa" 
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-normal"
                     ></textarea>
+
+                    <button type="button" class="p-2 text-neutral-400 hover:text-white transition">
+                        <i data-lucide="mic" class="w-5 h-5"></i>
+                    </button>
 
                     <button 
                         type="submit" 
-                        class="p-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-black font-extrabold flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                        class="p-2 rounded-full bg-white text-black flex items-center justify-center flex-shrink-0 hover:bg-neutral-200 transition"
                     >
-                        <i data-lucide="arrow-up" class="w-5 h-5 stroke-[3]"></i>
+                        <i data-lucide="arrow-up" class="w-4 h-4 stroke-[3]"></i>
                     </button>
                 </div>
             </form>
 
-            <!-- CHIPS DE ATALHO ANIMADOS -->
-            <div id="quick-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap animate-fade-in" style="animation-delay: 0.3s;">
-                <button onclick="setPrompt('Criar Landing Page para ')" class="chip-btn px-3.5 py-2 rounded-xl text-gray-300 hover:text-amber-400 text-xs font-semibold flex items-center gap-1.5">
-                    <i data-lucide="layout" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Landing Page</span>
-                </button>
-                <button onclick="setPrompt('Conceito de Branding para ')" class="chip-btn px-3.5 py-2 rounded-xl text-gray-300 hover:text-amber-400 text-xs font-semibold flex items-center gap-1.5">
-                    <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Branding & Arte</span>
-                </button>
-                <button onclick="setPrompt('Escrever Roteiro de Vídeo sobre ')" class="chip-btn px-3.5 py-2 rounded-xl text-gray-300 hover:text-amber-400 text-xs font-semibold flex items-center gap-1.5">
-                    <i data-lucide="video" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Roteiro de Vídeo</span>
+            <div class="flex items-center justify-center mt-4">
+                <button onclick="setPrompt('O que você pode fazer?')" class="suggestion-pill px-4 py-2 rounded-full text-neutral-300 text-xs font-medium flex items-center gap-2">
+                    <span>O que você pode fazer?</span>
                 </button>
             </div>
         </div>
 
     </main>
 
-    <footer class="relative z-10 w-full py-4 text-center text-[10px] text-gray-500 font-medium tracking-wide animate-fade-in">
-        Honey IA © 2026 — Enterprise Engine
+    <!-- RODAPÉ -->
+    <footer class="w-full py-4 text-center text-[11px] text-neutral-500 font-normal px-4">
+        A Honey IA pode cometer erros. Verifique informações importantes.
     </footer>
 
     <script>
