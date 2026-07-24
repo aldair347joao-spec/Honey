@@ -4,25 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honey IA — Plataforma Executiva</title>
+    <!-- Importação de Tipografia Editorial de Alto Nível (Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
         --bg-base: #030712;
-        --bg-sidebar: rgba(11, 15, 23, 0.85);
-        --bg-card: rgba(19, 24, 34, 0.75);
-        --bg-card-hover: rgba(26, 34, 48, 0.85);
+        --bg-sidebar: rgba(11, 15, 23, 0.9);
+        --bg-card: rgba(15, 22, 36, 0.85);
+        --bg-card-hover: rgba(22, 31, 48, 0.95);
         --accent-amber: #f59e0b;
         --accent-glow: rgba(245, 158, 11, 0.18);
-        --text-main: #f9fafb;
+        --text-main: #f3f4f6;
         --text-muted: #9ca3af;
         --border-subtle: rgba(255, 255, 255, 0.08);
-        --border-active: rgba(245, 158, 11, 0.3);
+        --border-active: rgba(245, 158, 11, 0.35);
       }
 
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         -webkit-tap-highlight-color: transparent;
       }
 
@@ -40,15 +44,14 @@
         width: 100vw;
         position: relative;
         overflow: hidden;
-        /* Fundo com cores vivas e dinâmicas inspiradas em IA de nível mundial */
         background: 
-          radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.15) 0%, transparent 45%),
-          radial-gradient(circle at 85% 85%, rgba(29, 78, 216, 0.15) 0%, transparent 45%),
-          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%),
+          radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.14) 0%, transparent 45%),
+          radial-gradient(circle at 85% 85%, rgba(29, 78, 216, 0.14) 0%, transparent 45%),
+          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.07) 0%, transparent 60%),
           var(--bg-base);
       }
 
-      /* Menu Lateral de Luxo (Glassmorphism Avançado) */
+      /* Menu Lateral de Luxo */
       .sidebar {
         position: fixed;
         top: 0;
@@ -133,7 +136,7 @@
 
       .sidebar-header h2 {
         font-size: 1.1rem;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: -0.01em;
       }
 
@@ -142,7 +145,7 @@
         color: var(--accent-amber);
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        font-weight: 600;
+        font-weight: 700;
       }
 
       .close-menu-btn {
@@ -174,7 +177,6 @@
         margin-bottom: 12px;
         margin-top: 12px;
         padding-left: 8px;
-        opacity: 0.8;
       }
 
       .nav-modes {
@@ -196,7 +198,7 @@
         text-align: left;
         cursor: pointer;
         font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 600;
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
@@ -209,7 +211,6 @@
         stroke-linecap: round;
         stroke-linejoin: round;
         flex-shrink: 0;
-        transition: transform 0.2s;
       }
 
       .mode-btn:hover {
@@ -254,8 +255,8 @@
         color: #fff;
       }
 
-      .user-info-mini h4 { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
-      .user-info-mini span { font-size: 0.72rem; color: var(--text-muted); }
+      .user-info-mini h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+      .user-info-mini span { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
 
       /* Área Principal */
       .chat-main {
@@ -275,6 +276,7 @@
         padding: 20px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
         z-index: 10;
         background: transparent;
       }
@@ -294,8 +296,19 @@
         transition: all 0.2s;
         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       }
-      .menu-toggle-btn:hover { border-color: var(--accent-amber); background-color: var(--bg-card-hover); transform: scale(1.02); }
+      .menu-toggle-btn:hover { border-color: var(--accent-amber); background-color: var(--bg-card-hover); }
       .menu-toggle-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+      .topbar-user-badge {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-main);
+        backdrop-filter: blur(12px);
+      }
 
       /* Estado Inicial Hero */
       .hero-welcome-state {
@@ -314,9 +327,9 @@
       }
 
       .hero-title {
-        font-size: clamp(2.2rem, 5vw, 3rem);
-        font-weight: 750;
-        letter-spacing: -0.035em;
+        font-size: clamp(2.2rem, 5vw, 3.2rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
         margin-bottom: 12px;
         background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
         -webkit-background-clip: text;
@@ -324,18 +337,19 @@
       }
 
       .hero-subtitle {
-        font-size: 1rem;
+        font-size: 1.02rem;
         color: var(--text-muted);
-        max-width: 480px;
+        max-width: 500px;
         margin-bottom: 36px;
-        line-height: 1.55;
+        line-height: 1.6;
+        font-weight: 500;
         letter-spacing: -0.01em;
       }
 
-      /* Caixa de Input de Alta Precisão (Sem estrela, com Microfone) */
+      /* Caixa de Input */
       .input-wrapper-container {
         width: 100%;
-        max-width: 700px;
+        max-width: 740px;
         margin: 0 auto;
         padding: 0 16px;
       }
@@ -361,7 +375,8 @@
         background: none;
         border: none;
         color: var(--text-main);
-        font-size: 0.98rem;
+        font-size: 1rem;
+        font-weight: 500;
         resize: none;
         max-height: 140px;
         outline: none;
@@ -373,6 +388,7 @@
       .user-input-field::placeholder {
         color: var(--text-muted);
         opacity: 0.65;
+        font-weight: 400;
       }
 
       .card-bottom-actions {
@@ -440,17 +456,18 @@
         display: none;
         align-items: center;
         justify-content: space-between;
+        font-weight: 500;
       }
 
-      /* Container de Mensagens & Chat Ativo */
+      /* Container de Conversa (Formato Relatório Executivo, sem saltos forçados) */
       .chat-messages-container {
         flex: 1;
         overflow-y: auto;
-        padding: 90px 16px 20px 16px;
+        padding: 95px 16px 20px 16px;
         display: none;
         flex-direction: column;
-        gap: 20px;
-        max-width: 800px;
+        gap: 24px;
+        max-width: 840px;
         width: 100%;
         margin: 0 auto;
         scroll-behavior: smooth;
@@ -460,96 +477,137 @@
         display: flex;
       }
 
-      .message {
-        display: flex;
-        gap: 14px;
-        max-width: 90%;
-        animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      /* Pergunta do Utilizador (Minimalista e elegante ao alto) */
+      .user-query-block {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        max-width: 80%;
+        box-shadow: 0 8px 24px rgba(29, 78, 216, 0.3);
+        letter-spacing: -0.01em;
+      }
+
+      /* Resposta da IA (Estilo Artigo/Relatório Executivo Completo, sem caraterísticas de chat) */
+      .ai-report-block {
+        background-color: var(--bg-card);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-subtle);
+        border-radius: 20px;
+        padding: 28px;
+        width: 100%;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(8px); }
+        from { opacity: 0; transform: translateY(12px); }
         to { opacity: 1; transform: translateY(0); }
       }
 
-      .ai-message { align-self: flex-start; }
-      .user-message { align-self: flex-end; margin-left: auto; flex-direction: row-reverse; }
-
-      .avatar-ai, .avatar-user {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        flex-shrink: 0;
+      .ai-report-header {
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 12px;
+      }
+
+      .ai-brand-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-weight: 700;
-      }
-      .avatar-ai {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #030712;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
-      }
-      .avatar-user {
-        background-color: #1f293d;
-        color: var(--text-main);
-        border: 1px solid rgba(255,255,255,0.1);
+        font-size: 0.85rem;
+        color: var(--accent-amber);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
       }
 
-      .message-bubble {
-        background-color: var(--bg-card);
-        backdrop-filter: blur(12px);
-        padding: 16px 20px;
-        border-radius: 18px;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        border: 1px solid var(--border-subtle);
-        word-break: break-word;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      }
-      .user-message .message-bubble {
-        background: linear-gradient(135deg, #1d4ed8, #2563eb);
-        border-color: rgba(59, 130, 246, 0.4);
-        color: #fff;
-        box-shadow: 0 8px 24px rgba(29, 78, 216, 0.3);
+      .ai-brand-badge svg {
+        width: 16px;
+        height: 16px;
+        fill: var(--accent-amber);
       }
 
-      /* Markdown interno refinado */
-      .message-bubble h2, .message-bubble h3 { margin: 10px 0 6px 0; color: #f9fafb; font-weight: 600; }
-      .message-bubble h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px; }
-      .message-bubble h3 { font-size: 1.05rem; }
-      .message-bubble p { margin-bottom: 8px; }
-      .message-bubble p:last-child { margin-bottom: 0; }
-      .message-bubble ul, .message-bubble ol { margin-left: 20px; margin-bottom: 8px; }
-      .message-bubble code {
-        background-color: rgba(0,0,0,0.5);
-        padding: 2px 6px;
+      /* Tipografia Avançada do Conteúdo Gerado */
+      .report-body {
+        font-size: 1.02rem;
+        line-height: 1.75;
+        color: #e5e7eb;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+      }
+
+      .report-body h2 {
+        font-size: 1.35rem;
+        font-weight: 750;
+        color: #ffffff;
+        margin: 20px 0 10px 0;
+        letter-spacing: -0.02em;
+      }
+
+      .report-body h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #f3f4f6;
+        margin: 16px 0 8px 0;
+      }
+
+      .report-body p {
+        margin-bottom: 14px;
+      }
+
+      .report-body p:last-child {
+        margin-bottom: 0;
+      }
+
+      .report-body ul, .report-body ol {
+        margin-left: 24px;
+        margin-bottom: 14px;
+      }
+
+      .report-body li {
+        margin-bottom: 6px;
+      }
+
+      .report-body code {
+        background-color: rgba(0, 0, 0, 0.6);
+        padding: 3px 8px;
         border-radius: 6px;
-        font-family: monospace;
-        font-size: 0.86rem;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
         color: #fbbf24;
+        font-weight: 600;
       }
-      .message-bubble pre {
-        background-color: #020408;
-        padding: 14px;
-        border-radius: 12px;
+
+      .report-body pre {
+        background-color: #010307;
+        padding: 16px;
+        border-radius: 14px;
         overflow-x: auto;
-        margin: 10px 0;
+        margin: 16px 0;
         border: 1px solid var(--border-subtle);
       }
-      .message-bubble blockquote {
-        border-left: 3px solid var(--accent-amber);
-        padding-left: 12px;
-        margin: 10px 0;
+
+      .report-body blockquote {
+        border-left: 4px solid var(--accent-amber);
+        padding-left: 16px;
+        margin: 16px 0;
         color: var(--text-muted);
         font-style: italic;
+        font-weight: 500;
       }
 
       .active-chat-footer {
         display: none;
         width: 100%;
-        max-width: 800px;
+        max-width: 840px;
         margin: 0 auto;
         padding: 16px;
       }
@@ -563,7 +621,7 @@
     <div class="app-container">
       <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleMenu()"></div>
 
-      <!-- Menu Lateral de Luxo Redesenhado -->
+      <!-- Menu Lateral Executivo -->
       <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
           <div class="logo-wrapper">
@@ -618,6 +676,7 @@
           <button class="menu-toggle-btn" onclick="toggleMenu()" title="Abrir Menu">
             <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
+          <div class="topbar-user-badge">Aldair</div>
         </header>
 
         <!-- 1. Estado Inicial Hero -->
@@ -640,7 +699,6 @@
                   <button class="tool-icon-btn" title="Anexar Ficheiro" onclick="document.getElementById('file-input').click()">
                     <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                   </button>
-                  <!-- Botão de Microfone Integrado (Estrela removida) -->
                   <button id="mic-btn-hero" class="tool-icon-btn" title="Conversa por Áudio" onclick="toggleVoiceRecording()">
                     <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                   </button>
@@ -653,7 +711,7 @@
           </div>
         </div>
 
-        <!-- 2. Estado de Chat Ativo -->
+        <!-- 2. Estado de Chat Ativo (Relatórios Executivos) -->
         <div id="chat-messages" class="chat-messages-container"></div>
 
         <div id="active-footer" class="active-chat-footer">
@@ -732,14 +790,6 @@
             btn.title = "Conversa por Áudio";
           }
         });
-
-        if (isRecording) {
-          const activeInputId = chatStarted ? 'user-input-footer' : 'user-input-hero';
-          document.getElementById(activeInputId).placeholder = "A escutar a tua voz...";
-        } else {
-          const activeInputId = chatStarted ? 'user-input-footer' : 'user-input-hero';
-          document.getElementById(activeInputId).placeholder = "Escreve uma mensagem...";
-        }
       }
 
       function handleFileSelect(event) {
@@ -788,10 +838,10 @@
 
         const chatMessages = document.getElementById('chat-messages');
 
+        // Mostra a pergunta de forma limpa
         chatMessages.innerHTML += `
-          <div class="message user-message">
-            <div class="avatar-user">A</div>
-            <div class="message-bubble">${escapeHtml(text) || '[Documento Anexado]'}</div>
+          <div class="user-query-block">
+            ${escapeHtml(text) || '[Documento Anexado]'}
           </div>
         `;
 
@@ -804,16 +854,21 @@
         document.getElementById('user-input-hero').style.height = 'auto';
         document.getElementById('user-input-footer').style.height = 'auto';
         removeFile();
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // NOTA: Removido o scroll automático forçado para baixo, permitindo controlo total da leitura ao utilizador.
 
         const loadingId = 'loading-' + Date.now();
         chatMessages.innerHTML += `
-          <div id="${loadingId}" class="message ai-message">
-            <div class="avatar-ai">H</div>
-            <div class="message-bubble" style="color: var(--text-muted);">A processar análise executiva...</div>
+          <div id="${loadingId}" class="ai-report-block">
+            <div class="ai-report-header">
+              <div class="ai-brand-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Honey IA • Relatório Executivo
+              </div>
+            </div>
+            <div class="report-body" style="color: var(--text-muted);">A preparar análise e estruturação de dados...</div>
           </div>
         `;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
           const response = await fetch('/gerar-gratis', {
@@ -832,22 +887,26 @@
 
           const respostaFinal = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar a solicitação.');
 
+          // Insere o relatório executivo completo (sem rolar o ecrã obrigatoriamente para baixo)
           chatMessages.innerHTML += `
-            <div class="message ai-message">
-              <div class="avatar-ai">H</div>
-              <div class="message-bubble">${renderizarMarkdown(respostaFinal)}</div>
+            <div class="ai-report-block">
+              <div class="ai-report-header">
+                <div class="ai-brand-badge">
+                  <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  Honey IA • Relatório Executivo
+                </div>
+              </div>
+              <div class="report-body">${renderizarMarkdown(respostaFinal)}</div>
             </div>
           `;
-          chatMessages.scrollTop = chatMessages.scrollHeight;
 
         } catch (err) {
           console.error(err);
           const loadingEl = document.getElementById(loadingId);
           if (loadingEl) loadingEl.remove();
           chatMessages.innerHTML += `
-            <div class="message ai-message">
-              <div class="avatar-ai">H</div>
-              <div class="message-bubble" style="color: #ef4444;">Erro de conexão com o servidor.</div>
+            <div class="ai-report-block">
+              <div class="report-body" style="color: #ef4444;">Erro de conexão com o servidor.</div>
             </div>
           `;
         }
