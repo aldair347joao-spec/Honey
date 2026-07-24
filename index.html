@@ -6,13 +6,14 @@
     <title>Honey IA — Plataforma Executiva</title>
     <style>
       :root {
-        --bg-dark: #0f172a;
-        --bg-sidebar: #1e293b;
-        --bg-card: #1e293b;
+        --bg-dark: #0b0f19;
+        --bg-sidebar: #111827;
+        --bg-card: #1f2937;
         --accent-orange: #f59e0b;
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --border-color: #334155;
+        --accent-glow: rgba(245, 158, 11, 0.15);
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --border-color: #374151;
       }
 
       * {
@@ -42,15 +43,16 @@
       .sidebar {
         position: fixed;
         top: 0;
-        left: -280px;
-        width: 280px;
+        left: -300px;
+        width: 300px;
         height: 100%;
         background-color: var(--bg-sidebar);
         z-index: 1100;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         display: flex;
         flex-direction: column;
         border-right: 1px solid var(--border-color);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
       }
 
       .sidebar.open {
@@ -60,8 +62,8 @@
       .sidebar-overlay {
         position: fixed;
         inset: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(2px);
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
         z-index: 1050;
         opacity: 0;
         visibility: hidden;
@@ -74,7 +76,7 @@
       }
 
       .sidebar-header {
-        padding: 20px;
+        padding: 24px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -88,20 +90,23 @@
       }
 
       .brand-logo {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        background-color: var(--accent-orange);
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
+        font-weight: 800;
         color: #000;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
       }
 
       .sidebar-header h2 {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
         font-weight: 600;
+        letter-spacing: -0.01em;
       }
 
       .platform-tag {
@@ -113,8 +118,14 @@
         background: none;
         border: none;
         color: var(--text-muted);
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         cursor: pointer;
+        padding: 4px;
+        border-radius: 6px;
+      }
+      .close-menu-btn:hover {
+        color: var(--text-main);
+        background-color: rgba(255,255,255,0.05);
       }
 
       .sidebar-content {
@@ -127,7 +138,7 @@
         font-size: 0.7rem;
         font-weight: 700;
         color: var(--text-muted);
-        letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
         margin-bottom: 12px;
         margin-top: 16px;
       }
@@ -135,28 +146,35 @@
       .nav-modes {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
       }
 
       .mode-btn {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         width: 100%;
-        padding: 10px 12px;
+        padding: 12px 14px;
         background: transparent;
         border: none;
         color: var(--text-muted);
-        border-radius: 8px;
+        border-radius: 10px;
         text-align: left;
         cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.2s;
+        font-size: 0.92rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
       }
 
-      .mode-btn:hover, .mode-btn.active {
-        background-color: rgba(245, 158, 11, 0.1);
+      .mode-btn:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        color: var(--text-main);
+      }
+
+      .mode-btn.active {
+        background-color: var(--accent-glow);
         color: var(--accent-orange);
+        border: 1px solid rgba(245, 158, 11, 0.2);
       }
 
       /* Área Principal de Chat */
@@ -170,17 +188,19 @@
       }
 
       .chat-topbar {
-        padding: 12px 16px;
+        padding: 14px 20px;
         border-bottom: 1px solid var(--border-color);
         display: flex;
         align-items: center;
-        background-color: var(--bg-dark);
+        background-color: rgba(11, 15, 25, 0.85);
+        backdrop-filter: blur(10px);
+        z-index: 10;
       }
 
       .topbar-left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
       }
 
       .menu-toggle-btn {
@@ -188,22 +208,28 @@
         border: 1px solid var(--border-color);
         color: var(--text-main);
         font-size: 1.2rem;
-        width: 38px;
-        height: 38px;
-        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.2s;
+      }
+
+      .menu-toggle-btn:hover {
+        background-color: rgba(255,255,255,0.05);
       }
 
       .header-titles h1 {
-        font-size: 1rem;
+        font-size: 1.05rem;
         font-weight: 600;
+        letter-spacing: -0.01em;
       }
 
       .subtitle {
-        font-size: 0.75rem;
+        font-size: 0.78rem;
         color: var(--text-muted);
         white-space: nowrap;
         overflow: hidden;
@@ -213,17 +239,24 @@
 
       .chat-messages {
         flex: 1;
-        padding: 16px;
+        padding: 20px;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 20px;
+        scroll-behavior: smooth;
       }
 
       .message {
         display: flex;
-        gap: 10px;
-        max-width: 90%;
+        gap: 12px;
+        max-width: 88%;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .ai-message {
@@ -237,70 +270,115 @@
       }
 
       .avatar-ai, .avatar-user {
-        width: 28px;
-        height: 28px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 600;
       }
 
       .avatar-ai {
-        background-color: var(--accent-orange);
+        background: linear-gradient(135deg, #f59e0b, #d97706);
         color: #000;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
       }
 
       .avatar-user {
-        background-color: #334155;
+        background-color: #374151;
         color: var(--text-main);
       }
 
       .message-bubble {
         background-color: var(--bg-card);
-        padding: 12px 16px;
-        border-radius: 12px;
+        padding: 14px 18px;
+        border-radius: 14px;
         font-size: 0.95rem;
-        line-height: 1.4;
+        line-height: 1.5;
         border: 1px solid var(--border-color);
         word-break: break-word;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       }
 
       .user-message .message-bubble {
-        background-color: #1e3a8a;
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
         border-color: #3b82f6;
+        color: #fff;
+      }
+
+      /* Estilização interna de Markdown gerado */
+      .message-bubble h2, .message-bubble h3 {
+        margin-top: 10px;
+        margin-bottom: 6px;
+        color: #f3f4f6;
+      }
+      .message-bubble h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
+      .message-bubble h3 { font-size: 1.05rem; }
+      .message-bubble p { margin-bottom: 8px; }
+      .message-bubble p:last-child { margin-bottom: 0; }
+      .message-bubble ul, .message-bubble ol { margin-left: 20px; margin-bottom: 8px; }
+      .message-bubble code {
+        background-color: rgba(0,0,0,0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.88rem;
+      }
+      .message-bubble pre {
+        background-color: #090d16;
+        padding: 10px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 8px 0;
+        border: 1px solid var(--border-color);
+      }
+      .message-bubble blockquote {
+        border-left: 3px solid var(--accent-orange);
+        padding-left: 10px;
+        margin: 8px 0;
+        color: var(--text-muted);
+        font-style: italic;
       }
 
       /* Caixa de Input e Anexos */
       .chat-input-wrapper {
-        padding: 12px 16px;
+        padding: 16px 20px;
         background-color: var(--bg-dark);
         border-top: 1px solid var(--border-color);
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
       }
 
       .file-preview-banner {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         color: var(--accent-orange);
-        margin-bottom: 6px;
+        background-color: var(--accent-glow);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        padding: 6px 12px;
+        border-radius: 8px;
+        margin-bottom: 8px;
         display: none;
         align-items: center;
-        gap: 6px;
+        justify-content: space-between;
       }
 
       .chat-input-container {
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 8px 12px;
-        gap: 8px;
+        border-radius: 14px;
+        padding: 10px 14px;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        transition: border-color 0.2s;
       }
 
       .chat-input-container:focus-within {
         border-color: var(--accent-orange);
+        box-shadow: 0 0 0 2px var(--accent-glow);
       }
 
       #user-input {
@@ -313,44 +391,51 @@
         max-height: 120px;
         outline: none;
         padding: 4px 0;
+        line-height: 1.4;
       }
 
       .input-actions {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        padding-bottom: 2px;
       }
 
       .action-icon-btn {
         background: none;
         border: none;
         color: var(--text-muted);
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         cursor: pointer;
-        padding: 4px;
+        padding: 6px;
+        border-radius: 8px;
+        transition: color 0.2s, background 0.2s;
       }
 
       .action-icon-btn:hover {
         color: var(--text-main);
+        background-color: rgba(255,255,255,0.05);
       }
 
       .send-submit-btn {
         background-color: var(--accent-orange);
         color: #000;
         border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
         font-weight: bold;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: opacity 0.2s;
+        transition: transform 0.1s, opacity 0.2s;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
       }
 
       .send-submit-btn:hover {
         opacity: 0.9;
+        transform: scale(1.03);
       }
     </style>
 </head>
@@ -400,17 +485,20 @@
           <div class="message ai-message">
             <div class="avatar-ai">H</div>
             <div class="message-bubble">
-              Olá! Sou a Honey IA, a tua plataforma executiva de inteligência artificial. Como posso ajudar nos teus projetos ou análises hoje?
+              Olá! Sou a <strong>Honey IA</strong>, a tua plataforma executiva de inteligência artificial. Como posso ajudar nos teus projetos ou análises hoje?
             </div>
           </div>
         </div>
 
         <div class="chat-input-wrapper">
-          <div id="file-banner" class="file-preview-banner">📎 Ficheiro anexado pronto para análise</div>
+          <div id="file-banner" class="file-preview-banner">
+            <span id="file-banner-text">📎 Ficheiro anexado</span>
+            <span onclick="removeFile()" style="cursor: pointer; font-weight: bold;">✕</span>
+          </div>
           <div class="chat-input-container">
-            <textarea id="user-input" placeholder="Escreve uma mensagem ou anexa um documento..." rows="1" oninput="autoResize(this)"></textarea>
+            <textarea id="user-input" placeholder="Escreve uma mensagem ou anexa um documento..." rows="1" oninput="autoResize(this)" onkeydown="checkSubmit(event)"></textarea>
             
-            <!-- Input oculto para anexos (PDF, Imagens, Word, Excel) compatível com o teu backend -->
+            <!-- Input oculto compatível com o teu backend -->
             <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
 
             <div class="input-actions">
@@ -435,30 +523,42 @@
 
       function autoResize(textarea) {
         textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+      }
+
+      function checkSubmit(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
       }
 
       function handleFileSelect(event) {
         const file = event.target.files[0];
         const banner = document.getElementById('file-banner');
+        const bannerText = document.getElementById('file-banner-text');
         if (!file) return;
 
         mimeTypeGlobal = file.type;
         const reader = new FileReader();
         reader.onload = function(e) {
-          // Remove o prefixo data:*/*;base64, para enviar limpo para o teu backend
-          const base64String = e.target.result.split(',')[1];
-          anexoBase64Global = base64String;
+          anexoBase64Global = e.target.result.split(',')[1];
           banner.style.display = 'flex';
-          banner.textContent = `📎 Anexado: ${file.name}`;
+          bannerText.textContent = `📎 Anexado: ${file.name}`;
         };
         reader.readAsDataURL(file);
+      }
+
+      function removeFile() {
+        anexoBase64Global = null;
+        mimeTypeGlobal = null;
+        document.getElementById('file-input').value = '';
+        document.getElementById('file-banner').style.display = 'none';
       }
 
       async function sendMessage() {
         const input = document.getElementById('user-input');
         const text = input.value.trim();
-        const banner = document.getElementById('file-banner');
         
         if (!text && !anexoBase64Global) return;
 
@@ -468,7 +568,7 @@
         chatMessages.innerHTML += `
           <div class="message user-message">
             <div class="avatar-user">U</div>
-            <div class="message-bubble">${text || '[Documento Anexado]'}</div>
+            <div class="message-bubble">${escapeHtml(text) || '[Documento Anexado]'}</div>
           </div>
         `;
         
@@ -479,19 +579,17 @@
         // Limpa inputs
         input.value = '';
         input.style.height = 'auto';
-        anexoBase64Global = null;
-        mimeTypeGlobal = null;
-        document.getElementById('file-input').value = '';
-        banner.style.display = 'none';
-        
+        removeFile();
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Indicador de carregamento
+        // Indicador de carregamento refinado
         const loadingId = 'loading-' + Date.now();
         chatMessages.innerHTML += `
           <div id="${loadingId}" class="message ai-message">
             <div class="avatar-ai">H</div>
-            <div class="message-bubble" style="color: var(--text-muted);">A processar pedido...</div>
+            <div class="message-bubble" style="color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+              <span>A processar análise executiva...</span>
+            </div>
           </div>
         `;
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -508,22 +606,24 @@
           });
 
           const data = await response.json();
-          document.getElementById(loadingId).remove();
+          const loadingEl = document.getElementById(loadingId);
+          if (loadingEl) loadingEl.remove();
 
           const respostaFinal = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar a solicitação.');
 
-          // Renderiza resposta da IA
+          // Renderiza resposta da IA com formatação rica
           chatMessages.innerHTML += `
             <div class="message ai-message">
               <div class="avatar-ai">H</div>
-              <div class="message-bubble">${formatarMarkdownSimples(respostaFinal)}</div>
+              <div class="message-bubble">${renderizarMarkdown(respostaFinal)}</div>
             </div>
           `;
           chatMessages.scrollTop = chatMessages.scrollHeight;
 
         } catch (err) {
           console.error(err);
-          document.getElementById(loadingId).remove();
+          const loadingEl = document.getElementById(loadingId);
+          if (loadingEl) loadingEl.remove();
           chatMessages.innerHTML += `
             <div class="message ai-message">
               <div class="avatar-ai">H</div>
@@ -533,14 +633,32 @@
         }
       }
 
-      // Formatador simples para blocos e negritos gerados pela IA
-      function formatarMarkdownSimples(texto) {
-        return texto
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\n/g, '<br>');
+      function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+
+      // Renderizador de Markdown profissional para limpar os headers e formatar a UI
+      function renderizarMarkdown(texto) {
+        let safeText = escapeHtml(texto);
+
+        // Code blocks
+        safeText = safeText.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+        
+        // Headers
+        safeText = safeText.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+        safeText = safeText.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+        
+        // Bold & Italic
+        safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        safeText = safeText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Blockquotes
+        safeText = safeText.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+        
+        // Line breaks
+        safeText = safeText.replace(/\n/g, '<br>');
+
+        return safeText;
       }
     </script>
 </body>
