@@ -7,7 +7,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Marked.js para renderizar perfeitamente as respostas em Markdown da IA -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,13 +43,13 @@
 
         .ambient-glow {
             position: fixed;
-            top: 25%;
+            top: 20%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
-            filter: blur(80px);
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.07) 0%, transparent 70%);
+            filter: blur(90px);
             pointer-events: none;
             z-index: 0;
         }
@@ -83,13 +82,22 @@
             color: #FBBF24;
         }
 
-        #chat-response-area {
+        /* Área de conversação com scroll interno controlado (mantém a página estática) */
+        #chat-container {
             display: none;
             flex-direction: column;
-            gap: 1.5rem;
-            padding-bottom: 6rem;
+            gap: 1.25rem;
             width: 100%;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            margin-bottom: 1rem;
         }
+
+        /* Scrollbar subtil */
+        #chat-container::-webkit-scrollbar { width: 4px; }
+        #chat-container::-webkit-scrollbar-track { background: transparent; }
+        #chat-container::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.2); border-radius: 4px; }
 
         .message-user {
             align-self: flex-end;
@@ -97,14 +105,14 @@
             background-color: #1A1814;
             color: #F3F4F6;
             border: 1px solid rgba(245, 158, 11, 0.15);
-            padding: 1rem;
+            padding: 0.9rem 1.1rem;
             border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
             font-size: 0.9rem;
         }
 
         .message-ai {
             align-self: flex-start;
-            max-width: 90%;
+            max-width: 95%;
             background-color: #171512;
             color: #E5E7EB;
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -114,14 +122,13 @@
             line-height: 1.6;
         }
 
-        /* Estilização do Markdown gerado pela IA */
-        .message-ai h2, .message-ai h3 { color: #FBBF24; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
-        .message-ai p { margin-bottom: 0.75rem; }
-        .message-ai ul, .message-ai ol { padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .message-ai h2, .message-ai h3 { color: #FBBF24; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.4rem; }
+        .message-ai p { margin-bottom: 0.6rem; }
+        .message-ai ul, .message-ai ol { padding-left: 1.25rem; margin-bottom: 0.6rem; }
         .message-ai ul { list-style-type: disc; }
-        .message-ai blockquote { border-left: 3px solid #F59E0B; padding-left: 1rem; color: #FDE68A; margin: 1rem 0; font-style: italic; background: rgba(245,158,11,0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0;}
-        .message-ai table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
-        .message-ai th, .message-ai td { border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; text-align: left; }
+        .message-ai blockquote { border-left: 3px solid #F59E0B; padding-left: 1rem; color: #FDE68A; margin: 0.75rem 0; font-style: italic; background: rgba(245,158,11,0.05); padding-top: 0.4rem; padding-bottom: 0.4rem; border-radius: 0 0.5rem 0.5rem 0;}
+        .message-ai table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.85rem; }
+        .message-ai th, .message-ai td { border: 1px solid rgba(255,255,255,0.1); padding: 0.4rem; text-align: left; }
         .message-ai th { background-color: #24211C; color: #FBBF24; }
 
         .file-badge {
@@ -138,19 +145,23 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between relative">
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-amber-500 selection:text-black">
 
     <div class="ambient-glow"></div>
 
     <!-- CABEÇALHO -->
     <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-3xl mx-auto">
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
-            <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M16 20a2 2 0 0 1-2-2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 8h3"/><path d="M2 21a1 1 0 0 1-1-1v-8a8 8 0 0 1 16 0v8a1 1 0 0 1-1 1h-6l-4 4Z"/><path d="M6.6 11.2a2 2 0 1 0 0 4"/><path d="M9 18a2 2 0 1 1-4 0"/></svg>
+            <!-- LOGÓTIPO TECH LIMPO E SOFISTICADO -->
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
             </div>
             <div class="flex flex-col">
                 <span class="text-xs font-black tracking-wider text-white">HONEY <span class="text-amber-400">IA</span></span>
-                <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Enterprise Suite</span>
+                <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Neural Core</span>
             </div>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-neutral-400 ml-1"></i>
         </div>
@@ -162,25 +173,24 @@
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
+    <!-- CONTEÚDO PRINCIPAL (ESTÁTICO E CENTRADO) -->
     <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-2xl mx-auto my-auto">
         
         <!-- ECRÃ DE BOAS-VINDAS -->
-        <div id="hero-section" class="text-center space-y-3 mb-6 w-full transition-opacity duration-300">
-            <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+        <div id="hero-section" class="text-center space-y-3 mb-4 w-full transition-all duration-300">
+            <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 shadow-sm">
                 ENGINE v2.0 ATIVA
             </span>
-            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mt-3">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-2">
                 Em que podemos <span class="text-gradient">evoluir hoje?</span>
             </h1>
         </div>
 
-        <!-- ÁREA DE RESPOSTAS -->
-        <div id="chat-response-area" class="w-full max-w-2xl mx-auto"></div>
+        <!-- ÁREA DE CHAT COM SCROLL INTERNO (NÃO EMPURRA A PÁGINA) -->
+        <div id="chat-container"></div>
 
-        <!-- ÁREA DE INPUT FIXA NO FUNDO -->
-        <div class="w-full mt-auto sticky bottom-6 z-20 pt-4">
-            <!-- Indicador de ficheiro selecionado -->
+        <!-- CAIXA DE INPUT E CHIPS (FIXOS NA SECÇÃO INFERIOR) -->
+        <div class="w-full mt-4 z-20">
             <div id="file-indicator" class="hidden px-3 mb-2"></div>
 
             <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl w-full max-w-2xl mx-auto">
@@ -194,7 +204,7 @@
                         id="prompt-input" 
                         rows="1" 
                         placeholder="Escreva para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium"
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium max-h-32"
                     ></textarea>
 
                     <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition flex-shrink-0">
@@ -212,13 +222,13 @@
             </form>
 
             <!-- CHIPS DE AÇÃO -->
-            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap">
+            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-3 flex-wrap">
                 <button onclick="setPrompt('Elabore um parecer estratégico para otimização de processos de ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
-                    <i data-lucide="code" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Engenharia & Processos</span>
                 </button>
                 <button onclick="setPrompt('Faça uma análise executiva detalhada dos dados e métricas deste documento: ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
-                    <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-amber-400"></i>
                     <span>Análise de Relatórios</span>
                 </button>
             </div>
@@ -227,7 +237,7 @@
     </main>
 
     <!-- RODAPÉ -->
-    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4">
+    <footer class="relative z-10 w-full py-3 text-center text-[11px] text-neutral-500 font-medium px-4">
         Honey IA © 2026 — Inteligência Estratégica Avançada
     </footer>
 
@@ -236,12 +246,11 @@
 
         const promptInput = document.getElementById('prompt-input');
         const heroSection = document.getElementById('hero-section');
-        const chatResponseArea = document.getElementById('chat-response-area');
+        const chatContainer = document.getElementById('chat-container');
         const suggestionChips = document.getElementById('suggestion-chips');
         const aiForm = document.getElementById('ai-form');
         const fileUpload = document.getElementById('file-upload');
         const fileIndicator = document.getElementById('file-indicator');
-        const submitBtn = document.getElementById('submit-btn');
 
         let selectedFileBase64 = null;
         let selectedFileMime = null;
@@ -252,7 +261,6 @@
             promptInput.focus(); 
         }
 
-        // Gestão de anexos
         fileUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -262,9 +270,7 @@
 
             const reader = new FileReader();
             reader.onload = function(uploadEvent) {
-                const base64String = uploadEvent.target.result.split(',')[1];
-                selectedFileBase64 = base64String;
-
+                selectedFileBase64 = uploadEvent.target.result.split(',')[1];
                 fileIndicator.innerHTML = `
                     <div class="file-badge">
                         <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
@@ -287,19 +293,17 @@
             fileIndicator.innerHTML = '';
         };
 
-        // Envio da mensagem para o backend real (/gerar-gratis)
         aiForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const userMessage = promptInput.value.trim();
             if (!userMessage && !selectedFileBase64) return;
 
-            // Transição visual do ecrã inicial para o chat
+            // Transição visual do ecrã inicial para o contentor de chat interno
             heroSection.style.display = 'none';
             suggestionChips.style.display = 'none';
-            chatResponseArea.style.display = 'flex';
+            chatContainer.style.display = 'flex';
 
-            // Monta o HTML da mensagem do utilizador
             let userHtml = userMessage;
             if (selectedFileName) {
                 userHtml = `<div class="text-xs text-amber-400 mb-1">📄 ${selectedFileName}</div>` + userHtml;
@@ -308,24 +312,24 @@
             const userMsgDiv = document.createElement('div');
             userMsgDiv.classList.add('message-user');
             userMsgDiv.innerHTML = userHtml;
-            chatResponseArea.appendChild(userMsgDiv);
+            chatContainer.appendChild(userMsgDiv);
 
             const currentPrompt = userMessage;
             const currentFileBase64 = selectedFileBase64;
             const currentFileMime = selectedFileMime;
 
-            // Limpa o input e anexo local
             promptInput.value = '';
             promptInput.style.height = 'auto';
             removeFile();
 
-            // Adiciona balão de "A processar..."
             const loadingDiv = document.createElement('div');
             loadingDiv.classList.add('message-ai');
             loadingDiv.id = 'loading-bubble';
             loadingDiv.innerHTML = `<span class="animate-pulse text-amber-400">A processar inteligência estratégica...</span>`;
-            chatResponseArea.appendChild(loadingDiv);
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            chatContainer.appendChild(loadingDiv);
+            
+            // Scroll apenas dentro do contentor interno (a página global fica perfeitamente estática)
+            chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
                 const response = await fetch('/gerar-gratis', {
@@ -345,21 +349,20 @@
                 aiMsgDiv.classList.add('message-ai');
 
                 if (data.sucesso) {
-                    // Renderiza o Markdown devolvido pelo backend Node.js
                     aiMsgDiv.innerHTML = marked.parse(data.resposta);
                 } else {
                     aiMsgDiv.innerHTML = `<span class="text-red-400">Erro: ${data.erro || 'Não foi possível gerar a resposta.'}</span>`;
                 }
 
-                chatResponseArea.appendChild(aiMsgDiv);
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                chatContainer.appendChild(aiMsgDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
 
             } catch (err) {
                 if(document.getElementById('loading-bubble')) document.getElementById('loading-bubble').remove();
                 const errorDiv = document.createElement('div');
                 errorDiv.classList.add('message-ai');
                 errorDiv.innerHTML = `<span class="text-red-400">Erro de conexão com o servidor Node.js.</span>`;
-                chatResponseArea.appendChild(errorDiv);
+                chatContainer.appendChild(errorDiv);
             }
         });
 
