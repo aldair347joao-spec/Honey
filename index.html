@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Honey IA — Plataforma Executiva</title>
-    <link rel="stylesheet" href="style.css"> <!-- Ou os estilos inline abaixo se preferires tudo num só -->
     <style>
       :root {
         --bg-dark: #0f172a;
@@ -92,8 +91,12 @@
         width: 36px;
         height: 36px;
         border-radius: 8px;
-        object-fit: contain;
         background-color: var(--accent-orange);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #000;
       }
 
       .sidebar-header h2 {
@@ -156,21 +159,6 @@
         color: var(--accent-orange);
       }
 
-      .recent-sessions .session-item {
-        display: block;
-        color: var(--text-muted);
-        text-decoration: none;
-        font-size: 0.9rem;
-        padding: 8px 12px;
-        border-radius: 6px;
-        transition: background 0.2s;
-      }
-
-      .recent-sessions .session-item:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-        color: var(--text-main);
-      }
-
       /* Área Principal de Chat */
       .chat-main {
         flex: 1;
@@ -220,7 +208,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 250px;
+        max-width: 280px;
       }
 
       .chat-messages {
@@ -235,19 +223,38 @@
       .message {
         display: flex;
         gap: 10px;
-        max-width: 85%;
+        max-width: 90%;
       }
 
       .ai-message {
         align-self: flex-start;
       }
 
-      .avatar-ai {
+      .user-message {
+        align-self: flex-end;
+        margin-left: auto;
+        flex-direction: row-reverse;
+      }
+
+      .avatar-ai, .avatar-user {
         width: 28px;
         height: 28px;
-        background-color: var(--accent-orange);
         border-radius: 50%;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+      }
+
+      .avatar-ai {
+        background-color: var(--accent-orange);
+        color: #000;
+      }
+
+      .avatar-user {
+        background-color: #334155;
+        color: var(--text-main);
       }
 
       .message-bubble {
@@ -257,14 +264,29 @@
         font-size: 0.95rem;
         line-height: 1.4;
         border: 1px solid var(--border-color);
+        word-break: break-word;
       }
 
-      /* Caixa de Input */
+      .user-message .message-bubble {
+        background-color: #1e3a8a;
+        border-color: #3b82f6;
+      }
+
+      /* Caixa de Input e Anexos */
       .chat-input-wrapper {
         padding: 12px 16px;
         background-color: var(--bg-dark);
         border-top: 1px solid var(--border-color);
         padding-bottom: max(12px, env(safe-area-inset-bottom));
+      }
+
+      .file-preview-banner {
+        font-size: 0.8rem;
+        color: var(--accent-orange);
+        margin-bottom: 6px;
+        display: none;
+        align-items: center;
+        gap: 6px;
       }
 
       .chat-input-container {
@@ -308,6 +330,10 @@
         padding: 4px;
       }
 
+      .action-icon-btn:hover {
+        color: var(--text-main);
+      }
+
       .send-submit-btn {
         background-color: var(--accent-orange);
         color: #000;
@@ -338,7 +364,7 @@
       <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
           <div class="logo-wrapper">
-            <div class="brand-logo"></div>
+            <div class="brand-logo">H</div>
             <div>
               <h2>Honey IA</h2>
               <span class="platform-tag">Plataforma Executiva</span>
@@ -355,11 +381,6 @@
             <button class="mode-btn"><span class="icon">📚</span> Pedagógico & Científico</button>
             <button class="mode-btn"><span class="icon">💻</span> Arquitetura de Software</button>
           </nav>
-
-          <div class="section-title">SESSÕES RECENTES</div>
-          <div class="recent-sessions">
-            <a href="#" class="session-item">Nova Conversa</a>
-          </div>
         </div>
       </aside>
 
@@ -377,19 +398,23 @@
 
         <div id="chat-messages" class="chat-messages">
           <div class="message ai-message">
-            <div class="avatar-ai"></div>
+            <div class="avatar-ai">H</div>
             <div class="message-bubble">
-              Nova sessão iniciada. Em que posso ajudar?
+              Olá! Sou a Honey IA, a tua plataforma executiva de inteligência artificial. Como posso ajudar nos teus projetos ou análises hoje?
             </div>
           </div>
         </div>
 
         <div class="chat-input-wrapper">
+          <div id="file-banner" class="file-preview-banner">📎 Ficheiro anexado pronto para análise</div>
           <div class="chat-input-container">
-            <textarea id="user-input" placeholder="Escreve uma mensagem..." rows="1" oninput="autoResize(this)"></textarea>
+            <textarea id="user-input" placeholder="Escreve uma mensagem ou anexa um documento..." rows="1" oninput="autoResize(this)"></textarea>
+            
+            <!-- Input oculto para anexos (PDF, Imagens, Word, Excel) compatível com o teu backend -->
+            <input type="file" id="file-input" style="display: none;" onchange="handleFileSelect(event)">
+
             <div class="input-actions">
-              <button class="action-icon-btn" title="Anexar">📎</button>
-              <button class="action-icon-btn" title="Voz">🎤</button>
+              <button class="action-icon-btn" title="Anexar Ficheiro" onclick="document.getElementById('file-input').click()">📎</button>
               <button id="send-btn" class="send-submit-btn" onclick="sendMessage()">↑</button>
             </div>
           </div>
@@ -398,6 +423,9 @@
     </div>
 
     <script>
+      let anexoBase64Global = null;
+      let mimeTypeGlobal = null;
+
       function toggleMenu() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
@@ -410,44 +438,109 @@
         textarea.style.height = textarea.scrollHeight + 'px';
       }
 
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        const banner = document.getElementById('file-banner');
+        if (!file) return;
+
+        mimeTypeGlobal = file.type;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          // Remove o prefixo data:*/*;base64, para enviar limpo para o teu backend
+          const base64String = e.target.result.split(',')[1];
+          anexoBase64Global = base64String;
+          banner.style.display = 'flex';
+          banner.textContent = `📎 Anexado: ${file.name}`;
+        };
+        reader.readAsDataURL(file);
+      }
+
       async function sendMessage() {
         const input = document.getElementById('user-input');
         const text = input.value.trim();
-        if (!text) return;
+        const banner = document.getElementById('file-banner');
+        
+        if (!text && !anexoBase64Global) return;
 
         const chatMessages = document.getElementById('chat-messages');
 
-        // Adiciona mensagem do utilizador
+        // Renderiza mensagem do utilizador
         chatMessages.innerHTML += `
-          <div class="message user-message" style="align-self: flex-end; margin-left: auto;">
-            <div class="message-bubble" style="background-color: #334155; color: #f8fafc;">${text}</div>
+          <div class="message user-message">
+            <div class="avatar-user">U</div>
+            <div class="message-bubble">${text || '[Documento Anexado]'}</div>
           </div>
         `;
         
+        const payloadPrompt = text;
+        const payloadAnexo = anexoBase64Global;
+        const payloadMime = mimeTypeGlobal;
+
+        // Limpa inputs
         input.value = '';
         input.style.height = 'auto';
+        anexoBase64Global = null;
+        mimeTypeGlobal = null;
+        document.getElementById('file-input').value = '';
+        banner.style.display = 'none';
+        
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        // Envia para o backend Node.js (index.js)
+        // Indicador de carregamento
+        const loadingId = 'loading-' + Date.now();
+        chatMessages.innerHTML += `
+          <div id="${loadingId}" class="message ai-message">
+            <div class="avatar-ai">H</div>
+            <div class="message-bubble" style="color: var(--text-muted);">A processar pedido...</div>
+          </div>
+        `;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
         try {
-          const response = await fetch('/api/chat', {
+          const response = await fetch('/gerar-gratis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({
+              prompt: payloadPrompt,
+              anexoBase64: payloadAnexo,
+              mimeType: payloadMime
+            })
           });
-          const data = await response.json();
 
-          // Resposta da IA
+          const data = await response.json();
+          document.getElementById(loadingId).remove();
+
+          const respostaFinal = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar a solicitação.');
+
+          // Renderiza resposta da IA
           chatMessages.innerHTML += `
             <div class="message ai-message">
-              <div class="avatar-ai"></div>
-              <div class="message-bubble">${data.reply || 'Erro ao processar resposta.'}</div>
+              <div class="avatar-ai">H</div>
+              <div class="message-bubble">${formatarMarkdownSimples(respostaFinal)}</div>
             </div>
           `;
           chatMessages.scrollTop = chatMessages.scrollHeight;
+
         } catch (err) {
           console.error(err);
+          document.getElementById(loadingId).remove();
+          chatMessages.innerHTML += `
+            <div class="message ai-message">
+              <div class="avatar-ai">H</div>
+              <div class="message-bubble" style="color: #ef4444;">Erro de conexão com o servidor.</div>
+            </div>
+          `;
         }
+      }
+
+      // Formatador simples para blocos e negritos gerados pela IA
+      function formatarMarkdownSimples(texto) {
+        return texto
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
       }
     </script>
 </body>
