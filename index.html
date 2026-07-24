@@ -7,6 +7,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Marked.js para renderizar perfeitamente as respostas em Markdown da IA -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,34 +83,58 @@
             color: #FBBF24;
         }
 
-        /* Estilos para o chat simulado */
         #chat-response-area {
             display: none;
             flex-direction: column;
-            gap: 1rem;
-            padding-bottom: 2rem;
-        }
-
-        .message-user, .message-ai {
-            max-width: 80%;
-            padding: 1rem;
-            border-radius: 1rem;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            position: relative;
+            gap: 1.5rem;
+            padding-bottom: 6rem;
+            width: 100%;
         }
 
         .message-user {
             align-self: flex-end;
+            max-width: 85%;
             background-color: #1A1814;
             color: #F3F4F6;
-            border: 1px solid rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            padding: 1rem;
+            border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+            font-size: 0.9rem;
         }
 
         .message-ai {
             align-self: flex-start;
-            background-color: #24211C;
+            max-width: 90%;
+            background-color: #171512;
+            color: #E5E7EB;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 1.25rem;
+            border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Estilização do Markdown gerado pela IA */
+        .message-ai h2, .message-ai h3 { color: #FBBF24; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .message-ai p { margin-bottom: 0.75rem; }
+        .message-ai ul, .message-ai ol { padding-left: 1.25rem; margin-bottom: 0.75rem; }
+        .message-ai ul { list-style-type: disc; }
+        .message-ai blockquote { border-left: 3px solid #F59E0B; padding-left: 1rem; color: #FDE68A; margin: 1rem 0; font-style: italic; background: rgba(245,158,11,0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; border-radius: 0 0.5rem 0.5rem 0;}
+        .message-ai table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+        .message-ai th, .message-ai td { border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem; text-align: left; }
+        .message-ai th { background-color: #24211C; color: #FBBF24; }
+
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
             color: #FBBF24;
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -119,12 +145,9 @@
     <!-- CABEÇALHO -->
     <header class="relative z-10 w-full px-5 py-4 flex items-center justify-between max-w-3xl mx-auto">
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
-            
-            <!-- LOGO ABELHA PROFISSIONAL (SVG INLINE) -->
             <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot-message-square"><path d="M12 2v4"/><path d="M16 20a2 2 0 0 1-2-2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 8h3"/><path d="M2 21a1 1 0 0 1-1-1v-8a8 8 0 0 1 16 0v8a1 1 0 0 1-1 1h-6l-4 4Z"/><path d="M6.6 11.2a2 2 0 1 0 0 4"/><path d="M9 18a2 2 0 1 1-4 0"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M16 20a2 2 0 0 1-2-2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 8h3"/><path d="M2 21a1 1 0 0 1-1-1v-8a8 8 0 0 1 16 0v8a1 1 0 0 1-1 1h-6l-4 4Z"/><path d="M6.6 11.2a2 2 0 1 0 0 4"/><path d="M9 18a2 2 0 1 1-4 0"/></svg>
             </div>
-            
             <div class="flex flex-col">
                 <span class="text-xs font-black tracking-wider text-white">HONEY <span class="text-amber-400">IA</span></span>
                 <span class="text-[8px] font-bold text-amber-500/70 tracking-widest uppercase">Enterprise Suite</span>
@@ -133,17 +156,17 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button class="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 transition">
+            <button onclick="location.reload()" class="w-9 h-9 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center text-neutral-300 hover:text-amber-400 transition" title="Nova Conversa">
                 <i data-lucide="square-pen" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-2xl mx-auto">
+    <main class="relative z-10 flex-1 flex flex-col justify-center items-center px-4 w-full max-w-2xl mx-auto my-auto">
         
-        <!-- ECRÃ DE BOAS-VINDAS (ESCONDE-SE APÓS O ENVIO) -->
-        <div id="hero-section" class="text-center space-y-3 mb-6 w-full transition-opacity duration-500">
+        <!-- ECRÃ DE BOAS-VINDAS -->
+        <div id="hero-section" class="text-center space-y-3 mb-6 w-full transition-opacity duration-300">
             <span class="inline-block text-[10px] font-extrabold tracking-widest text-amber-400 uppercase bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                 ENGINE v2.0 ATIVA
             </span>
@@ -152,25 +175,26 @@
             </h1>
         </div>
 
-        <!-- ÁREA DE RESPOSTA DO CHAT (INVISÍVEL INICIALMENTE) -->
-        <div id="chat-response-area" class="w-full max-w-2xl mx-auto mt-12">
-            <!-- Aqui as mensagens serão inseridas pelo JS -->
-        </div>
+        <!-- ÁREA DE RESPOSTAS -->
+        <div id="chat-response-area" class="w-full max-w-2xl mx-auto"></div>
 
         <!-- ÁREA DE INPUT FIXA NO FUNDO -->
-        <div class="w-full mt-auto sticky bottom-6 z-20">
+        <div class="w-full mt-auto sticky bottom-6 z-20 pt-4">
+            <!-- Indicador de ficheiro selecionado -->
+            <div id="file-indicator" class="hidden px-3 mb-2"></div>
+
             <form id="ai-form" class="chat-box rounded-3xl p-3.5 shadow-2xl w-full max-w-2xl mx-auto">
                 <div class="flex items-center gap-2 px-1">
-                    <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition flex-shrink-0">
+                    <label for="file-upload" class="p-2.5 rounded-full text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer transition flex-shrink-0" title="Anexar Documento ou Imagem">
                         <i data-lucide="plus" class="w-5 h-5"></i>
-                        <input type="file" id="file-upload" class="hidden">
+                        <input type="file" id="file-upload" class="hidden" accept=".pdf,.doc,.docx,.xlsx,.xls,.csv,image/*">
                     </label>
 
                     <textarea 
                         id="prompt-input" 
                         rows="1" 
                         placeholder="Escreva para a Honey IA..." 
-                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium no-scrollbar"
+                        class="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none resize-none py-2 font-medium"
                     ></textarea>
 
                     <button type="button" class="p-2.5 text-neutral-400 hover:text-amber-400 transition flex-shrink-0">
@@ -187,15 +211,15 @@
                 </div>
             </form>
 
-            <!-- CHIPS DE AÇÃO (SÓ APARECEM NO INÍCIO) -->
-            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap transition-opacity duration-500">
-                <button onclick="setPrompt('Criar estrutura Fullstack para ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
+            <!-- CHIPS DE AÇÃO -->
+            <div id="suggestion-chips" class="flex items-center justify-center gap-2 mt-4 flex-wrap">
+                <button onclick="setPrompt('Elabore um parecer estratégico para otimização de processos de ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <i data-lucide="code" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Fullstack Dev</span>
+                    <span>Engenharia & Processos</span>
                 </button>
-                <button onclick="setPrompt('Desenvolver identidade visual para ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
+                <button onclick="setPrompt('Faça uma análise executiva detalhada dos dados e métricas deste documento: ')" class="suggestion-pill px-3.5 py-2 rounded-full text-neutral-300 text-xs font-semibold flex items-center gap-1.5">
                     <i data-lucide="palette" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Branding & Arte</span>
+                    <span>Análise de Relatórios</span>
                 </button>
             </div>
         </div>
@@ -203,12 +227,11 @@
     </main>
 
     <!-- RODAPÉ -->
-    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4 mt-6">
+    <footer class="relative z-10 w-full py-4 text-center text-[11px] text-neutral-500 font-medium px-4">
         Honey IA © 2026 — Inteligência Estratégica Avançada
     </footer>
 
     <script>
-        // Inicializa ícones
         lucide.createIcons();
 
         const promptInput = document.getElementById('prompt-input');
@@ -216,49 +239,130 @@
         const chatResponseArea = document.getElementById('chat-response-area');
         const suggestionChips = document.getElementById('suggestion-chips');
         const aiForm = document.getElementById('ai-form');
+        const fileUpload = document.getElementById('file-upload');
+        const fileIndicator = document.getElementById('file-indicator');
+        const submitBtn = document.getElementById('submit-btn');
 
-        // Função para configurar o prompt inicial
+        let selectedFileBase64 = null;
+        let selectedFileMime = null;
+        let selectedFileName = null;
+
         function setPrompt(text) { 
             promptInput.value = text; 
             promptInput.focus(); 
         }
 
-        // LÓGICA DE ENVIO E RESPOSTA SIMULADA
-        aiForm.addEventListener('submit', function(e) {
+        // Gestão de anexos
+        fileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            selectedFileName = file.name;
+            selectedFileMime = file.type;
+
+            const reader = new FileReader();
+            reader.onload = function(uploadEvent) {
+                const base64String = uploadEvent.target.result.split(',')[1];
+                selectedFileBase64 = base64String;
+
+                fileIndicator.innerHTML = `
+                    <div class="file-badge">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                        <span>Anexado: ${file.name}</span>
+                        <button type="button" onclick="removeFile()" class="ml-2 text-red-400 hover:text-red-300 font-bold">×</button>
+                    </div>
+                `;
+                fileIndicator.classList.remove('hidden');
+                lucide.createIcons();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        window.removeFile = function() {
+            selectedFileBase64 = null;
+            selectedFileMime = null;
+            selectedFileName = null;
+            fileUpload.value = '';
+            fileIndicator.classList.add('hidden');
+            fileIndicator.innerHTML = '';
+        };
+
+        // Envio da mensagem para o backend real (/gerar-gratis)
+        aiForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const userMessage = promptInput.value.trim();
-            if (!userMessage) return;
+            if (!userMessage && !selectedFileBase64) return;
 
-            // 1. Muda o estado do ecrã
+            // Transição visual do ecrã inicial para o chat
             heroSection.style.display = 'none';
             suggestionChips.style.display = 'none';
             chatResponseArea.style.display = 'flex';
-            aiForm.classList.remove('mx-auto'); // Move o input para cima se necessário
 
-            // 2. Adiciona a mensagem do utilizador
+            // Monta o HTML da mensagem do utilizador
+            let userHtml = userMessage;
+            if (selectedFileName) {
+                userHtml = `<div class="text-xs text-amber-400 mb-1">📄 ${selectedFileName}</div>` + userHtml;
+            }
+
             const userMsgDiv = document.createElement('div');
             userMsgDiv.classList.add('message-user');
-            userMsgDiv.textContent = userMessage;
+            userMsgDiv.innerHTML = userHtml;
             chatResponseArea.appendChild(userMsgDiv);
 
-            // 3. Limpa o input
-            promptInput.value = '';
-            promptInput.style.height = 'auto'; // Reset height
+            const currentPrompt = userMessage;
+            const currentFileBase64 = selectedFileBase64;
+            const currentFileMime = selectedFileMime;
 
-            // 4. Simula a resposta da IA (após 1 segundo)
-            setTimeout(() => {
+            // Limpa o input e anexo local
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            removeFile();
+
+            // Adiciona balão de "A processar..."
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('message-ai');
+            loadingDiv.id = 'loading-bubble';
+            loadingDiv.innerHTML = `<span class="animate-pulse text-amber-400">A processar inteligência estratégica...</span>`;
+            chatResponseArea.appendChild(loadingDiv);
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            try {
+                const response = await fetch('/gerar-gratis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: currentPrompt,
+                        anexoBase64: currentFileBase64,
+                        mimeType: currentFileMime
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('loading-bubble').remove();
+
                 const aiMsgDiv = document.createElement('div');
                 aiMsgDiv.classList.add('message-ai');
-                aiMsgDiv.innerHTML = `Processando: "${userMessage.substring(0, 30)}...".<br><br>Esta é uma simulação de resposta da Honey IA. A plataforma está agora a funcionar corretamente e pronta para integração com a tua API real.`;
+
+                if (data.sucesso) {
+                    // Renderiza o Markdown devolvido pelo backend Node.js
+                    aiMsgDiv.innerHTML = marked.parse(data.resposta);
+                } else {
+                    aiMsgDiv.innerHTML = `<span class="text-red-400">Erro: ${data.erro || 'Não foi possível gerar a resposta.'}</span>`;
+                }
+
                 chatResponseArea.appendChild(aiMsgDiv);
-                
-                // Scroll para o fundo
-                chatResponseArea.scrollTop = chatResponseArea.scrollHeight;
-            }, 1000);
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+            } catch (err) {
+                if(document.getElementById('loading-bubble')) document.getElementById('loading-bubble').remove();
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('message-ai');
+                errorDiv.innerHTML = `<span class="text-red-400">Erro de conexão com o servidor Node.js.</span>`;
+                chatResponseArea.appendChild(errorDiv);
+            }
         });
 
-        // Auto-resize do textarea
         promptInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
