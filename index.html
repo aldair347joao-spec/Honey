@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA - Plataforma Executiva</title>
+    <title>Honey IA - Plataforma Executiva Multiuso</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
@@ -219,14 +219,27 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding: 68px 14px 14px 14px;
+        padding: 60px 14px 14px 14px;
         text-align: center;
         overflow-y: auto;
       }
       .hero-welcome-state.hidden { display: none; }
 
+      .business-badge {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--accent-amber);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 10px;
+      }
+
       .hero-title {
-        font-size: clamp(1.35rem, 4.8vw, 2.1rem);
+        font-size: clamp(1.3rem, 4.2vw, 1.9rem);
         font-weight: 800;
         letter-spacing: -0.03em;
         margin-bottom: 6px;
@@ -234,34 +247,16 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.18;
+        max-width: 650px;
       }
 
       .hero-subtitle {
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         color: var(--text-muted);
-        max-width: 560px;
+        max-width: 600px;
         margin-bottom: 12px;
         line-height: 1.45;
         font-weight: 500;
-      }
-
-      .capabilities-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        justify-content: center;
-        max-width: 680px;
-        margin-bottom: 12px;
-      }
-
-      .capability-pill {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border-subtle);
-        padding: 4px 10px;
-        border-radius: 16px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--text-main);
       }
 
       .quick-prompts-container {
@@ -277,7 +272,7 @@
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
         padding-left: 2px;
       }
 
@@ -290,16 +285,16 @@
       .quick-prompt-card {
         background: var(--bg-card);
         border: 1px solid var(--border-subtle);
-        padding: 8px 10px;
+        padding: 10px 12px;
         border-radius: 10px;
         font-size: 0.74rem;
         font-weight: 600;
         color: var(--text-main);
         cursor: pointer;
-        display: flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; gap: 8px;
         transition: all 0.2s;
       }
-      .quick-prompt-card:hover { border-color: var(--accent-neon); color: var(--accent-neon); }
+      .quick-prompt-card:hover { border-color: var(--accent-neon); color: var(--accent-neon); background-color: var(--bg-card-hover); }
 
       /* Input Card wrappers */
       .input-wrapper-container {
@@ -363,8 +358,15 @@
         cursor: pointer;
         display: flex; align-items: center; justify-content: center;
         box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        animation: pulseGlow 2s infinite;
       }
       .send-submit-btn svg { width: 15px; height: 15px; stroke: #030712; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+      @keyframes pulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+      }
 
       /* Active chat view */
       .chat-messages-container {
@@ -449,15 +451,13 @@
                 <button class="close-menu-btn" id="closeMenuBtn">✕</button>
             </div>
             <div class="sidebar-content">
-                <div class="section-title">CATEGORIAS & MODOS</div>
+                <div class="section-title">SOLUÇÕES POR SETOR</div>
                 <div class="nav-modes">
-                    <button class="mode-btn active"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Empresarial</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg> Desenvolvimento Web</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Aplicativos</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"></path></svg> Design & Logotipos</button>
+                    <button class="mode-btn active"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Empresarial & Sites</button>
+                    <button class="mode-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg> Desenvolvimento Web/App</button>
                     <button class="mode-btn"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Marketing & Vídeos</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Excel & Dados</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Arquitetura 3D</button>
+                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Excel & Contabilidade</button>
+                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Arquitetura & Plantas 3D</button>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -465,7 +465,7 @@
                     <div class="user-avatar-mini">A</div>
                     <div class="user-info-mini">
                         <h4>Aldair</h4>
-                        <span>Sessão Ativa • Nível 3</span>
+                        <span>Sessão Ativa • Nível Executivo</span>
                     </div>
                 </div>
             </div>
@@ -482,32 +482,26 @@
 
             <!-- Hero Welcome State -->
             <div class="hero-welcome-state" id="heroWelcomeState">
-                <h1 class="hero-title">Inteligência artificial que impulsiona empresas.</h1>
-                <p class="hero-subtitle">Crie sites profissionais, aplicativos, logotipos, vídeos publicitários, análises de documentos e muito mais numa única plataforma.</p>
+                <div class="business-badge">🚀 Plataforma Executiva Multiuso</div>
+                <h1 class="hero-title">Inteligência artificial que impulsiona o seu negócio.</h1>
+                <p class="hero-subtitle">Esqueça ferramentas separadas. Crie sites profissionais, aplicativos, vídeos publicitários, relatórios em Excel e plantas 3D conversando naturalmente.</p>
                 
-                <div class="capabilities-grid">
-                    <span class="capability-pill">✨ Sites Premium</span>
-                    <span class="capability-pill">📱 Aplicativos</span>
-                    <span class="capability-pill">🎨 Logotipos</span>
-                    <span class="capability-pill">📊 Excel & Dados</span>
-                </div>
-
                 <div class="quick-prompts-container">
-                    <div class="quick-prompts-label">O que você deseja criar hoje?</div>
+                    <div class="quick-prompts-label">Escolha uma área de atuação para começar:</div>
                     <div class="quick-prompts-grid">
-                        <div class="quick-prompt-card" data-prompt="🌐 Criar um site institucional moderno para a minha marca.">🌐 Criar um site</div>
-                        <div class="quick-prompt-card" data-prompt="📱 Desenhar a interface de um aplicativo móvel.">📱 Criar aplicativo</div>
-                        <div class="quick-prompt-card" data-prompt="📊 Analisar uma planilha de dados financeiros.">📊 Analisar planilha</div>
-                        <div class="quick-prompt-card" data-prompt="🎨 Criar um logotipo moderno e futurista.">🎨 Criar logotipo</div>
+                        <div class="quick-prompt-card" data-prompt="Preciso de criar um site institucional ou aplicativo moderno para a minha empresa.">🌐 Criar Site / Aplicação</div>
+                        <div class="quick-prompt-card" data-prompt="Quero otimizar e analisar dados complexos numa planilha de Excel para contabilidade.">📊 Excel & Contabilidade</div>
+                        <div class="quick-prompt-card" data-prompt="Preciso de criar um vídeo publicitário e flyers de alto impacto para marketing.">🎬 Vídeos & Publicidade</div>
+                        <div class="quick-prompt-card" data-prompt="Preciso de desenvolver uma planta arquitetónica 3D detalhada.">🏠 Arquitetura & Plantas 3D</div>
                     </div>
                 </div>
 
                 <div class="input-wrapper-container">
                     <div class="chat-input-card">
-                        <textarea class="user-input-field" id="heroInput" placeholder="Escreve uma mensagem..." rows="1"></textarea>
+                        <textarea class="user-input-field" id="heroInput" placeholder="Descreva o que a sua empresa precisa hoje..." rows="1"></textarea>
                         <div class="card-bottom-actions">
                             <div class="left-actions">
-                                <button class="tool-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                                <button class="tool-icon-btn" title="Anexar ficheiro"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
                             </div>
                             <button class="send-submit-btn" id="heroSendBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                         </div>
@@ -517,7 +511,7 @@
 
             <!-- Active Chat Container -->
             <div class="chat-messages-container" id="chatMessagesContainer">
-                <div class="user-query-block" id="activeUserQuery">Criar um site institucional moderno para a minha marca.</div>
+                <div class="user-query-block" id="activeUserQuery">Preciso de criar um site institucional ou aplicativo moderno para a minha empresa.</div>
                 <div class="ai-report-block">
                     <div class="ai-report-header">
                         <div class="ai-brand-badge">
@@ -526,8 +520,8 @@
                         </div>
                     </div>
                     <div class="report-body" id="activeAiResponse">
-                        <h2>Estrutura Inicial Gerada</h2>
-                        <p>O seu projeto foi iniciado com sucesso. Todos os componentes visuais e de resposta rápida encontram-se ativos e operacionais.</p>
+                        <h2>Projeto Comercial Iniciado</h2>
+                        <p>Ferramenta executiva pronta a processar os seus requisitos corporativos. Como deseja estruturar o projeto?</p>
                     </div>
                 </div>
             </div>
@@ -571,7 +565,6 @@
         closeMenuBtn.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
 
-        // Sidebar modes activation
         const modeBtns = document.querySelectorAll('.mode-btn');
         modeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -626,14 +619,13 @@
                     </div>
                 </div>
                 <div class="report-body">
-                    <p>Processamento concluído com sucesso para o comando executivo adicional.</p>
+                    <p>Requisito corporativo processado com sucesso. A gerar os deliverables correspondentes...</p>
                 </div>`;
             chatMessagesContainer.appendChild(aiMsg);
             activeInput.value = '';
             chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
         });
 
-        // Auto-resize textarea
         document.querySelectorAll('.user-input-field').forEach(textarea => {
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
