@@ -7,14 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-root: #02040a;
-            --surface-glass: rgba(13, 17, 28, 0.65);
-            --surface-border: rgba(255, 255, 255, 0.08);
-            --surface-border-hover: rgba(245, 158, 11, 0.4);
+            --bg-root: #010308;
+            --surface-glass: rgba(10, 14, 26, 0.7);
+            --surface-border: rgba(255, 255, 255, 0.07);
+            --surface-border-focus: rgba(245, 158, 11, 0.5);
             --accent-primary: #f59e0b;
-            --accent-glow: rgba(245, 158, 11, 0.18);
+            --accent-glow: rgba(245, 158, 11, 0.15);
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-muted: #8a99ad;
         }
 
         * {
@@ -33,14 +33,14 @@
             color: var(--text-main);
         }
 
-        /* Ambient Neural Mesh Background (Estilo OpenAI/DeepTech) */
+        /* DeepTech Mesh Background */
         .neural-backdrop {
             position: fixed;
             inset: 0;
             background: 
-                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.07) 0%, transparent 45%),
-                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 60%),
+                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 60%),
                 var(--bg-root);
             z-index: -1;
         }
@@ -53,22 +53,22 @@
             overflow: hidden;
         }
 
-        /* Sidebar Executiva Imersiva */
+        /* Sidebar Executiva */
         .sidebar {
             position: fixed;
             top: 0;
             left: -320px;
             width: 300px;
             height: 100%;
-            background: rgba(5, 8, 16, 0.85);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            background: rgba(3, 6, 14, 0.9);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             z-index: 1100;
             transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
             border-right: 1px solid var(--surface-border);
-            box-shadow: 30px 0 60px rgba(0, 0, 0, 0.9);
+            box-shadow: 40px 0 80px rgba(0, 0, 0, 0.95);
         }
 
         .sidebar.open { left: 0; }
@@ -76,8 +76,8 @@
         .sidebar-overlay {
             position: fixed;
             inset: 0;
-            background-color: rgba(2, 4, 10, 0.75);
-            backdrop-filter: blur(8px);
+            background-color: rgba(1, 3, 8, 0.8);
+            backdrop-filter: blur(10px);
             z-index: 1050;
             opacity: 0;
             visibility: hidden;
@@ -87,7 +87,7 @@
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
         .sidebar-header {
-            padding: 20px;
+            padding: 22px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -96,32 +96,27 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; }
 
-        .brand-icon {
+        /* Logótipo Vetorial de Elite (Hexágono Neural) */
+        .brand-logo-svg {
             width: 38px; height: 38px;
-            background: linear-gradient(135deg, #f59e0b, #b45309);
-            color: #02040a;
-            font-weight: 800;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+            filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
         }
 
-        .brand-title h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
-        .brand-title span { font-size: 0.6rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
+        .brand-title h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+        .brand-title span { font-size: 0.58rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; }
 
         .close-drawer {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--surface-border);
             color: var(--text-muted);
             width: 32px; height: 32px; border-radius: 8px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .close-drawer:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+        .close-drawer:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
         .sidebar-body { padding: 16px 12px; overflow-y: auto; flex: 1; }
-        .menu-category { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.15em; margin: 16px 0 8px 10px; text-transform: uppercase; }
+        .menu-category { font-size: 0.58rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.18em; margin: 16px 0 8px 10px; text-transform: uppercase; }
 
         .nav-grid { display: flex; flex-direction: column; gap: 6px; }
         .nav-item {
@@ -133,27 +128,29 @@
             font-size: 0.82rem; font-weight: 500;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
         .nav-item:hover { background: rgba(255, 255, 255, 0.03); color: var(--text-main); border-color: var(--surface-border); }
         .nav-item.active { 
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.02));
             color: var(--accent-primary); 
-            border-color: rgba(245, 158, 11, 0.35);
+            border-color: rgba(245, 158, 11, 0.3);
             font-weight: 600;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.08);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.06);
         }
 
         .sidebar-footer {
             padding: 16px 20px;
             border-top: 1px solid var(--surface-border);
-            background: rgba(2, 4, 10, 0.4);
+            background: rgba(2, 4, 10, 0.5);
         }
         .user-card { display: flex; align-items: center; gap: 12px; }
         .user-avatar {
             width: 36px; height: 36px;
-            background: var(--accent-primary); color: #02040a;
+            background: linear-gradient(135deg, var(--accent-primary), #d97706);
+            color: #010308;
             border-radius: 10px; display: flex; align-items: center; justify-content: center;
             font-weight: 700; font-size: 0.85rem;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
         }
         .user-meta h4 { font-size: 0.85rem; font-weight: 700; }
         .user-meta span { font-size: 0.68rem; color: var(--text-muted); }
@@ -166,7 +163,7 @@
 
         .top-nav-bar {
             position: absolute; top: 0; left: 0; width: 100%;
-            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 24px; display: flex; align-items: center; justify-content: space-between;
             z-index: 10; background: linear-gradient(to bottom, var(--bg-root) 60%, transparent);
         }
 
@@ -176,10 +173,10 @@
             color: var(--text-main);
             width: 42px; height: 42px; border-radius: 12px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             transition: all 0.25s;
         }
-        .menu-trigger:hover { border-color: var(--surface-border-hover); background: rgba(255, 255, 255, 0.06); }
+        .menu-trigger:hover { border-color: var(--surface-border-focus); background: rgba(255, 255, 255, 0.06); }
         .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
         .executive-pill {
@@ -188,12 +185,13 @@
             color: var(--text-main);
             padding: 8px 16px; border-radius: 12px;
             font-size: 0.78rem; font-weight: 600;
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .status-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
 
-        /* Hero State - Alto Padrão DeepTech */
+        /* Hero State */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -203,20 +201,20 @@
         .hero-view.hidden { display: none; }
 
         .neural-pill {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.02));
-            border: 1px solid rgba(245, 158, 11, 0.35);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.02));
+            border: 1px solid rgba(245, 158, 11, 0.3);
             padding: 6px 18px; border-radius: 30px;
-            font-size: 0.7rem; font-weight: 700; color: var(--accent-primary);
-            text-transform: uppercase; letter-spacing: 0.1em;
+            font-size: 0.68rem; font-weight: 700; color: var(--accent-primary);
+            text-transform: uppercase; letter-spacing: 0.12em;
             margin-bottom: 20px;
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.12);
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.1);
         }
 
         .hero-heading {
-            font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+            font-size: clamp(1.7rem, 4.5vw, 2.6rem);
             font-weight: 800; letter-spacing: -0.03em;
             margin-bottom: 12px; 
-            background: linear-gradient(180deg, #ffffff 20%, #64748b 100%);
+            background: linear-gradient(180deg, #ffffff 20%, #738297 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             line-height: 1.15; max-width: 680px;
@@ -227,7 +225,7 @@
             max-width: 540px; margin-bottom: 32px; line-height: 1.6; font-weight: 400;
         }
 
-        /* Sugestões Rápidas Minimalistas Estilo Claude/GPT */
+        /* Sugestões Rápidas Minimalistas */
         .suggestions-wrapper {
             width: 100%; max-width: 680px; margin: 0 auto 20px auto; text-align: left;
         }
@@ -238,7 +236,7 @@
 
         .suggestion-card {
             background: var(--surface-glass);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--surface-border);
             padding: 16px 18px; border-radius: 16px;
             font-size: 0.8rem; font-weight: 600; color: var(--text-main);
@@ -246,41 +244,43 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
+        .suggestion-card svg { width: 18px; height: 18px; stroke: var(--accent-primary); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
         .suggestion-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--surface-border-hover);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--surface-border-focus);
             transform: translateY(-2px);
             box-shadow: 0 15px 35px rgba(245, 158, 11, 0.12);
-            color: var(--accent-primary);
+            color: #fff;
         }
 
-        /* Input Flutuante de Alta Precisão */
+        /* Caixa de Conversa Estilo ChatGPT/Claude (Imersiva e Ultra Limpa) */
         .input-dock { width: 100%; max-width: 680px; margin: 0 auto; }
 
         .ai-input-box {
-            background: var(--surface-glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--surface-border);
-            border-radius: 20px; padding: 14px 18px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            background: rgba(12, 17, 30, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px; padding: 14px 18px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .ai-input-box:focus-within { 
-            border-color: rgba(245, 158, 11, 0.6);
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18), 0 25px 50px rgba(0, 0, 0, 0.7);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15), 0 30px 60px rgba(0, 0, 0, 0.8);
+            background: rgba(15, 22, 38, 0.95);
         }
 
         .ai-textarea {
             width: 100%; background: none; border: none;
             color: var(--text-main); font-size: 0.92rem; font-weight: 500;
-            resize: none; max-height: 120px; outline: none; line-height: 1.5;
+            resize: none; max-height: 140px; outline: none; line-height: 1.5;
         }
-        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.45; }
+        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
 
         .input-actions-bar {
             display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid var(--surface-border); padding-top: 12px; margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; margin-top: 10px;
         }
 
         .action-icon-btn {
@@ -289,21 +289,21 @@
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .action-icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .action-icon-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+        .action-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        .action-icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
 
         .submit-engine-btn {
             background: linear-gradient(135deg, var(--accent-primary), #d97706);
-            color: #02040a; border: none;
+            color: #010308; border: none;
             width: 36px; height: 36px; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
             transition: all 0.2s;
         }
         .submit-engine-btn:hover { transform: scale(1.06); filter: brightness(1.1); }
-        .submit-engine-btn svg { width: 17px; height: 17px; stroke: #02040a; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .submit-engine-btn svg { width: 17px; height: 17px; stroke: #010308; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-        /* Chat Ativo Imersivo */
+        /* Chat Stream Dinâmico */
         .chat-stream-container {
             flex: 1; overflow-y: auto; padding: 90px 20px 20px 20px;
             display: none; flex-direction: column; gap: 20px; max-width: 760px; width: 100%; margin: 0 auto;
@@ -312,8 +312,8 @@
 
         .chat-bubble-user {
             align-self: flex-end; 
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
-            border: 1px solid rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.35);
             color: var(--text-main); padding: 14px 20px; border-radius: 16px; 
             font-size: 0.9rem; font-weight: 500; max-width: 85%;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
@@ -321,12 +321,12 @@
 
         .chat-bubble-ai {
             background-color: var(--surface-glass);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--surface-border);
             border-radius: 18px; padding: 22px; width: 100%; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
-        .chat-bubble-ai h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .chat-bubble-ai h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .chat-bubble-ai p { font-size: 0.9rem; line-height: 1.7; color: var(--text-muted); }
 
         .active-dock { display: none; width: 100%; max-width: 760px; margin: 0 auto; padding: 16px; }
@@ -341,7 +341,18 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <div class="brand-icon">H</div>
+                    <!-- Logótipo Vetorial Executivo -->
+                    <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 5L93.3 30V70L50 95L6.7 70V30L50 5Z" fill="url(#paint0_linear)" stroke="#f59e0b" stroke-width="3"/>
+                        <path d="M50 25L75 40V60L50 75L25 60V40L50 25Z" fill="#010308" stroke="#f59e0b" stroke-width="2"/>
+                        <circle cx="50" cy="50" r="8" fill="#f59e0b"/>
+                        <defs>
+                            <linearGradient id="paint0_linear" x1="6.7" y1="5" x2="93.3" y2="95" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#1e293b"/>
+                                <stop offset="1" stop-color="#0f172a"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
                         <span>Neural Executive</span>
@@ -352,11 +363,26 @@
             <div class="sidebar-body">
                 <div class="menu-category">Arquitetura de Soluções</div>
                 <div class="nav-grid">
-                    <button class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Empresarial & Sites</button>
-                    <button class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg> Desenvolvimento Web/App</button>
-                    <button class="nav-item"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Marketing & Vídeos</button>
-                    <button class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Excel & Contabilidade</button>
-                    <button class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Arquitetura & Plantas 3D</button>
+                    <button class="nav-item active">
+                        <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"></path></svg>
+                        Empresarial & Sites
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        Desenvolvimento Web/App
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                        Marketing & Vídeos
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                        Excel & Contabilidade
+                    </button>
+                    <button class="nav-item">
+                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        Arquitetura & Plantas 3D
+                    </button>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -390,13 +416,26 @@
                 
                 <div class="suggestions-wrapper">
                     <div class="suggestions-grid">
-                        <div class="suggestion-card" data-prompt="Arquitetar site institucional e aplicação corporativa de alto impacto.">🌐 Criar Site / Aplicação</div>
-                        <div class="suggestion-card" data-prompt="Executar análise profunda em Excel, balanços e contabilidade.">📊 Excel & Contabilidade</div>
-                        <div class="suggestion-card" data-prompt="Gerar estratégia de marketing visual, vídeos e campanhas de conversão.">🎬 Vídeos & Publicidade</div>
-                        <div class="suggestion-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada com especificações técnicas.">🏠 Arquitetura & Plantas 3D</div>
+                        <div class="suggestion-card" data-prompt="Arquitetar site institucional e aplicação corporativa de alto impacto.">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            Criar Site / Aplicação
+                        </div>
+                        <div class="suggestion-card" data-prompt="Executar análise profunda em Excel, balanços e contabilidade.">
+                            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            Excel & Contabilidade
+                        </div>
+                        <div class="suggestion-card" data-prompt="Gerar estratégia de marketing visual, vídeos e campanhas de conversão.">
+                            <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                            Vídeos & Publicidade
+                        </div>
+                        <div class="suggestion-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada com especificações técnicas.">
+                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            Arquitetura & Plantas 3D
+                        </div>
                     </div>
                 </div>
 
+                <!-- Caixa de Conversa de Elite -->
                 <div class="input-dock">
                     <div class="ai-input-box">
                         <textarea class="ai-textarea" id="heroInput" placeholder="Em que projeto a Honey IA vai trabalhar hoje..." rows="1"></textarea>
