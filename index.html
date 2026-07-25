@@ -11,7 +11,7 @@
     <style>
       :root {
         --bg-base: #030712;
-        --bg-sidebar: rgba(3, 7, 18, 0.85);
+        --bg-sidebar: rgba(3, 7, 18, 0.88);
         --bg-card: rgba(15, 22, 36, 0.75);
         --bg-card-hover: rgba(22, 31, 48, 0.85);
         --accent-amber: #f59e0b; /* Dourado Honey */
@@ -92,7 +92,7 @@
       }
 
       .sidebar-header {
-        padding: 28px 22px;
+        padding: 24px 22px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -106,34 +106,32 @@
         gap: 14px;
       }
 
+      /* Etapa 2: Novo Logotipo Hexagonal Tech com Animação Suave */
       .brand-logo-container {
         position: relative;
-        width: 44px;
-        height: 44px;
-        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
-        border-radius: 14px;
+        width: 46px;
+        height: 46px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(0, 240, 255, 0.1));
+        clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0% 50%);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        animation: hexPulse 4s ease-in-out infinite;
       }
 
-      .brand-logo-container svg.crown {
-        position: absolute;
-        top: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 14px;
-        fill: #f59e0b;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+      @keyframes hexPulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+        50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(0, 240, 255, 0.35); }
       }
 
       .brand-logo-container .letter-h {
         font-weight: 800;
-        color: #030712;
-        font-size: 1.3rem;
+        color: var(--accent-amber);
+        font-size: 1.35rem;
         letter-spacing: -0.03em;
+        text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
       }
 
       .sidebar-header h2 {
@@ -167,7 +165,7 @@
       .close-menu-btn:hover { color: var(--text-main); background-color: rgba(255, 255, 255, 0.08); border-color: var(--border-active); }
 
       .sidebar-content {
-        padding: 20px 16px;
+        padding: 16px;
         overflow-y: auto;
         flex: 1;
       }
@@ -177,37 +175,38 @@
         font-weight: 700;
         color: var(--text-muted);
         letter-spacing: 0.12em;
-        margin-bottom: 12px;
-        margin-top: 12px;
+        margin-bottom: 10px;
+        margin-top: 8px;
         padding-left: 8px;
       }
 
       .nav-modes {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
       }
 
+      /* Etapa 3: Menu Expandido e Categorizado */
       .mode-btn {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         width: 100%;
-        padding: 14px 16px;
+        padding: 11px 14px;
         background: rgba(255, 255, 255, 0.01);
         border: 1px solid transparent;
         color: var(--text-muted);
-        border-radius: 12px;
+        border-radius: 10px;
         text-align: left;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.86rem;
         font-weight: 600;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.2s ease;
       }
 
       .mode-btn svg {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         stroke: currentColor;
         fill: none;
         stroke-width: 2;
@@ -220,19 +219,18 @@
         background-color: var(--bg-card-hover);
         color: var(--text-main);
         border-color: var(--border-subtle);
-        transform: translateX(4px);
+        transform: translateX(3px);
       }
 
-      /* Destaque Ativo em Azul Neon com Glassmorphism */
       .mode-btn.active {
         background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 240, 255, 0.03));
         color: var(--accent-neon);
         border-color: rgba(0, 240, 255, 0.35);
-        box-shadow: 0 4px 20px rgba(0, 240, 255, 0.12);
+        box-shadow: 0 4px 16px rgba(0, 240, 255, 0.1);
       }
 
       .sidebar-footer {
-        padding: 20px;
+        padding: 18px 20px;
         border-top: 1px solid var(--border-subtle);
         background: rgba(0, 0, 0, 0.2);
         display: flex;
@@ -247,8 +245,8 @@
       }
 
       .user-avatar-mini {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         background: linear-gradient(135deg, var(--accent-amber), #d97706);
         border-radius: 10px;
         display: flex;
@@ -260,7 +258,7 @@
       }
 
       .user-info-mini h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
-      .user-info-mini span { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
+      .user-info-mini span { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
 
       /* Área Principal */
       .chat-main {
@@ -314,15 +312,16 @@
         backdrop-filter: blur(12px);
       }
 
-      /* Estado Inicial Hero */
+      /* Etapa 1 & 4: Estado Inicial Hero Reformulado */
       .hero-welcome-state {
         flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 24px;
+        padding: 80px 20px 24px 20px;
         text-align: center;
+        overflow-y: auto;
         transition: opacity 0.3s ease;
       }
 
@@ -331,23 +330,100 @@
       }
 
       .hero-title {
-        font-size: clamp(2.2rem, 5vw, 3.2rem);
+        font-size: clamp(2rem, 4vw, 2.8rem);
         font-weight: 800;
         letter-spacing: -0.04em;
         margin-bottom: 12px;
-        background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+        background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
 
       .hero-subtitle {
-        font-size: 1.02rem;
+        font-size: 0.98rem;
         color: var(--text-muted);
-        max-width: 500px;
-        margin-bottom: 36px;
+        max-width: 620px;
+        margin-bottom: 24px;
         line-height: 1.6;
         font-weight: 500;
         letter-spacing: -0.01em;
+      }
+
+      /* Cartões de Capacidades da Plataforma */
+      .capabilities-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        max-width: 720px;
+        margin-bottom: 24px;
+      }
+
+      .capability-pill {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-main);
+        backdrop-filter: blur(8px);
+        transition: all 0.2s;
+        cursor: default;
+      }
+      .capability-pill:hover {
+        border-color: var(--accent-amber);
+        background: rgba(245, 158, 11, 0.08);
+        color: var(--accent-amber);
+        transform: translateY(-2px);
+      }
+
+      /* Etapa 4: Ações Rápidas de Sugestão */
+      .quick-prompts-container {
+        width: 100%;
+        max-width: 740px;
+        margin: 0 auto 16px auto;
+        text-align: left;
+      }
+
+      .quick-prompts-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+        padding-left: 4px;
+      }
+
+      .quick-prompts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 8px;
+      }
+
+      .quick-prompt-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(12px);
+      }
+
+      .quick-prompt-card:hover {
+        background-color: var(--bg-card-hover);
+        border-color: var(--accent-neon);
+        color: var(--accent-neon);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 240, 255, 0.1);
       }
 
       /* Caixa de Input com Glassmorphism */
@@ -355,7 +431,7 @@
         width: 100%;
         max-width: 740px;
         margin: 0 auto;
-        padding: 0 16px;
+        padding: 0 4px;
       }
 
       .chat-input-card {
@@ -481,7 +557,6 @@
         display: flex;
       }
 
-      /* Pergunta do Utilizador com destaque em Azul Neon */
       .user-query-block {
         align-self: flex-end;
         background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 240, 255, 0.05));
@@ -496,7 +571,6 @@
         letter-spacing: -0.01em;
       }
 
-      /* Resposta da IA com Glassmorphism */
       .ai-report-block {
         background-color: var(--bg-card);
         backdrop-filter: blur(16px);
@@ -563,22 +637,10 @@
         margin: 16px 0 8px 0;
       }
 
-      .report-body p {
-        margin-bottom: 14px;
-      }
-
-      .report-body p:last-child {
-        margin-bottom: 0;
-      }
-
-      .report-body ul, .report-body ol {
-        margin-left: 24px;
-        margin-bottom: 14px;
-      }
-
-      .report-body li {
-        margin-bottom: 6px;
-      }
+      .report-body p { margin-bottom: 14px; }
+      .report-body p:last-child { margin-bottom: 0; }
+      .report-body ul, .report-body ol { margin-left: 24px; margin-bottom: 14px; }
+      .report-body li { margin-bottom: 6px; }
 
       .report-body code {
         background-color: rgba(0, 0, 0, 0.6);
@@ -629,8 +691,8 @@
       <aside id="sidebar" class="sidebar">
         <div class="sidebar-header">
           <div class="logo-wrapper">
+            <!-- Etapa 2: Logotipo Hexagonal Tech com 'H' Dourado e Detalhes Neon -->
             <div class="brand-logo-container">
-              <svg class="crown" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-1h14v1Z"/></svg>
               <span class="letter-h">H</span>
             </div>
             <div>
@@ -641,24 +703,49 @@
           <button class="close-menu-btn" onclick="toggleMenu()">✕</button>
         </div>
 
+        <!-- Etapa 3: Menu Expandido e Categorizado -->
         <div class="sidebar-content">
-          <div class="section-title">MODOS DE ATUAÇÃO</div>
+          <div class="section-title">CATEGORIAS & MODOS</div>
           <nav class="nav-modes">
-            <button class="mode-btn active" onclick="selectMode(this)">
+            <button class="mode-btn active" onclick="selectMode(this, 'Executiva Geral')">
               <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"/><path d="M12 6v6l4 2"/></svg>
-              Executiva Geral
+              💼 Empresarial
             </button>
-            <button class="mode-btn" onclick="selectMode(this)">
-              <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg>
-              Engenharia & Logística
+            <button class="mode-btn" onclick="selectMode(this, 'Desenvolvimento Web')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              🌐 Desenvolvimento Web
             </button>
-            <button class="mode-btn" onclick="selectMode(this)">
-              <svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
-              Pedagógico & Científico
+            <button class="mode-btn" onclick="selectMode(this, 'Aplicativos')">
+              <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              📱 Aplicativos
             </button>
-            <button class="mode-btn" onclick="selectMode(this)">
+            <button class="mode-btn" onclick="selectMode(this, 'Design')">
+              <svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+              🎨 Design & Logotipos
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Marketing')">
+              <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              📢 Marketing & Vídeos
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Excel & Dados')">
+              <svg viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
+              📊 Excel & Dados
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Arquitetura 3D')">
+              <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              🏗️ Arquitetura 3D
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Programação')">
               <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-              Arquitetura de Software
+              💻 Programação
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Documentos')">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              📄 Documentos
+            </button>
+            <button class="mode-btn" onclick="selectMode(this, 'Configurações')">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              ⚙️ Configurações
             </button>
           </nav>
         </div>
@@ -680,14 +767,41 @@
           <button class="menu-toggle-btn" onclick="toggleMenu()" title="Abrir Menu">
             <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
-          <div class="topbar-user-badge">Aldair</div>
+          <div class="topbar-user-badge" id="current-mode-badge">💼 Empresarial</div>
         </header>
 
-        <!-- 1. Estado Inicial Hero -->
+        <!-- Etapa 1 & 4: Estado Inicial Hero Reformulado -->
         <div id="hero-state" class="hero-welcome-state">
-          <h1 class="hero-title">Onde as ideias começam</h1>
-          <p class="hero-subtitle">Dá vida a projetos complexos em segundos ou obtém análises executivas avançadas.</p>
+          <!-- Título e Subtítulo Comercial (Etapa 1) -->
+          <h1 class="hero-title">Honey IA — A inteligência artificial que impulsiona empresas.</h1>
+          <p class="hero-subtitle">Crie sites profissionais, aplicativos, logotipos, vídeos publicitários, análises de documentos, planilhas inteligentes, plantas 3D e muito mais em uma única plataforma.</p>
           
+          <!-- Pequenos Cartões com Capacidades -->
+          <div class="capabilities-grid">
+            <span class="capability-pill">✨ Sites Premium</span>
+            <span class="capability-pill">📱 Aplicativos</span>
+            <span class="capability-pill">🎨 Logotipos</span>
+            <span class="capability-pill">🎬 Vídeos</span>
+            <span class="capability-pill">📊 Excel</span>
+            <span class="capability-pill">🏗️ Plantas 3D</span>
+            <span class="capability-pill">🤖 Automação Empresarial</span>
+          </div>
+
+          <!-- Sugestões de Ações Rápidas (Etapa 4) -->
+          <div class="quick-prompts-container">
+            <div class="quick-prompts-label">O que você deseja criar hoje?</div>
+            <div class="quick-prompts-grid">
+              <div class="quick-prompt-card" onclick="fillAndSend('🌐 Criar um site profissional')">🌐 Criar um site</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('📱 Criar um aplicativo móvel')">📱 Criar um aplicativo</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('📊 Analisar uma planilha de dados')">📊 Analisar uma planilha</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('📄 Resumir um documento executivo')">📄 Resumir um documento</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('🎨 Criar um logotipo para marca')">🎨 Criar um logotipo</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('🎬 Produzir roteiro de vídeo publicitário')">🎬 Produzir um vídeo</div>
+              <div class="quick-prompt-card" onclick="fillAndSend('🏠 Projetar uma casa em 3D')">🏠 Projetar uma casa 3D</div>
+            </div>
+          </div>
+
+          <!-- Caixa de Input Principal -->
           <div class="input-wrapper-container">
             <div id="file-banner-hero" class="file-preview-banner">
               <span id="file-banner-text-hero">📎 Ficheiro anexado</span>
@@ -756,10 +870,16 @@
         overlay.classList.toggle('active');
       }
 
-      function selectMode(btn) {
+      function selectMode(btn, modeName) {
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        document.getElementById('current-mode-badge').textContent = modeName;
         toggleMenu();
+      }
+
+      function fillAndSend(promptText) {
+        document.getElementById('user-input-hero').value = promptText;
+        sendMessage();
       }
 
       function autoResize(textarea) {
