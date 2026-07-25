@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Plataforma Executiva</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Honey IA — Next-Gen Executive Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #030712;
-            --bg-surface: rgba(15, 23, 42, 0.75);
-            --bg-card: rgba(30, 41, 59, 0.5);
-            --bg-hover: rgba(51, 65, 85, 0.6);
-            --accent-glow: rgba(245, 158, 11, 0.15);
-            --accent: #f59e0b;
-            --accent-hover: #fbbf24;
+            --bg-root: #02040a;
+            --surface-glass: rgba(13, 17, 28, 0.65);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --surface-border-hover: rgba(245, 158, 11, 0.4);
+            --accent-primary: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.18);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --border-glass-hover: rgba(255, 255, 255, 0.18);
         }
 
         * {
@@ -32,22 +29,23 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background-color: var(--bg-deep);
+            background-color: var(--bg-root);
             color: var(--text-main);
         }
 
-        /* Fundo com efeito de luz ambiente sofisticado */
-        .app-backdrop {
+        /* Ambient Neural Mesh Background (Estilo OpenAI/DeepTech) */
+        .neural-backdrop {
             position: fixed;
             inset: 0;
             background: 
-                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
-                var(--bg-deep);
+                radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 60%),
+                var(--bg-root);
             z-index: -1;
         }
 
-        .app-container {
+        .app-shell {
             display: flex;
             height: 100dvh;
             width: 100vw;
@@ -55,22 +53,22 @@
             overflow: hidden;
         }
 
-        /* Sidebar Executiva */
+        /* Sidebar Executiva Imersiva */
         .sidebar {
             position: fixed;
             top: 0;
             left: -320px;
             width: 300px;
             height: 100%;
-            background-color: rgba(7, 11, 20, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(5, 8, 16, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             z-index: 1100;
-            transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-            border-right: 1px solid var(--border-glass);
-            box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+            border-right: 1px solid var(--surface-border);
+            box-shadow: 30px 0 60px rgba(0, 0, 0, 0.9);
         }
 
         .sidebar.open { left: 0; }
@@ -78,351 +76,353 @@
         .sidebar-overlay {
             position: fixed;
             inset: 0;
-            background-color: rgba(3, 7, 18, 0.7);
-            backdrop-filter: blur(6px);
+            background-color: rgba(2, 4, 10, 0.75);
+            backdrop-filter: blur(8px);
             z-index: 1050;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.35s ease;
         }
 
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
         .sidebar-header {
-            padding: 18px 20px;
+            padding: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border-glass);
+            border-bottom: 1px solid var(--surface-border);
         }
 
-        .logo-wrapper { display: flex; align-items: center; gap: 12px; }
+        .brand-cluster { display: flex; align-items: center; gap: 12px; }
 
-        .brand-logo {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--accent), #d97706);
-            color: #030712;
+        .brand-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+            color: #02040a;
             font-weight: 800;
             border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.05rem;
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
         }
 
-        .sidebar-header h2 { font-size: 0.95rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em; }
-        .platform-tag { font-size: 0.6rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+        .brand-title h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+        .brand-title span { font-size: 0.6rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; }
 
-        .close-menu-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-glass);
+        .close-drawer {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--surface-border);
             color: var(--text-muted);
-            width: 30px; height: 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; border-radius: 8px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .close-menu-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.1); }
+        .close-drawer:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
 
-        .sidebar-content { padding: 16px 12px; overflow-y: auto; flex: 1; }
-        .section-title { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.1em; margin: 12px 0 8px 10px; text-transform: uppercase; }
-        
-        .nav-modes { display: flex; flex-direction: column; gap: 6px; }
-        .mode-btn {
+        .sidebar-body { padding: 16px 12px; overflow-y: auto; flex: 1; }
+        .menu-category { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.15em; margin: 16px 0 8px 10px; text-transform: uppercase; }
+
+        .nav-grid { display: flex; flex-direction: column; gap: 6px; }
+        .nav-item {
             display: flex; align-items: center; gap: 12px;
-            width: 100%; padding: 11px 14px;
+            width: 100%; padding: 12px 14px;
             background: transparent; border: 1px solid transparent;
-            color: var(--text-muted); border-radius: 10px;
+            color: var(--text-muted); border-radius: 12px;
             text-align: left; cursor: pointer;
             font-size: 0.82rem; font-weight: 500;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .mode-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-        .mode-btn:hover { background-color: var(--bg-hover); color: var(--text-main); border-color: var(--border-glass); }
-        .mode-btn.active { 
+        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.03); color: var(--text-main); border-color: var(--surface-border); }
+        .nav-item.active { 
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.02));
-            color: var(--accent); 
-            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--accent-primary); 
+            border-color: rgba(245, 158, 11, 0.35);
             font-weight: 600;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.08);
         }
 
         .sidebar-footer {
             padding: 16px 20px;
-            border-top: 1px solid var(--border-glass);
-            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--surface-border);
+            background: rgba(2, 4, 10, 0.4);
         }
-        .user-profile-mini { display: flex; align-items: center; gap: 12px; }
-        .user-avatar-mini {
-            width: 34px; height: 34px;
-            background: var(--accent); color: #030712;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.8rem;
+        .user-card { display: flex; align-items: center; gap: 12px; }
+        .user-avatar {
+            width: 36px; height: 36px;
+            background: var(--accent-primary); color: #02040a;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
         }
-        .user-info-mini h4 { font-size: 0.82rem; font-weight: 700; color: var(--text-main); }
-        .user-info-mini span { font-size: 0.68rem; color: var(--text-muted); }
+        .user-meta h4 { font-size: 0.85rem; font-weight: 700; }
+        .user-meta span { font-size: 0.68rem; color: var(--text-muted); }
 
-        /* Main Chat Layout */
-        .chat-main {
+        /* Workspace Principal */
+        .workspace {
             flex: 1; display: flex; flex-direction: column;
             height: 100%; width: 100%; position: relative;
         }
 
-        .chat-topbar {
+        .top-nav-bar {
             position: absolute; top: 0; left: 0; width: 100%;
-            padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
-            z-index: 10; background: linear-gradient(to bottom, var(--bg-deep) 70%, transparent);
+            padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 10; background: linear-gradient(to bottom, var(--bg-root) 60%, transparent);
         }
 
-        .menu-toggle-btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-glass);
+        .menu-trigger {
+            background: var(--surface-glass);
+            border: 1px solid var(--surface-border);
             color: var(--text-main);
-            width: 40px; height: 40px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(12px);
-            transition: all 0.2s;
+            width: 42px; height: 42px; border-radius: 12px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(15px);
+            transition: all 0.25s;
         }
-        .menu-toggle-btn:hover { border-color: var(--border-glass-hover); background: var(--bg-hover); }
-        .menu-toggle-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+        .menu-trigger:hover { border-color: var(--surface-border-hover); background: rgba(255, 255, 255, 0.06); }
+        .menu-trigger svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-        .topbar-user-badge {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-glass);
+        .executive-pill {
+            background: var(--surface-glass);
+            border: 1px solid var(--surface-border);
             color: var(--text-main);
-            padding: 6px 14px;
-            border-radius: 12px;
+            padding: 8px 16px; border-radius: 12px;
             font-size: 0.78rem; font-weight: 600;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(15px);
+            display: flex; align-items: center; gap: 8px;
         }
+        .status-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
 
-        /* Hero Welcome State */
-        .hero-welcome-state {
+        /* Hero State - Alto Padrão DeepTech */
+        .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            padding: 24px 16px; text-align: center;
+            padding: 24px 20px; text-align: center;
             overflow-y: auto;
         }
-        .hero-welcome-state.hidden { display: none; }
+        .hero-view.hidden { display: none; }
 
-        .business-badge {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.03));
+        .neural-pill {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.02));
             border: 1px solid rgba(245, 158, 11, 0.35);
-            padding: 6px 16px; border-radius: 30px;
-            font-size: 0.7rem; font-weight: 700; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 0.08em;
-            margin-bottom: 16px;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.12);
+            padding: 6px 18px; border-radius: 30px;
+            font-size: 0.7rem; font-weight: 700; color: var(--accent-primary);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.12);
         }
 
-        .hero-title {
-            font-size: clamp(1.4rem, 4vw, 2.2rem);
+        .hero-heading {
+            font-size: clamp(1.6rem, 4.5vw, 2.6rem);
             font-weight: 800; letter-spacing: -0.03em;
-            margin-bottom: 10px; 
-            background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+            margin-bottom: 12px; 
+            background: linear-gradient(180deg, #ffffff 20%, #64748b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            line-height: 1.2; max-width: 620px;
+            line-height: 1.15; max-width: 680px;
         }
 
-        .hero-subtitle {
-            font-size: 0.85rem; color: var(--text-muted);
-            max-width: 520px; margin-bottom: 24px; line-height: 1.5; font-weight: 500;
+        .hero-sub {
+            font-size: 0.9rem; color: var(--text-muted);
+            max-width: 540px; margin-bottom: 32px; line-height: 1.6; font-weight: 400;
         }
 
-        .quick-prompts-container {
-            width: 100%; max-width: 620px; margin: 0 auto 16px auto; text-align: left;
+        /* Sugestões Rápidas Minimalistas Estilo Claude/GPT */
+        .suggestions-wrapper {
+            width: 100%; max-width: 680px; margin: 0 auto 20px auto; text-align: left;
         }
 
-        .quick-prompts-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+        .suggestions-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
         }
 
-        .quick-prompt-card {
-            background: var(--bg-surface);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-glass);
-            padding: 14px 16px; border-radius: 14px;
-            font-size: 0.78rem; font-weight: 600; color: var(--text-main);
-            cursor: pointer; display: flex; align-items: center; gap: 10px;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .quick-prompt-card:hover {
-            background: var(--bg-hover);
-            border-color: rgba(245, 158, 11, 0.4);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.15);
-            color: var(--accent);
-        }
-
-        /* Input Container refinado */
-        .input-wrapper-container { width: 100%; max-width: 620px; margin: 0 auto; }
-
-        .chat-input-card {
-            background-color: var(--bg-surface);
+        .suggestion-card {
+            background: var(--surface-glass);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
-            border-radius: 16px; padding: 12px 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            transition: all 0.3s;
-        }
-        .chat-input-card:focus-within { 
-            border-color: rgba(245, 158, 11, 0.5);
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15), 0 20px 40px rgba(0,0,0,0.5);
-        }
-
-        .user-input-field {
-            width: 100%; background: none; border: none;
-            color: var(--text-main); font-size: 0.9rem; font-weight: 500;
-            resize: none; max-height: 100px; outline: none; line-height: 1.45;
-        }
-        .user-input-field::placeholder { color: var(--text-muted); opacity: 0.5; }
-
-        .card-bottom-actions {
-            display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid var(--border-glass); padding-top: 10px; margin-top: 8px;
-        }
-
-        .tool-icon-btn {
-            background: none; border: none; color: var(--text-muted);
-            width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
-        .tool-icon-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .tool-icon-btn:hover { color: var(--text-main); background-color: rgba(255,255,255,0.08); }
-
-        .send-submit-btn {
-            background: linear-gradient(135deg, var(--accent), #d97706);
-            color: #030712; border: none;
-            width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
-            transition: all 0.2s;
-        }
-        .send-submit-btn:hover { transform: scale(1.05); }
-        .send-submit-btn svg { width: 16px; height: 16px; stroke: #030712; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-
-        /* Active Chat Area */
-        .chat-messages-container {
-            flex: 1; overflow-y: auto; padding: 80px 20px 20px 20px;
-            display: none; flex-direction: column; gap: 16px; max-width: 720px; width: 100%; margin: 0 auto;
-        }
-        .chat-messages-container.active { display: flex; }
-
-        .user-query-block {
-            align-self: flex-end; 
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
-            border: 1px solid rgba(245, 158, 11, 0.35);
-            color: var(--text-main); padding: 12px 18px; border-radius: 14px; 
-            font-size: 0.88rem; font-weight: 500; max-width: 85%;
-        }
-
-        .ai-report-block {
-            background-color: var(--bg-surface);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass);
-            border-radius: 16px; padding: 20px; width: 100%; 
+            border: 1px solid var(--surface-border);
+            padding: 16px 18px; border-radius: 16px;
+            font-size: 0.8rem; font-weight: 600; color: var(--text-main);
+            cursor: pointer; display: flex; align-items: center; gap: 12px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .ai-report-block h2 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
-        .ai-report-block p { font-size: 0.88rem; line-height: 1.6; color: var(--text-muted); }
+        .suggestion-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--surface-border-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.12);
+            color: var(--accent-primary);
+        }
 
-        .active-chat-footer { display: none; width: 100%; max-width: 720px; margin: 0 auto; padding: 16px; }
-        .active-chat-footer.active { display: block; }
+        /* Input Flutuante de Alta Precisão */
+        .input-dock { width: 100%; max-width: 680px; margin: 0 auto; }
+
+        .ai-input-box {
+            background: var(--surface-glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--surface-border);
+            border-radius: 20px; padding: 14px 18px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ai-input-box:focus-within { 
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.18), 0 25px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        .ai-textarea {
+            width: 100%; background: none; border: none;
+            color: var(--text-main); font-size: 0.92rem; font-weight: 500;
+            resize: none; max-height: 120px; outline: none; line-height: 1.5;
+        }
+        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.45; }
+
+        .input-actions-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            border-top: 1px solid var(--surface-border); padding-top: 12px; margin-top: 10px;
+        }
+
+        .action-icon-btn {
+            background: none; border: none; color: var(--text-muted);
+            width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .action-icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .action-icon-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+
+        .submit-engine-btn {
+            background: linear-gradient(135deg, var(--accent-primary), #d97706);
+            color: #02040a; border: none;
+            width: 36px; height: 36px; border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+            transition: all 0.2s;
+        }
+        .submit-engine-btn:hover { transform: scale(1.06); filter: brightness(1.1); }
+        .submit-engine-btn svg { width: 17px; height: 17px; stroke: #02040a; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* Chat Ativo Imersivo */
+        .chat-stream-container {
+            flex: 1; overflow-y: auto; padding: 90px 20px 20px 20px;
+            display: none; flex-direction: column; gap: 20px; max-width: 760px; width: 100%; margin: 0 auto;
+        }
+        .chat-stream-container.active { display: flex; }
+
+        .chat-bubble-user {
+            align-self: flex-end; 
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: var(--text-main); padding: 14px 20px; border-radius: 16px; 
+            font-size: 0.9rem; font-weight: 500; max-width: 85%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .chat-bubble-ai {
+            background-color: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border);
+            border-radius: 18px; padding: 22px; width: 100%; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .chat-bubble-ai h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .chat-bubble-ai p { font-size: 0.9rem; line-height: 1.7; color: var(--text-muted); }
+
+        .active-dock { display: none; width: 100%; max-width: 760px; margin: 0 auto; padding: 16px; }
+        .active-dock.active { display: block; }
     </style>
 </head>
 <body>
-    <div class="app-backdrop"></div>
-    <div class="app-container">
+    <div class="neural-backdrop"></div>
+    <div class="app-shell">
         <!-- Sidebar -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo-wrapper">
-                    <div class="brand-logo">H</div>
-                    <div>
+                <div class="brand-cluster">
+                    <div class="brand-icon">H</div>
+                    <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span class="platform-tag">Plataforma Executiva</span>
+                        <span>Neural Executive</span>
                     </div>
                 </div>
-                <button class="close-menu-btn" id="closeMenuBtn">✕</button>
+                <button class="close-drawer" id="closeDrawer">✕</button>
             </div>
-            <div class="sidebar-content">
-                <div class="section-title">Soluções por Setor</div>
-                <div class="nav-modes">
-                    <button class="mode-btn active"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Empresarial & Sites</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg> Desenvolvimento Web/App</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Marketing & Vídeos</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Excel & Contabilidade</button>
-                    <button class="mode-btn"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Arquitetura & Plantas 3D</button>
+            <div class="sidebar-body">
+                <div class="menu-category">Arquitetura de Soluções</div>
+                <div class="nav-grid">
+                    <button class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> Empresarial & Sites</button>
+                    <button class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg> Desenvolvimento Web/App</button>
+                    <button class="nav-item"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Marketing & Vídeos</button>
+                    <button class="nav-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg> Excel & Contabilidade</button>
+                    <button class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Arquitetura & Plantas 3D</button>
                 </div>
             </div>
             <div class="sidebar-footer">
-                <div class="user-profile-mini">
-                    <div class="user-avatar-mini">A</div>
-                    <div class="user-info-mini">
+                <div class="user-card">
+                    <div class="user-avatar">A</div>
+                    <div class="user-meta">
                         <h4>Aldair</h4>
-                        <span>Sessão Executiva</span>
+                        <span>Sessão Executiva Ativa</span>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Chat Area -->
-        <main class="chat-main">
-            <header class="chat-topbar">
-                <button class="menu-toggle-btn" id="menuToggleBtn">
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <header class="top-nav-bar">
+                <button class="menu-trigger" id="menuTrigger">
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
-                <div class="topbar-user-badge">Aldair</div>
+                <div class="executive-pill">
+                    <div class="status-dot"></div>
+                    Aldair • Executive Node
+                </div>
             </header>
 
-            <!-- Hero Welcome State -->
-            <div class="hero-welcome-state" id="heroWelcomeState">
-                <div class="business-badge">⚡ Plataforma Executiva Multiuso</div>
-                <h1 class="hero-title">Inteligência artificial que impulsiona o seu negócio.</h1>
-                <p class="hero-subtitle">Crie sites profissionais, aplicações, conteúdos de marketing e relatórios conversando de forma natural.</p>
+            <!-- Hero Welcome -->
+            <div class="hero-view" id="heroView">
+                <div class="neural-pill">⚡ Honey IA • Neural Enterprise Suite</div>
+                <h1 class="hero-heading">Inteligência artificial de alta performance para o seu negócio.</h1>
+                <p class="hero-sub">Construa ecossistemas web, processe contabilidade complexa, crie marketing visual e plante estruturas 3D por conversação neural avançada.</p>
                 
-                <div class="quick-prompts-container">
-                    <div class="quick-prompts-grid">
-                        <div class="quick-prompt-card" data-prompt="Criar site institucional ou aplicação moderna.">🌐 Criar Site / Aplicação</div>
-                        <div class="quick-prompt-card" data-prompt="Analisar dados em Excel e contabilidade avançada.">📊 Excel & Contabilidade</div>
-                        <div class="quick-prompt-card" data-prompt="Criar vídeos e conteúdos de marketing de impacto.">🎬 Vídeos & Publicidade</div>
-                        <div class="quick-prompt-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada.">🏠 Arquitetura & Plantas 3D</div>
+                <div class="suggestions-wrapper">
+                    <div class="suggestions-grid">
+                        <div class="suggestion-card" data-prompt="Arquitetar site institucional e aplicação corporativa de alto impacto.">🌐 Criar Site / Aplicação</div>
+                        <div class="suggestion-card" data-prompt="Executar análise profunda em Excel, balanços e contabilidade.">📊 Excel & Contabilidade</div>
+                        <div class="suggestion-card" data-prompt="Gerar estratégia de marketing visual, vídeos e campanhas de conversão.">🎬 Vídeos & Publicidade</div>
+                        <div class="suggestion-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada com especificações técnicas.">🏠 Arquitetura & Plantas 3D</div>
                     </div>
                 </div>
 
-                <div class="input-wrapper-container">
-                    <div class="chat-input-card">
-                        <textarea class="user-input-field" id="heroInput" placeholder="Descreva o que a sua empresa precisa hoje..." rows="1"></textarea>
-                        <div class="card-bottom-actions">
-                            <button class="tool-icon-btn" title="Anexar ficheiro"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                            <button class="send-submit-btn" id="heroSendBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+                <div class="input-dock">
+                    <div class="ai-input-box">
+                        <textarea class="ai-textarea" id="heroInput" placeholder="Em que projeto a Honey IA vai trabalhar hoje..." rows="1"></textarea>
+                        <div class="input-actions-bar">
+                            <button class="action-icon-btn" title="Adicionar contexto ou ficheiro"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                            <button class="submit-engine-btn" id="heroSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Active Chat Container -->
-            <div class="chat-messages-container" id="chatMessagesContainer">
-                <div class="user-query-block" id="activeUserQuery"></div>
-                <div class="ai-report-block">
-                    <h2>Projeto Iniciado</h2>
-                    <p>A processar os requisitos executivos através dos modelos de inteligência artificial da Honey IA...</p>
+            <!-- Active Chat Stream -->
+            <div class="chat-stream-container" id="chatStream">
+                <div class="chat-bubble-user" id="userQueryNode"></div>
+                <div class="chat-bubble-ai">
+                    <h3>⚡ Núcleo Neural Ativo</h3>
+                    <p>A processar os parâmetros executivos através dos modelos generativos da Honey IA. Estabelecendo pipeline de alta performance...</p>
                 </div>
             </div>
 
-            <div class="active-chat-footer" id="activeChatFooter">
-                <div class="chat-input-card">
-                    <textarea class="user-input-field" id="activeInput" placeholder="Continuar a conversa..." rows="1"></textarea>
-                    <div class="card-bottom-actions">
-                        <button class="tool-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                        <button class="send-submit-btn" id="activeSendBtn"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+            <div class="active-dock" id="activeDock">
+                <div class="ai-input-box">
+                    <textarea class="ai-textarea" id="activeInput" placeholder="Continuar o fluxo executivo..." rows="1"></textarea>
+                    <div class="input-actions-bar">
+                        <button class="action-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                        <button class="submit-engine-btn" id="activeSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                     </div>
                 </div>
             </div>
@@ -432,80 +432,80 @@
     <script>
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const menuToggleBtn = document.getElementById('menuToggleBtn');
-        const closeMenuBtn = document.getElementById('closeMenuBtn');
-        const heroWelcomeState = document.getElementById('heroWelcomeState');
-        const chatMessagesContainer = document.getElementById('chatMessagesContainer');
-        const activeChatFooter = document.getElementById('activeChatFooter');
+        const menuTrigger = document.getElementById('menuTrigger');
+        const closeDrawer = document.getElementById('closeDrawer');
+        const heroView = document.getElementById('heroView');
+        const chatStream = document.getElementById('chatStream');
+        const activeDock = document.getElementById('activeDock');
         
         const heroInput = document.getElementById('heroInput');
-        const heroSendBtn = document.getElementById('heroSendBtn');
+        const heroSubmit = document.getElementById('heroSubmit');
         const activeInput = document.getElementById('activeInput');
-        const activeSendBtn = document.getElementById('activeSendBtn');
-        const activeUserQuery = document.getElementById('activeUserQuery');
+        const activeSubmit = document.getElementById('activeSubmit');
+        const userQueryNode = document.getElementById('userQueryNode');
 
         function toggleSidebar() {
             sidebar.classList.toggle('open');
             sidebarOverlay.classList.toggle('active');
         }
 
-        menuToggleBtn.addEventListener('click', toggleSidebar);
-        closeMenuBtn.addEventListener('click', toggleSidebar);
+        menuTrigger.addEventListener('click', toggleSidebar);
+        closeDrawer.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
 
-        const modeBtns = document.querySelectorAll('.mode-btn');
-        modeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
                 if(window.innerWidth <= 768) toggleSidebar();
             });
         });
 
-        function triggerConversation(text) {
+        function initiateNeuralSession(text) {
             if (!text.trim()) return;
-            activeUserQuery.textContent = text;
-            heroWelcomeState.classList.add('hidden');
-            chatMessagesContainer.classList.add('active');
-            activeChatFooter.classList.add('active');
+            userQueryNode.textContent = text;
+            heroView.classList.add('hidden');
+            chatStream.classList.add('active');
+            activeDock.classList.add('active');
         }
 
-        heroSendBtn.addEventListener('click', () => {
-            triggerConversation(heroInput.value);
+        heroSubmit.addEventListener('click', () => {
+            initiateNeuralSession(heroInput.value);
             heroInput.value = '';
         });
 
         heroInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                triggerConversation(heroInput.value);
+                initiateNeuralSession(heroInput.value);
                 heroInput.value = '';
             }
         });
 
-        document.querySelectorAll('.quick-prompt-card').forEach(card => {
+        document.querySelectorAll('.suggestion-card').forEach(card => {
             card.addEventListener('click', () => {
-                triggerConversation(card.getAttribute('data-prompt'));
+                initiateNeuralSession(card.getAttribute('data-prompt'));
             });
         });
 
-        activeSendBtn.addEventListener('click', () => {
+        activeSubmit.addEventListener('click', () => {
             if (!activeInput.value.trim()) return;
-            const userMsg = document.createElement('div');
-            userMsg.className = 'user-query-block';
-            userMsg.textContent = activeInput.value;
-            chatMessagesContainer.appendChild(userMsg);
+            const uMsg = document.createElement('div');
+            uMsg.className = 'chat-bubble-user';
+            uMsg.textContent = activeInput.value;
+            chatStream.appendChild(uMsg);
             
             const aiMsg = document.createElement('div');
-            aiMsg.className = 'ai-report-block';
-            aiMsg.innerHTML = `<h2>Processado</h2><p>Requisito corporativo executado com sucesso pela Honey IA.</p>`;
-            chatMessagesContainer.appendChild(aiMsg);
+            aiMsg.className = 'chat-bubble-ai';
+            aiMsg.innerHTML = `<h3>✨ Resposta Executiva</h3><p>Parâmetro processado com sucesso pelo ecossistema Honey IA.</p>`;
+            chatStream.appendChild(aiMsg);
             activeInput.value = '';
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+            chatStream.scrollTop = chatStream.scrollHeight;
         });
 
-        document.querySelectorAll('.user-input-field').forEach(textarea => {
-            textarea.addEventListener('input', function() {
+        document.querySelectorAll('.ai-textarea').forEach(ta => {
+            ta.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
             });
