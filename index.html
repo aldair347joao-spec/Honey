@@ -7,18 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       :root {
-        --bg-base: #030712;
-        --bg-sidebar: rgba(3, 7, 18, 0.92);
-        --bg-card: rgba(15, 22, 36, 0.75);
-        --bg-card-hover: rgba(22, 31, 48, 0.85);
+        --bg-base: #050b18;
+        --bg-sidebar: rgba(5, 11, 24, 0.95);
+        --bg-card: rgba(18, 27, 46, 0.85);
+        --bg-card-hover: rgba(26, 38, 64, 0.95);
         --accent-amber: #f59e0b;
         --accent-neon: #00f0ff;
-        --accent-glow: rgba(245, 158, 11, 0.15);
-        --neon-glow: rgba(0, 240, 255, 0.18);
         --text-main: #f8fafc;
         --text-muted: #94a3b8;
-        --border-subtle: rgba(255, 255, 255, 0.08);
-        --border-active: rgba(0, 240, 255, 0.4);
+        --border-subtle: rgba(255, 255, 255, 0.12);
       }
 
       * {
@@ -44,9 +41,8 @@
         position: relative;
         overflow: hidden;
         background: 
-          radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
-          radial-gradient(circle at 85% 85%, rgba(0, 240, 255, 0.08) 0%, transparent 45%),
-          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 60%),
+          radial-gradient(circle at 10% 10%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
+          radial-gradient(circle at 90% 90%, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
           var(--bg-base);
       }
 
@@ -186,7 +182,7 @@
         align-items: center;
         justify-content: space-between;
         z-index: 10;
-        background: linear-gradient(180deg, rgba(3,7,18,0.95) 0%, rgba(3,7,18,0.6) 70%, transparent 100%);
+        background: linear-gradient(180deg, rgba(5,11,24,0.95) 0%, rgba(5,11,24,0.6) 70%, transparent 100%);
       }
 
       .menu-toggle-btn {
@@ -226,16 +222,17 @@
       .hero-welcome-state.hidden { display: none; }
 
       .business-badge {
-        background: rgba(245, 158, 11, 0.1);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-        padding: 4px 12px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        padding: 5px 14px;
         border-radius: 20px;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
         color: var(--accent-amber);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 10px;
+        letter-spacing: 0.06em;
+        margin-bottom: 12px;
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
       }
 
       .hero-title {
@@ -285,16 +282,23 @@
       .quick-prompt-card {
         background: var(--bg-card);
         border: 1px solid var(--border-subtle);
-        padding: 10px 12px;
-        border-radius: 10px;
-        font-size: 0.74rem;
+        padding: 11px 14px;
+        border-radius: 12px;
+        font-size: 0.75rem;
         font-weight: 600;
         color: var(--text-main);
         cursor: pointer;
         display: flex; align-items: center; gap: 8px;
-        transition: all 0.2s;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
-      .quick-prompt-card:hover { border-color: var(--accent-neon); color: var(--accent-neon); background-color: var(--bg-card-hover); }
+      .quick-prompt-card:hover { 
+        border-color: var(--accent-neon); 
+        color: var(--accent-neon); 
+        background-color: var(--bg-card-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 240, 255, 0.2);
+      }
 
       /* Input Card wrappers */
       .input-wrapper-container {
