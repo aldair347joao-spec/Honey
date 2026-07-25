@@ -8,11 +8,11 @@
     <style>
         :root {
             --bg-root: #010308;
-            --surface-glass: rgba(10, 14, 26, 0.7);
-            --surface-border: rgba(255, 255, 255, 0.07);
-            --surface-border-focus: rgba(245, 158, 11, 0.5);
+            --surface-glass: rgba(10, 14, 26, 0.75);
+            --surface-border: rgba(255, 255, 255, 0.08);
+            --surface-border-focus: rgba(245, 158, 11, 0.55);
             --accent-primary: #f59e0b;
-            --accent-glow: rgba(245, 158, 11, 0.15);
+            --accent-glow: rgba(245, 158, 11, 0.18);
             --text-main: #f8fafc;
             --text-muted: #8a99ad;
         }
@@ -60,7 +60,7 @@
             left: -320px;
             width: 300px;
             height: 100%;
-            background: rgba(3, 6, 14, 0.9);
+            background: rgba(3, 6, 14, 0.92);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             z-index: 1100;
@@ -96,7 +96,6 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; }
 
-        /* Logótipo Vetorial de Elite (Hexágono Neural) */
         .brand-logo-svg {
             width: 38px; height: 38px;
             filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
@@ -227,7 +226,7 @@
 
         /* Sugestões Rápidas Minimalistas */
         .suggestions-wrapper {
-            width: 100%; max-width: 680px; margin: 0 auto 20px auto; text-align: left;
+            width: 100%; max-width: 720px; margin: 0 auto 24px auto; text-align: left;
         }
 
         .suggestions-grid {
@@ -253,55 +252,64 @@
             color: #fff;
         }
 
-        /* Caixa de Conversa Estilo ChatGPT/Claude (Imersiva e Ultra Limpa) */
-        .input-dock { width: 100%; max-width: 680px; margin: 0 auto; }
+        /* NOVA CAIXA DE CONVERSA DE ELITE (Ampla, Arredondada e Imersiva) */
+        .input-dock { width: 100%; max-width: 720px; margin: 0 auto; }
 
         .ai-input-box {
-            background: rgba(12, 17, 30, 0.85);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px; padding: 14px 18px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(12, 17, 30, 0.9);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px; /* Cantos muito mais arredondados e modernos */
+            padding: 18px 22px; /* Maior espaço interno */
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.8);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .ai-input-box:focus-within { 
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15), 0 30px 60px rgba(0, 0, 0, 0.8);
-            background: rgba(15, 22, 38, 0.95);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18), 0 40px 80px rgba(0, 0, 0, 0.9);
+            background: rgba(15, 22, 38, 0.98);
         }
 
         .ai-textarea {
             width: 100%; background: none; border: none;
-            color: var(--text-main); font-size: 0.92rem; font-weight: 500;
-            resize: none; max-height: 140px; outline: none; line-height: 1.5;
+            color: var(--text-main); font-size: 0.96rem; font-weight: 500;
+            resize: none; max-height: 160px; outline: none; line-height: 1.6;
+            min-height: 28px;
         }
-        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.55; }
 
         .input-actions-bar {
             display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 14px; margin-top: 12px;
+        }
+
+        .input-tools-left {
+            display: flex; align-items: center; gap: 8px;
         }
 
         .action-icon-btn {
-            background: none; border: none; color: var(--text-muted);
-            width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.06); 
+            color: var(--text-muted);
+            width: 38px; height: 38px; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .action-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-        .action-icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+        .action-icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.12); }
 
         .submit-engine-btn {
             background: linear-gradient(135deg, var(--accent-primary), #d97706);
             color: #010308; border: none;
-            width: 36px; height: 36px; border-radius: 12px; cursor: pointer;
+            width: 42px; height: 42px; border-radius: 14px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
-            transition: all 0.2s;
+            box-shadow: 0 6px 25px rgba(245, 158, 11, 0.45);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .submit-engine-btn:hover { transform: scale(1.06); filter: brightness(1.1); }
-        .submit-engine-btn svg { width: 17px; height: 17px; stroke: #010308; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        .submit-engine-btn:hover { transform: scale(1.08); filter: brightness(1.1); box-shadow: 0 8px 30px rgba(245, 158, 11, 0.6); }
+        .submit-engine-btn svg { width: 18px; height: 18px; stroke: #010308; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
         /* Chat Stream Dinâmico */
         .chat-stream-container {
@@ -314,8 +322,8 @@
             align-self: flex-end; 
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.05));
             border: 1px solid rgba(245, 158, 11, 0.35);
-            color: var(--text-main); padding: 14px 20px; border-radius: 16px; 
-            font-size: 0.9rem; font-weight: 500; max-width: 85%;
+            color: var(--text-main); padding: 14px 20px; border-radius: 18px; 
+            font-size: 0.92rem; font-weight: 500; max-width: 85%;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
@@ -323,7 +331,7 @@
             background-color: var(--surface-glass);
             backdrop-filter: blur(25px);
             border: 1px solid var(--surface-border);
-            border-radius: 18px; padding: 22px; width: 100%; 
+            border-radius: 20px; padding: 22px; width: 100%; 
             box-shadow: 0 15px 40px rgba(0,0,0,0.4);
         }
         .chat-bubble-ai h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
@@ -341,7 +349,6 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- Logótipo Vetorial Executivo -->
                     <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M50 5L93.3 30V70L50 95L6.7 70V30L50 5Z" fill="url(#paint0_linear)" stroke="#f59e0b" stroke-width="3"/>
                         <path d="M50 25L75 40V60L50 75L25 60V40L50 25Z" fill="#010308" stroke="#f59e0b" stroke-width="2"/>
@@ -435,13 +442,22 @@
                     </div>
                 </div>
 
-                <!-- Caixa de Conversa de Elite -->
+                <!-- CAIXA DE CONVERSA REDESENHADA (Ampla, Moderna e Arredondada) -->
                 <div class="input-dock">
                     <div class="ai-input-box">
-                        <textarea class="ai-textarea" id="heroInput" placeholder="Em que projeto a Honey IA vai trabalhar hoje..." rows="1"></textarea>
+                        <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou estratégia que a Honey IA vai executar..." rows="1"></textarea>
                         <div class="input-actions-bar">
-                            <button class="action-icon-btn" title="Adicionar contexto ou ficheiro"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                            <button class="submit-engine-btn" id="heroSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
+                            <div class="input-tools-left">
+                                <button class="action-icon-btn" title="Anexar documento ou ficheiro executivo">
+                                    <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                </button>
+                                <button class="action-icon-btn" title="Ativar modo de raciocínio profundo">
+                                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
+                                </button>
+                            </div>
+                            <button class="submit-engine-btn" id="heroSubmit" title="Enviar comando neural">
+                                <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -460,7 +476,10 @@
                 <div class="ai-input-box">
                     <textarea class="ai-textarea" id="activeInput" placeholder="Continuar o fluxo executivo..." rows="1"></textarea>
                     <div class="input-actions-bar">
-                        <button class="action-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                        <div class="input-tools-left">
+                            <button class="action-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                            <button class="action-icon-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg></button>
+                        </div>
                         <button class="submit-engine-btn" id="activeSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                     </div>
                 </div>
