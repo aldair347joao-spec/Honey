@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Quantum Luxury Intelligence v3.0</title>
+    <title>Honey IA — Quantum Luxury Intelligence v3.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-deep: #030712;
@@ -93,8 +94,8 @@
         .sidebar {
             position: fixed;
             top: 0;
-            left: -320px;
-            width: 300px;
+            left: -340px;
+            width: 320px;
             max-width: 90vw;
             height: 100%;
             background: rgba(3, 7, 18, 0.98);
@@ -156,17 +157,17 @@
         .close-drawer:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--border-glow); }
 
         .sidebar-body { padding: 18px 14px; overflow-y: auto; flex: 1; }
-        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 18px 0 12px 12px; text-transform: uppercase; opacity: 0.85; }
+        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 18px 0 10px 10px; text-transform: uppercase; opacity: 0.85; }
 
         .new-chat-btn {
             width: 100%; background: var(--accent-gradient); color: #030712; border: none;
             padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: var(--transition-lux);
         }
         .new-chat-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 130px; overflow-y: auto; }
         .history-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
             padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; color: var(--text-muted);
@@ -176,22 +177,49 @@
         .history-item:hover, .history-item.active { background: rgba(255, 255, 255, 0.08); border-color: var(--border-glow); color: var(--text-main); }
         .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; }
 
-        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
+        /* Componentes Novos na Sidebar */
+        .prompt-fav-list { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
+        .prompt-fav-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: var(--transition-lux);
+        }
+        .prompt-fav-item:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(255, 255, 255, 0.07); }
+
+        .fin-calc-widget {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            border-radius: 12px; padding: 12px;
+        }
+        .fin-calc-widget h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.1em; display: flex; justify-content: space-between; align-items: center; }
+        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
+        .fin-calc-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .calc-actions-row { display: flex; gap: 6px; margin-top: 8px; }
+        .calc-btn { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 5px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: var(--transition-lux); text-align: center; }
+        .calc-btn:hover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.15); }
+
+        .saved-calc-list { display: flex; flex-direction: column; gap: 4px; max-height: 90px; overflow-y: auto; margin-top: 6px; }
+        .saved-calc-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+        .compare-modal {
+            position: fixed; inset: 0; background: rgba(3, 7, 18, 0.92); backdrop-filter: blur(25px);
+            z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .compare-modal.active { display: flex; }
+        .compare-card { background: var(--bg-surface); border: 1.5px solid var(--border-glow); border-radius: 20px; padding: 24px; max-width: 600px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
+        .compare-col { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px; text-align: center; }
+        .compare-col h6 { font-size: 0.75rem; color: var(--accent-light); margin-bottom: 6px; }
+        .compare-col p { font-size: 0.75rem; color: var(--text-muted); }
+
+        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 100px; overflow-y: auto; }
         .sidebar-file-item {
             background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
             padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
             display: flex; align-items: center; justify-content: space-between;
         }
 
-        .fin-calc-widget {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 12px; margin-top: 8px;
-        }
-        .fin-calc-widget h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.1em; }
-        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
-        .fin-calc-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; }
-
-        .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+        .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
         .theme-btn {
             background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
             padding: 8px; border-radius: 10px; font-size: 0.72rem; color: var(--text-muted);
@@ -200,7 +228,7 @@
         .theme-btn.active, .theme-btn:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(255, 255, 255, 0.1); }
 
         .sidebar-footer {
-            padding: 18px 20px;
+            padding: 16px 20px;
             border-top: 1px solid var(--border-subtle);
             background: rgba(3, 7, 18, 0.95); flex-shrink: 0;
         }
@@ -274,7 +302,7 @@
         }
         .hero-sub { font-size: 0.9rem; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-weight: 400; }
 
-        .quick-prompts-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; max-width: 600px; }
+        .quick-prompts-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; max-width: 600px; }
         .quick-prompt-pill {
             background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
             padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; color: var(--text-muted);
@@ -286,7 +314,7 @@
             width: 100%; border: 2px dashed rgba(255, 255, 255, 0.15);
             border-radius: 18px; padding: 18px; text-align: center;
             background: rgba(255, 255, 255, 0.02); transition: var(--transition-lux);
-            font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 6px;
+            font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 4px;
         }
         .dropzone-box.dragover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.05); color: var(--text-main); }
         .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%; justify-content: center; }
@@ -338,17 +366,17 @@
             border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px; width: 100%; box-shadow: 0 15px 45px rgba(0,0,0,0.35);
         }
         
-        .ai-bubble-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .ai-bubble-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
         .ai-bubble-title { font-size: 0.98rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
         .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
 
-        .bubble-actions-group { display: flex; gap: 8px; align-items: center; }
-        .pitch-deck-btn, .export-md-btn {
+        .bubble-actions-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .pitch-deck-btn, .export-md-btn, .export-pdf-btn {
             background: rgba(245, 158, 11, 0.1); border: 1px solid var(--border-glow); color: var(--accent-primary);
             padding: 6px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: var(--transition-lux);
         }
-        .pitch-deck-btn:hover, .export-md-btn:hover { background: rgba(245, 158, 11, 0.2); }
+        .pitch-deck-btn:hover, .export-md-btn:hover, .export-pdf-btn:hover { background: rgba(245, 158, 11, 0.2); }
 
         .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
 
@@ -389,6 +417,29 @@
         </div>
     </div>
 
+    <!-- Modal de Comparação de Preços / Fornecedores -->
+    <div class="compare-modal" id="compareModal">
+        <div class="compare-card">
+            <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">Análise Comparativa de Cenários</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Comparação lado a lado de custos e margens estimadas.</p>
+            <div class="compare-grid" id="compareGridContainer">
+                <div class="compare-col">
+                    <h6>Cenário Atual</h6>
+                    <p id="compC1">Custo: $0<br>Preço: $0<br>Margem: 0%</p>
+                </div>
+                <div class="compare-col" style="border-color: var(--border-glow);">
+                    <h6>Fornecedor B (-15%)</h6>
+                    <p id="compC2">Custo: $0<br>Preço: $0<br>Margem: 0%</p>
+                </div>
+                <div class="compare-col">
+                    <h6>Cenário Premium (+20%)</h6>
+                    <p id="compC3">Custo: $0<br>Preço: $0<br>Margem: 0%</p>
+                </div>
+            </div>
+            <button class="pitch-close" style="width: 100%; padding: 8px;" onclick="closeCompareModal()">Fechar Comparativo</button>
+        </div>
+    </div>
+
     <div class="app-shell">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
@@ -399,7 +450,7 @@
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span>Quantum Suite v3.0</span>
+                        <span>Quantum Suite v3.5</span>
                     </div>
                 </div>
                 <button class="close-drawer" id="closeDrawer">✕</button>
@@ -410,20 +461,31 @@
                 <div class="menu-category">Histórico de Conversas</div>
                 <div class="history-list" id="historyList"></div>
 
-                <div class="menu-category" style="margin-top:16px;">Calculadora de Margens</div>
+                <div class="menu-category" style="margin-top:14px;">Prompts Favoritos</div>
+                <div class="prompt-fav-list" id="promptFavList"></div>
+                <button class="calc-btn" style="width:100%; margin-top:6px;" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
+
+                <div class="menu-category" style="margin-top:14px;">Calculadora & Margens</div>
                 <div class="fin-calc-widget">
-                    <h5>Simulador Financeiro</h5>
+                    <h5>Simulador Financeiro <span style="cursor:pointer; color:var(--neon-glow);" onclick="openCompareModal()">📊 Comparar</span></h5>
                     <input type="number" class="fin-calc-input" id="calcCost" placeholder="Custo de aquisição ($)" oninput="calculateMargin()">
                     <input type="number" class="fin-calc-input" id="calcPrice" placeholder="Preço de venda ($)" oninput="calculateMargin()">
-                    <div class="fin-calc-result" id="calcResult">Lucro: $0.00 (0%)</div>
+                    <div class="fin-calc-result">
+                        <span id="calcResult">Lucro: $0.00 (0%)</span>
+                    </div>
+                    <div class="calc-actions-row">
+                        <button class="calc-btn" onclick="saveCalculation()">Guardar Simulação</button>
+                        <button class="calc-btn" onclick="clearCalculator()">Limpar</button>
+                    </div>
+                    <div class="saved-calc-list" id="savedCalcList"></div>
                 </div>
 
-                <div class="menu-category" style="margin-top:16px;">Gestor de Ficheiros</div>
+                <div class="menu-category" style="margin-top:14px;">Gestor de Ficheiros</div>
                 <div class="sidebar-file-list" id="sidebarFileList">
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:16px;">Atmosfera Visual (Temas)</div>
+                <div class="menu-category" style="margin-top:14px;">Atmosfera Visual (Temas)</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
@@ -459,7 +521,7 @@
             </header>
 
             <div class="hero-view" id="heroView">
-                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; max-width: 600px;">
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px; max-width: 600px;">
                     <span style="font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">Ecossistema Quântico Integrado</span>
                     <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
                     <p class="hero-sub">Carregue ficheiros por arrastamento ou escolha um prompt rápido abaixo.</p>
@@ -481,7 +543,7 @@
                     <div class="ai-input-box">
                         <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou comande a IA..." rows="1"></textarea>
                         <div class="input-actions-bar">
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">Honey IA v3.0 Ativo</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Honey IA v3.5 Ativo</span>
                             <button class="submit-engine-btn" id="heroSubmit">
                                 <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                             </button>
@@ -492,15 +554,16 @@
 
             <div class="chat-stream-container" id="chatStream">
                 <div class="chat-bubble-user" id="userQueryNode"></div>
-                <div class="chat-bubble-ai">
+                <div class="chat-bubble-ai" id="exportableReportArea">
                     <div class="ai-bubble-header">
                         <div class="ai-bubble-title">
                             <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             Núcleo Quântico Ativo
                         </div>
                         <div class="bubble-actions-group">
-                            <button class="export-md-btn" id="exportMdBtn">📥 Exportar MD</button>
-                            <button class="pitch-deck-btn" id="openPitchBtn">📊 Ver Pitch Deck</button>
+                            <button class="export-md-btn" id="exportMdBtn">📥 MD</button>
+                            <button class="export-pdf-btn" id="exportPdfBtn">📄 PDF</button>
+                            <button class="pitch-deck-btn" id="openPitchBtn">📊 Pitch Deck</button>
                         </div>
                     </div>
                     <p id="aiResponseNode">A processar parâmetros executivos e simulação avançada...</p>
@@ -521,6 +584,11 @@
 
     <script>
         let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
+        let savedCalculations = JSON.parse(localStorage.getItem('honey_calc_history')) || [];
+        let favoritePrompts = JSON.parse(localStorage.getItem('honey_fav_prompts')) || [
+            "Analisar viabilidade financeira do projeto",
+            "Otimizar estratégias de e-commerce"
+        ];
         let uploadedFiles = [];
         let currentSessionId = null;
 
@@ -539,6 +607,92 @@
             document.getElementById('calcResult').textContent = `Lucro: $${profit.toFixed(2)} (${margin}%)`;
         }
 
+        function clearCalculator() {
+            document.getElementById('calcCost').value = '';
+            document.getElementById('calcPrice').value = '';
+            document.getElementById('calcResult').textContent = 'Lucro: $0.00 (0%)';
+        }
+
+        function saveCalculation() {
+            const cost = document.getElementById('calcCost').value;
+            const price = document.getElementById('calcPrice').value;
+            if(!cost || !price) return;
+            const profit = price - cost;
+            const margin = ((profit / price) * 100).toFixed(1);
+            savedCalculations.unshift({ cost, price, profit: profit.toFixed(2), margin });
+            if(savedCalculations.length > 5) savedCalculations.pop();
+            localStorage.setItem('honey_calc_history', JSON.stringify(savedCalculations));
+            renderSavedCalculations();
+            triggerAutoSave();
+        }
+
+        function renderSavedCalculations() {
+            const list = document.getElementById('savedCalcList');
+            list.innerHTML = '';
+            if(savedCalculations.length === 0) return;
+            savedCalculations.forEach(calc => {
+                const item = document.createElement('div');
+                item.className = 'saved-calc-item';
+                item.innerHTML = `<span>C:$${calc.cost} P:$${calc.price}</span><span style="color:var(--neon-glow);font-weight:700;">${calc.margin}%</span>`;
+                list.appendChild(item);
+            });
+        }
+        renderSavedCalculations();
+
+        function openCompareModal() {
+            const cost = parseFloat(document.getElementById('calcCost').value) || 100;
+            const price = parseFloat(document.getElementById('calcPrice').value) || 150;
+            const profit1 = price - cost;
+            const m1 = price > 0 ? ((profit1/price)*100).toFixed(1) : 0;
+
+            const cost2 = cost * 0.85;
+            const profit2 = price - cost2;
+            const m2 = price > 0 ? ((profit2/price)*100).toFixed(1) : 0;
+
+            const price3 = price * 1.20;
+            const profit3 = price3 - cost;
+            const m3 = price3 > 0 ? ((profit3/price3)*100).toFixed(1) : 0;
+
+            document.getElementById('compC1').innerHTML = `Custo: $${cost.toFixed(2)}<br>Preço: $${price.toFixed(2)}<br>Margem: <b>${m1}%</b>`;
+            document.getElementById('compC2').innerHTML = `Custo: $${cost2.toFixed(2)}<br>Preço: $${price.toFixed(2)}<br>Margem: <b>${m2}%</b>`;
+            document.getElementById('compC3').innerHTML = `Custo: $${cost.toFixed(2)}<br>Preço: $${price3.toFixed(2)}<br>Margem: <b>${m3}%</b>`;
+
+            document.getElementById('compareModal').classList.add('active');
+        }
+
+        function closeCompareModal() {
+            document.getElementById('compareModal').classList.remove('active');
+        }
+
+        function renderFavPrompts() {
+            const list = document.getElementById('promptFavList');
+            list.innerHTML = '';
+            favoritePrompts.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = 'prompt-fav-item';
+                item.innerHTML = `<span>⭐ ${p.substring(0, 26)}...</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFavPrompt(event, ${idx})">✕</button>`;
+                item.onclick = () => selectPrompt(p);
+                list.appendChild(item);
+            });
+        }
+
+        function addCurrentPromptToFav() {
+            const val = document.getElementById('heroInput').value.trim();
+            if(!val) return;
+            favoritePrompts.push(val);
+            localStorage.setItem('honey_fav_prompts', JSON.stringify(favoritePrompts));
+            renderFavPrompts();
+            triggerAutoSave();
+        }
+
+        function removeFavPrompt(e, idx) {
+            e.stopPropagation();
+            favoritePrompts.splice(idx, 1);
+            localStorage.setItem('honey_fav_prompts', JSON.stringify(favoritePrompts));
+            renderFavPrompts();
+        }
+        renderFavPrompts();
+
         const pitchModal = document.getElementById('pitchModal');
         document.getElementById('openPitchBtn').addEventListener('click', () => pitchModal.classList.add('active'));
         document.getElementById('closePitch').addEventListener('click', () => pitchModal.classList.remove('active'));
@@ -553,6 +707,18 @@
             a.href = url;
             a.download = 'relatorio-honey-ia.md';
             a.click();
+        });
+
+        document.getElementById('exportPdfBtn').addEventListener('click', () => {
+            const element = document.getElementById('exportableReportArea');
+            const opt = {
+                margin:        10,
+                filename:      'relatorio-honey-ia.pdf',
+                image:         { type: 'jpeg', quality: 0.98 },
+                html2canvas:   { scale: 2, useCORS: true },
+                jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         });
 
         const dropzone = document.getElementById('dropzoneBox');
@@ -571,9 +737,7 @@
         fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); });
 
         function handleFiles(files) {
-            Array.from(files).forEach(file => {
-                uploadedFiles.push(file.name);
-            });
+            Array.from(files).forEach(file => { uploadedFiles.push(file.name); });
             renderFileList();
             triggerAutoSave();
         }
@@ -606,6 +770,8 @@
 
         function selectPrompt(text) {
             document.getElementById('heroInput').value = text;
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
         }
 
         const sidebar = document.getElementById('sidebar');
@@ -647,10 +813,7 @@
                 sessions.unshift({ id: currentSessionId, title: title.substring(0, 25), query, response });
             } else {
                 const s = sessions.find(item => item.id === currentSessionId);
-                if (s) {
-                    s.query = query;
-                    s.response = response;
-                }
+                if (s) { s.query = query; s.response = response; }
             }
             localStorage.setItem('honey_sessions', JSON.stringify(sessions));
             renderHistory();
@@ -674,9 +837,7 @@
             e.stopPropagation();
             sessions = sessions.filter(item => item.id !== id);
             localStorage.setItem('honey_sessions', JSON.stringify(sessions));
-            if (currentSessionId === id) {
-                resetToHome();
-            }
+            if (currentSessionId === id) { resetToHome(); }
             renderHistory();
         }
 
