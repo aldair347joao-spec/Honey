@@ -6,6 +6,8 @@
     <title>Honey IA — Quantum Luxury Intelligence v6.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Renderizador de Markdown para respostas e códigos da IA -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-deep: #020617;
@@ -135,7 +137,6 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; min-width: 0; }
         
-        /* LOGOTIPO 3D COM ABELHA RAINHA REAL ULTRA REALISTA A VOAR E COROA IMPERIAL */
         .brand-logo-box {
             width: 48px; height: 48px;
             background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.45), rgba(15, 23, 42, 0.95));
@@ -454,7 +455,13 @@
         }
         .action-chip-btn:hover { background: rgba(245, 158, 11, 0.18); transform: translateY(-1px); }
 
-        .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
+        .markdown-body { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #f8fafc; margin-top: 14px; margin-bottom: 8px; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid var(--border-subtle); padding: 8px 12px; text-align: left; font-size: 0.82rem; }
+        .markdown-body th { background: rgba(255, 255, 255, 0.05); color: var(--accent-light); }
+        .markdown-body pre { background: rgba(2, 6, 23, 0.8); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px; overflow-x: auto; margin: 10px 0; }
+        .markdown-body code { font-family: monospace; color: var(--neon-glow); }
 
         .pitch-modal {
             position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(35px);
@@ -486,7 +493,7 @@
             <div>
                 <span style="font-size: 0.72rem; color: var(--neon-glow); text-transform: uppercase; font-weight: 700; letter-spacing: 0.22em;">Modo Apresentação Executiva</span>
                 <h2 class="pitch-slide-title" id="pitchTitle">Estratégia de Expansão & Ecossistema</h2>
-                <p class="pitch-slide-content" id="pitchContent">Simulação quântica concluída com sucesso. Alocação de recursos otimizada para o ecossistema empresarial e académico em Luanda.</p>
+                <p class="pitch-slide-content" id="pitchContent">Simulação quântica concluída com sucesso. Alocação de recursos otimizada para o ecossistema empresarial e académico.</p>
             </div>
             <div class="pitch-footer">
                 <span style="font-size: 0.78rem; color: var(--text-muted);" id="pitchCounter">Slide 1 de 1</span>
@@ -587,7 +594,6 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- LOGOTIPO 3D COM ABELHA RAINHA REAL ULTRA REALISTA A VOAR E COROA IMPERIAL -->
                     <div class="brand-logo-box">
                         <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -608,12 +614,10 @@
                                     <stop offset="100%" stop-color="#92400e"/>
                                 </linearGradient>
                             </defs>
-                            <!-- Coroa Real Imperial Sofisticada -->
                             <path d="M220 72L238 32L256 60L274 32L292 72H220Z" fill="url(#realCrownGrad)" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round"/>
                             <circle cx="238" cy="28" r="5" fill="#38bdf8"/>
                             <circle cx="256" cy="52" r="6" fill="#ef4444"/>
                             <circle cx="274" cy="28" r="5" fill="#38bdf8"/>
-                            <!-- Asas Anatómicas Realistas com Nervuras Finas -->
                             <path d="M256 200C205 105 85 55 45 110C25 140 100 215 256 200Z" fill="url(#realQueenWing)" stroke="#e0f2fe" stroke-width="3"/>
                             <path d="M110 95C140 120 180 160 225 190" stroke="#bae6fd" stroke-width="2" stroke-linecap="round"/>
                             <path d="M80 115C110 135 150 175 190 200" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
@@ -622,21 +626,17 @@
                             <path d="M402 95C372 120 332 160 287 190" stroke="#bae6fd" stroke-width="2" stroke-linecap="round"/>
                             <path d="M432 115C402 135 362 175 322 200" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
                             
-                            <!-- Abdómen Elegante com Listras de Alta Definição -->
                             <ellipse cx="256" cy="345" rx="55" ry="120" fill="url(#realQueenBody)" transform="rotate(12 256 345)"/>
                             <path d="M195 295C225 298 290 292 318 288" stroke="#18181b" stroke-width="12" stroke-linecap="round"/>
                             <path d="M188 340C220 344 290 338 324 332" stroke="#18181b" stroke-width="12" stroke-linecap="round"/>
                             <path d="M198 385C230 388 285 383 314 378" stroke="#18181b" stroke-width="11" stroke-linecap="round"/>
                             <path d="M212 430C235 432 275 428 298 424" stroke="#18181b" stroke-width="9" stroke-linecap="round"/>
-                            <!-- Tórax com Textura de Pêlo Detalhado -->
                             <circle cx="256" cy="215" r="50" fill="#78350f" stroke="#fbbf24" stroke-width="4"/>
                             <path d="M230 190C240 185 270 185 282 190" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
                             <path d="M225 210C235 205 275 205 287 210" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
-                            <!-- Cabeça e Olhos Facetados Realistas -->
                             <circle cx="256" cy="125" r="32" fill="#271c19" stroke="#f59e0b" stroke-width="3.5"/>
                             <ellipse cx="236" cy="120" rx="9" ry="14" fill="#38bdf8" transform="rotate(-15 236 120)"/>
                             <ellipse cx="276" cy="120" rx="9" ry="14" fill="#38bdf8" transform="rotate(15 276 120)"/>
-                            <!-- Antenas Articuladas Finas -->
                             <path d="M238 98C210 65 175 45 142 32" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
                             <path d="M274 98C302 65 337 45 370 32" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
                         </svg>
@@ -809,7 +809,7 @@
                     <div class="ai-bubble-header">
                         <div class="ai-bubble-title">
                             <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                            Núcleo Quântico Ativo
+                            Honey IA
                         </div>
                         <div class="bubble-actions-group">
                             <button class="action-chip-btn" id="exportMdBtn">📥 MD</button>
@@ -817,7 +817,7 @@
                             <button class="action-chip-btn" id="openPitchBtn">📊 Pitch</button>
                         </div>
                     </div>
-                    <p id="aiResponseNode">A processar parâmetros executivos e simulação avançada...</p>
+                    <div class="markdown-body" id="aiResponseNode">A processar parâmetros executivos...</div>
                 </div>
             </div>
 
@@ -837,14 +837,14 @@
         let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
         let savedCalculations = JSON.parse(localStorage.getItem('honey_calc_history')) || [];
         let taskList = JSON.parse(localStorage.getItem('honey_tasks')) || [
-            { task: "Rastreio fornecedor (China)", status: "Em Trânsito" },
-            { task: "Gestão Stock Luanda", status: "Pendente" }
+            { task: "Rastreio fornecedor", status: "Em Trânsito" },
+            { task: "Gestão Stock", status: "Pendente" }
         ];
         let favoritePrompts = JSON.parse(localStorage.getItem('honey_fav_prompts')) || [
             "Analisar viabilidade financeira do projeto",
             "Otimizar estratégias de e-commerce"
         ];
-        let uploadedFiles = [];
+        let uploadedFilesObjects = []; // Guarda os objetos File reais
         let currentSessionId = null;
 
         function setTheme(themeName, btn) {
@@ -915,13 +915,13 @@
 
         function generateMarketingCopy() {
             const prod = document.getElementById('mktProduct').value.trim() || "Produto Especial";
-            const aud = document.getElementById('mktAudience').value.trim() || "Clientes em Luanda";
+            const aud = document.getElementById('mktAudience').value.trim() || "Clientes do Negócio";
             const goal = document.getElementById('mktGoal').value;
             const resBox = document.getElementById('mktResultBox');
 
             resBox.innerHTML = `<span style="color:var(--neon-glow);">A gerar copy para "${prod}"...</span>`;
             setTimeout(() => {
-                resBox.innerHTML = `✨ <b>Sugestão (${goal}):</b><br>Olá, Luanda! 🚀 Já conheces o novo <b>${prod}</b>? Pensado especialmente para <b>${aud}</b>, este é o toque de qualidade que faltava no teu dia a dia. 📲 Encomendas abertas via WhatsApp. Garante já o teu!`;
+                resBox.innerHTML = `✨ <b>Sugestão (${goal}):</b><br>Olá! 🚀 Já conheces o novo <b>${prod}</b>? Pensado especialmente para <b>${aud}</b>, este é o toque de qualidade que faltava no teu dia a dia. 📲 Encomendas abertas via WhatsApp. Garante já o teu!`;
             }, 600);
         }
 
@@ -929,7 +929,7 @@
             const element = document.getElementById('exportableReportArea');
             const opt = {
                 margin: 10,
-                filename: 'relatorio-executivo-honey-v6.pdf',
+                filename: 'relatorio-executivo-honey.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -1021,7 +1021,7 @@
             if(!topic) return;
             resBox.innerHTML = `<span style="font-size:0.78rem; color:var(--neon-glow);">A processar métricas para "${topic}"...</span>`;
             setTimeout(() => {
-                resBox.innerHTML = `<b>Tópico:</b> ${topic}<br><b>Índice de Interesse:</b> 94/100 (Alta Demanda)<br><b>Prospetiva:</b> Crescimento sustentado no ecossistema de Luanda. Oportunidade estratégica validada.`;
+                resBox.innerHTML = `<b>Tópico:</b> ${topic}<br><b>Índice de Interesse:</b> 94/100 (Alta Demanda)<br><b>Prospetiva:</b> Crescimento sustentado. Oportunidade estratégica validada.`;
             }, 800);
         }
 
@@ -1048,11 +1048,7 @@
                 alert('O seu navegador não suporta reconhecimento de voz.');
                 return;
             }
-            try {
-                recognition.start();
-            } catch(err) {
-                recognition.stop();
-            }
+            try { recognition.start(); } catch(err) { recognition.stop(); }
         });
 
         function renderFavPrompts() {
@@ -1088,8 +1084,8 @@
 
         document.getElementById('exportMdBtn').addEventListener('click', () => {
             const query = document.getElementById('userQueryNode').textContent;
-            const resp = document.getElementById('aiResponseNode').textContent;
-            const mdContent = `# Relatório Executivo - Honey IA\n\n## Pergunta / Comando\n${query}\n\n## Resposta do Núcleo\n${resp}\n`;
+            const resp = document.getElementById('aiResponseNode').innerText;
+            const mdContent = `# Relatório - Honey IA\n\n## Pergunta / Comando\n${query}\n\n## Resposta\n${resp}\n`;
             const blob = new Blob([mdContent], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1116,7 +1112,7 @@
         fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); });
 
         function handleFiles(files) {
-            Array.from(files).forEach(file => { uploadedFiles.push(file.name); });
+            Array.from(files).forEach(file => { uploadedFilesObjects.push(file); });
             renderFileList();
             triggerAutoSave();
         }
@@ -1124,25 +1120,25 @@
         function renderFileList() {
             filePreviewList.innerHTML = '';
             sidebarFileList.innerHTML = '';
-            if (uploadedFiles.length === 0) {
+            if (uploadedFilesObjects.length === 0) {
                 sidebarFileList.innerHTML = `<div style="font-size: 0.74rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>`;
                 return;
             }
-            uploadedFiles.forEach((name, idx) => {
+            uploadedFilesObjects.forEach((file, idx) => {
                 const pill = document.createElement('div');
                 pill.className = 'file-pill';
-                pill.innerHTML = `📄 ${name}`;
+                pill.innerHTML = `📄 ${file.name}`;
                 filePreviewList.appendChild(pill);
 
                 const item = document.createElement('div');
                 item.className = 'sidebar-file-item';
-                item.innerHTML = `<span>📄 ${name}</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFile(${idx})">✕</button>`;
+                item.innerHTML = `<span>📄 ${file.name}</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFile(${idx})">✕</button>`;
                 sidebarFileList.appendChild(item);
             });
         }
 
         function removeFile(idx) {
-            uploadedFiles.splice(idx, 1);
+            uploadedFilesObjects.splice(idx, 1);
             renderFileList();
             triggerAutoSave();
         }
@@ -1203,7 +1199,7 @@
             if (!s) return;
             currentSessionId = s.id;
             document.getElementById('userQueryNode').textContent = s.query;
-            document.getElementById('aiResponseNode').textContent = s.response;
+            document.getElementById('aiResponseNode').innerHTML = typeof marked !== 'undefined' ? marked.parse(s.response) : s.response;
             document.getElementById('heroView').classList.add('hidden');
             document.getElementById('chatStream').classList.add('active');
             document.getElementById('activeDock').classList.add('active');
@@ -1231,16 +1227,62 @@
 
         document.getElementById('newChatBtn').addEventListener('click', resetToHome);
 
-        function initiateSession(text) {
-            if (!text.trim()) return;
-            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema, stock, câmbio e tarefas foram sincronizados com sucesso.`;
-            document.getElementById('userQueryNode').textContent = text;
-            document.getElementById('aiResponseNode').textContent = responseText;
+        // Converter ficheiro para Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Função de Comunicação Real com a API
+        async function initiateSession(text) {
+            if (!text.trim() && uploadedFilesObjects.length === 0) return;
+
+            document.getElementById('userQueryNode').textContent = text || "Análise de Ficheiro Anexo";
+            document.getElementById('aiResponseNode').innerHTML = '<em>A analisar e a gerar resposta quântica...</em>';
+            
             document.getElementById('heroView').classList.add('hidden');
             document.getElementById('chatStream').classList.add('active');
             document.getElementById('activeDock').classList.add('active');
-            
-            saveSession(text, text, responseText);
+
+            try {
+                let payload = { prompt: text };
+
+                // Se houver ficheiro anexo
+                if (uploadedFilesObjects.length > 0) {
+                    const file = uploadedFilesObjects[0];
+                    const base64 = await fileToBase64(file);
+                    payload.anexoBase64 = base64;
+                    payload.mimeType = file.type;
+                }
+
+                const response = await fetch('/gerar-gratis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.sucesso) {
+                    const parsedHtml = typeof marked !== 'undefined' ? marked.parse(data.resposta) : data.resposta;
+                    document.getElementById('aiResponseNode').innerHTML = parsedHtml;
+                    saveSession(text || "Ficheiro Anexo", text, data.resposta);
+                } else {
+                    document.getElementById('aiResponseNode').innerHTML = `<p style="color:#ef4444;">Erro: ${data.erro}</p>`;
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('aiResponseNode').innerHTML = `<p style="color:#ef4444;">Ocorreu uma falha na ligação ao servidor.</p>`;
+            }
+
             triggerAutoSave();
         }
 
@@ -1250,7 +1292,7 @@
             heroInput.value = '';
         });
 
-        document.getElementById('activeSubmit').addEventListener('click', () => {
+        document.getElementById('activeSubmit').addEventListener('click', async () => {
             const val = document.getElementById('activeInput').value;
             if (!val.trim()) return;
             const stream = document.getElementById('chatStream');
@@ -1262,10 +1304,30 @@
 
             const aiMsg = document.createElement('div');
             aiMsg.className = 'chat-bubble-ai';
-            aiMsg.innerHTML = `<div class="ai-bubble-header"><div class="ai-bubble-title"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Núcleo Quântico Ativo</div></div><p>Resposta processada em tempo real para o comando: "${val}".</p>`;
+            const msgId = 'ai_resp_' + Date.now();
+            aiMsg.innerHTML = `<div class="ai-bubble-header"><div class="ai-bubble-title"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Honey IA</div></div><div class="markdown-body" id="${msgId}"><em>A responder...</em></div>`;
             stream.appendChild(aiMsg);
 
             document.getElementById('activeInput').value = '';
+            stream.scrollTop = stream.scrollHeight;
+
+            try {
+                const response = await fetch('/gerar-gratis', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: val })
+                });
+
+                const data = await response.json();
+                if (data.sucesso) {
+                    document.getElementById(msgId).innerHTML = typeof marked !== 'undefined' ? marked.parse(data.resposta) : data.resposta;
+                } else {
+                    document.getElementById(msgId).innerHTML = `<p style="color:#ef4444;">Erro: ${data.erro}</p>`;
+                }
+            } catch (err) {
+                document.getElementById(msgId).innerHTML = `<p style="color:#ef4444;">Falha de comunicação.</p>`;
+            }
+
             stream.scrollTop = stream.scrollHeight;
             triggerAutoSave();
         });
