@@ -91,7 +91,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar Redesenhada */
+        /* Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
@@ -135,17 +135,35 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; min-width: 0; }
         
-        /* LOGOTIPO DA ABELHA REAL E DETALHADA CORRIGIDO */
+        /* LOGOTIPO 3D COM ABELHA REAL A VOAR */
         .brand-logo-box {
-            width: 44px; height: 44px;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.15));
+            width: 48px; height: 48px;
+            background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.35), rgba(15, 23, 42, 0.9));
             border: 1.5px solid var(--border-glow);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.2);
             flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
         }
-        .brand-logo-box svg { width: 24px; height: 24px; fill: var(--accent-primary); }
+        .brand-logo-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .brand-logo-box svg {
+            width: 32px; height: 32px;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.6));
+            animation: floatBee 3s ease-in-out infinite;
+        }
+
+        @keyframes floatBee {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-2px) rotate(2deg); }
+        }
 
         .brand-title h2 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
         .brand-title span { font-size: 0.65rem; color: var(--neon-glow); text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; display: block; margin-top: 2px; }
@@ -167,7 +185,6 @@
 
         .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; margin-top: 4px; margin-bottom: 2px; display: flex; align-items: center; gap: 8px; }
         
-        /* Emblemas Geométricos Minimalistas */
         .geo-emblem {
             width: 12px; height: 12px; border: 1.5px solid var(--accent-primary); border-radius: 3px;
             display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg);
@@ -273,7 +290,7 @@
         .user-meta h4 { font-size: 0.9rem; font-weight: 700; color: #f8fafc; }
         .user-meta span { font-size: 0.7rem; color: var(--neon-glow); font-weight: 600; display: block; margin-top: 1px; }
 
-        /* Workspace Principal */
+        /* Workspace */
         .workspace {
             flex: 1; display: flex; flex-direction: column;
             height: 100%; width: 100%; position: relative; overflow: hidden;
@@ -323,7 +340,6 @@
         }
         .status-dot { width: 8px; height: 8px; background: var(--neon-glow); border-radius: 50%; box-shadow: 0 0 10px var(--neon-glow); flex-shrink: 0; }
 
-        /* Otimização de Espaçamento Vertical no Telemóvel */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -570,10 +586,34 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- LOGOTIPO DA ABELHA REAL E DETALHADA CORRIGIDO -->
+                    <!-- LOGOTIPO 3D COM ABELHA REAL A VOAR -->
                     <div class="brand-logo-box">
-                        <svg viewBox="0 0 512 512">
-                            <path d="M464,180.5c-15-18-39-26-62-21l-36-36c6-14,3-31-8-42s-28-14-42-8l-36-36c-5-23-13-47-31-62C263.2,1,237.2,3.3,219,19.2 l-72,63c-38.6,33.8-60.6,83.1-60.6,134.8c0,5.6,0.3,11.2,1,16.8L35.8,276.5c-7.8,7.8-7.8,20.5,0,28.3l60.1,60.1 c7.8,7.8,20.5,7.8,28.3,0l42.6-42.6c16,6,33.5,8.8,51.2,8.4l28.1,28.1c-1.4,11.8,1.4,23.8,9,33c14,17,39,21,57,10l56,56 c11,11,28,11,39,0s11-28,0-39l-56-56c11-18,7-43-10-57c-9.2-7.6-21.2-10.4-33-9l-28.1-28.1c0.4-17.7-2.4-35.2-8.4-51.2 l42.6-42.6c7.8-7.8,7.8-20.5,0-28.3L342,168.5C347.5,191.5,355.5,215,373,232.5c16.3,16.3,38,24.5,59.7,24.5 c10.3,0,20.7-1.7,30.8-5.3l35.2,35.2c7.8,7.8,20.5,7.8,28.3,0c7.8-7.8,7.8-20.5,0-28.3L464,180.5z M224,244 c-22.1,0-40-17.9-40-40s17.9-40,40-40s40,17.9,40,40S246.1,244,224,244z"/>
+                        <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+                                </linearGradient>
+                                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fbbf24"/>
+                                    <stop offset="50%" stop-color="#f59e0b"/>
+                                    <stop offset="100%" stop-color="#78350f"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Asas 3D Translúcidas a Voar -->
+                            <path d="M256 220C220 130 110 80 80 130C60 160 120 230 256 220Z" fill="url(#wingGrad)" stroke="#7dd3fc" stroke-width="4"/>
+                            <path d="M256 220C292 130 402 80 432 130C452 160 392 230 256 220Z" fill="url(#wingGrad)" stroke="#7dd3fc" stroke-width="4"/>
+                            <!-- Abdómen com Riscas Realistas -->
+                            <ellipse cx="256" cy="350" rx="65" ry="110" fill="url(#bodyGrad)" transform="rotate(15 256 350)"/>
+                            <path d="M195 310L315 295" stroke="#1e1b4b" stroke-width="14" stroke-linecap="round"/>
+                            <path d="M185 360L325 345" stroke="#1e1b4b" stroke-width="14" stroke-linecap="round"/>
+                            <path d="M195 410L305 395" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
+                            <!-- Tórax Texturizado 3D -->
+                            <circle cx="256" cy="225" r="55" fill="#92400e" stroke="#fbbf24" stroke-width="6"/>
+                            <!-- Cabeça e Antenas Dinâmicas -->
+                            <circle cx="256" cy="135" r="38" fill="#451a03" stroke="#f59e0b" stroke-width="4"/>
+                            <path d="M235 105C215 70 180 55 155 45" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M277 105C297 70 332 55 357 45" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="brand-title">
@@ -593,7 +633,6 @@
                 <div class="prompt-fav-list" id="promptFavList"></div>
                 <button class="widget-btn" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
 
-                <!-- Conversor de Moedas com Emblema Geométrico -->
                 <div class="menu-category"><span class="geo-emblem"></span> Conversor de Câmbio</div>
                 <div class="widget-box">
                     <h5>Conversor Rápido</h5>
@@ -616,7 +655,6 @@
                     <div class="widget-result" id="convResult">Resultado: $1.10 USD</div>
                 </div>
 
-                <!-- Tarefas & Encomendas -->
                 <div class="menu-category"><span class="geo-emblem"></span> Tarefas & Encomendas</div>
                 <div class="widget-box">
                     <h5>Logística & Tarefas</h5>
