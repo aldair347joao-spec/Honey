@@ -135,14 +135,14 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; min-width: 0; }
         
-        /* LOGOTIPO 3D COM ABELHA REAL A VOAR */
+        /* LOGOTIPO 3D COM ABELHA RAINHA REAL A VOAR E COROA */
         .brand-logo-box {
             width: 48px; height: 48px;
-            background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.35), rgba(15, 23, 42, 0.9));
+            background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.4), rgba(15, 23, 42, 0.95));
             border: 1.5px solid var(--border-glow);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.3);
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
@@ -151,18 +151,18 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
             pointer-events: none;
         }
         .brand-logo-box svg {
-            width: 32px; height: 32px;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.6));
-            animation: floatBee 3s ease-in-out infinite;
+            width: 36px; height: 36px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+            animation: floatQueenBee 3.5s ease-in-out infinite;
         }
 
-        @keyframes floatBee {
-            0%, 100% { transform: translateY(0) rotate(-5deg); }
-            50% { transform: translateY(-2px) rotate(2deg); }
+        @keyframes floatQueenBee {
+            0%, 100% { transform: translateY(0) rotate(-3deg) scale(1); }
+            50% { transform: translateY(-3px) rotate(3deg) scale(1.02); }
         }
 
         .brand-title h2 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
@@ -586,34 +586,48 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- LOGOTIPO 3D COM ABELHA REAL A VOAR -->
+                    <!-- LOGOTIPO 3D COM ABELHA RAINHA REAL A VOAR E COROA -->
                     <div class="brand-logo-box">
                         <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85"/>
-                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3"/>
+                                <linearGradient id="wingGradQueen" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+                                    <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.4"/>
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2"/>
                                 </linearGradient>
-                                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#fbbf24"/>
-                                    <stop offset="50%" stop-color="#f59e0b"/>
+                                <linearGradient id="bodyGradQueen" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fef08a"/>
+                                    <stop offset="40%" stop-color="#fbbf24"/>
+                                    <stop offset="80%" stop-color="#d97706"/>
                                     <stop offset="100%" stop-color="#78350f"/>
                                 </linearGradient>
+                                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fff7ed"/>
+                                    <stop offset="50%" stop-color="#fbbf24"/>
+                                    <stop offset="100%" stop-color="#b45309"/>
+                                </linearGradient>
                             </defs>
-                            <!-- Asas 3D Translúcidas a Voar -->
-                            <path d="M256 220C220 130 110 80 80 130C60 160 120 230 256 220Z" fill="url(#wingGrad)" stroke="#7dd3fc" stroke-width="4"/>
-                            <path d="M256 220C292 130 402 80 432 130C452 160 392 230 256 220Z" fill="url(#wingGrad)" stroke="#7dd3fc" stroke-width="4"/>
-                            <!-- Abdómen com Riscas Realistas -->
-                            <ellipse cx="256" cy="350" rx="65" ry="110" fill="url(#bodyGrad)" transform="rotate(15 256 350)"/>
-                            <path d="M195 310L315 295" stroke="#1e1b4b" stroke-width="14" stroke-linecap="round"/>
-                            <path d="M185 360L325 345" stroke="#1e1b4b" stroke-width="14" stroke-linecap="round"/>
-                            <path d="M195 410L305 395" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
-                            <!-- Tórax Texturizado 3D -->
-                            <circle cx="256" cy="225" r="55" fill="#92400e" stroke="#fbbf24" stroke-width="6"/>
-                            <!-- Cabeça e Antenas Dinâmicas -->
-                            <circle cx="256" cy="135" r="38" fill="#451a03" stroke="#f59e0b" stroke-width="4"/>
-                            <path d="M235 105C215 70 180 55 155 45" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M277 105C297 70 332 55 357 45" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+                            <!-- Coroa Imperial Real da Abelha Rainha -->
+                            <path d="M226 75L241 40L256 65L271 40L286 75H226Z" fill="url(#crownGrad)" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round"/>
+                            <circle cx="241" cy="38" r="4" fill="#38bdf8"/>
+                            <circle cx="256" cy="60" r="5" fill="#ef4444"/>
+                            <circle cx="271" cy="38" r="4" fill="#38bdf8"/>
+                            <!-- Asas 3D Majestosas e Amplas a Voar -->
+                            <path d="M256 210C210 110 90 60 55 115C35 145 105 220 256 210Z" fill="url(#wingGradQueen)" stroke="#7dd3fc" stroke-width="4"/>
+                            <path d="M256 210C302 110 422 60 457 115C477 145 407 220 256 210Z" fill="url(#wingGradQueen)" stroke="#7dd3fc" stroke-width="4"/>
+                            <!-- Abdómen Longo e Real com Riscas -->
+                            <ellipse cx="256" cy="345" rx="60" ry="120" fill="url(#bodyGradQueen)" transform="rotate(15 256 345)"/>
+                            <path d="M190 300L320 285" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M182 345L328 330" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M190 390L315 375" stroke="#1e1b4b" stroke-width="11" stroke-linecap="round"/>
+                            <path d="M205 430L300 420" stroke="#1e1b4b" stroke-width="9" stroke-linecap="round"/>
+                            <!-- Tórax Superior 3D -->
+                            <circle cx="256" cy="220" r="52" fill="#78350f" stroke="#fbbf24" stroke-width="5"/>
+                            <!-- Cabeça -->
+                            <circle cx="256" cy="130" r="35" fill="#451a03" stroke="#f59e0b" stroke-width="4"/>
+                            <!-- Antenas Dinâmicas -->
+                            <path d="M235 100C210 65 170 50 145 40" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+                            <path d="M277 100C302 65 342 50 367 40" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="brand-title">
