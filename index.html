@@ -135,6 +135,8 @@
         }
 
         .brand-cluster { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        
+        /* ÚNICO LOCAL COM O LOGOTIPO DA ABELHA (EXCLUSIVO HONEY IA) */
         .brand-logo-box {
             width: 44px; height: 44px;
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(56, 189, 248, 0.1));
@@ -144,7 +146,7 @@
             box-shadow: 0 0 30px rgba(245, 158, 11, 0.25);
             flex-shrink: 0;
         }
-        .brand-logo-box svg { width: 22px; height: 22px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
+        .brand-logo-box svg { width: 24px; height: 24px; fill: var(--accent-primary); }
 
         .brand-title h2 { font-size: 1.15rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
         .brand-title span { font-size: 0.68rem; color: var(--neon-glow); text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; display: block; margin-top: 2px; }
@@ -185,7 +187,7 @@
         .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; opacity: 0.7; transition: var(--transition-lux); }
         .history-delete:hover { opacity: 1; }
 
-        /* Widgets da Sidebar */
+        /* Widgets da Sidebar com Emblemas Premium Geométricos */
         .widget-box {
             background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle);
             border-radius: 14px; padding: 12px; transition: var(--transition-lux);
@@ -565,8 +567,9 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
+                    <!-- LOGOTIPO EXCLUSIVO DA ABELHA PARA A HONEY IA -->
                     <div class="brand-logo-box">
-                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12,2C10.5,2 9.2,3.1 9,4.5C8.4,4.8 8,5.4 8,6.2C8,6.8 8.3,7.3 8.8,7.6C8.3,8.4 8,9.4 8,10.5C8,13 10,15 12.5,15C13.2,15 13.9,14.8 14.5,14.5C16.4,15.6 18.2,16.5 19.5,17C19.8,16.2 20.3,15 21,13.5C20.2,13.2 19.4,12.8 18.5,12.2C19,11.2 19.2,10 19,8.8C18.8,7.5 17.8,6.5 16.5,6.2C16.3,4.8 15,3.8 13.5,3.8C13,3.8 12.5,4 12,4.5C11.5,4 11,3.8 10.5,3.8C9.8,3.8 9.2,4 8.8,4.5C9,3.1 10.5,2 12,2Z"/></svg>
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
