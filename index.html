@@ -153,10 +153,35 @@
             transition: var(--transition-lux);
             flex-shrink: 0;
         }
-        .close-drawer:hover { background: rgba(255, 255, 255, 18); border-color: var(--border-glow); }
+        .close-drawer:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--border-glow); }
 
         .sidebar-body { padding: 18px 14px; overflow-y: auto; flex: 1; }
         .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 18px 0 12px 12px; text-transform: uppercase; opacity: 0.85; }
+
+        .new-chat-btn {
+            width: 100%; background: var(--accent-gradient); color: #030712; border: none;
+            padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: var(--transition-lux);
+        }
+        .new-chat-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+        .history-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; color: var(--text-muted);
+            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+            transition: var(--transition-lux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-item:hover, .history-item.active { background: rgba(255, 255, 255, 0.08); border-color: var(--border-glow); color: var(--text-main); }
+        .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; }
+
+        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+        .sidebar-file-item {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
+            padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
+            display: flex; align-items: center; justify-content: space-between;
+        }
 
         .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
         .theme-btn {
@@ -241,14 +266,22 @@
         }
         .hero-sub { font-size: 0.9rem; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-weight: 400; }
 
+        .quick-prompts-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 6px; max-width: 600px; }
+        .quick-prompt-pill {
+            background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
+            padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; color: var(--text-muted);
+            cursor: pointer; transition: var(--transition-lux);
+        }
+        .quick-prompt-pill:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(245, 158, 11, 0.08); }
+
         .dropzone-box {
             width: 100%; border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 18px; padding: 20px; text-align: center;
+            border-radius: 18px; padding: 18px; text-align: center;
             background: rgba(255, 255, 255, 0.02); transition: var(--transition-lux);
-            font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 10px;
+            font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 6px;
         }
         .dropzone-box.dragover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.05); color: var(--text-main); }
-        .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; }
+        .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%; justify-content: center; }
         .file-pill { background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
         .input-dock { width: 100%; margin-top: auto; padding-top: 12px; padding-bottom: env(safe-area-inset-bottom, 16px); }
@@ -302,12 +335,12 @@
         .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
 
         .bubble-actions-group { display: flex; gap: 8px; align-items: center; }
-        .pitch-deck-btn {
+        .pitch-deck-btn, .export-md-btn {
             background: rgba(245, 158, 11, 0.1); border: 1px solid var(--border-glow); color: var(--accent-primary);
             padding: 6px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: var(--transition-lux);
         }
-        .pitch-deck-btn:hover { background: rgba(245, 158, 11, 0.2); }
+        .pitch-deck-btn:hover, .export-md-btn:hover { background: rgba(245, 158, 11, 0.2); }
 
         .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
 
@@ -381,16 +414,21 @@
                 <button class="close-drawer" id="closeDrawer">✕</button>
             </div>
             <div class="sidebar-body">
-                <div class="menu-category">Atmosfera Visual (Temas)</div>
+                <button class="new-chat-btn" id="newChatBtn">＋ Nova Conversa</button>
+                
+                <div class="menu-category">Histórico de Conversas</div>
+                <div class="history-list" id="historyList"></div>
+
+                <div class="menu-category" style="margin-top:20px;">Gestor de Ficheiros</div>
+                <div class="sidebar-file-list" id="sidebarFileList">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
+                </div>
+
+                <div class="menu-category" style="margin-top:20px;">Atmosfera Visual (Temas)</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
                     <button class="theme-btn" onclick="setTheme('emerald', this)">Emerald</button>
-                </div>
-
-                <div class="menu-category" style="margin-top:25px;">Navegação do Sistema</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; padding: 0 10px;">
-                    Ecossistema operativo configurado com persistência quântica e multi-agentes ativos.
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -422,11 +460,17 @@
             </header>
 
             <div class="hero-view" id="heroView">
-                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 14px; max-width: 600px;">
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; max-width: 600px;">
                     <span style="font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">Ecossistema Quântico Integrado</span>
                     <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
-                    <p class="hero-sub">Carregue ficheiros por arrastamento ou inicie conversas executivas avançadas.</p>
+                    <p class="hero-sub">Carregue ficheiros por arrastamento ou escolha um prompt rápido abaixo.</p>
                     
+                    <div class="quick-prompts-grid">
+                        <div class="quick-prompt-pill" onclick="selectPrompt('Analisar Margens de Lucro e Custos')">📊 Analisar Margens</div>
+                        <div class="quick-prompt-pill" onclick="selectPrompt('Estruturar Campanha de Marketing')">🚀 Estruturar Marketing</div>
+                        <div class="quick-prompt-pill" onclick="selectPrompt('Otimizar Arquitetura de Software')">⚙️ Otimizar Código</div>
+                    </div>
+
                     <div class="dropzone-box" id="dropzoneBox">
                         📂 Arraste ficheiros PDF, Excel ou Imagens para aqui ou clique para selecionar
                         <input type="file" id="fileInput" style="display: none;" multiple>
@@ -456,9 +500,8 @@
                             Núcleo Quântico Ativo
                         </div>
                         <div class="bubble-actions-group">
-                            <button class="pitch-deck-btn" id="openPitchBtn">
-                                📊 Ver Pitch Deck
-                            </button>
+                            <button class="export-md-btn" id="exportMdBtn">📥 Exportar MD</button>
+                            <button class="pitch-deck-btn" id="openPitchBtn">📊 Ver Pitch Deck</button>
                         </div>
                     </div>
                     <p id="aiResponseNode">A processar parâmetros executivos e simulação avançada...</p>
@@ -478,10 +521,14 @@
     </div>
 
     <script>
+        let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
+        let uploadedFiles = [];
+        let currentSessionId = null;
+
         function setTheme(themeName, btn) {
             document.body.className = `theme-${themeName}`;
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            if(btn) btn.classList.add('active');
             triggerAutoSave();
         }
 
@@ -497,37 +544,69 @@
         document.getElementById('openPitchBtn').addEventListener('click', () => pitchModal.classList.add('active'));
         document.getElementById('closePitch').addEventListener('click', () => pitchModal.classList.remove('active'));
 
+        document.getElementById('exportMdBtn').addEventListener('click', () => {
+            const query = document.getElementById('userQueryNode').textContent;
+            const resp = document.getElementById('aiResponseNode').textContent;
+            const mdContent = `# Relatório Executivo - Honey IA\n\n## Pergunta / Comando\n${query}\n\n## Resposta do Núcleo\n${resp}\n`;
+            const blob = new Blob([mdContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'relatorio-honey-ia.md';
+            a.click();
+        });
+
         const dropzone = document.getElementById('dropzoneBox');
         const fileInput = document.getElementById('fileInput');
         const filePreviewList = document.getElementById('filePreviewList');
+        const sidebarFileList = document.getElementById('sidebarFileList');
 
         dropzone.addEventListener('click', () => fileInput.click());
-        
         ['dragenter', 'dragover'].forEach(eventName => {
             dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
         });
         ['dragleave', 'drop'].forEach(eventName => {
             dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
         });
-        
-        dropzone.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            handleFiles(files);
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
+        dropzone.addEventListener('drop', (e) => { handleFiles(e.dataTransfer.files); });
+        fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); });
 
         function handleFiles(files) {
-            filePreviewList.innerHTML = '';
             Array.from(files).forEach(file => {
+                uploadedFiles.push(file.name);
+            });
+            renderFileList();
+            triggerAutoSave();
+        }
+
+        function renderFileList() {
+            filePreviewList.innerHTML = '';
+            sidebarFileList.innerHTML = '';
+            if (uploadedFiles.length === 0) {
+                sidebarFileList.innerHTML = `<div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>`;
+                return;
+            }
+            uploadedFiles.forEach((name, idx) => {
                 const pill = document.createElement('div');
                 pill.className = 'file-pill';
-                pill.innerHTML = `📄 ${file.name}`;
+                pill.innerHTML = `📄 ${name}`;
                 filePreviewList.appendChild(pill);
+
+                const item = document.createElement('div');
+                item.className = 'sidebar-file-item';
+                item.innerHTML = `<span>📄 ${name}</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFile(${idx})">✕</button>`;
+                sidebarFileList.appendChild(item);
             });
+        }
+
+        function removeFile(idx) {
+            uploadedFiles.splice(idx, 1);
+            renderFileList();
             triggerAutoSave();
+        }
+
+        function selectPrompt(text) {
+            document.getElementById('heroInput').value = text;
         }
 
         const sidebar = document.getElementById('sidebar');
@@ -547,13 +626,82 @@
             }, 800);
         }
 
-        function initiateSession(text) {
-            if (!text.trim()) return;
-            document.getElementById('userQueryNode').textContent = text;
-            document.getElementById('aiResponseNode').textContent = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema foram sincronizados com sucesso.`;
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if (sessions.length === 0) {
+                list.innerHTML = `<div style="font-size: 0.75rem; color: var(--text-muted); padding: 4px; font-style: italic;">Sem conversas guardadas.</div>`;
+                return;
+            }
+            sessions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = `history-item ${s.id === currentSessionId ? 'active' : ''}`;
+                item.innerHTML = `<span>💬 ${s.title}</span><button class="history-delete" onclick="deleteSession(event, '${s.id}')">✕</button>`;
+                item.onclick = () => loadSession(s.id);
+                list.appendChild(item);
+            });
+        }
+
+        function saveSession(title, query, response) {
+            if (!currentSessionId) {
+                currentSessionId = 'sess_' + Date.now();
+                sessions.unshift({ id: currentSessionId, title: title.substring(0, 25), query, response });
+            } else {
+                const s = sessions.find(item => item.id === currentSessionId);
+                if (s) {
+                    s.query = query;
+                    s.response = response;
+                }
+            }
+            localStorage.setItem('honey_sessions', JSON.stringify(sessions));
+            renderHistory();
+        }
+
+        function loadSession(id) {
+            const s = sessions.find(item => item.id === id);
+            if (!s) return;
+            currentSessionId = s.id;
+            document.getElementById('userQueryNode').textContent = s.query;
+            document.getElementById('aiResponseNode').textContent = s.response;
             document.getElementById('heroView').classList.add('hidden');
             document.getElementById('chatStream').classList.add('active');
             document.getElementById('activeDock').classList.add('active');
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+            renderHistory();
+        }
+
+        function deleteSession(e, id) {
+            e.stopPropagation();
+            sessions = sessions.filter(item => item.id !== id);
+            localStorage.setItem('honey_sessions', JSON.stringify(sessions));
+            if (currentSessionId === id) {
+                resetToHome();
+            }
+            renderHistory();
+        }
+
+        function resetToHome() {
+            currentSessionId = null;
+            document.getElementById('heroView').classList.remove('hidden');
+            document.getElementById('chatStream').classList.remove('active');
+            document.getElementById('activeDock').classList.remove('active');
+            document.getElementById('heroInput').value = '';
+            renderHistory();
+        }
+
+        document.getElementById('newChatBtn').addEventListener('click', resetToHome);
+
+        function initiateSession(text) {
+            if (!text.trim()) return;
+            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema e ficheiros associados foram sincronizados com sucesso.`;
+            document.getElementById('userQueryNode').textContent = text;
+            document.getElementById('aiResponseNode').textContent = responseText;
+            document.getElementById('heroView').classList.add('hidden');
+            document.getElementById('chatStream').classList.add('active');
+            document.getElementById('activeDock').classList.add('active');
+            
+            saveSession(text, text, responseText);
             triggerAutoSave();
         }
 
@@ -582,6 +730,8 @@
             stream.scrollTop = stream.scrollHeight;
             triggerAutoSave();
         });
+
+        renderHistory();
     </script>
 </body>
 </html>
