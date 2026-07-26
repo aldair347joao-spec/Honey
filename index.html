@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Quantum Luxury Intelligence v2.5</title>
+    <title>Honey IA — Quantum Luxury Intelligence v3.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,14 +12,36 @@
             --bg-surface-hover: rgba(16, 24, 43, 0.95);
             --border-subtle: rgba(255, 255, 255, 0.12);
             --border-glow: rgba(245, 158, 11, 0.6);
-            --neon-blue: #38bdf8;
-            --gold-primary: #f59e0b;
-            --gold-light: #fbbf24;
-            --gold-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            --accent-primary: #f59e0b;
+            --accent-light: #fbbf24;
+            --accent-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            --neon-glow: #38bdf8;
             --text-main: #f8fafc;
             --text-muted: #cbd5e1;
             --shadow-lux: 0 20px 50px rgba(0, 0, 0, 0.85);
             --transition-lux: all 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.theme-gold {
+            --accent-primary: #f59e0b;
+            --accent-light: #fbbf24;
+            --accent-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+            --neon-glow: #38bdf8;
+            --border-glow: rgba(245, 158, 11, 0.6);
+        }
+        body.theme-neon {
+            --accent-primary: #38bdf8;
+            --accent-light: #7dd3fc;
+            --accent-gradient: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 50%, #0284c7 100%);
+            --neon-glow: #a855f7;
+            --border-glow: rgba(56, 189, 248, 0.6);
+        }
+        body.theme-emerald {
+            --accent-primary: #10b981;
+            --accent-light: #34d399;
+            --accent-gradient: linear-gradient(135deg, #34d399 0%, #10b981 50%, #047857 100%);
+            --neon-glow: #38bdf8;
+            --border-glow: rgba(16, 185, 129, 0.6);
         }
 
         * {
@@ -29,7 +51,6 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         body, html {
@@ -44,10 +65,11 @@
             position: fixed;
             inset: 0;
             background: 
-                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.1) 0%, transparent 40%),
                 var(--bg-deep);
             z-index: -2;
+            transition: var(--transition-lux);
         }
 
         .quantum-grid {
@@ -68,7 +90,6 @@
             overflow: hidden;
         }
 
-        /* Sidebar & Modals */
         .sidebar {
             position: fixed;
             top: 0;
@@ -112,17 +133,16 @@
         .brand-logo-box {
             width: 42px; height: 42px;
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(56, 189, 248, 0.18));
-            border: 1.5px solid rgba(245, 158, 11, 0.65);
+            border: 1.5px solid var(--border-glow);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
             flex-shrink: 0;
         }
-        .brand-logo-box svg { width: 22px; height: 22px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
+        .brand-logo-box svg { width: 22px; height: 22px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
 
-        .brand-title { min-width: 0; flex: 1; }
-        .brand-title h2 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .brand-title span { font-size: 0.68rem; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .brand-title h2 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; }
+        .brand-title span { font-size: 0.68rem; color: var(--neon-glow); text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; display: block; }
 
         .close-drawer {
             background: rgba(255, 255, 255, 0.08);
@@ -131,73 +151,37 @@
             width: 38px; height: 38px; border-radius: 12px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: var(--transition-lux);
-            flex-shrink: 0; margin-left: 10px;
+            flex-shrink: 0;
         }
-        .close-drawer:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(245, 158, 11, 0.5); }
+        .close-drawer:hover { background: rgba(255, 255, 255, 18); border-color: var(--border-glow); }
 
         .sidebar-body { padding: 18px 14px; overflow-y: auto; flex: 1; }
         .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 18px 0 12px 12px; text-transform: uppercase; opacity: 0.85; }
 
-        .nav-grid { display: flex; flex-direction: column; gap: 8px; }
-        .nav-item {
-            display: flex; align-items: center; gap: 14px;
-            width: 100%; padding: 14px 16px;
-            background: transparent; border: 1px solid transparent;
-            color: var(--text-muted); border-radius: 14px;
-            cursor: pointer; font-size: 0.9rem; font-weight: 500;
-            transition: var(--transition-lux);
-            text-align: left;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .theme-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
+            padding: 8px; border-radius: 10px; font-size: 0.72rem; color: var(--text-muted);
+            cursor: pointer; text-align: center; transition: var(--transition-lux); font-weight: 600;
         }
-        .nav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.2; flex-shrink: 0; }
-        .nav-item:hover { background: rgba(255, 255, 255, 0.07); color: var(--text-main); }
-        .nav-item.active { 
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(56, 189, 248, 0.1));
-            color: #fff; border-color: rgba(245, 158, 11, 0.6); font-weight: 600;
-        }
-        .nav-item.active svg { stroke: var(--gold-primary); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7)); }
-
-        /* Nova Secção: Analytics e Snippets na Sidebar */
-        .analytics-widget {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            border-radius: 14px;
-            padding: 14px;
-            margin-top: 15px;
-        }
-        .analytics-widget h5 { font-size: 0.75rem; color: var(--gold-light); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 700; }
-        .analytics-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
-        .analytics-row span:last-child { color: var(--neon-blue); font-weight: 600; }
-
-        .snippets-vault-list { display: flex; flex-direction: column; gap: 6px; }
-        .snippet-item {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-subtle);
-            padding: 8px 12px; border-radius: 10px;
-            font-size: 0.78rem; color: var(--text-main);
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; transition: var(--transition-lux);
-        }
-        .snippet-item:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--gold-primary); }
+        .theme-btn.active, .theme-btn:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(255, 255, 255, 0.1); }
 
         .sidebar-footer {
             padding: 18px 20px;
             border-top: 1px solid var(--border-subtle);
             background: rgba(3, 7, 18, 0.95); flex-shrink: 0;
         }
-        .user-card { display: flex; align-items: center; gap: 14px; min-width: 0; }
+        .user-card { display: flex; align-items: center; gap: 14px; }
         .user-avatar {
             width: 40px; height: 40px;
-            background: var(--gold-gradient);
+            background: var(--accent-gradient);
             color: #030712;
             border-radius: 12px; display: flex; align-items: center; justify-content: center;
             font-weight: 800; font-size: 1rem; flex-shrink: 0;
         }
-        .user-meta { min-width: 0; flex: 1; }
-        .user-meta h4 { font-size: 0.95rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-meta span { font-size: 0.72rem; color: var(--neon-blue); font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-meta h4 { font-size: 0.95rem; font-weight: 700; color: #f8fafc; }
+        .user-meta span { font-size: 0.72rem; color: var(--neon-glow); font-weight: 600; display: block; }
 
-        /* Workspace Principal */
         .workspace {
             flex: 1; display: flex; flex-direction: column;
             height: 100%; width: 100%; position: relative; overflow: hidden;
@@ -221,20 +205,16 @@
         .menu-trigger:hover { border-color: var(--border-glow); background: var(--bg-surface-hover); }
         .menu-trigger svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 
-        /* Seletor de Multi-Agente na Top Bar */
-        .agent-selector-wrapper {
-            display: flex; align-items: center; gap: 10px; margin-left: 15px;
-        }
-        .agent-select {
+        .cloud-sync-pill {
             background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-            padding: 10px 14px; border-radius: 14px;
-            font-size: 0.82rem; font-weight: 600; outline: none; cursor: pointer;
-            backdrop-filter: blur(25px); box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            transition: var(--transition-lux);
+            color: var(--text-muted);
+            padding: 8px 14px; border-radius: 14px;
+            font-size: 0.75rem; font-weight: 600; backdrop-filter: blur(25px);
+            display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
-        .agent-select:hover { border-color: var(--gold-primary); }
+        .sync-dot { width: 7px; height: 7px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; transition: var(--transition-lux); }
+        .sync-dot.saving { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
 
         .executive-pill {
             background: var(--bg-surface);
@@ -243,11 +223,9 @@
             padding: 10px 18px; border-radius: 16px;
             font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(25px);
             display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .status-dot { width: 9px; height: 9px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 12px var(--neon-blue); flex-shrink: 0; }
+        .status-dot { width: 9px; height: 9px; background: var(--neon-glow); border-radius: 50%; box-shadow: 0 0 12px var(--neon-glow); flex-shrink: 0; }
 
-        /* Hero View */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -256,26 +234,22 @@
         }
         .hero-view.hidden { display: none; }
 
-        .hero-content-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; }
-        .dynamic-context-badge { font-size: 0.78rem; color: var(--neon-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 4px; }
         .hero-heading {
             font-size: clamp(1.4rem, 4vw, 2.3rem); font-weight: 800; letter-spacing: -0.02em;
             background: linear-gradient(180deg, #f8fafc 20%, #cbd5e1 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.25;
         }
-        .hero-sub { font-size: 0.9rem; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-weight: 400; margin-bottom: 6px; }
+        .hero-sub { font-size: 0.9rem; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-weight: 400; }
 
-        .suggestions-wrapper { width: 100%; margin-top: 6px; }
-        .suggestions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
-        .suggestion-card {
-            background: var(--bg-surface); backdrop-filter: blur(35px);
-            border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 18px;
-            font-size: 0.82rem; font-weight: 600; color: var(--text-main);
-            cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
-            transition: var(--transition-lux); text-align: left; box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+        .dropzone-box {
+            width: 100%; border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 18px; padding: 20px; text-align: center;
+            background: rgba(255, 255, 255, 0.02); transition: var(--transition-lux);
+            font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 10px;
         }
-        .suggestion-card svg { width: 18px; height: 18px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
-        .suggestion-card:hover { background: var(--bg-surface-hover); border-color: var(--border-glow); transform: translateY(-2px); }
+        .dropzone-box.dragover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.05); color: var(--text-main); }
+        .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; }
+        .file-pill { background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
         .input-dock { width: 100%; margin-top: auto; padding-top: 12px; padding-bottom: env(safe-area-inset-bottom, 16px); }
         .ai-input-box {
@@ -284,12 +258,12 @@
             box-shadow: var(--shadow-lux); transition: var(--transition-lux);
         }
         .ai-input-box:focus-within { 
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 0 1.5px var(--neon-blue), 0 20px 40px rgba(0, 0, 0, 0.9);
+            border-color: var(--neon-glow);
+            box-shadow: 0 0 0 1.5px var(--neon-glow), 0 20px 40px rgba(0, 0, 0, 0.9);
         }
         .ai-textarea {
             width: 100%; background: none; border: none; color: var(--text-main);
-            font-size: 0.95rem; font-weight: 500; resize: none; max-height: 120px; outline: none; line-height: 1.45; min-height: 24px;
+            font-size: 0.95rem; font-weight: 500; resize: none; max-height: 120px; outline: none; line-height: 1.45;
         }
         .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
 
@@ -297,62 +271,101 @@
             display: flex; align-items: center; justify-content: space-between;
             border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-top: 10px;
         }
-        .input-tools-left { display: flex; align-items: center; gap: 10px; }
-
-        .action-icon-btn {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main);
-            width: 38px; height: 38px; border-radius: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: var(--transition-lux);
-        }
-        .action-icon-btn:hover { background: rgba(56, 189, 248, 0.15); color: var(--neon-blue); border-color: rgba(56, 189, 248, 0.4); }
-        .action-icon-btn.recording { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; animation: pulse 1.5s infinite; }
-        .action-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
-
+        
         .submit-engine-btn {
-            background: var(--gold-gradient); color: #030712; border: none;
+            background: var(--accent-gradient); color: #030712; border: none;
             width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5); transition: var(--transition-lux);
         }
         .submit-engine-btn svg { width: 18px; height: 18px; stroke: #030712; fill: none; stroke-width: 2.8; }
 
-        /* Chat Stream & Export */
         .chat-stream-container {
             flex: 1; overflow-y: auto; padding: 100px 20px 24px 20px;
             display: none; flex-direction: column; gap: 16px; max-width: 750px; width: 100%; margin: 0 auto;
         }
         .chat-stream-container.active { display: flex; }
+        
         .chat-bubble-user {
             align-self: flex-end; background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(56, 189, 248, 0.12));
-            border: 1px solid rgba(245, 158, 11, 0.55); color: #f8fafc; padding: 14px 18px; border-radius: 18px; font-size: 0.92rem; max-width: 85%;
+            border: 1px solid var(--border-glow); color: #f8fafc; padding: 14px 18px; border-radius: 18px; font-size: 0.92rem; max-width: 85%;
+            word-break: break-word;
         }
+        
         .chat-bubble-ai {
             background-color: var(--bg-surface); backdrop-filter: blur(40px);
             border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px; width: 100%; box-shadow: 0 15px 45px rgba(0,0,0,0.35);
         }
+        
         .ai-bubble-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .ai-bubble-title { font-size: 0.98rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
-        .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
-        
-        .export-report-btn {
-            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: var(--neon-blue);
+        .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
+
+        .bubble-actions-group { display: flex; gap: 8px; align-items: center; }
+        .pitch-deck-btn {
+            background: rgba(245, 158, 11, 0.1); border: 1px solid var(--border-glow); color: var(--accent-primary);
             padding: 6px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: var(--transition-lux);
         }
-        .export-report-btn:hover { background: rgba(56, 189, 248, 0.2); }
+        .pitch-deck-btn:hover { background: rgba(245, 158, 11, 0.2); }
+
         .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
+
+        .pitch-modal {
+            position: fixed; inset: 0; background: rgba(3, 7, 18, 0.95); backdrop-filter: blur(30px);
+            z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
+        }
+        .pitch-modal.active { display: flex; }
+        .pitch-slide-card {
+            background: var(--bg-surface); border: 1.5px solid var(--border-glow); border-radius: 24px;
+            padding: 40px; max-width: 700px; width: 100%; min-height: 350px; display: flex; flex-direction: column;
+            justify-content: space-between; box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+        }
+        .pitch-slide-title { font-size: 1.8rem; font-weight: 800; color: #f8fafc; margin-bottom: 16px; }
+        .pitch-slide-content { font-size: 1.1rem; color: var(--text-muted); line-height: 1.7; }
+        .pitch-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid var(--border-subtle); padding-top: 20px; }
+        .pitch-close { background: var(--accent-gradient); color: #030712; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        .fin-calc-widget {
+            position: fixed; bottom: 20px; right: 20px; z-index: 999;
+            background: var(--bg-surface); border: 1px solid var(--border-glow);
+            border-radius: 18px; padding: 14px 18px; backdrop-filter: blur(30px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7); width: 260px;
+        }
+        .fin-calc-widget h5 { font-size: 0.75rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.82rem; margin-bottom: 6px; outline: none; }
+        .fin-calc-result { font-size: 0.8rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; }
 
         .active-dock { display: none; width: 100%; max-width: 750px; margin: 0 auto; padding: 10px 20px 20px 20px; }
         .active-dock.active { display: block; }
     </style>
 </head>
-<body>
+<body class="theme-gold">
     <div class="quantum-atmosphere"></div>
     <div class="quantum-grid"></div>
+    
+    <div class="pitch-modal" id="pitchModal">
+        <div class="pitch-slide-card">
+            <div>
+                <span style="font-size: 0.75rem; color: var(--neon-glow); text-transform: uppercase; font-weight: 700; letter-spacing: 0.2em;">Modo Apresentação Executiva</span>
+                <h2 class="pitch-slide-title" id="pitchTitle">Estratégia de Expansão & Ecossistema</h2>
+                <p class="pitch-slide-content" id="pitchContent">Simulação quântica concluída com sucesso. Alocação de recursos otimizada para o ecossistema empresarial e académico.</p>
+            </div>
+            <div class="pitch-footer">
+                <span style="font-size: 0.8rem; color: var(--text-muted);" id="pitchCounter">Slide 1 de 1</span>
+                <button class="pitch-close" id="closePitch">Fechar Apresentação</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fin-calc-widget">
+        <h5>Calculadora de Margens</h5>
+        <input type="number" class="fin-calc-input" id="calcCost" placeholder="Custo de aquisição ($)" oninput="calculateMargin()">
+        <input type="number" class="fin-calc-input" id="calcPrice" placeholder="Preço de venda ($)" oninput="calculateMargin()">
+        <div class="fin-calc-result" id="calcResult">Lucro: $0.00 (0%)</div>
+    </div>
+
     <div class="app-shell">
-        <!-- Sidebar -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -362,49 +375,22 @@
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span>Quantum Suite v2.5</span>
+                        <span>Quantum Suite v3.0</span>
                     </div>
                 </div>
                 <button class="close-drawer" id="closeDrawer">✕</button>
             </div>
             <div class="sidebar-body">
-                <div class="menu-category">Arquitetura de Soluções</div>
-                <div class="nav-grid">
-                    <button class="nav-item active" data-category="empresarial">
-                        <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"></path></svg>
-                        Empresarial & Sites
-                    </button>
-                    <button class="nav-item" data-category="web">
-                        <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                        Desenvolvimento Web/App
-                    </button>
-                    <button class="nav-item" data-category="marketing">
-                        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                        Marketing & Vídeos
-                    </button>
-                    <button class="nav-item" data-category="excel">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                        Excel & Contabilidade
-                    </button>
+                <div class="menu-category">Atmosfera Visual (Temas)</div>
+                <div class="theme-selector-grid">
+                    <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
+                    <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
+                    <button class="theme-btn" onclick="setTheme('emerald', this)">Emerald</button>
                 </div>
 
-                <!-- 1. Painel de Analytics em Tempo Real -->
-                <div class="analytics-widget">
-                    <h5>Analytics do Nó</h5>
-                    <div class="analytics-row"><span>Tokens Usados:</span><span id="tokenCount">1,420</span></div>
-                    <div class="analytics-row"><span>Latência Média:</span><span>124ms</span></div>
-                    <div class="analytics-row"><span>Consultas Hoje:</span><span id="queryCount">8</span></div>
-                </div>
-
-                <!-- 2. Snippets Vault (Repositório de Código) -->
-                <div class="menu-category" style="margin-top:20px;">Snippets Vault</div>
-                <div class="snippets-vault-list">
-                    <div class="snippet-item" onclick="insertSnippet('const express = require(\'express\');\nconst app = express();')">
-                        <span>Express Server Setup</span> <span>📋</span>
-                    </div>
-                    <div class="snippet-item" onclick="insertSnippet('SELECT * FROM ecossistema WHERE status = \'ativo\';')">
-                        <span>SQL Core Query</span> <span>📋</span>
-                    </div>
+                <div class="menu-category" style="margin-top:25px;">Navegação do Sistema</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; padding: 0 10px;">
+                    Ecossistema operativo configurado com persistência quântica e multi-agentes ativos.
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -418,38 +404,33 @@
             </div>
         </aside>
 
-        <!-- Main Workspace -->
         <main class="workspace">
             <header class="top-nav-bar">
                 <button class="menu-trigger" id="menuTrigger">
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 
-                <!-- 3. Modo Multi-Agente Seletor -->
-                <div class="agent-selector-wrapper">
-                    <select class="agent-select" id="agentSelect">
-                        <option value="exec">🤖 Agente Executivo Geral</option>
-                        <option value="physics">⚛️ Física & Ciências (Académico)</option>
-                        <option value="accounting">📊 Contabilidade & Excel</option>
-                        <option value="ecommerce">🛒 E-commerce & Importação</option>
-                    </select>
+                <div class="cloud-sync-pill" id="syncPill">
+                    <div class="sync-dot" id="syncDot"></div>
+                    <span id="syncText">Cloud Sincronizada</span>
                 </div>
 
-                <div class="executive-pill" style="margin-left:auto;">
+                <div class="executive-pill">
                     <div class="status-dot"></div>
                     Aldair
                 </div>
             </header>
 
-            <!-- Hero Welcome -->
             <div class="hero-view" id="heroView">
-                <div class="hero-content-group">
-                    <div class="dynamic-context-badge" id="dynamicContextBadge">✨ Bom dia, Aldair • Pronto para otimizar o ecossistema?</div>
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 14px; max-width: 600px;">
+                    <span style="font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">Ecossistema Quântico Integrado</span>
                     <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
-                    <p class="hero-sub">Arquitetura avançada, multi-agentes especializados e automação neural por conversação.</p>
+                    <p class="hero-sub">Carregue ficheiros por arrastamento ou inicie conversas executivas avançadas.</p>
                     
-                    <div class="suggestions-wrapper">
-                        <div class="suggestions-grid" id="suggestionsGrid"></div>
+                    <div class="dropzone-box" id="dropzoneBox">
+                        📂 Arraste ficheiros PDF, Excel ou Imagens para aqui ou clique para selecionar
+                        <input type="file" id="fileInput" style="display: none;" multiple>
+                        <div class="file-list-preview" id="filePreviewList"></div>
                     </div>
                 </div>
 
@@ -457,13 +438,7 @@
                     <div class="ai-input-box">
                         <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou comande a IA..." rows="1"></textarea>
                         <div class="input-actions-bar">
-                            <div class="input-tools-left">
-                                <!-- 4. Comandos de Voz Nativos -->
-                                <button class="action-icon-btn" id="voiceBtn" title="Gravar comando por voz">
-                                    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                                </button>
-                                <span class="quick-attachment-tag">+ Ficheiro / Anexo</span>
-                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Honey IA v3.0 Ativo</span>
                             <button class="submit-engine-btn" id="heroSubmit">
                                 <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                             </button>
@@ -472,7 +447,6 @@
                 </div>
             </div>
 
-            <!-- Active Chat Stream -->
             <div class="chat-stream-container" id="chatStream">
                 <div class="chat-bubble-user" id="userQueryNode"></div>
                 <div class="chat-bubble-ai">
@@ -481,12 +455,13 @@
                             <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             Núcleo Quântico Ativo
                         </div>
-                        <!-- 5. Exportação Avançada de Relatórios -->
-                        <button class="export-report-btn" id="exportReportBtn">
-                            📥 Exportar Markdown / PDF
-                        </button>
+                        <div class="bubble-actions-group">
+                            <button class="pitch-deck-btn" id="openPitchBtn">
+                                📊 Ver Pitch Deck
+                            </button>
+                        </div>
                     </div>
-                    <p>A processar parâmetros executivos e simulação multi-agente...</p>
+                    <p id="aiResponseNode">A processar parâmetros executivos e simulação avançada...</p>
                 </div>
             </div>
 
@@ -494,9 +469,7 @@
                 <div class="ai-input-box">
                     <textarea class="ai-textarea" id="activeInput" placeholder="Continuar conversação..." rows="1"></textarea>
                     <div class="input-actions-bar">
-                        <div class="input-tools-left">
-                            <button class="action-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Sessão Ativa</span>
                         <button class="submit-engine-btn" id="activeSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                     </div>
                 </div>
@@ -505,85 +478,57 @@
     </div>
 
     <script>
-        let queryCounter = 8;
-        let tokenCounter = 1420;
+        function setTheme(themeName, btn) {
+            document.body.className = `theme-${themeName}`;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            triggerAutoSave();
+        }
 
-        const agentPrompts = {
-            exec: [
-                { title: "Estratégia de Expansão", prompt: "Desenvolver plano de expansão comercial e cross-selling para o negócio." },
-                { title: "Automação de Processos", prompt: "Criar fluxos automatizados de atendimento e gestão interna." }
-            ],
-            physics: [
-                { title: "Resolução de Problemas de Física", prompt: "Resolver equações avançadas de cinemática e dinâmica com explicações passo a passo." },
-                { title: "Planeamento de Provas Académicas", prompt: "Criar estrutura de testes e exercícios práticos para aulas de Física." }
-            ],
-            accounting: [
-                { title: "Balanço Patrimonial", prompt: "Criar modelo avançado de contabilidade e balanço financeiro em Excel." },
-                { title: "Fluxo de Caixa Dinâmico", prompt: "Desenvolver projeções financeiras automatizadas a 12 meses." }
-            ],
-            ecommerce: [
-                { title: "Cálculo de Custos de Importação", prompt: "Calcular taxas alfandegárias, fretes e margens de lucro de produtos da China." },
-                { title: "Gestão de Inventário", prompt: "Criar folha de controlo de stock e ponto de encomenda otimizado." }
-            ]
-        };
+        function calculateMargin() {
+            const cost = parseFloat(document.getElementById('calcCost').value) || 0;
+            const price = parseFloat(document.getElementById('calcPrice').value) || 0;
+            const profit = price - cost;
+            const margin = price > 0 ? ((profit / price) * 100).toFixed(1) : 0;
+            document.getElementById('calcResult').textContent = `Lucro: $${profit.toFixed(2)} (${margin}%)`;
+        }
 
-        function renderSuggestions(agentKey) {
-            const grid = document.getElementById('suggestionsGrid');
-            const items = agentPrompts[agentKey] || agentPrompts['exec'];
-            grid.innerHTML = '';
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'suggestion-card';
-                card.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${item.title}`;
-                card.addEventListener('click', () => initiateSession(item.prompt));
-                grid.appendChild(card);
+        const pitchModal = document.getElementById('pitchModal');
+        document.getElementById('openPitchBtn').addEventListener('click', () => pitchModal.classList.add('active'));
+        document.getElementById('closePitch').addEventListener('click', () => pitchModal.classList.remove('active'));
+
+        const dropzone = document.getElementById('dropzoneBox');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviewList = document.getElementById('filePreviewList');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); }, false);
+        });
+        
+        dropzone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            filePreviewList.innerHTML = '';
+            Array.from(files).forEach(file => {
+                const pill = document.createElement('div');
+                pill.className = 'file-pill';
+                pill.innerHTML = `📄 ${file.name}`;
+                filePreviewList.appendChild(pill);
             });
+            triggerAutoSave();
         }
-        renderSuggestions('exec');
-
-        document.getElementById('agentSelect').addEventListener('change', (e) => {
-            renderSuggestions(e.target.value);
-        });
-
-        // Snippet Vault Action
-        function insertSnippet(code) {
-            const activeTa = document.getElementById('heroView').classList.contains('hidden') ? document.getElementById('activeInput') : document.getElementById('heroInput');
-            activeTa.value += code;
-            activeTa.focus();
-        }
-
-        // Voice Command Simulation (Web Speech API)
-        const voiceBtn = document.getElementById('voiceBtn');
-        voiceBtn.addEventListener('click', () => {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('O seu navegador não suporta reconhecimento de voz nativo.');
-                return;
-            }
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'pt-PT';
-            
-            voiceBtn.classList.add('recording');
-            recognition.onresult = (event) => {
-                const speechToText = event.results[0][0].transcript;
-                document.getElementById('heroInput').value = speechToText;
-                voiceBtn.classList.remove('recording');
-            };
-            recognition.onerror = () => voiceBtn.classList.remove('recording');
-            recognition.onend = () => voiceBtn.classList.remove('recording');
-            recognition.start();
-        });
-
-        // Export Report Simulation
-        document.getElementById('exportReportBtn').addEventListener('click', () => {
-            const reportContent = "# Relatório Executivo - Honey IA\n\nGerado para: Aldair\nData: 2026-07-26\n\nResultados do processamento quântico e multi-agente concluídos com sucesso.";
-            const blob = new Blob([reportContent], { type: 'text/markdown;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Honey_IA_Relatorio_Executivo.md';
-            a.click();
-        });
 
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -591,32 +536,51 @@
         document.getElementById('closeDrawer').addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
         sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
 
+        function triggerAutoSave() {
+            const dot = document.getElementById('syncDot');
+            const txt = document.getElementById('syncText');
+            dot.classList.add('saving');
+            txt.textContent = 'A guardar...';
+            setTimeout(() => {
+                dot.classList.remove('saving');
+                txt.textContent = 'Cloud Sincronizada';
+            }, 800);
+        }
+
         function initiateSession(text) {
             if (!text.trim()) return;
-            queryCounter++;
-            tokenCounter += 180;
-            document.getElementById('queryCount').textContent = queryCounter;
-            document.getElementById('tokenCount').textContent = tokenCounter.toLocaleString();
-
             document.getElementById('userQueryNode').textContent = text;
+            document.getElementById('aiResponseNode').textContent = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema foram sincronizados com sucesso.`;
             document.getElementById('heroView').classList.add('hidden');
             document.getElementById('chatStream').classList.add('active');
             document.getElementById('activeDock').classList.add('active');
+            triggerAutoSave();
         }
 
         document.getElementById('heroSubmit').addEventListener('click', () => {
-            initiateSession(document.getElementById('heroInput').value);
+            const val = document.getElementById('heroInput').value;
+            initiateSession(val);
             document.getElementById('heroInput').value = '';
         });
 
         document.getElementById('activeSubmit').addEventListener('click', () => {
             const val = document.getElementById('activeInput').value;
             if (!val.trim()) return;
+            const stream = document.getElementById('chatStream');
+            
             const uMsg = document.createElement('div');
             uMsg.className = 'chat-bubble-user';
             uMsg.textContent = val;
-            document.getElementById('chatStream').appendChild(uMsg);
+            stream.appendChild(uMsg);
+
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'chat-bubble-ai';
+            aiMsg.innerHTML = `<div class="ai-bubble-header"><div class="ai-bubble-title"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Núcleo Quântico Ativo</div></div><p>Resposta processada em tempo real para o comando: "${val}".</p>`;
+            stream.appendChild(aiMsg);
+
             document.getElementById('activeInput').value = '';
+            stream.scrollTop = stream.scrollHeight;
+            triggerAutoSave();
         });
     </script>
 </body>
