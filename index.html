@@ -204,44 +204,51 @@
         }
         .status-dot { width: 7px; height: 7px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 10px var(--neon-blue); }
 
-        /* Hero View com Espaçamentos Ampliados e Logótipo Destacado */
+        /* Hero View com Espaçamento Ajustado */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            padding: 64px 16px 16px 16px; text-align: center;
+            align-items: center; justify-content: space-between;
+            padding: 68px 16px 20px 16px; text-align: center;
             overflow-y: auto; width: 100%; max-width: 720px; margin: 0 auto;
         }
         .hero-view.hidden { display: none; }
 
+        .hero-content-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
         .quantum-pill {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(56, 189, 248, 0.08));
             border: 1.5px solid rgba(245, 158, 11, 0.5);
-            padding: 7px 16px; border-radius: 20px;
+            padding: 6px 14px; border-radius: 20px;
             font-size: 0.65rem; font-weight: 700; color: var(--gold-light);
             text-transform: uppercase; letter-spacing: 0.18em;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: flex; align-items: center; gap: 8px;
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.2);
         }
         .quantum-pill svg { width: 14px; height: 14px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
 
         .hero-heading {
-            font-size: clamp(1.4rem, 4vw, 2.3rem);
+            font-size: clamp(1.3rem, 3.8vw, 2.2rem);
             font-weight: 800; letter-spacing: -0.02em;
-            margin-bottom: 10px; 
+            margin-bottom: 8px; 
             background: linear-gradient(180deg, #f8fafc 20%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            line-height: 1.25;
+            line-height: 1.2;
         }
 
         .hero-sub {
-            font-size: 0.88rem; color: var(--text-muted);
-            max-width: 480px; margin-bottom: 16px; line-height: 1.55; font-weight: 400;
+            font-size: 0.85rem; color: var(--text-muted);
+            max-width: 460px; margin-bottom: 14px; line-height: 1.5; font-weight: 400;
         }
 
-        /* Grade de Sugestões */
-        .suggestions-wrapper { width: 100%; margin-bottom: 14px; }
+        /* Grade de Sugestões com folga adequada */
+        .suggestions-wrapper { width: 100%; margin-top: 6px; margin-bottom: 16px; }
 
         .suggestions-grid {
             display: grid; 
@@ -269,8 +276,8 @@
             box-shadow: 0 15px 30px rgba(56, 189, 248, 0.15);
         }
 
-        /* CAIXA DE MENSAGEM AMPLIADA E LEGÍVEL */
-        .input-dock { width: 100%; padding-bottom: env(safe-area-inset-bottom, 12px); }
+        /* CAIXA DE MENSAGEM COM ESPAÇAMENTO SEGURO */
+        .input-dock { width: 100%; margin-top: auto; padding-bottom: env(safe-area-inset-bottom, 8px); }
 
         .ai-input-box {
             background: rgba(10, 15, 28, 0.95);
@@ -424,30 +431,32 @@
 
             <!-- Hero Welcome -->
             <div class="hero-view" id="heroView">
-                <div class="quantum-pill">
-                    <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Honey IA • Quantum Edition
-                </div>
-                <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
-                <p class="hero-sub">Arquitetura web avançada, contabilidade estratégica e modelação estrutural por conversação neural de alto padrão.</p>
-                
-                <div class="suggestions-wrapper">
-                    <div class="suggestions-grid">
-                        <div class="suggestion-card" data-prompt="Arquitetar site institucional e aplicação corporativa de alto impacto.">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                            Criar Site / Aplicação
-                        </div>
-                        <div class="suggestion-card" data-prompt="Executar análise profunda em Excel, balanços e contabilidade.">
-                            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                            Excel & Contabilidade
-                        </div>
-                        <div class="suggestion-card" data-prompt="Gerar estratégia de marketing visual, vídeos e campanhas de conversão.">
-                            <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                            Vídeos & Publicidade
-                        </div>
-                        <div class="suggestion-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada com especificações técnicas.">
-                            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                            Arquitetura & Plantas 3D
+                <div class="hero-content-group">
+                    <div class="quantum-pill">
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        Honey IA • Quantum Edition
+                    </div>
+                    <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
+                    <p class="hero-sub">Arquitetura web avançada, contabilidade estratégica e modelação estrutural por conversação neural de alto padrão.</p>
+                    
+                    <div class="suggestions-wrapper">
+                        <div class="suggestions-grid">
+                            <div class="suggestion-card" data-prompt="Arquitetar site institucional e aplicação corporativa de alto impacto.">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                Criar Site / Aplicação
+                            </div>
+                            <div class="suggestion-card" data-prompt="Executar análise profunda em Excel, balanços e contabilidade.">
+                                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                Excel & Contabilidade
+                            </div>
+                            <div class="suggestion-card" data-prompt="Gerar estratégia de marketing visual, vídeos e campanhas de conversão.">
+                                <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                Vídeos & Publicidade
+                            </div>
+                            <div class="suggestion-card" data-prompt="Desenvolver planta arquitetónica 3D detalhada com especificações técnicas.">
+                                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                                Arquitetura & Plantas 3D
+                            </div>
                         </div>
                     </div>
                 </div>
