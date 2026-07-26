@@ -166,7 +166,7 @@
         }
         .new-chat-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
         .history-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
             padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; color: var(--text-muted);
@@ -176,14 +176,22 @@
         .history-item:hover, .history-item.active { background: rgba(255, 255, 255, 0.08); border-color: var(--border-glow); color: var(--text-main); }
         .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; }
 
-        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; }
+        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
         .sidebar-file-item {
             background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
             padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
             display: flex; align-items: center; justify-content: space-between;
         }
 
-        .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .fin-calc-widget {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            border-radius: 12px; padding: 12px; margin-top: 8px;
+        }
+        .fin-calc-widget h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.1em; }
+        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
+        .fin-calc-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; }
+
+        .theme-selector-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
         .theme-btn {
             background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
             padding: 8px; border-radius: 10px; font-size: 0.72rem; color: var(--text-muted);
@@ -359,16 +367,6 @@
         .pitch-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid var(--border-subtle); padding-top: 20px; }
         .pitch-close { background: var(--accent-gradient); color: #030712; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; }
 
-        .fin-calc-widget {
-            position: fixed; bottom: 20px; right: 20px; z-index: 999;
-            background: var(--bg-surface); border: 1px solid var(--border-glow);
-            border-radius: 18px; padding: 14px 18px; backdrop-filter: blur(30px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.7); width: 260px;
-        }
-        .fin-calc-widget h5 { font-size: 0.75rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.82rem; margin-bottom: 6px; outline: none; }
-        .fin-calc-result { font-size: 0.8rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; }
-
         .active-dock { display: none; width: 100%; max-width: 750px; margin: 0 auto; padding: 10px 20px 20px 20px; }
         .active-dock.active { display: block; }
     </style>
@@ -389,13 +387,6 @@
                 <button class="pitch-close" id="closePitch">Fechar Apresentação</button>
             </div>
         </div>
-    </div>
-
-    <div class="fin-calc-widget">
-        <h5>Calculadora de Margens</h5>
-        <input type="number" class="fin-calc-input" id="calcCost" placeholder="Custo de aquisição ($)" oninput="calculateMargin()">
-        <input type="number" class="fin-calc-input" id="calcPrice" placeholder="Preço de venda ($)" oninput="calculateMargin()">
-        <div class="fin-calc-result" id="calcResult">Lucro: $0.00 (0%)</div>
     </div>
 
     <div class="app-shell">
@@ -419,12 +410,20 @@
                 <div class="menu-category">Histórico de Conversas</div>
                 <div class="history-list" id="historyList"></div>
 
-                <div class="menu-category" style="margin-top:20px;">Gestor de Ficheiros</div>
+                <div class="menu-category" style="margin-top:16px;">Calculadora de Margens</div>
+                <div class="fin-calc-widget">
+                    <h5>Simulador Financeiro</h5>
+                    <input type="number" class="fin-calc-input" id="calcCost" placeholder="Custo de aquisição ($)" oninput="calculateMargin()">
+                    <input type="number" class="fin-calc-input" id="calcPrice" placeholder="Preço de venda ($)" oninput="calculateMargin()">
+                    <div class="fin-calc-result" id="calcResult">Lucro: $0.00 (0%)</div>
+                </div>
+
+                <div class="menu-category" style="margin-top:16px;">Gestor de Ficheiros</div>
                 <div class="sidebar-file-list" id="sidebarFileList">
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:20px;">Atmosfera Visual (Temas)</div>
+                <div class="menu-category" style="margin-top:16px;">Atmosfera Visual (Temas)</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
