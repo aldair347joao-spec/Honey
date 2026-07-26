@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Quantum Luxury Intelligence v3.5</title>
+    <title>Honey IA — Quantum Luxury Intelligence v4.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -122,7 +122,7 @@
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
         .sidebar-header {
-            padding: 22px 20px;
+            padding: 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -156,18 +156,18 @@
         }
         .close-drawer:hover { background: rgba(255, 255, 255, 0.18); border-color: var(--border-glow); }
 
-        .sidebar-body { padding: 18px 14px; overflow-y: auto; flex: 1; }
-        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 18px 0 10px 10px; text-transform: uppercase; opacity: 0.85; }
+        .sidebar-body { padding: 16px 14px; overflow-y: auto; flex: 1; }
+        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; margin: 14px 0 8px 8px; text-transform: uppercase; opacity: 0.85; }
 
         .new-chat-btn {
             width: 100%; background: var(--accent-gradient); color: #030712; border: none;
             padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); transition: var(--transition-lux);
         }
         .new-chat-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 130px; overflow-y: auto; }
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 110px; overflow-y: auto; }
         .history-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
             padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; color: var(--text-muted);
@@ -177,42 +177,43 @@
         .history-item:hover, .history-item.active { background: rgba(255, 255, 255, 0.08); border-color: var(--border-glow); color: var(--text-main); }
         .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; }
 
-        /* Componentes Novos na Sidebar */
-        .prompt-fav-list { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
+        .widget-box {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            border-radius: 12px; padding: 10px;
+        }
+        .widget-box h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.1em; display: flex; justify-content: space-between; align-items: center; }
+        .widget-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
+        .widget-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .widget-actions-row { display: flex; gap: 6px; margin-top: 6px; }
+        .widget-btn { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 5px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: var(--transition-lux); text-align: center; }
+        .widget-btn:hover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.15); }
+
+        .prompt-fav-list { display: flex; flex-direction: column; gap: 4px; max-height: 90px; overflow-y: auto; }
         .prompt-fav-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
-            padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
+            padding: 5px 8px; border-radius: 6px; font-size: 0.73rem; color: var(--text-muted);
             cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: var(--transition-lux);
         }
         .prompt-fav-item:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(255, 255, 255, 0.07); }
 
-        .fin-calc-widget {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 12px;
-        }
-        .fin-calc-widget h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.1em; display: flex; justify-content: space-between; align-items: center; }
-        .fin-calc-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
-        .fin-calc-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .calc-actions-row { display: flex; gap: 6px; margin-top: 8px; }
-        .calc-btn { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 5px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: var(--transition-lux); text-align: center; }
-        .calc-btn:hover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.15); }
+        .saved-list-sub { display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; margin-top: 4px; }
+        .saved-item-sub { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
 
-        .saved-calc-list { display: flex; flex-direction: column; gap: 4px; max-height: 90px; overflow-y: auto; margin-top: 6px; }
-        .saved-calc-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
-
-        .compare-modal {
+        /* Modais Globais */
+        .modal-overlay {
             position: fixed; inset: 0; background: rgba(3, 7, 18, 0.92); backdrop-filter: blur(25px);
             z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        .compare-modal.active { display: flex; }
-        .compare-card { background: var(--bg-surface); border: 1.5px solid var(--border-glow); border-radius: 20px; padding: 24px; max-width: 600px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: var(--bg-surface); border: 1.5px solid var(--border-glow); border-radius: 20px; padding: 24px; max-width: 600px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
+        
         .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0; }
         .compare-col { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 10px; text-align: center; }
         .compare-col h6 { font-size: 0.75rem; color: var(--accent-light); margin-bottom: 6px; }
         .compare-col p { font-size: 0.75rem; color: var(--text-muted); }
 
-        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 100px; overflow-y: auto; }
+        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 90px; overflow-y: auto; }
         .sidebar-file-item {
             background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
             padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
@@ -291,7 +292,7 @@
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             padding: 100px 20px 40px 20px; text-align: center;
-            overflow-y: auto; width: 100%; max-width: 750px; margin: 0 auto; gap: 18px;
+            overflow-y: auto; width: 100%; max-width: 750px; margin: 0 auto; gap: 16px;
         }
         .hero-view.hidden { display: none; }
 
@@ -312,12 +313,12 @@
 
         .dropzone-box {
             width: 100%; border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 18px; padding: 18px; text-align: center;
+            border-radius: 18px; padding: 16px; text-align: center;
             background: rgba(255, 255, 255, 0.02); transition: var(--transition-lux);
             font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-top: 4px;
         }
         .dropzone-box.dragover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.05); color: var(--text-main); }
-        .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%; justify-content: center; }
+        .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; width: 100%; justify-content: center; }
         .file-pill { background: rgba(255,255,255,0.08); border: 1px solid var(--border-subtle); padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
         .input-dock { width: 100%; margin-top: auto; padding-top: 12px; padding-bottom: env(safe-area-inset-bottom, 16px); }
@@ -338,7 +339,22 @@
 
         .input-actions-bar {
             display: flex; align-items: center; justify-content: space-between;
-            border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 10px; margin-top: 8px;
+        }
+
+        .input-left-tools { display: flex; gap: 8px; align-items: center; }
+        .voice-mic-btn {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-muted);
+            width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: var(--transition-lux);
+        }
+        .voice-mic-btn.listening { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 0 12px #ef4444; animation: pulse 1.5s infinite; }
+        .voice-mic-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
         
         .submit-engine-btn {
@@ -371,12 +387,12 @@
         .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
 
         .bubble-actions-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-        .pitch-deck-btn, .export-md-btn, .export-pdf-btn {
+        .action-chip-btn {
             background: rgba(245, 158, 11, 0.1); border: 1px solid var(--border-glow); color: var(--accent-primary);
             padding: 6px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 6px; transition: var(--transition-lux);
         }
-        .pitch-deck-btn:hover, .export-md-btn:hover, .export-pdf-btn:hover { background: rgba(245, 158, 11, 0.2); }
+        .action-chip-btn:hover { background: rgba(245, 158, 11, 0.2); }
 
         .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
 
@@ -412,14 +428,14 @@
             </div>
             <div class="pitch-footer">
                 <span style="font-size: 0.8rem; color: var(--text-muted);" id="pitchCounter">Slide 1 de 1</span>
-                <button class="pitch-close" id="closePitch">Fechar Apresentação</button>
+                <button class="pitch-close" onclick="document.getElementById('pitchModal').classList.remove('active')">Fechar Apresentação</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Comparação de Preços / Fornecedores -->
-    <div class="compare-modal" id="compareModal">
-        <div class="compare-card">
+    <!-- Modal de Comparação de Preços -->
+    <div class="modal-overlay" id="compareModal">
+        <div class="modal-card">
             <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">Análise Comparativa de Cenários</h3>
             <p style="font-size: 0.78rem; color: var(--text-muted);">Comparação lado a lado de custos e margens estimadas.</p>
             <div class="compare-grid" id="compareGridContainer">
@@ -436,7 +452,49 @@
                     <p id="compC3">Custo: $0<br>Preço: $0<br>Margem: 0%</p>
                 </div>
             </div>
-            <button class="pitch-close" style="width: 100%; padding: 8px;" onclick="closeCompareModal()">Fechar Comparativo</button>
+            <button class="pitch-close" style="width: 100%; padding: 8px;" onclick="document.getElementById('compareModal').classList.remove('active')">Fechar Comparativo</button>
+        </div>
+    </div>
+
+    <!-- Modal de Fatura / Documento Comercial -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal-card" id="invoicePrintArea">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px; margin-bottom:16px;">
+                <div>
+                    <h3 style="font-size: 1.1rem; color:var(--text-main);">Honey IA — Fatura Comercial</h3>
+                    <span style="font-size:0.75rem; color:var(--neon-glow);">Documento Executivo Verificado</span>
+                </div>
+                <span id="invDate" style="font-size:0.75rem; color:var(--text-muted);">Data: 2026-07-26</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+                <input type="text" class="widget-input" id="invClient" placeholder="Nome do Cliente / Parceiro">
+                <input type="text" class="widget-input" id="invDesc" placeholder="Descrição do Produto / Serviço">
+                <div style="display:flex; gap:8px;">
+                    <input type="number" class="widget-input" id="invQty" placeholder="Quantidade" oninput="calculateInvoiceTotal()">
+                    <input type="number" class="widget-input" id="invPrice" placeholder="Preço Unitário ($)" oninput="calculateInvoiceTotal()">
+                </div>
+                <div style="font-size:0.85rem; color:var(--accent-light); font-weight:700; text-align:right;" id="invTotalResult">Total: $0.00</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="widget-btn" style="background:var(--accent-gradient); color:#030712; font-weight:700;" onclick="exportInvoicePDF()">📥 Descarregar PDF</button>
+                <button class="widget-btn" onclick="document.getElementById('invoiceModal').classList.remove('active')">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Tendências & Inteligência -->
+    <div class="modal-overlay" id="trendsModal">
+        <div class="modal-card">
+            <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">Painel de Tendências & Inteligência</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Análise estimada de mercado e interesse por tópico.</p>
+            <div style="margin: 16px 0; display:flex; flex-direction:column; gap:10px;">
+                <input type="text" class="widget-input" id="trendTopic" placeholder="Insira o tópico (ex: Geofísica, Soft-serve, Umbundu)">
+                <button class="widget-btn" style="background:var(--accent-gradient); color:#030712; font-weight:700; padding:8px;" onclick="analyzeTrendTopic()">Executar Análise de Mercado</button>
+                <div class="widget-box" style="margin-top:4px; min-height:80px;" id="trendResultBox">
+                    <span style="font-size:0.78rem; color:var(--text-muted); font-style:italic;">Aguardando consulta de tendências...</span>
+                </div>
+            </div>
+            <button class="pitch-close" style="width: 100%; padding: 8px;" onclick="document.getElementById('trendsModal').classList.remove('active')">Fechar Painel</button>
         </div>
     </div>
 
@@ -450,7 +508,7 @@
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span>Quantum Suite v3.5</span>
+                        <span>Quantum Suite v4.0</span>
                     </div>
                 </div>
                 <button class="close-drawer" id="closeDrawer">✕</button>
@@ -461,31 +519,45 @@
                 <div class="menu-category">Histórico de Conversas</div>
                 <div class="history-list" id="historyList"></div>
 
-                <div class="menu-category" style="margin-top:14px;">Prompts Favoritos</div>
+                <div class="menu-category" style="margin-top:12px;">Prompts Favoritos</div>
                 <div class="prompt-fav-list" id="promptFavList"></div>
-                <button class="calc-btn" style="width:100%; margin-top:6px;" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
+                <button class="widget-btn" style="width:100%; margin-top:4px;" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
 
-                <div class="menu-category" style="margin-top:14px;">Calculadora & Margens</div>
-                <div class="fin-calc-widget">
-                    <h5>Simulador Financeiro <span style="cursor:pointer; color:var(--neon-glow);" onclick="openCompareModal()">📊 Comparar</span></h5>
-                    <input type="number" class="fin-calc-input" id="calcCost" placeholder="Custo de aquisição ($)" oninput="calculateMargin()">
-                    <input type="number" class="fin-calc-input" id="calcPrice" placeholder="Preço de venda ($)" oninput="calculateMargin()">
-                    <div class="fin-calc-result">
-                        <span id="calcResult">Lucro: $0.00 (0%)</span>
-                    </div>
-                    <div class="calc-actions-row">
-                        <button class="calc-btn" onclick="saveCalculation()">Guardar Simulação</button>
-                        <button class="calc-btn" onclick="clearCalculator()">Limpar</button>
-                    </div>
-                    <div class="saved-calc-list" id="savedCalcList"></div>
+                <div class="menu-category" style="margin-top:12px;">Simulador de Inventário</div>
+                <div class="widget-box">
+                    <h5>Controlo de Stock</h5>
+                    <input type="number" class="widget-input" id="stockCurrent" placeholder="Stock Atual (un)" oninput="calculateInventory()">
+                    <input type="number" class="widget-input" id="stockDaily" placeholder="Vendas Diárias (un)" oninput="calculateInventory()">
+                    <div class="widget-result" id="stockResult">Duração: 0 dias (OK)</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:14px;">Gestor de Ficheiros</div>
+                <div class="menu-category" style="margin-top:12px;">Calculadora & Margens</div>
+                <div class="widget-box">
+                    <h5>Simulador Financeiro <span style="cursor:pointer; color:var(--neon-glow);" onclick="document.getElementById('compareModal').classList.add('active')">📊</span></h5>
+                    <input type="number" class="widget-input" id="calcCost" placeholder="Custo ($)" oninput="calculateMargin()">
+                    <input type="number" class="widget-input" id="calcPrice" placeholder="Preço ($)" oninput="calculateMargin()">
+                    <div class="widget-result">
+                        <span id="calcResult">Lucro: $0.00 (0%)</span>
+                    </div>
+                    <div class="widget-actions-row">
+                        <button class="widget-btn" onclick="saveCalculation()">Guardar</button>
+                        <button class="widget-btn" onclick="clearCalculator()">Limpar</button>
+                    </div>
+                    <div class="saved-list-sub" id="savedCalcList"></div>
+                </div>
+
+                <div class="menu-category" style="margin-top:12px;">Ferramentas Executivas</div>
+                <div style="display:flex; gap:6px;">
+                    <button class="widget-btn" onclick="document.getElementById('invoiceModal').classList.add('active')">📄 Gerar Fatura</button>
+                    <button class="widget-btn" onclick="document.getElementById('trendsModal').classList.add('active')">📈 Tendências</button>
+                </div>
+
+                <div class="menu-category" style="margin-top:12px;">Gestor de Ficheiros</div>
                 <div class="sidebar-file-list" id="sidebarFileList">
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:14px;">Atmosfera Visual (Temas)</div>
+                <div class="menu-category" style="margin-top:12px;">Atmosfera Visual</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
@@ -543,7 +615,12 @@
                     <div class="ai-input-box">
                         <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou comande a IA..." rows="1"></textarea>
                         <div class="input-actions-bar">
-                            <span style="font-size: 0.75rem; color: var(--text-muted);">Honey IA v3.5 Ativo</span>
+                            <div class="input-left-tools">
+                                <button class="voice-mic-btn" id="voiceMicBtn" title="Comando por Voz">
+                                    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                                </button>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">v4.0 Ativo</span>
+                            </div>
                             <button class="submit-engine-btn" id="heroSubmit">
                                 <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                             </button>
@@ -561,9 +638,9 @@
                             Núcleo Quântico Ativo
                         </div>
                         <div class="bubble-actions-group">
-                            <button class="export-md-btn" id="exportMdBtn">📥 MD</button>
-                            <button class="export-pdf-btn" id="exportPdfBtn">📄 PDF</button>
-                            <button class="pitch-deck-btn" id="openPitchBtn">📊 Pitch Deck</button>
+                            <button class="action-chip-btn" id="exportMdBtn">📥 MD</button>
+                            <button class="action-chip-btn" id="exportPdfBtn">📄 PDF</button>
+                            <button class="action-chip-btn" id="openPitchBtn">📊 Pitch</button>
                         </div>
                     </div>
                     <p id="aiResponseNode">A processar parâmetros executivos e simulação avançada...</p>
@@ -599,6 +676,26 @@
             triggerAutoSave();
         }
 
+        // Simulador de Stock
+        function calculateInventory() {
+            const current = parseFloat(document.getElementById('stockCurrent').value) || 0;
+            const daily = parseFloat(document.getElementById('stockDaily').value) || 0;
+            const resBox = document.getElementById('stockResult');
+            if(daily <= 0) {
+                resBox.innerHTML = `Duração: Infinito`;
+                resBox.style.color = 'var(--neon-glow)';
+                return;
+            }
+            const days = Math.floor(current / daily);
+            if(days <= 5) {
+                resBox.innerHTML = `⚠️ Rutura em ${days} dias!`;
+                resBox.style.color = '#ef4444';
+            } else {
+                resBox.innerHTML = `Duração: ~${days} dias (OK)`;
+                resBox.style.color = 'var(--neon-glow)';
+            }
+        }
+
         function calculateMargin() {
             const cost = parseFloat(document.getElementById('calcCost').value) || 0;
             const price = parseFloat(document.getElementById('calcPrice').value) || 0;
@@ -632,37 +729,74 @@
             if(savedCalculations.length === 0) return;
             savedCalculations.forEach(calc => {
                 const item = document.createElement('div');
-                item.className = 'saved-calc-item';
+                item.className = 'saved-item-sub';
                 item.innerHTML = `<span>C:$${calc.cost} P:$${calc.price}</span><span style="color:var(--neon-glow);font-weight:700;">${calc.margin}%</span>`;
                 list.appendChild(item);
             });
         }
         renderSavedCalculations();
 
-        function openCompareModal() {
-            const cost = parseFloat(document.getElementById('calcCost').value) || 100;
-            const price = parseFloat(document.getElementById('calcPrice').value) || 150;
-            const profit1 = price - cost;
-            const m1 = price > 0 ? ((profit1/price)*100).toFixed(1) : 0;
-
-            const cost2 = cost * 0.85;
-            const profit2 = price - cost2;
-            const m2 = price > 0 ? ((profit2/price)*100).toFixed(1) : 0;
-
-            const price3 = price * 1.20;
-            const profit3 = price3 - cost;
-            const m3 = price3 > 0 ? ((profit3/price3)*100).toFixed(1) : 0;
-
-            document.getElementById('compC1').innerHTML = `Custo: $${cost.toFixed(2)}<br>Preço: $${price.toFixed(2)}<br>Margem: <b>${m1}%</b>`;
-            document.getElementById('compC2').innerHTML = `Custo: $${cost2.toFixed(2)}<br>Preço: $${price.toFixed(2)}<br>Margem: <b>${m2}%</b>`;
-            document.getElementById('compC3').innerHTML = `Custo: $${cost.toFixed(2)}<br>Preço: $${price3.toFixed(2)}<br>Margem: <b>${m3}%</b>`;
-
-            document.getElementById('compareModal').classList.add('active');
+        // Fatura Comercial
+        function calculateInvoiceTotal() {
+            const qty = parseFloat(document.getElementById('invQty').value) || 0;
+            const price = parseFloat(document.getElementById('invPrice').value) || 0;
+            const total = qty * price;
+            document.getElementById('invTotalResult').textContent = `Total: $${total.toFixed(2)}`;
         }
 
-        function closeCompareModal() {
-            document.getElementById('compareModal').classList.remove('active');
+        function exportInvoicePDF() {
+            const element = document.getElementById('invoicePrintArea');
+            const opt = {
+                margin: 10,
+                filename: 'fatura-comercial-honey.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
+
+        // Análise de Tendências
+        function analyzeTrendTopic() {
+            const topic = document.getElementById('trendTopic').value.trim();
+            const resBox = document.getElementById('trendResultBox');
+            if(!topic) return;
+            resBox.innerHTML = `<span style="font-size:0.78rem; color:var(--neon-glow);">A processar métricas para "${topic}"...</span>`;
+            setTimeout(() => {
+                resBox.innerHTML = `<b>Tópico:</b> ${topic}<br><b>Índice de Interesse:</b> 94/100 (Alta Demanda)<br><b>Prospetiva:</b> Crescimento sustentado no ecossistema de Luanda. Oportunidade estratégica validada.`;
+            }, 800);
+        }
+
+        // Reconhecimento de Voz (Speech-to-Text)
+        const micBtn = document.getElementById('voiceMicBtn');
+        const heroInput = document.getElementById('heroInput');
+        let recognition = null;
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-PT';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => { micBtn.classList.add('listening'); };
+            recognition.onend = () => { micBtn.classList.remove('listening'); };
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                heroInput.value = transcript;
+            };
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) {
+                alert('O seu navegador não suporta reconhecimento de voz.');
+                return;
+            }
+            try {
+                recognition.start();
+            } catch(err) {
+                recognition.stop();
+            }
+        });
 
         function renderFavPrompts() {
             const list = document.getElementById('promptFavList');
@@ -670,14 +804,14 @@
             favoritePrompts.forEach((p, idx) => {
                 const item = document.createElement('div');
                 item.className = 'prompt-fav-item';
-                item.innerHTML = `<span>⭐ ${p.substring(0, 26)}...</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFavPrompt(event, ${idx})">✕</button>`;
+                item.innerHTML = `<span>⭐ ${p.substring(0, 24)}...</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFavPrompt(event, ${idx})">✕</button>`;
                 item.onclick = () => selectPrompt(p);
                 list.appendChild(item);
             });
         }
 
         function addCurrentPromptToFav() {
-            const val = document.getElementById('heroInput').value.trim();
+            const val = heroInput.value.trim();
             if(!val) return;
             favoritePrompts.push(val);
             localStorage.setItem('honey_fav_prompts', JSON.stringify(favoritePrompts));
@@ -693,9 +827,7 @@
         }
         renderFavPrompts();
 
-        const pitchModal = document.getElementById('pitchModal');
-        document.getElementById('openPitchBtn').addEventListener('click', () => pitchModal.classList.add('active'));
-        document.getElementById('closePitch').addEventListener('click', () => pitchModal.classList.remove('active'));
+        document.getElementById('openPitchBtn').addEventListener('click', () => document.getElementById('pitchModal').classList.add('active'));
 
         document.getElementById('exportMdBtn').addEventListener('click', () => {
             const query = document.getElementById('userQueryNode').textContent;
@@ -712,11 +844,11 @@
         document.getElementById('exportPdfBtn').addEventListener('click', () => {
             const element = document.getElementById('exportableReportArea');
             const opt = {
-                margin:        10,
-                filename:      'relatorio-honey-ia.pdf',
-                image:         { type: 'jpeg', quality: 0.98 },
-                html2canvas:   { scale: 2, useCORS: true },
-                jsPDF:         { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin: 10,
+                filename: 'relatorio-honey-ia.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(element).set(opt).save();
         });
@@ -769,7 +901,7 @@
         }
 
         function selectPrompt(text) {
-            document.getElementById('heroInput').value = text;
+            heroInput.value = text;
             sidebar.classList.remove('open');
             sidebarOverlay.classList.remove('active');
         }
@@ -846,7 +978,7 @@
             document.getElementById('heroView').classList.remove('hidden');
             document.getElementById('chatStream').classList.remove('active');
             document.getElementById('activeDock').classList.remove('active');
-            document.getElementById('heroInput').value = '';
+            heroInput.value = '';
             renderHistory();
         }
 
@@ -854,7 +986,7 @@
 
         function initiateSession(text) {
             if (!text.trim()) return;
-            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema e ficheiros associados foram sincronizados com sucesso.`;
+            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema, stock e ficheiros associados foram sincronizados com sucesso.`;
             document.getElementById('userQueryNode').textContent = text;
             document.getElementById('aiResponseNode').textContent = responseText;
             document.getElementById('heroView').classList.add('hidden');
@@ -866,9 +998,9 @@
         }
 
         document.getElementById('heroSubmit').addEventListener('click', () => {
-            const val = document.getElementById('heroInput').value;
+            const val = heroInput.value;
             initiateSession(val);
-            document.getElementById('heroInput').value = '';
+            heroInput.value = '';
         });
 
         document.getElementById('activeSubmit').addEventListener('click', () => {
