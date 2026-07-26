@@ -135,14 +135,14 @@
 
         .brand-cluster { display: flex; align-items: center; gap: 12px; min-width: 0; }
         
-        /* LOGOTIPO 3D COM ABELHA RAINHA REAL A VOAR E COROA */
+        /* LOGOTIPO 3D COM ABELHA RAINHA REAL ULTRA REALISTA A VOAR E COROA IMPERIAL */
         .brand-logo-box {
             width: 48px; height: 48px;
-            background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.4), rgba(15, 23, 42, 0.95));
+            background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.45), rgba(15, 23, 42, 0.95));
             border: 1.5px solid var(--border-glow);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), inset 0 2px 5px rgba(255, 255, 255, 0.35);
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
@@ -151,18 +151,19 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, transparent 60%);
             pointer-events: none;
         }
         .brand-logo-box svg {
-            width: 36px; height: 36px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
-            animation: floatQueenBee 3.5s ease-in-out infinite;
+            width: 40px; height: 40px;
+            filter: drop-shadow(0 5px 8px rgba(0,0,0,0.8));
+            animation: floatQueenBeeReal 4s ease-in-out infinite;
         }
 
-        @keyframes floatQueenBee {
-            0%, 100% { transform: translateY(0) rotate(-3deg) scale(1); }
-            50% { transform: translateY(-3px) rotate(3deg) scale(1.02); }
+        @keyframes floatQueenBeeReal {
+            0%, 100% { transform: translateY(0) rotate(-2deg) scale(1); }
+            35% { transform: translateY(-4px) rotate(2deg) scale(1.03); }
+            70% { transform: translateY(-2px) rotate(-1deg) scale(1.01); }
         }
 
         .brand-title h2 { font-size: 1.1rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
@@ -586,48 +587,58 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- LOGOTIPO 3D COM ABELHA RAINHA REAL A VOAR E COROA -->
+                    <!-- LOGOTIPO 3D COM ABELHA RAINHA REAL ULTRA REALISTA A VOAR E COROA IMPERIAL -->
                     <div class="brand-logo-box">
                         <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="wingGradQueen" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
-                                    <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.4"/>
-                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2"/>
-                                </linearGradient>
-                                <linearGradient id="bodyGradQueen" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <radialGradient id="realQueenWing" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                                    <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.5"/>
+                                    <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.2"/>
+                                </radialGradient>
+                                <linearGradient id="realQueenBody" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#fef08a"/>
-                                    <stop offset="40%" stop-color="#fbbf24"/>
-                                    <stop offset="80%" stop-color="#d97706"/>
-                                    <stop offset="100%" stop-color="#78350f"/>
+                                    <stop offset="30%" stop-color="#f59e0b"/>
+                                    <stop offset="70%" stop-color="#b45309"/>
+                                    <stop offset="100%" stop-color="#451a03"/>
                                 </linearGradient>
-                                <linearGradient id="crownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#fff7ed"/>
+                                <linearGradient id="realCrownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff"/>
                                     <stop offset="50%" stop-color="#fbbf24"/>
-                                    <stop offset="100%" stop-color="#b45309"/>
+                                    <stop offset="100%" stop-color="#92400e"/>
                                 </linearGradient>
                             </defs>
-                            <!-- Coroa Imperial Real da Abelha Rainha -->
-                            <path d="M226 75L241 40L256 65L271 40L286 75H226Z" fill="url(#crownGrad)" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round"/>
-                            <circle cx="241" cy="38" r="4" fill="#38bdf8"/>
-                            <circle cx="256" cy="60" r="5" fill="#ef4444"/>
-                            <circle cx="271" cy="38" r="4" fill="#38bdf8"/>
-                            <!-- Asas 3D Majestosas e Amplas a Voar -->
-                            <path d="M256 210C210 110 90 60 55 115C35 145 105 220 256 210Z" fill="url(#wingGradQueen)" stroke="#7dd3fc" stroke-width="4"/>
-                            <path d="M256 210C302 110 422 60 457 115C477 145 407 220 256 210Z" fill="url(#wingGradQueen)" stroke="#7dd3fc" stroke-width="4"/>
-                            <!-- Abdómen Longo e Real com Riscas -->
-                            <ellipse cx="256" cy="345" rx="60" ry="120" fill="url(#bodyGradQueen)" transform="rotate(15 256 345)"/>
-                            <path d="M190 300L320 285" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
-                            <path d="M182 345L328 330" stroke="#1e1b4b" stroke-width="12" stroke-linecap="round"/>
-                            <path d="M190 390L315 375" stroke="#1e1b4b" stroke-width="11" stroke-linecap="round"/>
-                            <path d="M205 430L300 420" stroke="#1e1b4b" stroke-width="9" stroke-linecap="round"/>
-                            <!-- Tórax Superior 3D -->
-                            <circle cx="256" cy="220" r="52" fill="#78350f" stroke="#fbbf24" stroke-width="5"/>
-                            <!-- Cabeça -->
-                            <circle cx="256" cy="130" r="35" fill="#451a03" stroke="#f59e0b" stroke-width="4"/>
-                            <!-- Antenas Dinâmicas -->
-                            <path d="M235 100C210 65 170 50 145 40" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
-                            <path d="M277 100C302 65 342 50 367 40" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+                            <!-- Coroa Real Imperial Sofisticada -->
+                            <path d="M220 72L238 32L256 60L274 32L292 72H220Z" fill="url(#realCrownGrad)" stroke="#f59e0b" stroke-width="4" stroke-linejoin="round"/>
+                            <circle cx="238" cy="28" r="5" fill="#38bdf8"/>
+                            <circle cx="256" cy="52" r="6" fill="#ef4444"/>
+                            <circle cx="274" cy="28" r="5" fill="#38bdf8"/>
+                            <!-- Asas Anatómicas Realistas com Nervuras Finas -->
+                            <path d="M256 200C205 105 85 55 45 110C25 140 100 215 256 200Z" fill="url(#realQueenWing)" stroke="#e0f2fe" stroke-width="3"/>
+                            <path d="M110 95C140 120 180 160 225 190" stroke="#bae6fd" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M80 115C110 135 150 175 190 200" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+                            
+                            <path d="M256 200C307 105 427 55 467 110C487 140 412 215 256 200Z" fill="url(#realQueenWing)" stroke="#e0f2fe" stroke-width="3"/>
+                            <path d="M402 95C372 120 332 160 287 190" stroke="#bae6fd" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M432 115C402 135 362 175 322 200" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round"/>
+                            
+                            <!-- Abdómen Elegante com Listras de Alta Definição -->
+                            <ellipse cx="256" cy="345" rx="55" ry="120" fill="url(#realQueenBody)" transform="rotate(12 256 345)"/>
+                            <path d="M195 295C225 298 290 292 318 288" stroke="#18181b" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M188 340C220 344 290 338 324 332" stroke="#18181b" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M198 385C230 388 285 383 314 378" stroke="#18181b" stroke-width="11" stroke-linecap="round"/>
+                            <path d="M212 430C235 432 275 428 298 424" stroke="#18181b" stroke-width="9" stroke-linecap="round"/>
+                            <!-- Tórax com Textura de Pêlo Detalhado -->
+                            <circle cx="256" cy="215" r="50" fill="#78350f" stroke="#fbbf24" stroke-width="4"/>
+                            <path d="M230 190C240 185 270 185 282 190" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M225 210C235 205 275 205 287 210" stroke="#fef08a" stroke-width="3" stroke-linecap="round"/>
+                            <!-- Cabeça e Olhos Facetados Realistas -->
+                            <circle cx="256" cy="125" r="32" fill="#271c19" stroke="#f59e0b" stroke-width="3.5"/>
+                            <ellipse cx="236" cy="120" rx="9" ry="14" fill="#38bdf8" transform="rotate(-15 236 120)"/>
+                            <ellipse cx="276" cy="120" rx="9" ry="14" fill="#38bdf8" transform="rotate(15 276 120)"/>
+                            <!-- Antenas Articuladas Finas -->
+                            <path d="M238 98C210 65 175 45 142 32" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
+                            <path d="M274 98C302 65 337 45 370 32" stroke="#fbbf24" stroke-width="4" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="brand-title">
