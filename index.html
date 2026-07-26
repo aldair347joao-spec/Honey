@@ -62,6 +62,7 @@
             color: var(--text-main);
         }
 
+        /* Atmosfera Quântica Imersiva */
         .quantum-atmosphere {
             position: fixed;
             inset: 0;
@@ -91,7 +92,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar Redesenhada */
+        /* Sidebar Redesenhada (Glassmorphism Avançado) */
         .sidebar {
             position: fixed;
             top: 0;
@@ -134,18 +135,16 @@
         }
 
         .brand-cluster { display: flex; align-items: center; gap: 14px; min-width: 0; }
-        
-        /* LOGOTIPO DA ABELHA REAL E DETALHADA (EXCLUSIVO HONEY IA) */
         .brand-logo-box {
-            width: 46px; height: 46px;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.15));
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(56, 189, 248, 0.1));
             border: 1.5px solid var(--border-glow);
             border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 35px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.25);
             flex-shrink: 0;
         }
-        .brand-logo-box svg { width: 28px; height: 28px; fill: var(--accent-primary); }
+        .brand-logo-box svg { width: 22px; height: 22px; stroke: var(--accent-primary); fill: none; stroke-width: 2.2; }
 
         .brand-title h2 { font-size: 1.15rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.01em; }
         .brand-title span { font-size: 0.68rem; color: var(--neon-glow); text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; display: block; margin-top: 2px; }
@@ -165,15 +164,7 @@
         .sidebar-body::-webkit-scrollbar { width: 4px; }
         .sidebar-body::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
 
-        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
-        
-        /* Emblemas Geométricos Minimalistas para Secções e Tabelas */
-        .geo-emblem {
-            width: 14px; height: 14px; border: 1.5px solid var(--accent-primary); border-radius: 3px;
-            display: inline-flex; align-items: center; justify-content: center; transform: rotate(45deg);
-            background: rgba(245, 158, 11, 0.1);
-        }
-        .geo-emblem::after { content: ''; width: 4px; height: 4px; background: var(--accent-primary); border-radius: 50%; }
+        .menu-category { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
 
         .new-chat-btn {
             width: 100%; background: var(--accent-gradient); color: #020617; border: none;
@@ -194,7 +185,7 @@
         .history-delete { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; opacity: 0.7; transition: var(--transition-lux); }
         .history-delete:hover { opacity: 1; }
 
-        /* Widgets com Emblemas Geométricos */
+        /* Widgets da Sidebar */
         .widget-box {
             background: rgba(255, 255, 255, 0.025); border: 1px solid var(--border-subtle);
             border-radius: 14px; padding: 12px; transition: var(--transition-lux);
@@ -225,7 +216,7 @@
         .saved-list-sub { display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; margin-top: 6px; }
         .saved-item-sub { background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-subtle); padding: 6px 8px; border-radius: 8px; font-size: 0.72rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
 
-        /* Modais */
+        /* Modais Redesenhados */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(2, 6, 23, 0.88); backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -324,6 +315,7 @@
         }
         .status-dot { width: 9px; height: 9px; background: var(--neon-glow); border-radius: 50%; box-shadow: 0 0 12px var(--neon-glow); flex-shrink: 0; }
 
+        /* Hero View (Home) */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
@@ -358,6 +350,7 @@
         .file-list-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%; justify-content: center; }
         .file-pill { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
 
+        /* Input Dock (Caixa de Texto Inferior) */
         .input-dock { width: 100%; margin-top: auto; padding-top: 14px; padding-bottom: env(safe-area-inset-bottom, 20px); }
         .ai-input-box {
             background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(40px);
@@ -405,6 +398,7 @@
         .submit-engine-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 10px 25px rgba(245, 158, 11, 0.55); }
         .submit-engine-btn svg { width: 18px; height: 18px; stroke: #020617; fill: none; stroke-width: 2.8; }
 
+        /* Chat Stream */
         .chat-stream-container {
             flex: 1; overflow-y: auto; padding: 110px 20px 28px 20px;
             display: none; flex-direction: column; gap: 20px; max-width: 780px; width: 100%; margin: 0 auto;
@@ -439,6 +433,7 @@
 
         .chat-bubble-ai p { font-size: 0.94rem; line-height: 1.7; color: var(--text-muted); }
 
+        /* Pitch Modal (Apresentação) */
         .pitch-modal {
             position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(35px);
             -webkit-backdrop-filter: blur(35px); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
@@ -463,7 +458,7 @@
     <div class="quantum-atmosphere"></div>
     <div class="quantum-grid"></div>
     
-    <!-- Modal Apresentação -->
+    <!-- Modal Apresentação Executiva -->
     <div class="pitch-modal" id="pitchModal">
         <div class="pitch-slide-card">
             <div>
@@ -478,7 +473,7 @@
         </div>
     </div>
 
-    <!-- Modal Comparação -->
+    <!-- Modal Comparação de Cenários -->
     <div class="modal-overlay" id="compareModal">
         <div class="modal-card">
             <h3 style="font-size: 1.05rem; color: var(--text-main); margin-bottom: 4px; font-weight: 700;">Análise Comparativa de Cenários</h3>
@@ -501,7 +496,7 @@
         </div>
     </div>
 
-    <!-- Modal Fatura -->
+    <!-- Modal Fatura Comercial -->
     <div class="modal-overlay" id="invoiceModal">
         <div class="modal-card" id="invoicePrintArea">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:14px; margin-bottom:18px;">
@@ -527,7 +522,7 @@
         </div>
     </div>
 
-    <!-- Modal Tendências -->
+    <!-- Modal Painel de Tendências -->
     <div class="modal-overlay" id="trendsModal">
         <div class="modal-card">
             <h3 style="font-size: 1.05rem; color: var(--text-main); margin-bottom: 4px; font-weight: 700;">Painel de Tendências & Inteligência</h3>
@@ -543,7 +538,7 @@
         </div>
     </div>
 
-    <!-- Modal Marketing -->
+    <!-- Modal Gerador de Copywriting Marketing -->
     <div class="modal-overlay" id="marketingModal">
         <div class="modal-card">
             <h3 style="font-size: 1.05rem; color: var(--text-main); margin-bottom: 4px; font-weight: 700;">🎯 Gerador de Copywriting Comercial</h3>
@@ -570,11 +565,8 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand-cluster">
-                    <!-- LOGOTIPO DA ABELHA REAL E DETALHADA -->
                     <div class="brand-logo-box">
-                        <svg viewBox="0 0 512 512">
-                            <path d="M464,180.5c-15-18-39-26-62-21l-36-36c6-14,3-31-8-42s-28-14-42-8l-36-36c-5-23-13-47-31-62C263.2,1,237.2,3.3,219,19.2 l-72,63c-38.6,33.8-60.6,83.1-60.6,134.8c0,5.6,0.3,11.2,1,16.8L35.8,276.5c-7.8,7.8-7.8,20.5,0,28.3l60.1,60.1 c7.8,7.8,20.5,7.8,28.3,0l42.6-42.6c16,6,33.5,8.8,51.2,8.4l28.1,28.1c-1.4,11.8,1.4,23.8,9,33c14,17,39,21,57,10l56,56 c11,11,28,11,39,0s11-28,0-39l-56-56c11-18,7-43-10-57c-9.2-7.6-21.2-10.4-33-9l-28.1-28.1c0.4-17.7-2.4-35.2-8.4-51.2 l42.6-42.6c7.8-7.8,7.8-20.5,0-28.3L342,168.5C347.5,191.5,355.5,215,373,232.5c16.3,16.3,38,24.5,59.7,24.5 c10.3,0,20.7-1.7,30.8-5.3l35.2,35.2c7.8,7.8,20.5,7.8,28.3,0c7.8-7.8,7.8-20.5,0-28.3L464,180.5z M224,244 c-22.1,0-40-17.9-40-40s17.9-40,40-40s40,17.9,40,40S246.1,244,224,244z"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
@@ -586,15 +578,15 @@
             <div class="sidebar-body">
                 <button class="new-chat-btn" id="newChatBtn">＋ Nova Conversa</button>
                 
-                <div class="menu-category"><span class="geo-emblem"></span> Histórico de Conversas</div>
+                <div class="menu-category">Histórico de Conversas</div>
                 <div class="history-list" id="historyList"></div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Prompts Favoritos</div>
+                <div class="menu-category">Prompts Favoritos</div>
                 <div class="prompt-fav-list" id="promptFavList"></div>
                 <button class="widget-btn" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
 
-                <!-- Conversor de Moedas com Emblema Geométrico -->
-                <div class="menu-category"><span class="geo-emblem"></span> Conversor de Câmbio</div>
+                <!-- Conversor de Moedas AOA / USD / EUR -->
+                <div class="menu-category">💱 Conversor de Câmbio</div>
                 <div class="widget-box">
                     <h5>Conversor Rápido</h5>
                     <div style="display:flex; gap:6px;">
@@ -616,8 +608,8 @@
                     <div class="widget-result" id="convResult">Resultado: $1.10 USD</div>
                 </div>
 
-                <!-- Tarefas & Encomendas -->
-                <div class="menu-category"><span class="geo-emblem"></span> Tarefas & Encomendas</div>
+                <!-- Gestor de Tarefas e Encomendas -->
+                <div class="menu-category">📅 Tarefas & Encomendas</div>
                 <div class="widget-box">
                     <h5>Logística & Tarefas</h5>
                     <input type="text" class="widget-input" id="newTaskInput" placeholder="Nova tarefa ou encomenda...">
@@ -632,7 +624,7 @@
                     <div class="saved-list-sub" id="taskListContainer" style="max-height:80px;"></div>
                 </div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Simulador de Inventário</div>
+                <div class="menu-category">Simulador de Inventário</div>
                 <div class="widget-box">
                     <h5>Controlo de Stock</h5>
                     <input type="number" class="widget-input" id="stockCurrent" placeholder="Stock Atual (un)" oninput="calculateInventory()">
@@ -640,7 +632,7 @@
                     <div class="widget-result" id="stockResult">Duração: 0 dias (OK)</div>
                 </div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Calculadora & Margens</div>
+                <div class="menu-category">Calculadora & Margens</div>
                 <div class="widget-box">
                     <h5>Simulador Financeiro <span style="cursor:pointer; color:var(--neon-glow);" onclick="document.getElementById('compareModal').classList.add('active')">📊</span></h5>
                     <input type="number" class="widget-input" id="calcCost" placeholder="Custo ($)" oninput="calculateMargin()">
@@ -655,7 +647,7 @@
                     <div class="saved-list-sub" id="savedCalcList"></div>
                 </div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Ferramentas Executivas</div>
+                <div class="menu-category">Ferramentas Executivas</div>
                 <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px;">
                     <button class="widget-btn" onclick="document.getElementById('invoiceModal').classList.add('active')">📄 Fatura</button>
                     <button class="widget-btn" onclick="document.getElementById('trendsModal').classList.add('active')">📈 Tendências</button>
@@ -663,12 +655,12 @@
                     <button class="widget-btn" onclick="exportFullExecutivePDF()" style="background:var(--accent-gradient); color:#020617; font-weight:700;">📥 Relatório PDF</button>
                 </div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Gestor de Ficheiros</div>
+                <div class="menu-category">Gestor de Ficheiros</div>
                 <div class="sidebar-file-list" id="sidebarFileList">
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
                 </div>
 
-                <div class="menu-category"><span class="geo-emblem"></span> Atmosfera Visual</div>
+                <div class="menu-category">Atmosfera Visual</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
