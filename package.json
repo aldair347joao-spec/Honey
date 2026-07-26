@@ -1,11 +1,12 @@
 {
   "name": "honey-ia",
   "version": "1.0.0",
-  "description": "Plataforma Honey IA para análise de documentos e imagens",
+  "description": "Plataforma Honey IA para análise de documentos e inteligência empresarial",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node --watch index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
