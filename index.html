@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Quantum Luxury Intelligence v4.0</title>
+    <title>Honey IA — Quantum Luxury Intelligence v5.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -94,8 +94,8 @@
         .sidebar {
             position: fixed;
             top: 0;
-            left: -340px;
-            width: 320px;
+            left: -360px;
+            width: 340px;
             max-width: 90vw;
             height: 100%;
             background: rgba(3, 7, 18, 0.98);
@@ -167,7 +167,7 @@
         }
         .new-chat-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 110px; overflow-y: auto; }
+        .history-list { display: flex; flex-direction: column; gap: 6px; max-height: 100px; overflow-y: auto; }
         .history-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
             padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; color: var(--text-muted);
@@ -179,17 +179,18 @@
 
         .widget-box {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 10px;
+            border-radius: 12px; padding: 10px; margin-bottom: 6px;
         }
         .widget-box h5 { font-size: 0.72rem; color: var(--accent-light); text-transform: uppercase; margin-bottom: 6px; font-weight: 700; letter-spacing: 0.1em; display: flex; justify-content: space-between; align-items: center; }
         .widget-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
+        .widget-select { width: 100%; background: rgba(10, 15, 28, 0.95); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.8rem; margin-bottom: 6px; outline: none; }
         .widget-result { font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
         
         .widget-actions-row { display: flex; gap: 6px; margin-top: 6px; }
-        .widget-btn { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 5px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: var(--transition-lux); text-align: center; }
+        .widget-btn { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: var(--transition-lux); text-align: center; }
         .widget-btn:hover { border-color: var(--accent-primary); background: rgba(245, 158, 11, 0.15); }
 
-        .prompt-fav-list { display: flex; flex-direction: column; gap: 4px; max-height: 90px; overflow-y: auto; }
+        .prompt-fav-list { display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; }
         .prompt-fav-item {
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
             padding: 5px 8px; border-radius: 6px; font-size: 0.73rem; color: var(--text-muted);
@@ -197,7 +198,7 @@
         }
         .prompt-fav-item:hover { border-color: var(--accent-primary); color: var(--text-main); background: rgba(255, 255, 255, 0.07); }
 
-        .saved-list-sub { display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; margin-top: 4px; }
+        .saved-list-sub { display: flex; flex-direction: column; gap: 4px; max-height: 70px; overflow-y: auto; margin-top: 4px; }
         .saved-item-sub { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between; }
 
         /* Modais Globais */
@@ -213,7 +214,7 @@
         .compare-col h6 { font-size: 0.75rem; color: var(--accent-light); margin-bottom: 6px; }
         .compare-col p { font-size: 0.75rem; color: var(--text-muted); }
 
-        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 90px; overflow-y: auto; }
+        .sidebar-file-list { display: flex; flex-direction: column; gap: 6px; max-height: 80px; overflow-y: auto; }
         .sidebar-file-item {
             background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-subtle);
             padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted);
@@ -498,6 +499,28 @@
         </div>
     </div>
 
+    <!-- Modal Gerador de Copywriting Marketing -->
+    <div class="modal-overlay" id="marketingModal">
+        <div class="modal-card">
+            <h3 style="font-size: 1rem; color: var(--text-main); margin-bottom: 4px;">🎯 Gerador de Copywriting Comercial</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">Crie posts e legendas persuasivas para WhatsApp e Redes Sociais.</p>
+            <div style="margin: 14px 0; display:flex; flex-direction:column; gap:8px;">
+                <input type="text" class="widget-input" id="mktProduct" placeholder="Nome do Produto / Negócio (ex: Iogurte Artesanal)">
+                <input type="text" class="widget-input" id="mktAudience" placeholder="Público-Alvo (ex: Clientes locais em Luanda)">
+                <select class="widget-select" id="mktGoal">
+                    <option value="Promoção Especial">Promoção Especial</option>
+                    <option value="Lançamento de Produto">Lançamento de Produto</option>
+                    <option value="Chamada para Ação WhatsApp">Chamada para Ação WhatsApp</option>
+                </select>
+                <button class="widget-btn" style="background:var(--accent-gradient); color:#030712; font-weight:700; padding:8px;" onclick="generateMarketingCopy()">Gerar Copy Persuasiva</button>
+                <div class="widget-box" style="margin-top:4px; min-height:90px; font-size:0.8rem; color:var(--text-muted);" id="mktResultBox">
+                    <span style="font-style:italic;">O texto gerado aparecerá aqui...</span>
+                </div>
+            </div>
+            <button class="pitch-close" style="width: 100%; padding: 8px;" onclick="document.getElementById('marketingModal').classList.remove('active')">Fechar Painel</button>
+        </div>
+    </div>
+
     <div class="app-shell">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
@@ -508,7 +531,7 @@
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span>Quantum Suite v4.0</span>
+                        <span>Quantum Suite v5.0</span>
                     </div>
                 </div>
                 <button class="close-drawer" id="closeDrawer">✕</button>
@@ -519,11 +542,50 @@
                 <div class="menu-category">Histórico de Conversas</div>
                 <div class="history-list" id="historyList"></div>
 
-                <div class="menu-category" style="margin-top:12px;">Prompts Favoritos</div>
+                <div class="menu-category" style="margin-top:10px;">Prompts Favoritos</div>
                 <div class="prompt-fav-list" id="promptFavList"></div>
                 <button class="widget-btn" style="width:100%; margin-top:4px;" onclick="addCurrentPromptToFav()">＋ Guardar Prompt Atual</button>
 
-                <div class="menu-category" style="margin-top:12px;">Simulador de Inventário</div>
+                <!-- MÓDULO 1: Conversor de Moedas AOA / USD / EUR -->
+                <div class="menu-category" style="margin-top:10px;">💱 Conversor de Câmbio</div>
+                <div class="widget-box">
+                    <h5>Conversor Rápido</h5>
+                    <div style="display:flex; gap:6px;">
+                        <input type="number" class="widget-input" id="convAmount" placeholder="Valor" value="1000" oninput="calculateCurrency()">
+                        <select class="widget-select" id="convFrom" onchange="calculateCurrency()" style="width:75px;">
+                            <option value="AOA">AOA</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="font-size:0.72rem; color:var(--text-muted);">Para:</span>
+                        <select class="widget-select" id="convTo" onchange="calculateCurrency()" style="width:110px; margin-bottom:0;">
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="AOA">AOA</option>
+                        </select>
+                    </div>
+                    <div class="widget-result" id="convResult">Resultado: $1.10 USD</div>
+                </div>
+
+                <!-- MÓDULO 2: Gestor de Tarefas e Encomendas -->
+                <div class="menu-category" style="margin-top:10px;">📅 Tarefas & Encomendas</div>
+                <div class="widget-box">
+                    <h5>Logística & Tarefas</h5>
+                    <input type="text" class="widget-input" id="newTaskInput" placeholder="Nova tarefa ou encomenda...">
+                    <div style="display:flex; gap:6px;">
+                        <select class="widget-select" id="newStatus" style="margin-bottom:4px;">
+                            <option value="Em Trânsito">Em Trânsito</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Concluído">Concluído</option>
+                        </select>
+                        <button class="widget-btn" style="background:var(--accent-gradient); color:#030712; font-weight:700;" onclick="addTaskItem()">Adicionar</button>
+                    </div>
+                    <div class="saved-list-sub" id="taskListContainer" style="max-height:80px;"></div>
+                </div>
+
+                <div class="menu-category" style="margin-top:10px;">Simulador de Inventário</div>
                 <div class="widget-box">
                     <h5>Controlo de Stock</h5>
                     <input type="number" class="widget-input" id="stockCurrent" placeholder="Stock Atual (un)" oninput="calculateInventory()">
@@ -531,7 +593,7 @@
                     <div class="widget-result" id="stockResult">Duração: 0 dias (OK)</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:12px;">Calculadora & Margens</div>
+                <div class="menu-category" style="margin-top:10px;">Calculadora & Margens</div>
                 <div class="widget-box">
                     <h5>Simulador Financeiro <span style="cursor:pointer; color:var(--neon-glow);" onclick="document.getElementById('compareModal').classList.add('active')">📊</span></h5>
                     <input type="number" class="widget-input" id="calcCost" placeholder="Custo ($)" oninput="calculateMargin()">
@@ -546,18 +608,20 @@
                     <div class="saved-list-sub" id="savedCalcList"></div>
                 </div>
 
-                <div class="menu-category" style="margin-top:12px;">Ferramentas Executivas</div>
-                <div style="display:flex; gap:6px;">
-                    <button class="widget-btn" onclick="document.getElementById('invoiceModal').classList.add('active')">📄 Gerar Fatura</button>
+                <div class="menu-category" style="margin-top:10px;">Ferramentas Executivas</div>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:6px;">
+                    <button class="widget-btn" onclick="document.getElementById('invoiceModal').classList.add('active')">📄 Fatura</button>
                     <button class="widget-btn" onclick="document.getElementById('trendsModal').classList.add('active')">📈 Tendências</button>
+                    <button class="widget-btn" onclick="document.getElementById('marketingModal').classList.add('active')">🎯 Marketing</button>
+                    <button class="widget-btn" onclick="exportFullExecutivePDF()" style="background:var(--accent-gradient); color:#030712; font-weight:700;">📥 Relatório PDF</button>
                 </div>
 
-                <div class="menu-category" style="margin-top:12px;">Gestor de Ficheiros</div>
+                <div class="menu-category" style="margin-top:10px;">Gestor de Ficheiros</div>
                 <div class="sidebar-file-list" id="sidebarFileList">
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic; padding: 4px;">Nenhum ficheiro carregado.</div>
                 </div>
 
-                <div class="menu-category" style="margin-top:12px;">Atmosfera Visual</div>
+                <div class="menu-category" style="margin-top:10px;">Atmosfera Visual</div>
                 <div class="theme-selector-grid">
                     <button class="theme-btn active" onclick="setTheme('gold', this)">Gold</button>
                     <button class="theme-btn" onclick="setTheme('neon', this)">Neon</button>
@@ -594,7 +658,7 @@
 
             <div class="hero-view" id="heroView">
                 <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px; max-width: 600px;">
-                    <span style="font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">Ecossistema Quântico Integrado</span>
+                    <span style="font-size: 0.78rem; color: var(--neon-glow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em;">Ecossistema Quântico Integrado v5.0</span>
                     <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
                     <p class="hero-sub">Carregue ficheiros por arrastamento ou escolha um prompt rápido abaixo.</p>
                     
@@ -619,7 +683,7 @@
                                 <button class="voice-mic-btn" id="voiceMicBtn" title="Comando por Voz">
                                     <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                                 </button>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">v4.0 Ativo</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">v5.0 Ativo</span>
                             </div>
                             <button class="submit-engine-btn" id="heroSubmit">
                                 <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
@@ -662,6 +726,10 @@
     <script>
         let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
         let savedCalculations = JSON.parse(localStorage.getItem('honey_calc_history')) || [];
+        let taskList = JSON.parse(localStorage.getItem('honey_tasks')) || [
+            { task: "Rastreio fornecedor (China)", status: "Em Trânsito" },
+            { task: "Gestão Stock Luanda", status: "Pendente" }
+        ];
         let favoritePrompts = JSON.parse(localStorage.getItem('honey_fav_prompts')) || [
             "Analisar viabilidade financeira do projeto",
             "Otimizar estratégias de e-commerce"
@@ -674,6 +742,94 @@
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             if(btn) btn.classList.add('active');
             triggerAutoSave();
+        }
+
+        // Conversor de Câmbio (AOA / USD / EUR)
+        function calculateCurrency() {
+            const amount = parseFloat(document.getElementById('convAmount').value) || 0;
+            const from = document.getElementById('convFrom').value;
+            const to = document.getElementById('convTo').value;
+            const res = document.getElementById('convResult');
+
+            // Taxas de referência configuráveis
+            const rates = {
+                "AOA_USD": 0.0011, "USD_AOA": 910.0,
+                "AOA_EUR": 0.0010, "EUR_AOA": 980.0,
+                "USD_EUR": 0.92, "EUR_USD": 1.09
+            };
+
+            let converted = amount;
+            if (from === to) converted = amount;
+            else if (from === "AOA" && to === "USD") converted = amount * rates["AOA_USD"];
+            else if (from === "USD" && to === "AOA") converted = amount * rates["USD_AOA"];
+            else if (from === "AOA" && to === "EUR") converted = amount * rates["AOA_EUR"];
+            else if (from === "EUR" && to === "AOA") converted = amount * rates["EUR_AOA"];
+            else if (from === "USD" && to === "EUR") converted = amount * rates["USD_EUR"];
+            else if (from === "EUR" && to === "USD") converted = amount * rates["EUR_USD"];
+
+            res.textContent = `Resultado: ${converted.toLocaleString('pt', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${to}`;
+        }
+        calculateCurrency();
+
+        // Gestor de Tarefas e Encomendas
+        function renderTaskList() {
+            const container = document.getElementById('taskListContainer');
+            container.innerHTML = '';
+            if(taskList.length === 0) {
+                container.innerHTML = `<span style="font-size:0.7rem; color:var(--text-muted); font-style:italic;">Sem tarefas pendentes.</span>`;
+                return;
+            }
+            taskList.forEach((t, idx) => {
+                const item = document.createElement('div');
+                item.className = 'saved-item-sub';
+                item.innerHTML = `<span>🔹 ${t.task} (${t.status})</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeTask(${idx})">✕</button>`;
+                container.appendChild(item);
+            });
+        }
+
+        function addTaskItem() {
+            const val = document.getElementById('newTaskInput').value.trim();
+            const status = document.getElementById('newStatus').value;
+            if(!val) return;
+            taskList.push({ task: val, status: status });
+            document.getElementById('newTaskInput').value = '';
+            localStorage.setItem('honey_tasks', JSON.stringify(taskList));
+            renderTaskList();
+            triggerAutoSave();
+        }
+
+        function removeTask(idx) {
+            taskList.splice(idx, 1);
+            localStorage.setItem('honey_tasks', JSON.stringify(taskList));
+            renderTaskList();
+            triggerAutoSave();
+        }
+        renderTaskList();
+
+        // Gerador de Copywriting Marketing
+        function generateMarketingCopy() {
+            const prod = document.getElementById('mktProduct').value.trim() || "Produto Especial";
+            const aud = document.getElementById('mktAudience').value.trim() || "Clientes em Luanda";
+            const goal = document.getElementById('mktGoal').value;
+            const resBox = document.getElementById('mktResultBox');
+
+            resBox.innerHTML = `<span style="color:var(--neon-glow);">A gerar copy para "${prod}"...</span>`;
+            setTimeout(() => {
+                resBox.innerHTML = `✨ <b>Sugestão (${goal}):</b><br>Olá, Luanda! 🚀 Já conheces o novo <b>${prod}</b>? Pensado especialmente para <b>${aud}</b>, este é o toque de qualidade que faltava no teu dia a dia. 📲 Encomendas abertas via WhatsApp. Garante já o teu!`;
+            }, 600);
+        }
+
+        // Exportação Relatório PDF Completo
+        function exportFullExecutivePDF() {
+            const element = document.getElementById('exportableReportArea');
+            const opt = {
+                margin: 10,
+                filename: 'relatorio-executivo-honey-v5.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
 
         // Simulador de Stock
@@ -804,7 +960,7 @@
             favoritePrompts.forEach((p, idx) => {
                 const item = document.createElement('div');
                 item.className = 'prompt-fav-item';
-                item.innerHTML = `<span>⭐ ${p.substring(0, 24)}...</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFavPrompt(event, ${idx})">✕</button>`;
+                item.innerHTML = `<span>⭐ ${p.substring(0, 22)}...</span><button style="color:#ef4444;background:none;border:none;cursor:pointer;" onclick="removeFavPrompt(event, ${idx})">✕</button>`;
                 item.onclick = () => selectPrompt(p);
                 list.appendChild(item);
             });
@@ -841,17 +997,7 @@
             a.click();
         });
 
-        document.getElementById('exportPdfBtn').addEventListener('click', () => {
-            const element = document.getElementById('exportableReportArea');
-            const opt = {
-                margin: 10,
-                filename: 'relatorio-honey-ia.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(element).set(opt).save();
-        });
+        document.getElementById('exportPdfBtn').addEventListener('click', exportFullExecutivePDF);
 
         const dropzone = document.getElementById('dropzoneBox');
         const fileInput = document.getElementById('fileInput');
@@ -986,7 +1132,7 @@
 
         function initiateSession(text) {
             if (!text.trim()) return;
-            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema, stock e ficheiros associados foram sincronizados com sucesso.`;
+            const responseText = `Análise executiva gerada para: "${text}". Todos os parâmetros do ecossistema, stock, câmbio e tarefas foram sincronizados com sucesso.`;
             document.getElementById('userQueryNode').textContent = text;
             document.getElementById('aiResponseNode').textContent = responseText;
             document.getElementById('heroView').classList.add('hidden');
