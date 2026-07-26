@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Quantum Luxury Intelligence</title>
+    <title>Honey IA — Quantum Luxury Intelligence v2.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -68,7 +68,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar Ultra-Responsiva */
+        /* Sidebar & Modals */
         .sidebar {
             position: fixed;
             top: 0;
@@ -78,7 +78,6 @@
             height: 100%;
             background: rgba(3, 7, 18, 0.98);
             backdrop-filter: blur(45px);
-            -webkit-backdrop-filter: blur(45px);
             z-index: 1100;
             transition: var(--transition-lux);
             display: flex;
@@ -86,7 +85,6 @@
             border-right: 1px solid var(--border-subtle);
             box-shadow: 40px 0 80px rgba(0, 0, 0, 0.9);
         }
-
         .sidebar.open { left: 0; }
 
         .sidebar-overlay {
@@ -99,7 +97,6 @@
             visibility: hidden;
             transition: var(--transition-lux);
         }
-
         .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
         .sidebar-header {
@@ -112,7 +109,6 @@
         }
 
         .brand-cluster { display: flex; align-items: center; gap: 14px; min-width: 0; }
-
         .brand-logo-box {
             width: 42px; height: 42px;
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(56, 189, 248, 0.18));
@@ -157,11 +153,32 @@
         .nav-item:hover { background: rgba(255, 255, 255, 0.07); color: var(--text-main); }
         .nav-item.active { 
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(56, 189, 248, 0.1));
-            color: #fff; 
-            border-color: rgba(245, 158, 11, 0.6);
-            font-weight: 600;
+            color: #fff; border-color: rgba(245, 158, 11, 0.6); font-weight: 600;
         }
         .nav-item.active svg { stroke: var(--gold-primary); filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7)); }
+
+        /* Nova Secção: Analytics e Snippets na Sidebar */
+        .analytics-widget {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 15px;
+        }
+        .analytics-widget h5 { font-size: 0.75rem; color: var(--gold-light); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 700; }
+        .analytics-row { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
+        .analytics-row span:last-child { color: var(--neon-blue); font-weight: 600; }
+
+        .snippets-vault-list { display: flex; flex-direction: column; gap: 6px; }
+        .snippet-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 12px; border-radius: 10px;
+            font-size: 0.78rem; color: var(--text-main);
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: var(--transition-lux);
+        }
+        .snippet-item:hover { background: rgba(245, 158, 11, 0.1); border-color: var(--gold-primary); }
 
         .sidebar-footer {
             padding: 18px 20px;
@@ -174,8 +191,7 @@
             background: var(--gold-gradient);
             color: #030712;
             border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.5); flex-shrink: 0;
+            font-weight: 800; font-size: 1rem; flex-shrink: 0;
         }
         .user-meta { min-width: 0; flex: 1; }
         .user-meta h4 { font-size: 0.95rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -199,231 +215,133 @@
             color: var(--text-main);
             width: 44px; height: 44px; border-radius: 14px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            backdrop-filter: blur(25px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            backdrop-filter: blur(25px); box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             transition: var(--transition-lux); flex-shrink: 0;
         }
         .menu-trigger:hover { border-color: var(--border-glow); background: var(--bg-surface-hover); }
         .menu-trigger svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+        /* Seletor de Multi-Agente na Top Bar */
+        .agent-selector-wrapper {
+            display: flex; align-items: center; gap: 10px; margin-left: 15px;
+        }
+        .agent-select {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 10px 14px; border-radius: 14px;
+            font-size: 0.82rem; font-weight: 600; outline: none; cursor: pointer;
+            backdrop-filter: blur(25px); box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: var(--transition-lux);
+        }
+        .agent-select:hover { border-color: var(--gold-primary); }
 
         .executive-pill {
             background: var(--bg-surface);
             border: 1px solid var(--border-subtle);
             color: var(--text-main);
             padding: 10px 18px; border-radius: 16px;
-            font-size: 0.85rem; font-weight: 600;
-            backdrop-filter: blur(25px);
-            display: flex; align-items: center; gap: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            font-size: 0.85rem; font-weight: 600; backdrop-filter: blur(25px);
+            display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-left: 15px;
         }
         .status-dot { width: 9px; height: 9px; background: var(--neon-blue); border-radius: 50%; box-shadow: 0 0 12px var(--neon-blue); flex-shrink: 0; }
 
-        /* Hero View com Espaçamento Limpo (Sem Tag Quantum Edition) */
+        /* Hero View */
         .hero-view {
             flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            padding: 100px 20px 40px 20px;
-            text-align: center;
-            overflow-y: auto; width: 100%; max-width: 750px; margin: 0 auto;
-            gap: 18px;
+            padding: 100px 20px 40px 20px; text-align: center;
+            overflow-y: auto; width: 100%; max-width: 750px; margin: 0 auto; gap: 18px;
         }
         .hero-view.hidden { display: none; }
 
-        .hero-content-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            gap: 12px;
-        }
-
-        .dynamic-context-badge {
-            font-size: 0.78rem;
-            color: var(--neon-blue);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.18em;
-            margin-bottom: 4px;
-        }
-
+        .hero-content-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; }
+        .dynamic-context-badge { font-size: 0.78rem; color: var(--neon-blue); font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; margin-bottom: 4px; }
         .hero-heading {
-            font-size: clamp(1.4rem, 4vw, 2.3rem);
-            font-weight: 800; letter-spacing: -0.02em;
+            font-size: clamp(1.4rem, 4vw, 2.3rem); font-weight: 800; letter-spacing: -0.02em;
             background: linear-gradient(180deg, #f8fafc 20%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.25;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.25;
         }
-
-        .hero-sub {
-            font-size: 0.9rem; color: var(--text-muted);
-            max-width: 500px; line-height: 1.5; font-weight: 400;
-            margin-bottom: 6px;
-        }
-
-        .recent-project-banner {
-            width: 100%;
-            background: rgba(245, 158, 11, 0.08);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 16px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            text-align: left;
-            cursor: pointer;
-            transition: var(--transition-lux);
-            margin-top: 6px;
-        }
-        .recent-project-banner:hover {
-            background: rgba(245, 158, 11, 0.15);
-            border-color: rgba(245, 158, 11, 0.6);
-        }
-        .recent-project-info span { font-size: 0.68rem; color: var(--gold-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; display: block; margin-bottom: 3px; }
-        .recent-project-info h4 { font-size: 0.85rem; color: #f8fafc; font-weight: 600; }
-        .recent-project-action { font-size: 0.82rem; color: var(--neon-blue); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .hero-sub { font-size: 0.9rem; color: var(--text-muted); max-width: 500px; line-height: 1.5; font-weight: 400; margin-bottom: 6px; }
 
         .suggestions-wrapper { width: 100%; margin-top: 6px; }
-
-        .suggestions-grid {
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px;
-            width: 100%;
-        }
-
+        .suggestions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
         .suggestion-card {
-            background: var(--bg-surface);
-            backdrop-filter: blur(35px);
-            border: 1px solid var(--border-subtle);
-            padding: 14px 16px; border-radius: 18px;
+            background: var(--bg-surface); backdrop-filter: blur(35px);
+            border: 1px solid var(--border-subtle); padding: 14px 16px; border-radius: 18px;
             font-size: 0.82rem; font-weight: 600; color: var(--text-main);
             cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
-            transition: var(--transition-lux);
-            text-align: left;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            transition: var(--transition-lux); text-align: left; box-shadow: 0 12px 30px rgba(0,0,0,0.3);
         }
-        .suggestion-card svg { width: 18px; height: 18px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5)); }
-        .suggestion-card:active { transform: scale(0.97); }
-        .suggestion-card:hover {
-            background: var(--bg-surface-hover);
-            border-color: var(--border-glow);
-            transform: translateY(-2px);
-        }
+        .suggestion-card svg { width: 18px; height: 18px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
+        .suggestion-card:hover { background: var(--bg-surface-hover); border-color: var(--border-glow); transform: translateY(-2px); }
 
         .input-dock { width: 100%; margin-top: auto; padding-top: 12px; padding-bottom: env(safe-area-inset-bottom, 16px); }
-
         .ai-input-box {
-            background: rgba(10, 15, 28, 0.95);
-            backdrop-filter: blur(40px);
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 14px 18px;
-            box-shadow: var(--shadow-lux);
-            transition: var(--transition-lux);
+            background: rgba(10, 15, 28, 0.95); backdrop-filter: blur(40px);
+            border: 1.5px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 14px 18px;
+            box-shadow: var(--shadow-lux); transition: var(--transition-lux);
         }
-
         .ai-input-box:focus-within { 
             border-color: var(--neon-blue);
-            box-shadow: 0 0 0 1.5px var(--neon-blue), 0 20px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 0 1.5px var(--neon-blue), 0 20px 40px rgba(0, 0, 0, 0.9);
         }
-
         .ai-textarea {
-            width: 100%; background: none; border: none;
-            color: var(--text-main); font-size: 0.95rem; font-weight: 500;
-            resize: none; max-height: 120px; outline: none; line-height: 1.45;
-            min-height: 24px;
+            width: 100%; background: none; border: none; color: var(--text-main);
+            font-size: 0.95rem; font-weight: 500; resize: none; max-height: 120px; outline: none; line-height: 1.45; min-height: 24px;
         }
-        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.75; font-size: 0.92rem; }
+        .ai-textarea::placeholder { color: var(--text-muted); opacity: 0.75; }
 
         .input-actions-bar {
             display: flex; align-items: center; justify-content: space-between;
             border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-top: 10px;
         }
-
         .input-tools-left { display: flex; align-items: center; gap: 10px; }
 
         .action-icon-btn {
-            background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main);
             width: 38px; height: 38px; border-radius: 12px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            transition: var(--transition-lux);
+            display: flex; align-items: center; justify-content: center; transition: var(--transition-lux);
         }
         .action-icon-btn:hover { background: rgba(56, 189, 248, 0.15); color: var(--neon-blue); border-color: rgba(56, 189, 248, 0.4); }
+        .action-icon-btn.recording { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; animation: pulse 1.5s infinite; }
         .action-icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 
-        .quick-attachment-tag {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 6px 14px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: var(--transition-lux);
-        }
-        .quick-attachment-tag:hover {
-            color: var(--neon-blue);
-            background: rgba(56, 189, 248, 0.1);
-            border-color: rgba(56, 189, 248, 0.3);
-        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
         .submit-engine-btn {
-            background: var(--gold-gradient);
-            color: #030712; border: none;
+            background: var(--gold-gradient); color: #030712; border: none;
             width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5);
-            transition: var(--transition-lux);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5); transition: var(--transition-lux);
         }
-        .submit-engine-btn:active { transform: scale(0.92); }
-        .submit-engine-btn:hover { box-shadow: 0 10px 24px rgba(56, 189, 248, 0.5), 0 0 18px rgba(245, 158, 11, 0.7); }
         .submit-engine-btn svg { width: 18px; height: 18px; stroke: #030712; fill: none; stroke-width: 2.8; }
 
-        /* Stream de Chat & Split Screen */
+        /* Chat Stream & Export */
         .chat-stream-container {
             flex: 1; overflow-y: auto; padding: 100px 20px 24px 20px;
             display: none; flex-direction: column; gap: 16px; max-width: 750px; width: 100%; margin: 0 auto;
-            transition: max-width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .chat-stream-container.active { display: flex; }
-        .chat-stream-container.split-screen { max-width: 100%; padding: 100px 36px 24px 36px; }
-
         .chat-bubble-user {
-            align-self: flex-end; 
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(56, 189, 248, 0.12));
-            border: 1px solid rgba(245, 158, 11, 0.55);
-            color: #f8fafc; padding: 14px 18px; border-radius: 18px; 
-            font-size: 0.92rem; font-weight: 500; max-width: 85%;
+            align-self: flex-end; background: linear-gradient(135deg, rgba(245, 158, 11, 0.28), rgba(56, 189, 248, 0.12));
+            border: 1px solid rgba(245, 158, 11, 0.55); color: #f8fafc; padding: 14px 18px; border-radius: 18px; font-size: 0.92rem; max-width: 85%;
         }
-
         .chat-bubble-ai {
-            background-color: var(--bg-surface);
-            backdrop-filter: blur(40px);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px; padding: 20px; width: 100%; 
-            box-shadow: 0 15px 45px rgba(0,0,0,0.35);
-            position: relative;
+            background-color: var(--bg-surface); backdrop-filter: blur(40px);
+            border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px; width: 100%; box-shadow: 0 15px 45px rgba(0,0,0,0.35);
         }
         .ai-bubble-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .ai-bubble-title { font-size: 0.98rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
         .ai-bubble-title svg { width: 20px; height: 20px; stroke: var(--gold-primary); fill: none; stroke-width: 2.2; }
         
-        .expand-output-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            padding: 6px 12px; border-radius: 10px;
-            font-size: 0.72rem; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 6px;
-            transition: var(--transition-lux);
+        .export-report-btn {
+            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: var(--neon-blue);
+            padding: 6px 12px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: var(--transition-lux);
         }
-        .expand-output-btn:hover { color: var(--neon-blue); border-color: var(--neon-blue); }
-
+        .export-report-btn:hover { background: rgba(56, 189, 248, 0.2); }
         .chat-bubble-ai p { font-size: 0.92rem; line-height: 1.65; color: var(--text-muted); }
 
         .active-dock { display: none; width: 100%; max-width: 750px; margin: 0 auto; padding: 10px 20px 20px 20px; }
@@ -444,7 +362,7 @@
                     </div>
                     <div class="brand-title">
                         <h2>Honey IA</h2>
-                        <span>Quantum Suite</span>
+                        <span>Quantum Suite v2.5</span>
                     </div>
                 </div>
                 <button class="close-drawer" id="closeDrawer">✕</button>
@@ -468,10 +386,25 @@
                         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                         Excel & Contabilidade
                     </button>
-                    <button class="nav-item" data-category="arquitetura">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        Arquitetura & Plantas 3D
-                    </button>
+                </div>
+
+                <!-- 1. Painel de Analytics em Tempo Real -->
+                <div class="analytics-widget">
+                    <h5>Analytics do Nó</h5>
+                    <div class="analytics-row"><span>Tokens Usados:</span><span id="tokenCount">1,420</span></div>
+                    <div class="analytics-row"><span>Latência Média:</span><span>124ms</span></div>
+                    <div class="analytics-row"><span>Consultas Hoje:</span><span id="queryCount">8</span></div>
+                </div>
+
+                <!-- 2. Snippets Vault (Repositório de Código) -->
+                <div class="menu-category" style="margin-top:20px;">Snippets Vault</div>
+                <div class="snippets-vault-list">
+                    <div class="snippet-item" onclick="insertSnippet('const express = require(\'express\');\nconst app = express();')">
+                        <span>Express Server Setup</span> <span>📋</span>
+                    </div>
+                    <div class="snippet-item" onclick="insertSnippet('SELECT * FROM ecossistema WHERE status = \'ativo\';')">
+                        <span>SQL Core Query</span> <span>📋</span>
+                    </div>
                 </div>
             </div>
             <div class="sidebar-footer">
@@ -491,33 +424,30 @@
                 <button class="menu-trigger" id="menuTrigger">
                     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
-                <div class="executive-pill">
+                
+                <!-- 3. Modo Multi-Agente Seletor -->
+                <div class="agent-selector-wrapper">
+                    <select class="agent-select" id="agentSelect">
+                        <option value="exec">🤖 Agente Executivo Geral</option>
+                        <option value="physics">⚛️ Física & Ciências (Académico)</option>
+                        <option value="accounting">📊 Contabilidade & Excel</option>
+                        <option value="ecommerce">🛒 E-commerce & Importação</option>
+                    </select>
+                </div>
+
+                <div class="executive-pill" style="margin-left:auto;">
                     <div class="status-dot"></div>
-                    Aldair • Quantum Suite
+                    Aldair
                 </div>
             </header>
 
             <!-- Hero Welcome -->
             <div class="hero-view" id="heroView">
                 <div class="hero-content-group">
-                    <div class="dynamic-context-badge" id="dynamicContextBadge">
-                        ✨ Bom dia, Aldair • Pronto para otimizar o ecossistema?
-                    </div>
-                    
+                    <div class="dynamic-context-badge" id="dynamicContextBadge">✨ Bom dia, Aldair • Pronto para otimizar o ecossistema?</div>
                     <h1 class="hero-heading">Inteligência de alta performance para o seu ecossistema.</h1>
-                    <p class="hero-sub">Arquitetura web avançada, contabilidade estratégica e modelação estrutural por conversação neural.</p>
+                    <p class="hero-sub">Arquitetura avançada, multi-agentes especializados e automação neural por conversação.</p>
                     
-                    <div class="recent-project-banner" data-prompt="Continuar o desenvolvimento da Arquitetura web e design system corporativo.">
-                        <div class="recent-project-info">
-                            <span>Continuar Projeto Recente</span>
-                            <h4>Arquitetura Web & UI System (há 2h)</h4>
-                        </div>
-                        <div class="recent-project-action">
-                            Retomar ➔
-                        </div>
-                    </div>
-
-                    <!-- Grelha de Sugestões Contextuais -->
                     <div class="suggestions-wrapper">
                         <div class="suggestions-grid" id="suggestionsGrid"></div>
                     </div>
@@ -525,15 +455,16 @@
 
                 <div class="input-dock">
                     <div class="ai-input-box">
-                        <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou estratégia..." rows="1"></textarea>
+                        <textarea class="ai-textarea" id="heroInput" placeholder="Descreva o projeto ou comande a IA..." rows="1"></textarea>
                         <div class="input-actions-bar">
                             <div class="input-tools-left">
-                                <button class="action-icon-btn" title="Anexar documento">
-                                    <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                <!-- 4. Comandos de Voz Nativos -->
+                                <button class="action-icon-btn" id="voiceBtn" title="Gravar comando por voz">
+                                    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                                 </button>
-                                <span class="quick-attachment-tag" id="quickExcelTag">📊 + Excel rápido</span>
+                                <span class="quick-attachment-tag">+ Ficheiro / Anexo</span>
                             </div>
-                            <button class="submit-engine-btn" id="heroSubmit" title="Enviar comando">
+                            <button class="submit-engine-btn" id="heroSubmit">
                                 <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                             </button>
                         </div>
@@ -550,21 +481,21 @@
                             <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             Núcleo Quântico Ativo
                         </div>
-                        <button class="expand-output-btn" id="expandStreamBtn">
-                            <span>⤢ Expandir Ecrã</span>
+                        <!-- 5. Exportação Avançada de Relatórios -->
+                        <button class="export-report-btn" id="exportReportBtn">
+                            📥 Exportar Markdown / PDF
                         </button>
                     </div>
-                    <p>A processar os parâmetros de excelência através dos modelos generativos da Honey IA...</p>
+                    <p>A processar parâmetros executivos e simulação multi-agente...</p>
                 </div>
             </div>
 
             <div class="active-dock" id="activeDock">
                 <div class="ai-input-box">
-                    <textarea class="ai-textarea" id="activeInput" placeholder="Continuar o fluxo executivo..." rows="1"></textarea>
+                    <textarea class="ai-textarea" id="activeInput" placeholder="Continuar conversação..." rows="1"></textarea>
                     <div class="input-actions-bar">
                         <div class="input-tools-left">
                             <button class="action-icon-btn"><svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
-                            <span class="quick-attachment-tag">+ Ficheiro</span>
                         </div>
                         <button class="submit-engine-btn" id="activeSubmit"><svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
                     </div>
@@ -574,193 +505,118 @@
     </div>
 
     <script>
-        function triggerHaptic() {
-            if ("vibrate" in navigator) {
-                navigator.vibrate(15);
-            }
-        }
+        let queryCounter = 8;
+        let tokenCounter = 1420;
 
-        const contextPrompts = {
-            empresarial: [
-                { title: "Criar Site / Aplicação", prompt: "Arquitetar site institucional e aplicação corporativa de alto impacto." },
-                { title: "Estratégia Comercial", prompt: "Desenvolver plano de expansão comercial e cross-selling para o negócio." },
-                { title: "Automação de Processos", prompt: "Criar fluxos automatizados de atendimento e gestão interna." },
-                { title: "Auditoria de Marca", prompt: "Avaliar o posicionamento digital e identidade visual do ecossistema." }
+        const agentPrompts = {
+            exec: [
+                { title: "Estratégia de Expansão", prompt: "Desenvolver plano de expansão comercial e cross-selling para o negócio." },
+                { title: "Automação de Processos", prompt: "Criar fluxos automatizados de atendimento e gestão interna." }
             ],
-            web: [
-                { title: "Deploy em Nuvem", prompt: "Configurar pipelines de CI/CD e alojamento otimizado para aplicações." },
-                { title: "Interface UI/UX", prompt: "Desenvolver protótipo interativo em HTML/CSS com foco em conversão." },
-                { title: "Otimização de Performance", prompt: "Auditar e acelerar o tempo de carregamento de páginas web." },
-                { title: "Arquitetura de Base de Dados", prompt: "Estruturar modelos de dados escaláveis para novas aplicações." }
+            physics: [
+                { title: "Resolução de Problemas de Física", prompt: "Resolver equações avançadas de cinemática e dinâmica com explicações passo a passo." },
+                { title: "Planeamento de Provas Académicas", prompt: "Criar estrutura de testes e exercícios práticos para aulas de Física." }
             ],
-            marketing: [
-                { title: "Campanha de Vídeo", prompt: "Gerar roteiro de alta conversão para anúncios em vídeo e redes sociais." },
-                { title: "Copywriting Romântico/Emocional", prompt: "Criar copies e abordagens de comunicação altamente cativantes." },
-                { title: "Planeamento de Lançamento", prompt: "Estruturar cronograma de marketing digital para um novo produto." },
-                { title: "Análise de Métricas", prompt: "Avaliar KPIs de campanhas publicitárias e ROI de tráfego." }
-            ],
-            excel: [
+            accounting: [
                 { title: "Balanço Patrimonial", prompt: "Criar modelo avançado de contabilidade e balanço financeiro em Excel." },
-                { title: "Fluxo de Caixa Dinâmico", prompt: "Desenvolver projeções financeiras automatizadas a 12 meses." },
-                { title: "Gestão de Inventário", prompt: "Criar folha de controlo de stock e ponto de encomenda otimizado." },
-                { title: "Análise de Custos de Importação", prompt: "Calcular taxas alfandegárias, fretes e margens de lucro de produtos." }
+                { title: "Fluxo de Caixa Dinâmico", prompt: "Desenvolver projeções financeiras automatizadas a 12 meses." }
             ],
-            arquitetura: [
-                { title: "Planta 3D Detalhada", prompt: "Gerar especificações técnicas e layout otimizado para espaços comerciais." },
-                { title: "Estudo de Layout de Loja", prompt: "Otimizar o corredor comercial para instalação de nova ilha de atendimento." },
-                { title: "Orçamento de Materiais", prompt: "Calcular cubagem, quantidades e custos estimados de construção." },
-                { title: "Ergonomia e Circulação", prompt: "Desenvolver estudo de fluxo de tráfego de clientes num espaço físico." }
+            ecommerce: [
+                { title: "Cálculo de Custos de Importação", prompt: "Calcular taxas alfandegárias, fretes e margens de lucro de produtos da China." },
+                { title: "Gestão de Inventário", prompt: "Criar folha de controlo de stock e ponto de encomenda otimizado." }
             ]
         };
 
-        function renderContextualSuggestions(category) {
+        function renderSuggestions(agentKey) {
             const grid = document.getElementById('suggestionsGrid');
-            const items = contextPrompts[category] || contextPrompts['empresarial'];
+            const items = agentPrompts[agentKey] || agentPrompts['exec'];
             grid.innerHTML = '';
-            
             items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'suggestion-card';
-                card.setAttribute('data-prompt', item.prompt);
-                card.innerHTML = `
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    ${item.title}
-                `;
-                card.addEventListener('click', () => {
-                    triggerHaptic();
-                    initiateNeuralSession(item.getAttribute('data-prompt'));
-                });
+                card.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>${item.title}`;
+                card.addEventListener('click', () => initiateSession(item.prompt));
                 grid.appendChild(card);
             });
         }
+        renderSuggestions('exec');
 
-        function updateDynamicGreeting() {
-            const hour = new Date().getHours();
-            let greeting = "Bom dia";
-            if (hour >= 12 && hour < 18) {
-                greeting = "Boa tarde";
-            } else if (hour >= 18 || hour < 5) {
-                greeting = "Boa noite";
-            }
-            const badge = document.getElementById('dynamicContextBadge');
-            if(badge) {
-                badge.innerHTML = `✨ ${greeting}, Aldair • Pronto para otimizar o ecossistema?`;
-            }
+        document.getElementById('agentSelect').addEventListener('change', (e) => {
+            renderSuggestions(e.target.value);
+        });
+
+        // Snippet Vault Action
+        function insertSnippet(code) {
+            const activeTa = document.getElementById('heroView').classList.contains('hidden') ? document.getElementById('activeInput') : document.getElementById('heroInput');
+            activeTa.value += code;
+            activeTa.focus();
         }
-        updateDynamicGreeting();
-        renderContextualSuggestions('empresarial');
+
+        // Voice Command Simulation (Web Speech API)
+        const voiceBtn = document.getElementById('voiceBtn');
+        voiceBtn.addEventListener('click', () => {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('O seu navegador não suporta reconhecimento de voz nativo.');
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-PT';
+            
+            voiceBtn.classList.add('recording');
+            recognition.onresult = (event) => {
+                const speechToText = event.results[0][0].transcript;
+                document.getElementById('heroInput').value = speechToText;
+                voiceBtn.classList.remove('recording');
+            };
+            recognition.onerror = () => voiceBtn.classList.remove('recording');
+            recognition.onend = () => voiceBtn.classList.remove('recording');
+            recognition.start();
+        });
+
+        // Export Report Simulation
+        document.getElementById('exportReportBtn').addEventListener('click', () => {
+            const reportContent = "# Relatório Executivo - Honey IA\n\nGerado para: Aldair\nData: 2026-07-26\n\nResultados do processamento quântico e multi-agente concluídos com sucesso.";
+            const blob = new Blob([reportContent], { type: 'text/markdown;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Honey_IA_Relatorio_Executivo.md';
+            a.click();
+        });
 
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const menuTrigger = document.getElementById('menuTrigger');
-        const closeDrawer = document.getElementById('closeDrawer');
-        const heroView = document.getElementById('heroView');
-        const chatStream = document.getElementById('chatStream');
-        const activeDock = document.getElementById('activeDock');
-        
-        const heroInput = document.getElementById('heroInput');
-        const heroSubmit = document.getElementById('heroSubmit');
-        const activeInput = document.getElementById('activeInput');
-        const activeSubmit = document.getElementById('activeSubmit');
-        const userQueryNode = document.getElementById('userQueryNode');
+        document.getElementById('menuTrigger').addEventListener('click', () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('active'); });
+        document.getElementById('closeDrawer').addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
+        sidebarOverlay.addEventListener('click', () => { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('active'); });
 
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            sidebarOverlay.classList.toggle('active');
-        }
-
-        menuTrigger.addEventListener('click', toggleSidebar);
-        closeDrawer.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                triggerHaptic();
-                navItems.forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-                const cat = item.getAttribute('data-category');
-                renderContextualSuggestions(cat);
-                if(window.innerWidth <= 768) toggleSidebar();
-            });
-        });
-
-        function initiateNeuralSession(text) {
+        function initiateSession(text) {
             if (!text.trim()) return;
-            triggerHaptic();
-            userQueryNode.textContent = text;
-            heroView.classList.add('hidden');
-            chatStream.classList.add('active');
-            activeDock.classList.add('active');
+            queryCounter++;
+            tokenCounter += 180;
+            document.getElementById('queryCount').textContent = queryCounter;
+            document.getElementById('tokenCount').textContent = tokenCounter.toLocaleString();
+
+            document.getElementById('userQueryNode').textContent = text;
+            document.getElementById('heroView').classList.add('hidden');
+            document.getElementById('chatStream').classList.add('active');
+            document.getElementById('activeDock').classList.add('active');
         }
 
-        heroSubmit.addEventListener('click', () => {
-            initiateNeuralSession(heroInput.value);
-            heroInput.value = '';
+        document.getElementById('heroSubmit').addEventListener('click', () => {
+            initiateSession(document.getElementById('heroInput').value);
+            document.getElementById('heroInput').value = '';
         });
 
-        heroInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                initiateNeuralSession(heroInput.value);
-                heroInput.value = '';
-            }
-        });
-
-        document.querySelectorAll('.recent-project-banner').forEach(item => {
-            item.addEventListener('click', () => {
-                triggerHaptic();
-                initiateNeuralSession(item.getAttribute('data-prompt'));
-            });
-        });
-
-        document.getElementById('quickExcelTag').addEventListener('click', () => {
-            triggerHaptic();
-            heroInput.value = "Análise rápida de folha de Excel / Balanço contábil: ";
-            heroInput.focus();
-        });
-
-        const expandStreamBtn = document.getElementById('expandStreamBtn');
-        expandStreamBtn.addEventListener('click', () => {
-            triggerHaptic();
-            chatStream.classList.toggle('split-screen');
-            const span = expandStreamBtn.querySelector('span');
-            if (chatStream.classList.contains('split-screen')) {
-                span.textContent = "⤡ Reduzir Ecrã";
-            } else {
-                span.textContent = "⤢ Expandir Ecrã";
-            }
-        });
-
-        activeSubmit.addEventListener('click', () => {
-            if (!activeInput.value.trim()) return;
-            triggerHaptic();
+        document.getElementById('activeSubmit').addEventListener('click', () => {
+            const val = document.getElementById('activeInput').value;
+            if (!val.trim()) return;
             const uMsg = document.createElement('div');
             uMsg.className = 'chat-bubble-user';
-            uMsg.textContent = activeInput.value;
-            chatStream.appendChild(uMsg);
-            
-            const aiMsg = document.createElement('div');
-            aiMsg.className = 'chat-bubble-ai';
-            aiMsg.innerHTML = `
-                <div class="ai-bubble-header">
-                    <div class="ai-bubble-title">
-                        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--gold-primary);fill:none;stroke-width:2.2;vertical-align:middle;margin-right:6px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                        Resposta Quântica
-                    </div>
-                </div>
-                <p>Parâmetro processado com sucesso pelo ecossistema Honey IA.</p>
-            `;
-            chatStream.appendChild(aiMsg);
-            activeInput.value = '';
-            chatStream.scrollTop = chatStream.scrollHeight;
-        });
-
-        document.querySelectorAll('.ai-textarea').forEach(ta => {
-            ta.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
+            uMsg.textContent = val;
+            document.getElementById('chatStream').appendChild(uMsg);
+            document.getElementById('activeInput').value = '';
         });
     </script>
 </body>
