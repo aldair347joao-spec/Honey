@@ -3,46 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA</title>
+    <title>Honey IA — Plataforma Inteligente</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#090a0f">
     
-    <!-- Google Fonts & Marked -->
+    <!-- Google Fonts & Marked Library -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
-            --bg-body: #090a0f;
-            --bg-surface: #12141c;
-            --bg-card: #181b26;
-            --border: #232736;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --primary: #f59e0b;
-            --primary-hover: #d97706;
-            --primary-glow: rgba(245, 158, 11, 0.15);
+            --bg-dark: #07080c;
+            --bg-card: rgba(18, 20, 29, 0.7);
+            --bg-card-hover: rgba(26, 29, 43, 0.9);
+            --border-glow: rgba(245, 158, 11, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --accent: #f59e0b;
+            --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --accent-glow: 0 0 20px rgba(245, 158, 11, 0.35);
+            --sidebar-width: 280px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         html, body {
             height: 100%;
-            height: 100dvh; /* Garante ajuste perfeito com a barra do navegador mobile */
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            height: 100dvh;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(217, 119, 6, 0.05) 0%, transparent 40%);
         }
 
-        .app-layout {
+        .app-container {
             display: flex;
             width: 100vw;
             height: 100%;
@@ -50,15 +55,16 @@
             position: relative;
         }
 
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR LATERAL OCULTA/MODERNA --- */
         .sidebar {
-            width: 260px;
-            background-color: var(--bg-surface);
-            border-right: 1px solid var(--border);
+            width: var(--sidebar-width);
+            background: rgba(10, 11, 16, 0.95);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            z-index: 50;
-            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @media (max-width: 768px) {
@@ -68,6 +74,7 @@
                 bottom: 0;
                 left: 0;
                 transform: translateX(-100%);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.8);
             }
             .sidebar.open {
                 transform: translateX(0);
@@ -75,388 +82,490 @@
         }
 
         .sidebar-header {
-            padding: 16px;
+            padding: 20px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .brand-title {
+        .brand-logo {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 1rem;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: -0.5px;
         }
 
-        .btn-new {
-            margin: 12px;
-            padding: 10px;
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-gradient);
             border-radius: 8px;
-            color: var(--text-main);
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            box-shadow: var(--accent-glow);
+            font-size: 1.1rem;
         }
 
-        .history-container {
+        .btn-new-chat {
+            margin: 16px;
+            padding: 12px;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: var(--accent-glow);
+            transition: transform 0.2s;
+        }
+
+        .btn-new-chat:active {
+            transform: scale(0.98);
+        }
+
+        .history-list {
             flex: 1;
             overflow-y: auto;
             padding: 0 12px;
         }
 
         .history-item {
-            padding: 8px 10px;
-            margin-bottom: 4px;
-            border-radius: 6px;
-            color: var(--text-muted);
-            font-size: 0.825rem;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
             cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        /* --- MAIN CONTENT --- */
-        .main-panel {
+        .history-item:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-subtle);
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             height: 100%;
             height: 100dvh;
-            width: 100%;
             position: relative;
         }
 
         /* --- HEADER --- */
         .header {
-            height: 52px;
-            padding: 0 12px;
+            height: 64px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background-color: var(--bg-body);
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(7, 8, 12, 0.8);
+            backdrop-filter: blur(12px);
             flex-shrink: 0;
+            z-index: 10;
         }
 
-        .btn-icon {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 6px;
+        .header-left {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
         }
 
-        /* Seletores de modo deslizáveis horizontalmente */
-        .mode-bar {
+        .badge-pro {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .mode-selector {
             display: flex;
-            gap: 4px;
-            background-color: var(--bg-surface);
-            padding: 3px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
             overflow-x: auto;
+            max-width: calc(100vw - 110px);
             scrollbar-width: none;
-            max-width: calc(100vw - 70px);
         }
 
-        .mode-bar::-webkit-scrollbar {
-            display: none;
-        }
+        .mode-selector::-webkit-scrollbar { display: none; }
 
-        .mode-chip {
-            padding: 4px 10px;
+        .mode-btn {
+            padding: 6px 14px;
             border: none;
             background: none;
-            color: var(--text-muted);
-            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
         }
 
-        .mode-chip.active {
-            background-color: var(--primary);
+        .mode-btn.active {
+            background: var(--accent-gradient);
             color: #000;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
         }
 
         /* --- CHAT VIEWPORT --- */
         .chat-viewport {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 20px 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .chat-box {
+        .chat-container {
             width: 100%;
-            max-width: 680px;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
             margin: auto 0;
         }
 
-        /* --- WELCOME HERO --- */
-        .hero {
+        /* --- TELA INICIAL (IMPACTO VISUAL EMPRESARIAL) --- */
+        .hero-section {
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 16px;
         }
 
-        .hero-badge {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-glow);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+        .hero-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(180deg, #FFFFFF 0%, #94A3B8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
 
-        .hero h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-main);
+        .hero-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 500px;
+            line-height: 1.5;
         }
 
-        /* Lista de sugestões verticais no mobile (evita cortes) */
-        .suggestions-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        /* CARD DE PREVIEW/SUGESTÕES */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
             width: 100%;
+            margin-top: 10px;
         }
 
-        .suggestion-item {
-            background-color: var(--bg-surface);
-            border: 1px solid var(--border);
-            padding: 10px 12px;
-            border-radius: 8px;
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            padding: 16px;
+            border-radius: 14px;
             cursor: pointer;
             text-align: left;
-            transition: border-color 0.2s;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .suggestion-item:active {
-            border-color: var(--primary);
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
         }
 
-        .suggestion-item h4 {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-main);
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
         }
 
-        .suggestion-item p {
-            font-size: 0.725rem;
-            color: var(--text-muted);
-            margin-top: 2px;
+        .card-icon {
+            font-size: 1.2rem;
+            padding: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
         }
 
-        /* --- CHAT MESSAGES --- */
-        .msg {
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* --- PREVIEWER DENTRO DO CHAT --- */
+        .preview-box {
+            background: #000;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+        .dot:nth-child(2) { background: #f59e0b; }
+        .dot:nth-child(3) { background: #10b981; }
+
+        /* --- MENSAGENS DO CHAT --- */
+        .msg-row {
             display: flex;
             width: 100%;
         }
 
-        .msg.user {
-            justify-content: flex-end;
+        .msg-row.user { justify-content: flex-end; }
+
+        .bubble {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
-        .msg-bubble {
-            max-width: 88%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            line-height: 1.45;
-        }
-
-        .msg.user .msg-bubble {
-            background-color: var(--primary);
+        .msg-row.user .bubble {
+            background: var(--accent-gradient);
             color: #000;
-            font-weight: 500;
-            border-bottom-right-radius: 2px;
+            font-weight: 600;
+            border-bottom-right-radius: 4px;
+            box-shadow: var(--accent-glow);
         }
 
-        .msg.assistant .msg-bubble {
-            background-color: var(--bg-surface);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-bottom-left-radius: 2px;
+        .msg-row.assistant .bubble {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            backdrop-filter: blur(10px);
         }
 
-        .msg-bubble pre {
-            background-color: #000;
-            padding: 10px;
-            border-radius: 6px;
-            overflow-x: auto;
-            margin: 8px 0;
-            font-size: 0.8rem;
-        }
-
-        /* --- FOOTER / INPUT DOCK --- */
+        /* --- CAIXA DE INPUT FIXA --- */
         .input-dock {
-            padding: 8px 12px 12px 12px;
-            background-color: var(--bg-body);
-            border-top: 1px solid var(--border);
+            padding: 12px 16px 16px 16px;
+            background: rgba(7, 8, 12, 0.95);
+            border-top: 1px solid var(--border-subtle);
+            backdrop-filter: blur(16px);
             flex-shrink: 0;
             display: flex;
             justify-content: center;
         }
 
-        .input-wrapper {
+        .input-box {
             width: 100%;
-            max-width: 680px;
-            background-color: var(--bg-surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 6px 10px;
+            max-width: 800px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 8px 12px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 8px;
+            transition: border-color 0.2s;
         }
 
-        .input-wrapper:focus-within {
-            border-color: var(--primary);
+        .input-box:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
         }
 
-        .input-wrapper textarea {
-            flex: 1;
+        .input-box textarea {
+            width: 100%;
             background: none;
             border: none;
             outline: none;
-            color: var(--text-main);
-            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-size: 0.92rem;
             resize: none;
-            max-height: 100px;
-            min-height: 36px;
-            padding: 8px 0;
+            max-height: 120px;
+            min-height: 40px;
+            padding: 6px 0;
         }
 
+        .input-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .btn-icon:hover { color: var(--text-primary); }
+
         .btn-send {
-            background-color: var(--primary);
+            background: var(--accent-gradient);
             color: #000;
             border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-weight: bold;
-            flex-shrink: 0;
+            box-shadow: var(--accent-glow);
         }
 
         .overlay {
             display: none;
             position: absolute;
             inset: 0;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 40;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 90;
         }
 
-        .overlay.active {
-            display: block;
-        }
+        .overlay.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div class="app-layout">
+    <div class="app-container">
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
         <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="brand-title">
-                    <span>🐝</span>
+                <div class="brand-logo">
+                    <div class="brand-icon">🐝</div>
                     <span>Honey IA</span>
                 </div>
                 <button class="btn-icon" onclick="toggleSidebar()">✕</button>
             </div>
 
-            <button class="btn-new" onclick="startNewChat()">
+            <button class="btn-new-chat" onclick="startNewChat()">
                 <span>+</span> Nova Conversa
             </button>
 
-            <div class="history-container" id="historyContainer">
-                <!-- Histórico de Conversas -->
+            <div class="history-list" id="historyList">
+                <!-- Histórico em tempo real -->
             </div>
         </aside>
 
-        <!-- MAIN PANEL -->
-        <main class="main-panel">
+        <!-- ÁREA PRINCIPAL -->
+        <main class="main-content">
             <!-- HEADER -->
             <header class="header">
-                <button class="btn-icon" onclick="toggleSidebar()">
-                    <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-                </button>
+                <div class="header-left">
+                    <button class="btn-icon" onclick="toggleSidebar()">
+                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                    </button>
+                    <span class="badge-pro">v3.3 PRO</span>
+                </div>
 
-                <div class="mode-bar">
-                    <button class="mode-chip active" onclick="setMode('general', this)">🐝 Geral</button>
-                    <button class="mode-chip" onclick="setMode('dev', this)">💻 Dev</button>
-                    <button class="mode-chip" onclick="setMode('designer', this)">🎨 Designer</button>
-                    <button class="mode-chip" onclick="setMode('marketing', this)">📣 Marketing</button>
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="setMode('general', this)">🐝 Geral</button>
+                    <button class="mode-btn" onclick="setMode('dev', this)">💻 Dev & Apps</button>
+                    <button class="mode-btn" onclick="setMode('designer', this)">🎨 Web Designer</button>
+                    <button class="mode-btn" onclick="setMode('marketing', this)">📣 Business</button>
                 </div>
             </header>
 
             <!-- CHAT VIEWPORT -->
             <div class="chat-viewport" id="chatViewport">
-                <div class="chat-box" id="chatBox">
-                    <div class="hero" id="hero">
-                        <div class="hero-badge">🐝</div>
-                        <h2>Como posso ajudar hoje?</h2>
+                <div class="chat-container" id="chatContainer">
+                    
+                    <!-- HERO HOME (IMPACTO INICIAL) -->
+                    <div class="hero-section" id="heroSection">
+                        <div class="brand-icon" style="width: 56px; height: 56px; font-size: 2rem;">🐝</div>
+                        <h1 class="hero-title">O que vamos construir hoje?</h1>
+                        <p class="hero-subtitle">A inteligência artificial pronta para impulsionar a sua empresa, gerar software e automatizar processos.</p>
 
-                        <div class="suggestions-list">
-                            <div class="suggestion-item" onclick="usePrompt('Crie uma landing page moderna para uma startup.')">
-                                <h4>🌐 Site Comercial</h4>
-                                <p>Criar estrutura de landing page persuasiva</p>
+                        <div class="cards-grid">
+                            <div class="feature-card" onclick="usePrompt('Crie uma Landing Page moderna para uma empresa de tecnologia com preview visual.')">
+                                <div class="card-header">
+                                    <span class="card-icon">🌐</span>
+                                    <span class="card-title">Criador de Websites</span>
+                                </div>
+                                <p class="card-desc">Gerar estrutura HTML/CSS com pré-visualização completa do site.</p>
                             </div>
-                            <div class="suggestion-item" onclick="usePrompt('Crie uma API RESTful em Node.js com Express.')">
-                                <h4>💻 API Backend</h4>
-                                <p>Gerar código limpo e arquitetura de rotas</p>
+
+                            <div class="feature-card" onclick="usePrompt('Crie a arquitetura de um aplicativo mobile para vendas e gestão.')">
+                                <div class="card-header">
+                                    <span class="card-icon">📱</span>
+                                    <span class="card-title">Protótipo de App</span>
+                                </div>
+                                <p class="card-desc">Desenvolver interface e lógica para aplicações empresariais.</p>
                             </div>
-                            <div class="suggestion-item" onclick="usePrompt('Gere um prompt Midjourney para um logo futurista.')">
-                                <h4>🎨 Prompt de Design</h4>
-                                <p>Gerar prompt detalhado para arte de IA</p>
+
+                            <div class="feature-card" onclick="usePrompt('Escreva uma estratégia comercial completa para atração de clientes corporativos.')">
+                                <div class="card-header">
+                                    <span class="card-icon">📊</span>
+                                    <span class="card-title">Estratégia de Negócios</span>
+                                </div>
+                                <p class="card-desc">Planos empresariais, copys de conversão e relatórios.</p>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
-            <!-- INPUT DOCK -->
+            <!-- ENTRADA DE TEXTO -->
             <div class="input-dock">
-                <div class="input-wrapper">
-                    <button class="btn-icon" title="Anexar Ficheiro" onclick="document.getElementById('fileInput').click()">📎</button>
-                    <input type="file" id="fileInput" hidden onchange="handleFileSelect(event)">
+                <div class="input-box">
+                    <textarea id="promptInput" rows="1" placeholder="Descreva a sua ideia ou projeto..." oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
                     
-                    <textarea id="promptInput" rows="1" placeholder="Escreva a sua mensagem..." oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
-                    
-                    <button class="btn-send" onclick="sendPrompt()">➔</button>
+                    <div class="input-actions">
+                        <button class="btn-icon" title="Anexar Ficheiro" onclick="document.getElementById('fileInput').click()">📎</button>
+                        <input type="file" id="fileInput" hidden onchange="handleFileSelect(event)">
+                        
+                        <button class="btn-send" onclick="sendPrompt()">➔</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -472,7 +581,7 @@
 
         function setMode(mode, el) {
             currentMode = mode;
-            document.querySelectorAll('.mode-chip').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             el.classList.add('active');
         }
 
@@ -494,10 +603,11 @@
         }
 
         function startNewChat() {
-            document.getElementById('chatBox').innerHTML = `
-                <div class="hero" id="hero">
-                    <div class="hero-badge">🐝</div>
-                    <h2>Como posso ajudar hoje?</h2>
+            document.getElementById('chatContainer').innerHTML = `
+                <div class="hero-section" id="heroSection">
+                    <div class="brand-icon" style="width: 56px; height: 56px; font-size: 2rem;">🐝</div>
+                    <h1 class="hero-title">O que vamos construir hoje?</h1>
+                    <p class="hero-subtitle">A inteligência artificial pronta para impulsionar a sua empresa, gerar software e automatizar processos.</p>
                 </div>`;
             if (window.innerWidth <= 768) toggleSidebar();
         }
@@ -507,15 +617,15 @@
             const text = input.value.trim();
             if (!text) return;
 
-            const hero = document.getElementById('hero');
+            const hero = document.getElementById('heroSection');
             if (hero) hero.remove();
 
-            const chatBox = document.getElementById('chatBox');
+            const container = document.getElementById('chatContainer');
 
-            // Adiciona mensagem do utilizador
-            chatBox.innerHTML += `
-                <div class="msg user">
-                    <div class="msg-bubble">${text}</div>
+            // Mensagem do Utilizador
+            container.innerHTML += `
+                <div class="msg-row user">
+                    <div class="bubble">${text}</div>
                 </div>`;
 
             input.value = '';
@@ -532,24 +642,24 @@
                 });
 
                 const data = await response.json();
-                const replyText = data.sucesso ? data.resposta : (data.erro || 'Erro ao obter resposta.');
+                const replyText = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar.');
 
-                chatBox.innerHTML += `
-                    <div class="msg assistant">
-                        <div class="msg-bubble">${marked.parse(replyText)}</div>
+                container.innerHTML += `
+                    <div class="msg-row assistant">
+                        <div class="bubble">${marked.parse(replyText)}</div>
                     </div>`;
                 viewport.scrollTop = viewport.scrollHeight;
             } catch (err) {
-                chatBox.innerHTML += `
-                    <div class="msg assistant">
-                        <div class="msg-bubble">Erro ao conectar com o servidor.</div>
+                container.innerHTML += `
+                    <div class="msg-row assistant">
+                        <div class="bubble">Erro de conexão com o servidor.</div>
                     </div>`;
             }
         }
 
         function handleFileSelect(e) {
             if (e.target.files.length > 0) {
-                alert("Ficheiro selecionado: " + e.target.files[0].name);
+                alert("Ficheiro anexado: " + e.target.files[0].name);
             }
         }
 
