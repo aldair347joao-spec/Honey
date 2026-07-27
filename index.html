@@ -41,7 +41,6 @@
             position: relative;
         }
 
-        /* Overlay para fecha a sidebar em mobile */
         .sidebar-overlay {
             display: none;
             position: absolute;
@@ -54,7 +53,6 @@
             display: block;
         }
 
-        /* Sidebar Retrátil */
         .sidebar {
             position: absolute;
             top: 0; bottom: 0; left: -280px;
@@ -152,7 +150,6 @@
             color: var(--text-primary);
         }
 
-        /* Área Principal */
         .main-content {
             flex: 1;
             display: flex;
@@ -202,7 +199,6 @@
             gap: 20px;
         }
 
-        /* Apresentação Inicial Minimalista */
         .hero-section {
             margin: auto 0;
             text-align: center;
@@ -250,7 +246,6 @@
             color: var(--text-primary);
         }
 
-        /* Caixa de Input */
         .input-wrapper {
             position: absolute;
             bottom: 0; left: 0; right: 0;
@@ -335,7 +330,6 @@
             font-weight: bold;
         }
 
-        /* Ficheiros Anexados */
         .file-preview {
             display: flex;
             gap: 6px;
@@ -354,7 +348,6 @@
             gap: 6px;
         }
 
-        /* Bolhas de Mensagem */
         .message {
             display: flex;
             flex-direction: column;
@@ -379,7 +372,7 @@
             color: var(--text-primary);
         }
 
-        /* Customização dos Blocos de Código */
+        /* Blocos de Código & Prompts Visuais */
         .code-wrapper {
             position: relative;
             margin: 12px 0;
@@ -387,6 +380,11 @@
             overflow: hidden;
             border: 1px solid var(--border-subtle);
             background: #121417;
+        }
+
+        .code-wrapper.prompt-card {
+            border-color: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.03);
         }
 
         .code-header {
@@ -397,6 +395,12 @@
             padding: 6px 12px;
             font-size: 0.75rem;
             color: var(--text-secondary);
+        }
+
+        .code-wrapper.prompt-card .code-header {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+            font-weight: 600;
         }
 
         .code-actions {
@@ -432,7 +436,6 @@
             color: #38bdf8;
         }
 
-        /* Modal de Pré-visualização de Sites */
         .preview-modal {
             display: none;
             position: fixed;
@@ -468,7 +471,6 @@
     <div class="app-layout">
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar Retrátil -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
@@ -485,7 +487,6 @@
             <div class="history-section" id="historyList"></div>
         </aside>
 
-        <!-- Área Principal -->
         <main class="main-content">
             <header class="top-bar">
                 <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
@@ -525,7 +526,6 @@
         </main>
     </div>
 
-    <!-- Modal de Pré-visualização ao Vivo -->
     <div class="preview-modal" id="previewModal">
         <div class="preview-header">
             <span>👁️ Pré-visualização ao Vivo - Honey IA</span>
@@ -597,7 +597,6 @@
             });
         }
 
-        // Função para formatar o código e injetar botões de Copiar / Pré-visualizar
         function enhanceCodeBlocks(container) {
             const preBlocks = container.querySelectorAll('pre');
             preBlocks.forEach((pre) => {
@@ -609,16 +608,20 @@
                 const lang = langMatch ? langMatch[1] : 'código';
 
                 const wrapper = document.createElement('div');
-                wrapper.className = 'code-wrapper';
+                const isPromptCard = lang === 'prompt-imagem';
+                wrapper.className = `code-wrapper ${isPromptCard ? 'prompt-card' : ''}`;
 
                 const isHtml = lang === 'html' || rawCode.includes('<!DOCTYPE') || rawCode.includes('<html');
 
+                const headerTitle = isPromptCard ? '🎨 PROMPT PARA GERADOR DE IMAGEM' : lang.toUpperCase();
+                const copyBtnLabel = isPromptCard ? '📋 Copiar Prompt de Imagem' : '📋 Copiar';
+
                 wrapper.innerHTML = `
                     <div class="code-header">
-                        <span>${lang.toUpperCase()}</span>
+                        <span>${headerTitle}</span>
                         <div class="code-actions">
                             ${isHtml ? `<button class="code-btn preview-btn">👁️ Pré-visualizar</button>` : ''}
-                            <button class="code-btn copy-btn">📋 Copiar</button>
+                            <button class="code-btn copy-btn">${copyBtnLabel}</button>
                         </div>
                     </div>
                 `;
@@ -626,15 +629,13 @@
                 pre.parentNode.insertBefore(wrapper, pre);
                 wrapper.appendChild(pre);
 
-                // Botão Copiar
                 wrapper.querySelector('.copy-btn').addEventListener('click', () => {
-                    navigator.clipboard.writeText(rawCode);
+                    navigator.clipboard.writeText(rawCode.trim());
                     const btn = wrapper.querySelector('.copy-btn');
                     btn.innerText = '✓ Copiado!';
-                    setTimeout(() => btn.innerText = '📋 Copiar', 2000);
+                    setTimeout(() => btn.innerText = copyBtnLabel, 2000);
                 });
 
-                // Botão Pré-visualizar
                 if (isHtml) {
                     wrapper.querySelector('.preview-btn').addEventListener('click', () => {
                         openPreview(rawCode);
