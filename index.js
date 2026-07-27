@@ -1,3 +1,53 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+const UserSchema = new mongoose.Schema({
+
+    name: {
+        type: String,
+        required: true
+    },
+
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
+    password: {
+        type: String,
+        required: true
+    },
+
+    avatar: {
+        type: String,
+        default: ""
+    },
+
+    role: {
+        type: String,
+        default: "user"
+    },
+
+    preferences: {
+
+        theme: {
+            type: String,
+            default: "dark"
+        },
+
+        language: {
+            type: String,
+            default: "pt-PT"
+        }
+
+    }
+
+}, {
+    timestamps: true
+});
+
+const User = mongoose.model("User", UserSchema);
 import mongoose from "mongoose";
 
 mongoose.connect(process.env.MONGODB_URI)
