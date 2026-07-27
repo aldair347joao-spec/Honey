@@ -9,74 +9,86 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Otimização de limites no payload do Express (até 15MB para suportar ficheiros base64)
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ limit: '15mb', extended: true }));
 app.use(cors());
 app.use(express.static('.'));
 
-// Inicialização da API do Groq
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
 
-// 1. Proteção de Segurança: Limite de Requisições (Rate Limiter)
-// Limita cada IP a no máximo 20 requisições por minuto
+// Proteção de Rate Limit (20 pedidos por minuto por IP)
 const apiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minuto
+    windowMs: 1 * 60 * 1000,
     max: 20,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
         sucesso: false,
-        erro: "A Honey IA está a receber muitos pedidos no momento! Por favor, aguarde alguns segundos antes de tentar novamente. 🐝"
+        erro: "A Honey IA está a receber muitos pedidos no momento! Por favor, aguarde alguns segundos. 🐝"
     }
 });
 
-// Aplicar o limite apenas à rota de geração
 app.use('/gerar-gratis', apiLimiter);
 
-// System Prompt Principal da Honey IA
-const SYSTEM_PROMPT = `Tu és a Honey IA, uma assistente virtual extremamente inteligente, carinhosa, eficiente e focada em negócios, programação e criação de conteúdos.
-O teu objetivo é ajudar criadores, programadores e empresas a criarem soluções completas.
+// Prompts por Modo de Trabalho
+const SYSTEM_PROMPTS = {
+    general: `Tu és a Honey IA, uma assistente virtual inteligente, carinhosa e altamente eficiente em negócios, programação e criação de conteúdos.
+Diretrizes:
+1. Sê sempre cortês, acolhedora e profissional.
+2. Quando pedirem código, fornece código limpo e moderno em blocos Markdown.
+3. Se pedirem prompts de imagem, formata o bloco de código com a linguagem "prompt-imagem".`,
 
-Diretrizes de resposta:
-1. Sê sempre cortês, acolhedora e altamente profissional.
-2. Quando te pedirem código (HTML, CSS, JS, etc.), fornece o código limpo, moderno e funcional dentro de blocos de código Markdown indicando a linguagem.
-3. Se o utilizador pedir para criar um Prompt para Gerador de Imagem (ex: Midjourney, DALL-E, Leonardo AI), formata o bloco de código com a linguagem "prompt-imagem" para que a interface crie um cartão destacado.
-4. Se o utilizador enviar imagens ou documentos, analisa o conteúdo detalhadamente e responde com precisão.`;
+    dev: `Tu és a Honey IA no modo especialista SENIOR DEVELOPER & SOFTWARE ARCHITECT.
+Diretrizes:
+1. Escreve código de nível de produção (HTML, CSS, JS, Node, Python, SQL, etc.), limpo, modular e sem erros.
+2. Explica brevemente a lógica e as dependências necessárias.
+3. Sempre que gerares componentes web em HTML/CSS/JS completos, formata em bloco "html" para permitir a pré-visualização ao vivo.`,
 
-// Rota principal para geração de respostas
+    designer: `Tu és a Honey IA no modo especialista VISUAL DESIGNER & UI/UX MASTER.
+Diretrizes:
+1. Foca em estética, paletas de cores, tipografia, arquitetura visual e prompts de IA.
+2. Quando te pedirem conceitos de logótipos, flyers ou arte, cria PROMPTS DETALHADOS em inglês formatados na linguagem "prompt-imagem" para Midjourney/DALL-E.
+3. Dá conselhos de experiência do utilizador (UI/UX) modernos.`,
+
+    marketing: `Tu és a Honey IA no modo especialista CHIEF MARKETING OFFICER (CMO) & COPYWRITER PERSUASIVO.
+Diretrizes:
+1. Cria copies altamente persuasivos, guiados por estruturas comprovadas (AIDA, PAS, FAB).
+2. Cria roteiros de anúncios para redes sociais (TikTok, Instagram, YouTube) e slogans marcantes.
+3. Foca em conversão, métricas de vendas e tom comercial atrativo.`
+};
+
 app.post('/gerar-gratis', async (req, res) => {
     try {
-        const { prompt, anexoBase64, mimeType } = req.body;
+        const { prompt, anexoBase64, mimeType, modo } = req.body;
 
         if (!prompt && !anexoBase64) {
             return res.status(400).json({
                 sucesso: false,
-                erro: "Por favor, envie um texto ou um ficheiro para a Honey IA analisar."
+                erro: "Por favor, envie um texto ou ficheiro para a Honey IA analisar."
             });
         }
 
-        // Validação do tamanho do anexo Base64 (máximo ~10MB em raw data / ~13.3MB em string base64)
         if (anexoBase64 && anexoBase64.length > 14 * 1024 * 1024) {
             return res.status(400).json({
                 sucesso: false,
-                erro: "O ficheiro enviado é demasiado grande. Por favor, envie um ficheiro com menos de 10 MB."
+                erro: "O ficheiro enviado é demasiado grande. Envie um ficheiro com menos de 10 MB."
             });
         }
+
+        // Escolha do Prompt de Sistema com base no modo selecionado
+        const selectedSystemPrompt = SYSTEM_PROMPTS[modo] || SYSTEM_PROMPTS.general;
 
         let messages = [
             {
                 role: "system",
-                content: SYSTEM_PROMPT
+                content: selectedSystemPrompt
             }
         ];
 
-        // Construção das mensagens suportando Vision/Anexos ou Texto simples
         if (anexoBase64 && mimeType) {
             const isImage = mimeType.startsWith('image/');
-            
             if (isImage) {
                 messages.push({
                     role: "user",
@@ -91,7 +103,6 @@ app.post('/gerar-gratis', async (req, res) => {
                     ]
                 });
             } else {
-                // Caso seja um documento legível/texto
                 const textoDocumento = Buffer.from(anexoBase64, 'base64').toString('utf-8');
                 messages.push({
                     role: "user",
@@ -105,7 +116,6 @@ app.post('/gerar-gratis', async (req, res) => {
             });
         }
 
-        // Seleção dinâmica do modelo (llama-3.2-11b-vision-preview para imagens ou llama-3.3-70b-versatile para texto)
         const selectedModel = (anexoBase64 && mimeType && mimeType.startsWith('image/')) 
             ? "llama-3.2-11b-vision-preview" 
             : "llama-3.3-70b-versatile";
@@ -127,17 +137,16 @@ app.post('/gerar-gratis', async (req, res) => {
     } catch (error) {
         console.error("Erro no processamento da Honey IA:", error);
 
-        // Tratamento de erros amigável para limites de taxa da API do Groq
         if (error.status === 429) {
             return res.status(429).json({
                 sucesso: false,
-                erro: "A Honey IA atingiu o limite de quota temporário da API. Por favor, tente novamente dentro de instantes. 🐝"
+                erro: "A Honey IA atingiu o limite de quota temporário da API. Aguarde alguns instantes. 🐝"
             });
         }
 
         return res.status(500).json({
             sucesso: false,
-            erro: "Ocorreu um erro interno ao processar o seu pedido. Por favor, tente novamente."
+            erro: "Ocorreu um erro interno ao processar o seu pedido. Tente novamente."
         });
     }
 });
