@@ -269,9 +269,21 @@ ${prompt || "Analisa este documento detalhadamente."}`
             });
         }
 
-        const selectedModel = (anexoBase64 && mimeType && mimeType.startsWith('image/')) 
-            ? "llama-3.2-11b-vision-preview" 
-            : "llama-3.3-70b-versatile";
+        // ======================================================
+// MODELO AUTOMÁTICO
+// ======================================================
+
+let selectedModel = "llama-3.3-70b-versatile";
+
+if (anexoBase64 && mimeType) {
+
+    if (mimeType.startsWith("image/")) {
+
+        selectedModel = "llama-3.2-11b-vision-preview";
+
+    }
+
+}
 
         const completion = await groq.chat.completions.create({
             messages: messages,
