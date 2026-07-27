@@ -1,7 +1,7 @@
 // ======================================================
 // HONEY IA - CORE ENGINE V5
 // ======================================================
-
+const SESSION_ID = crypto.randomUUID();
 class EventBus {
 
     constructor() {
@@ -161,13 +161,15 @@ async function sendToHoney(prompt){
                 "Content-Type":"application/json"
             },
 
-            body:JSON.stringify({
+            body: JSON.stringify({
 
-                prompt:prompt,
+    sessionId: SESSION_ID,
 
-                modo:"general"
+    prompt,
 
-            })
+    modo: "general"
+
+})
 
         });
 
