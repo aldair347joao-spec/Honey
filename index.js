@@ -13,21 +13,22 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Aumentar o limite do body-parser para suportar ficheiros em base64 grandes
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Servir ficheiros estáticos a partir da raiz do projeto
+// Servir ficheiros estáticos (HTML, CSS, JS) a partir da raiz do projeto
 app.use(express.static(__dirname));
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Rota principal da aplicação
+// Rota principal para carregar o frontend da Honey IA
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Endpoint principal para geração de respostas da Honey IA
+// Endpoint principal para processar mensagens, documentos e imagens
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
@@ -35,28 +36,32 @@ app.post('/gerar-gratis', async (req, res) => {
         const mainModel = "llama-3.3-70b-versatile";
         let textoExtraidoDoDocumento = "";
 
+        // Extração de texto de anexos, caso existam
         if (anexoBase64) {
             const buffer = Buffer.from(anexoBase64, 'base64');
             const type = mimeType ? mimeType.toLowerCase() : '';
 
-            // 1. Imagens via OCR Tesseract (PT / EN)
+            // 1. Processamento de Imagens via OCR (Tesseract.js)
             if (type.startsWith('image/')) {
-                console.log("A extrair texto da imagem via OCR...");
+                console.log("Honey IA: A extrair texto da imagem via OCR...");
                 const { data: { text } } = await Tesseract.recognize(buffer, 'por+eng');
                 textoExtraidoDoDocumento = text;
             } 
             // 2. Documentos PDF
             else if (type === 'application/pdf' || type.includes('pdf')) {
+                console.log("Honey IA: A processar PDF...");
                 const pdfData = await pdfParse(buffer);
                 textoExtraidoDoDocumento = pdfData.text;
             } 
             // 3. Documentos Word (.docx, .doc)
             else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
+                console.log("Honey IA: A processar documento Word...");
                 const result = await mammoth.extractRawText({ buffer: buffer });
                 textoExtraidoDoDocumento = result.value;
             } 
-            // 4. Folhas de Cálculo Excel / CSV
+            // 4. Folhas de Cálculo Excel e CSV
             else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
+                console.log("Honey IA: A processar folha de cálculo...");
                 const workbook = XLSX.read(buffer, { type: 'buffer' });
                 workbook.SheetNames.forEach(sheetName => {
                     const sheet = workbook.Sheets[sheetName];
@@ -72,28 +77,28 @@ app.post('/gerar-gratis', async (req, res) => {
             textoPromptFinal += `\n\n[DOCUMENTO/ANEXO ANALISADO]:\n${textoExtraidoDoDocumento}`;
         }
 
-        // System Prompt Otimizado com a Nova Identidade da Honey IA
+        // System Prompt: Identidade, Tom de Voz e Regras dos Pilares Comerciais
         const systemPrompt = `Você é a Honey IA — uma assistente inteligente carinhosa, dedicada a ajudar pessoas comuns, empresários e empreendedores a impulsionar os seus negócios e rotinas laborais.
 
 PERSONALIDADE E TOM DE VOZ:
 - Seja extremamente carinhosa, respeitosa, atenciosa e acolhedora.
-- Fale com clareza e empatia, simplificando conceitos complexos para que qualquer pessoa compreenda.
-- Trate cada empresa ou projeto do utilizador com carinho, entusiasmo e dedicação profissional.
+- Fale com clareza e empatia, simplificando conceitos complexos.
+- Despeça-se sempre com um incentivo acolhedor, assinando no final: "Com carinho para o seu negócio, Honey IA 🐝".
 
 PILARES DE ATUAÇÃO E ESPECIALIDADES:
-1. Websites Responsivos e Comerciais: Criação de código limpo, moderno e otimizado (HTML, CSS, JS, React, etc.) para landing pages, e-commerce e sites institucionais.
-2. Aplicativos Premium: Planeamento, estrutura de código e lógica para aplicações web e móveis comerciais de alta qualidade.
-3. Identidade Visual e Logótipos: Criação de conceitos, prompts de imagem detalhados e diretrizes visuais para logótipos comerciais e pessoais.
-4. Design e Marketing (Flyers e Vídeos Publicitários): Ideias criativas, roteiros para vídeos publicitários, textos persuasivos (copywriting) e estrutura gráfica para flyers promocionais.
-5. Suporte Empresarial Geral: Ajuda com finanças, organização de tarefas laborais e análise de documentos.
+1. Websites Responsivos e Apps Comerciais: Criação de código limpo, moderno e funcional (HTML, CSS, JS, React, etc.).
+2. Identidade Visual e Logótipos: Desenvolva o conceito visual e forneça SEMPRE um bloco especial de código no formato \`\`\`prompt-imagem ... \`\`\` contendo o prompt detalhado em inglês para geração da imagem.
+3. Flyers e Vídeos Publicitários:
+   - Para Vídeos: Estruture o roteiro detalhadamente em CENA, ÁUDIO/VOZ e TEXTO EM ECRÃ.
+   - Para Flyers: Forneça a estrutura do texto (Headline, Corpo, Chamada para Ação) e inclua SEMPRE o bloco \`\`\`prompt-imagem ... \`\`\` com o prompt em inglês para a arte gráfica visual.
+4. Suporte Empresarial Geral: Análise de ficheiros, organização de tarefas e otimização laboral.
 
-REGRAS DE RESPOSTA:
-- Use Markdown limpo para organizar as respostas (Títulos ##, listas *, negrito **).
-- Apresente blocos de código bem formatados com a linguagem correspondente (ex: \`\`\`html, \`\`\`css, \`\`\`javascript).
-- Quando for pedido um vídeo, entregue um roteiro detalhado (Cena, Áudio, Texto em Tela).
-- Quando for pedido um flyer ou logótipo, detalhe a paleta de cores, tipografia, composição e o prompt exato para geração visual.
-- Despeça-se sempre com incentivo e carinho para o projeto do utilizador.`;
+REGRAS DE FORMATAÇÃO DE RESPOSTA:
+- Use Markdown limpo (Títulos ##, listas *, negrito **).
+- Código Web/App (HTML, CSS, JS) deve vir sempre em blocos de código formatados (\`\`\`html, \`\`\`css, \`\`\`javascript).
+- Prompts para criação de imagens de logótipos e flyers DEVEM vir dentro do bloco \`\`\`prompt-imagem SEU PROMPT AQUI \`\`\` para ativar o botão de cópia na interface.`;
 
+        // Chamada à API Groq com o modelo Llama 3.3 70B
         const chatCompletion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: systemPrompt },
@@ -103,7 +108,7 @@ REGRAS DE RESPOSTA:
             temperature: 0.5
         });
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Desculpe, tive um pequeno imprevisto. Pode tentar novamente, por favor?";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Desculpe, tive um pequeno imprevisto ao processar o seu pedido. Pode tentar novamente, por favor?";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
@@ -116,7 +121,8 @@ REGRAS DE RESPOSTA:
     }
 });
 
+// Inicialização do Servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🐝 Honey IA pronta para ajudar na porta ${PORT}`);
+    console.log(`🐝 Honey IA ativa e pronta para ajudar na porta ${PORT}`);
 });
