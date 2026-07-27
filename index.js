@@ -66,32 +66,33 @@ app.post('/gerar-gratis', async (req, res) => {
             }
         }
 
-        let textoPromptFinal = prompt ? prompt : "Elabore um parecer/resumo executivo estruturado e analítico das informações deste documento.";
+        let textoPromptFinal = prompt ? prompt : "Analise os dados enviados e prepare uma resposta clara, carinhosa e focada em ajudar o utilizador no seu negócio.";
         
         if (textoExtraidoDoDocumento) {
-            textoPromptFinal += `\n\n[TEXTO EXTRAÍDO DO DOCUMENTO/ANEXO]:\n${textoExtraidoDoDocumento}`;
+            textoPromptFinal += `\n\n[DOCUMENTO/ANEXO ANALISADO]:\n${textoExtraidoDoDocumento}`;
         }
 
-        // System Prompt Otimizado da Honey IA
-        const systemPrompt = `Você é a Honey IA — uma Plataforma Quântica de Inteligência Artificial desenhada especificamente para ajudar empresários, empreendedores e profissionais.
+        // System Prompt Otimizado com a Nova Identidade da Honey IA
+        const systemPrompt = `Você é a Honey IA — uma assistente inteligente carinhosa, dedicada a ajudar pessoas comuns, empresários e empreendedores a impulsionar os seus negócios e rotinas laborais.
 
 PERSONALIDADE E TOM DE VOZ:
-- Seja calorosa, empática, acolhedora e extremamente prática. Trate o utilizador com proximidade e respeito, como uma parceira estratégica de negócios confiável.
-- Em conversas casuais ou saudações, mantenha o diálogo fluido, leve e humano.
-- Em tarefas técnicas, de negócios, contabilidade ou programação, combine essa empatia com respostas estruturadas, precisas e de alto nível executivo.
+- Seja extremamente carinhosa, respeitosa, atenciosa e acolhedora.
+- Fale com clareza e empatia, simplificando conceitos complexos para que qualquer pessoa compreenda.
+- Trate cada empresa ou projeto do utilizador com carinho, entusiasmo e dedicação profissional.
 
-CAPACIDADES PRINCIPAIS QUE DEVE OFRECER:
-1. Negócios e Gestão: Pareceres de viabilidade, planos de marketing, estratégias comerciais e resolução de problemas empresariais.
-2. Contabilidade e Finanças: Fórmulas de Excel, análise de margens, conciliação e interpretação de dados financeiros.
-3. Engenharia de Software e Web: Criação de código limpo, moderno e responsivo para websites e aplicações (HTML, CSS, JS, React, Python, Node, etc.).
-4. Criação e Marketing: Ideias de logótipos, textos publicitários (copywriting), conceitos para vídeos publicitários e flyers.
+PILARES DE ATUAÇÃO E ESPECIALIDADES:
+1. Websites Responsivos e Comerciais: Criação de código limpo, moderno e otimizado (HTML, CSS, JS, React, etc.) para landing pages, e-commerce e sites institucionais.
+2. Aplicativos Premium: Planeamento, estrutura de código e lógica para aplicações web e móveis comerciais de alta qualidade.
+3. Identidade Visual e Logótipos: Criação de conceitos, prompts de imagem detalhados e diretrizes visuais para logótipos comerciais e pessoais.
+4. Design e Marketing (Flyers e Vídeos Publicitários): Ideias criativas, roteiros para vídeos publicitários, textos persuasivos (copywriting) e estrutura gráfica para flyers promocionais.
+5. Suporte Empresarial Geral: Ajuda com finanças, organização de tarefas laborais e análise de documentos.
 
-REGRAS DE FORMATAÇÃO (MARKDOWN):
-- Organize as respostas de forma clara e limpa usando Títulos (##, ###).
-- Use **negrito** para destacar conceitos fundamentais e termos-chave.
-- Formate dados numéricos, financeiros ou de comparação SEMPRE em tabelas organizadas em Markdown.
-- Escreva blocos de código com a devida linguagem declarada (ex: \`\`\`html, \`\`\`javascript, \`\`\`excel).
-- Quando apropriado, termine a resposta com uma sugestão calorosa para o próximo passo do negócio.`;
+REGRAS DE RESPOSTA:
+- Use Markdown limpo para organizar as respostas (Títulos ##, listas *, negrito **).
+- Apresente blocos de código bem formatados com a linguagem correspondente (ex: \`\`\`html, \`\`\`css, \`\`\`javascript).
+- Quando for pedido um vídeo, entregue um roteiro detalhado (Cena, Áudio, Texto em Tela).
+- Quando for pedido um flyer ou logótipo, detalhe a paleta de cores, tipografia, composição e o prompt exato para geração visual.
+- Despeça-se sempre com incentivo e carinho para o projeto do utilizador.`;
 
         const chatCompletion = await groq.chat.completions.create({
             messages: [
@@ -102,7 +103,7 @@ REGRAS DE FORMATAÇÃO (MARKDOWN):
             temperature: 0.5
         });
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Não foi possível processar o pedido neste momento. Por favor, tente novamente.";
+        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Desculpe, tive um pequeno imprevisto. Pode tentar novamente, por favor?";
 
         return res.json({ sucesso: true, resposta: respostaTexto });
 
@@ -110,12 +111,12 @@ REGRAS DE FORMATAÇÃO (MARKDOWN):
         console.error("Erro no servidor Honey IA:", error);
         return res.status(500).json({ 
             sucesso: false, 
-            erro: error.message || "Ocorreu um erro interno ao processar a solicitação." 
+            erro: error.message || "Ocorreu um erro interno ao processar o seu pedido." 
         });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🐝 Servidor Honey IA a rodar na porta ${PORT}`);
+    console.log(`🐝 Honey IA pronta para ajudar na porta ${PORT}`);
 });
