@@ -5,7 +5,7 @@ Tool Engine
 Versão 1.0
 ==========================================
 */
-
+import crypto from "crypto";
 class ToolEngine {
 
     constructor() {
