@@ -356,22 +356,28 @@ app.post('/gerar-gratis', async (req, res) => {
         }
 
         // Escolha do Prompt de Sistema com base no modo selecionado
-        const selectedSystemPrompt = SYSTEM_PROMPTS[modo] || SYSTEM_PROMPTS.general;
+        const user = {
+    id: "guest",
+    name: "Utilizador",
+    language: "pt-PT",
+    preferences: {}
+};
+
+const orchestrator = await Orchestrator.process({
+    userId: user.id,
+    message: prompt,
+    user
+});
 
         // ======================================================
 // MENSAGENS DA IA
 // ======================================================
 
 let messages = [
-
     {
-
         role: "system",
-
-        content: selectedSystemPrompt
-
+        content: orchestrator.prompt
     }
-
 ];
 
 // Arquivo enviado
