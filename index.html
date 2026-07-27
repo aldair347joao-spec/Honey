@@ -352,6 +352,17 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .icon-btn.recording {
+            color: #ef4444;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
         .send-btn {
             background: var(--text-primary);
             color: #000;
@@ -580,6 +591,9 @@
                             <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Anexar ficheiro ou imagem">
                                 📎
                             </button>
+                            <button class="icon-btn" id="micBtn" onclick="toggleSpeechRecognition()" title="Falar com a Honey IA">
+                                🎙️
+                            </button>
                             <input type="file" id="fileInput" style="display: none;" multiple>
                         </div>
                         <button class="send-btn" id="submitBtn">➔</button>
@@ -608,6 +622,8 @@
         let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
         let uploadedFilesObjects = [];
         let currentSessionId = null;
+        let isRecording = false;
+        let recognition = null;
 
         const mainInput = document.getElementById('mainInput');
         const chatContainer = document.getElementById('chatContainer');
@@ -616,6 +632,62 @@
         const filePreviewList = document.getElementById('filePreviewList');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const micBtn = document.getElementById('micBtn');
+
+        // Configuração do Reconhecimento de Voz
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pt-PT';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                mainInput.value += (mainInput.value ? ' ' : '') + transcript;
+                stopRecording();
+            };
+
+            recognition.onerror = () => stopRecording();
+            recognition.onend = () => stopRecording();
+        }
+
+        function toggleSpeechRecognition() {
+            if (!recognition) {
+                alert("O seu navegador não suporta reconhecimento de voz.");
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                stopRecording();
+            } else {
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    micBtn.classList.add('recording');
+                } catch(e) {
+                    stopRecording();
+                }
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            micBtn.classList.remove('recording');
+        }
+
+        // Leitura em voz alta (Síntese)
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                // Limpeza de marcações markdown simples para a leitura
+                const cleanText = text.replace(/[*#_`]/g, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'pt-PT';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
 
         function toggleSidebar() {
             sidebar.classList.toggle('open');
@@ -735,10 +807,19 @@
             if (rawResponseText) {
                 const toolsDiv = document.createElement('div');
                 toolsDiv.className = 'ai-footer-tools';
-                toolsDiv.innerHTML = `<button class="export-btn">📥 Descarregar Resposta (.txt)</button>`;
-                toolsDiv.querySelector('.export-btn').addEventListener('click', () => {
+                toolsDiv.innerHTML = `
+                    <button class="export-btn export-txt">📥 Descarregar Resposta (.txt)</button>
+                    <button class="export-btn speak-btn">🔊 Ouvir Resposta</button>
+                `;
+                
+                toolsDiv.querySelector('.export-txt').addEventListener('click', () => {
                     downloadText('resposta-honey-ia.txt', rawResponseText);
                 });
+
+                toolsDiv.querySelector('.speak-btn').addEventListener('click', () => {
+                    speakText(rawResponseText);
+                });
+
                 container.appendChild(toolsDiv);
             }
         }
