@@ -153,12 +153,92 @@ app.post('/gerar-gratis', async (req, res) => {
         // Escolha do Prompt de Sistema com base no modo selecionado
         const selectedSystemPrompt = SYSTEM_PROMPTS[modo] || SYSTEM_PROMPTS.general;
 
-        let messages = [
-            {
-                role: "system",
-                content: selectedSystemPrompt
-            }
-        ];
+        // ======================================================
+// MENSAGENS DA IA
+// ======================================================
+
+let messages = [
+
+    {
+
+        role: "system",
+
+        content: selectedSystemPrompt
+
+    }
+
+];
+
+// Arquivo enviado
+
+if (anexoBase64 && mimeType) {
+
+    if (mimeType.startsWith("image/")) {
+
+        messages.push({
+
+            role: "user",
+
+            content: [
+
+                {
+
+                    type: "text",
+
+                    text: prompt || "Analisa esta imagem."
+
+                },
+
+                {
+
+                    type: "image_url",
+
+                    image_url: {
+
+                        url: `data:${mimeType};base64,${anexoBase64}`
+
+                    }
+
+                }
+
+            ]
+
+        });
+
+    } else {
+
+        const textoDocumento = Buffer
+            .from(anexoBase64, "base64")
+            .toString("utf8");
+
+        messages.push({
+
+            role: "user",
+
+            content:
+`Documento:
+
+${textoDocumento}
+
+Instrução:
+
+${prompt || "Analisa este documento detalhadamente."}`
+
+        });
+
+    }
+
+} else {
+
+    messages.push({
+
+        role: "user",
+
+        content: prompt
+
+    });
+
+}
 
         if (anexoBase64 && mimeType) {
             const isImage = mimeType.startsWith('image/');
