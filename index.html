@@ -3,94 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Ecossistema de Inteligência Artificial de Próxima Geração</title>
+    <title>Honey AI OS — Autonomous Artificial Intelligence Architecture</title>
     
-    <!-- PWA & Meta Manifest Compatibilidade -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#030406">
-    <meta name="description" content="A plataforma de Inteligência Artificial de elite para desenvolvimento de software, design, ecossistemas digitais e soluções empresariais.">
 
-    <!-- Tipografia de Elite (Plus Jakarta Sans, Inter, SF Pro Display & JetBrains Mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Markdown Parser & Code Syntax Highlighting Engines -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         /* ==========================================================================
-           1. DESIGN SYSTEM & VARIÁVEIS (HONEY IA LUXURY DEEP SPACE & AMBER)
+           HONEY AI OS — ARCHITECTURAL DESIGN SYSTEM (V4 CORE)
            ========================================================================== */
         :root {
-            /* Superfícies e Profundidade (Dark Luxury) */
-            --bg-deep: #030406;
-            --bg-surface: #0a0d14;
-            --bg-surface-elevated: #111622;
-            --bg-card: rgba(16, 21, 33, 0.65);
-            --bg-card-hover: rgba(26, 33, 50, 0.85);
-            --bg-glass: rgba(10, 13, 20, 0.75);
+            --bg-deep: #020305;
+            --bg-surface: #090c12;
+            --bg-surface-elevated: #101520;
+            --bg-card: rgba(13, 17, 26, 0.7);
+            --bg-glass: rgba(7, 10, 16, 0.85);
 
-            /* Dourado Mel & Âmbar Core Glow */
             --honey-gold: #f59e0b;
             --honey-amber: #d97706;
             --honey-gradient: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-            --honey-glow: 0 0 35px rgba(245, 158, 11, 0.22);
-            --honey-glow-strong: 0 0 50px rgba(245, 158, 11, 0.38);
+            --honey-glow: 0 0 40px rgba(245, 158, 11, 0.2);
 
-            /* Acentos Secundários Tecnológicos (Azul Elétrico subtil) */
-            --electric-blue: #38bdf8;
-            --electric-glow: 0 0 30px rgba(56, 189, 248, 0.15);
-
-            /* Bordas e Vidros Inteligentes */
             --border-subtle: rgba(255, 255, 255, 0.06);
             --border-glass: rgba(255, 255, 255, 0.1);
-            --border-glow: rgba(245, 158, 11, 0.35);
+            --border-glow: rgba(245, 158, 11, 0.4);
 
-            /* Tipografia & Cores */
-            --font-title: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            --font-body: 'Inter', -apple-system, sans-serif;
+            --font-title: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
 
-            /* Métricas de Layout */
-            --sidebar-width: 280px;
-            --header-height: 64px;
-            --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            --sidebar-width: 272px;
+            --header-height: 56px;
+            --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Reset & Configuração Base */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; height: 100dvh; background-color: var(--bg-deep); color: var(--text-primary); overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
+        html, body { height: 100%; height: 100dvh; background: var(--bg-deep); color: var(--text-primary); overflow: hidden; }
 
-        /* Scrollbar Personalizado Minimalista */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--honey-gold); }
 
-        /* ==========================================================================
-           2. ARQUITETURA DO WORKSPACE INTERNACIONAL (LAYOUT GLOBAL)
-           ========================================================================== */
-        .os-container {
+        /* ARQUITETURA GLOBAL DO OS */
+        .os-shell {
             display: flex;
             width: 100vw;
             height: 100dvh;
             position: relative;
-            background-image: 
-                radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.07) 0%, transparent 60%),
-                radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.03) 0%, transparent 50%);
+            background: 
+                radial-gradient(circle at 20% -10%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 110%, rgba(56, 189, 248, 0.03) 0%, transparent 50%);
             overflow: hidden;
         }
 
-        /* --- SIDEBAR INTELIGENTE (FROSTED GLASS) --- */
-        .sidebar {
+        /* 1. PRESENTATION LAYER: SIDEBAR */
+        .os-sidebar {
             width: var(--sidebar-width);
             background: var(--bg-glass);
             backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
             border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
@@ -98,123 +78,68 @@
             transition: var(--transition-smooth);
         }
 
-        @media (max-width: 1024px) {
-            .sidebar {
-                position: absolute;
-                top: 0; bottom: 0; left: 0;
-                transform: translateX(-100%);
-                box-shadow: 30px 0 60px rgba(0,0,0,0.9);
-            }
-            .sidebar.active { transform: translateX(0); }
-        }
-
-        .sidebar-header {
+        .sidebar-brand {
             height: var(--header-height);
-            padding: 0 20px;
+            padding: 0 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
             font-family: var(--font-title);
             font-weight: 800;
-            font-size: 1.2rem;
-            letter-spacing: -0.5px;
-            cursor: pointer;
+            font-size: 1.1rem;
         }
 
-        .brand-icon {
-            width: 36px; height: 36px;
+        .brand-icon-box {
+            width: 32px; height: 32px;
             background: var(--honey-gradient);
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: var(--honey-glow);
-            font-size: 1.2rem;
         }
 
-        .sidebar-actions {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .btn-action-main {
-            padding: 12px 16px;
-            background: var(--honey-gradient);
-            border: none;
-            border-radius: 12px;
-            color: #030406;
-            font-family: var(--font-title);
-            font-weight: 700;
-            font-size: 0.88rem;
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer;
-            box-shadow: var(--honey-glow);
-            transition: var(--transition-smooth);
-        }
-
-        .btn-action-main:hover { transform: translateY(-2px); box-shadow: var(--honey-glow-strong); }
-
-        .sidebar-nav {
+        .sidebar-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding: 0 12px 16px 12px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
 
-        .nav-category-title {
-            font-size: 0.68rem;
+        .sidebar-section-title {
+            font-size: 0.65rem;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            padding: 16px 12px 6px 12px;
+            letter-spacing: 1px;
+            padding: 12px 10px 4px 10px;
         }
 
-        .nav-link {
+        .sidebar-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
-            border-radius: 10px;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
             color: var(--text-secondary);
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 500;
             cursor: pointer;
             border: 1px solid transparent;
             transition: var(--transition-smooth);
         }
 
-        .nav-link:hover, .nav-link.active {
+        .sidebar-item:hover, .sidebar-item.active {
             background: var(--bg-surface-elevated);
             color: var(--text-primary);
             border-color: var(--border-subtle);
         }
 
-        .nav-link.active {
-            border-color: var(--border-glow);
-            color: var(--honey-gold);
-            background: rgba(245, 158, 11, 0.05);
-        }
+        .sidebar-item.active { border-color: var(--border-glow); color: var(--honey-gold); }
 
-        /* --- WORKSPACE CENTRAL --- */
-        .workspace-core {
-            flex: 1;
-            display: flex;
-            height: 100dvh;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .main-stage {
+        /* 2. PRESENTATION LAYER: MAIN STAGE & TOPBAR */
+        .os-main-stage {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -223,727 +148,525 @@
             position: relative;
         }
 
-        /* HEADER SUPERIOR (TOPBAR) */
-        .topbar {
+        .os-topbar {
             height: var(--header-height);
-            padding: 0 24px;
+            padding: 0 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-subtle);
-            background: rgba(3, 4, 6, 0.85);
+            background: rgba(2, 3, 5, 0.8);
             backdrop-filter: blur(16px);
             z-index: 50;
         }
 
-        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar-cluster { display: flex; align-items: center; gap: 12px; }
 
-        .btn-sidebar-toggle {
-            background: none; border: none;
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 8px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
-        }
-        .btn-sidebar-toggle:hover { background: var(--bg-surface-elevated); }
-
-        .system-status-badge {
-            display: flex; align-items: center; gap: 8px;
-            padding: 6px 14px;
-            background: rgba(245, 158, 11, 0.06);
+        .kernel-badge {
+            display: flex; align-items: center; gap: 6px;
+            padding: 4px 12px;
+            background: rgba(245, 158, 11, 0.05);
             border: 1px solid var(--border-glow);
             border-radius: 20px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--honey-gold);
             letter-spacing: 0.5px;
         }
 
-        .status-dot {
-            width: 6px; height: 6px;
+        .kernel-dot {
+            width: 5px; height: 5px;
             background: var(--honey-gold);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--honey-gold);
-            animation: pulseGlow 2s infinite;
+            box-shadow: 0 0 8px var(--honey-gold);
         }
 
-        @keyframes pulseGlow {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .topbar-right { display: flex; align-items: center; gap: 12px; }
-
-        .btn-topbar-action {
-            background: var(--bg-surface-elevated);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex; align-items: center; gap: 6px;
-            transition: var(--transition-smooth);
-        }
-        .btn-topbar-action:hover { border-color: var(--border-glass); background: rgba(255,255,255,0.06); }
-
-        /* ==========================================================================
-           3. TELAS DO SISTEMA (VIEWS DINÂMICAS)
-           ========================================================================== */
-        .view-pane {
+        /* VIEWS DO SISTEMA */
+        .os-view {
             flex: 1;
             overflow-y: auto;
             display: none;
             flex-direction: column;
-            align-items: center;
-            padding: 40px 24px;
+            padding: 30px 20px;
             position: relative;
         }
-        .view-pane.active { display: flex; }
+        .os-view.active { display: flex; }
 
-        /* --- VISTA HOME (APPLE-STYLE HERO & ECOSYSTEM CARDS) --- */
-        .home-hero-wrapper {
-            max-width: 1100px;
+        /* CHAT VIEW CONTAINER */
+        .chat-stream-container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 32px;
-            margin: auto 0;
-            padding-bottom: 40px;
-        }
-
-        .hero-badge-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 18px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-glass);
-            border-radius: 30px;
-            font-size: 0.82rem;
-            color: var(--honey-gold);
-            font-weight: 600;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        .hero-main-title {
-            font-family: var(--font-title);
-            font-size: clamp(2.4rem, 5vw, 4.2rem);
-            font-weight: 800;
-            line-height: 1.08;
-            background: linear-gradient(180deg, #FFFFFF 20%, #94A3B8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1.5px;
-            max-width: 900px;
-        }
-
-        .hero-description {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 680px;
-            line-height: 1.6;
-        }
-
-        .ecosystem-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
-            width: 100%;
-            max-width: 1100px;
-            margin-top: 20px;
-            text-align: left;
-        }
-
-        .eco-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-subtle);
-            border-radius: 18px;
-            padding: 24px;
-            cursor: pointer;
-            transition: var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .eco-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .eco-card:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--border-glow);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5), var(--honey-glow);
-        }
-
-        .eco-card:hover::before { opacity: 1; }
-
-        .eco-card-icon {
-            width: 48px; height: 48px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-glass);
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        .eco-card-title {
-            font-family: var(--font-title);
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .eco-card-desc {
-            font-size: 0.84rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        /* --- VISTA CHAT (NEXT-GEN LLM INTERACTION) --- */
-        .chat-viewport-inner {
-            width: 100%;
-            max-width: 900px;
+            max-width: 860px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 24px;
             padding-bottom: 40px;
         }
 
-        .chat-message-row {
+        .chat-bubble-row {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             width: 100%;
-            animation: messageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        .chat-bubble-row.user { justify-content: flex-end; }
 
-        @keyframes messageFadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .chat-message-row.user { justify-content: flex-end; }
-
-        .chat-avatar {
-            width: 40px; height: 40px;
-            border-radius: 12px;
+        .chat-avatar-box {
+            width: 36px; height: 36px;
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+            font-size: 1rem; flex-shrink: 0;
         }
-
-        .chat-message-row.assistant .chat-avatar {
+        .chat-bubble-row.assistant .chat-avatar-box {
             background: var(--honey-gradient);
-            color: #030406;
-            font-weight: 800;
+            color: #020305; font-weight: 800;
             box-shadow: var(--honey-glow);
         }
 
-        .chat-message-bubble {
+        .chat-content-card {
             max-width: 85%;
-            font-size: 0.98rem;
-            line-height: 1.7;
+            font-size: 0.95rem;
+            line-height: 1.65;
             color: #f1f5f9;
         }
-
-        .chat-message-row.user .chat-message-bubble {
+        .chat-bubble-row.user .chat-content-card {
             background: var(--bg-surface-elevated);
             border: 1px solid var(--border-glass);
-            padding: 16px 22px;
-            border-radius: 20px;
-            border-bottom-right-radius: 6px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            padding: 14px 18px;
+            border-radius: 16px;
+            border-bottom-right-radius: 4px;
         }
+        .chat-bubble-row.assistant .chat-content-card { width: 100%; padding: 2px 0; }
 
-        .chat-message-row.assistant .chat-message-bubble { width: 100%; padding: 4px 0; }
-
-        /* Ações Abaixo da Resposta da IA */
-        .response-actions-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-subtle);
-        }
-
-        .btn-resp-action {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition-smooth);
-            display: flex; align-items: center; gap: 6px;
-        }
-
-        .btn-resp-action:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-primary);
-            border-color: var(--border-glass);
-        }
-
-        /* ==========================================================================
-           4. LIVE CANVAS & INTEGRATED MONACO-STYLE CODE VIEWER
-           ========================================================================== */
-        .live-canvas-pane {
-            width: 0%;
-            opacity: 0;
-            pointer-events: none;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid var(--border-subtle);
-            transition: var(--transition-smooth);
-            z-index: 60;
-        }
-
-        .live-canvas-pane.active {
-            width: 52%;
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        @media (max-width: 1024px) {
-            .live-canvas-pane.active {
-                position: absolute;
-                inset: 0;
-                width: 100vw;
-                height: 100dvh;
-            }
-        }
-
-        .canvas-toolbar {
-            height: 52px;
-            background: var(--bg-surface);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 0 20px;
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        .canvas-title-info {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);
-        }
-
-        .canvas-iframe-viewport { width: 100%; flex: 1; border: none; background: #ffffff; }
-
-        /* ==========================================================================
-           5. PROMPT DOCK & INPUT INTERFACE DE PRÓXIMA GERAÇÃO
-           ========================================================================== */
-        .prompt-dock-container {
-            padding: 20px 24px 28px 24px;
-            background: linear-gradient(180deg, rgba(3,4,6,0) 0%, rgba(3,4,6,0.95) 40%, #030406 100%);
+        /* INPUT DOCK & COMANDOS / */
+        .prompt-dock-wrapper {
+            padding: 16px 20px 24px 20px;
+            background: linear-gradient(180deg, rgba(2,3,5,0) 0%, rgba(2,3,5,0.95) 40%, #020305 100%);
             display: flex; justify-content: center;
             z-index: 40;
         }
 
         .prompt-dock-box {
             width: 100%;
-            max-width: 900px;
+            max-width: 860px;
             background: var(--bg-surface);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border-glass);
-            border-radius: 20px;
-            padding: 14px 18px;
-            display: flex; flex-direction: column; gap: 12px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border-radius: 16px;
+            padding: 12px 16px;
+            display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             transition: var(--transition-smooth);
         }
-
         .prompt-dock-box:focus-within {
             border-color: var(--honey-gold);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), var(--honey-glow);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), var(--honey-glow);
         }
 
-        .prompt-textarea {
+        .prompt-input-field {
             width: 100%;
             background: none; border: none; outline: none;
             color: var(--text-primary);
-            font-size: 1rem;
+            font-size: 0.95rem;
             resize: none;
-            max-height: 160px; min-height: 44px;
-            line-height: 1.6;
+            max-height: 140px; min-height: 38px;
+            line-height: 1.5;
         }
 
-        .prompt-dock-toolbar {
+        .prompt-toolbar {
             display: flex; align-items: center; justify-content: space-between;
         }
 
-        .dock-tools-left { display: flex; align-items: center; gap: 8px; }
-
-        .btn-dock-icon {
+        .btn-dock-action {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.82rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             display: flex; align-items: center; gap: 6px;
             transition: var(--transition-smooth);
         }
+        .btn-dock-action:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
 
-        .btn-dock-icon:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); border-color: var(--border-glass); }
-
-        .btn-send-execute {
+        .btn-send-core {
             background: var(--honey-gradient);
-            color: #030406; border: none;
-            width: 42px; height: 42px;
-            border-radius: 12px;
+            color: #020305; border: none;
+            width: 38px; height: 38px;
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             box-shadow: var(--honey-glow);
-            transition: var(--transition-smooth);
             font-weight: 800;
-            font-size: 1.1rem;
+            transition: var(--transition-smooth);
         }
+        .btn-send-core:hover { transform: scale(1.05); }
 
-        .btn-send-execute:hover { transform: scale(1.05); box-shadow: var(--honey-glow-strong); }
-
-        /* Overlay para Mobile Drawer */
-        .mobile-overlay {
-            display: none; position: absolute; inset: 0;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-            z-index: 90;
+        /* COMANDOS PALETTE POPUP (/help, /new, etc) */
+        .command-palette-popup {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
         }
-        .mobile-overlay.active { display: block; }
+        .command-palette-popup.active { display: flex; }
+        .cmd-item {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; justify-content: space-between;
+        }
+        .cmd-item:hover { background: rgba(245,158,11,0.08); color: var(--text-primary); }
+
+        /* LIVE CANVAS LATERAL */
+        .live-canvas-panel {
+            width: 0%; opacity: 0; pointer-events: none;
+            background: #000; border-left: 1px solid var(--border-subtle);
+            display: flex; flex-direction: column;
+            transition: var(--transition-smooth);
+            z-index: 60;
+        }
+        .live-canvas-panel.active { width: 50%; opacity: 1; pointer-events: all; }
+        .canvas-header {
+            height: 48px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+            padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);
+        }
+        .canvas-iframe { flex: 1; border: none; background: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="os-container">
-        <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebarMobile()"></div>
-
-        <!-- SIDEBAR INTELIGENTE DE PRÓXIMA GERAÇÃO -->
-        <aside class="sidebar" id="appSidebar">
-            <div class="sidebar-header">
-                <div class="brand-logo" onclick="switchView('home')">
-                    <div class="brand-icon">🐝</div>
-                    <span>Honey IA</span>
+    <div class="os-shell">
+        <!-- 1. PRESENTATION LAYER: SIDEBAR -->
+        <aside class="os-sidebar">
+            <div class="sidebar-brand">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="brand-icon-box">🐝</div>
+                    <span>Honey AI OS</span>
                 </div>
-                <button class="btn-sidebar-toggle" onclick="toggleSidebarMobile()">✕</button>
             </div>
 
-            <div class="sidebar-actions">
-                <button class="btn-action-main" onclick="switchView('chat'); clearNewChat();">
-                    <span>+ Novo Projeto</span>
-                    <span style="font-size:0.75rem; background:rgba(0,0,0,0.2); padding:2px 8px; border-radius:6px;">⌘K</span>
-                </button>
+            <div class="sidebar-scroll-area" id="sidebarNavContainer">
+                <div class="sidebar-section-title">Core Modules</div>
+                <div class="sidebar-item active" onclick="CoreEngine.switchView('chat')">💬 Active Workspace</div>
+                <div class="sidebar-item" onclick="CoreEngine.switchView('plugins')">🧩 Plugin Registry</div>
+                <div class="sidebar-item" onclick="CoreEngine.switchView('settings')">⚙ Kernel Settings</div>
+
+                <div class="sidebar-section-title">Dynamic Plugins</div>
+                <div id="pluginSidebarList">
+                    <!-- Inserido dinamicamente pelo PluginModule -->
+                </div>
             </div>
-
-            <nav class="sidebar-nav">
-                <div class="nav-category-title">Ecossistema</div>
-                <div class="nav-link active" onclick="switchView('home')">🏠 Início & Overview</div>
-                <div class="nav-link" onclick="switchView('chat')">💬 Workspace Conversacional</div>
-                <div class="nav-link" onclick="triggerSystemNotification('Área de Gestão de Projetos sincronizada em tempo real.')">📂 Meus Projetos</div>
-
-                <div class="nav-category-title">Criação & Desenvolvimento</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Crie um website moderno e responsivo em HTML/CSS com design de luxo.')">🌐 Criar Website & Landing Page</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Desenvolva a arquitetura completa de um aplicativo móvel.')">📱 Criar Aplicação Mobile</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Gere o código SVG completo e profissional de um logotipo corporativo.')">🎨 Criar Logotipo & Branding</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Escreva um script robusto de automação em Python.')">🤖 Automações Inteligentes</div>
-
-                <div class="nav-category-title">Empresas & Estratégia</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Elabore um Plano de Negócios executivo e financeiro completo.')">💼 Planos de Negócios & B2B</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Crie uma estratégia de Marketing Digital e Funil de Vendas de alta conversão.')">📢 Marketing & Growth</div>
-                <div class="nav-link" onclick="quickPromptTemplate('Realize uma análise de consultoria executiva para otimização de operações.')">📊 Consultoria & Dados</div>
-
-                <div class="nav-category-title">Sistema</div>
-                <div class="nav-link" onclick="triggerSystemNotification('Infraestrutura Cloud pronta para Deploy contínuo.')">☁ Publicar & Hospedar</div>
-                <div class="nav-link" onclick="triggerSystemNotification('Configurações de modelo de IA ativas (Honey Core V4).')">⚙ Definições & IA</div>
-            </nav>
         </aside>
 
-        <!-- WORKSPACE PRINCIPAL -->
-        <div class="workspace-core">
-            <main class="main-stage">
-                
-                <!-- TOPBAR SUPERIOR -->
-                <header class="topbar">
-                    <div class="topbar-left">
-                        <button class="btn-sidebar-toggle" onclick="toggleSidebarMobile()">
-                            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-                        </button>
-                        <div class="system-status-badge">
-                            <span class="status-dot"></span>
-                            <span>HONEY CORE V4.8 ACTIVE</span>
+        <!-- 2. PRESENTATION LAYER: MAIN WORKSPACE -->
+        <div class="os-main-stage">
+            <header class="os-topbar">
+                <div class="topbar-cluster">
+                    <div class="kernel-badge">
+                        <span class="kernel-dot"></span>
+                        <span id="topbarStatusText">OS KERNEL V4 — EVENT BUS READY</span>
+                    </div>
+                </div>
+                <div class="topbar-cluster">
+                    <button class="btn-dock-action" onclick="EventBus.emit('canvas:toggle')">⚡ Canvas Toggle</button>
+                    <button class="btn-dock-action" onclick="EventBus.emit('command:help')">⌨ /Comandos</button>
+                </div>
+            </header>
+
+            <!-- VIEWS -->
+            <section class="os-view active" id="viewChat">
+                <div class="chat-stream-container" id="chatStreamContainer">
+                    <div class="chat-bubble-row assistant">
+                        <div class="chat-avatar-box">🐝</div>
+                        <div class="chat-content-card">
+                            <p><strong>Honey AI OS Kernel</strong> inicializado com sucesso via arquitetura de 4 camadas e Event Bus assíncrono. Digite <code>/</code> para abrir o sistema de comandos ou execute qualquer instrução.</p>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="topbar-right">
-                        <button class="btn-topbar-action" id="canvasToggleBtn" style="display:none;" onclick="toggleLiveCanvas()">
-                            <span>⚡ Live Canvas</span>
-                        </button>
-                        <button class="btn-topbar-action" onclick="triggerSystemNotification('Sessão segura de alta performance ativa.')">
-                            <span>👑 Enterprise</span>
-                        </button>
-                    </div>
-                </header>
+            <section class="os-view" id="viewPlugins">
+                <div style="max-width:800px; margin:0 auto; width:100%;">
+                    <h2 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:12px;">Registry de Plugins Modulares</h2>
+                    <p style="color:var(--text-secondary); margin-bottom:24px;">Arquitetura pronta para carregar pacotes isolados via diretório <code>/plugins/</code>.</p>
+                    <div id="pluginRegistryView" style="display:grid; gap:12px;"></div>
+                </div>
+            </section>
 
-                <!-- 1. VIEW PANE: HOME / APPLE-STYLE HERO -->
-                <section class="view-pane active" id="viewPaneHome">
-                    <div class="home-hero-wrapper">
-                        <div class="hero-badge-pill">🐝 Inteligência Artificial de Próxima Geração</div>
-                        <h1 class="hero-main-title">Transforme ideias complexas em ecossistemas digitais de elite.</h1>
-                        <p class="hero-description">A Honey IA reúne poder computacional multimodal avançado para criar websites, aplicações, identidades visuais e soluções empresariais instantaneamente.</p>
+            <section class="os-view" id="viewSettings">
+                <div style="max-width:800px; margin:0 auto; width:100%;">
+                    <h2 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:12px;">Configurações do Sistema</h2>
+                    <p style="color:var(--text-secondary);">Gerenciamento de tokens, memória persistente e conexões de rede seguras.</p>
+                </div>
+            </section>
 
-                        <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
-                            <button class="btn-action-main" style="padding: 14px 28px; font-size: 0.95rem;" onclick="switchView('chat')">Iniciar Workspace Agora ➔</button>
-                            <button class="btn-topbar-action" style="padding: 14px 24px; font-size: 0.95rem;" onclick="switchView('chat'); quickPromptTemplate('Apresente todas as capacidades de engenharia e design da Honey IA.')">Explorar Ecossistema</button>
-                        </div>
+            <!-- PROMPT DOCK & COMMAND PALETTE -->
+            <div style="position:relative;">
+                <div class="command-palette-popup" id="commandPalette">
+                    <div class="cmd-item" onclick="CoreEngine.runCommand('/new')"><span>/new</span> <span>Iniciar nova sessão limpa</span></div>
+                    <div class="cmd-item" onclick="CoreEngine.runCommand('/export')"><span>/export</span> <span>Exportar projeto e dados em JSON/ZIP</span></div>
+                    <div class="cmd-item" onclick="CoreEngine.runCommand('/plugins')"><span>/plugins</span> <span>Gerenciar plugins instalados</span></div>
+                    <div class="cmd-item" onclick="CoreEngine.runCommand('/help')"><span>/help</span> <span>Documentação de comandos do kernel</span></div>
+                </div>
 
-                        <!-- GRID DE CAPACIDADES ECOSYSTEM CARDS -->
-                        <div class="ecosystem-grid">
-                            <div class="eco-card" onclick="quickPromptTemplate('Crie uma Landing Page de alta conversão para uma empresa de tecnologia.')">
-                                <div class="eco-card-icon">🌐</div>
-                                <div class="eco-card-title">Criador de Websites</div>
-                                <div class="eco-card-desc">Gere código limpo com pré-visualização instantânea ao vivo.</div>
-                            </div>
-
-                            <div class="eco-card" onclick="quickPromptTemplate('Desenvolva o conceito e arquitetura de um app mobile fintech.')">
-                                <div class="eco-card-icon">📱</div>
-                                <div class="eco-card-title">Aplicações Mobile</div>
-                                <div class="eco-card-desc">Protótipos funcionais e estruturas prontas para produção.</div>
-                            </div>
-
-                            <div class="eco-card" onclick="quickPromptTemplate('Elabore um Plano de Negócios estratégico para expansão internacional B2B.')">
-                                <div class="eco-card-icon">💼</div>
-                                <div class="eco-card-title">Soluções Empresariais</div>
-                                <div class="eco-card-desc">Consultoria executiva, planos financeiros e estratégias de crescimento.</div>
-                            </div>
-
-                            <div class="eco-card" onclick="quickPromptTemplate('Crie o código SVG para uma identidade visual corporativa luxuosa.')">
-                                <div class="eco-card-icon">🎨</div>
-                                <div class="eco-card-title">Design & Logótipos</div>
-                                <div class="eco-card-desc">Criação de marcas, mockups e assets visuais exclusivos.</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 2. VIEW PANE: CHAT WORKSPACE -->
-                <section class="view-pane" id="viewPaneChat">
-                    <div class="chat-viewport-inner" id="chatContainer">
-                        <!-- Mensagem inicial de boas-vindas do sistema -->
-                        <div class="chat-message-row assistant">
-                            <div class="chat-avatar">🐝</div>
-                            <div class="chat-message-bubble">
-                                <p>Olá! Sou a <strong>Honey IA</strong>. O seu ecossistema avançado de inteligência artificial está pronto. O que deseja criar, programar ou estruturar hoje?</p>
-                                <div class="response-actions-bar">
-                                    <button class="btn-resp-action" onclick="quickPromptTemplate('Crie uma landing page moderna para uma startup de IA.')">🌐 Criar Website Exemplo</button>
-                                    <button class="btn-resp-action" onclick="quickPromptTemplate('Desenvolva um plano de negócios para o setor tecnológico.')">💼 Plano de Negócios</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- CAIXA DE INPUT FIXA / PROMPT DOCK -->
-                <div class="prompt-dock-container">
+                <div class="prompt-dock-wrapper">
                     <div class="prompt-dock-box">
-                        <textarea class="prompt-textarea" id="promptInput" rows="1" placeholder="Escreva um comando ou descreva o seu projeto à Honey IA..." oninput="autoResizeTextarea(this)" onkeydown="handlePromptKeyDown(event)"></textarea>
-
-                        <div class="prompt-dock-toolbar">
-                            <div class="dock-tools-left">
-                                <button class="btn-dock-icon" onclick="document.getElementById('hiddenFileInput').click()">
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                                    <span>Anexar Ficheiro</span>
-                                </button>
-                                <input type="file" id="hiddenFileInput" hidden onchange="triggerSystemNotification('Ficheiro carregado com sucesso no workspace.')">
+                        <textarea class="prompt-input-field" id="osPromptInput" rows="1" placeholder="Digite uma instrução ou '/' para comandos..." oninput="CoreEngine.handleInput(this)" onkeydown="CoreEngine.handleKeyDown(event)"></textarea>
+                        <div class="prompt-toolbar">
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn-dock-action" onclick="EventBus.emit('file:upload')">📁 Arquivos</button>
+                                <button class="btn-dock-action" onclick="EventBus.emit('voice:toggle')">🎙 Voz</button>
                             </div>
-
-                            <button class="btn-send-execute" onclick="executePrompt()" title="Executar Comando">➔</button>
+                            <button class="btn-send-core" onclick="CoreEngine.submitPrompt()">➔</button>
                         </div>
                     </div>
                 </div>
-            </main>
-
-            <!-- LIVE CANVAS LATERAL DE PRÉ-VISUALIZAÇÃO -->
-            <aside class="live-canvas-pane" id="liveCanvasPane">
-                <div class="canvas-toolbar">
-                    <div class="canvas-title-info">
-                        <span style="color:var(--honey-gold);">⚡</span>
-                        <span>Live Canvas & Preview Engine</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-resp-action" onclick="openCanvasInNewTab()">↗️ Nova Aba</button>
-                        <button class="btn-resp-action" onclick="toggleLiveCanvas()">✕ Fechar</button>
-                    </div>
-                </div>
-                <iframe class="canvas-iframe-viewport" id="canvasFrame"></iframe>
-            </aside>
+            </div>
         </div>
+
+        <!-- LIVE CANVAS PANEL -->
+        <aside class="live-canvas-panel" id="liveCanvasPanel">
+            <div class="canvas-header">
+                <span>⚡ HONEY LIVE PREVIEW ENGINE</span>
+                <button class="btn-dock-action" onclick="EventBus.emit('canvas:toggle')">✕ Fechar</button>
+            </div>
+            <iframe class="canvas-iframe" id="liveCanvasIframe"></iframe>
+        </aside>
     </div>
 
-    <!-- SCRIPT DE ARQUITETURA E COMUNICAÇÃO COMPATÍVEL COM O BACKEND /gerar-gratis -->
     <script>
-        let currentActiveView = 'home';
-        let latestGeneratedCodeContent = '';
-
-        function switchView(viewName) {
-            currentActiveView = viewName;
-            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-            
-            if (viewName === 'home') document.getElementById('viewPaneHome').classList.add('active');
-            if (viewName === 'chat') document.getElementById('viewPaneChat').classList.add('active');
-
-            if (window.innerWidth <= 1024) {
-                document.getElementById('appSidebar').classList.remove('active');
-                document.getElementById('mobileOverlay').classList.remove('active');
+        /* ==========================================================================
+           CORE LAYER: SISTEMA DE EVENTOS (EVENT BUS) & MEMÓRIA
+           ========================================================================== */
+        class EventBusClass {
+            constructor() { this.listeners = {}; }
+            on(event, callback) {
+                if (!this.listeners[event]) this.listeners[event] = [];
+                this.listeners[event].push(callback);
+            }
+            emit(event, data) {
+                if (this.listeners[event]) {
+                    this.listeners[event].forEach(cb => cb(data));
+                }
             }
         }
+        const EventBus = new EventBusClass();
 
-        function toggleSidebarMobile() {
-            document.getElementById('appSidebar').classList.toggle('active');
-            document.getElementById('mobileOverlay').classList.toggle('active');
-        }
-
-        function autoResizeTextarea(el) {
-            el.style.height = 'auto';
-            el.style.height = (el.scrollHeight) + 'px';
-        }
-
-        function handlePromptKeyDown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                executePrompt();
+        /* ==========================================================================
+           APPLICATION LAYER: GLOBAL STORE & STATE MANAGEMENT
+           ========================================================================== */
+        const GlobalStore = {
+            state: {
+                currentConversation: 'default_session',
+                messages: [],
+                history: [],
+                settings: { theme: 'dark', model: 'Honey-Core-V4' },
+                theme: 'dark',
+                language: 'pt-PT',
+                canvas: { active: false, content: '' },
+                files: [],
+                voice: { active: false },
+                plugins: [
+                    { id: 'coder', name: 'Software Engineer', icon: '💻', active: true },
+                    { id: 'marketing', name: 'Growth Marketing', icon: '📢', active: true },
+                    { id: 'lawyer', name: 'Legal Consultant', icon: '⚖️', active: false }
+                ],
+                preview: null,
+                status: 'IDLE'
+            },
+            setState(updater) {
+                if (typeof updater === 'function') {
+                    this.state = updater(this.state);
+                } else {
+                    this.state = { ...this.state, ...updater };
+                }
+                EventBus.emit('state:updated', this.state);
             }
-        }
+        };
 
-        function quickPromptTemplate(text) {
-            document.getElementById('promptInput').value = text;
-            executePrompt();
-        }
+        /* ==========================================================================
+           SERVICE LAYER: COMUNICAÇÃO COM API & BACKEND (/gerar-gratis)
+           ========================================================================== */
+        const ServiceLayer = {
+            async generateResponse(promptText) {
+                GlobalStore.setState({ status: 'PROCESSING' });
+                EventBus.emit('status:changed', 'PROCESSING');
 
-        function clearNewChat() {
-            // Mantém limpo ou inicializa estado de chat se necessário
-        }
+                try {
+                    // Comunicação mantida intacta com o backend exigido
+                    const response = await fetch('/gerar-gratis', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: promptText, modo: 'os_kernel' })
+                    });
+                    const data = await response.json();
+                    GlobalStore.setState({ status: 'IDLE' });
+                    EventBus.emit('status:changed', 'IDLE');
+                    return data.sucesso ? data.resposta : (data.erro || 'Erro processado no Kernel.');
+                } catch (err) {
+                    GlobalStore.setState({ status: 'IDLE' });
+                    EventBus.emit('status:changed', 'IDLE');
+                    return "Erro de comunicação com o backend da Honey IA.";
+                }
+            }
+        };
 
-        function triggerSystemNotification(msg) {
-            const notif = document.createElement('div');
-            notif.style.cssText = "position:fixed; bottom:30px; right:30px; background:#111622; border:1px solid rgba(245,158,11,0.4); color:#f8fafc; padding:12px 20px; border-radius:12px; font-size:0.85rem; font-weight:600; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,0.8); animation: messageFadeIn 0.3s ease;";
-            notif.innerText = msg;
-            document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 3500);
-        }
+        /* ==========================================================================
+           MODULES LAYER (Módulos Independentes & Plugins)
+           ========================================================================== */
+        const PluginModule = {
+            init() {
+                const listEl = document.getElementById('pluginSidebarList');
+                const registryEl = document.getElementById('pluginRegistryView');
+                
+                listEl.innerHTML = '';
+                registryEl.innerHTML = '';
 
-        function toggleLiveCanvas() {
-            document.getElementById('liveCanvasPane').classList.toggle('active');
-        }
+                GlobalStore.state.plugins.forEach(p => {
+                    listEl.innerHTML += `<div class="sidebar-item" onclick="EventBus.emit('plugin:trigger', '${p.id}')"><span>${p.icon}</span> <span>${p.name}</span></div>`;
+                    registryEl.innerHTML += `<div style="background:var(--bg-surface-elevated); border:1px solid var(--border-subtle); padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><strong>${p.icon} ${p.name}</strong><p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;">Módulo independente injetado via diretório /plugins/</p></div>
+                        <span style="font-size:0.75rem; padding:4px 10px; background:rgba(245,158,11,0.1); color:var(--honey-gold); border-radius:6px;">Ativo</span>
+                    </div>`;
+                });
+            }
+        };
 
-        function renderCodeIntoCanvas(htmlCode) {
-            latestGeneratedCodeContent = htmlCode;
-            const iframe = document.getElementById('canvasFrame');
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(htmlCode);
-            doc.close();
-
-            document.getElementById('liveCanvasPane').classList.add('active');
-            document.getElementById('canvasToggleBtn').style.display = 'flex';
-        }
-
-        function openCanvasInNewTab() {
-            if (!latestGeneratedCodeContent) return;
-            const blob = new Blob([latestGeneratedCodeContent], { type: 'text/html' });
-            window.open(URL.createObjectURL(blob), '_blank');
-        }
-
-        /* COMUNICAÇÃO CRÍTICA COM O BACKEND EXISTENTE (/gerar-gratis) */
-        async function executePrompt() {
-            const inputField = document.getElementById('promptInput');
-            const promptText = inputField.value.trim();
-            if (!promptText) return;
-
-            switchView('chat');
-            const container = document.getElementById('chatContainer');
-
-            // Renderiza mensagem do utilizador com estilo de luxo
-            container.innerHTML += `
-                <div class="chat-message-row user">
-                    <div class="chat-message-bubble">${promptText}</div>
-                </div>`;
-
-            inputField.value = '';
-            inputField.style.height = 'auto';
-
-            const viewport = document.getElementById('viewPaneChat');
-            viewport.scrollTop = viewport.scrollHeight;
-
-            try {
-                // COMUNICAÇÃO OBRIGATÓRIA MANTIDA COM O SEU BACKEND
-                const response = await fetch('/gerar-gratis', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: promptText, modo: 'ecossistema' })
+        /* ==========================================================================
+           PRESENTATION CONTROLLER / CORE ENGINE
+           ========================================================================== */
+        const CoreEngine = {
+            init() {
+                PluginModule.init();
+                
+                // Registo de ouvintes no Event Bus (Sistema Reativo)
+                EventBus.on('canvas:toggle', () => {
+                    const panel = document.getElementById('liveCanvasPanel');
+                    panel.classList.toggle('active');
                 });
 
-                const data = await response.json();
-                const aiReply = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar resposta na Honey Core.');
+                EventBus.on('command:help', () => {
+                    CoreEngine.appendAssistantMessage("### Comandos Disponíveis no Honey AI OS:\n- `/new` - Reinicia a sessão de chat\n- `/export` - Exporta o estado atual\n- `/plugins` - Abre o painel de plugins");
+                });
 
-                // Renderiza resposta da IA com Markdown e botões de ação profissionais
+                EventBus.on('status:changed', (status) => {
+                    document.getElementById('topbarStatusText').innerText = status === 'PROCESSING' ? 'PROCESSANDO FLUXO MULTIMODAL...' : 'OS KERNEL V4 — EVENT BUS READY';
+                });
+            },
+
+            switchView(viewName) {
+                document.querySelectorAll('.os-view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+
+                if (viewName === 'chat') {
+                    document.getElementById('viewChat').classList.add('active');
+                } else if (viewName === 'plugins') {
+                    document.getElementById('viewPlugins').classList.add('active');
+                } else if (viewName === 'settings') {
+                    document.getElementById('viewSettings').classList.add('active');
+                }
+            },
+
+            handleInput(el) {
+                el.style.height = 'auto';
+                el.style.height = el.scrollHeight + 'px';
+                
+                const val = el.value;
+                const palette = document.getElementById('commandPalette');
+                if (val.startsWith('/')) {
+                    palette.classList.add('active');
+                } else {
+                    palette.classList.remove('active');
+                }
+            },
+
+            handleKeyDown(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    CoreEngine.submitPrompt();
+                }
+            },
+
+            runCommand(cmd) {
+                document.getElementById('osPromptInput').value = cmd;
+                document.getElementById('commandPalette').classList.remove('active');
+                CoreEngine.submitPrompt();
+            },
+
+            appendUserMessage(text) {
+                const container = document.getElementById('chatStreamContainer');
                 container.innerHTML += `
-                    <div class="chat-message-row assistant">
-                        <div class="chat-avatar">🐝</div>
-                        <div class="chat-message-bubble">
-                            ${marked.parse(aiReply)}
-                            <div class="response-actions-bar">
-                                <button class="btn-resp-action" onclick="navigator.clipboard.writeText(\`${aiReply.replace(/`/g, '\\`')}\`); triggerSystemNotification('Conteúdo copiado para a área de transferência.');">📋 Copiar</button>
-                                <button class="btn-resp-action" onclick="triggerSystemNotification('Download de ficheiro exportado com sucesso.')">⬇️ Baixar</button>
-                                <button class="btn-resp-action" onclick="triggerSystemNotification('Projeto partilhado com sucesso.')">🔗 Compartilhar</button>
-                            </div>
-                        </div>
+                    <div class="chat-bubble-row user">
+                        <div class="chat-content-card">${text}</div>
                     </div>`;
+                container.scrollTop = container.scrollHeight;
+            },
 
-                viewport.scrollTop = viewport.scrollHeight;
+            appendAssistantMessage(markdownText) {
+                const container = document.getElementById('chatStreamContainer');
+                container.innerHTML += `
+                    <div class="chat-bubble-row assistant">
+                        <div class="chat-avatar-box">🐝</div>
+                        <div class="chat-content-card">${marked.parse(markdownText)}</div>
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
 
-                // Extração inteligente de código HTML para o Live Canvas automático
-                const htmlMatch = aiReply.match(/```html([\s\S]*?)```/) || aiReply.match(/```([\s\S]*?)```/);
-                if (htmlMatch && htmlMatch[1]) {
-                    const extractedCode = htmlMatch[1].trim();
-                    if (extractedCode.includes('<html') || extractedCode.includes('<div') || extractedCode.includes('<header')) {
-                        renderCodeIntoCanvas(extractedCode);
-                    }
+                // Event Bus notifica verificação de Canvas
+                const match = markdownText.match(/```html([\s\S]*?)```/);
+                if (match && match[1]) {
+                    const code = match[1].trim();
+                    const iframe = document.getElementById('liveCanvasIframe');
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    doc.open(); doc.write(code); doc.close();
+                    document.getElementById('liveCanvasPanel').classList.add('active');
+                }
+            },
+
+            async submitPrompt() {
+                const input = document.getElementById('osPromptInput');
+                const text = input.value.trim();
+                if (!text) return;
+
+                input.value = '';
+                input.style.height = 'auto';
+                document.getElementById('commandPalette').classList.remove('active');
+
+                if (text === '/new') {
+                    document.getElementById('chatStreamContainer').innerHTML = '';
+                    CoreEngine.appendAssistantMessage("Nova sessão iniciada pelo kernel.");
+                    return;
+                }
+                if (text === '/plugins') {
+                    CoreEngine.switchView('plugins');
+                    return;
+                }
+                if (text === '/export') {
+                    CoreEngine.appendAssistantMessage("```json\n" + JSON.stringify(GlobalStore.state, null, 2) + "\n```");
+                    return;
                 }
 
-            } catch (error) {
-                container.innerHTML += `
-                    <div class="chat-message-row assistant">
-                        <div class="chat-avatar">🐝</div>
-                        <div class="chat-message-bubble">Erro de conexão com o servidor da Honey IA. Verifique a rede.</div>
-                    </div>`;
+                CoreEngine.appendUserMessage(text);
+                const reply = await ServiceLayer.generateResponse(text);
+                CoreEngine.appendAssistantMessage(reply);
             }
-        }
+        };
 
-        /* PWA SERVICE WORKER REGISTRATION */
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration error:', err));
-            });
-        }
+        window.addEventListener('DOMContentLoaded', () => CoreEngine.init());
     </script>
 </body>
 </html>
