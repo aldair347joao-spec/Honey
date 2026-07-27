@@ -1,672 +1,163 @@
 <!DOCTYPE html>
-<html lang="pt-PT" class="dark">
+<html lang="pt-PT">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey AI OS — Autonomous Artificial Intelligence Architecture</title>
-    
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#030406">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<meta charset="UTF-8">
 
-    <style>
-        /* ==========================================================================
-           HONEY AI OS — ARCHITECTURAL DESIGN SYSTEM (V4 CORE)
-           ========================================================================== */
-        :root {
-            --bg-deep: #020305;
-            --bg-surface: #090c12;
-            --bg-surface-elevated: #101520;
-            --bg-card: rgba(13, 17, 26, 0.7);
-            --bg-glass: rgba(7, 10, 16, 0.85);
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-            --honey-gold: #f59e0b;
-            --honey-amber: #d97706;
-            --honey-gradient: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-            --honey-glow: 0 0 40px rgba(245, 158, 11, 0.2);
+<title>Honey AI OS</title>
 
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-glass: rgba(255, 255, 255, 0.1);
-            --border-glow: rgba(245, 158, 11, 0.4);
+<link rel="preconnect" href="https://fonts.googleapis.com">
 
-            --font-title: 'Plus Jakarta Sans', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            --font-code: 'JetBrains Mono', monospace;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-            --sidebar-width: 272px;
-            --header-height: 56px;
-            --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); }
-        html, body { height: 100%; height: 100dvh; background: var(--bg-deep); color: var(--text-primary); overflow: hidden; }
+<link rel="stylesheet" href="style.css">
 
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--honey-gold); }
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-        /* ARQUITETURA GLOBAL DO OS */
-        .os-shell {
-            display: flex;
-            width: 100vw;
-            height: 100dvh;
-            position: relative;
-            background: 
-                radial-gradient(circle at 20% -10%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 110%, rgba(56, 189, 248, 0.03) 0%, transparent 50%);
-            overflow: hidden;
-        }
-
-        /* 1. PRESENTATION LAYER: SIDEBAR */
-        .os-sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-glass);
-            backdrop-filter: blur(24px);
-            border-right: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-            transition: var(--transition-smooth);
-        }
-
-        .sidebar-brand {
-            height: var(--header-height);
-            padding: 0 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
-            font-family: var(--font-title);
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-
-        .brand-icon-box {
-            width: 32px; height: 32px;
-            background: var(--honey-gradient);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--honey-glow);
-        }
-
-        .sidebar-scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .sidebar-section-title {
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 12px 10px 4px 10px;
-        }
-
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-size: 0.84rem;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: var(--transition-smooth);
-        }
-
-        .sidebar-item:hover, .sidebar-item.active {
-            background: var(--bg-surface-elevated);
-            color: var(--text-primary);
-            border-color: var(--border-subtle);
-        }
-
-        .sidebar-item.active { border-color: var(--border-glow); color: var(--honey-gold); }
-
-        /* 2. PRESENTATION LAYER: MAIN STAGE & TOPBAR */
-        .os-main-stage {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .os-topbar {
-            height: var(--header-height);
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
-            background: rgba(2, 3, 5, 0.8);
-            backdrop-filter: blur(16px);
-            z-index: 50;
-        }
-
-        .topbar-cluster { display: flex; align-items: center; gap: 12px; }
-
-        .kernel-badge {
-            display: flex; align-items: center; gap: 6px;
-            padding: 4px 12px;
-            background: rgba(245, 158, 11, 0.05);
-            border: 1px solid var(--border-glow);
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--honey-gold);
-            letter-spacing: 0.5px;
-        }
-
-        .kernel-dot {
-            width: 5px; height: 5px;
-            background: var(--honey-gold);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--honey-gold);
-        }
-
-        /* VIEWS DO SISTEMA */
-        .os-view {
-            flex: 1;
-            overflow-y: auto;
-            display: none;
-            flex-direction: column;
-            padding: 30px 20px;
-            position: relative;
-        }
-        .os-view.active { display: flex; }
-
-        /* CHAT VIEW CONTAINER */
-        .chat-stream-container {
-            width: 100%;
-            max-width: 860px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            padding-bottom: 40px;
-        }
-
-        .chat-bubble-row {
-            display: flex;
-            gap: 16px;
-            width: 100%;
-        }
-        .chat-bubble-row.user { justify-content: flex-end; }
-
-        .chat-avatar-box {
-            width: 36px; height: 36px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; flex-shrink: 0;
-        }
-        .chat-bubble-row.assistant .chat-avatar-box {
-            background: var(--honey-gradient);
-            color: #020305; font-weight: 800;
-            box-shadow: var(--honey-glow);
-        }
-
-        .chat-content-card {
-            max-width: 85%;
-            font-size: 0.95rem;
-            line-height: 1.65;
-            color: #f1f5f9;
-        }
-        .chat-bubble-row.user .chat-content-card {
-            background: var(--bg-surface-elevated);
-            border: 1px solid var(--border-glass);
-            padding: 14px 18px;
-            border-radius: 16px;
-            border-bottom-right-radius: 4px;
-        }
-        .chat-bubble-row.assistant .chat-content-card { width: 100%; padding: 2px 0; }
-
-        /* INPUT DOCK & COMANDOS / */
-        .prompt-dock-wrapper {
-            padding: 16px 20px 24px 20px;
-            background: linear-gradient(180deg, rgba(2,3,5,0) 0%, rgba(2,3,5,0.95) 40%, #020305 100%);
-            display: flex; justify-content: center;
-            z-index: 40;
-        }
-
-        .prompt-dock-box {
-            width: 100%;
-            max-width: 860px;
-            background: var(--bg-surface);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
-            border-radius: 16px;
-            padding: 12px 16px;
-            display: flex; flex-direction: column; gap: 10px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            transition: var(--transition-smooth);
-        }
-        .prompt-dock-box:focus-within {
-            border-color: var(--honey-gold);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8), var(--honey-glow);
-        }
-
-        .prompt-input-field {
-            width: 100%;
-            background: none; border: none; outline: none;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            resize: none;
-            max-height: 140px; min-height: 38px;
-            line-height: 1.5;
-        }
-
-        .prompt-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
-        }
-
-        .btn-dock-action {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex; align-items: center; gap: 6px;
-            transition: var(--transition-smooth);
-        }
-        .btn-dock-action:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
-
-        .btn-send-core {
-            background: var(--honey-gradient);
-            color: #020305; border: none;
-            width: 38px; height: 38px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--honey-glow);
-            font-weight: 800;
-            transition: var(--transition-smooth);
-        }
-        .btn-send-core:hover { transform: scale(1.05); }
-
-        /* COMANDOS PALETTE POPUP (/help, /new, etc) */
-        .command-palette-popup {
-            position: absolute;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            background: var(--bg-surface-elevated);
-            border: 1px solid var(--border-glass);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-            display: none;
-            flex-direction: column;
-            z-index: 100;
-            overflow: hidden;
-        }
-        .command-palette-popup.active { display: flex; }
-        .cmd-item {
-            padding: 10px 16px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex; justify-content: space-between;
-        }
-        .cmd-item:hover { background: rgba(245,158,11,0.08); color: var(--text-primary); }
-
-        /* LIVE CANVAS LATERAL */
-        .live-canvas-panel {
-            width: 0%; opacity: 0; pointer-events: none;
-            background: #000; border-left: 1px solid var(--border-subtle);
-            display: flex; flex-direction: column;
-            transition: var(--transition-smooth);
-            z-index: 60;
-        }
-        .live-canvas-panel.active { width: 50%; opacity: 1; pointer-events: all; }
-        .canvas-header {
-            height: 48px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
-            padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
-            font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);
-        }
-        .canvas-iframe { flex: 1; border: none; background: #fff; }
-    </style>
 </head>
+
 <body>
 
-    <div class="os-shell">
-        <!-- 1. PRESENTATION LAYER: SIDEBAR -->
-        <aside class="os-sidebar">
-            <div class="sidebar-brand">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div class="brand-icon-box">🐝</div>
-                    <span>Honey AI OS</span>
-                </div>
-            </div>
+<div class="app">
 
-            <div class="sidebar-scroll-area" id="sidebarNavContainer">
-                <div class="sidebar-section-title">Core Modules</div>
-                <div class="sidebar-item active" onclick="CoreEngine.switchView('chat')">💬 Active Workspace</div>
-                <div class="sidebar-item" onclick="CoreEngine.switchView('plugins')">🧩 Plugin Registry</div>
-                <div class="sidebar-item" onclick="CoreEngine.switchView('settings')">⚙ Kernel Settings</div>
+<!-- SIDEBAR -->
 
-                <div class="sidebar-section-title">Dynamic Plugins</div>
-                <div id="pluginSidebarList">
-                    <!-- Inserido dinamicamente pelo PluginModule -->
-                </div>
-            </div>
-        </aside>
+<aside class="sidebar">
 
-        <!-- 2. PRESENTATION LAYER: MAIN WORKSPACE -->
-        <div class="os-main-stage">
-            <header class="os-topbar">
-                <div class="topbar-cluster">
-                    <div class="kernel-badge">
-                        <span class="kernel-dot"></span>
-                        <span id="topbarStatusText">OS KERNEL V4 — EVENT BUS READY</span>
-                    </div>
-                </div>
-                <div class="topbar-cluster">
-                    <button class="btn-dock-action" onclick="EventBus.emit('canvas:toggle')">⚡ Canvas Toggle</button>
-                    <button class="btn-dock-action" onclick="EventBus.emit('command:help')">⌨ /Comandos</button>
-                </div>
-            </header>
+<div class="logo">
 
-            <!-- VIEWS -->
-            <section class="os-view active" id="viewChat">
-                <div class="chat-stream-container" id="chatStreamContainer">
-                    <div class="chat-bubble-row assistant">
-                        <div class="chat-avatar-box">🐝</div>
-                        <div class="chat-content-card">
-                            <p><strong>Honey AI OS Kernel</strong> inicializado com sucesso via arquitetura de 4 camadas e Event Bus assíncrono. Digite <code>/</code> para abrir o sistema de comandos ou execute qualquer instrução.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+🐝 Honey AI
 
-            <section class="os-view" id="viewPlugins">
-                <div style="max-width:800px; margin:0 auto; width:100%;">
-                    <h2 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:12px;">Registry de Plugins Modulares</h2>
-                    <p style="color:var(--text-secondary); margin-bottom:24px;">Arquitetura pronta para carregar pacotes isolados via diretório <code>/plugins/</code>.</p>
-                    <div id="pluginRegistryView" style="display:grid; gap:12px;"></div>
-                </div>
-            </section>
+</div>
 
-            <section class="os-view" id="viewSettings">
-                <div style="max-width:800px; margin:0 auto; width:100%;">
-                    <h2 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:12px;">Configurações do Sistema</h2>
-                    <p style="color:var(--text-secondary);">Gerenciamento de tokens, memória persistente e conexões de rede seguras.</p>
-                </div>
-            </section>
+<button id="newChat">
 
-            <!-- PROMPT DOCK & COMMAND PALETTE -->
-            <div style="position:relative;">
-                <div class="command-palette-popup" id="commandPalette">
-                    <div class="cmd-item" onclick="CoreEngine.runCommand('/new')"><span>/new</span> <span>Iniciar nova sessão limpa</span></div>
-                    <div class="cmd-item" onclick="CoreEngine.runCommand('/export')"><span>/export</span> <span>Exportar projeto e dados em JSON/ZIP</span></div>
-                    <div class="cmd-item" onclick="CoreEngine.runCommand('/plugins')"><span>/plugins</span> <span>Gerenciar plugins instalados</span></div>
-                    <div class="cmd-item" onclick="CoreEngine.runCommand('/help')"><span>/help</span> <span>Documentação de comandos do kernel</span></div>
-                </div>
+＋ Nova conversa
 
-                <div class="prompt-dock-wrapper">
-                    <div class="prompt-dock-box">
-                        <textarea class="prompt-input-field" id="osPromptInput" rows="1" placeholder="Digite uma instrução ou '/' para comandos..." oninput="CoreEngine.handleInput(this)" onkeydown="CoreEngine.handleKeyDown(event)"></textarea>
-                        <div class="prompt-toolbar">
-                            <div style="display:flex; gap:6px;">
-                                <button class="btn-dock-action" onclick="EventBus.emit('file:upload')">📁 Arquivos</button>
-                                <button class="btn-dock-action" onclick="EventBus.emit('voice:toggle')">🎙 Voz</button>
-                            </div>
-                            <button class="btn-send-core" onclick="CoreEngine.submitPrompt()">➔</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+</button>
 
-        <!-- LIVE CANVAS PANEL -->
-        <aside class="live-canvas-panel" id="liveCanvasPanel">
-            <div class="canvas-header">
-                <span>⚡ HONEY LIVE PREVIEW ENGINE</span>
-                <button class="btn-dock-action" onclick="EventBus.emit('canvas:toggle')">✕ Fechar</button>
-            </div>
-            <iframe class="canvas-iframe" id="liveCanvasIframe"></iframe>
-        </aside>
-    </div>
+<div id="history">
 
-    <script>
-        /* ==========================================================================
-           CORE LAYER: SISTEMA DE EVENTOS (EVENT BUS) & MEMÓRIA
-           ========================================================================== */
-        class EventBusClass {
-            constructor() { this.listeners = {}; }
-            on(event, callback) {
-                if (!this.listeners[event]) this.listeners[event] = [];
-                this.listeners[event].push(callback);
-            }
-            emit(event, data) {
-                if (this.listeners[event]) {
-                    this.listeners[event].forEach(cb => cb(data));
-                }
-            }
-        }
-        const EventBus = new EventBusClass();
+<!-- Histórico -->
 
-        /* ==========================================================================
-           APPLICATION LAYER: GLOBAL STORE & STATE MANAGEMENT
-           ========================================================================== */
-        const GlobalStore = {
-            state: {
-                currentConversation: 'default_session',
-                messages: [],
-                history: [],
-                settings: { theme: 'dark', model: 'Honey-Core-V4' },
-                theme: 'dark',
-                language: 'pt-PT',
-                canvas: { active: false, content: '' },
-                files: [],
-                voice: { active: false },
-                plugins: [
-                    { id: 'coder', name: 'Software Engineer', icon: '💻', active: true },
-                    { id: 'marketing', name: 'Growth Marketing', icon: '📢', active: true },
-                    { id: 'lawyer', name: 'Legal Consultant', icon: '⚖️', active: false }
-                ],
-                preview: null,
-                status: 'IDLE'
-            },
-            setState(updater) {
-                if (typeof updater === 'function') {
-                    this.state = updater(this.state);
-                } else {
-                    this.state = { ...this.state, ...updater };
-                }
-                EventBus.emit('state:updated', this.state);
-            }
-        };
+</div>
 
-        /* ==========================================================================
-           SERVICE LAYER: COMUNICAÇÃO COM API & BACKEND (/gerar-gratis)
-           ========================================================================== */
-        const ServiceLayer = {
-            async generateResponse(promptText) {
-                GlobalStore.setState({ status: 'PROCESSING' });
-                EventBus.emit('status:changed', 'PROCESSING');
+<div class="bottom">
 
-                try {
-                    // Comunicação mantida intacta com o backend exigido
-                    const response = await fetch('/gerar-gratis', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: promptText, modo: 'os_kernel' })
-                    });
-                    const data = await response.json();
-                    GlobalStore.setState({ status: 'IDLE' });
-                    EventBus.emit('status:changed', 'IDLE');
-                    return data.sucesso ? data.resposta : (data.erro || 'Erro processado no Kernel.');
-                } catch (err) {
-                    GlobalStore.setState({ status: 'IDLE' });
-                    EventBus.emit('status:changed', 'IDLE');
-                    return "Erro de comunicação com o backend da Honey IA.";
-                }
-            }
-        };
+<button id="pluginsBtn">
 
-        /* ==========================================================================
-           MODULES LAYER (Módulos Independentes & Plugins)
-           ========================================================================== */
-        const PluginModule = {
-            init() {
-                const listEl = document.getElementById('pluginSidebarList');
-                const registryEl = document.getElementById('pluginRegistryView');
-                
-                listEl.innerHTML = '';
-                registryEl.innerHTML = '';
+🧩 Plugins
 
-                GlobalStore.state.plugins.forEach(p => {
-                    listEl.innerHTML += `<div class="sidebar-item" onclick="EventBus.emit('plugin:trigger', '${p.id}')"><span>${p.icon}</span> <span>${p.name}</span></div>`;
-                    registryEl.innerHTML += `<div style="background:var(--bg-surface-elevated); border:1px solid var(--border-subtle); padding:16px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <div><strong>${p.icon} ${p.name}</strong><p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;">Módulo independente injetado via diretório /plugins/</p></div>
-                        <span style="font-size:0.75rem; padding:4px 10px; background:rgba(245,158,11,0.1); color:var(--honey-gold); border-radius:6px;">Ativo</span>
-                    </div>`;
-                });
-            }
-        };
+</button>
 
-        /* ==========================================================================
-           PRESENTATION CONTROLLER / CORE ENGINE
-           ========================================================================== */
-        const CoreEngine = {
-            init() {
-                PluginModule.init();
-                
-                // Registo de ouvintes no Event Bus (Sistema Reativo)
-                EventBus.on('canvas:toggle', () => {
-                    const panel = document.getElementById('liveCanvasPanel');
-                    panel.classList.toggle('active');
-                });
+<button id="settingsBtn">
 
-                EventBus.on('command:help', () => {
-                    CoreEngine.appendAssistantMessage("### Comandos Disponíveis no Honey AI OS:\n- `/new` - Reinicia a sessão de chat\n- `/export` - Exporta o estado atual\n- `/plugins` - Abre o painel de plugins");
-                });
+⚙ Configurações
 
-                EventBus.on('status:changed', (status) => {
-                    document.getElementById('topbarStatusText').innerText = status === 'PROCESSING' ? 'PROCESSANDO FLUXO MULTIMODAL...' : 'OS KERNEL V4 — EVENT BUS READY';
-                });
-            },
+</button>
 
-            switchView(viewName) {
-                document.querySelectorAll('.os-view').forEach(v => v.classList.remove('active'));
-                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+</div>
 
-                if (viewName === 'chat') {
-                    document.getElementById('viewChat').classList.add('active');
-                } else if (viewName === 'plugins') {
-                    document.getElementById('viewPlugins').classList.add('active');
-                } else if (viewName === 'settings') {
-                    document.getElementById('viewSettings').classList.add('active');
-                }
-            },
+</aside>
 
-            handleInput(el) {
-                el.style.height = 'auto';
-                el.style.height = el.scrollHeight + 'px';
-                
-                const val = el.value;
-                const palette = document.getElementById('commandPalette');
-                if (val.startsWith('/')) {
-                    palette.classList.add('active');
-                } else {
-                    palette.classList.remove('active');
-                }
-            },
+<!-- ÁREA PRINCIPAL -->
 
-            handleKeyDown(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    CoreEngine.submitPrompt();
-                }
-            },
+<main class="main">
 
-            runCommand(cmd) {
-                document.getElementById('osPromptInput').value = cmd;
-                document.getElementById('commandPalette').classList.remove('active');
-                CoreEngine.submitPrompt();
-            },
+<header>
 
-            appendUserMessage(text) {
-                const container = document.getElementById('chatStreamContainer');
-                container.innerHTML += `
-                    <div class="chat-bubble-row user">
-                        <div class="chat-content-card">${text}</div>
-                    </div>`;
-                container.scrollTop = container.scrollHeight;
-            },
+<div class="title">
 
-            appendAssistantMessage(markdownText) {
-                const container = document.getElementById('chatStreamContainer');
-                container.innerHTML += `
-                    <div class="chat-bubble-row assistant">
-                        <div class="chat-avatar-box">🐝</div>
-                        <div class="chat-content-card">${marked.parse(markdownText)}</div>
-                    </div>`;
-                container.scrollTop = container.scrollHeight;
+Honey AI OS
 
-                // Event Bus notifica verificação de Canvas
-                const match = markdownText.match(/```html([\s\S]*?)```/);
-                if (match && match[1]) {
-                    const code = match[1].trim();
-                    const iframe = document.getElementById('liveCanvasIframe');
-                    const doc = iframe.contentDocument || iframe.contentWindow.document;
-                    doc.open(); doc.write(code); doc.close();
-                    document.getElementById('liveCanvasPanel').classList.add('active');
-                }
-            },
+</div>
 
-            async submitPrompt() {
-                const input = document.getElementById('osPromptInput');
-                const text = input.value.trim();
-                if (!text) return;
+<div class="status">
 
-                input.value = '';
-                input.style.height = 'auto';
-                document.getElementById('commandPalette').classList.remove('active');
+<span class="dot"></span>
 
-                if (text === '/new') {
-                    document.getElementById('chatStreamContainer').innerHTML = '';
-                    CoreEngine.appendAssistantMessage("Nova sessão iniciada pelo kernel.");
-                    return;
-                }
-                if (text === '/plugins') {
-                    CoreEngine.switchView('plugins');
-                    return;
-                }
-                if (text === '/export') {
-                    CoreEngine.appendAssistantMessage("```json\n" + JSON.stringify(GlobalStore.state, null, 2) + "\n```");
-                    return;
-                }
+Online
 
-                CoreEngine.appendUserMessage(text);
-                const reply = await ServiceLayer.generateResponse(text);
-                CoreEngine.appendAssistantMessage(reply);
-            }
-        };
+</div>
 
-        window.addEventListener('DOMContentLoaded', () => CoreEngine.init());
-    </script>
+</header>
+
+<section id="messages">
+
+<div class="assistant">
+
+<div class="avatar">
+
+🐝
+
+</div>
+
+<div class="bubble">
+
+Olá!
+
+Sou a nova Honey AI.
+
+Como posso ajudar você hoje?
+
+</div>
+
+</div>
+
+</section>
+
+<footer>
+
+<div class="inputBox">
+
+<textarea
+
+id="prompt"
+
+placeholder="Digite sua mensagem..."
+
+rows="1">
+
+</textarea>
+
+<div class="toolbar">
+
+<button id="upload">
+
+📁
+
+</button>
+
+<button id="voice">
+
+🎤
+
+</button>
+
+<button id="send">
+
+➜
+
+</button>
+
+</div>
+
+</div>
+
+</footer>
+
+</main>
+
+</div>
+
+<script src="app.js"></script>
+
 </body>
+
 </html>
