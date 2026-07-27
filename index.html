@@ -1,703 +1,776 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey IA — Plataforma Empresarial</title>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#07080c">
+    <title>Honey IA — Next-Gen AI Ecosystem</title>
     
-    <!-- Google Fonts Premium -->
+    <!-- PWA & Meta Theme -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#060709">
+    <meta name="description" content="A plataforma de Inteligência Artificial de próxima geração para criar websites, aplicações, imagens e soluções empresariais.">
+
+    <!-- Tipografia de Elite -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- Marked.js para suporte a Markdown profissional -->
+    <!-- Parser de Markdown com Destaque de Código -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
+        /* ==========================================================================
+           1. DESIGN SYSTEM & VARIÁVEIS (HONEY IA LUXURY DARK)
+           ========================================================================== */
         :root {
-            --bg-dark: #07080a;
-            --bg-surface: #0f1117;
-            --bg-card: rgba(18, 20, 29, 0.75);
-            --bg-card-hover: rgba(28, 31, 46, 0.9);
-            --border-glow: rgba(245, 158, 11, 0.25);
-            --border-subtle: rgba(255, 255, 255, 0.08);
+            /* Cores de Fundo e Superfície */
+            --bg-dark: #060709;
+            --bg-surface: #0e1117;
+            --bg-surface-hover: #161a23;
+            --bg-card: rgba(18, 22, 31, 0.65);
+            --bg-card-active: rgba(28, 34, 48, 0.85);
+
+            /* Cores de Destaque Âmbar/Dourado Mel */
+            --honey-gold: #f59e0b;
+            --honey-dark: #d97706;
+            --honey-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --honey-glow: 0 0 25px rgba(245, 158, 11, 0.28);
+            --honey-glow-subtle: 0 0 15px rgba(245, 158, 11, 0.12);
+
+            /* Bordas & Divisores Glassmorphism */
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glass-gold: rgba(245, 158, 11, 0.3);
+
+            /* Tipografia & Cores de Texto */
+            --font-title: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent: #f59e0b;
-            --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            --accent-glow: 0 0 20px rgba(245, 158, 11, 0.3);
+            --text-muted: #64748b;
+
+            /* Dimensões do Layout */
             --sidebar-width: 280px;
+            --header-height: 64px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* Reset & Normas */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; height: 100dvh; background-color: var(--bg-dark); color: var(--text-primary); overflow: hidden; }
 
-        html, body {
-            height: 100%;
-            height: 100dvh;
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
-            overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.06) 0%, transparent 60%),
-                radial-gradient(circle at 80% 90%, rgba(217, 119, 6, 0.04) 0%, transparent 50%);
-        }
+        /* Scrollbar Personalizado */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--honey-gold); }
 
-        .app-container {
+        /* ==========================================================================
+           2. ARQUITETURA DE LAYOUT & WORKSPACE
+           ========================================================================== */
+        .app-shell {
             display: flex;
             width: 100vw;
-            height: 100%;
             height: 100dvh;
             position: relative;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(217, 119, 6, 0.03) 0%, transparent 40%);
         }
 
         /* --- SIDEBAR LATERAL --- */
         .sidebar {
             width: var(--sidebar-width);
-            background: rgba(10, 11, 16, 0.95);
+            background: rgba(10, 12, 17, 0.92);
             backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border-subtle);
+            border-right: 1px solid var(--border-glass);
             display: flex;
             flex-direction: column;
             z-index: 100;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .sidebar {
                 position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
+                top: 0; bottom: 0; left: 0;
                 transform: translateX(-100%);
-                box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+                box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
             }
-            .sidebar.open {
-                transform: translateX(0);
-            }
+            .sidebar.active { transform: translateX(0); }
         }
 
-        .sidebar-header {
-            padding: 20px 18px;
+        .brand-header {
+            height: var(--header-height);
+            padding: 0 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-glass);
         }
 
         .brand-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            gap: 12px;
+            font-family: var(--font-title);
             font-weight: 800;
-            font-size: 1.15rem;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
         }
 
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            background: var(--accent-gradient);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--accent-glow);
-            font-size: 1.1rem;
-        }
-
-        .btn-new-chat {
-            margin: 16px;
-            padding: 12px;
-            background: var(--accent-gradient);
-            border: none;
+        .brand-logo-icon {
+            width: 36px; height: 36px;
+            background: var(--honey-gradient);
             border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--honey-glow);
+            font-size: 1.2rem;
+        }
+
+        .btn-new-project {
+            margin: 16px;
+            padding: 12px 16px;
+            background: var(--honey-gradient);
+            border: none;
+            border-radius: 12px;
             color: #000;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: var(--font-title);
             font-weight: 700;
-            font-size: 0.88rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px;
             cursor: pointer;
-            box-shadow: var(--accent-glow);
-            transition: all 0.2s;
+            box-shadow: var(--honey-glow);
+            transition: all 0.2s ease;
         }
 
-        .btn-new-chat:active {
-            transform: scale(0.98);
-        }
+        .btn-new-project:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
 
-        .history-list {
+        .sidebar-nav {
             flex: 1;
             overflow-y: auto;
-            padding: 0 12px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .history-item {
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            border-radius: 8px;
+        .nav-category {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 12px 6px 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.88rem;
+            font-weight: 500;
             cursor: pointer;
             border: 1px solid transparent;
-            transition: all 0.2s;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            transition: all 0.2s ease;
         }
 
-        .history-item:hover {
-            background: var(--bg-card);
+        .nav-item:hover, .nav-item.active {
+            background: var(--bg-surface-hover);
             color: var(--text-primary);
-            border-color: var(--border-subtle);
+            border-color: var(--border-glass);
         }
 
-        /* --- CONTEÚDO PRINCIPAL --- */
-        .main-content {
+        .nav-item.active {
+            border-color: var(--border-glass-gold);
+            color: var(--honey-gold);
+        }
+
+        .nav-icon { font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+
+        /* --- CONTEÚDO PRINCIPAL (WORKSPACE) --- */
+        .workspace-viewport {
+            flex: 1;
+            display: flex;
+            height: 100dvh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .main-stage {
             flex: 1;
             display: flex;
             flex-direction: column;
             height: 100%;
-            height: 100dvh;
-            position: relative;
+            overflow: hidden;
         }
 
-        /* --- HEADER --- */
-        .header {
-            height: 64px;
-            padding: 0 18px;
+        /* HEADER SUPERIOR */
+        .top-navbar {
+            height: var(--header-height);
+            padding: 0 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border-subtle);
-            background: rgba(7, 8, 10, 0.85);
+            border-bottom: 1px solid var(--border-glass);
+            background: rgba(6, 7, 9, 0.8);
             backdrop-filter: blur(16px);
-            flex-shrink: 0;
-            z-index: 10;
+            z-index: 20;
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .top-navbar-left { display: flex; align-items: center; gap: 14px; }
+
+        .btn-menu-trigger {
+            background: none; border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .badge-pro {
-            background: rgba(245, 158, 11, 0.12);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: var(--accent);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 700;
+        .badge-enterprise {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--border-glass-gold);
+            color: var(--honey-gold);
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 700;
             letter-spacing: 0.5px;
         }
 
-        .mode-selector {
-            display: flex;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 4px;
-            border-radius: 12px;
-            border: 1px solid var(--border-subtle);
-            overflow-x: auto;
-            max-width: calc(100vw - 120px);
-            scrollbar-width: none;
-        }
-
-        .mode-selector::-webkit-scrollbar { display: none; }
-
-        .mode-btn {
-            padding: 6px 14px;
-            border: none;
-            background: none;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-            background: var(--accent-gradient);
-            color: #000;
-            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
-        }
-
-        /* --- CHAT VIEWPORT --- */
-        .chat-viewport {
+        /* ==========================================================================
+           3. VISTAS DE CONTEÚDO (HOME vs DASHBOARD vs CHAT)
+           ========================================================================== */
+        .view-pane {
             flex: 1;
             overflow-y: auto;
-            padding: 24px 16px;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
-            scroll-behavior: smooth;
+            padding: 24px 20px;
         }
 
-        .chat-container {
+        .view-pane.active { display: flex; }
+
+        /* --- VISTA: HOME / HERO --- */
+        .hero-container {
+            max-width: 900px;
             width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            margin: auto 0;
-        }
-
-        /* --- HERO HOME (APRESENTAÇÃO PREMIUM) --- */
-        .hero-section {
             text-align: center;
+            margin: auto 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
-            padding: 20px 0;
+            gap: 24px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: var(--honey-gold);
         }
 
         .hero-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 2rem;
+            font-family: var(--font-title);
+            font-size: clamp(2rem, 4vw, 3.2rem);
             font-weight: 800;
-            background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
+            line-height: 1.15;
+            background: linear-gradient(180deg, #FFFFFF 0%, #94A3B8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
         }
 
         .hero-subtitle {
+            font-size: 1.05rem;
             color: var(--text-secondary);
-            font-size: 0.95rem;
-            max-width: 520px;
-            line-height: 1.5;
+            max-width: 640px;
+            line-height: 1.6;
         }
 
-        /* CARDS DE SUGESTÃO E RECURSOS */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 12px;
-            width: 100%;
-            margin-top: 12px;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            padding: 16px;
-            border-radius: 14px;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .feature-card:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--accent);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-        }
-
-        .card-header {
+        .hero-cta-group {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 14px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .card-icon {
-            font-size: 1.2rem;
-            padding: 8px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
+        .btn-primary-hero {
+            padding: 14px 28px;
+            background: var(--honey-gradient);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-family: var(--font-title);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: var(--honey-glow);
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary-hero {
+            padding: 14px 28px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: var(--font-title);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary-hero:hover { background: rgba(255,255,255,0.08); }
+
+        /* GRID DE CAPACIDADES / DASHBOARD */
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 32px;
+        }
+
+        .capability-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .capability-card:hover {
+            background: var(--bg-surface-hover);
+            border-color: var(--border-glass-gold);
+            transform: translateY(-4px);
+            box-shadow: var(--honey-glow-subtle);
+        }
+
+        .card-icon-wrapper {
+            width: 42px; height: 42px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
         }
 
         .card-title {
-            font-size: 0.9rem;
+            font-family: var(--font-title);
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-primary);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .card-desc {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            line-height: 1.45;
-        }
-
-        /* --- CONVERSA ESTILO CHATGPT --- */
-        .msg-row {
-            display: flex;
-            gap: 16px;
-            width: 100%;
-        }
-
-        .msg-row.user {
-            justify-content: flex-end;
-        }
-
-        .avatar {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.95rem;
-            flex-shrink: 0;
-        }
-
-        .msg-row.assistant .avatar {
-            background: var(--accent-gradient);
-            color: #000;
-            font-weight: 700;
-            box-shadow: var(--accent-glow);
-        }
-
-        .bubble {
-            max-width: 88%;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #e2e8f0;
-        }
-
-        .msg-row.user .bubble {
-            background: #1e293b;
-            color: var(--text-primary);
-            padding: 12px 18px;
-            border-radius: 18px;
-            border-bottom-right-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            font-weight: 500;
-        }
-
-        .msg-row.assistant .bubble {
-            width: 100%;
-            padding: 4px 0;
-        }
-
-        /* MODO CHATGPT DE CONTEÚDO (MARKDOWN) */
-        .bubble h1, .bubble h2, .bubble h3, .bubble h4 {
-            color: #fff;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 18px 0 10px 0;
-            font-weight: 700;
-        }
-
-        .bubble h1 { font-size: 1.3rem; }
-        .bubble h2 { font-size: 1.15rem; }
-        .bubble h3 { font-size: 1.05rem; }
-
-        .bubble p {
-            margin-bottom: 12px;
-        }
-
-        .bubble ul, .bubble ol {
-            margin: 8px 0 14px 20px;
-        }
-
-        .bubble li {
             margin-bottom: 6px;
         }
 
-        .bubble code {
-            font-family: 'JetBrains Mono', monospace;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2px 6px;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            color: #fbbf24;
-        }
-
-        .bubble pre {
-            background: #0d1117;
-            border: 1px solid var(--border-subtle);
-            padding: 14px;
-            border-radius: 10px;
-            overflow-x: auto;
-            margin: 14px 0;
-        }
-
-        .bubble pre code {
-            background: none;
-            padding: 0;
-            color: #e2e8f0;
-        }
-
-        .bubble table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 14px 0;
-            font-size: 0.88rem;
-        }
-
-        .bubble th, .bubble td {
-            border: 1px solid var(--border-subtle);
-            padding: 10px 12px;
-            text-align: left;
-        }
-
-        .bubble th {
-            background: rgba(255, 255, 255, 0.05);
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        /* --- CAIXA DE MENSAGEM / INPUT PRO --- */
-        .input-dock {
-            padding: 14px 16px 20px 16px;
-            background: rgba(7, 8, 10, 0.92);
-            border-top: 1px solid var(--border-subtle);
-            backdrop-filter: blur(16px);
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .input-box {
-            width: 100%;
-            max-width: 800px;
-            background: var(--bg-surface);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
-            padding: 10px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-        }
-
-        .input-box:focus-within {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.18);
-        }
-
-        .input-box textarea {
-            width: 100%;
-            background: none;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            resize: none;
-            max-height: 120px;
-            min-height: 40px;
-            padding: 4px 0;
+        .card-description {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
             line-height: 1.5;
         }
 
-        .input-box textarea::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .input-toolbar {
+        /* --- VISTA: CHAT CONVERSACIONAL --- */
+        .chat-viewport {
+            width: 100%;
+            max-width: 840px;
+            margin: 0 auto;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding-top: 4px;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        .tool-group {
+        .message-row {
             display: flex;
-            align-items: center;
-            gap: 4px;
+            gap: 16px;
+            width: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
         }
 
-        .btn-tool {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.user { justify-content: flex-end; }
+
+        .avatar-box {
+            width: 36px; height: 36px;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
-        .btn-tool:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text-primary);
-        }
-
-        .btn-tool.recording {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.15);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
-
-        .btn-send {
-            background: var(--accent-gradient);
+        .message-row.assistant .avatar-box {
+            background: var(--honey-gradient);
             color: #000;
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: var(--accent-glow);
+            font-weight: 800;
+            box-shadow: var(--honey-glow);
         }
 
-        .btn-send:active {
-            transform: scale(0.95);
+        .chat-bubble {
+            max-width: 88%;
+            font-size: 0.96rem;
+            line-height: 1.65;
+            color: #e2e8f0;
         }
+
+        .message-row.user .chat-bubble {
+            background: #1a202c;
+            border: 1px solid var(--border-glass);
+            padding: 12px 18px;
+            border-radius: 18px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-row.assistant .chat-bubble { width: 100%; padding: 4px 0; }
+
+        /* AÇÕES DE RESPOSTA DA IA */
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-glass);
+        }
+
+        .btn-msg-action {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        .btn-msg-action:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+
+        /* ==========================================================================
+           4. LIVE CANVAS (PAINEL DE PRÉ-VISUALIZAÇÃO AO VIVO)
+           ========================================================================== */
+        .live-canvas-pane {
+            width: 0%;
+            opacity: 0;
+            pointer-events: none;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-glass);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .live-canvas-pane.active {
+            width: 50%;
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        @media (max-width: 1024px) {
+            .live-canvas-pane.active {
+                position: absolute;
+                inset: 0;
+                width: 100vw;
+                height: 100dvh;
+                z-index: 300;
+            }
+        }
+
+        .canvas-toolbar {
+            height: 50px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-glass);
+            padding: 0 16px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .canvas-iframe { width: 100%; flex: 1; border: none; background: #ffffff; }
+
+        /* ==========================================================================
+           5. CAIXA DE ENVIOS / PROMPT DOCK
+           ========================================================================== */
+        .input-dock-container {
+            padding: 16px 20px 20px 20px;
+            background: rgba(6, 7, 9, 0.95);
+            border-top: 1px solid var(--border-glass);
+            backdrop-filter: blur(16px);
+            display: flex; justify-content: center;
+        }
+
+        .input-dock-box {
+            width: 100%;
+            max-width: 840px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            border-radius: 18px;
+            padding: 12px 16px;
+            display: flex; flex-direction: column; gap: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-dock-box:focus-within {
+            border-color: var(--honey-gold);
+            box-shadow: var(--honey-glow-subtle);
+        }
+
+        .input-dock-box textarea {
+            width: 100%;
+            background: none; border: none; outline: none;
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            resize: none;
+            max-height: 140px; min-height: 42px;
+            line-height: 1.5;
+        }
+
+        .input-dock-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .tool-btn-group { display: flex; align-items: center; gap: 6px; }
+
+        .btn-dock-tool {
+            background: none; border: none;
+            color: var(--text-secondary);
+            padding: 8px; border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .btn-dock-tool:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-primary); }
+
+        .btn-send-prompt {
+            background: var(--honey-gradient);
+            color: #000; border: none;
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--honey-glow);
+            transition: transform 0.2s;
+        }
+
+        .btn-send-prompt:active { transform: scale(0.95); }
 
         .overlay {
-            display: none;
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
+            display: none; position: absolute; inset: 0;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
             z-index: 90;
         }
-
         .overlay.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-shell">
         <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-        <!-- SIDEBAR -->
+        <!-- MENU LATERAL PREMIUM -->
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
+            <div class="brand-header">
                 <div class="brand-logo">
-                    <div class="brand-icon">🐝</div>
+                    <div class="brand-logo-icon">🐝</div>
                     <span>Honey IA</span>
                 </div>
-                <button class="btn-tool" onclick="toggleSidebar()">✕</button>
+                <button class="btn-dock-tool" onclick="toggleSidebar()">✕</button>
             </div>
 
-            <button class="btn-new-chat" onclick="startNewChat()">
-                <span>+</span> Nova Conversa
+            <button class="btn-new-project" onclick="navigateTo('home')">
+                <span>+</span> Novo Projeto
             </button>
 
-            <div class="history-list" id="historyList">
-                <!-- Histórico dinâmico das mensagens -->
-            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-category">Navegação</div>
+                <div class="nav-item active" onclick="navigateTo('home')"><span class="nav-icon">🏠</span> Início</div>
+                <div class="nav-item" onclick="navigateTo('chat')"><span class="nav-icon">💬</span> Chat Inteligente</div>
+                <div class="nav-item" onclick="navigateTo('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+
+                <div class="nav-category">Criação & Dev</div>
+                <div class="nav-item" onclick="quickPrompt('Crie uma Landing Page profissional com HTML/CSS.')"><span class="nav-icon">🌐</span> Criar Website</div>
+                <div class="nav-item" onclick="quickPrompt('Desenvolva a estrutura de um aplicativo móvel.')"><span class="nav-icon">📱</span> Criar Aplicativo</div>
+                <div class="nav-item" onclick="quickPrompt('Gere o conceito e código de um logotipo SVG.')"><span class="nav-icon">🎨</span> Criar Logotipo</div>
+                <div class="nav-item" onclick="quickPrompt('Escreva o código de uma automação em Python.')"><span class="nav-icon">🤖</span> Automações</div>
+
+                <div class="nav-category">Empresas & Negócios</div>
+                <div class="nav-item" onclick="quickPrompt('Elabore um Plano de Negócios executivo.')"><span class="nav-icon">💼</span> Empresas</div>
+                <div class="nav-item" onclick="quickPrompt('Crie um plano de estratégias de Marketing Digital.')"><span class="nav-icon">📢</span> Marketing</div>
+                <div class="nav-item" onclick="quickPrompt('Analise métricas e dê uma consultoria de vendas.')"><span class="nav-icon">📊</span> Consultoria</div>
+
+                <div class="nav-category">Gestão</div>
+                <div class="nav-item" onclick="alert('Área de Meus Projetos em sincronização.')"><span class="nav-icon">📂</span> Meus Projetos</div>
+                <div class="nav-item" onclick="alert('Área de Publicação de Sites pronta para integração.')"><span class="nav-icon">☁</span> Publicar Site</div>
+            </nav>
         </aside>
 
-        <!-- CONTEÚDO PRINCIPAL -->
-        <main class="main-content">
-            <!-- HEADER -->
-            <header class="header">
-                <div class="header-left">
-                    <button class="btn-tool" onclick="toggleSidebar()">
-                        <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
-                    </button>
-                    <span class="badge-pro">v3.3 PRO</span>
-                </div>
-
-                <div class="mode-selector">
-                    <button class="mode-btn active" onclick="setMode('general', this)">🐝 Geral</button>
-                    <button class="mode-btn" onclick="setMode('dev', this)">💻 Dev & Apps</button>
-                    <button class="mode-btn" onclick="setMode('designer', this)">🎨 Web Designer</button>
-                    <button class="mode-btn" onclick="setMode('marketing', this)">📣 Business</button>
-                </div>
-            </header>
-
-            <!-- CHAT VIEWPORT -->
-            <div class="chat-viewport" id="chatViewport">
-                <div class="chat-container" id="chatContainer">
-                    
-                    <!-- TELA INICIAL HERO -->
-                    <div class="hero-section" id="heroSection">
-                        <div class="brand-icon" style="width: 56px; height: 56px; font-size: 2rem;">🐝</div>
-                        <h1 class="hero-title">O que vamos construir hoje?</h1>
-                        <p class="hero-subtitle">Plataforma corporativa de inteligência artificial pronta para auxiliar o seu negócio, desenvolvimento e estratégia.</p>
-
-                        <div class="cards-grid">
-                            <div class="feature-card" onclick="usePrompt('Crie uma estrutura completa de landing page para uma empresa SaaS.')">
-                                <div class="card-header">
-                                    <span class="card-icon">🌐</span>
-                                    <span class="card-title">Criação de Websites</span>
-                                </div>
-                                <p class="card-desc">Estruturação de landing pages modernas e focadas em conversão.</p>
-                            </div>
-
-                            <div class="feature-card" onclick="usePrompt('Desenvolva o plano e arquitetura de um aplicativo mobile.')">
-                                <div class="card-header">
-                                    <span class="card-icon">📱</span>
-                                    <span class="card-title">Protótipo de App</span>
-                                </div>
-                                <p class="card-desc">Arquitetura de software e experiência para aplicações móveis.</p>
-                            </div>
-
-                            <div class="feature-card" onclick="usePrompt('Monte um plano estratégico comercial para atração de novos clientes.')">
-                                <div class="card-header">
-                                    <span class="card-icon">📊</span>
-                                    <span class="card-title">Estratégia de Vendas</span>
-                                </div>
-                                <p class="card-desc">Análise de mercado, copys de venda e relatórios executivos.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- BARRA DE INPUT MULTI-FERRAMENTAS -->
-            <div class="input-dock">
-                <div class="input-box">
-                    <textarea id="promptInput" rows="1" placeholder="Pergunte ou descreva o seu projeto à Honey IA..." oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
-                    
-                    <div class="input-toolbar">
-                        <div class="tool-group">
-                            <button class="btn-tool" title="Anexar Ficheiro ou Imagem" onclick="document.getElementById('fileInput').click()">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                            </button>
-                            <input type="file" id="fileInput" hidden onchange="handleFileSelect(event)">
-                            
-                            <button class="btn-tool" id="micBtn" title="Ditado por Voz" onclick="toggleVoiceInput()">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                            </button>
-                        </div>
-
-                        <button class="btn-send" onclick="sendPrompt()">
-                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <!-- WORKSPACE PRINCIPAL -->
+        <div class="workspace-viewport">
+            <main class="main-stage">
+                <!-- TOP NAVBAR -->
+                <header class="top-navbar">
+                    <div class="top-navbar-left">
+                        <button class="btn-menu-trigger" onclick="toggleSidebar()">
+                            <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
                         </button>
+                        <span class="badge-enterprise">NEXT-GEN V3.5</span>
+                    </div>
+
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-msg-action" id="canvasToggleBtn" style="display:none;" onclick="toggleCanvas()">🖥️ Ver Canvas ao Vivo</button>
+                    </div>
+                </header>
+
+                <!-- VISTA 1: HERO HOME -->
+                <section class="view-pane active" id="paneHome">
+                    <div class="hero-container">
+                        <div class="hero-badge">🐝 Inteligência Artificial Autónoma</div>
+                        <h1 class="hero-title">A Inteligência Artificial que transforma ideias em negócios e soluções digitais.</h1>
+                        <p class="hero-subtitle">Crie aplicações web, softwares, planos de empresa, identidades visuais e automações completas com poder computacional de última geração.</p>
+
+                        <div class="hero-cta-group">
+                            <button class="btn-primary-hero" onclick="navigateTo('chat')">Começar Projeto Agora</button>
+                            <button class="btn-secondary-hero" onclick="navigateTo('dashboard')">Explorar Capacidades</button>
+                        </div>
+
+                        <!-- CARDS DE RECURSOS NA HOME -->
+                        <div class="capabilities-grid">
+                            <div class="capability-card" onclick="quickPrompt('Crie uma Landing Page moderna para uma empresa SaaS.')">
+                                <div class="card-icon-wrapper">🌐</div>
+                                <div class="card-title">Criador de Websites</div>
+                                <div class="card-description">Gere sites completos e veja o resultado a ser renderizado ao vivo.</div>
+                            </div>
+
+                            <div class="capability-card" onclick="quickPrompt('Crie a arquitetura de um app móvel de gestão financeira.')">
+                                <div class="card-icon-wrapper">📱</div>
+                                <div class="card-title">Protótipos de Apps</div>
+                                <div class="card-description">Interfaces e lógica estruturada para Android e iOS.</div>
+                            </div>
+
+                            <div class="capability-card" onclick="quickPrompt('Escreva uma estratégia comercial B2B para fechar novos contratos.')">
+                                <div class="card-icon-wrapper">💼</div>
+                                <div class="card-title">Inteligência Empresarial</div>
+                                <div class="card-description">Planos de negócios, análise de dados e consultoria executiva.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 2: DASHBOARD DE CAPACIDADES -->
+                <section class="view-pane" id="paneDashboard">
+                    <div style="width:100%; max-width:1000px; padding: 20px 0;">
+                        <h2 style="font-family: var(--font-title); font-size: 1.8rem; margin-bottom: 8px;">Dashboard de Recursos</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px;">Selecione um módulo especializado da Honey IA para iniciar.</p>
+
+                        <div class="capabilities-grid">
+                            <div class="capability-card" onclick="quickPrompt('Atue como Programador Sénior e resolva este código.')">
+                                <div class="card-icon-wrapper">💻</div>
+                                <div class="card-title">Programação Avançada</div>
+                                <div class="card-description">Engenharia de software em Node, React, Python e SQL.</div>
+                            </div>
+
+                            <div class="capability-card" onclick="quickPrompt('Crie um plano de campanhas para Google Ads e Meta Ads.')">
+                                <div class="card-icon-wrapper">📣</div>
+                                <div class="card-title">Marketing & Ads</div>
+                                <div class="card-description">Funis de venda, copys persuasivas e estratégias SEO.</div>
+                            </div>
+
+                            <div class="capability-card" onclick="quickPrompt('Gere o código SVG para um logotipo corporativo moderno.')">
+                                <div class="card-icon-wrapper">🎨</div>
+                                <div class="card-title">Design & Identidade</div>
+                                <div class="card-description">Criação visual, conceitos de logo e mockups.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 3: CHAT VIEWPORT -->
+                <section class="view-pane" id="paneChat">
+                    <div class="chat-viewport" id="chatViewport">
+                        <div class="chat-container" id="chatContainer">
+                            <!-- As mensagens do Chat são inseridas aqui via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- BARRA FIXA DE INPUT (PROMPT DOCK) -->
+                <div class="input-dock-container">
+                    <div class="input-dock-box">
+                        <textarea id="promptInput" rows="1" placeholder="Descreva o seu projeto ou pergunta à Honey IA..." oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
+
+                        <div class="input-dock-toolbar">
+                            <div class="tool-btn-group">
+                                <button class="btn-dock-tool" title="Anexar Ficheiro" onclick="document.getElementById('fileInput').click()">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                                </button>
+                                <input type="file" id="fileInput" hidden onchange="alert('Ficheiro anexado com sucesso!')">
+
+                                <button class="btn-dock-tool" id="micBtn" title="Ditado por Voz" onclick="toggleVoiceInput()">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                </button>
+                            </div>
+
+                            <button class="btn-send-prompt" onclick="sendPrompt()">➔</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
+            </main>
+
+            <!-- LIVE CANVAS (PREVIEWER LATERAL AO VIVO) -->
+            <aside class="live-canvas-pane" id="liveCanvasPane">
+                <div class="canvas-toolbar">
+                    <span style="font-size:0.85rem; font-weight:700; color: var(--text-secondary);">⚡ Live Previewer</span>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-msg-action" onclick="openCanvasNewTab()">↗️ Nova Aba</button>
+                        <button class="btn-msg-action" onclick="toggleCanvas()">✕ Fechar</button>
+                    </div>
+                </div>
+                <iframe class="canvas-iframe" id="canvasIframe"></iframe>
+            </aside>
+        </div>
     </div>
 
+    <!-- SCRIPT DE COMUNICAÇÃO COMPATÍVEL COM O TEU BACKEND -->
     <script>
-        let currentMode = 'general';
-        let isRecording = false;
+        let currentView = 'home';
+        let lastGeneratedCode = '';
 
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('active');
         }
 
-        function setMode(mode, el) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            el.classList.add('active');
+        function navigateTo(viewName) {
+            currentView = viewName;
+            document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+
+            if (viewName === 'home') document.getElementById('paneHome').classList.add('active');
+            if (viewName === 'dashboard') document.getElementById('paneDashboard').classList.add('active');
+            if (viewName === 'chat') document.getElementById('paneChat').classList.add('active');
+
+            if (window.innerWidth <= 900) {
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('overlay').classList.remove('active');
+            }
         }
 
         function autoResize(el) {
@@ -712,76 +785,62 @@
             }
         }
 
-        function usePrompt(text) {
+        function quickPrompt(text) {
             document.getElementById('promptInput').value = text;
             sendPrompt();
         }
 
-        function startNewChat() {
-            document.getElementById('chatContainer').innerHTML = `
-                <div class="hero-section" id="heroSection">
-                    <div class="brand-icon" style="width: 56px; height: 56px; font-size: 2rem;">🐝</div>
-                    <h1 class="hero-title">O que vamos construir hoje?</h1>
-                    <p class="hero-subtitle">Plataforma corporativa de inteligência artificial pronta para auxiliar o seu negócio, desenvolvimento e estratégia.</p>
-                </div>`;
-            if (window.innerWidth <= 768) toggleSidebar();
+        function toggleCanvas() {
+            document.getElementById('liveCanvasPane').classList.toggle('active');
         }
 
-        /* DITADO POR VOZ (MICROFONE) */
-        function toggleVoiceInput() {
-            const micBtn = document.getElementById('micBtn');
-            const input = document.getElementById('promptInput');
+        function renderInCanvas(htmlCode) {
+            lastGeneratedCode = htmlCode;
+            const iframe = document.getElementById('canvasIframe');
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlCode);
+            doc.close();
 
+            document.getElementById('liveCanvasPane').classList.add('active');
+            document.getElementById('canvasToggleBtn').style.display = 'block';
+        }
+
+        function openCanvasNewTab() {
+            if (!lastGeneratedCode) return;
+            const blob = new Blob([lastGeneratedCode], { type: 'text/html' });
+            window.open(URL.createObjectURL(blob), '_blank');
+        }
+
+        /* DITADO POR VOZ */
+        function toggleVoiceInput() {
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 alert("O seu navegador não suporta reconhecimento de voz.");
                 return;
             }
-
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!isRecording) {
-                window.recognition = new SpeechRecognition();
-                window.recognition.lang = 'pt-PT';
-                window.recognition.continuous = false;
-
-                window.recognition.onstart = () => {
-                    isRecording = true;
-                    micBtn.classList.add('recording');
-                };
-
-                window.recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    input.value += (input.value ? ' ' : '') + transcript;
-                    autoResize(input);
-                };
-
-                window.recognition.onend = () => {
-                    isRecording = false;
-                    micBtn.classList.remove('recording');
-                };
-
-                window.recognition.start();
-            } else {
-                window.recognition.stop();
-                isRecording = false;
-                micBtn.classList.remove('recording');
-            }
+            const rec = new SpeechRecognition();
+            rec.lang = 'pt-PT';
+            rec.start();
+            rec.onresult = (e) => {
+                document.getElementById('promptInput').value += ' ' + e.results[0][0].transcript;
+            };
         }
 
+        /* ENVIO PARA O TEU BACKEND COMPATÍVEL /gerar-gratis */
         async function sendPrompt() {
             const input = document.getElementById('promptInput');
             const text = input.value.trim();
             if (!text) return;
 
-            const hero = document.getElementById('heroSection');
-            if (hero) hero.remove();
+            navigateTo('chat');
 
             const container = document.getElementById('chatContainer');
 
             // Adiciona mensagem do utilizador
             container.innerHTML += `
-                <div class="msg-row user">
-                    <div class="bubble">${text}</div>
+                <div class="message-row user">
+                    <div class="chat-bubble">${text}</div>
                 </div>`;
 
             input.value = '';
@@ -791,40 +850,50 @@
             viewport.scrollTop = viewport.scrollHeight;
 
             try {
+                // COMUNICAÇÃO MANTIDA COM O TEU BACKEND
                 const response = await fetch('/gerar-gratis', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, modo: currentMode })
+                    body: JSON.stringify({ prompt: text, modo: 'geral' })
                 });
 
                 const data = await response.json();
-                const replyText = data.sucesso ? data.resposta : (data.erro || 'Erro ao processar.');
+                const replyText = data.sucesso ? data.resposta : (data.erro || 'Não foi possível obter resposta.');
 
-                // Resposta no estilo ChatGPT com avatar e markdown
+                // Renderiza resposta com avatar e ações
                 container.innerHTML += `
-                    <div class="msg-row assistant">
-                        <div class="avatar">🐝</div>
-                        <div class="bubble">${marked.parse(replyText)}</div>
+                    <div class="message-row assistant">
+                        <div class="avatar-box">🐝</div>
+                        <div class="chat-bubble">
+                            ${marked.parse(replyText)}
+                            <div class="message-actions">
+                                <button class="btn-msg-action" onclick="navigator.clipboard.writeText(\`${replyText.replace(/`/g, '\\`')}\`)">📋 Copiar</button>
+                                <button class="btn-msg-action" onclick="alert('Download iniciado.')">⬇️ Baixar</button>
+                            </div>
+                        </div>
                     </div>`;
+
                 viewport.scrollTop = viewport.scrollHeight;
+
+                // Extração automática para o Live Canvas
+                const codeMatch = replyText.match(/```html([\s\S]*?)```/);
+                if (codeMatch && codeMatch[1]) {
+                    renderInCanvas(codeMatch[1].trim());
+                }
+
             } catch (err) {
                 container.innerHTML += `
-                    <div class="msg-row assistant">
-                        <div class="avatar">🐝</div>
-                        <div class="bubble">Erro de conexão com o servidor.</div>
+                    <div class="message-row assistant">
+                        <div class="avatar-box">🐝</div>
+                        <div class="chat-bubble">Erro de ligação com a Honey IA.</div>
                     </div>`;
             }
         }
 
-        function handleFileSelect(e) {
-            if (e.target.files.length > 0) {
-                alert("Ficheiro anexado com sucesso: " + e.target.files[0].name);
-            }
-        }
-
+        /* PWA REGISTRATION */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW error:', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log(err));
             });
         }
     </script>
