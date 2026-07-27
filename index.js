@@ -70,7 +70,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
 import rateLimit from 'express-rate-limit';
+Kernel.register("Database","MongoDB");
 
+Kernel.register("AI","Groq");
+
+Kernel.register("Server","Express");
+
+Kernel.register("Render","Cloud");
 dotenv.config();
 
 await connectDatabase();
