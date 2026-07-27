@@ -1,4 +1,13 @@
 import mongoose from "mongoose";
+
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => {
+    console.log("✅ MongoDB ligado com sucesso.");
+})
+.catch(err => {
+    console.error("❌ Erro ao ligar ao MongoDB:", err);
+});
+import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import mammoth from "mammoth";
