@@ -3,42 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0d0f12">
-    <meta name="description" content="Honey IA - A sua assistente carinhosa para criação de sites, apps, logótipos e publicidade empresarial.">
+    <meta name="theme-color" content="#0b0d0f">
+    <meta name="description" content="Honey IA - A sua assistente inteligente com foco em negócios, código e criação visual.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Honey IA</title>
 
     <!-- Suporte PWA -->
     <link rel="manifest" href="/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
-            --bg-main: #0d0f12;
-            --bg-sidebar: #16181d;
-            --bg-card: #1e2026;
-            --bg-input: #1e2026;
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --accent: #f59e0b;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
+            --bg-dark: #0b0d0f;
+            --bg-sidebar: #12151a;
+            --bg-card: #181c23;
+            --bg-card-hover: #1f242d;
+            --bg-input: #14171d;
+            
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-glow: rgba(245, 158, 11, 0.35);
+            
+            --honey-primary: #f59e0b;
+            --honey-light: #fbbf24;
+            --honey-glow: rgba(245, 158, 11, 0.15);
+            --honey-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #000000;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body, html {
             height: 100%;
             width: 100%;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             overflow: hidden;
         }
 
@@ -49,11 +58,13 @@
             position: relative;
         }
 
+        /* Overlay */
         .sidebar-overlay {
             display: none;
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
             z-index: 9;
         }
 
@@ -61,22 +72,23 @@
             display: block;
         }
 
+        /* Sidebar com Honey Aesthetics */
         .sidebar {
             position: absolute;
-            top: 0; bottom: 0; left: -280px;
-            width: 280px;
+            top: 0; bottom: 0; left: -290px;
+            width: 290px;
             background: var(--bg-sidebar);
             border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            padding: 16px;
-            gap: 16px;
-            transition: transform 0.3s ease;
+            padding: 20px 16px;
+            gap: 20px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 10;
         }
 
         .sidebar.open {
-            transform: translateX(280px);
+            transform: translateX(290px);
         }
 
         .sidebar-header {
@@ -88,50 +100,65 @@
         .brand {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-main);
         }
 
         .brand-icon {
-            width: 28px;
-            height: 28px;
-            background: var(--accent);
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            background: var(--honey-gradient);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #000;
-            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px var(--honey-glow);
+            transition: transform 0.3s ease;
+        }
+
+        .brand-icon.thinking {
+            animation: honeyPulse 1.2s infinite ease-in-out;
+        }
+
+        @keyframes honeyPulse {
+            0% { transform: scale(1); box-shadow: 0 0 10px var(--honey-glow); }
+            50% { transform: scale(1.15); box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 10px var(--honey-glow); }
         }
 
         .close-sidebar-btn {
             background: none;
             border: none;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             font-size: 1.2rem;
             cursor: pointer;
             padding: 4px 8px;
+            border-radius: 6px;
         }
 
         .new-chat-btn {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            color: var(--text-primary);
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            font-weight: 500;
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
 
         .new-chat-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--honey-primary);
+            box-shadow: 0 0 12px var(--honey-glow);
+            color: var(--honey-light);
         }
 
         .history-section {
@@ -139,25 +166,28 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .history-item {
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.84rem;
-            color: var(--text-secondary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            color: var(--text-muted);
             cursor: pointer;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: all 0.2s ease;
         }
 
         .history-item:hover, .history-item.active {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
+            background: var(--bg-card);
+            color: var(--honey-light);
+            border-left: 3px solid var(--honey-primary);
         }
 
+        /* Conteúdo Principal */
         .main-content {
             flex: 1;
             display: flex;
@@ -168,143 +198,201 @@
         }
 
         .top-bar {
-            padding: 12px 16px;
+            padding: 14px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             border-bottom: 1px solid var(--border-subtle);
+            background: rgba(11, 13, 15, 0.8);
+            backdrop-filter: blur(10px);
         }
 
         .toggle-sidebar-btn {
             background: none;
             border: none;
-            color: var(--text-primary);
-            font-size: 1.2rem;
+            color: var(--text-main);
+            font-size: 1.3rem;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
         }
 
         .toggle-sidebar-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
         }
 
         .app-title {
-            font-size: 0.95rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .app-title-badge {
+            background: var(--honey-glow);
+            color: var(--honey-primary);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
             font-weight: 600;
-            color: var(--text-primary);
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 16px 140px 16px;
-            max-width: 800px;
+            padding: 24px 20px 160px 20px;
+            max-width: 840px;
             width: 100%;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
+        /* Hero / Welcome Screen */
         .hero-section {
             margin: auto 0;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .hero-avatar {
+            width: 72px;
+            height: 72px;
+            background: var(--honey-gradient);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.25);
+            margin-bottom: 8px;
         }
 
         .hero-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.03em;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero-subtitle {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            max-width: 480px;
-            line-height: 1.4;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            max-width: 520px;
+            line-height: 1.6;
         }
 
         .suggestion-grid {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            width: 100%;
+            max-width: 680px;
+            margin-top: 10px;
         }
 
         .suggestion-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            padding: 10px 16px;
-            border-radius: 20px;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
+            padding: 14px 16px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
+            text-align: left;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .suggestion-card strong {
+            color: var(--text-main);
+            font-size: 0.9rem;
         }
 
         .suggestion-card:hover {
-            border-color: var(--accent);
-            color: var(--text-primary);
+            background: var(--bg-card-hover);
+            border-color: var(--honey-primary);
+            box-shadow: 0 4px 20px var(--honey-glow);
+            transform: translateY(-2px);
+            color: var(--text-main);
         }
 
+        /* Área de Input */
         .input-wrapper {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            padding: 16px;
-            background: linear-gradient(to top, var(--bg-main) 80%, transparent);
+            padding: 20px;
+            background: linear-gradient(to top, var(--bg-dark) 85%, transparent);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .quick-actions-bar {
             display: flex;
-            gap: 6px;
-            max-width: 800px;
+            gap: 8px;
+            max-width: 840px;
             width: 100%;
             overflow-x: auto;
             padding-bottom: 4px;
+            scrollbar-width: none;
         }
 
         .action-chip {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 0.74rem;
-            padding: 4px 10px;
-            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 20px;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .action-chip:hover {
-            border-color: var(--accent);
-            color: var(--text-primary);
+            border-color: var(--honey-primary);
+            color: var(--honey-light);
+            background: var(--honey-glow);
         }
 
         .input-box {
-            max-width: 800px;
+            max-width: 840px;
             width: 100%;
             background: var(--bg-input);
             border: 1px solid var(--border-subtle);
-            border-radius: 16px;
-            padding: 12px 16px;
+            border-radius: 20px;
+            padding: 14px 18px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
         .input-box:focus-within {
-            border-color: rgba(255, 255, 255, 0.25);
+            border-color: var(--border-glow);
+            box-shadow: 0 0 25px var(--honey-glow);
         }
 
         .chat-textarea {
@@ -312,15 +400,15 @@
             background: none;
             border: none;
             outline: none;
-            color: var(--text-primary);
-            font-size: 0.95rem;
+            color: var(--text-main);
+            font-size: 0.98rem;
             resize: none;
-            max-height: 120px;
-            line-height: 1.4;
+            max-height: 130px;
+            line-height: 1.5;
         }
 
         .chat-textarea::placeholder {
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
 
         .input-controls {
@@ -331,144 +419,167 @@
 
         .tools-left {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
 
         .icon-btn {
             background: none;
             border: none;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             cursor: pointer;
-            padding: 6px;
-            border-radius: 8px;
+            padding: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
         }
 
         .icon-btn:hover {
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.05);
+            color: var(--honey-light);
+            background: var(--honey-glow);
         }
 
         .icon-btn.recording {
             color: #ef4444;
-            animation: pulse 1.2s infinite;
+            animation: pulseRecord 1s infinite;
         }
 
-        @keyframes pulse {
+        @keyframes pulseRecord {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
 
         .send-btn {
-            background: var(--text-primary);
-            color: #000;
+            background: var(--honey-gradient);
+            color: var(--text-dark);
             border: none;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 800;
+            font-size: 1rem;
+            box-shadow: 0 0 12px var(--honey-glow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
         }
 
         .file-preview {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .file-chip {
-            background: rgba(255, 255, 255, 0.06);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            color: var(--text-main);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
+        /* Mensagens do Chat */
         .message {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
             align-self: flex-end;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            padding: 12px 16px;
-            border-radius: 16px 16px 2px 16px;
-            max-width: 85%;
-            font-size: 0.92rem;
+            padding: 14px 18px;
+            border-radius: 20px 20px 4px 20px;
+            max-width: 82%;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .message.ai {
             align-self: flex-start;
             width: 100%;
-            font-size: 0.94rem;
-            line-height: 1.6;
-            color: var(--text-primary);
+            font-size: 0.96rem;
+            line-height: 1.65;
+            color: var(--text-main);
         }
 
         .ai-footer-tools {
             display: flex;
             gap: 8px;
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
         .export-btn {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            font-size: 0.72rem;
-            padding: 4px 10px;
-            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .export-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--accent);
+            color: var(--honey-light);
+            border-color: var(--honey-primary);
+            background: var(--honey-glow);
         }
 
+        /* Blocos de Código & Prompts Visuais */
         .code-wrapper {
             position: relative;
-            margin: 12px 0;
-            border-radius: 8px;
+            margin: 14px 0;
+            border-radius: 12px;
             overflow: hidden;
             border: 1px solid var(--border-subtle);
-            background: #121417;
+            background: #0e1013;
         }
 
         .code-wrapper.prompt-card {
-            border-color: rgba(245, 158, 11, 0.3);
-            background: rgba(245, 158, 11, 0.03);
+            border-color: var(--border-glow);
+            background: rgba(245, 158, 11, 0.04);
         }
 
         .code-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #1a1d24;
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
+            background: #15181e;
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
         }
 
         .code-wrapper.prompt-card .code-header {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--accent);
-            font-weight: 600;
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--honey-light);
+            font-weight: 700;
         }
 
         .code-actions {
@@ -479,36 +590,40 @@
         .code-btn {
             background: rgba(255, 255, 255, 0.08);
             border: none;
-            color: var(--text-primary);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.72rem;
+            color: var(--text-main);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.74rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
 
         .code-btn:hover {
-            background: var(--accent);
-            color: #000;
+            background: var(--honey-primary);
+            color: var(--text-dark);
         }
 
         .markdown-body pre {
-            padding: 12px;
+            padding: 14px;
             overflow-x: auto;
             margin: 0;
             background: transparent;
         }
 
         .markdown-body code {
-            font-family: monospace;
+            font-family: 'JetBrains Mono', monospace;
             color: #38bdf8;
+            font-size: 0.9em;
         }
 
+        /* Modal de Pré-visualização */
         .preview-modal {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(8px);
             z-index: 100;
             flex-direction: column;
         }
@@ -519,7 +634,7 @@
 
         .preview-header {
             background: var(--bg-sidebar);
-            padding: 12px 20px;
+            padding: 14px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -542,7 +657,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
-                    <div class="brand-icon">🐝</div>
+                    <div class="brand-icon" id="brandIcon">🐝</div>
                     <span>Honey IA</span>
                 </div>
                 <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
@@ -558,19 +673,35 @@
         <main class="main-content">
             <header class="top-bar">
                 <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
-                <div class="app-title">Honey IA</div>
+                <div class="app-title">
+                    Honey IA
+                    <span class="app-title-badge">PRO 3.3</span>
+                </div>
             </header>
 
             <div class="chat-container" id="chatContainer">
                 <div class="hero-section" id="heroView">
-                    <h1 class="hero-title">Como posso ajudar a sua empresa hoje?</h1>
-                    <p class="hero-subtitle">Estou aqui para criar sites, apps, logótipos, flyers e vídeos publicitários para impulsionar o seu negócio com carinho.</p>
+                    <div class="hero-avatar">🐝</div>
+                    <h1 class="hero-title">Como posso criar para a sua <span>empresa</span> hoje?</h1>
+                    <p class="hero-subtitle">Desenvolvimento de sites, soluções de código, análise de documentos e estratégia de conteúdo com inteligência acelerada.</p>
                     
                     <div class="suggestion-grid">
-                        <div class="suggestion-card" onclick="selectPrompt('Criar código para um site comercial responsivo completo com HTML e CSS')">🌐 Site Comercial</div>
-                        <div class="suggestion-card" onclick="selectPrompt('Desenvolver a estrutura de um aplicativo premium')">📱 App Premium</div>
-                        <div class="suggestion-card" onclick="selectPrompt('Criar conceito e prompt para um logotipo corporativo')">🎨 Criar Logótipo</div>
-                        <div class="suggestion-card" onclick="selectPrompt('Criar roteiro para vídeo publicitário e flyer comercial')">📣 Flyer & Vídeo</div>
+                        <div class="suggestion-card" onclick="selectPrompt('Criar código para um site comercial responsivo completo com HTML, CSS e JavaScript')">
+                            <strong>🌐 Site Comercial</strong>
+                            <span>Criar landing page moderna para negócios</span>
+                        </div>
+                        <div class="suggestion-card" onclick="selectPrompt('Desenvolver a estrutura e código para um aplicativo premium')">
+                            <strong>📱 App Premium</strong>
+                            <span>Estruturar app interativo e moderno</span>
+                        </div>
+                        <div class="suggestion-card" onclick="selectPrompt('Criar conceito e prompt para um logotipo corporativo minimalista')">
+                            <strong>🎨 Prompt de Logótipo</strong>
+                            <span>Gerar imagem para Midjourney / DALL-E</span>
+                        </div>
+                        <div class="suggestion-card" onclick="selectPrompt('Analisa este documento e cria um resumo executivo com pontos de ação')">
+                            <strong>📄 Análise de Ficheiro</strong>
+                            <span>Extrair insights de PDFs ou imagens</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -584,7 +715,7 @@
 
                 <div class="input-box">
                     <div class="file-preview" id="filePreviewList"></div>
-                    <textarea class="chat-textarea" id="mainInput" placeholder="Descreva o que a sua empresa precisa..." rows="1"></textarea>
+                    <textarea class="chat-textarea" id="mainInput" placeholder="Descreva o seu projeto ou pedido à Honey IA..." rows="1"></textarea>
                     
                     <div class="input-controls">
                         <div class="tools-left">
@@ -633,6 +764,7 @@
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
         const micBtn = document.getElementById('micBtn');
+        const brandIcon = document.getElementById('brandIcon');
 
         // Configuração do Reconhecimento de Voz
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -677,11 +809,9 @@
             micBtn.classList.remove('recording');
         }
 
-        // Leitura em voz alta (Síntese)
         function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
-                // Limpeza de marcações markdown simples para a leitura
                 const cleanText = text.replace(/[*#_`]/g, '');
                 const utterance = new SpeechSynthesisUtterance(cleanText);
                 utterance.lang = 'pt-PT';
@@ -758,6 +888,14 @@
             document.body.removeChild(element);
         }
 
+        // Efeito de digitação gradual (Honey Typing Effect)
+        function typeFormattedText(element, rawMarkdown, onComplete) {
+            const parsedHtml = typeof marked !== 'undefined' ? marked.parse(rawMarkdown) : rawMarkdown;
+            element.innerHTML = parsedHtml;
+            enhanceCodeBlocks(element, rawMarkdown);
+            if (onComplete) onComplete();
+        }
+
         function enhanceCodeBlocks(container, rawResponseText) {
             const preBlocks = container.querySelectorAll('pre');
             preBlocks.forEach((pre) => {
@@ -804,7 +942,7 @@
                 }
             });
 
-            if (rawResponseText) {
+            if (rawResponseText && !container.querySelector('.ai-footer-tools')) {
                 const toolsDiv = document.createElement('div');
                 toolsDiv.className = 'ai-footer-tools';
                 toolsDiv.innerHTML = `
@@ -848,9 +986,10 @@
 
             const aiMsg = document.createElement('div');
             aiMsg.className = 'message ai markdown-body';
-            aiMsg.innerHTML = '<em>A preparar a resposta para o seu negócio...</em>';
+            aiMsg.innerHTML = '<em style="color:var(--honey-primary);">🐝 A Honey IA está a processar a sua resposta...</em>';
             chatContainer.appendChild(aiMsg);
 
+            brandIcon.classList.add('thinking');
             mainInput.value = '';
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
@@ -872,15 +1011,18 @@
                 });
 
                 const data = await response.json();
+                brandIcon.classList.remove('thinking');
 
                 if (data.sucesso) {
-                    aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(data.resposta) : data.resposta;
-                    enhanceCodeBlocks(aiMsg, data.resposta);
+                    typeFormattedText(aiMsg, data.resposta, () => {
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    });
                     saveMessageToSession(text || "Consulta de ficheiro", data.resposta);
                 } else {
                     aiMsg.innerHTML = `<span style="color:#ef4444;">Erro: ${data.erro}</span>`;
                 }
             } catch (err) {
+                brandIcon.classList.remove('thinking');
                 aiMsg.innerHTML = `<span style="color:#ef4444;">Falha de ligação ao servidor. Por favor, tente novamente.</span>`;
             }
 
