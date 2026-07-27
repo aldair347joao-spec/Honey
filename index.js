@@ -1,3 +1,4 @@
+import { connectDatabase } from "./database.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -70,6 +71,10 @@ import Groq from 'groq-sdk';
 import rateLimit from 'express-rate-limit';
 
 dotenv.config();
+
+await connectDatabase();
+
+const app = express();
 
 // ======================================================
 // MONGODB
