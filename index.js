@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import mammoth from "mammoth";
@@ -11,6 +12,137 @@ import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
+// ======================================================
+// MONGODB
+// ======================================================
+
+mongoose.connect(process.env.MONGODB_URI, {
+
+    autoIndex: true
+
+});
+
+mongoose.connection.once("open", () => {
+
+    console.log("✅ MongoDB conectado.");
+
+});
+
+mongoose.connection.on("error", (err) => {
+
+    console.error("Erro MongoDB:", err);
+
+});
+// ======================================================
+// CONVERSAS
+// ======================================================
+
+const ConversationSchema = new mongoose.Schema({
+
+    sessionId: {
+
+        type: String,
+
+        required: true,
+
+        index: true
+
+    },
+
+    messages: [
+
+        {
+
+            role: String,
+
+            content: String,
+
+            createdAt: {
+
+                type: Date,
+
+                default: Date.now
+
+            }
+
+        }
+
+    ],
+
+    createdAt: {
+
+        type: Date,
+
+        default: Date.now
+
+    },
+
+    updatedAt: {
+
+        type: Date,
+
+        default: Date.now
+
+    }
+
+});
+
+const Conversation = mongoose.model(
+    "Conversation",
+    ConversationSchema
+);
+// ======================================================
+// CONVERSATION SERVICE
+// ======================================================
+
+const ConversationService = {
+
+    async get(sessionId) {
+
+        let conversation =
+            await Conversation.findOne({
+
+                sessionId
+
+            });
+
+        if (!conversation) {
+
+            conversation =
+                await Conversation.create({
+
+                    sessionId,
+
+                    messages: []
+
+                });
+
+        }
+
+        return conversation;
+
+    },
+
+    async addMessage(sessionId, role, content) {
+
+        const conversation =
+            await this.get(sessionId);
+
+        conversation.messages.push({
+
+            role,
+
+            content
+
+        });
+
+        conversation.updatedAt = new Date();
+
+        await conversation.save();
+
+    }
+
+};
 const app = express();
 const port = process.env.PORT || 3000;
 
