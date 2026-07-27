@@ -8,8 +8,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Honey IA</title>
+
+    <!-- Suporte PWA -->
+    <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         :root {
             --bg-main: #0d0f12;
@@ -594,6 +598,13 @@
     </div>
 
     <script>
+        // Registo do Service Worker para suporte PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou:', err));
+            });
+        }
+
         let sessions = JSON.parse(localStorage.getItem('honey_sessions')) || [];
         let uploadedFilesObjects = [];
         let currentSessionId = null;
@@ -721,14 +732,15 @@
                 }
             });
 
-            // Botão para exportar o texto da resposta
-            const toolsDiv = document.createElement('div');
-            toolsDiv.className = 'ai-footer-tools';
-            toolsDiv.innerHTML = `<button class="export-btn">📥 Descarregar Resposta (.txt)</button>`;
-            toolsDiv.querySelector('.export-btn').addEventListener('click', () => {
-                downloadText('resposta-honey-ia.txt', rawResponseText);
-            });
-            container.appendChild(toolsDiv);
+            if (rawResponseText) {
+                const toolsDiv = document.createElement('div');
+                toolsDiv.className = 'ai-footer-tools';
+                toolsDiv.innerHTML = `<button class="export-btn">📥 Descarregar Resposta (.txt)</button>`;
+                toolsDiv.querySelector('.export-btn').addEventListener('click', () => {
+                    downloadText('resposta-honey-ia.txt', rawResponseText);
+                });
+                container.appendChild(toolsDiv);
+            }
         }
 
         function openPreview(htmlCode) {
@@ -783,7 +795,7 @@
                 if (data.sucesso) {
                     aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(data.resposta) : data.resposta;
                     enhanceCodeBlocks(aiMsg, data.resposta);
-                    saveSession(text || "Consulta de ficheiro", text, data.resposta);
+                    saveMessageToSession(text || "Consulta de ficheiro", data.resposta);
                 } else {
                     aiMsg.innerHTML = `<span style="color:#ef4444;">Erro: ${data.erro}</span>`;
                 }
@@ -794,10 +806,19 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function saveSession(title, query, response) {
+        function saveMessageToSession(query, response) {
             if (!currentSessionId) {
                 currentSessionId = 'sess_' + Date.now();
-                sessions.unshift({ id: currentSessionId, title: title.substring(0, 24), query, response });
+                sessions.unshift({
+                    id: currentSessionId,
+                    title: query.substring(0, 24),
+                    messages: [{ query, response }]
+                });
+            } else {
+                const currentSession = sessions.find(s => s.id === currentSessionId);
+                if (currentSession) {
+                    currentSession.messages.push({ query, response });
+                }
             }
             localStorage.setItem('honey_sessions', JSON.stringify(sessions));
             renderHistory();
@@ -822,16 +843,18 @@
             heroView.style.display = 'none';
             document.querySelectorAll('.message').forEach(m => m.remove());
 
-            const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.textContent = s.query;
-            chatContainer.appendChild(userMsg);
+            s.messages.forEach(msg => {
+                const userMsg = document.createElement('div');
+                userMsg.className = 'message user';
+                userMsg.textContent = msg.query;
+                chatContainer.appendChild(userMsg);
 
-            const aiMsg = document.createElement('div');
-            aiMsg.className = 'message ai markdown-body';
-            aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(s.response) : s.response;
-            chatContainer.appendChild(aiMsg);
-            enhanceCodeBlocks(aiMsg, s.response);
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message ai markdown-body';
+                aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(msg.response) : msg.response;
+                chatContainer.appendChild(aiMsg);
+                enhanceCodeBlocks(aiMsg, msg.response);
+            });
 
             renderHistory();
             if(sidebar.classList.contains('open')) toggleSidebar();
