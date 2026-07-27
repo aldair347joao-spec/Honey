@@ -41,7 +41,7 @@
             position: relative;
         }
 
-        /* Overlay escuro para quando a sidebar estiver aberta em mobile */
+        /* Overlay escuro para quando a sidebar estiver aberta */
         .sidebar-overlay {
             display: none;
             position: absolute;
@@ -62,7 +62,7 @@
             position: absolute;
             top: 0;
             bottom: 0;
-            left: -280px; /* Começa escondida fora da tela */
+            left: -280px;
             width: 280px;
             background: var(--bg-sidebar);
             border-right: 1px solid var(--border-subtle);
@@ -75,7 +75,7 @@
         }
 
         .sidebar.open {
-            transform: translateX(280px); /* Desliza para dentro da tela ao abrir */
+            transform: translateX(280px);
         }
 
         .sidebar-header {
@@ -227,7 +227,8 @@
         .hero-subtitle {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            max-width: 460px;
+            max-width: 480px;
+            line-height: 1.4;
         }
 
         .suggestion-grid {
@@ -235,15 +236,15 @@
             gap: 8px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 8px;
+            margin-top: 12px;
         }
 
         .suggestion-card {
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
-            padding: 8px 14px;
+            padding: 10px 16px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.2s;
@@ -415,10 +416,10 @@
 </head>
 <body>
     <div class="app-layout">
-        <!-- Overlay escuro para clicar fora e fechar o menu -->
+        <!-- Overlay escuro para fechar o menu ao clicar fora -->
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        <!-- Menu Lateral Oculto -->
+        <!-- Menu Lateral Oculto por padrão -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
@@ -444,13 +445,14 @@
 
             <div class="chat-container" id="chatContainer">
                 <div class="hero-section" id="heroView">
-                    <h1 class="hero-title">Em que posso ajudar hoje?</h1>
-                    <p class="hero-subtitle">Envie uma mensagem ou anexe um ficheiro para começar.</p>
+                    <h1 class="hero-title">Como posso ajudar a sua empresa hoje?</h1>
+                    <p class="hero-subtitle">Estou aqui para criar sites, apps, logótipos, flyers e vídeos publicitários para impulsionar o seu negócio com carinho.</p>
                     
                     <div class="suggestion-grid">
-                        <div class="suggestion-card" onclick="selectPrompt('Analisar margens de lucro e custos')">📊 Analisar Finanças</div>
-                        <div class="suggestion-card" onclick="selectPrompt('Criar uma estratégia de marketing')">🚀 Plano de Marketing</div>
-                        <div class="suggestion-card" onclick="selectPrompt('Revisar e otimizar código')">⚙️ Otimizar Código</div>
+                        <div class="suggestion-card" onclick="selectPrompt('Criar código para um site comercial responsivo')">🌐 Site Comercial</div>
+                        <div class="suggestion-card" onclick="selectPrompt('Desenvolver a estrutura de um aplicativo premium')">📱 App Premium</div>
+                        <div class="suggestion-card" onclick="selectPrompt('Criar conceito e prompt para um logotipo corporativo')">🎨 Criar Logótipo</div>
+                        <div class="suggestion-card" onclick="selectPrompt('Criar roteiro para vídeo publicitário e flyer comercial')">📣 Flyer & Vídeo</div>
                     </div>
                 </div>
             </div>
@@ -458,11 +460,11 @@
             <div class="input-wrapper">
                 <div class="input-box">
                     <div class="file-preview" id="filePreviewList"></div>
-                    <textarea class="chat-textarea" id="mainInput" placeholder="Pergunte qualquer coisa..." rows="1"></textarea>
+                    <textarea class="chat-textarea" id="mainInput" placeholder="Descreva o que a sua empresa precisa..." rows="1"></textarea>
                     
                     <div class="input-controls">
                         <div class="tools-left">
-                            <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Anexar ficheiro">
+                            <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Anexar ficheiro ou imagem">
                                 📎
                             </button>
                             <input type="file" id="fileInput" style="display: none;" multiple>
@@ -552,7 +554,7 @@
             // Mensagem da IA
             const aiMsg = document.createElement('div');
             aiMsg.className = 'message ai markdown-body';
-            aiMsg.innerHTML = '<em>Pensando...</em>';
+            aiMsg.innerHTML = '<em>A preparar uma resposta especial para si...</em>';
             chatContainer.appendChild(aiMsg);
 
             mainInput.value = '';
@@ -584,7 +586,7 @@
                     aiMsg.innerHTML = `<span style="color:#ef4444;">Erro: ${data.erro}</span>`;
                 }
             } catch (err) {
-                aiMsg.innerHTML = `<span style="color:#ef4444;">Falha de ligação ao servidor.</span>`;
+                aiMsg.innerHTML = `<span style="color:#ef4444;">Falha de ligação ao servidor. Por favor, verifique a sua conexão.</span>`;
             }
 
             chatContainer.scrollTop = chatContainer.scrollHeight;
