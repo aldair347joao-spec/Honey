@@ -1,128 +1,147 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
-import pdfParse from 'pdf-parse';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
-import Tesseract from 'tesseract.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Aumentar o limite do body-parser para suportar ficheiros em base64 grandes
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Otimização de limites no payload do Express (até 15MB para suportar ficheiros base64)
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ limit: '15mb', extended: true }));
 app.use(cors());
+app.use(express.static('.'));
 
-// Servir ficheiros estáticos (HTML, CSS, JS) a partir da raiz do projeto
-app.use(express.static(__dirname));
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-// Rota principal para carregar o frontend da Honey IA
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+// Inicialização da API do Groq
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY
 });
 
-// Endpoint principal para processar mensagens, documentos e imagens
+// 1. Proteção de Segurança: Limite de Requisições (Rate Limiter)
+// Limita cada IP a no máximo 20 requisições por minuto
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        sucesso: false,
+        erro: "A Honey IA está a receber muitos pedidos no momento! Por favor, aguarde alguns segundos antes de tentar novamente. 🐝"
+    }
+});
+
+// Aplicar o limite apenas à rota de geração
+app.use('/gerar-gratis', apiLimiter);
+
+// System Prompt Principal da Honey IA
+const SYSTEM_PROMPT = `Tu és a Honey IA, uma assistente virtual extremamente inteligente, carinhosa, eficiente e focada em negócios, programação e criação de conteúdos.
+O teu objetivo é ajudar criadores, programadores e empresas a criarem soluções completas.
+
+Diretrizes de resposta:
+1. Sê sempre cortês, acolhedora e altamente profissional.
+2. Quando te pedirem código (HTML, CSS, JS, etc.), fornece o código limpo, moderno e funcional dentro de blocos de código Markdown indicando a linguagem.
+3. Se o utilizador pedir para criar um Prompt para Gerador de Imagem (ex: Midjourney, DALL-E, Leonardo AI), formata o bloco de código com a linguagem "prompt-imagem" para que a interface crie um cartão destacado.
+4. Se o utilizador enviar imagens ou documentos, analisa o conteúdo detalhadamente e responde com precisão.`;
+
+// Rota principal para geração de respostas
 app.post('/gerar-gratis', async (req, res) => {
     try {
         const { prompt, anexoBase64, mimeType } = req.body;
 
-        const mainModel = "llama-3.3-70b-versatile";
-        let textoExtraidoDoDocumento = "";
+        if (!prompt && !anexoBase64) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: "Por favor, envie um texto ou um ficheiro para a Honey IA analisar."
+            });
+        }
 
-        // Extração de texto de anexos, caso existam
-        if (anexoBase64) {
-            const buffer = Buffer.from(anexoBase64, 'base64');
-            const type = mimeType ? mimeType.toLowerCase() : '';
+        // Validação do tamanho do anexo Base64 (máximo ~10MB em raw data / ~13.3MB em string base64)
+        if (anexoBase64 && anexoBase64.length > 14 * 1024 * 1024) {
+            return res.status(400).json({
+                sucesso: false,
+                erro: "O ficheiro enviado é demasiado grande. Por favor, envie um ficheiro com menos de 10 MB."
+            });
+        }
 
-            // 1. Processamento de Imagens via OCR (Tesseract.js)
-            if (type.startsWith('image/')) {
-                console.log("Honey IA: A extrair texto da imagem via OCR...");
-                const { data: { text } } = await Tesseract.recognize(buffer, 'por+eng');
-                textoExtraidoDoDocumento = text;
-            } 
-            // 2. Documentos PDF
-            else if (type === 'application/pdf' || type.includes('pdf')) {
-                console.log("Honey IA: A processar PDF...");
-                const pdfData = await pdfParse(buffer);
-                textoExtraidoDoDocumento = pdfData.text;
-            } 
-            // 3. Documentos Word (.docx, .doc)
-            else if (type.includes('word') || type.includes('officedocument.wordprocessingml')) {
-                console.log("Honey IA: A processar documento Word...");
-                const result = await mammoth.extractRawText({ buffer: buffer });
-                textoExtraidoDoDocumento = result.value;
-            } 
-            // 4. Folhas de Cálculo Excel e CSV
-            else if (type.includes('spreadsheet') || type.includes('excel') || type.includes('csv')) {
-                console.log("Honey IA: A processar folha de cálculo...");
-                const workbook = XLSX.read(buffer, { type: 'buffer' });
-                workbook.SheetNames.forEach(sheetName => {
-                    const sheet = workbook.Sheets[sheetName];
-                    textoExtraidoDoDocumento += `\n--- Aba: ${sheetName} ---\n`;
-                    textoExtraidoDoDocumento += XLSX.utils.sheet_to_csv(sheet);
+        let messages = [
+            {
+                role: "system",
+                content: SYSTEM_PROMPT
+            }
+        ];
+
+        // Construção das mensagens suportando Vision/Anexos ou Texto simples
+        if (anexoBase64 && mimeType) {
+            const isImage = mimeType.startsWith('image/');
+            
+            if (isImage) {
+                messages.push({
+                    role: "user",
+                    content: [
+                        { type: "text", text: prompt || "Analisa esta imagem e descreve os detalhes principais." },
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: `data:${mimeType};base64,${anexoBase64}`
+                            }
+                        }
+                    ]
+                });
+            } else {
+                // Caso seja um documento legível/texto
+                const textoDocumento = Buffer.from(anexoBase64, 'base64').toString('utf-8');
+                messages.push({
+                    role: "user",
+                    content: `[Conteúdo do Documento Anexado]:\n${textoDocumento}\n\n[Instrução do Utilizador]: ${prompt || "Analisa e resume o documento acima."}`
                 });
             }
+        } else {
+            messages.push({
+                role: "user",
+                content: prompt
+            });
         }
 
-        let textoPromptFinal = prompt ? prompt : "Analise os dados enviados e prepare uma resposta clara, carinhosa e focada em ajudar o utilizador no seu negócio.";
-        
-        if (textoExtraidoDoDocumento) {
-            textoPromptFinal += `\n\n[DOCUMENTO/ANEXO ANALISADO]:\n${textoExtraidoDoDocumento}`;
-        }
+        // Seleção dinâmica do modelo (llama-3.2-11b-vision-preview para imagens ou llama-3.3-70b-versatile para texto)
+        const selectedModel = (anexoBase64 && mimeType && mimeType.startsWith('image/')) 
+            ? "llama-3.2-11b-vision-preview" 
+            : "llama-3.3-70b-versatile";
 
-        // System Prompt: Identidade, Tom de Voz e Regras dos Pilares Comerciais
-        const systemPrompt = `Você é a Honey IA — uma assistente inteligente carinhosa, dedicada a ajudar pessoas comuns, empresários e empreendedores a impulsionar os seus negócios e rotinas laborais.
-
-PERSONALIDADE E TOM DE VOZ:
-- Seja extremamente carinhosa, respeitosa, atenciosa e acolhedora.
-- Fale com clareza e empatia, simplificando conceitos complexos.
-- Despeça-se sempre com um incentivo acolhedor, assinando no final: "Com carinho para o seu negócio, Honey IA 🐝".
-
-PILARES DE ATUAÇÃO E ESPECIALIDADES:
-1. Websites Responsivos e Apps Comerciais: Criação de código limpo, moderno e funcional (HTML, CSS, JS, React, etc.).
-2. Identidade Visual e Logótipos: Desenvolva o conceito visual e forneça SEMPRE um bloco especial de código no formato \`\`\`prompt-imagem ... \`\`\` contendo o prompt detalhado em inglês para geração da imagem.
-3. Flyers e Vídeos Publicitários:
-   - Para Vídeos: Estruture o roteiro detalhadamente em CENA, ÁUDIO/VOZ e TEXTO EM ECRÃ.
-   - Para Flyers: Forneça a estrutura do texto (Headline, Corpo, Chamada para Ação) e inclua SEMPRE o bloco \`\`\`prompt-imagem ... \`\`\` com o prompt em inglês para a arte gráfica visual.
-4. Suporte Empresarial Geral: Análise de ficheiros, organização de tarefas e otimização laboral.
-
-REGRAS DE FORMATAÇÃO DE RESPOSTA:
-- Use Markdown limpo (Títulos ##, listas *, negrito **).
-- Código Web/App (HTML, CSS, JS) deve vir sempre em blocos de código formatados (\`\`\`html, \`\`\`css, \`\`\`javascript).
-- Prompts para criação de imagens de logótipos e flyers DEVEM vir dentro do bloco \`\`\`prompt-imagem SEU PROMPT AQUI \`\`\` para ativar o botão de cópia na interface.`;
-
-        // Chamada à API Groq com o modelo Llama 3.3 70B
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: textoPromptFinal }
-            ],
-            model: mainModel,
-            temperature: 0.5
+        const completion = await groq.chat.completions.create({
+            messages: messages,
+            model: selectedModel,
+            temperature: 0.7,
+            max_tokens: 4096,
         });
 
-        const respostaTexto = chatCompletion.choices[0]?.message?.content || "Desculpe, tive um pequeno imprevisto ao processar o seu pedido. Pode tentar novamente, por favor?";
+        const resposta = completion.choices[0]?.message?.content || "Desculpe, não consegui processar a resposta.";
 
-        return res.json({ sucesso: true, resposta: respostaTexto });
+        return res.json({
+            sucesso: true,
+            resposta: resposta
+        });
 
     } catch (error) {
-        console.error("Erro no servidor Honey IA:", error);
-        return res.status(500).json({ 
-            sucesso: false, 
-            erro: error.message || "Ocorreu um erro interno ao processar o seu pedido." 
+        console.error("Erro no processamento da Honey IA:", error);
+
+        // Tratamento de erros amigável para limites de taxa da API do Groq
+        if (error.status === 429) {
+            return res.status(429).json({
+                sucesso: false,
+                erro: "A Honey IA atingiu o limite de quota temporário da API. Por favor, tente novamente dentro de instantes. 🐝"
+            });
+        }
+
+        return res.status(500).json({
+            sucesso: false,
+            erro: "Ocorreu um erro interno ao processar o seu pedido. Por favor, tente novamente."
         });
     }
 });
 
-// Inicialização do Servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🐝 Honey IA ativa e pronta para ajudar na porta ${PORT}`);
+app.listen(port, () => {
+    console.log(`🐝 Honey IA a rodar com sucesso na porta ${port}!`);
 });
