@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0d0f12">
+    <meta name="description" content="Honey IA - A sua assistente carinhosa para criação de sites, apps, logótipos e publicidade empresarial.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Honey IA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -190,7 +194,7 @@
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px 16px 120px 16px;
+            padding: 20px 16px 140px 16px;
             max-width: 800px;
             width: 100%;
             margin: 0 auto;
@@ -252,7 +256,35 @@
             padding: 16px;
             background: linear-gradient(to top, var(--bg-main) 80%, transparent);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quick-actions-bar {
+            display: flex;
+            gap: 6px;
+            max-width: 800px;
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .action-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.74rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .action-chip:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
         }
 
         .input-box {
@@ -351,7 +383,7 @@
         .message {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .message.user {
@@ -372,7 +404,28 @@
             color: var(--text-primary);
         }
 
-        /* Blocos de Código & Prompts Visuais */
+        .ai-footer-tools {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .export-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .export-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
         .code-wrapper {
             position: relative;
             margin: 12px 0;
@@ -508,6 +561,12 @@
             </div>
 
             <div class="input-wrapper">
+                <div class="quick-actions-bar">
+                    <button class="action-chip" onclick="quickAction('Explique com mais detalhes e passos práticos.')">🔍 Expandir Detalhes</button>
+                    <button class="action-chip" onclick="quickAction('Traduza os termos e o prompt para Inglês.')">🇬🇧 Traduzir p/ Inglês</button>
+                    <button class="action-chip" onclick="quickAction('Reescreva de forma mais persuasiva e comercial.')">✨ Mais Comercial</button>
+                </div>
+
                 <div class="input-box">
                     <div class="file-preview" id="filePreviewList"></div>
                     <textarea class="chat-textarea" id="mainInput" placeholder="Descreva o que a sua empresa precisa..." rows="1"></textarea>
@@ -577,6 +636,15 @@
             mainInput.focus();
         }
 
+        function quickAction(instruction) {
+            if (!mainInput.value) {
+                mainInput.value = instruction;
+            } else {
+                mainInput.value += ` (${instruction})`;
+            }
+            sendMessage();
+        }
+
         function resetToHome() {
             currentSessionId = null;
             heroView.style.display = 'flex';
@@ -597,7 +665,17 @@
             });
         }
 
-        function enhanceCodeBlocks(container) {
+        function downloadText(filename, text) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function enhanceCodeBlocks(container, rawResponseText) {
             const preBlocks = container.querySelectorAll('pre');
             preBlocks.forEach((pre) => {
                 if (pre.parentElement.classList.contains('code-wrapper')) return;
@@ -642,6 +720,15 @@
                     });
                 }
             });
+
+            // Botão para exportar o texto da resposta
+            const toolsDiv = document.createElement('div');
+            toolsDiv.className = 'ai-footer-tools';
+            toolsDiv.innerHTML = `<button class="export-btn">📥 Descarregar Resposta (.txt)</button>`;
+            toolsDiv.querySelector('.export-btn').addEventListener('click', () => {
+                downloadText('resposta-honey-ia.txt', rawResponseText);
+            });
+            container.appendChild(toolsDiv);
         }
 
         function openPreview(htmlCode) {
@@ -695,7 +782,7 @@
 
                 if (data.sucesso) {
                     aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(data.resposta) : data.resposta;
-                    enhanceCodeBlocks(aiMsg);
+                    enhanceCodeBlocks(aiMsg, data.resposta);
                     saveSession(text || "Consulta de ficheiro", text, data.resposta);
                 } else {
                     aiMsg.innerHTML = `<span style="color:#ef4444;">Erro: ${data.erro}</span>`;
@@ -744,7 +831,7 @@
             aiMsg.className = 'message ai markdown-body';
             aiMsg.innerHTML = typeof marked !== 'undefined' ? marked.parse(s.response) : s.response;
             chatContainer.appendChild(aiMsg);
-            enhanceCodeBlocks(aiMsg);
+            enhanceCodeBlocks(aiMsg, s.response);
 
             renderHistory();
             if(sidebar.classList.contains('open')) toggleSidebar();
