@@ -1,3 +1,8 @@
+import fs from "fs";
+import path from "path";
+import mammoth from "mammoth";
+import pdfParse from "pdf-parse";
+import xlsx from "xlsx";
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -57,7 +62,75 @@ Diretrizes:
 1. Cria copies altamente persuasivos, guiados por estruturas comprovadas (AIDA, PAS, FAB).
 2. Cria roteiros de anúncios para redes sociais (TikTok, Instagram, YouTube) e slogans marcantes.
 3. Foca em conversão, métricas de vendas e tom comercial atrativo.`
-};
+}; // ======================================================
+// LEITOR UNIVERSAL DE DOCUMENTOS
+// ======================================================
+
+async function extractText(filePath, mimeType) {
+
+    try {
+
+        // PDF
+        if (mimeType === "application/pdf") {
+
+            const buffer = fs.readFileSync(filePath);
+
+            const pdf = await pdfParse(buffer);
+
+            return pdf.text;
+
+        }
+
+        // DOCX
+        if (
+            mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ) {
+
+            const result = await mammoth.extractRawText({
+                path: filePath
+            });
+
+            return result.value;
+
+        }
+
+        // Excel
+        if (
+            mimeType.includes("spreadsheet") ||
+            mimeType.includes("excel")
+        ) {
+
+            const workbook = xlsx.readFile(filePath);
+
+            let text = "";
+
+            workbook.SheetNames.forEach(sheet => {
+
+                text += xlsx.utils.sheet_to_csv(
+                    workbook.Sheets[sheet]
+                );
+
+                text += "\n";
+
+            });
+
+            return text;
+
+        }
+
+        // TXT, HTML, CSS, JS, JSON...
+
+        return fs.readFileSync(filePath, "utf8");
+
+    } catch (err) {
+
+        console.error(err);
+
+        return "";
+
+    }
+
+}
 
 app.post('/gerar-gratis', async (req, res) => {
     try {
