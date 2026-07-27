@@ -58,7 +58,6 @@
             position: relative;
         }
 
-        /* Overlay */
         .sidebar-overlay {
             display: none;
             position: absolute;
@@ -72,7 +71,6 @@
             display: block;
         }
 
-        /* Sidebar com Honey Aesthetics */
         .sidebar {
             position: absolute;
             top: 0; bottom: 0; left: -290px;
@@ -187,7 +185,6 @@
             border-left: 3px solid var(--honey-primary);
         }
 
-        /* Conteúdo Principal */
         .main-content {
             flex: 1;
             display: flex;
@@ -198,13 +195,20 @@
         }
 
         .top-bar {
-            padding: 14px 20px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            justify-content: space-between;
             border-bottom: 1px solid var(--border-subtle);
             background: rgba(11, 13, 15, 0.8);
             backdrop-filter: blur(10px);
+            z-index: 5;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .toggle-sidebar-btn {
@@ -241,6 +245,37 @@
             font-weight: 600;
         }
 
+        /* Seletor de Modos na Barra Superior */
+        .mode-selector {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 3px;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .mode-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn.active {
+            background: var(--honey-gradient);
+            color: var(--text-dark);
+            box-shadow: 0 0 10px var(--honey-glow);
+        }
+
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -253,7 +288,6 @@
             gap: 24px;
         }
 
-        /* Hero / Welcome Screen */
         .hero-section {
             margin: auto 0;
             text-align: center;
@@ -335,7 +369,6 @@
             color: var(--text-main);
         }
 
-        /* Área de Input */
         .input-wrapper {
             position: absolute;
             bottom: 0; left: 0; right: 0;
@@ -493,7 +526,6 @@
             gap: 8px;
         }
 
-        /* Mensagens do Chat */
         .message {
             display: flex;
             flex-direction: column;
@@ -550,7 +582,6 @@
             background: var(--honey-glow);
         }
 
-        /* Blocos de Código & Prompts Visuais */
         .code-wrapper {
             position: relative;
             margin: 14px 0;
@@ -617,7 +648,6 @@
             font-size: 0.9em;
         }
 
-        /* Modal de Pré-visualização */
         .preview-modal {
             display: none;
             position: fixed;
@@ -672,10 +702,20 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
-                <div class="app-title">
-                    Honey IA
-                    <span class="app-title-badge">PRO 3.3</span>
+                <div class="top-bar-left">
+                    <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="app-title">
+                        Honey IA
+                        <span class="app-title-badge">PRO 3.3</span>
+                    </div>
+                </div>
+
+                <!-- Seletor de Modo de Trabalho -->
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="setMode('general', this)">🐝 Geral</button>
+                    <button class="mode-btn" onclick="setMode('dev', this)">💻 Dev</button>
+                    <button class="mode-btn" onclick="setMode('designer', this)">🎨 Designer</button>
+                    <button class="mode-btn" onclick="setMode('marketing', this)">📣 Marketing</button>
                 </div>
             </header>
 
@@ -683,7 +723,7 @@
                 <div class="hero-section" id="heroView">
                     <div class="hero-avatar">🐝</div>
                     <h1 class="hero-title">Como posso criar para a sua <span>empresa</span> hoje?</h1>
-                    <p class="hero-subtitle">Desenvolvimento de sites, soluções de código, análise de documentos e estratégia de conteúdo com inteligência acelerada.</p>
+                    <p class="hero-subtitle">Escolha um modo acima ou selecione uma sugestão rápida abaixo para começar.</p>
                     
                     <div class="suggestion-grid">
                         <div class="suggestion-card" onclick="selectPrompt('Criar código para um site comercial responsivo completo com HTML, CSS e JavaScript')">
@@ -743,7 +783,6 @@
     </div>
 
     <script>
-        // Registo do Service Worker para suporte PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW falhou:', err));
@@ -755,6 +794,7 @@
         let currentSessionId = null;
         let isRecording = false;
         let recognition = null;
+        let currentMode = 'general';
 
         const mainInput = document.getElementById('mainInput');
         const chatContainer = document.getElementById('chatContainer');
@@ -766,7 +806,12 @@
         const micBtn = document.getElementById('micBtn');
         const brandIcon = document.getElementById('brandIcon');
 
-        // Configuração do Reconhecimento de Voz
+        function setMode(mode, btnElement) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
@@ -888,7 +933,6 @@
             document.body.removeChild(element);
         }
 
-        // Efeito de digitação gradual (Honey Typing Effect)
         function typeFormattedText(element, rawMarkdown, onComplete) {
             const parsedHtml = typeof marked !== 'undefined' ? marked.parse(rawMarkdown) : rawMarkdown;
             element.innerHTML = parsedHtml;
@@ -994,7 +1038,10 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
             try {
-                let payload = { prompt: text };
+                let payload = { 
+                    prompt: text,
+                    modo: currentMode 
+                };
 
                 if (uploadedFilesObjects.length > 0) {
                     const file = uploadedFilesObjects[0];
