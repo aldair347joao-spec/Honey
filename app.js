@@ -74,21 +74,23 @@ const Store = {
 // ELEMENTOS DA INTERFACE
 // ======================================================
 
-const UI = {
+const UI = {};
 
-    chat: document.getElementById("chatStreamContainer"),
+function initializeUI() {
 
-    input: document.getElementById("osPromptInput"),
+    UI.chat = document.getElementById("chatStreamContainer");
 
-    send: document.querySelector(".btn-send-core"),
+    UI.input = document.getElementById("osPromptInput");
 
-    canvas: document.getElementById("liveCanvasPanel"),
+    UI.send = document.querySelector(".btn-send-core");
 
-    iframe: document.getElementById("liveCanvasIframe"),
+    UI.canvas = document.getElementById("liveCanvasPanel");
 
-    status: document.getElementById("topbarStatusText")
+    UI.iframe = document.getElementById("liveCanvasIframe");
 
-};
+    UI.status = document.getElementById("topbarStatusText");
+
+}
 
 
 // ======================================================
