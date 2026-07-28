@@ -91,17 +91,27 @@ body {
 }
 
 /* ==========================================================
-   LOGIN PAGE & AUTHENTICATION
+   LOGIN PAGE & AUTHENTICATION (CORRIGIDO)
 ========================================================== */
 
+/* Oculto por padrão para não sobrepor o dashboard.
+   Adicione a classe .active para exibir a tela de login. */
 .login-page {
-    min-height: 100vh;
-    display: flex;
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--bg);
+    z-index: 10000;
     align-items: center;
     justify-content: center;
-    padding: 40px;
-    position: relative;
-    z-index: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.login-page.active {
+    display: flex;
 }
 
 .login-wrapper {
@@ -378,7 +388,7 @@ body {
 }
 
 /* ==========================================================
-   STUDIO MAIN LAYOUT ARCHITECTURE
+   STUDIO MAIN LAYOUT ARCHITECTURE & SIDEBAR OVERLAY
 ========================================================== */
 
 .studio {
@@ -392,14 +402,32 @@ body {
     width: 280px;
     min-width: 280px;
     min-height: 100vh;
-    background: rgba(9, 13, 22, .92);
+    background: rgba(9, 13, 22, .95);
     border-right: 1px solid var(--border);
     padding: 25px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     backdrop-filter: blur(20px);
-    z-index: 100;
+    z-index: 1000;
+    transition: var(--transition);
+}
+
+/* Overlay para escurecer a tela ao abrir o menu mobile */
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .sidebar-header {
@@ -655,6 +683,7 @@ body {
     font-size: 14px;
     font-weight: 700;
 }
+
 /* ==========================================================
    DASHBOARD & HERO SECTION
 ========================================================== */
@@ -1467,18 +1496,19 @@ body {
         display: none;
     }
 
+    /* Ajuste responsivo da Sidebar */
     .sidebar {
         position: fixed;
-        left: -280px;
+        left: 0;
         top: 0;
         bottom: 0;
         height: 100vh;
-        transition: var(--transition);
+        transform: translateX(-100%); /* Oculta por padrão */
         box-shadow: 20px 0 50px rgba(0, 0, 0, .5);
     }
 
     .sidebar.active {
-        left: 0;
+        transform: translateX(0); /* Desliza para dentro ao ativar */
     }
 
     .mobile-menu {
