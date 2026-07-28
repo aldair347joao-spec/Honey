@@ -1,729 +1,362 @@
+/**
+ * HONEY IA — CORE ENGINE V5 + AI OS WORKSPACE
+ * Unificação da arquitetura de EventBus/Store com o novo Honey AI OS.
+ */
+
+import { Components } from "./components.js";
+
 // ======================================================
-// HONEY IA - CORE ENGINE V5
+// IDENTIFICADOR DE SESSÃO & BARRAMENTO DE EVENTOS
 // ======================================================
 const SESSION_ID = crypto.randomUUID();
-class EventBus {
 
+class EventBus {
     constructor() {
         this.events = {};
     }
 
     on(event, callback) {
-
         if (!this.events[event]) {
             this.events[event] = [];
         }
-
         this.events[event].push(callback);
-
     }
 
     emit(event, data) {
-
         if (!this.events[event]) return;
-
         this.events[event].forEach(callback => callback(data));
-
     }
-
 }
 
-const EventBusInstance = new EventBus();
-
+export const EventBusInstance = new EventBus();
 
 // ======================================================
-// ESTADO GLOBAL
+// ESTADO GLOBAL DA APLICAÇÃO (STORE)
 // ======================================================
-
-const Store = {
-
+export const Store = {
     state: {
-
+        sessionId: SESSION_ID,
         conversation: [],
-
         theme: "dark",
-
-        model: "Honey Core",
-
+        model: "Honey Core v5",
         voice: false,
-
         canvas: false,
-
         plugins: [],
-
-        loading: false
-
+        loading: false,
+        activeWorkspace: "Geral & Desenvolvimento",
+        selectedFileBase64: null,
+        selectedFileName: null
     },
 
-    set(data) {
-
-        this.state = {
-
-            ...this.state,
-
-            ...data
-
-        };
-
+    setState(key, value) {
+        this.state[key] = value;
+        EventBusInstance.emit("stateChanged", { key, value, state: this.state });
     }
-
 };
 
-
 // ======================================================
-// ELEMENTOS DA INTERFACE
+// CLASSE PRINCIPAL DO SISTEMA OPERACIONAL
 // ======================================================
+class HoneyAIApp {
+    constructor() {
+        this.initDOMReferences();
+        this.initEventListeners();
+        this.initMarkdownEngine();
+        this.bindStoreEvents();
+    }
 
-const UI = {};
+    initDOMReferences() {
+        // Elementos de Status e Navegação
+        this.kernelStatusCard = document.getElementById("kernel-status");
+        this.kernelStateText = document.getElementById("kernel-state-text");
+        this.btnToggleMenu = document.getElementById("btn-toggle-menu");
+        this.osSidebar = document.getElementById("os-sidebar");
 
-function initializeUI() {
+        this.navItems = document.querySelectorAll(".nav-item");
+        this.workspaceViews = document.querySelectorAll(".workspace-view");
 
-    UI.chat = document.getElementById("chatStreamContainer");
+        // Elementos do Chat e Input
+        this.chatFeed = document.getElementById("chat-feed");
+        this.promptForm = document.getElementById("os-prompt-form");
+        this.promptTextarea = document.getElementById("prompt-textarea");
+        this.fileUploadInput = document.getElementById("file-upload");
+        this.attachmentBar = document.getElementById("attachment-bar");
+        this.attachedFileName = document.getElementById("attached-file-name");
+        this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
 
-    UI.input = document.getElementById("osPromptInput");
+        // Elementos do Live Preview Split
+        this.previewPane = document.getElementById("preview-pane");
+        this.btnTogglePreview = document.getElementById("btn-toggle-preview");
+        this.btnClosePreview = document.getElementById("btn-close-preview");
+        this.livePreviewIframe = document.getElementById("live-preview-iframe");
+    }
 
-    UI.send = document.querySelector(".btn-send-core");
-
-    UI.canvas = document.getElementById("liveCanvasPanel");
-
-    UI.iframe = document.getElementById("liveCanvasIframe");
-
-    UI.status = document.getElementById("topbarStatusText");
-
-}
-
-
-// ======================================================
-// FUNÇÕES DE CHAT
-// ======================================================
-
-function addUserMessage(text){
-
-    UI.chat.innerHTML += `
-
-    <div class="chat-bubble-row user">
-
-        <div class="chat-content-card">
-
-            ${text}
-
-        </div>
-
-    </div>
-
-    `;
-
-    UI.chat.scrollTop = UI.chat.scrollHeight;
-
-}
-
-function addAssistantMessage(html){
-
-    UI.chat.innerHTML += `
-
-    <div class="chat-bubble-row assistant">
-
-        <div class="chat-avatar-box">
-
-            🐝
-
-        </div>
-
-        <div class="chat-content-card">
-
-            ${marked.parse(html)}
-
-        </div>
-
-    </div>
-
-    `;
-
-    UI.chat.scrollTop = UI.chat.scrollHeight;
-
-} // ======================================================
-// COMUNICAÇÃO COM O BACKEND
-// ======================================================
-
-async function sendToHoney(prompt){
-
-    try{
-
-        Store.set({
-            loading:true
-        });
-
-        UI.status.textContent = "PROCESSANDO...";
-
-        const response = await fetch("/gerar-gratis",{
-
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body: JSON.stringify({
-
-    sessionId: SESSION_ID,
-
-    prompt,
-
-    modo: "general"
-
-})
-
-        });
-
-        const data = await response.json();
-
-        Store.set({
-            loading:false
-        });
-
-        UI.status.textContent = "HONEY AI ONLINE";
-
-        if(data.sucesso){
-
-            addAssistantMessage(data.resposta);
-
-            Store.state.conversation.push({
-
-                role:"assistant",
-
-                content:data.resposta
-
+    initEventListeners() {
+        // Navegação entre Visões do OS
+        this.navItems.forEach(item => {
+            item.addEventListener("click", () => {
+                const targetView = item.getAttribute("data-view");
+                this.switchView(targetView, item);
             });
-
-            detectCanvas(data.resposta);
-
-        }else{
-
-            addAssistantMessage("❌ " + data.erro);
-
-        }
-
-    }catch(e){
-
-        console.error(e);
-
-        Store.set({
-            loading:false
         });
 
-        UI.status.textContent = "ERRO";
-
-        addAssistantMessage(
-            "❌ Não foi possível comunicar com o servidor."
-        );
-
-    }
-
-}
-
-// ======================================================
-// ENVIO DA MENSAGEM
-// ======================================================
-
-async function sendMessage(){
-
-    const text = UI.input.value.trim();
-
-    if(text==="") return;
-
-    addUserMessage(text);
-
-    Store.state.conversation.push({
-
-        role:"user",
-
-        content:text
-
-    });
-
-    UI.input.value="";
-
-    UI.input.style.height="40px";
-
-    await sendToHoney(text);
-
-}
-
-// ======================================================
-// EVENTOS
-// ======================================================
-
-UI.send.addEventListener("click",sendMessage);
-
-UI.input.addEventListener("keydown",function(e){
-
-    if(e.key==="Enter" && !e.shiftKey){
-
-        e.preventDefault();
-
-        sendMessage();
-
-    }
-
-});
-
-// ======================================================
-// AUTO AJUSTE DO TEXTAREA
-// ======================================================
-
-UI.input.addEventListener("input",function(){
-
-    this.style.height="40px";
-
-    this.style.height=this.scrollHeight+"px";
-
-});// ======================================================
-// LIVE CANVAS
-// ======================================================
-
-function detectCanvas(response){
-
-    const match = response.match(/```html([\s\S]*?)```/);
-
-    if(!match) return;
-
-    const html = match[1].trim();
-
-    UI.canvas.classList.add("active");
-
-    const doc = UI.iframe.contentDocument || UI.iframe.contentWindow.document;
-
-    doc.open();
-    doc.write(html);
-    doc.close();
-
-}
-
-// ======================================================
-// COMANDOS
-// ======================================================
-
-function executeCommand(command){
-
-    switch(command){
-
-        case "/new":
-
-            UI.chat.innerHTML = "";
-
-            Store.state.conversation = [];
-
-            addAssistantMessage("🐝 Nova conversa iniciada.");
-
-            break;
-
-        case "/help":
-
-            addAssistantMessage(`
-# Comandos disponíveis
-
-• /new
-
-Limpa a conversa.
-
-• /help
-
-Mostra esta ajuda.
-
-• /export
-
-Exporta o histórico.
-
-• /plugins
-
-Lista os plugins carregados.
-
-            `);
-
-            break;
-
-        case "/plugins":
-
-            if(Store.state.plugins.length===0){
-
-                addAssistantMessage("Nenhum plugin carregado.");
-
-            }else{
-
-                let txt="# Plugins ativos\n\n";
-
-                Store.state.plugins.forEach(plugin=>{
-
-                    txt+="• "+plugin+"\n";
-
-                });
-
-                addAssistantMessage(txt);
-
-            }
-
-            break;
-
-        case "/export":
-
-            exportConversation();
-
-            break;
-
-        default:
-
-            sendToHoney(command);
-
-    }
-
-}
-
-// ======================================================
-// EXPORTAÇÃO
-// ======================================================
-
-function exportConversation(){
-
-    const file = new Blob(
-
-        [
-
-            JSON.stringify(
-
-                Store.state.conversation,
-
-                null,
-
-                2
-
-            )
-
-        ],
-
-        {
-
-            type:"application/json"
-
+        // Toggle Sidebar Mobile
+        if (this.btnToggleMenu) {
+            this.btnToggleMenu.addEventListener("click", () => {
+                this.osSidebar.classList.toggle("open");
+            });
         }
 
-    );
+        // Auto-resize do Textarea
+        this.promptTextarea.addEventListener("input", () => {
+            this.promptTextarea.style.height = "auto";
+            this.promptTextarea.style.height = `${Math.min(this.promptTextarea.scrollHeight, 120)}px`;
+        });
 
-    const a = document.createElement("a");
+        // Enviar com Enter (Shift+Enter pula linha)
+        this.promptTextarea.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                this.promptForm.dispatchEvent(new Event("submit"));
+            }
+        });
 
-    a.href = URL.createObjectURL(file);
+        // Upload de Anexos
+        this.fileUploadInput.addEventListener("change", (e) => this.handleFileUpload(e));
+        this.btnRemoveAttachment.addEventListener("click", () => this.clearAttachment());
 
-    a.download = "honey-conversation.json";
+        // Submissão do Prompt ao Backend
+        this.promptForm.addEventListener("submit", (e) => this.handleSubmitPrompt(e));
 
-    a.click();
+        // Controles do Split Preview
+        if (this.btnTogglePreview) {
+            this.btnTogglePreview.addEventListener("click", () => {
+                this.previewPane.classList.toggle("hidden");
+                Store.setState("canvas", !this.previewPane.classList.contains("hidden"));
+            });
+        }
 
-}
-
-// ======================================================
-// PROCESSADOR
-// ======================================================
-
-const originalSend = sendMessage;
-
-sendMessage = async function(){
-
-    const text = UI.input.value.trim();
-
-    if(text==="") return;
-
-    if(text.startsWith("/")){
-
-        UI.input.value="";
-
-        executeCommand(text);
-
-        return;
-
+        if (this.btnClosePreview) {
+            this.btnClosePreview.addEventListener("click", () => {
+                this.previewPane.classList.add("hidden");
+                Store.setState("canvas", false);
+            });
+        }
     }
 
-    await originalSend();
+    bindStoreEvents() {
+        EventBusInstance.on("stateChanged", ({ key, value }) => {
+            if (key === "loading") {
+                this.setKernelState(value, value ? "Processando..." : "Ocioso");
+            }
+        });
+    }
 
-};// ======================================================
-// MEMÓRIA PERSISTENTE
-// ======================================================
+    initMarkdownEngine() {
+        if (window.marked) {
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (window.hljs && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
+                },
+                breaks: true
+            });
+        }
+    }
 
-const Memory = {
+    switchView(viewName, clickedNavItem) {
+        this.navItems.forEach(nav => nav.classList.remove("active"));
+        clickedNavItem.classList.add("active");
 
-    save() {
+        this.workspaceViews.forEach(view => view.classList.add("hidden"));
 
-        localStorage.setItem(
-            "honey_state",
-            JSON.stringify(Store.state)
-        );
+        const targetElement = document.getElementById(`view-${viewName}`);
+        if (targetElement) {
+            targetElement.classList.remove("hidden");
 
-    },
+            switch (viewName) {
+                case "workspaces":
+                    Components.renderWorkspaces(targetElement);
+                    break;
+                case "memories":
+                    Components.renderMemories(targetElement);
+                    break;
+                case "agents":
+                    Components.renderAgents(targetElement);
+                    break;
+                case "tools":
+                    Components.renderTools(targetElement);
+                    break;
+                case "analytics":
+                    Components.renderAnalytics(targetElement);
+                    break;
+                case "system":
+                    Components.renderSystem(targetElement);
+                    break;
+            }
+        }
+    }
 
-    load() {
+    handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        const data = localStorage.getItem("honey_state");
+        Store.setState("selectedFileName", file.name);
+        this.attachedFileName.textContent = file.name;
+        this.attachmentBar.classList.remove("hidden");
 
-        if (!data) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            Store.setState("selectedFileBase64", e.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    clearAttachment() {
+        Store.setState("selectedFileBase64", null);
+        Store.setState("selectedFileName", null);
+        this.fileUploadInput.value = "";
+        this.attachmentBar.classList.add("hidden");
+    }
+
+    setKernelState(isBusy, message = "Ocioso") {
+        if (isBusy) {
+            this.kernelStatusCard.classList.add("busy");
+            this.kernelStateText.textContent = message;
+        } else {
+            this.kernelStatusCard.classList.remove("busy");
+            this.kernelStateText.textContent = "Ocioso";
+        }
+    }
+
+    async handleSubmitPrompt(event) {
+        event.preventDefault();
+        const userText = this.promptTextarea.value.trim();
+
+        if (!userText && !Store.state.selectedFileBase64) return;
+
+        const welcomeMessage = document.getElementById("workspace-welcome");
+        if (welcomeMessage) welcomeMessage.style.display = "none";
+
+        // Adiciona à conversa local e ao estado
+        this.appendUserMessage(userText, Store.state.selectedFileName);
+        Store.state.conversation.push({ role: "user", content: userText });
+
+        const payloadPrompt = userText;
+        const payloadImage = Store.state.selectedFileBase64;
+
+        this.promptTextarea.value = "";
+        this.promptTextarea.style.height = "auto";
+        this.clearAttachment();
+
+        Store.setState("loading", true);
+        const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
+            const response = await fetch("/gerar-gratis", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt: payloadPrompt,
+                    imagem: payloadImage,
+                    userId: Store.state.sessionId
+                })
+            });
 
-            Store.state = JSON.parse(data);
+            const data = await response.json();
 
-        } catch (e) {
+            if (!response.ok) {
+                throw new Error(data.erro || "Ocorreu um erro na comunicação com a IA.");
+            }
 
-            console.error(e);
+            const formattedContent = marked.parse(data.resposta || "Executado com sucesso.");
+            agentMessageElement.querySelector(".message-content").innerHTML = formattedContent;
 
+            // Salva na memória da conversa local
+            Store.state.conversation.push({ role: "assistant", content: data.resposta });
+
+            // Dispara evento de resposta recebida
+            EventBusInstance.emit("responseReceived", data);
+
+            // Renderiza Preview Split se houver HTML
+            this.detectAndRenderPreview(data.resposta);
+
+        } catch (error) {
+            agentMessageElement.querySelector(".message-content").innerHTML = `
+                <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <strong>Erro no Kernel:</strong> ${error.message}
+                </div>
+            `;
+            EventBusInstance.emit("error", error);
+        } finally {
+            Store.setState("loading", false);
+            this.scrollToBottom();
+        }
+    }
+
+    appendUserMessage(text, fileName) {
+        const msgContainer = document.createElement("div");
+        msgContainer.className = "user-msg-wrapper";
+        msgContainer.style.cssText = "align-self: flex-end; max-width: 80%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: var(--radius-lg) var(--radius-lg) 2px var(--radius-lg); margin-left: auto;";
+
+        let fileHtml = "";
+        if (fileName) {
+            fileHtml = `<div style="font-size: 0.75rem; color: var(--accent-yellow); margin-bottom: 6px;">📎 Arquivo: ${fileName}</div>`;
         }
 
+        msgContainer.innerHTML = `
+            ${fileHtml}
+            <div style="font-size: 0.92rem; color: var(--text-main); white-space: pre-wrap;">${text}</div>
+        `;
+
+        this.chatFeed.appendChild(msgContainer);
+        this.scrollToBottom();
     }
 
-};
+    createAgentMessagePlaceholder() {
+        const msgContainer = document.createElement("div");
+        msgContainer.className = "agent-msg-wrapper";
+        msgContainer.style.cssText = "align-self: flex-start; max-width: 85%; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 2px;";
 
-// ======================================================
-// RESTAURAR CONVERSA
-// ======================================================
+        msgContainer.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span style="font-size: 1.1rem;">🐝</span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-yellow);">Honey OS Agent</span>
+            </div>
+            <div class="message-content" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
+                <span style="color: var(--text-muted);">A processar instrução...</span>
+            </div>
+        `;
 
-function restoreConversation() {
+        this.chatFeed.appendChild(msgContainer);
+        this.scrollToBottom();
+        return msgContainer;
+    }
 
-    UI.chat.innerHTML = "";
+    detectAndRenderPreview(textResponse) {
+        if (!textResponse) return;
 
-    Store.state.conversation.forEach(msg => {
+        const htmlMatch = textResponse.match(/```html([\s\S]*?)```/);
+        if (htmlMatch && htmlMatch[1]) {
+            const htmlCode = htmlMatch[1].trim();
+            this.previewPane.classList.remove("hidden");
+            Store.setState("canvas", true);
 
-        if (msg.role === "user") {
-
-            addUserMessage(msg.content);
-
-        } else {
-
-            addAssistantMessage(msg.content);
-
+            const doc = this.livePreviewIframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlCode);
+            doc.close();
         }
+    }
 
-    });
-
+    scrollToBottom() {
+        this.chatFeed.scrollTop = this.chatFeed.scrollHeight;
+    }
 }
 
-// ======================================================
-// TEMA
-// ======================================================
-
-function toggleTheme() {
-
-    if (Store.state.theme === "dark") {
-
-        Store.state.theme = "light";
-
-        document.documentElement.classList.remove("dark");
-
-    } else {
-
-        Store.state.theme = "dark";
-
-        document.documentElement.classList.add("dark");
-
-    }
-
-    Memory.save();
-
-}
-
-// ======================================================
-// EVENTOS GLOBAIS
-// ======================================================
-
-window.addEventListener("beforeunload", () => {
-
-    Memory.save();
-
-});
-
-document.addEventListener("visibilitychange", () => {
-
-    if (document.visibilityState === "hidden") {
-
-        Memory.save();
-
-    }
-
-});
-
-// ======================================================
-// BOTÃO DE TEMA (caso exista)
-// ======================================================
-
-const themeButton = document.getElementById("toggleTheme");
-
-if (themeButton) {
-
-    themeButton.addEventListener("click", toggleTheme);
-
-}
-
-// ======================================================
-// INICIALIZAÇÃO
-// ======================================================
-
-window.addEventListener("DOMContentLoaded", () => {
-
-    Memory.load();
-
-    restoreConversation();
-
-    UI.status.textContent = "HONEY AI ONLINE";
-
-    console.log("Honey Core iniciado.");
-
-});// ======================================================
-// GERENCIADOR DE PLUGINS
-// ======================================================
-
-const PluginManager = {
-
-    plugins: {},
-
-    register(plugin) {
-
-        this.plugins[plugin.id] = plugin;
-
-        Store.state.plugins.push(plugin.name);
-
-        console.log("Plugin carregado:", plugin.name);
-
-    },
-
-    execute(id, data) {
-
-        if (!this.plugins[id]) return;
-
-        this.plugins[id].run(data);
-
-    }
-
-};
-
-// ======================================================
-// PLUGIN EXEMPLO
-// ======================================================
-
-PluginManager.register({
-
-    id: "developer",
-
-    name: "Developer",
-
-    run(data) {
-
-        console.log("Plugin Developer executado.", data);
-
-    }
-
-});
-
-// ======================================================
-// UPLOAD DE FICHEIROS
-// ======================================================
-
-const fileInput = document.createElement("input");
-
-fileInput.type = "file";
-
-fileInput.accept = "*/*";
-
-fileInput.style.display = "none";
-
-document.body.appendChild(fileInput);
-
-async function uploadFile() {
-
-    fileInput.click();
-
-}
-
-fileInput.addEventListener("change", async function () {
-
-    if (!this.files.length) return;
-
-    const file = this.files[0];
-
-    const reader = new FileReader();
-
-    reader.onload = function () {
-
-        Store.state.file = {
-
-            nome: file.name,
-
-            tipo: file.type,
-
-            base64: reader.result.split(",")[1]
-
-        };
-
-        addAssistantMessage(
-            "📁 Arquivo carregado: **" + file.name + "**"
-        );
-
-    };
-
-    reader.readAsDataURL(file);
-
-});
-
-// ======================================================
-// VOZ
-// ======================================================
-
-let recognition = null;
-
-if ("webkitSpeechRecognition" in window) {
-
-    recognition = new webkitSpeechRecognition();
-
-    recognition.lang = "pt-PT";
-
-    recognition.continuous = false;
-
-    recognition.interimResults = false;
-
-    recognition.onresult = function (event) {
-
-        UI.input.value =
-            event.results[0][0].transcript;
-
-    };
-
-}
-
-function startVoice() {
-
-    if (!recognition) {
-
-        addAssistantMessage(
-            "O navegador não suporta reconhecimento de voz."
-        );
-
-        return;
-
-    }
-
-    recognition.start();
-
-}
-
-// ======================================================
-// BOTÕES
-// ======================================================
-
-document.querySelectorAll(".btn-dock-action").forEach(btn => {
-
-    if (btn.textContent.includes("Arquivos")) {
-
-        btn.addEventListener("click", uploadFile);
-
-    }
-
-    if (btn.textContent.includes("Voz")) {
-
-        btn.addEventListener("click", startVoice);
-
-    }
-
+// Inicializa no carregamento do DOM
+document.addEventListener("DOMContentLoaded", () => {
+    window.honeyApp = new HoneyAIApp();
 });
