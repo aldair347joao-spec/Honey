@@ -1,3 +1,4 @@
+import ContextEngine from "./contextEngine.js";
 import DecisionEngine from "./decisionEngine.js";
 import PromptBuilder from "./promptBuilder.js";
 import AgentManager from "./agents.js";
@@ -35,7 +36,16 @@ class Orchestrator {
         if (Tools.shouldUseTool(message)) {
 
             toolResult = await Tools.execute(message);
+            
+const context = ContextEngine.build({
 
+    history,
+
+    memories,
+
+    toolResult
+
+});
         }
 
         // 6. Constrói o prompt
