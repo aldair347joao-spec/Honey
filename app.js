@@ -50,6 +50,7 @@ class HoneyAIApp {
         this.initDOMReferences();
         this.initEventListeners();
         this.initMarkdownEngine();
+        this.initModalsAndUiActions();
     }
 
     initDOMReferences() {
@@ -58,17 +59,21 @@ class HoneyAIApp {
         this.kernelStateText = document.getElementById("kernel-state-text");
         
         // Navigation & Layout
-        this.btnToggleMenu = document.getElementById("btn-toggle-menu") || document.querySelector(".collapse");
-        this.osSidebar = document.getElementById("os-sidebar") || document.querySelector(".sidebar");
-        this.navItems = document.querySelectorAll(".nav-item, nav a");
+        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.getElementById("btn-toggle-menu") || document.querySelector(".collapse");
+        this.btnCollapseSidebar = document.getElementById("btnCollapseSidebar");
+        this.osSidebar = document.getElementById("sidebar") || document.getElementById("os-sidebar");
+        this.sidebarOverlay = document.getElementById("sidebarOverlay");
+        this.navItems = document.querySelectorAll("#sidebarNav a, .nav-item, nav a");
         this.workspaceViews = document.querySelectorAll(".workspace-view");
 
-        // Chat & Inputs (Com fallbacks para os IDs do index.html)
+        // Chat & Inputs (Mapeamento direto aos IDs do index.html com fallbacks)
         this.chatFeed = document.getElementById("chatMessages") || document.getElementById("chat-feed");
         this.promptTextarea = document.getElementById("chatInput") || document.getElementById("prompt-textarea");
         this.btnSend = document.getElementById("btnSend");
         this.fileUploadInput = document.getElementById("fileInput") || document.getElementById("file-upload");
         this.btnAttach = document.getElementById("btnAttach");
+        this.btnVoice = document.getElementById("btnVoice");
+        this.btnNewChat = document.getElementById("btnNewChat");
         this.attachmentBar = document.getElementById("attachment-bar");
         this.attachedFileName = document.getElementById("attached-file-name");
         this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
@@ -78,27 +83,45 @@ class HoneyAIApp {
         this.btnTogglePreview = document.getElementById("btn-toggle-preview");
         this.btnClosePreview = document.getElementById("btn-close-preview");
         this.livePreviewIframe = document.getElementById("live-preview-iframe");
+
+        // Auth & Modais
+        this.loginPage = document.getElementById("loginPage");
+        this.loginForm = document.getElementById("loginForm");
+        this.studioApp = document.getElementById("studioApp");
+        this.modalNewProject = document.getElementById("modalNewProject");
+        this.modalNewAgent = document.getElementById("modalNewAgent");
+        this.toastContainer = document.getElementById("toastContainer");
     }
 
     initEventListeners() {
         // Menu Lateral & Navegação
         this.navItems.forEach(item => {
-            item.addEventListener("click", () => {
-                const target = item.getAttribute("data-view");
+            item.addEventListener("click", (e) => {
+                e.preventDefault();
+                const target = item.getAttribute("data-target") || item.getAttribute("data-view");
+                
+                this.navItems.forEach(nav => nav.classList.remove("active"));
+                item.classList.add("active");
+
                 if (target) {
                     this.switchView(target, item);
-                } else {
-                    this.navItems.forEach(nav => nav.classList.remove("active"));
-                    item.classList.add("active");
                 }
-                if (this.osSidebar) this.osSidebar.classList.remove("open");
+                
+                this.closeMobileSidebar();
             });
         });
 
-        if (this.btnToggleMenu && this.osSidebar) {
-            this.btnToggleMenu.addEventListener("click", () => {
-                this.osSidebar.classList.toggle("open");
-            });
+        // Toggle do Menu Mobile
+        if (this.btnToggleMenu) {
+            this.btnToggleMenu.addEventListener("click", () => this.toggleMobileSidebar());
+        }
+
+        if (this.btnCollapseSidebar) {
+            this.btnCollapseSidebar.addEventListener("click", () => this.closeMobileSidebar());
+        }
+
+        if (this.sidebarOverlay) {
+            this.sidebarOverlay.addEventListener("click", () => this.closeMobileSidebar());
         }
 
         // Auto-Resize Textarea & Submissão via Enter
@@ -140,6 +163,16 @@ class HoneyAIApp {
             this.btnRemoveAttachment.addEventListener("click", () => this.clearAttachment());
         }
 
+        // Comando de Voz (Web Speech API)
+        if (this.btnVoice && this.promptTextarea) {
+            this.btnVoice.addEventListener("click", () => this.handleVoiceInput());
+        }
+
+        // Novo Chat
+        if (this.btnNewChat) {
+            this.btnNewChat.addEventListener("click", () => this.handleNewChat());
+        }
+
         // Controlos de Preview (caso existam no DOM)
         if (this.btnTogglePreview && this.previewPane) {
             this.btnTogglePreview.addEventListener("click", () => {
@@ -152,6 +185,109 @@ class HoneyAIApp {
                 this.previewPane.classList.add("hidden");
             });
         }
+
+        // Autenticação / Login
+        if (this.loginForm) {
+            this.loginForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                if (this.loginPage && this.studioApp) {
+                    this.loginPage.style.display = "none";
+                    this.studioApp.style.display = "grid";
+                    this.showToast("Sessão iniciada com sucesso no Honey IA Studio!", "success");
+                }
+            });
+        }
+
+        // Módulos do Studio (Cards interativos)
+        document.querySelectorAll(".module-grid .module").forEach(module => {
+            module.addEventListener("click", () => {
+                const action = module.getAttribute("data-action");
+                if (action) {
+                    this.showToast(`Módulo ativado: ${action.toUpperCase()}`, "info");
+                }
+            });
+        });
+    }
+
+    initModalsAndUiActions() {
+        // Abrir Modal de Novo Projeto
+        const btnNewProject = document.getElementById("btnNewProject");
+        const btnQuickAdd = document.getElementById("btnQuickAdd");
+        if (btnNewProject) {
+            btnNewProject.addEventListener("click", () => this.openModal(this.modalNewProject));
+        }
+        if (btnQuickAdd) {
+            btnQuickAdd.addEventListener("click", () => this.openModal(this.modalNewProject));
+        }
+
+        // Abrir Modal de Criar Agente
+        const btnNewAgent = document.getElementById("btnNewAgent");
+        if (btnNewAgent) {
+            btnNewAgent.addEventListener("click", () => this.openModal(this.modalNewAgent));
+        }
+
+        // Botões de fechar Modal [data-close]
+        document.querySelectorAll("[data-close]").forEach(closeBtn => {
+            closeBtn.addEventListener("click", () => {
+                const modalId = closeBtn.getAttribute("data-close");
+                const modalTarget = document.getElementById(modalId);
+                if (modalTarget) this.closeModal(modalTarget);
+            });
+        });
+
+        // Submissão do Form de Novo Projeto
+        const formNewProject = document.getElementById("formNewProject");
+        if (formNewProject) {
+            formNewProject.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const nameInput = document.getElementById("projectName");
+                const projectName = nameInput ? nameInput.value : "Novo Projeto";
+                
+                const statProjectCount = document.getElementById("statProjectCount");
+                if (statProjectCount) {
+                    let current = parseInt(statProjectCount.textContent) || 0;
+                    statProjectCount.textContent = current + 1;
+                }
+
+                this.showToast(`Projeto "${projectName}" criado com sucesso!`, "success");
+                formNewProject.reset();
+                this.closeModal(this.modalNewProject);
+            });
+        }
+
+        // Submissão do Form de Criar Agente
+        const formNewAgent = document.getElementById("formNewAgent");
+        if (formNewAgent) {
+            formNewAgent.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const agentInput = document.getElementById("agentName");
+                const agentName = agentInput ? agentInput.value : "Novo Agente";
+
+                this.showToast(`Agente IA "${agentName}" criado e ativado!`, "success");
+                formNewAgent.reset();
+                this.closeModal(this.modalNewAgent);
+            });
+        }
+    }
+
+    openModal(modalElement) {
+        if (!modalElement) return;
+        modalElement.style.display = "flex";
+    }
+
+    closeModal(modalElement) {
+        if (!modalElement) return;
+        modalElement.style.display = "none";
+    }
+
+    toggleMobileSidebar() {
+        if (this.osSidebar) this.osSidebar.classList.toggle("open");
+        if (this.sidebarOverlay) this.sidebarOverlay.classList.toggle("active");
+    }
+
+    closeMobileSidebar() {
+        if (this.osSidebar) this.osSidebar.classList.remove("open");
+        if (this.sidebarOverlay) this.sidebarOverlay.classList.remove("active");
     }
 
     initMarkdownEngine() {
@@ -169,9 +305,6 @@ class HoneyAIApp {
     }
 
     switchView(viewName, clickedNavItem) {
-        this.navItems.forEach(nav => nav.classList.remove("active"));
-        if (clickedNavItem) clickedNavItem.classList.add("active");
-
         this.workspaceViews.forEach(view => view.classList.add("hidden"));
 
         const targetElement = document.getElementById(`view-${viewName}`);
@@ -185,6 +318,8 @@ class HoneyAIApp {
                 case "tools": Components.renderTools?.(targetElement); break;
                 case "system": Components.renderSystem?.(targetElement); break;
             }
+        } else {
+            this.showToast(`Seção ativa: ${viewName.toUpperCase()}`, "info");
         }
     }
 
@@ -200,7 +335,7 @@ class HoneyAIApp {
         if (this.attachmentBar) {
             this.attachmentBar.classList.remove("hidden");
         } else {
-            alert(`Ficheiro "${file.name}" anexado com sucesso! 🐝`);
+            this.showToast(`Ficheiro "${file.name}" anexado com sucesso! 🐝`, "success");
         }
 
         const reader = new FileReader();
@@ -215,6 +350,37 @@ class HoneyAIApp {
         Store.setState("selectedFileName", null);
         if (this.fileUploadInput) this.fileUploadInput.value = "";
         if (this.attachmentBar) this.attachmentBar.classList.add("hidden");
+    }
+
+    handleVoiceInput() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-PT';
+            recognition.start();
+
+            this.showToast('Escutando comando de voz...', 'info');
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (this.promptTextarea) {
+                    this.promptTextarea.value = transcript;
+                }
+            };
+
+            recognition.onerror = () => {
+                this.showToast('Não foi possível reconhecer o áudio.', 'error');
+            };
+        } else {
+            this.showToast('Reconhecimento de voz não suportado neste navegador.', 'error');
+        }
+    }
+
+    handleNewChat() {
+        if (this.chatFeed) this.chatFeed.innerHTML = "";
+        const welcomeMessage = document.getElementById("welcomeBox") || document.getElementById("workspace-welcome");
+        if (welcomeMessage) welcomeMessage.style.display = "block";
+        this.showToast("Novo chat iniciado.", "info");
     }
 
     setKernelState(isBusy, message = "Ocioso") {
@@ -258,7 +424,7 @@ class HoneyAIApp {
         const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
-            // Rota configurada para o teu backend
+            // Rota configurada para o teu backend no Render
             const response = await fetch("https://honey-ia.onrender.com/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -302,7 +468,7 @@ class HoneyAIApp {
         if (!this.chatFeed) return;
 
         const msgContainer = document.createElement("div");
-        msgContainer.style.cssText = "align-self: flex-end; max-width: 85%; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; margin-left: auto; margin-bottom: 10px;";
+        msgContainer.style.cssText = "align-self: flex-end; max-width: 85%; background: linear-gradient(135deg, #0066ff, #0044cc); color: #fff; padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; margin-left: auto; margin-bottom: 10px;";
 
         let fileHtml = fileName ? `<div style="font-size: 0.75rem; color: #ffd700; margin-bottom: 6px;">📎 ${fileName}</div>` : "";
         msgContainer.innerHTML = `${fileHtml}<div style="white-space: pre-wrap;">${text}</div>`;
@@ -315,15 +481,15 @@ class HoneyAIApp {
         if (!this.chatFeed) return null;
 
         const msgContainer = document.createElement("div");
-        msgContainer.style.cssText = "align-self: flex-start; max-width: 85%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 16px 20px; border-radius: 20px; font-size: 0.95rem; margin-bottom: 15px; margin-right: auto;";
+        msgContainer.style.cssText = "align-self: flex-start; max-width: 85%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 16px 20px; border-radius: 20px; font-size: 0.95rem; margin-bottom: 15px; margin-right: auto;";
 
         msgContainer.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                 <span style="font-size: 1.1rem;">🐝</span>
-                <strong style="font-size: 0.85rem; color: var(--primary);">Honey OS</strong>
+                <strong style="font-size: 0.85rem; color: #0066ff;">Honey OS</strong>
             </div>
             <div class="message-content" style="line-height: 1.6; color: #e2e8f0;">
-                <span style="color: var(--muted);">A processar...</span>
+                <span style="color: #94a3b8;">A processar...</span>
             </div>
         `;
 
@@ -347,6 +513,25 @@ class HoneyAIApp {
         }
     }
 
+    showToast(message, type = "info") {
+        if (!this.toastContainer) return;
+
+        const toast = document.createElement("div");
+        toast.style.cssText = "padding: 12px 20px; margin-bottom: 10px; border-radius: 8px; color: #fff; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s ease;";
+
+        if (type === "success") toast.style.backgroundColor = "#10b981";
+        else if (type === "error") toast.style.backgroundColor = "#ef4444";
+        else toast.style.backgroundColor = "#2563eb";
+
+        toast.textContent = message;
+        this.toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     scrollToBottom() {
         if (this.chatFeed) {
             this.chatFeed.scrollTop = this.chatFeed.scrollHeight;
@@ -354,35 +539,7 @@ class HoneyAIApp {
     }
 }
 
-// Inicialização da App quando o DOM estiver totalmente carregado
+// Inicialização da Aplicação quando o DOM estiver totalmente carregado
 document.addEventListener("DOMContentLoaded", () => {
     window.honeyApp = new HoneyAIApp();
 });
-
-document.addEventListener('DOMContentLoaded', () => {
-    const menuBtn = document.querySelector('.mobile-menu') || document.querySelector('.topbar .fa-bars')?.parentElement;
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-
-    function toggleMenu() {
-        sidebar.classList.toggle('active');
-        if (overlay) overlay.classList.toggle('active');
-    }
-
-    // Eventos do Menu Mobile
-    if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
-    if (overlay) overlay.addEventListener('click', toggleMenu);
-
-    // Exemplo de função para exibir/ocultar login
-    window.setAuthenticated = function(isAuthenticated) {
-        const loginScreen = document.getElementById('loginScreen');
-        if (loginScreen) {
-            if (isAuthenticated) {
-                loginScreen.classList.add('hidden');
-            } else {
-                loginScreen.classList.remove('hidden');
-            }
-        }
-    };
-});
-
