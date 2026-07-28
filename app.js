@@ -33,7 +33,8 @@ export const Store = {
         conversation: [],
         loading: false,
         selectedFileBase64: null,
-        selectedFileName: null
+        selectedFileName: null,
+        isAuthenticated: false
     },
 
     setState(key, value) {
@@ -48,6 +49,7 @@ export const Store = {
 class HoneyAIApp {
     constructor() {
         this.initDOMReferences();
+        this.initAuthState();
         this.initEventListeners();
         this.initMarkdownEngine();
         this.initModalsAndUiActions();
@@ -59,14 +61,14 @@ class HoneyAIApp {
         this.kernelStateText = document.getElementById("kernel-state-text");
         
         // Navigation & Layout
-        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.getElementById("btn-toggle-menu") || document.querySelector(".collapse");
+        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.getElementById("btn-toggle-menu") || document.querySelector(".mobile-menu");
         this.btnCollapseSidebar = document.getElementById("btnCollapseSidebar");
-        this.osSidebar = document.getElementById("sidebar") || document.getElementById("os-sidebar");
+        this.osSidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
         this.sidebarOverlay = document.getElementById("sidebarOverlay");
         this.navItems = document.querySelectorAll("#sidebarNav a, .nav-item, nav a");
         this.workspaceViews = document.querySelectorAll(".workspace-view");
 
-        // Chat & Inputs (Mapeamento direto aos IDs do index.html com fallbacks)
+        // Chat & Inputs
         this.chatFeed = document.getElementById("chatMessages") || document.getElementById("chat-feed");
         this.promptTextarea = document.getElementById("chatInput") || document.getElementById("prompt-textarea");
         this.btnSend = document.getElementById("btnSend");
@@ -87,10 +89,19 @@ class HoneyAIApp {
         // Auth & Modais
         this.loginPage = document.getElementById("loginPage");
         this.loginForm = document.getElementById("loginForm");
-        this.studioApp = document.getElementById("studioApp");
+        this.studioApp = document.getElementById("studioApp") || document.querySelector(".studio");
         this.modalNewProject = document.getElementById("modalNewProject");
         this.modalNewAgent = document.getElementById("modalNewAgent");
         this.toastContainer = document.getElementById("toastContainer");
+        this.userBox = document.getElementById("userBox");
+    }
+
+    initAuthState() {
+        // Garante que o utilizador começa no Login e o Studio fica oculto
+        if (this.loginPage && this.studioApp) {
+            this.loginPage.style.display = "block";
+            this.studioApp.style.display = "none";
+        }
     }
 
     initEventListeners() {
@@ -111,9 +122,13 @@ class HoneyAIApp {
             });
         });
 
-        // Toggle do Menu Mobile
+        // Toggle do Menu Mobile (Garante a abertura correta por cima do overlay)
         if (this.btnToggleMenu) {
-            this.btnToggleMenu.addEventListener("click", () => this.toggleMobileSidebar());
+            this.btnToggleMenu.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleMobileSidebar();
+            });
         }
 
         if (this.btnCollapseSidebar) {
@@ -173,7 +188,7 @@ class HoneyAIApp {
             this.btnNewChat.addEventListener("click", () => this.handleNewChat());
         }
 
-        // Controlos de Preview (caso existam no DOM)
+        // Controlos de Preview
         if (this.btnTogglePreview && this.previewPane) {
             this.btnTogglePreview.addEventListener("click", () => {
                 this.previewPane.classList.toggle("hidden");
@@ -186,14 +201,29 @@ class HoneyAIApp {
             });
         }
 
-        // Autenticação / Login
+        // Autenticação / Login Form
         if (this.loginForm) {
             this.loginForm.addEventListener("submit", (e) => {
                 e.preventDefault();
-                if (this.loginPage && this.studioApp) {
-                    this.loginPage.style.display = "none";
-                    this.studioApp.style.display = "grid";
-                    this.showToast("Sessão iniciada com sucesso no Honey IA Studio!", "success");
+                this.login();
+            });
+        }
+
+        // Botão "Começar" na tela de login
+        const btnStartLogin = document.getElementById("btnStartLogin");
+        if (btnStartLogin) {
+            btnStartLogin.addEventListener("click", () => {
+                document.getElementById("loginEmail")?.focus();
+            });
+        }
+
+        // Clique no Perfil (User Box) para Logout / Alternar Login
+        if (this.userBox) {
+            this.userBox.style.cursor = "pointer";
+            this.userBox.title = "Clique para sair / fechar sessão";
+            this.userBox.addEventListener("click", () => {
+                if (confirm("Deseja terminar a sessão e voltar ao Login?")) {
+                    this.logout();
                 }
             });
         }
@@ -207,6 +237,24 @@ class HoneyAIApp {
                 }
             });
         });
+    }
+
+    login() {
+        if (this.loginPage && this.studioApp) {
+            this.loginPage.style.display = "none";
+            this.studioApp.style.display = "grid";
+            Store.setState("isAuthenticated", true);
+            this.showToast("Bem-vindo ao Honey IA Studio!", "success");
+        }
+    }
+
+    logout() {
+        if (this.loginPage && this.studioApp) {
+            this.studioApp.style.display = "none";
+            this.loginPage.style.display = "block";
+            Store.setState("isAuthenticated", false);
+            this.showToast("Sessão terminada com sucesso.", "info");
+        }
     }
 
     initModalsAndUiActions() {
@@ -281,13 +329,30 @@ class HoneyAIApp {
     }
 
     toggleMobileSidebar() {
-        if (this.osSidebar) this.osSidebar.classList.toggle("open");
-        if (this.sidebarOverlay) this.sidebarOverlay.classList.toggle("active");
+        if (!this.osSidebar) return;
+        
+        const isOpen = this.osSidebar.classList.contains("open") || this.osSidebar.classList.contains("active");
+
+        if (isOpen) {
+            this.closeMobileSidebar();
+        } else {
+            // Adiciona todas as variações de classe para garantir compatibilidade com o CSS
+            this.osSidebar.classList.add("open", "active");
+            this.osSidebar.style.zIndex = "10001"; // Garante que fica acima do overlay fusco
+            if (this.sidebarOverlay) {
+                this.sidebarOverlay.classList.add("active");
+                this.sidebarOverlay.style.zIndex = "10000";
+            }
+        }
     }
 
     closeMobileSidebar() {
-        if (this.osSidebar) this.osSidebar.classList.remove("open");
-        if (this.sidebarOverlay) this.sidebarOverlay.classList.remove("active");
+        if (this.osSidebar) {
+            this.osSidebar.classList.remove("open", "active");
+        }
+        if (this.sidebarOverlay) {
+            this.sidebarOverlay.classList.remove("active");
+        }
     }
 
     initMarkdownEngine() {
@@ -405,7 +470,6 @@ class HoneyAIApp {
 
         this.appendUserMessage(userText, Store.state.selectedFileName);
 
-        // PAYLOAD LIMPO (Rigorsamente compatível com o teu index.js no Render)
         const payload = {
             prompt: userText
         };
@@ -424,7 +488,6 @@ class HoneyAIApp {
         const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
-            // Rota configurada para o teu backend no Render
             const response = await fetch("https://honey-ia.onrender.com/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -439,7 +502,6 @@ class HoneyAIApp {
 
             const rawResponse = data.resposta || "Processado com sucesso.";
 
-            // Formatação com Marked.js ou fallback simples
             const formattedContent = window.marked ? marked.parse(rawResponse) : rawResponse;
             
             const contentBox = agentMessageElement.querySelector(".message-content");
@@ -539,7 +601,7 @@ class HoneyAIApp {
     }
 }
 
-// Inicialização da Aplicação quando o DOM estiver totalmente carregado
+// Inicialização da Aplicação
 document.addEventListener("DOMContentLoaded", () => {
     window.honeyApp = new HoneyAIApp();
 });
