@@ -358,3 +358,31 @@ class HoneyAIApp {
 document.addEventListener("DOMContentLoaded", () => {
     window.honeyApp = new HoneyAIApp();
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const menuBtn = document.querySelector('.mobile-menu') || document.querySelector('.topbar .fa-bars')?.parentElement;
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    function toggleMenu() {
+        sidebar.classList.toggle('active');
+        if (overlay) overlay.classList.toggle('active');
+    }
+
+    // Eventos do Menu Mobile
+    if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
+    if (overlay) overlay.addEventListener('click', toggleMenu);
+
+    // Exemplo de função para exibir/ocultar login
+    window.setAuthenticated = function(isAuthenticated) {
+        const loginScreen = document.getElementById('loginScreen');
+        if (loginScreen) {
+            if (isAuthenticated) {
+                loginScreen.classList.add('hidden');
+            } else {
+                loginScreen.classList.remove('hidden');
+            }
+        }
+    };
+});
+
