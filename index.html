@@ -324,29 +324,37 @@ Automações
 
 <a>
 
-<i class="    <div class="sidebar-footer">
+<i class="fa-solid fa-brain"></i>
 
-        <div class="plan-card">
+Memória
 
-            <span class="plan-label">
-                PLANO
-            </span>
+</a>
 
-            <h3>
-                Gratuito
-            </h3>
+</nav>
 
-            <p>
-                1 projeto disponível
-            </p>
+<div class="sidebar-footer">
 
-            <button>
-                Upgrade
-            </button>
+    <div class="plan-card">
 
-        </div>
+        <span class="plan-label">
+            PLANO
+        </span>
+
+        <h3>
+            Gratuito
+        </h3>
+
+        <p>
+            1 projeto disponível
+        </p>
+
+        <button>
+            Upgrade
+        </button>
 
     </div>
+
+</div>
 
 </aside>
 
@@ -670,7 +678,9 @@ Visualize métricas e produtividade em tempo real.
 
 </div>
 
-</section> <section class="plans-section">
+</section>
+
+<section class="plans-section">
 
     <div class="section-header">
 
@@ -808,7 +818,7 @@ Visualize métricas e produtividade em tempo real.
 
     <div class="workspace-card">
 
-        <div class="workspace-welcome">
+        <div class="workspace-welcome" id="welcomeBox">
 
             <div class="workspace-logo">
 
@@ -830,24 +840,31 @@ Visualize métricas e produtividade em tempo real.
 
         </div>
 
+        <!-- Área onde as mensagens do Chat vão ser adicionadas dinamicamente -->
+        <div id="chatMessages" class="chat-messages" style="display: flex; flex-direction: column; gap: 15px; max-height: 450px; overflow-y: auto; margin-bottom: 20px;"></div>
+
         <div class="prompt-box">
 
-            <button class="attach">
+            <!-- Input invisível para captura de ficheiros -->
+            <input type="file" id="fileInput" hidden>
+
+            <button class="attach" id="btnAttach">
 
                 <i class="fa-solid fa-paperclip"></i>
 
             </button>
 
             <textarea
+            id="chatInput"
             placeholder="Escreva uma mensagem para a Honey IA..."></textarea>
 
-            <button class="voice">
+            <button class="voice" id="btnVoice">
 
                 <i class="fa-solid fa-microphone"></i>
 
             </button>
 
-            <button class="send">
+            <button class="send" id="btnSend">
 
                 <i class="fa-solid fa-paper-plane"></i>
 
