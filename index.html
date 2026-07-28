@@ -1,165 +1,475 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA — Workspace</title>
-    
-    <meta name="theme-color" content="#0a0c10">
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/825/825590.png">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
+<title>Honey IA Studio</title>
 
-    <!-- Highlight.js & Marked -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<meta name="theme-color" content="#090b10">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
 
-    <div class="app-container">
-        
-        <!-- SIDEBAR DE NAVEGAÇÃO -->
-        <aside class="os-sidebar" id="os-sidebar">
-            <div class="sidebar-header">
-                <div class="brand-icon">H</div>
-                <div class="brand-title">Honey IA <span class="badge">v5</span></div>
-            </div>
+<div class="background-glow glow1"></div>
+<div class="background-glow glow2"></div>
+<div class="background-glow glow3"></div>
 
-            <ul class="nav-list">
-                <li class="nav-item active" data-view="chat-workspace">
-                    <span class="nav-icon">💬</span>
-                    <span>Conversa</span>
-                </li>
-                <li class="nav-item" data-view="workspaces">
-                    <span class="nav-icon">📁</span>
-                    <span>Workspaces</span>
-                </li>
-                <li class="nav-item" data-view="memories">
-                    <span class="nav-icon">🧠</span>
-                    <span>Memória</span>
-                </li>
-                <li class="nav-item" data-view="agents">
-                    <span class="nav-icon">🤖</span>
-                    <span>Agentes</span>
-                </li>
-                <li class="nav-item" data-view="tools">
-                    <span class="nav-icon">🛠️</span>
-                    <span>Ferramentas</span>
-                </li>
-                <li class="nav-item" data-view="system">
-                    <span class="nav-icon">⚙️</span>
-                    <span>Sistema</span>
-                </li>
-            </ul>
+<div class="login-screen" id="login-screen">
 
-            <div class="sidebar-footer">
-                <div class="ws-card">
-                    <span class="ws-label">Workspace Atual</span>
-                    <strong class="ws-name">📌 Geral & Dev</strong>
-                </div>
-            </div>
-        </aside>
+<div class="login-card">
 
-        <!-- ÁREA PRINCIPAL -->
-        <main class="main-workspace">
-            
-            <!-- NAVBAR SUPERIOR -->
-            <header class="top-navbar">
-                <div class="nav-left">
-                    <button class="btn-icon mobile-toggle" id="btn-toggle-menu" aria-label="Abrir Menu">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                    </button>
-                    <div class="agent-badge">
-                        <span class="agent-emoji">🐝</span>
-                        <div>
-                            <span class="agent-title">Agente Orquestrador</span>
-                            <span class="agent-sub">Especialista Ativo</span>
-                        </div>
-                    </div>
-                </div>
+<div class="login-left">
 
-                <div class="nav-right">
-                    <div class="status-badge" id="kernel-status">
-                        <span class="status-dot"></span>
-                        <span id="kernel-state-text">Ocioso</span>
-                    </div>
-                    <button class="btn-action-sm" id="btn-toggle-preview">
-                        Preview Split
-                    </button>
-                </div>
-            </header>
+<div class="logo-box">
 
-            <!-- ÁREA DO CHAT E PREVIEW -->
-            <div class="workspace-body">
-                
-                <div class="workspace-view active" id="view-chat-workspace">
-                    <div class="split-layout">
-                        
-                        <!-- CHAT PANE -->
-                        <div class="chat-pane">
-                            <div class="chat-container" id="chat-feed">
-                                <div class="welcome-box" id="workspace-welcome">
-                                    <div class="brand-badge">Honey IA OS</div>
-                                    <h2>Como posso ajudar no teu projeto hoje?</h2>
-                                    <p>Envia instruções de texto, código ou anexos para processamento instantâneo.</p>
-                                </div>
-                            </div>
+<div class="logo-circle">
 
-                            <!-- DOCK INPUT DE MENSAGEM -->
-                            <div class="input-container">
-                                <div class="attachment-bar hidden" id="attachment-bar">
-                                    <span class="file-icon">📎</span>
-                                    <span id="attached-file-name">ficheiro.pdf</span>
-                                    <button id="btn-remove-attachment">&times;</button>
-                                </div>
+🐝
 
-                                <form class="input-box" id="os-prompt-form">
-                                    <label for="file-upload" class="btn-icon" title="Anexar Ficheiro">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                                    </label>
-                                    <input type="file" id="file-upload" class="hidden-input" accept="image/*,.pdf,.txt,.csv,.json">
+</div>
 
-                                    <textarea id="prompt-textarea" placeholder="Digite uma instrução..." rows="1"></textarea>
+<div>
 
-                                    <button type="submit" class="btn-send" id="btn-send-prompt">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+<h1>Honey IA</h1>
 
-                        <!-- LIVE PREVIEW PANE -->
-                        <div class="preview-pane hidden" id="preview-pane">
-                            <div class="preview-header">
-                                <span>⚡ Live Preview</span>
-                                <button class="btn-icon" id="btn-close-preview">&times;</button>
-                            </div>
-                            <iframe id="live-preview-iframe" title="Preview Frame"></iframe>
-                        </div>
+<p>Enterprise AI Studio</p>
 
-                    </div>
-                </div>
+</div>
 
-                <!-- OUTRAS VIEWS DINÂMICAS -->
-                <div class="workspace-view hidden" id="view-workspaces"></div>
-                <div class="workspace-view hidden" id="view-memories"></div>
-                <div class="workspace-view hidden" id="view-agents"></div>
-                <div class="workspace-view hidden" id="view-tools"></div>
-                <div class="workspace-view hidden" id="view-system"></div>
+</div>
 
-            </div>
-        </main>
-    </div>
+<h2>
 
-    <!-- SCRIPTS -->
-    <script type="module" src="components.js"></script>
-    <script type="module" src="app.js"></script>
+A Inteligência Artificial para empresas, bancos, empreendedores e pessoas.
+
+</h2>
+
+<p class="hero-description">
+
+Crie agentes inteligentes.
+
+Analise documentos.
+
+Automatize processos.
+
+Trabalhe com dados.
+
+Tudo numa única plataforma.
+
+</p>
+
+<div class="hero-stats">
+
+<div class="stat-card">
+
+<h3>+120</h3>
+
+<span>Agentes</span>
+
+</div>
+
+<div class="stat-card">
+
+<h3>99.9%</h3>
+
+<span>Disponibilidade</span>
+
+</div>
+
+<div class="stat-card">
+
+<h3>Enterprise</h3>
+
+<span>Segurança</span>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="login-right">
+
+<h2>Entrar</h2>
+
+<p>
+
+Bem-vindo ao Honey IA Studio
+
+</p>
+
+<form>
+
+<div class="input-group">
+
+<label>Email</label>
+
+<input type="email" placeholder="email@empresa.com">
+
+</div>
+
+<div class="input-group">
+
+<label>Palavra-passe</label>
+
+<input type="password" placeholder="********">
+
+</div>
+
+<button class="btn-primary">
+
+Entrar
+
+</button>
+
+</form>
+
+<div class="separator">
+
+<span>ou</span>
+
+</div>
+
+<button class="btn-social google">
+
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg">
+
+Continuar com Google
+
+</button>
+
+<button class="btn-social facebook">
+
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg">
+
+Continuar com Facebook
+
+</button>
+
+<div class="login-footer">
+
+<a href="#">
+
+Criar conta
+
+</a>
+
+<a href="#">
+
+Esqueceu a senha?
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="studio hidden">
+
+<aside class="sidebar">
+
+<div class="sidebar-top">
+
+<div class="brand">
+
+<div class="brand-icon">
+
+🐝
+
+</div>
+
+<div>
+
+<h2>Honey IA</h2>
+
+<span>Enterprise Studio</span>
+
+</div>
+
+</div>
+
+<button class="menu-button">
+
+☰
+
+</button><section class="dashboard">
+
+<div class="hero-card">
+
+<div>
+
+<span class="tag">HONEY IA STUDIO</span>
+
+<h1>Bem-vindo ao futuro da Inteligência Artificial.</h1>
+
+<p>
+Crie agentes inteligentes, processe documentos, automatize tarefas e desenvolva projetos profissionais numa única plataforma.
+</p>
+
+<div class="hero-buttons">
+
+<button class="btn-primary">
+
+Novo Projeto
+
+</button>
+
+<button class="btn-secondary">
+
+Criar Agente
+
+</button>
+
+</div>
+
+</div>
+
+<div class="hero-illustration">
+
+🐝
+
+</div>
+
+</div>
+
+<section class="quick-grid">
+
+<div class="feature-card">
+
+<span>🤖</span>
+
+<h3>Agentes IA</h3>
+
+<p>Construa agentes especializados para qualquer área.</p>
+
+</div>
+
+<div class="feature-card">
+
+<span>📄</span>
+
+<h3>Documentos</h3>
+
+<p>Analise PDFs, Word, Excel, imagens e muito mais.</p>
+
+</div>
+
+<div class="feature-card">
+
+<span>📊</span>
+
+<h3>Analytics</h3>
+
+<p>Acompanhe produtividade e utilização da IA.</p>
+
+</div>
+
+<div class="feature-card">
+
+<span>⚡</span>
+
+<h3>Automações</h3>
+
+<p>Crie fluxos inteligentes sem esforço.</p>
+
+</div>
+
+</section>
+
+<section class="plans">
+
+<h2>Planos Honey IA</h2>
+
+<div class="plans-grid">
+
+<div class="plan-card">
+
+<div class="plan-title">
+
+Gratuito
+
+</div>
+
+<h3>0 Kz</h3>
+
+<ul>
+
+<li>✔ Conversas ilimitadas</li>
+
+<li>✔ 1 Projeto</li>
+
+<li>✔ Identificação de documentos</li>
+
+<li>✖ Exportação bloqueada</li>
+
+<li>✖ Recursos Premium</li>
+
+</ul>
+
+<button>
+
+Plano Atual
+
+</button>
+
+</div>
+
+<div class="plan-card featured">
+
+<div class="plan-title">
+
+Profissional
+
+</div>
+
+<h3>15.000 Kz/mês</h3>
+
+<p class="annual">
+
+ou 175.000 Kz/ano
+
+</p>
+
+<ul>
+
+<li>✔ Projetos ilimitados</li>
+
+<li>✔ Exportação</li>
+
+<li>✔ OCR Avançado</li>
+
+<li>✔ Memória Inteligente</li>
+
+<li>✔ Ferramentas Premium</li>
+
+<li>✔ APIs</li>
+
+</ul>
+
+<button>
+
+Assinar
+
+</button>
+
+</div>
+
+<div class="plan-card enterprise">
+
+<div class="plan-title">
+
+Empresas
+
+</div>
+
+<h3>400.000 Kz/mês</h3>
+
+<p class="annual">
+
+ou 4.600.000 Kz/ano
+
+</p>
+
+<ul>
+
+<li>✔ Tudo do plano Pro</li>
+
+<li>✔ Multiutilizador</li>
+
+<li>✔ Dashboard Administrativo</li>
+
+<li>✔ Segurança Corporativa</li>
+
+<li>✔ Suporte Prioritário</li>
+
+<li>✔ Integrações Empresariais</li>
+
+</ul>
+
+<button>
+
+Contactar Comercial
+
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+<section class="workspace">
+
+<div class="workspace-header">
+
+<h2>Workspace</h2>
+
+<span>Pronto para trabalhar</span>
+
+</div>
+
+<div class="chat-area">
+
+<div class="welcome">
+
+<h2>Olá 👋</h2>
+
+<p>
+
+O que pretende criar hoje?
+
+</p>
+
+</div>
+
+<div class="message-box">
+
+<button>
+
+📎
+
+</button>
+
+<textarea
+placeholder="Escreva uma mensagem para a Honey IA..."></textarea>
+
+<button class="send">
+
+➜
+
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+<script type="module" src="components.js"></script>
+<script type="module" src="app.js"></script>
+
 </body>
+
 </html>
