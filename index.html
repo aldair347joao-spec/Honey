@@ -33,6 +33,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 
 <div class="noise"></div>
 
+<!-- OVERLAY PARA MENU MOBILE -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <!-- LOGIN -->
 
 <section class="login-page" id="loginPage">
@@ -87,7 +90,7 @@ Tudo numa única plataforma.
 
 <div class="hero-buttons">
 
-<button>
+<button id="btnStartLogin">
 
 <i class="fa-solid fa-rocket"></i>
 
@@ -95,7 +98,7 @@ Começar
 
 </button>
 
-<button class="outline">
+<button class="outline" id="btnDemoLogin">
 
 Ver demonstração
 
@@ -149,7 +152,7 @@ Bem-vindo ao Honey IA Studio.
 
 </p>
 
-<form>
+<form id="loginForm">
 
 <div class="input">
 
@@ -161,7 +164,8 @@ Email
 
 <input
 type="email"
-placeholder="empresa@email.com">
+id="loginEmail"
+placeholder="empresa@email.com" required>
 
 </div>
 
@@ -175,12 +179,13 @@ Palavra-passe
 
 <input
 type="password"
-placeholder="********">
+id="loginPassword"
+placeholder="********" required>
 
 </div>
 
 <button
-class="login-button">
+class="login-button" type="submit">
 
 Entrar
 
@@ -198,7 +203,7 @@ OU
 
 </div>
 
-<button class="social google">
+<button class="social google" id="btnGoogleAuth">
 
 <i class="fa-brands fa-google"></i>
 
@@ -206,7 +211,7 @@ Continuar com Google
 
 </button>
 
-<button class="social facebook">
+<button class="social facebook" id="btnFacebookAuth">
 
 <i class="fa-brands fa-facebook-f"></i>
 
@@ -216,13 +221,13 @@ Continuar com Facebook
 
 <div class="links">
 
-<a href="#">
+<a href="#" id="linkRegister">
 
 Criar conta
 
 </a>
 
-<a href="#">
+<a href="#" id="linkForgotPassword">
 
 Recuperar senha
 
@@ -240,9 +245,9 @@ Recuperar senha
 
 <!-- STUDIO -->
 
-<div class="studio">
+<div class="studio" id="studioApp">
 
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
 
 <div class="sidebar-header">
 
@@ -272,7 +277,7 @@ Studio
 
 </div>
 
-<button class="collapse">
+<button class="collapse" id="btnCollapseSidebar">
 
 <i class="fa-solid fa-bars"></i>
 
@@ -280,9 +285,9 @@ Studio
 
 </div>
 
-<nav>
+<nav id="sidebarNav">
 
-<a class="active">
+<a class="active" data-target="dashboard">
 
 <i class="fa-solid fa-house"></i>
 
@@ -290,7 +295,7 @@ Dashboard
 
 </a>
 
-<a>
+<a data-target="agents">
 
 <i class="fa-solid fa-robot"></i>
 
@@ -298,7 +303,7 @@ Agentes
 
 </a>
 
-<a>
+<a data-target="projects">
 
 <i class="fa-solid fa-folder"></i>
 
@@ -306,7 +311,7 @@ Projetos
 
 </a>
 
-<a>
+<a data-target="documents">
 
 <i class="fa-solid fa-file-lines"></i>
 
@@ -314,7 +319,7 @@ Documentos
 
 </a>
 
-<a>
+<a data-target="automations">
 
 <i class="fa-solid fa-bolt"></i>
 
@@ -322,7 +327,7 @@ Automações
 
 </a>
 
-<a>
+<a data-target="memory">
 
 <i class="fa-solid fa-brain"></i>
 
@@ -348,7 +353,7 @@ Memória
             1 projeto disponível
         </p>
 
-        <button>
+        <button id="btnSidebarUpgrade">
             Upgrade
         </button>
 
@@ -364,7 +369,7 @@ Memória
 
 <div class="top-left">
 
-<button class="mobile-menu">
+<button class="mobile-menu" id="btnMobileMenu">
 
 <i class="fa-solid fa-bars"></i>
 
@@ -376,6 +381,7 @@ Memória
 
 <input
 type="text"
+id="globalSearch"
 placeholder="Pesquisar agentes, projetos, documentos...">
 
 </div>
@@ -384,19 +390,19 @@ placeholder="Pesquisar agentes, projetos, documentos...">
 
 <div class="top-right">
 
-<button>
+<button id="btnNotifications">
 
 <i class="fa-regular fa-bell"></i>
 
 </button>
 
-<button>
+<button id="btnQuickAdd">
 
 <i class="fa-solid fa-plus"></i>
 
 </button>
 
-<div class="user-box">
+<div class="user-box" id="userBox">
 
 <div class="avatar">
 
@@ -426,7 +432,7 @@ Plano Gratuito
 
 </header>
 
-<section class="dashboard">
+<section class="dashboard" id="dashboardSection">
 
 <div class="hero">
 
@@ -452,13 +458,13 @@ Uma plataforma desenvolvida para empresas, bancos, empreendedores e profissionai
 
 <div class="hero-actions">
 
-<button class="primary">
+<button class="primary" id="btnNewProject">
 
 Novo Projeto
 
 </button>
 
-<button class="secondary">
+<button class="secondary" id="btnNewAgent">
 
 Criar Agente
 
@@ -506,7 +512,7 @@ Agentes disponíveis
 
 <i class="fa-solid fa-folder-open"></i>
 
-<h2>
+<h2 id="statProjectCount">
 
 1
 
@@ -568,7 +574,7 @@ Explorar o Studio
 
 <div class="module-grid">
 
-<div class="module">
+<div class="module" data-action="agents">
 
 <i class="fa-solid fa-robot"></i>
 
@@ -586,7 +592,7 @@ Crie agentes especializados para qualquer área.
 
 </div>
 
-<div class="module">
+<div class="module" data-action="documents">
 
 <i class="fa-solid fa-file-arrow-up"></i>
 
@@ -604,7 +610,7 @@ Envie PDFs, Word, Excel, imagens e outros ficheiros.
 
 </div>
 
-<div class="module">
+<div class="module" data-action="projects">
 
 <i class="fa-solid fa-folder-tree"></i>
 
@@ -622,7 +628,7 @@ Organize todo o trabalho num único lugar.
 
 </div>
 
-<div class="module">
+<div class="module" data-action="automations">
 
 <i class="fa-solid fa-bolt"></i>
 
@@ -640,7 +646,7 @@ Automatize tarefas repetitivas com IA.
 
 </div>
 
-<div class="module">
+<div class="module" data-action="memory">
 
 <i class="fa-solid fa-brain"></i>
 
@@ -658,7 +664,7 @@ Permita que a Honey IA aprenda continuamente.
 
 </div>
 
-<div class="module">
+<div class="module" data-action="analytics">
 
 <i class="fa-solid fa-chart-line"></i>
 
@@ -754,7 +760,7 @@ Visualize métricas e produtividade em tempo real.
 
             </ul>
 
-            <button>
+            <button id="btnSubscribePro">
                 Assinar Agora
             </button>
 
@@ -790,7 +796,7 @@ Visualize métricas e produtividade em tempo real.
 
             </ul>
 
-            <button>
+            <button id="btnContactSales">
                 Falar com Vendas
             </button>
 
@@ -806,7 +812,7 @@ Visualize métricas e produtividade em tempo real.
 
         <h2>Workspace</h2>
 
-        <button>
+        <button id="btnNewChat">
 
             <i class="fa-solid fa-plus"></i>
 
@@ -897,6 +903,42 @@ Enterprise Artificial Intelligence Platform
 </main>
 
 </div>
+
+<!-- MODAL PARA NOVO PROJETO -->
+<div class="modal-overlay" id="modalNewProject" style="display: none;">
+    <div class="modal-content" style="background: #0f172a; padding: 25px; border-radius: 12px; border: 1px solid #1e293b; max-width: 450px; width: 90%; color: #fff;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">Novo Projeto</h3>
+            <button data-close="modalNewProject" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="formNewProject">
+            <div class="input" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; color: #94a3b8;">Nome do Projeto</label>
+                <input type="text" id="projectName" placeholder="Ex: Automação Financeira" required style="width: 100%; padding: 10px; border-radius: 6px; background: #070b11; border: 1px solid #334155; color: #fff;">
+            </div>
+            <button type="submit" class="login-button" style="width: 100%; padding: 10px; background: #0066ff; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Criar Projeto</button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL PARA CRIAR AGENTE -->
+<div class="modal-overlay" id="modalNewAgent" style="display: none;">
+    <div class="modal-content" style="background: #0f172a; padding: 25px; border-radius: 12px; border: 1px solid #1e293b; max-width: 450px; width: 90%; color: #fff;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">Criar Agente IA</h3>
+            <button data-close="modalNewAgent" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="formNewAgent">
+            <div class="input" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; color: #94a3b8;">Nome do Agente</label>
+                <input type="text" id="agentName" placeholder="Ex: Assistente Jurídico" required style="width: 100%; padding: 10px; border-radius: 6px; background: #070b11; border: 1px solid #334155; color: #fff;">
+            </div>
+            <button type="submit" class="login-button" style="width: 100%; padding: 10px; background: #0066ff; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Criar Agente</button>
+        </form>
+    </div>
+</div>
+
+<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
 
 <script type="module" src="app.js"></script>
 
