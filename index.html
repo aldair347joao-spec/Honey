@@ -3,122 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA — Assistente Inteligente</title>
+    <title>Honey AI — AI Operating System</title>
     
-    <!-- PWA & Meta Tags -->
-    <meta name="theme-color" content="#0d0f12">
-    <meta name="description" content="Honey IA - Assistente inteligente para análise de documentos, imagens e soluções empresariais.">
+    <!-- Meta Tags & PWA -->
+    <meta name="theme-color" content="#0b0d10">
+    <meta name="description" content="Honey AI OS - Sistema Operacional de Inteligência Artificial e AI Workspace">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/825/825590.png">
 
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Style Primary -->
+    <!-- CSS Primary -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Highlight.js CSS para realce de código -->
+    <!-- Libraries via CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
+    <div class="ai-os-wrapper">
+        
+        <!-- BARRA SUPERIOR (HEADER) -->
+        <header class="os-topbar">
+            <div class="topbar-left">
+                <button class="icon-btn mobile-only" id="btn-toggle-menu">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
                 <div class="brand">
-                    <img src="https://cdn-icons-png.flaticon.com/512/825/825590.png" alt="Honey IA Logo" class="brand-logo">
-                    <span class="brand-name">Honey IA</span>
+                    <img src="https://cdn-icons-png.flaticon.com/512/825/825590.png" alt="Honey AI" class="brand-logo">
+                    <span class="brand-name">Honey AI <span class="os-badge">OS v1.0</span></span>
                 </div>
-                <button class="icon-btn" id="new-chat-btn" title="Nova Conversa">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </div>
+
+            <!-- Indicador do Kernel em Tempo Real -->
+            <div class="kernel-status-card" id="kernel-status">
+                <span class="status-pulse"></span>
+                <span class="kernel-label">Kernel: <strong id="kernel-state-text">Ocioso</strong></span>
+            </div>
+
+            <div class="topbar-right">
+                <!-- Pesquisa Rápida Global -->
+                <div class="global-search-box">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="global-search-input" placeholder="Pesquisar conversas, memórias ou códigos (Ctrl+K)...">
+                </div>
+
+                <button class="icon-btn" id="btn-notifications" title="Notificações">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                 </button>
-            </div>
 
-            <div class="sidebar-content">
-                <div class="section-title">Histórico</div>
-                <div class="chat-history-list" id="chat-history">
-                    <!-- Preenchido dinamicamente pelo App.js -->
+                <div class="user-profile-menu" id="user-profile-btn">
+                    <div class="user-avatar">H</div>
+                    <span class="user-name-label">Developer</span>
                 </div>
             </div>
+        </header>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="avatar">H</div>
-                    <div class="user-info">
-                        <span class="user-name">Utilizador</span>
-                        <span class="user-status">Plano Gratuito</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Chat Area -->
-        <main class="main-content">
-            <header class="top-bar">
-                <button class="icon-btn mobile-only" id="toggle-sidebar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                </button>
-                <div class="agent-badge">
-                    <span class="pulse-dot"></span>
-                    <span id="active-model-name">Honey IA Core v5.0</span>
-                </div>
-            </header>
-
-            <div class="chat-viewport" id="chat-viewport">
-                <div class="welcome-screen" id="welcome-screen">
-                    <img src="https://cdn-icons-png.flaticon.com/512/825/825590.png" alt="Honey IA" class="welcome-logo">
-                    <h1>Como posso ajudar hoje?</h1>
-                    <p>Faça perguntas, analise documentos ou envie imagens para inspeção detalhada.</p>
-                </div>
-                <div class="messages-container" id="messages-container"></div>
-            </div>
-
-            <!-- Input Controls Area -->
-            <div class="input-section">
-                <!-- File Attachment Preview Area -->
-                <div class="file-preview-bar hidden" id="file-preview-bar">
-                    <div class="file-info">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                        <span id="file-name">documento.pdf</span>
-                    </div>
-                    <button class="remove-file-btn" id="remove-file-btn">&times;</button>
-                </div>
-
-                <form class="input-form" id="chat-form">
-                    <label for="file-input" class="attach-btn" title="Anexar Documento ou Imagem">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                    </label>
-                    <input type="file" id="file-input" class="hidden-input" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx">
-                    
-                    <textarea id="user-input" placeholder="Escreva a sua mensagem para a Honey IA..." rows="1"></textarea>
-
-                    <button type="submit" class="send-btn" id="send-btn" title="Enviar Mensagem">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        <!-- CORPO PRINCIPAL -->
+        <div class="os-body">
+            
+            <!-- SIDEBAR DE NAVEGAÇÃO DO SISTEMA OPERACIONAL -->
+            <aside class="os-sidebar" id="os-sidebar">
+                <nav class="nav-menu">
+                    <button class="nav-item active" data-view="chat-workspace">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>💬 Chats</span>
                     </button>
-                </form>
+
+                    <button class="nav-item" data-view="workspaces">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        <span>📂 Workspaces</span>
+                    </button>
+
+                    <button class="nav-item" data-view="memories">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"></path></svg>
+                        <span>🧠 Memória</span>
+                    </button>
+
+                    <button class="nav-item" data-view="agents">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+                        <span>🤖 Agentes</span>
+                    </button>
+
+                    <button class="nav-item" data-view="tools">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+                        <span>🧩 Ferramentas</span>
+                    </button>
+
+                    <button class="nav-item" data-view="analytics">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>📊 Analytics</span>
+                    </button>
+
+                    <button class="nav-item" data-view="system">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>⚙ Sistema</span>
+                    </button>
+                </nav>
+
+                <!-- Seção do Workspace Ativo na Sidebar -->
+                <div class="active-workspace-card">
+                    <div class="ws-label">Workspace Atual</div>
+                    <div class="ws-title" id="current-workspace-name">📌 Geral & Desenvolvimento</div>
+                </div>
+            </aside>
+
+            <!-- WORKSPACE ÁREA PRINCIPAL (Área de Trabalho Ativa) -->
+            <main class="os-content" id="os-content-viewport">
+                
+                <!-- VISÃO 1: CHAT WORKSPACE & PREVIEW SPLIT -->
+                <div class="workspace-view active" id="view-chat-workspace">
+                    
+                    <div class="workspace-split-container">
+                        
+                        <!-- Painel do Chat / Execução -->
+                        <div class="chat-pane">
+                            <!-- Header de Contexto do Agente Ativo -->
+                            <div class="agent-active-bar" id="agent-active-bar">
+                                <div class="agent-info">
+                                    <span class="agent-icon" id="active-agent-icon">🐝</span>
+                                    <div>
+                                        <div class="agent-title" id="active-agent-title">Agente Orquestrador Honey</div>
+                                        <div class="agent-sub" id="active-agent-sub">Especialista Ativo: Detecção Automática</div>
+                                    </div>
+                                </div>
+                                <button class="action-btn-sm" id="btn-toggle-preview">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                                    <span>Preview Split</span>
+                                </button>
+                            </div>
+
+                            <!-- Feed do Histórico de Mensagens -->
+                            <div class="chat-feed" id="chat-feed">
+                                <div class="workspace-welcome" id="workspace-welcome">
+                                    <div class="welcome-badge">Honey AI OS Workspace</div>
+                                    <h2>Pronto para criar, analisar ou desenvolver.</h2>
+                                    <p>Selecione um Workspace, envie documentos ou solicite ao orquestrador para acionar os agentes especialistas.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Painel de Preview em Tempo Real (HTML/Code/Markdown) -->
+                        <div class="preview-pane hidden" id="preview-pane">
+                            <div class="preview-header">
+                                <span class="preview-title">⚡ Live Preview</span>
+                                <div class="preview-controls">
+                                    <button class="preview-tab active" data-tab="render">Resultado</button>
+                                    <button class="preview-tab" data-tab="code">Código Fonte</button>
+                                    <button class="icon-btn-sm" id="btn-close-preview">&times;</button>
+                                </div>
+                            </div>
+                            <div class="preview-body" id="preview-body-container">
+                                <iframe id="live-preview-iframe" title="Live Preview Output"></iframe>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- DEMAIS VISÕES (Renderizadas Dinamicamente via components.js) -->
+                <div class="workspace-view hidden" id="view-workspaces"></div>
+                <div class="workspace-view hidden" id="view-memories"></div>
+                <div class="workspace-view hidden" id="view-agents"></div>
+                <div class="workspace-view hidden" id="view-tools"></div>
+                <div class="workspace-view hidden" id="view-analytics"></div>
+                <div class="workspace-view hidden" id="view-system"></div>
+
+            </main>
+
+        </div>
+
+        <!-- BARRA INFERIOR DE COMANDOS (PROMPT INPUT OS) -->
+        <footer class="os-input-dock">
+            
+            <!-- Bar de Anexos Pendentes -->
+            <div class="attachment-preview-bar hidden" id="attachment-bar">
+                <div class="attachment-chip">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                    <span id="attached-file-name">documento.pdf</span>
+                    <button class="btn-remove-attachment" id="btn-remove-attachment">&times;</button>
+                </div>
             </div>
-        </main>
+
+            <form class="os-prompt-form" id="os-prompt-form">
+                <!-- Botão de Anexo -->
+                <label for="file-upload" class="dock-btn" title="Anexar Arquivo ou Imagem">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                </label>
+                <input type="file" id="file-upload" class="hidden-element" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx">
+
+                <!-- Botão de Microfone -->
+                <button type="button" class="dock-btn" id="btn-voice-input" title="Entrada por Voz">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </button>
+
+                <!-- Input Principal -->
+                <textarea id="prompt-textarea" placeholder="Digite uma instrução para o Sistema Operacional Honey..." rows="1"></textarea>
+
+                <!-- Botão Enviar -->
+                <button type="submit" class="send-action-btn" id="btn-send-prompt" title="Executar Comando">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </footer>
+
     </div>
 
-    <!-- External Markdown & Syntax Highlight Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
-    <!-- App Module Principal -->
-    <script type="module" src="App.js"></script>
-
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/Sw.js')
-                    .then(reg => console.log('🐝 Honey IA Service Worker Ativo!'))
-                    .catch(err => console.error('Erro ao registrar SW:', err));
-            });
-        }
-    </script>
+    <!-- Scripts da Aplicação (Integrados no final) -->
+    <script type="module" src="components.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
