@@ -68,6 +68,8 @@ const context = ContextEngine.build({
         return {
 
             prompt,
+           
+            contex,
 
             toolResult,
 
