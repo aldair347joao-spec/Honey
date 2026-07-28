@@ -1,11 +1,14 @@
 /**
- * HONEY IA — CORE ENGINE V5 (ESTÁVEL)
+ * HONEY IA — CORE ENGINE V5 (ESTÁVEL & ENTERPRISE INTEGRATED)
  */
 
 import { Components } from "./components.js";
 
 const SESSION_ID = crypto.randomUUID();
 
+// ==========================================================
+// 1. EVENT BUS & CENTRAL STORE
+// ==========================================================
 class EventBus {
     constructor() {
         this.events = {};
@@ -39,6 +42,9 @@ export const Store = {
     }
 };
 
+// ==========================================================
+// 2. MAIN APPLICATION CLASS
+// ==========================================================
 class HoneyAIApp {
     constructor() {
         this.initDOMReferences();
@@ -47,22 +53,27 @@ class HoneyAIApp {
     }
 
     initDOMReferences() {
+        // Status & Kernel
         this.kernelStatusCard = document.getElementById("kernel-status");
         this.kernelStateText = document.getElementById("kernel-state-text");
-        this.btnToggleMenu = document.getElementById("btn-toggle-menu");
-        this.osSidebar = document.getElementById("os-sidebar");
-
-        this.navItems = document.querySelectorAll(".nav-item");
+        
+        // Navigation & Layout
+        this.btnToggleMenu = document.getElementById("btn-toggle-menu") || document.querySelector(".collapse");
+        this.osSidebar = document.getElementById("os-sidebar") || document.querySelector(".sidebar");
+        this.navItems = document.querySelectorAll(".nav-item, nav a");
         this.workspaceViews = document.querySelectorAll(".workspace-view");
 
-        this.chatFeed = document.getElementById("chat-feed");
-        this.promptForm = document.getElementById("os-prompt-form");
-        this.promptTextarea = document.getElementById("prompt-textarea");
-        this.fileUploadInput = document.getElementById("file-upload");
+        // Chat & Inputs (Com fallbacks para os IDs do index.html)
+        this.chatFeed = document.getElementById("chatMessages") || document.getElementById("chat-feed");
+        this.promptTextarea = document.getElementById("chatInput") || document.getElementById("prompt-textarea");
+        this.btnSend = document.getElementById("btnSend");
+        this.fileUploadInput = document.getElementById("fileInput") || document.getElementById("file-upload");
+        this.btnAttach = document.getElementById("btnAttach");
         this.attachmentBar = document.getElementById("attachment-bar");
         this.attachedFileName = document.getElementById("attached-file-name");
         this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
 
+        // Preview Pane & Live Iframe
         this.previewPane = document.getElementById("preview-pane");
         this.btnTogglePreview = document.getElementById("btn-toggle-preview");
         this.btnClosePreview = document.getElementById("btn-close-preview");
@@ -70,49 +81,73 @@ class HoneyAIApp {
     }
 
     initEventListeners() {
-        // Menu Lateral
+        // Menu Lateral & Navegação
         this.navItems.forEach(item => {
             item.addEventListener("click", () => {
                 const target = item.getAttribute("data-view");
-                this.switchView(target, item);
-                this.osSidebar.classList.remove("open");
+                if (target) {
+                    this.switchView(target, item);
+                } else {
+                    this.navItems.forEach(nav => nav.classList.remove("active"));
+                    item.classList.add("active");
+                }
+                if (this.osSidebar) this.osSidebar.classList.remove("open");
             });
         });
 
-        if (this.btnToggleMenu) {
+        if (this.btnToggleMenu && this.osSidebar) {
             this.btnToggleMenu.addEventListener("click", () => {
                 this.osSidebar.classList.toggle("open");
             });
         }
 
-        // Auto-Resize Textarea
-        this.promptTextarea.addEventListener("input", () => {
-            this.promptTextarea.style.height = "auto";
-            this.promptTextarea.style.height = `${Math.min(this.promptTextarea.scrollHeight, 100)}px`;
-        });
+        // Auto-Resize Textarea & Submissão via Enter
+        if (this.promptTextarea) {
+            this.promptTextarea.addEventListener("input", () => {
+                this.promptTextarea.style.height = "auto";
+                this.promptTextarea.style.height = `${Math.min(this.promptTextarea.scrollHeight, 120)}px`;
+            });
 
-        this.promptTextarea.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            this.promptTextarea.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    this.handleSubmitPrompt();
+                }
+            });
+        }
+
+        // Clique no Botão Enviar
+        if (this.btnSend) {
+            this.btnSend.addEventListener("click", (e) => {
                 e.preventDefault();
-                this.promptForm.dispatchEvent(new Event("submit"));
-            }
-        });
+                this.handleSubmitPrompt();
+            });
+        }
 
-        // Upload
-        this.fileUploadInput.addEventListener("change", (e) => this.handleFileUpload(e));
-        this.btnRemoveAttachment.addEventListener("click", () => this.clearAttachment());
+        // Upload de Ficheiros
+        if (this.btnAttach && this.fileUploadInput) {
+            this.btnAttach.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.fileUploadInput.click();
+            });
+        }
 
-        // Envio do Form
-        this.promptForm.addEventListener("submit", (e) => this.handleSubmitPrompt(e));
+        if (this.fileUploadInput) {
+            this.fileUploadInput.addEventListener("change", (e) => this.handleFileUpload(e));
+        }
 
-        // Preview Controls
-        if (this.btnTogglePreview) {
+        if (this.btnRemoveAttachment) {
+            this.btnRemoveAttachment.addEventListener("click", () => this.clearAttachment());
+        }
+
+        // Controlos de Preview (caso existam no DOM)
+        if (this.btnTogglePreview && this.previewPane) {
             this.btnTogglePreview.addEventListener("click", () => {
                 this.previewPane.classList.toggle("hidden");
             });
         }
 
-        if (this.btnClosePreview) {
+        if (this.btnClosePreview && this.previewPane) {
             this.btnClosePreview.addEventListener("click", () => {
                 this.previewPane.classList.add("hidden");
             });
@@ -126,7 +161,7 @@ class HoneyAIApp {
                     if (window.hljs && hljs.getLanguage(lang)) {
                         return hljs.highlight(code, { language: lang }).value;
                     }
-                    return hljs.highlightAuto(code).value;
+                    return window.hljs ? hljs.highlightAuto(code).value : code;
                 },
                 breaks: true
             });
@@ -135,7 +170,7 @@ class HoneyAIApp {
 
     switchView(viewName, clickedNavItem) {
         this.navItems.forEach(nav => nav.classList.remove("active"));
-        clickedNavItem.classList.add("active");
+        if (clickedNavItem) clickedNavItem.classList.add("active");
 
         this.workspaceViews.forEach(view => view.classList.add("hidden"));
 
@@ -144,11 +179,11 @@ class HoneyAIApp {
             targetElement.classList.remove("hidden");
 
             switch (viewName) {
-                case "workspaces": Components.renderWorkspaces(targetElement); break;
-                case "memories": Components.renderMemories(targetElement); break;
-                case "agents": Components.renderAgents(targetElement); break;
-                case "tools": Components.renderTools(targetElement); break;
-                case "system": Components.renderSystem(targetElement); break;
+                case "workspaces": Components.renderWorkspaces?.(targetElement); break;
+                case "memories": Components.renderMemories?.(targetElement); break;
+                case "agents": Components.renderAgents?.(targetElement); break;
+                case "tools": Components.renderTools?.(targetElement); break;
+                case "system": Components.renderSystem?.(targetElement); break;
             }
         }
     }
@@ -158,8 +193,15 @@ class HoneyAIApp {
         if (!file) return;
 
         Store.setState("selectedFileName", file.name);
-        this.attachedFileName.textContent = file.name;
-        this.attachmentBar.classList.remove("hidden");
+
+        if (this.attachedFileName) {
+            this.attachedFileName.textContent = file.name;
+        }
+        if (this.attachmentBar) {
+            this.attachmentBar.classList.remove("hidden");
+        } else {
+            alert(`Ficheiro "${file.name}" anexado com sucesso! 🐝`);
+        }
 
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -171,32 +213,33 @@ class HoneyAIApp {
     clearAttachment() {
         Store.setState("selectedFileBase64", null);
         Store.setState("selectedFileName", null);
-        this.fileUploadInput.value = "";
-        this.attachmentBar.classList.add("hidden");
+        if (this.fileUploadInput) this.fileUploadInput.value = "";
+        if (this.attachmentBar) this.attachmentBar.classList.add("hidden");
     }
 
     setKernelState(isBusy, message = "Ocioso") {
+        if (!this.kernelStatusCard) return;
+
         if (isBusy) {
             this.kernelStatusCard.classList.add("busy");
-            this.kernelStateText.textContent = message;
+            if (this.kernelStateText) this.kernelStateText.textContent = message;
         } else {
             this.kernelStatusCard.classList.remove("busy");
-            this.kernelStateText.textContent = "Ocioso";
+            if (this.kernelStateText) this.kernelStateText.textContent = "Ocioso";
         }
     }
 
-    async handleSubmitPrompt(event) {
-        event.preventDefault();
-        const userText = this.promptTextarea.value.trim();
+    async handleSubmitPrompt() {
+        const userText = this.promptTextarea ? this.promptTextarea.value.trim() : "";
 
         if (!userText && !Store.state.selectedFileBase64) return;
 
-        const welcomeMessage = document.getElementById("workspace-welcome");
+        const welcomeMessage = document.getElementById("welcomeBox") || document.getElementById("workspace-welcome");
         if (welcomeMessage) welcomeMessage.style.display = "none";
 
         this.appendUserMessage(userText, Store.state.selectedFileName);
 
-        // PAYLOAD LIMPO (Compatível rigorosamente com o teu index.js no Render)
+        // PAYLOAD LIMPO (Rigorsamente compatível com o teu index.js no Render)
         const payload = {
             prompt: userText
         };
@@ -205,15 +248,18 @@ class HoneyAIApp {
             payload.imagem = Store.state.selectedFileBase64;
         }
 
-        this.promptTextarea.value = "";
-        this.promptTextarea.style.height = "auto";
+        if (this.promptTextarea) {
+            this.promptTextarea.value = "";
+            this.promptTextarea.style.height = "auto";
+        }
         this.clearAttachment();
 
         this.setKernelState(true, "Processando...");
         const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
-            const response = await fetch("/gerar-gratis", {
+            // Rota configurada para o teu backend
+            const response = await fetch("https://honey-ia.onrender.com/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
@@ -225,17 +271,27 @@ class HoneyAIApp {
                 throw new Error(data.erro || "Falha no servidor Render.");
             }
 
-            const formattedContent = marked.parse(data.resposta || "Processado com sucesso.");
-            agentMessageElement.querySelector(".message-content").innerHTML = formattedContent;
+            const rawResponse = data.resposta || "Processado com sucesso.";
 
-            this.detectAndRenderPreview(data.resposta);
+            // Formatação com Marked.js ou fallback simples
+            const formattedContent = window.marked ? marked.parse(rawResponse) : rawResponse;
+            
+            const contentBox = agentMessageElement.querySelector(".message-content");
+            if (contentBox) {
+                contentBox.innerHTML = formattedContent;
+            }
+
+            this.detectAndRenderPreview(rawResponse);
 
         } catch (error) {
-            agentMessageElement.querySelector(".message-content").innerHTML = `
-                <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; font-size: 0.85rem;">
-                    <strong>Erro no Kernel:</strong> ${error.message}
-                </div>
-            `;
+            const contentBox = agentMessageElement.querySelector(".message-content");
+            if (contentBox) {
+                contentBox.innerHTML = `
+                    <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 12px; font-size: 0.85rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        <strong>Erro no Kernel:</strong> ${error.message}
+                    </div>
+                `;
+            }
         } finally {
             this.setKernelState(false);
             this.scrollToBottom();
@@ -243,10 +299,12 @@ class HoneyAIApp {
     }
 
     appendUserMessage(text, fileName) {
-        const msgContainer = document.createElement("div");
-        msgContainer.style.cssText = "align-self: flex-end; max-width: 85%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.9rem; margin-left: auto;";
+        if (!this.chatFeed) return;
 
-        let fileHtml = fileName ? `<div style="font-size: 0.72rem; color: var(--accent-gold); margin-bottom: 4px;">📎 ${fileName}</div>` : "";
+        const msgContainer = document.createElement("div");
+        msgContainer.style.cssText = "align-self: flex-end; max-width: 85%; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; margin-left: auto; margin-bottom: 10px;";
+
+        let fileHtml = fileName ? `<div style="font-size: 0.75rem; color: #ffd700; margin-bottom: 6px;">📎 ${fileName}</div>` : "";
         msgContainer.innerHTML = `${fileHtml}<div style="white-space: pre-wrap;">${text}</div>`;
 
         this.chatFeed.appendChild(msgContainer);
@@ -254,16 +312,18 @@ class HoneyAIApp {
     }
 
     createAgentMessagePlaceholder() {
+        if (!this.chatFeed) return null;
+
         const msgContainer = document.createElement("div");
-        msgContainer.style.cssText = "align-self: flex-start; max-width: 90%; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: var(--radius-md); font-size: 0.9rem;";
+        msgContainer.style.cssText = "align-self: flex-start; max-width: 85%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); padding: 16px 20px; border-radius: 20px; font-size: 0.95rem; margin-bottom: 15px; margin-right: auto;";
 
         msgContainer.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                <span>🐝</span>
-                <strong style="font-size: 0.8rem; color: var(--accent-gold);">Honey OS</strong>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span style="font-size: 1.1rem;">🐝</span>
+                <strong style="font-size: 0.85rem; color: var(--primary);">Honey OS</strong>
             </div>
-            <div class="message-content" style="line-height: 1.5; color: var(--text-main);">
-                <span style="color: var(--text-muted);">A processar...</span>
+            <div class="message-content" style="line-height: 1.6; color: #e2e8f0;">
+                <span style="color: var(--muted);">A processar...</span>
             </div>
         `;
 
@@ -273,7 +333,7 @@ class HoneyAIApp {
     }
 
     detectAndRenderPreview(textResponse) {
-        if (!textResponse) return;
+        if (!textResponse || !this.previewPane || !this.livePreviewIframe) return;
 
         const htmlMatch = textResponse.match(/```html([\s\S]*?)```/);
         if (htmlMatch && htmlMatch[1]) {
@@ -288,10 +348,13 @@ class HoneyAIApp {
     }
 
     scrollToBottom() {
-        this.chatFeed.scrollTop = this.chatFeed.scrollHeight;
+        if (this.chatFeed) {
+            this.chatFeed.scrollTop = this.chatFeed.scrollHeight;
+        }
     }
 }
 
+// Inicialização da App quando o DOM estiver totalmente carregado
 document.addEventListener("DOMContentLoaded", () => {
     window.honeyApp = new HoneyAIApp();
 });
