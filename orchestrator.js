@@ -16,7 +16,47 @@ class Orchestrator {
 
         user = {}
 
-    }) {
+    })
+    const Metrics = {
+    requests: 0,
+    success: 0,
+    errors: 0,
+    totalResponseTime: 0,
+
+    register(time, ok = true) {
+        this.requests++;
+
+        if (ok) {
+            this.success++;
+        } else {
+            this.errors++;
+        }
+
+        this.totalResponseTime += time;
+    },
+
+    averageTime() {
+        return this.requests === 0
+            ? 0
+            : this.totalResponseTime / this.requests;
+    }
+};
+   const Queue = [];
+
+async function enqueue(task) {
+    Queue.push(task);
+
+    while (Queue[0] !== task) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    try {
+        return await task();
+    } finally {
+        Queue.shift();
+    }
+} 
+    {
 
         // 1. Recupera memória
         const memories = await Memory.getRelevantMemories(userId);
