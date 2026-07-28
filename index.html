@@ -2,162 +2,166 @@
 <html lang="pt-PT">
 
 <head>
-<link rel="stylesheet" href="style.css">
+
 <meta charset="UTF-8">
 
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+content="width=device-width,initial-scale=1.0">
 
-<title>Honey AI OS</title>
+<title>Honey AI Enterprise</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta name="theme-color"
+content="#0b0d12">
 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="manifest"
+href="manifest.json">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
 
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<div class="app">
+<div id="app">
 
-<!-- SIDEBAR -->
+    <aside id="sidebar">
 
-<aside class="sidebar">
+        <div class="logo">
 
-<div class="logo">
+            <div class="logo-icon">
+                🐝
+            </div>
 
-🐝 Honey AI
+            <div class="logo-text">
 
-</div>
+                <h2>Honey AI</h2>
 
-<button id="newChat">
+                <span>Enterprise</span>
 
-＋ Nova conversa
+            </div>
 
-</button>
+        </div>
 
-<div id="history">
+        <nav>
 
-<!-- Histórico -->
+            <button class="menu active">
 
-</div>
+                💬
 
-<div class="bottom">
+                <span>Chat</span>
 
-<button id="pluginsBtn">
+            </button>
 
-🧩 Plugins
+            <button class="menu">
 
-</button>
+                🧠
 
-<button id="settingsBtn">
+                <span>Memória</span>
 
-⚙ Configurações
+            </button>
 
-</button>
+            <button class="menu">
 
-</div>
+                🤖
 
-</aside>
+                <span>Agentes</span>
 
-<!-- ÁREA PRINCIPAL -->
+            </button>
 
-<main class="main">
+            <button class="menu">
 
-<header>
+                🧩
 
-<div class="title">
+                <span>Ferramentas</span>
 
-Honey AI OS
+            </button>
 
-</div>
+            <button class="menu">
 
-<div class="status">
+                📂
 
-<span class="dot"></span>
+                <span>Projetos</span>
 
-Online
+            </button>
 
-</div>
+            <button class="menu">
 
-</header>
+                📊
 
-<section id="messages">
+                <span>Analytics</span>
 
-<div class="assistant">
+            </button>
 
-<div class="avatar">
+            <button class="menu">
 
-🐝
+                ⚙️
 
-</div>
+                <span>Sistema</span>
 
-<div class="bubble">
+            </button>
 
-Olá!
+        </nav>
 
-Sou a nova Honey AI.
+        <div class="sidebar-footer">
 
-Como posso ajudar você hoje?
+            <div class="status-dot"></div>
 
-</div>
+            <span>
 
-</div>
+                Honey Core Online
 
-</section>
+            </span>
 
-<footer>
+        </div>
 
-<div class="inputBox">
+    </aside>
 
-<textarea
+    <main id="workspace">
 
-id="prompt"
+        <header id="topbar">
 
-placeholder="Digite sua mensagem..."
+            <div>
 
-rows="1">
+                <h1>
 
-</textarea>
+                    Honey AI Workspace
 
-<div class="toolbar">
+                </h1>
 
-<button id="upload">
+            </div>
 
-📁
+            <div class="top-actions">
 
-</button>
+                <button>
 
-<button id="voice">
+                    Novo Chat
 
-🎤
+                </button>
 
-</button>
+                <button>
 
-<button id="send">
+                    Workspace
 
-➜
+                </button>
 
-</button>
+                <button>
 
-</div>
+                    Perfil
 
-</div>
+                </button>
 
-</footer>
+            </div>
 
-</main>
-
-</div>
-
-<script src="app.js"></script>
-
-</body>
-
-</html>
+        </header>
