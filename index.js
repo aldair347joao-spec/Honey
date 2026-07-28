@@ -68,6 +68,9 @@ app.post('/gerar-gratis', async (req, res) => {
             const matches = base64Content.match(/^data:(.+);base64,/);
             if (matches) {
                 mimeType = matches[1];
+            } else {
+                // Fallback de MimeType caso receba uma string base64 pura
+                mimeType = "image/png";
             }
         }
 
@@ -104,13 +107,16 @@ app.post('/gerar-gratis', async (req, res) => {
 
         // Trata o envio de Imagens e Documentos para a API do Groq
         if (rawBase64) {
-            const isImage = mimeType && mimeType.startsWith("image/");
+            const isImage = mimeType && (
+                mimeType.startsWith("image/") || 
+                base64Content.startsWith("data:image/")
+            );
 
             if (isImage) {
                 selectedModel = "llama-3.2-11b-vision-preview";
                 const imageUrl = base64Content.startsWith("data:") 
                     ? base64Content 
-                    : `data:${mimeType || 'image/jpeg'};base64,${rawBase64}`;
+                    : `data:${mimeType || 'image/png'};base64,${rawBase64}`;
 
                 messages.push({
                     role: "user",
