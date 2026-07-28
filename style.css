@@ -2147,7 +2147,114 @@ body {
 
     border-radius:20px;
 
+} /* ==========================================================
+   CORREÇÃO DE LARGURA E AJUSTE MOBILE (HONEY IA STUDIO)
+   ========================================================== */
+
+/* 1. Tranca a tela para não ter rolagem horizontal nem espaço preto à direita */
+html, body {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
+
+@media (max-width: 768px) {
+
+    /* 2. Remove larguras fixas de desktop */
+    .studio, 
+    .login-wrapper, 
+    .main, 
+    .dashboard, 
+    .hero, 
+    .workspace-card, 
+    .plans-section, 
+    .modules {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* 3. Ajusta a Main / Área Principal */
+    .main {
+        padding: 15px !important;
+    }
+
+    /* 4. Corrige a Sidebar (Menu Lateral) no Telemóvel */
+    .sidebar {
+        width: 100% !important;
+        position: relative !important;
+        height: auto !important;
+    }
+
+    /* 5. Faz o Hero (Cartão Principal "Construa agentes...") ocupar a tela toda */
+    .hero {
+        padding: 20px !important;
+        flex-direction: column !important;
+    }
+
+    .hero-content h1 {
+        font-size: 1.6rem !important;
+        word-wrap: break-word;
+    }
+
+    /* 6. Transforma a grelha de Estatísticas em 2 colunas organizadas */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+
+    /* 7. Empilha os Módulos ("Agentes IA", "Documentos", "Projetos") um debaixo do outro */
+    .module-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .module {
+        width: 100% !important;
+    }
+
+    /* 8. Empilha os Planos em Kwanzas (Gratuito, 15.000 Kz, 400.000 Kz) preenchendo a tela */
+    .plans-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 20px !important;
+        width: 100% !important;
+    }
+
+    .pricing-card {
+        width: 100% !important;
+    }
+
+    /* 9. Ajusta a Topbar (Pesquisa e Avatar) */
+    .topbar {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+    }
+
+    .search-box {
+        width: 100% !important;
+    }
+
+    /* 10. Ajusta a caixa do Workspace Chat */
+    .workspace-section, .workspace-card {
+        width: 100% !important;
+    }
+
+    .prompt-box {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
 
 
 ::-webkit-scrollbar-thumb:hover {
