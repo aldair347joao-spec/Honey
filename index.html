@@ -1,167 +1,124 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
-
+<html lang="pt">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honey IA — Assistente Inteligente</title>
+    
+    <!-- PWA & Meta Tags -->
+    <meta name="theme-color" content="#0d0f12">
+    <meta name="description" content="Honey IA - Assistente inteligente para análise de documentos, imagens e soluções empresariais.">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/825/825590.png">
 
-<meta charset="UTF-8">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
+    <!-- Style Primary -->
+    <link rel="stylesheet" href="style.css">
 
-<title>Honey AI Enterprise</title>
-
-<meta name="theme-color"
-content="#0b0d12">
-
-<link rel="manifest"
-href="manifest.json">
-
-<link rel="preconnect"
-href="https://fonts.googleapis.com">
-
-<link rel="preconnect"
-href="https://fonts.gstatic.com"
-crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-<link rel="stylesheet" href="style.css">
-
+    <!-- Highlight.js CSS para realce de código -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 </head>
-
 <body>
 
-<div id="app">
-
-    <aside id="sidebar">
-
-        <div class="logo">
-
-            <div class="logo-icon">
-                🐝
-            </div>
-
-            <div class="logo-text">
-
-                <h2>Honey AI</h2>
-
-                <span>Enterprise</span>
-
-            </div>
-
-        </div>
-
-        <nav>
-
-            <button class="menu active">
-
-                💬
-
-                <span>Chat</span>
-
-            </button>
-
-            <button class="menu">
-
-                🧠
-
-                <span>Memória</span>
-
-            </button>
-
-            <button class="menu">
-
-                🤖
-
-                <span>Agentes</span>
-
-            </button>
-
-            <button class="menu">
-
-                🧩
-
-                <span>Ferramentas</span>
-
-            </button>
-
-            <button class="menu">
-
-                📂
-
-                <span>Projetos</span>
-
-            </button>
-
-            <button class="menu">
-
-                📊
-
-                <span>Analytics</span>
-
-            </button>
-
-            <button class="menu">
-
-                ⚙️
-
-                <span>Sistema</span>
-
-            </button>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <div class="status-dot"></div>
-
-            <span>
-
-                Honey Core Online
-
-            </span>
-
-        </div>
-
-    </aside>
-
-    <main id="workspace">
-
-        <header id="topbar">
-
-            <div>
-
-                <h1>
-
-                    Honey AI Workspace
-
-                </h1>
-
-            </div>
-
-            <div class="top-actions">
-
-                <button>
-
-                    Novo Chat
-
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <img src="https://cdn-icons-png.flaticon.com/512/825/825590.png" alt="Honey IA Logo" class="brand-logo">
+                    <span class="brand-name">Honey IA</span>
+                </div>
+                <button class="icon-btn" id="new-chat-btn" title="Nova Conversa">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
-
-                <button>
-
-                    Workspace
-
-                </button>
-
-                <button>
-
-                    Perfil
-
-                </button>
-
             </div>
 
-        </header>
+            <div class="sidebar-content">
+                <div class="section-title">Histórico</div>
+                <div class="chat-history-list" id="chat-history">
+                    <!-- Preenchido dinamicamente pelo App.js -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar">H</div>
+                    <div class="user-info">
+                        <span class="user-name">Utilizador</span>
+                        <span class="user-status">Plano Gratuito</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <button class="icon-btn mobile-only" id="toggle-sidebar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div class="agent-badge">
+                    <span class="pulse-dot"></span>
+                    <span id="active-model-name">Honey IA Core v5.0</span>
+                </div>
+            </header>
+
+            <div class="chat-viewport" id="chat-viewport">
+                <div class="welcome-screen" id="welcome-screen">
+                    <img src="https://cdn-icons-png.flaticon.com/512/825/825590.png" alt="Honey IA" class="welcome-logo">
+                    <h1>Como posso ajudar hoje?</h1>
+                    <p>Faça perguntas, analise documentos ou envie imagens para inspeção detalhada.</p>
+                </div>
+                <div class="messages-container" id="messages-container"></div>
+            </div>
+
+            <!-- Input Controls Area -->
+            <div class="input-section">
+                <!-- File Attachment Preview Area -->
+                <div class="file-preview-bar hidden" id="file-preview-bar">
+                    <div class="file-info">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                        <span id="file-name">documento.pdf</span>
+                    </div>
+                    <button class="remove-file-btn" id="remove-file-btn">&times;</button>
+                </div>
+
+                <form class="input-form" id="chat-form">
+                    <label for="file-input" class="attach-btn" title="Anexar Documento ou Imagem">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </label>
+                    <input type="file" id="file-input" class="hidden-input" accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx">
+                    
+                    <textarea id="user-input" placeholder="Escreva a sua mensagem para a Honey IA..." rows="1"></textarea>
+
+                    <button type="submit" class="send-btn" id="send-btn" title="Enviar Mensagem">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- External Markdown & Syntax Highlight Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- App Module Principal -->
+    <script type="module" src="App.js"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/Sw.js')
+                    .then(reg => console.log('🐝 Honey IA Service Worker Ativo!'))
+                    .catch(err => console.error('Erro ao registrar SW:', err));
+            });
+        }
+    </script>
+</body>
+</html>
