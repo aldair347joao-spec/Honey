@@ -1,13 +1,9 @@
 /**
- * HONEY IA — CORE ENGINE V5 + AI OS WORKSPACE
- * Unificação da arquitetura de EventBus/Store com o novo Honey AI OS.
+ * HONEY IA — CORE ENGINE V5 (ESTÁVEL)
  */
 
 import { Components } from "./components.js";
 
-// ======================================================
-// IDENTIFICADOR DE SESSÃO & BARRAMENTO DE EVENTOS
-// ======================================================
 const SESSION_ID = crypto.randomUUID();
 
 class EventBus {
@@ -16,57 +12,41 @@ class EventBus {
     }
 
     on(event, callback) {
-        if (!this.events[event]) {
-            this.events[event] = [];
-        }
+        if (!this.events[event]) this.events[event] = [];
         this.events[event].push(callback);
     }
 
     emit(event, data) {
         if (!this.events[event]) return;
-        this.events[event].forEach(callback => callback(data));
+        this.events[event].forEach(cb => cb(data));
     }
 }
 
 export const EventBusInstance = new EventBus();
 
-// ======================================================
-// ESTADO GLOBAL DA APLICAÇÃO (STORE)
-// ======================================================
 export const Store = {
     state: {
         sessionId: SESSION_ID,
         conversation: [],
-        theme: "dark",
-        model: "Honey Core v5",
-        voice: false,
-        canvas: false,
-        plugins: [],
         loading: false,
-        activeWorkspace: "Geral & Desenvolvimento",
         selectedFileBase64: null,
         selectedFileName: null
     },
 
     setState(key, value) {
         this.state[key] = value;
-        EventBusInstance.emit("stateChanged", { key, value, state: this.state });
+        EventBusInstance.emit("stateChanged", { key, value });
     }
 };
 
-// ======================================================
-// CLASSE PRINCIPAL DO SISTEMA OPERACIONAL
-// ======================================================
 class HoneyAIApp {
     constructor() {
         this.initDOMReferences();
         this.initEventListeners();
         this.initMarkdownEngine();
-        this.bindStoreEvents();
     }
 
     initDOMReferences() {
-        // Elementos de Status e Navegação
         this.kernelStatusCard = document.getElementById("kernel-status");
         this.kernelStateText = document.getElementById("kernel-state-text");
         this.btnToggleMenu = document.getElementById("btn-toggle-menu");
@@ -75,7 +55,6 @@ class HoneyAIApp {
         this.navItems = document.querySelectorAll(".nav-item");
         this.workspaceViews = document.querySelectorAll(".workspace-view");
 
-        // Elementos do Chat e Input
         this.chatFeed = document.getElementById("chat-feed");
         this.promptForm = document.getElementById("os-prompt-form");
         this.promptTextarea = document.getElementById("prompt-textarea");
@@ -84,7 +63,6 @@ class HoneyAIApp {
         this.attachedFileName = document.getElementById("attached-file-name");
         this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
 
-        // Elementos do Live Preview Split
         this.previewPane = document.getElementById("preview-pane");
         this.btnTogglePreview = document.getElementById("btn-toggle-preview");
         this.btnClosePreview = document.getElementById("btn-close-preview");
@@ -92,28 +70,27 @@ class HoneyAIApp {
     }
 
     initEventListeners() {
-        // Navegação entre Visões do OS
+        // Menu Lateral
         this.navItems.forEach(item => {
             item.addEventListener("click", () => {
-                const targetView = item.getAttribute("data-view");
-                this.switchView(targetView, item);
+                const target = item.getAttribute("data-view");
+                this.switchView(target, item);
+                this.osSidebar.classList.remove("open");
             });
         });
 
-        // Toggle Sidebar Mobile
         if (this.btnToggleMenu) {
             this.btnToggleMenu.addEventListener("click", () => {
                 this.osSidebar.classList.toggle("open");
             });
         }
 
-        // Auto-resize do Textarea
+        // Auto-Resize Textarea
         this.promptTextarea.addEventListener("input", () => {
             this.promptTextarea.style.height = "auto";
-            this.promptTextarea.style.height = `${Math.min(this.promptTextarea.scrollHeight, 120)}px`;
+            this.promptTextarea.style.height = `${Math.min(this.promptTextarea.scrollHeight, 100)}px`;
         });
 
-        // Enviar com Enter (Shift+Enter pula linha)
         this.promptTextarea.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -121,35 +98,25 @@ class HoneyAIApp {
             }
         });
 
-        // Upload de Anexos
+        // Upload
         this.fileUploadInput.addEventListener("change", (e) => this.handleFileUpload(e));
         this.btnRemoveAttachment.addEventListener("click", () => this.clearAttachment());
 
-        // Submissão do Prompt ao Backend
+        // Envio do Form
         this.promptForm.addEventListener("submit", (e) => this.handleSubmitPrompt(e));
 
-        // Controles do Split Preview
+        // Preview Controls
         if (this.btnTogglePreview) {
             this.btnTogglePreview.addEventListener("click", () => {
                 this.previewPane.classList.toggle("hidden");
-                Store.setState("canvas", !this.previewPane.classList.contains("hidden"));
             });
         }
 
         if (this.btnClosePreview) {
             this.btnClosePreview.addEventListener("click", () => {
                 this.previewPane.classList.add("hidden");
-                Store.setState("canvas", false);
             });
         }
-    }
-
-    bindStoreEvents() {
-        EventBusInstance.on("stateChanged", ({ key, value }) => {
-            if (key === "loading") {
-                this.setKernelState(value, value ? "Processando..." : "Ocioso");
-            }
-        });
     }
 
     initMarkdownEngine() {
@@ -177,24 +144,11 @@ class HoneyAIApp {
             targetElement.classList.remove("hidden");
 
             switch (viewName) {
-                case "workspaces":
-                    Components.renderWorkspaces(targetElement);
-                    break;
-                case "memories":
-                    Components.renderMemories(targetElement);
-                    break;
-                case "agents":
-                    Components.renderAgents(targetElement);
-                    break;
-                case "tools":
-                    Components.renderTools(targetElement);
-                    break;
-                case "analytics":
-                    Components.renderAnalytics(targetElement);
-                    break;
-                case "system":
-                    Components.renderSystem(targetElement);
-                    break;
+                case "workspaces": Components.renderWorkspaces(targetElement); break;
+                case "memories": Components.renderMemories(targetElement); break;
+                case "agents": Components.renderAgents(targetElement); break;
+                case "tools": Components.renderTools(targetElement); break;
+                case "system": Components.renderSystem(targetElement); break;
             }
         }
     }
@@ -240,76 +194,60 @@ class HoneyAIApp {
         const welcomeMessage = document.getElementById("workspace-welcome");
         if (welcomeMessage) welcomeMessage.style.display = "none";
 
-        // Adiciona à conversa local e ao estado
         this.appendUserMessage(userText, Store.state.selectedFileName);
-        Store.state.conversation.push({ role: "user", content: userText });
 
-        const payloadPrompt = userText;
-        const payloadImage = Store.state.selectedFileBase64;
+        // PAYLOAD LIMPO (Compatível rigorosamente com o teu index.js no Render)
+        const payload = {
+            prompt: userText
+        };
+
+        if (Store.state.selectedFileBase64) {
+            payload.imagem = Store.state.selectedFileBase64;
+        }
 
         this.promptTextarea.value = "";
         this.promptTextarea.style.height = "auto";
         this.clearAttachment();
 
-        Store.setState("loading", true);
+        this.setKernelState(true, "Processando...");
         const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
             const response = await fetch("/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: payloadPrompt,
-                    imagem: payloadImage,
-                    userId: Store.state.sessionId
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.erro || "Ocorreu um erro na comunicação com a IA.");
+                throw new Error(data.erro || "Falha no servidor Render.");
             }
 
-            const formattedContent = marked.parse(data.resposta || "Executado com sucesso.");
+            const formattedContent = marked.parse(data.resposta || "Processado com sucesso.");
             agentMessageElement.querySelector(".message-content").innerHTML = formattedContent;
 
-            // Salva na memória da conversa local
-            Store.state.conversation.push({ role: "assistant", content: data.resposta });
-
-            // Dispara evento de resposta recebida
-            EventBusInstance.emit("responseReceived", data);
-
-            // Renderiza Preview Split se houver HTML
             this.detectAndRenderPreview(data.resposta);
 
         } catch (error) {
             agentMessageElement.querySelector(".message-content").innerHTML = `
-                <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                <div style="color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; font-size: 0.85rem;">
                     <strong>Erro no Kernel:</strong> ${error.message}
                 </div>
             `;
-            EventBusInstance.emit("error", error);
         } finally {
-            Store.setState("loading", false);
+            this.setKernelState(false);
             this.scrollToBottom();
         }
     }
 
     appendUserMessage(text, fileName) {
         const msgContainer = document.createElement("div");
-        msgContainer.className = "user-msg-wrapper";
-        msgContainer.style.cssText = "align-self: flex-end; max-width: 80%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: var(--radius-lg) var(--radius-lg) 2px var(--radius-lg); margin-left: auto;";
+        msgContainer.style.cssText = "align-self: flex-end; max-width: 85%; background: var(--bg-card); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.9rem; margin-left: auto;";
 
-        let fileHtml = "";
-        if (fileName) {
-            fileHtml = `<div style="font-size: 0.75rem; color: var(--accent-yellow); margin-bottom: 6px;">📎 Arquivo: ${fileName}</div>`;
-        }
-
-        msgContainer.innerHTML = `
-            ${fileHtml}
-            <div style="font-size: 0.92rem; color: var(--text-main); white-space: pre-wrap;">${text}</div>
-        `;
+        let fileHtml = fileName ? `<div style="font-size: 0.72rem; color: var(--accent-gold); margin-bottom: 4px;">📎 ${fileName}</div>` : "";
+        msgContainer.innerHTML = `${fileHtml}<div style="white-space: pre-wrap;">${text}</div>`;
 
         this.chatFeed.appendChild(msgContainer);
         this.scrollToBottom();
@@ -317,16 +255,15 @@ class HoneyAIApp {
 
     createAgentMessagePlaceholder() {
         const msgContainer = document.createElement("div");
-        msgContainer.className = "agent-msg-wrapper";
-        msgContainer.style.cssText = "align-self: flex-start; max-width: 85%; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 16px 20px; border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 2px;";
+        msgContainer.style.cssText = "align-self: flex-start; max-width: 90%; background: var(--bg-panel); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: var(--radius-md); font-size: 0.9rem;";
 
         msgContainer.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                <span style="font-size: 1.1rem;">🐝</span>
-                <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-yellow);">Honey OS Agent</span>
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                <span>🐝</span>
+                <strong style="font-size: 0.8rem; color: var(--accent-gold);">Honey OS</strong>
             </div>
-            <div class="message-content" style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
-                <span style="color: var(--text-muted);">A processar instrução...</span>
+            <div class="message-content" style="line-height: 1.5; color: var(--text-main);">
+                <span style="color: var(--text-muted);">A processar...</span>
             </div>
         `;
 
@@ -342,7 +279,6 @@ class HoneyAIApp {
         if (htmlMatch && htmlMatch[1]) {
             const htmlCode = htmlMatch[1].trim();
             this.previewPane.classList.remove("hidden");
-            Store.setState("canvas", true);
 
             const doc = this.livePreviewIframe.contentWindow.document;
             doc.open();
@@ -356,7 +292,6 @@ class HoneyAIApp {
     }
 }
 
-// Inicializa no carregamento do DOM
 document.addEventListener("DOMContentLoaded", () => {
     window.honeyApp = new HoneyAIApp();
 });
