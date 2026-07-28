@@ -504,6 +504,13 @@ if (anexoBase64 && mimeType) {
         });
 
         const resposta = completion.choices[0]?.message?.content || "Desculpe, não consegui processar a resposta.";
+        await Chat.saveMessage(user.id, "user", prompt);
+
+await Chat.saveMessage(user.id, "assistant", resposta);
+
+await Memory.learn(user.id, prompt);
+
+await Memory.learn(user.id, resposta);
 
         return res.json({
             sucesso: true,
