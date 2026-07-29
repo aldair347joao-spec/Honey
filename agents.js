@@ -16,6 +16,9 @@ class AgentEngine {
 
     }
 
+    Agents.register(GeneralAgent);
+Agents.register(DeveloperAgent);
+
     register(agent) {
 
         this.agents.set(agent.id, {
