@@ -6,6 +6,7 @@ import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
 import LiveEngine from "./liveEngine.js";
 const SESSION_ID = crypto.randomUUID();
+LiveClient.changeAgent(agentId);
 // ==========================================================
 // 1. EVENT BUS & CENTRAL STORE
 // ==========================================================
