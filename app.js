@@ -3,7 +3,7 @@
  */
 import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
-
+import LiveEngine from "./liveEngine.js";
 const SESSION_ID = crypto.randomUUID();
 
 // ==========================================================
@@ -74,7 +74,29 @@ class HoneyAIApp {
         this.btnSend = document.getElementById("btnSend");
         this.fileUploadInput = document.getElementById("fileInput") || document.getElementById("file-upload");
         this.btnAttach = document.getElementById("btnAttach");
-        this.btnVoice = document.getElementById("btnVoice");
+        this.btnVoice.addEventListener("click", () => {
+
+    if(AgentStudio.getMode() !== "live"){
+
+        this.showToast(
+            "Ative o modo Live primeiro.",
+            "info"
+        );
+
+        return;
+
+    }
+
+
+    LiveEngine.start((text)=>{
+
+        this.promptTextarea.value = text;
+
+        this.handleSubmitPrompt();
+
+    });
+
+});
         this.btnNewChat = document.getElementById("btnNewChat");
         this.attachmentBar = document.getElementById("attachment-bar");
         this.attachedFileName = document.getElementById("attached-file-name");
