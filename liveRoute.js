@@ -21,7 +21,47 @@ const groq = new Groq({
 });
 
 
+router.post("/live/agent", async(req,res)=>{
 
+
+    try{
+
+
+        const {agentId}=req.body;
+
+
+        const result =
+        LiveEngine.switchActiveAgent(agentId);
+
+
+
+        res.json({
+
+            success:true,
+
+            agent:
+            LiveEngine.getIdentity()
+
+        });
+
+
+
+    }catch(error){
+
+
+        res.status(500).json({
+
+            success:false,
+
+            error:error.message
+
+        });
+
+
+    }
+
+
+});
 
 // Iniciar sessão Live
 router.post("/live/start", async (req,res)=>{
