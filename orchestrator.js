@@ -1,84 +1,199 @@
-import ContextEngine from "./contextEngine.js";
-import DecisionEngine from "./decisionEngine.js";
-import PromptBuilder from "./promptBuilder.js";
-import AgentManager from "./agents.js";
+/*
+==========================================
+HONEY IA
+ORCHESTRATOR V2.0
+==========================================
+*/
+
+import Agents from "./agents.js";
+import Workspace from "./workspace.js";
 import { listMemories } from "./memory.js";
 import { getRecentMessages } from "./chat.js";
 import Tools from "./tools.js";
 
 class Orchestrator {
+
     constructor() {
+
         this.metrics = {
             requests: 0,
             success: 0,
             errors: 0,
-            totalResponseTime: 0,
-            register(time, ok = true) {
-                this.requests++;
-                if (ok) this.success++;
-                else this.errors++;
-                this.totalResponseTime += time;
-            },
-            averageTime() {
-                return this.requests === 0 ? 0 : this.totalResponseTime / this.requests;
-            }
+            totalTime: 0
         };
+
     }
 
-    async process({ userId, message, user = {} }) {
-        const startTime = Date.now();
+    async process({
+
+        userId,
+        message,
+        mode = "text",
+        attachment = null,
+        user = {}
+
+    }) {
+
+        const started = Date.now();
 
         try {
-            // 1. Recupera memórias
+
+            const workspace = Workspace.getCurrent();
+
             const memories = await listMemories(userId);
 
-            // 2. Recupera histórico recente
-            const history = await getRecentMessages(userId, 10);
+            const history = await getRecentMessages(userId, 15);
 
-            // 3. Escolhe o agente
-            const agentId = DecisionEngine.detectAgent(message);
+            const detectedAgent = Agents.detect(message);
 
-            // 4. Recupera o prompt do agente
-            const agentPrompt = AgentManager.getPrompt(agentId);
+            Agents.setActive(detectedAgent.id);
 
-            // 5. Verifica necessidade de ferramentas
             let toolResult = null;
-            if (Tools.shouldUseTool(message)) {
+
+            if (Tools && Tools.shouldUseTool(message)) {
+
                 toolResult = await Tools.executeByMessage(message);
+
             }
 
-            // 6. Constrói o contexto estruturado
-            const context = ContextEngine.build({
-                history,
-                memories,
-                toolResult
-            });
+            const systemPrompt = this.buildPrompt({
 
-            // 7. Constrói o prompt final
-            const prompt = PromptBuilder.build({
-                systemPrompt: AgentManager.systemPrompt(),
-                agentPrompt,
+                agent: detectedAgent,
+
+                workspace,
+
                 user,
+
                 memories,
+
                 history,
-                message
+
+                toolResult,
+
+                mode
+
             });
 
-            this.metrics.register(Date.now() - startTime, true);
+            this.metrics.requests++;
+            this.metrics.success++;
+            this.metrics.totalTime += Date.now() - started;
 
             return {
-                prompt,
-                context,
-                toolResult,
-                agentId,
+
+                agent: detectedAgent,
+
+                mode,
+
+                workspace,
+
                 memories,
-                history
+
+                history,
+
+                toolResult,
+
+                prompt: systemPrompt,
+
+                attachment
+
             };
-        } catch (error) {
-            this.metrics.register(Date.now() - startTime, false);
-            throw error;
+
+        } catch (err) {
+
+            this.metrics.requests++;
+            this.metrics.errors++;
+
+            throw err;
+
         }
+
     }
+
+    buildPrompt({
+
+        agent,
+        workspace,
+        user,
+        memories,
+        history,
+        toolResult,
+        mode
+
+    }) {
+
+        return `
+Você é ${agent.name}.
+
+Descrição:
+${agent.description}
+
+Modo:
+${mode === "live" ? "Conversação por voz em tempo real." : "Conversa por texto."}
+
+Idioma:
+Português.
+
+Utilizador:
+${JSON.stringify(user)}
+
+Workspace Atual:
+${workspace ? workspace.name : "Sem Workspace"}
+
+Memórias:
+${JSON.stringify(memories)}
+
+Histórico:
+${JSON.stringify(history)}
+
+Ferramentas:
+${JSON.stringify(toolResult)}
+
+Regras:
+
+- Nunca diga que é outro agente.
+
+- Responda apenas como ${agent.name}.
+
+- Caso a tarefa saia da sua especialidade, continue ajudando normalmente.
+
+- Responda de forma profissional.
+
+- Gere código completo quando solicitado.
+
+- Preserve sempre o contexto do Workspace.
+
+`;
+
+    }
+
+    stats() {
+
+        return {
+
+            requests: this.metrics.requests,
+
+            success: this.metrics.success,
+
+            errors: this.metrics.errors,
+
+            average:
+
+                this.metrics.requests === 0
+
+                    ? 0
+
+                    : Math.round(
+
+                          this.metrics.totalTime /
+
+                              this.metrics.requests
+
+                      )
+
+        };
+
+    }
+
 }
 
 export default new Orchestrator();
