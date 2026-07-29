@@ -138,6 +138,85 @@ this.btnLiveMode = document.getElementById("btnLiveMode");
 
     initEventListeners() {
         // Menu Lateral & Navegação
+        // Alternar modo Chat / Live
+
+if(this.btnChatMode){
+
+    this.btnChatMode.addEventListener("click", ()=>{
+
+        this.currentMode = "chat";
+        this.liveMode = false;
+
+
+        this.btnChatMode.classList.add("active");
+        this.btnLiveMode.classList.remove("active");
+
+
+        LiveClient.stop();
+
+
+        this.showToast(
+            "Modo conversa escrita ativado.",
+            "info"
+        );
+
+    });
+
+}
+
+
+
+
+if(this.btnLiveMode){
+
+    this.btnLiveMode.addEventListener("click", async ()=>{
+
+
+        try{
+
+
+            const result = await LiveClient.start();
+
+
+
+            if(result.success){
+
+
+                this.currentMode = "live";
+                this.liveMode = true;
+
+
+
+                this.btnLiveMode.classList.add("active");
+                this.btnChatMode.classList.remove("active");
+
+
+
+                this.showToast(
+                    `Live conectado: ${result.session.identity.name}`,
+                    "success"
+                );
+
+
+            }
+
+
+
+        }catch(error){
+
+
+            this.showToast(
+                error.message,
+                "error"
+            );
+
+
+        }
+
+
+    });
+
+}
         if(this.btnLive){
 
     this.btnLive.addEventListener("click", async ()=>{
@@ -645,7 +724,7 @@ if(this.btnLiveMode){
 };
 
 AgentStudio.setStatus("thinking");
-            if(this.liveMode){
+            if(this.currentMode === "live"){
 
     const liveResponse = await LiveClient.send(userText);
 
