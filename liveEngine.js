@@ -12,7 +12,36 @@ import AgentStudio from "./agentStudio.js";
 
 class LiveEngine {
 
+switchActiveAgent(agentId){
 
+    const result = AgentStudio.selectAgent(agentId);
+
+
+    if(this.session){
+
+        const agent = AgentStudio.getActiveAgent();
+
+
+        this.session.agentId = agent.id;
+
+
+        this.session.identity = {
+
+            name: agent.name,
+
+            role: agent.description,
+
+            emoji: agent.emoji
+
+        };
+
+
+    }
+
+
+    return result;
+
+}
     constructor(){
 
         this.session = null;
