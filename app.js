@@ -57,6 +57,9 @@ class HoneyAIApp {
 
     initDOMReferences() {
         // Status & Kernel
+        this.btnChatMode = document.getElementById("btnChatMode");
+
+this.btnLiveMode = document.getElementById("btnLiveMode");
         this.kernelStatusCard = document.getElementById("kernel-status");
         this.kernelStateText = document.getElementById("kernel-state-text");
         
