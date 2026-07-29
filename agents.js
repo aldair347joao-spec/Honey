@@ -4,6 +4,7 @@ HONEY IA
 AGENT ENGINE V2.0
 ==========================================
 */
+import DesignerAgent from "./agents/designerAgent.js";
 import GeneralAgent from "./agents/generalAgent.js";
 import DeveloperAgent from "./agents/developerAgent.js";
 
@@ -16,10 +17,10 @@ class AgentEngine {
 
     }
 
-    Agents.register(GeneralAgent);
-Agents.register(DeveloperAgent);
-
     register(agent) {
+        Agents.register(GeneralAgent);
+Agents.register(DeveloperAgent);
+        Agents.register(DesignerAgent);
 
         this.agents.set(agent.id, {
             status: "online",
