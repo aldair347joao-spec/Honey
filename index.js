@@ -52,7 +52,15 @@ app.use('/gerar-gratis', apiLimiter);
 app.post('/gerar-gratis', async (req, res) => {
     try {
         // Aceita múltiplos formatos de nomes enviados pelo frontend (imagem ou anexoBase64)
-        let { prompt, imagem, anexoBase64, mimeType, userId = "guest_user" } = req.body;
+        let { 
+    prompt, 
+    imagem, 
+    anexoBase64, 
+    mimeType, 
+    userId = "guest_user",
+    agent = "general",
+    mode = "chat"
+} = req.body;
 
         const base64Content = anexoBase64 || imagem;
 
@@ -89,10 +97,18 @@ app.post('/gerar-gratis', async (req, res) => {
         try {
             if (Orchestrator && typeof Orchestrator.process === 'function') {
                 const orchestratorResult = await Orchestrator.process({
-                    userId: user.id,
-                    message: prompt || "Analisa o conteúdo em anexo.",
-                    user
-                });
+
+    userId: user.id,
+
+    message: prompt || "Analisa o conteúdo em anexo.",
+
+    user,
+
+    agent,
+
+    mode
+
+});
                 systemPrompt = orchestratorResult.prompt || systemPrompt;
             }
         } catch (oErr) {
