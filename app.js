@@ -1,7 +1,7 @@
 /**
  * HONEY IA — CORE ENGINE V5 (ESTÁVEL & ENTERPRISE INTEGRATED)
  */
-
+import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
 
 const SESSION_ID = crypto.randomUUID();
@@ -488,6 +488,17 @@ class HoneyAIApp {
         const agentMessageElement = this.createAgentMessagePlaceholder();
 
         try {
+            const payload = {
+
+    prompt: userText,
+
+    agent: AgentStudio.getAgent(),
+
+    mode: AgentStudio.getMode()
+
+};
+
+AgentStudio.setStatus("thinking");
             const response = await fetch("https://honey-ia.onrender.com/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
