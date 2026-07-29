@@ -643,28 +643,139 @@ if(this.btnLiveMode){
     }
 
     handleVoiceInput() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'pt-PT';
-            recognition.start();
 
-            this.showToast('Escutando comando de voz...', 'info');
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                if (this.promptTextarea) {
-                    this.promptTextarea.value = transcript;
-                }
-            };
 
-            recognition.onerror = () => {
-                this.showToast('Não foi possível reconhecer o áudio.', 'error');
-            };
-        } else {
-            this.showToast('Reconhecimento de voz não suportado neste navegador.', 'error');
-        }
+    if (!SpeechRecognition) {
+
+        this.showToast(
+            "Reconhecimento de voz não suportado neste navegador.",
+            "error"
+        );
+
+        return;
     }
+
+
+
+    const recognition = new SpeechRecognition();
+
+
+    recognition.lang = "pt-PT";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+
+
+    recognition.start();
+
+
+
+    this.showToast(
+        this.currentMode === "live"
+        ? "🎙️ A ouvir no modo Live..."
+        : "🎙️ A ouvir...",
+        "info"
+    );
+
+
+
+
+    recognition.onresult = async (event)=>{
+
+
+        const transcript =
+        event.results[0][0].transcript;
+
+
+
+        // Modo Live envia diretamente ao agente
+
+        if(this.currentMode === "live"){
+
+
+            const agentMessageElement =
+            this.createAgentMessagePlaceholder();
+
+
+
+            try{
+
+
+                const result =
+                await LiveClient.send(transcript);
+
+
+
+                const contentBox =
+                agentMessageElement
+                .querySelector(".message-content");
+
+
+
+                if(contentBox){
+
+                    contentBox.innerHTML =
+                    window.marked
+                    ? marked.parse(result.response)
+                    : result.response;
+
+                }
+
+
+
+            }catch(error){
+
+
+                this.showToast(
+                    error.message,
+                    "error"
+                );
+
+
+            }
+
+
+
+        }else{
+
+
+            // Chat normal continua igual
+
+            if(this.promptTextarea){
+
+                this.promptTextarea.value =
+                transcript;
+
+            }
+
+
+        }
+
+
+    };
+
+
+
+
+    recognition.onerror = ()=>{
+
+
+        this.showToast(
+            "Não foi possível reconhecer o áudio.",
+            "error"
+        );
+
+
+    };
+
+
+}
 
     handleNewChat() {
         if (this.chatFeed) this.chatFeed.innerHTML = "";
