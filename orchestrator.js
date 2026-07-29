@@ -24,15 +24,13 @@ class Orchestrator {
 
     }
 
-    async process({
-
-        userId,
-        message,
-        mode = "text",
-        attachment = null,
-        user = {}
-
-    }) {
+    async process({ 
+    userId, 
+    message, 
+    user = {},
+    agent = "general",
+    mode = "chat"
+}) {
 
         const started = Date.now();
 
@@ -78,25 +76,23 @@ class Orchestrator {
             this.metrics.success++;
             this.metrics.totalTime += Date.now() - started;
 
-            return {
+        return {
 
-                agent: detectedAgent,
+    prompt,
 
-                mode,
+    context,
 
-                workspace,
+    toolResult,
 
-                memories,
+    agentId,
 
-                history,
+    mode,
 
-                toolResult,
+    memories,
 
-                prompt: systemPrompt,
+    history
 
-                attachment
-
-            };
+};
 
         } catch (err) {
 
@@ -108,6 +104,10 @@ class Orchestrator {
         }
 
     }
+
+    const agentId = agent !== "general" 
+    ? agent 
+    : DecisionEngine.detectAgent(message);
 
     buildPrompt({
 
