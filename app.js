@@ -1,6 +1,7 @@
 /**
  * HONEY IA — CORE ENGINE V5 (ESTÁVEL & ENTERPRISE INTEGRATED)
  */
+import LiveClient from "./liveClient.js";
 import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
 import LiveEngine from "./liveEngine.js";
@@ -48,6 +49,7 @@ export const Store = {
 // ==========================================================
 class HoneyAIApp {
     constructor() {
+        this.liveMode = false;
         this.initDOMReferences();
         this.initAuthState();
         this.initEventListeners();
@@ -57,6 +59,8 @@ class HoneyAIApp {
 
     initDOMReferences() {
         // Status & Kernel
+        this.btnLive = document.getElementById("btnLive");
+this.liveStatus = document.getElementById("liveStatus");
         this.btnChatMode = document.getElementById("btnChatMode");
 
 this.btnLiveMode = document.getElementById("btnLiveMode");
@@ -131,6 +135,77 @@ this.btnLiveMode = document.getElementById("btnLiveMode");
 
     initEventListeners() {
         // Menu Lateral & Navegação
+        if(this.btnLive){
+
+    this.btnLive.addEventListener("click", async ()=>{
+
+        try{
+
+
+            if(!this.liveMode){
+
+
+                const result = await LiveClient.start();
+
+
+                if(result.success){
+
+                    this.liveMode = true;
+
+
+                    this.showToast(
+                        `Live ativado com ${result.session.identity.name}`,
+                        "success"
+                    );
+
+
+                    if(this.liveStatus){
+                        this.liveStatus.textContent =
+                        "LIVE: " + result.session.identity.name;
+                    }
+
+                }
+
+
+            }else{
+
+
+                LiveClient.stop();
+
+
+                this.liveMode=false;
+
+
+                this.showToast(
+                    "Modo escrito ativado.",
+                    "info"
+                );
+
+
+                if(this.liveStatus){
+                    this.liveStatus.textContent =
+                    "CHAT";
+                }
+
+            }
+
+
+
+        }catch(error){
+
+
+            this.showToast(
+                error.message,
+                "error"
+            );
+
+
+        }
+
+
+    });
+
+}
         if(this.btnChatMode){
 
     this.btnChatMode.addEventListener("click",()=>{
@@ -567,6 +642,32 @@ if(this.btnLiveMode){
 };
 
 AgentStudio.setStatus("thinking");
+            if(this.liveMode){
+
+    const liveResponse = await LiveClient.send(userText);
+
+
+    const contentBox =
+    agentMessageElement.querySelector(".message-content");
+
+
+    if(contentBox){
+
+        contentBox.innerHTML =
+        window.marked
+        ? marked.parse(liveResponse.response)
+        : liveResponse.response;
+
+    }
+
+
+    this.setKernelState(false);
+
+    this.scrollToBottom();
+
+    return;
+
+}
             const response = await fetch("https://honey-ia.onrender.com/gerar-gratis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
