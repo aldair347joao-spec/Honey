@@ -2,7 +2,8 @@
 ==========================================
 HONEY IA
 LIVE ENGINE
-Agent Identity Integration
+Agent Identity + Session Memory
+Versão 2.0
 ==========================================
 */
 
@@ -25,6 +26,14 @@ class LiveEngine {
         const agent = AgentStudio.getActiveAgent();
 
 
+        if(!agent){
+
+            throw new Error("Nenhum agente ativo encontrado.");
+
+        }
+
+
+
         this.session = {
 
             agentId: agent.id,
@@ -39,6 +48,9 @@ class LiveEngine {
 
             },
 
+
+            messages: [],
+
             startedAt: new Date()
 
         };
@@ -47,6 +59,22 @@ class LiveEngine {
         return this.session;
 
     }
+
+
+
+
+    switchAgent(agentId){
+
+        const result = AgentStudio.selectAgent(agentId);
+
+
+        this.session = null;
+
+
+        return result;
+
+    }
+
 
 
 
@@ -67,10 +95,55 @@ class LiveEngine {
 
 
 
+
+    addMessage(role, content){
+
+        if(!this.session){
+
+            return;
+
+        }
+
+
+        this.session.messages.push({
+
+            role,
+
+            content,
+
+            time:new Date()
+
+        });
+
+    }
+
+
+
+
+
+    getMessages(){
+
+        if(!this.session){
+
+            return [];
+
+        }
+
+
+        return this.session.messages;
+
+    }
+
+
+
+
+
+
     buildSystemIdentity(){
 
 
         const identity = this.getIdentity();
+
 
 
         if(!identity){
@@ -81,20 +154,46 @@ class LiveEngine {
 
 
 
+
         return `
 
 Você é ${identity.name}.
 
-Sua função é:
+Identidade:
 ${identity.role}
 
-Mantenha essa identidade durante toda a conversa ao vivo.
+Regra principal:
+Mantenha esta personalidade durante toda a conversa ao vivo.
 
-Nunca responda como outro agente.
+Não mude de agente.
+Não diga que é outro assistente.
+Responda sempre dentro da sua especialidade.
 
 `;
 
     }
+
+
+
+
+
+
+    getLiveContext(){
+
+
+        return {
+
+            identity:this.getIdentity(),
+
+            messages:this.getMessages(),
+
+            systemPrompt:this.buildSystemIdentity()
+
+        };
+
+
+    }
+
 
 
 }
