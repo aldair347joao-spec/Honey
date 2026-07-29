@@ -57,7 +57,36 @@ class HoneyAIApp {
         this.initMarkdownEngine();
         this.initModalsAndUiActions();
     }
+speakResponse(text){
 
+    if(!window.speechSynthesis){
+
+        this.showToast(
+            "Síntese de voz não suportada neste navegador.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+
+    utterance.lang = "pt-PT";
+
+    utterance.rate = 1;
+
+    utterance.pitch = 1;
+
+
+
+    window.speechSynthesis.cancel();
+
+    window.speechSynthesis.speak(utterance);
+
+}
     initDOMReferences() {
         // Status & Kernel
         this.btnChatMode = document.getElementById("btnChatMode");
@@ -726,6 +755,11 @@ if(this.btnLiveMode){
                     : result.response;
 
                 }
+                if(this.currentMode === "live"){
+
+    this.speakResponse(result.response);
+
+}
 
 
 
