@@ -1,7 +1,7 @@
 /*
 ==========================================
-HONEY IA - AGENT ENGINE
-Versão 1.0
+HONEY IA
+AGENT ENGINE V2.0
 ==========================================
 */
 
@@ -9,27 +9,106 @@ class AgentEngine {
 
     constructor() {
 
-        this.agents = [];
+        this.agents = new Map();
+        this.activeAgent = "general";
 
     }
 
     register(agent) {
 
-        this.agents.push(agent);
+        this.agents.set(agent.id, {
+            status: "online",
+            conversations: [],
+            memory: [],
+            tools: [],
+            ...agent
+        });
 
         console.log(`✅ Agente carregado: ${agent.name}`);
 
     }
 
-    getAll() {
+    get(id) {
 
-        return this.agents;
+        return this.agents.get(id);
 
     }
 
-    getById(id) {
+    getAll() {
 
-        return this.agents.find(agent => agent.id === id);
+        return [...this.agents.values()];
+
+    }
+
+    setActive(id) {
+
+        if (this.agents.has(id)) {
+
+            this.activeAgent = id;
+
+            return this.agents.get(id);
+
+        }
+
+        return this.agents.get("general");
+
+    }
+
+    getActive() {
+
+        return this.agents.get(this.activeAgent);
+
+    }
+
+    addConversation(id, role, content) {
+
+        const agent = this.agents.get(id);
+
+        if (!agent) return;
+
+        agent.conversations.push({
+
+            role,
+            content,
+            date: new Date()
+
+        });
+
+    }
+
+    getConversation(id) {
+
+        const agent = this.agents.get(id);
+
+        if (!agent) return [];
+
+        return agent.conversations;
+
+    }
+
+    saveMemory(id, key, value) {
+
+        const agent = this.agents.get(id);
+
+        if (!agent) return;
+
+        agent.memory.push({
+
+            key,
+            value,
+            createdAt: new Date()
+
+        });
+
+    }
+
+    getMemory(id) {
+
+        const agent = this.agents.get(id);
+
+        if (!agent) return [];
+
+        return agent.memory;
 
     }
 
@@ -44,31 +123,69 @@ class AgentEngine {
             text.includes("node") ||
             text.includes("react") ||
             text.includes("python") ||
+            text.includes("api") ||
+            text.includes("código") ||
             text.includes("program")
         ) {
-            return this.getById("developer");
+            return this.get("developer");
+        }
+
+        if (
+            text.includes("logo") ||
+            text.includes("ui") ||
+            text.includes("ux") ||
+            text.includes("figma") ||
+            text.includes("design")
+        ) {
+            return this.get("designer");
         }
 
         if (
             text.includes("marketing") ||
             text.includes("facebook") ||
             text.includes("instagram") ||
+            text.includes("tiktok") ||
             text.includes("publicidade") ||
             text.includes("copy")
         ) {
-            return this.getById("marketing");
+            return this.get("marketing");
         }
 
         if (
-            text.includes("design") ||
-            text.includes("logo") ||
-            text.includes("ui") ||
-            text.includes("ux")
+            text.includes("pdf") ||
+            text.includes("documento") ||
+            text.includes("contrato") ||
+            text.includes("excel") ||
+            text.includes("planilha")
         ) {
-            return this.getById("designer");
+            return this.get("document");
         }
 
-        return this.getById("general");
+        if (
+            text.includes("imagem") ||
+            text.includes("foto") ||
+            text.includes("print") ||
+            text.includes("screenshot")
+        ) {
+            return this.get("vision");
+        }
+
+        if (
+            text.includes("projeto") ||
+            text.includes("arquitetura")
+        ) {
+            return this.get("project");
+        }
+
+        if (
+            text.includes("pesquise") ||
+            text.includes("internet") ||
+            text.includes("web")
+        ) {
+            return this.get("web");
+        }
+
+        return this.get("general");
 
     }
 
@@ -80,11 +197,13 @@ Agents.register({
 
     id: "general",
 
+    emoji: "🐝",
+
     name: "Honey Assistant",
 
-    description: "Assistente principal da Honey IA.",
+    color: "#F4B400",
 
-    emoji: "🐝"
+    description: "Assistente principal da Honey IA."
 
 });
 
@@ -92,11 +211,13 @@ Agents.register({
 
     id: "developer",
 
+    emoji: "💻",
+
     name: "Honey Developer",
 
-    description: "Especialista em programação.",
+    color: "#3B82F6",
 
-    emoji: "💻"
+    description: "Especialista em programação."
 
 });
 
@@ -104,11 +225,13 @@ Agents.register({
 
     id: "designer",
 
+    emoji: "🎨",
+
     name: "Honey Designer",
 
-    description: "Especialista em UI, UX e Design.",
+    color: "#EC4899",
 
-    emoji: "🎨"
+    description: "Especialista em UI, UX e Design."
 
 });
 
@@ -116,11 +239,69 @@ Agents.register({
 
     id: "marketing",
 
+    emoji: "📈",
+
     name: "Honey Marketing",
 
-    description: "Especialista em Marketing Digital.",
+    color: "#10B981",
 
-    emoji: "📈"
+    description: "Especialista em Marketing."
+
+});
+
+Agents.register({
+
+    id: "document",
+
+    emoji: "📄",
+
+    name: "Honey Documents",
+
+    color: "#F97316",
+
+    description: "Especialista em documentos."
+
+});
+
+Agents.register({
+
+    id: "vision",
+
+    emoji: "👁️",
+
+    name: "Honey Vision",
+
+    color: "#8B5CF6",
+
+    description: "Especialista em imagens."
+
+});
+
+Agents.register({
+
+    id: "project",
+
+    emoji: "📂",
+
+    name: "Honey Projects",
+
+    color: "#06B6D4",
+
+    description: "Especialista em projetos."
+
+});
+
+Agents.register({
+
+    id: "web",
+
+    emoji: "🌍",
+
+    name: "Honey Web",
+
+    color: "#22C55E",
+
+    description: "Especialista em pesquisa web."
 
 });
 
