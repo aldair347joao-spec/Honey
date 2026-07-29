@@ -534,6 +534,7 @@ AgentStudio.setStatus("thinking");
         } finally {
             this.setKernelState(false);
             this.scrollToBottom();
+            AgentStudio.setStatus("idle");
         }
     }
 
