@@ -50,6 +50,7 @@ export const Store = {
 class HoneyAIApp {
     constructor() {
         this.liveMode = false;
+        this.currentMode = "chat";
         this.initDOMReferences();
         this.initAuthState();
         this.initEventListeners();
@@ -59,6 +60,8 @@ class HoneyAIApp {
 
     initDOMReferences() {
         // Status & Kernel
+        this.btnChatMode = document.getElementById("btnChatMode");
+this.btnLiveMode = document.getElementById("btnLiveMode");
         this.btnLive = document.getElementById("btnLive");
 this.liveStatus = document.getElementById("liveStatus");
         this.btnChatMode = document.getElementById("btnChatMode");
