@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
 import rateLimit from 'express-rate-limit';
-
+import liveRoute from "./liveRoute.js";
 import Orchestrator from "./orchestrator.js";
 import { connectDatabase } from "./database.js";
 import Kernel from "./kernel.js";
@@ -30,7 +30,9 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cors());
 app.use(express.static('.'));
+app.use(express.json({ limit: '20mb' }));
 
+app.use("/api", liveRoute);
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
