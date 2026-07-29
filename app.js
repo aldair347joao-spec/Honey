@@ -131,6 +131,49 @@ this.btnLiveMode = document.getElementById("btnLiveMode");
 
     initEventListeners() {
         // Menu Lateral & Navegação
+        if(this.btnChatMode){
+
+    this.btnChatMode.addEventListener("click",()=>{
+
+        AgentStudio.setMode("chat");
+
+
+        this.btnChatMode.classList.add("active");
+
+        this.btnLiveMode.classList.remove("active");
+
+
+        this.showToast(
+            "Modo Chat ativado.",
+            "success"
+        );
+
+    });
+
+}
+
+
+
+if(this.btnLiveMode){
+
+    this.btnLiveMode.addEventListener("click",()=>{
+
+        AgentStudio.setMode("live");
+
+
+        this.btnLiveMode.classList.add("active");
+
+        this.btnChatMode.classList.remove("active");
+
+
+        this.showToast(
+            "Modo Live ativado. Pode falar com o agente.",
+            "success"
+        );
+
+    });
+
+}
         this.navItems.forEach(item => {
             item.addEventListener("click", (e) => {
                 e.preventDefault();
