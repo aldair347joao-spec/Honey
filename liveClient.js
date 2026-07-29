@@ -95,7 +95,30 @@ class LiveClient {
     }
 
 
+async changeAgent(agentId){
 
+    const response = await fetch(
+        "/api/live/agent",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                agentId
+
+            })
+
+        }
+    );
+
+
+    return await response.json();
+
+}
 
 
     stop(){
