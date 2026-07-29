@@ -1,172 +1,101 @@
 /*
 ==========================================
 HONEY IA
-Live Voice Engine
-Versão 1.0
+LIVE ENGINE
+Agent Identity Integration
 ==========================================
 */
 
+import AgentStudio from "./agentStudio.js";
+
+
 class LiveEngine {
+
 
     constructor(){
 
-        this.recognition = null;
-
-        this.isListening = false;
-
-        this.voiceEnabled = false;
-
-        this.init();
+        this.session = null;
 
     }
 
 
-    init(){
 
-        const SpeechRecognition =
-            window.SpeechRecognition ||
-            window.webkitSpeechRecognition;
+    start(){
 
-
-        if(!SpeechRecognition){
-
-            console.warn(
-                "Reconhecimento de voz não suportado."
-            );
-
-            return;
-
-        }
+        const agent = AgentStudio.getActiveAgent();
 
 
-        this.recognition = new SpeechRecognition();
+        this.session = {
 
+            agentId: agent.id,
 
-        this.recognition.lang = "pt-PT";
+            identity: {
 
-        this.recognition.continuous = false;
+                name: agent.name,
 
-        this.recognition.interimResults = false;
+                role: agent.description,
 
+                emoji: agent.emoji
 
+            },
 
-        this.recognition.onstart = ()=>{
-
-            this.isListening = true;
-
-            this.emitStatus("listening");
+            startedAt: new Date()
 
         };
 
 
-        this.recognition.onend = ()=>{
-
-            this.isListening = false;
-
-            this.emitStatus("idle");
-
-        };
-
-
-        this.recognition.onerror = (error)=>{
-
-            console.error(
-                "Erro de voz:",
-                error
-            );
-
-            this.emitStatus("error");
-
-        };
+        return this.session;
 
     }
 
 
 
-    start(callback){
 
-        if(!this.recognition){
+    getIdentity(){
 
-            return false;
+        if(!this.session){
+
+            return null;
 
         }
 
 
-        this.recognition.onresult = (event)=>{
-
-            const text =
-            event.results[0][0].transcript;
-
-
-            if(callback){
-
-                callback(text);
-
-            }
-
-        };
-
-
-        this.recognition.start();
+        return this.session.identity;
 
     }
 
 
 
-    stop(){
 
-        if(this.recognition){
-
-            this.recognition.stop();
-
-        }
-
-    }
+    buildSystemIdentity(){
 
 
+        const identity = this.getIdentity();
 
-    speak(text){
 
-        if(!window.speechSynthesis){
+        if(!identity){
 
-            return;
+            return "Você é a Honey IA.";
 
         }
 
 
-        const voice =
-        new SpeechSynthesisUtterance(text);
 
+        return `
 
-        voice.lang = "pt-PT";
+Você é ${identity.name}.
 
-        voice.rate = 1;
+Sua função é:
+${identity.role}
 
-        voice.pitch = 1;
+Mantenha essa identidade durante toda a conversa ao vivo.
 
+Nunca responda como outro agente.
 
-        speechSynthesis.speak(voice);
-
-    }
-
-
-
-    emitStatus(status){
-
-        document.dispatchEvent(
-
-            new CustomEvent(
-                "live-status",
-                {
-                    detail:{
-                        status
-                    }
-                }
-            )
-
-        );
+`;
 
     }
+
 
 }
 
