@@ -4,6 +4,8 @@ HONEY IA
 AGENT ENGINE V2.0
 ==========================================
 */
+import GeneralAgent from "./agents/generalAgent.js";
+import DeveloperAgent from "./agents/developerAgent.js";
 
 class AgentEngine {
 
