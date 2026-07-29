@@ -49,6 +49,8 @@ export const Store = {
 // ==========================================================
 class HoneyAIApp {
     constructor() {
+        this.voiceActive = false;
+        this.voiceRecognition = null;
         this.liveMode = false;
         this.currentMode = "chat";
         this.initDOMReferences();
@@ -674,8 +676,44 @@ if(this.btnLiveMode){
     handleVoiceInput() {
 
     const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+
+if(!SpeechRecognition){
+
+    this.showToast(
+        "Reconhecimento de voz não suportado.",
+        "error"
+    );
+
+    return;
+
+}
+
+
+
+if(this.voiceActive){
+
+    this.voiceActive = false;
+
+
+    if(this.voiceRecognition){
+
+        this.voiceRecognition.stop();
+
+    }
+
+
+    this.showToast(
+        "Live por voz desligado.",
+        "info"
+    );
+
+
+    return;
+
+}
 
 
     if (!SpeechRecognition) {
@@ -695,9 +733,9 @@ if(this.btnLiveMode){
 
     recognition.lang = "pt-PT";
 
-    recognition.continuous = false;
+    recognition.continuous = true;
 
-    recognition.interimResults = false;
+    recognition.interimResults = true;
 
 
 
