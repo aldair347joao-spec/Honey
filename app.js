@@ -6,7 +6,6 @@ import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
 import LiveEngine from "./liveEngine.js";
 const SESSION_ID = crypto.randomUUID();
-
 // ==========================================================
 // 1. EVENT BUS & CENTRAL STORE
 // ==========================================================
@@ -674,14 +673,15 @@ if(this.btnLiveMode){
     }
 
     handleVoiceInput() {
-
+const recognition = new SpeechRecognition();
     const SpeechRecognition =
 window.SpeechRecognition ||
 window.webkitSpeechRecognition;
 
 
 if(!SpeechRecognition){
-
+this.voiceRecognition = recognition;
+this.voiceActive = true;
     this.showToast(
         "Reconhecimento de voz não suportado.",
         "error"
@@ -796,6 +796,15 @@ if(this.voiceActive){
                 if(this.currentMode === "live"){
 
     this.speakResponse(result.response);
+                    if(this.voiceActive){
+
+    setTimeout(()=>{
+
+        recognition.start();
+
+    },1500);
+
+}
 
 }
 
