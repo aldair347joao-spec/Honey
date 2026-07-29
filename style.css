@@ -37,6 +37,51 @@
     box-sizing: border-box !important;
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
+.mode-switch{
+
+    display:flex;
+
+    gap:8px;
+
+    background:rgba(255,255,255,0.05);
+
+    padding:5px;
+
+    border-radius:14px;
+
+}
+
+
+
+.mode-btn{
+
+    border:none;
+
+    padding:8px 16px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    background:transparent;
+
+    color:inherit;
+
+    transition:.3s;
+
+}
+
+
+
+.mode-btn.active{
+
+    background:var(--accent-yellow);
+
+    color:#000;
+
+    font-weight:700;
+
+}
 
 html, body {
     width: 100%;
