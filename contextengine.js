@@ -1,4 +1,11 @@
-class ContextEngine {
+/*
+==========================================
+HONEY IA
+CONTEXT ENGINE
+==========================================
+*/
+
+class contextengine {
 
     constructor() {
         this.MAX_HISTORY = 12;
@@ -24,7 +31,7 @@ class ContextEngine {
         });
 
         // Memórias relevantes
-        if (memories.length) {
+        if (memories && memories.length) {
 
             context.push({
                 role: "system",
@@ -32,7 +39,8 @@ class ContextEngine {
 `MEMÓRIAS IMPORTANTES
 
 ${memories
-.map(memory => `• ${memory.content}`)
+.slice(-this.MAX_MEMORIES)
+.map(memory => `• ${memory.content || memory}`)
 .join("\n")}`
             });
 
@@ -57,4 +65,4 @@ ${JSON.stringify(toolResult, null, 2)}`
 
 }
 
-export default new ContextEngine();
+export default new contextengine();
