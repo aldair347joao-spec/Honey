@@ -7,8 +7,8 @@ Frontend Agent Studio Controller
 */
 
 
-import AgentStudio from "./agentStudio.js";
-import LiveClient from "./liveClient.js";
+import agentstudio from "./agentstudio.js";
+import liveclient from "./liveclient.js";
 
 
 
@@ -17,7 +17,7 @@ import LiveClient from "./liveClient.js";
 // CONFIGURAÇÃO DOS AGENTES
 // ==========================================
 
-const AgentsUI = {
+const agentsui = {
 
 
 
@@ -64,7 +64,7 @@ const AgentsUI = {
 
 
         {
-            id:"health",
+            id:"healthcare",
             emoji:"🏥",
             name:"Honey Health",
             description:"Informações gerais sobre saúde."
@@ -194,7 +194,7 @@ const AgentsUI = {
 
 
             const card =
-            document.createElement(
+            document.createelement(
                 "div"
             );
 
@@ -250,7 +250,7 @@ const AgentsUI = {
 
 
 
-            this.container.appendChild(card);
+            this.container.appendchild(card);
 
 
 
@@ -268,17 +268,17 @@ const AgentsUI = {
 
 
 
-    bindEvents(){
+    bindevents(){
 
 
 
         document
-        .querySelectorAll(".agent-card")
-        .forEach(card=>{
+        .queryselectorall(".agent-card")
+        .foreach(card=>{
 
 
 
-            card.addEventListener(
+            card.addeventlistener(
                 "click",
                 ()=>{
 
@@ -305,15 +305,15 @@ const AgentsUI = {
 
 
         const chat =
-        document.getElementById(
-            "btnAgentChat"
+        document.getElementbyid(
+            "btnagentchat"
         );
 
 
 
         const live =
-        document.getElementById(
-            "btnAgentLive"
+        document.getelementbyid(
+            "btnagentlive"
         );
 
 
@@ -328,7 +328,7 @@ const AgentsUI = {
             chat.onclick=()=>{
 
 
-                AgentStudio.setMode(
+                agentstudio.setmode(
                     "chat"
                 );
 
@@ -356,12 +356,12 @@ const AgentsUI = {
             async()=>{
 
 
-                AgentStudio.setMode(
+                agentstudio.setmode(
                     "live"
                 );
 
 
-                await LiveClient.start();
+                await liveclient.start();
 
 
 
@@ -388,7 +388,7 @@ const AgentsUI = {
 
 
 
-    async selectAgent(id){
+    async selectagent(id){
 
 
 
@@ -410,14 +410,14 @@ const AgentsUI = {
 
 
 
-        AgentStudio.setAgent(
+        agentstudio.setagent(
             id
         );
 
 
 
 
-        await LiveClient.changeAgent(
+        await liveclient.changeagent(
             id
         );
 
@@ -426,8 +426,8 @@ const AgentsUI = {
 
 
         const panel =
-        document.getElementById(
-            "activeAgentPanel"
+        document.getelementbyid(
+            "activeagentpanel"
         );
 
 
@@ -445,25 +445,25 @@ const AgentsUI = {
 
 
 
-        document.getElementById(
-            "activeEmoji"
-        ).textContent =
+        document.getelementbyid(
+            "activeemoji"
+        ).textcontent =
         agent.emoji;
 
 
 
 
-        document.getElementById(
-            "activeName"
-        ).textContent =
+        document.getelementbyid(
+            "activename"
+        ).textcontent =
         agent.name;
 
 
 
 
-        document.getElementById(
-            "activeRole"
-        ).textContent =
+        document.getelementbyid(
+            "activerole"
+        ).textcontent =
         agent.description;
 
 
@@ -483,12 +483,12 @@ const AgentsUI = {
 
 
 
-document.addEventListener(
-    "DOMContentLoaded",
+document.addeventlistener(
+    "domcontentloaded",
     ()=>{
 
 
-        AgentsUI.init();
+        agentsui.init();
 
 
     }
@@ -496,4 +496,4 @@ document.addEventListener(
 
 
 
-export default AgentsUI;
+export default agentsui;
