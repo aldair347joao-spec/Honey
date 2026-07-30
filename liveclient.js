@@ -8,7 +8,7 @@ Agent Studio Integration
 */
 
 
-class LiveClient {
+class liveclient {
 
 
     constructor(){
@@ -346,7 +346,7 @@ class LiveClient {
     */
 
 
-    async changeAgent(agentId){
+    async changeagent(agentId){
 
 
 
@@ -572,7 +572,7 @@ class LiveClient {
     */
 
 
-    getAgent(){
+    getagent(){
 
 
         return this.agent;
@@ -596,7 +596,7 @@ class LiveClient {
 
 
 
-    getSession(){
+    getsession(){
 
 
         return this.session;
@@ -612,4 +612,4 @@ class LiveClient {
 
 
 
-export default new LiveClient();
+export default new liveclient();
