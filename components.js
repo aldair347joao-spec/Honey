@@ -6,8 +6,8 @@ Dynamic Agent Studio UI
 ==========================================
 */
 
-import Agents from "./agents.js";
-import AgentStudio from "./agentStudio.js";
+import agents from "./agents.js";
+import agentstudio from "./agentstudio.js";
 
 
 
@@ -318,7 +318,7 @@ button.dataset.agent;
 
 
 const agent =
-AgentStudio.setAgent(id);
+agentstudio.setAgent(id);
 
 
 
