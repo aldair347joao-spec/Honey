@@ -8,12 +8,12 @@ V1.0
 */
 
 
-import AgentMarketplace from "./agentMarketplace.js";
-import AgentStudioView from "./agentStudioView.js";
+import agentmarketplace from "./agentmarketplace.js";
+import agentstudioview from "./agentstudioview.js";
 
 
 
-class AgentsNavigation {
+class agentsnavigation {
 
 
 
@@ -33,13 +33,13 @@ init(){
 
 
 const marketplaceBtn =
-document.getElementById(
-"navAgents"
+document.getelementbyid(
+"navagents"
 );
 
 
 
-if(!marketplaceBtn){
+if(!marketplacebtn){
 
 return;
 
@@ -48,12 +48,12 @@ return;
 
 
 
-marketplaceBtn.addEventListener(
+marketplacebtn.addeventlistener(
 "click",
 ()=>{
 
 
-this.openMarketplace();
+this.openmarketplace();
 
 
 }
@@ -68,12 +68,12 @@ this.openMarketplace();
 
 
 
-openMarketplace(){
+openmarketplace(){
 
 
 
 const views =
-document.querySelectorAll(
+document.queryselectorall(
 ".workspace-view"
 );
 
@@ -92,8 +92,8 @@ view.style.display="none";
 
 
 const marketplace =
-document.getElementById(
-"agentsMarketplaceView"
+document.getelementbyId(
+"agentsmarketplaceview"
 );
 
 
@@ -104,7 +104,7 @@ if(marketplace){
 marketplace.style.display="block";
 
 
-AgentMarketplace.render();
+agentmarketplace.render();
 
 
 }
@@ -120,18 +120,18 @@ AgentMarketplace.render();
 
 
 
-openStudio(){
+openstudio(){
 
 
 
 const views =
-document.querySelectorAll(
+document.queryselectorall(
 ".workspace-view"
 );
 
 
 
-views.forEach(view=>{
+views.foreach(view=>{
 
 
 view.style.display="none";
@@ -144,8 +144,8 @@ view.style.display="none";
 
 
 const studio =
-document.getElementById(
-"agentStudioView"
+document.getelementbyid(
+"agentstudioview"
 );
 
 
