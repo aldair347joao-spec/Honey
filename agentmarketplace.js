@@ -34,7 +34,7 @@ init(containerId){
 
 
     this.container =
-    document.getElementById(containerId);
+    document.getelementbyid(containerId);
 
     if(!this.container){
 
@@ -66,7 +66,7 @@ render(){
 
 
 const agents =
-agents.getAll();
+agents.getall();
 
 
 
@@ -218,7 +218,7 @@ Ver Studio
 
 
 
-this.attachEvents();
+this.attachevents();
 
 
 
@@ -232,16 +232,16 @@ this.attachEvents();
 
 
 
-attachEvents(){
+attachevents(){
 
 
 
 this.container
-.querySelectorAll(".use-agent")
-.forEach(button=>{
+.queryselectorall(".use-agent")
+.foreach(button=>{
 
 
-button.addEventListener(
+button.addeventlistener(
 "click",
 ()=>{
 
@@ -252,7 +252,7 @@ button.dataset.id;
 
 if(!subscription.canuseagent(id)){
 
-    UpgradeModal.open();
+    upgrademodal.open();
 
     return;
 
@@ -295,7 +295,7 @@ agents.get(id)
 
 this.container
 .queryselectorall(".open-agent")
-.forEach(button=>{
+.foreach(button=>{
 
 
 button.addeventlistener(
@@ -309,7 +309,7 @@ button.dataset.id;
 
 if(!subscription.canuseagent(id)){
 
-    upgradeModal.open();
+    upgrademodal.open();
 
     return;
 
