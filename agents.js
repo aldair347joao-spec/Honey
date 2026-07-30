@@ -12,7 +12,7 @@ import GeneralAgent from "./agents/generalAgent.js";
 import DeveloperAgent from "./agents/developerAgent.js";
 import MarketingAgent from "./agents/marketingAgent.js";
 import FinanceAgent from "./agents/financeAgent.js";
-import HealthAgent from "./agents/healthAgent.js";
+import HealthcareAgent from "./agents/HealthcareAgent.js";
 import EducationAgent from "./agents/educationAgent.js";
 import LegalAgent from "./agents/legalAgent.js";
 import ArchitectAgent from "./agents/architectAgent.js";
@@ -63,7 +63,7 @@ class AgentEngine {
 
             FinanceAgent,
 
-            HealthAgent,
+            HealthcareAgent,
 
             EducationAgent,
 
