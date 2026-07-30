@@ -219,6 +219,15 @@ Plano: ${user.plan}
 
 
 }
+    if(document.getElementById("dashboardContainer")){
+
+
+Dashboard.init(
+"dashboardContainer"
+);
+
+
+}
 
 
 constructor(){
