@@ -5,7 +5,7 @@ FULL PRODUCTION (LIVE & STREAMING ENGINE)
 ==========================================
 */
 
-import orchestratorInstance from './orchestrator.js';
+import orchestratorinstance from './orchestrator.js';
 
 /**
  * Utilitário para formatar eventos SSE
@@ -17,7 +17,7 @@ const formatSSEEvent = (event, data) => {
 /**
  * Controller principal para rotas em tempo real (Server-Sent Events - SSE)
  */
-export const handleLiveStreamRoute = async (req, res) => {
+export const handlelivestreamroute = async (req, res) => {
     const startTime = Date.now();
 
     // 1. Extração segura dos parâmetros do body
@@ -25,8 +25,8 @@ export const handleLiveStreamRoute = async (req, res) => {
         prompt,
         agentId = null,
         history = [],
-        workspaceContext = {},
-        userMemory = [],
+        workspacecontext = {},
+        usermemory = [],
         mode = "live",
         audioEnabled = false
     } = req.body || {};
@@ -53,22 +53,22 @@ export const handleLiveStreamRoute = async (req, res) => {
     }));
 
     // Monitorizar se o cliente cancelou a conexão a meio da transmissão
-    let isClientConnected = true;
+    let isclientconnected = true;
     req.on('close', () => {
-        isClientConnected = false;
-        console.log('[LiveRoute] Cliente desligou a conexão SSE prematuramente.');
+        isclientconnected = false;
+        console.log('[liveroute] Cliente desligou a conexão SSE prematuramente.');
     });
 
     try {
         let accumulatedText = "";
 
         // 4. Iniciar o processamento via Streaming no Orchestrator
-        await orchestratorInstance.processStream({
+        await orchestratorinstance.processStream({
             userPrompt: prompt,
             agentId,
             history,
-            workspaceContext,
-            userMemory,
+            workspacecontext,
+            usermemory,
             mode,
             onChunk: (chunkText) => {
                 if (!isClientConnected) return;
@@ -82,7 +82,7 @@ export const handleLiveStreamRoute = async (req, res) => {
                 }));
             },
             onComplete: (summary) => {
-                if (!isClientConnected) return;
+                if (!isclientconnected) return;
 
                 const durationMs = Date.now() - startTime;
 
@@ -117,7 +117,7 @@ export const handleLiveStreamRoute = async (req, res) => {
     } catch (error) {
         console.error('[LiveRoute Stream Execution Error]:', error);
 
-        if (isClientConnected) {
+        if (isclientconnected) {
             res.write(formatSSEEvent('error', {
                 success: false,
                 error: error.message || "Falha crítica no motor de streaming Live."
@@ -130,7 +130,7 @@ export const handleLiveStreamRoute = async (req, res) => {
 /**
  * Controller secundário para verificação de estado do canal Live
  */
-export const handleLiveStatusCheck = (req, res) => {
+export const handleliveStatusCheck = (req, res) => {
     return res.status(200).json({
         status: "active",
         service: "Honey IA Live Engine",
@@ -138,4 +138,4 @@ export const handleLiveStatusCheck = (req, res) => {
     });
 };
 
-export default handleLiveStreamRoute;
+export default handlelivestreamroute;
