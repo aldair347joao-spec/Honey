@@ -1,9 +1,9 @@
 /*
 ==========================================
 HONEY IA
-LIVE ENGINE
+LIVE ENGINE V4.0
 Agent Identity + Live Session Manager
-Versão 4.0
+Compatible with AgentEngine V3
 ==========================================
 */
 
@@ -19,11 +19,10 @@ class LiveEngine {
     constructor(){
 
 
-        this.session=null;
+        this.session = null;
 
 
     }
-
 
 
 
@@ -39,181 +38,78 @@ class LiveEngine {
     */
 
 
-    start(agentId=null){
+    start(agentId = null){
 
 
 
-        let agent;
+        try {
 
 
 
+            if(agentId){
 
 
-        if(agentId){
+                AgentStudio.setAgent(agentId);
 
 
-            AgentStudio.setAgent(
-                agentId
-            );
+            }
 
 
-        }
 
 
 
 
+            const agent =
+            AgentStudio.getActiveAgent();
 
 
 
-        agent =
-        AgentStudio.getActiveAgent();
 
 
 
+            if(!agent){
 
 
+                throw new Error(
 
+                    "Nenhum agente disponível."
 
-        if(!agent){
+                );
 
 
-            throw new Error(
-                "Nenhum agente disponível para iniciar Live."
-            );
+            }
 
 
-        }
 
 
 
 
 
+            this.session = {
 
 
-        this.session={
 
+                active:true,
 
-            active:true,
 
 
+                agentId:agent.id,
 
-            agentId:
-            agent.id,
 
 
+                identity:this.createIdentity(agent),
 
-            identity:{
 
 
-                id:agent.id,
+                messages:[],
 
 
-                name:agent.name,
 
+                startedAt:new Date(),
 
-                role:agent.description,
 
 
-                emoji:agent.emoji
-
-
-            },
-
-
-
-            messages:[],
-
-
-
-            startedAt:new Date(),
-
-
-
-            lastActivity:new Date()
-
-
-        };
-
-
-
-
-
-
-
-        return this.session;
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    TROCAR AGENTE LIVE
-    ======================================
-    */
-
-
-    switchAgent(agentId){
-
-
-
-        const agent =
-        AgentStudio.setAgent(
-            agentId
-        );
-
-
-
-
-
-        if(!agent){
-
-
-            return false;
-
-
-        }
-
-
-
-
-
-
-
-
-        if(this.session){
-
-
-
-            this.session.agentId =
-            agent.id;
-
-
-
-
-
-            this.session.identity={
-
-
-
-                id:agent.id,
-
-
-                name:agent.name,
-
-
-                role:agent.description,
-
-
-                emoji:agent.emoji
+                lastActivity:new Date()
 
 
 
@@ -225,25 +121,23 @@ class LiveEngine {
 
 
 
-            this.addMessage(
+            return this.session;
 
-                "system",
 
-                `Agente alterado para ${agent.name}`
 
-            );
 
+
+
+
+
+        }catch(error){
+
+
+
+            throw error;
 
 
         }
-
-
-
-
-
-
-
-        return true;
 
 
 
@@ -259,7 +153,160 @@ class LiveEngine {
 
     /*
     ======================================
-    IDENTIDADE
+    CRIAR IDENTIDADE
+    ======================================
+    */
+
+
+    createIdentity(agent){
+
+
+
+        return {
+
+
+            id:agent.id,
+
+
+            name:agent.name,
+
+
+            role:agent.description,
+
+
+            emoji:agent.emoji || "🐝"
+
+
+
+        };
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    ALTERAR AGENTE LIVE
+    ======================================
+    */
+
+
+    switchAgent(agentId){
+
+
+
+        try {
+
+
+
+            const agent =
+            AgentStudio.setAgent(agentId);
+
+
+
+
+
+
+
+            if(!agent){
+
+
+                return false;
+
+
+            }
+
+
+
+
+
+
+
+
+            if(this.session){
+
+
+
+                this.session.agentId =
+                agent.id;
+
+
+
+
+
+                this.session.identity =
+                this.createIdentity(agent);
+
+
+
+
+
+
+                this.addMessage(
+
+                    "system",
+
+                    `Agente alterado para ${agent.name}`
+
+                );
+
+
+
+            }
+
+
+
+
+
+
+            return true;
+
+
+
+
+
+
+        }catch(error){
+
+
+
+            console.error(
+
+                "Erro ao trocar agente:",
+
+                error
+
+            );
+
+
+
+            return false;
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    IDENTIDADE ATUAL
     ======================================
     */
 
@@ -267,13 +314,7 @@ class LiveEngine {
     getIdentity(){
 
 
-
-        return this.session
-        ?
-        this.session.identity
-        :
-        null;
-
+        return this.session?.identity || null;
 
 
     }
@@ -288,7 +329,7 @@ class LiveEngine {
 
     /*
     ======================================
-    MENSAGENS
+    ADICIONAR MENSAGEM
     ======================================
     */
 
@@ -302,8 +343,6 @@ class LiveEngine {
             return;
 
         }
-
-
 
 
 
@@ -327,7 +366,6 @@ class LiveEngine {
 
 
 
-
         this.session.lastActivity =
         new Date();
 
@@ -342,15 +380,19 @@ class LiveEngine {
 
 
 
+
+    /*
+    ======================================
+    HISTÓRICO
+    ======================================
+    */
+
+
     getMessages(){
 
 
-        return this.session
-        ?
-        this.session.messages
-        :
-        [];
 
+        return this.session?.messages || [];
 
 
     }
@@ -365,7 +407,7 @@ class LiveEngine {
 
     /*
     ======================================
-    ENCERRAR
+    PARAR LIVE
     ======================================
     */
 
@@ -374,17 +416,12 @@ class LiveEngine {
 
 
 
-        const oldSession =
-        this.session;
-
-
-
-
-
         if(this.session){
 
 
+
             this.session.active=false;
+
 
 
         }
@@ -393,15 +430,7 @@ class LiveEngine {
 
 
 
-
-        this.session=null;
-
-
-
-
-
-
-        return oldSession;
+        return this.session;
 
 
 
@@ -417,7 +446,7 @@ class LiveEngine {
 
     /*
     ======================================
-    IDENTIDADE SYSTEM PROMPT
+    SYSTEM PROMPT DO AGENTE
     ======================================
     */
 
@@ -437,15 +466,13 @@ class LiveEngine {
         if(!identity){
 
 
-
             return `
+
 Você é a Honey IA.
+
 `;
 
-
-
         }
-
 
 
 
@@ -460,29 +487,30 @@ Você é ${identity.name} ${identity.emoji}.
 
 
 
-Sua função:
+Especialidade:
 
 ${identity.role}
 
 
 
-Você está em uma conversa ao vivo.
+Modo:
+
+Conversa Live em tempo real.
 
 
 
-REGRAS:
+Regras:
 
 
-
-- Mantenha sempre esta identidade.
+- Mantenha sempre a identidade atual.
 
 - Nunca diga que é outro agente.
 
 - Nunca mude de personalidade.
 
-- Responda dentro da sua especialidade.
+- Ajude dentro da sua especialidade.
 
-- Preserve o contexto da sessão.
+- Preserve o contexto da conversa.
 
 
 
@@ -502,7 +530,7 @@ REGRAS:
 
     /*
     ======================================
-    CONTEXTO LIVE
+    CONTEXTO LIVE COMPLETO
     ======================================
     */
 
@@ -529,8 +557,10 @@ REGRAS:
 
 
 
+
             messages:
             this.getMessages(),
+
 
 
 
@@ -542,9 +572,7 @@ REGRAS:
         };
 
 
-
     }
-
 
 
 
