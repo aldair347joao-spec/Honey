@@ -8,7 +8,7 @@ V1.0
 */
 
 
-class AuthManager {
+class authmanager {
 
 
 
@@ -175,4 +175,4 @@ return this.user?.plan || "free";
 
 
 
-export default new AuthManager();
+export default new authmanager();
