@@ -1,7 +1,8 @@
 /*
 ==========================================
 HONEY IA
-ORCHESTRATOR V2.0
+ORCHESTRATOR V3.0
+Enterprise Multi-Agent
 ==========================================
 */
 
@@ -24,13 +25,15 @@ class Orchestrator {
 
     }
 
-    async process({ 
-    userId, 
-    message, 
-    user = {},
-    agent = "general",
-    mode = "chat"
-}) {
+    async process({
+
+        userId,
+        message,
+        user = {},
+        agent = "general",
+        mode = "chat"
+
+    }) {
 
         const started = Date.now();
 
@@ -42,9 +45,27 @@ class Orchestrator {
 
             const history = await getRecentMessages(userId, 15);
 
-            const detectedAgent = Agents.detect(message);
+            // Se o utilizador escolher manualmente um agente,
+            // esse agente tem prioridade.
+            let selectedAgent;
 
-            Agents.setActive(detectedAgent.id);
+            if (agent && agent !== "general") {
+
+                selectedAgent = Agents.getById(agent);
+
+            } else {
+
+                selectedAgent = Agents.detect(message);
+
+            }
+
+            if (!selectedAgent) {
+
+                selectedAgent = Agents.getById("general");
+
+            }
+
+            Agents.setActive(selectedAgent.id);
 
             let toolResult = null;
 
@@ -54,9 +75,9 @@ class Orchestrator {
 
             }
 
-            const systemPrompt = this.buildPrompt({
+            const prompt = this.buildPrompt({
 
-                agent: detectedAgent,
+                agent: selectedAgent,
 
                 workspace,
 
@@ -76,25 +97,31 @@ class Orchestrator {
             this.metrics.success++;
             this.metrics.totalTime += Date.now() - started;
 
-        return {
+            return {
 
-    prompt,
+                prompt,
 
-    context,
+                context: {
+                    workspace,
+                    memories,
+                    history
+                },
 
-    toolResult,
+                toolResult,
 
-    agentId,
+                agentId: selectedAgent.id,
 
-    mode,
+                mode,
 
-    memories,
+                memories,
 
-    history
+                history
 
-};
+            };
 
-        } catch (err) {
+        }
+
+        catch (err) {
 
             this.metrics.requests++;
             this.metrics.errors++;
@@ -104,10 +131,6 @@ class Orchestrator {
         }
 
     }
-
-    const agentId = agent !== "general" 
-    ? agent 
-    : DecisionEngine.detectAgent(message);
 
     buildPrompt({
 
@@ -122,45 +145,80 @@ class Orchestrator {
     }) {
 
         return `
+
 Você é ${agent.name}.
 
-Descrição:
+Especialidade:
+
 ${agent.description}
 
-Modo:
-${mode === "live" ? "Conversação por voz em tempo real." : "Conversa por texto."}
+====================================
 
-Idioma:
-Português.
-
-Utilizador:
-${JSON.stringify(user)}
-
-Workspace Atual:
-${workspace ? workspace.name : "Sem Workspace"}
-
-Memórias:
-${JSON.stringify(memories)}
-
-Histórico:
-${JSON.stringify(history)}
-
-Ferramentas:
-${JSON.stringify(toolResult)}
-
-Regras:
+IDENTIDADE
 
 - Nunca diga que é outro agente.
 
-- Responda apenas como ${agent.name}.
+- Nunca mude de personalidade.
 
-- Caso a tarefa saia da sua especialidade, continue ajudando normalmente.
+- Mantenha sempre o comportamento de ${agent.name}.
 
-- Responda de forma profissional.
+====================================
 
-- Gere código completo quando solicitado.
+MODO DE CONVERSA
 
-- Preserve sempre o contexto do Workspace.
+${mode === "live"
+
+? "O utilizador está numa conversa ao vivo. Responda naturalmente, como se estivesse a conversar por voz."
+
+: "O utilizador está numa conversa escrita. Responda normalmente."}
+
+====================================
+
+UTILIZADOR
+
+${JSON.stringify(user)}
+
+====================================
+
+WORKSPACE
+
+${workspace ? workspace.name : "Sem Workspace ativo"}
+
+====================================
+
+MEMÓRIAS
+
+${JSON.stringify(memories)}
+
+====================================
+
+HISTÓRICO
+
+${JSON.stringify(history)}
+
+====================================
+
+TOOLS
+
+${JSON.stringify(toolResult)}
+
+====================================
+
+REGRAS
+
+• Preserve sempre o contexto.
+
+• Gere código completo.
+
+• Nunca invente informações.
+
+• Utilize ferramentas quando necessário.
+
+• Caso a tarefa saia da sua especialidade, continue a ajudar mantendo a sua identidade.
+
+• Nunca diga que foi trocado de agente.
+
+• Responda sempre em Português.
 
 `;
 
@@ -184,11 +242,11 @@ Regras:
 
                     : Math.round(
 
-                          this.metrics.totalTime /
+                        this.metrics.totalTime /
 
-                              this.metrics.requests
+                        this.metrics.requests
 
-                      )
+                    )
 
         };
 
