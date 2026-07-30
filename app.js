@@ -651,8 +651,8 @@ async handleSubmitPrompt(){
 
 
 
-const text =
-this.promptTextarea?.value.trim();
+const payload =
+AgentRouter.preparePayload(text);
 
 
 
