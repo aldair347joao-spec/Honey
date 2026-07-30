@@ -181,7 +181,20 @@ data-id="${agent.id}"
 >
 
 Usar Agente
+if(!Subscription.canUseAgent(id)){
 
+
+    UpgradeModal.open();
+
+
+    return;
+
+
+}
+
+
+
+AgentStudio.setAgent(id);
 </button>
 
 
@@ -196,7 +209,40 @@ data-id="${agent.id}"
 >
 
 Ver Studio
+if(!Subscription.canUseAgent(id)){
 
+
+    UpgradeModal.open();
+
+
+    return;
+
+
+}
+
+
+const agent =
+Agents.get(id);
+
+
+AgentStudio.setAgent(id);
+
+
+document.dispatchEvent(
+
+new CustomEvent(
+"agent-studio-open",
+{
+
+detail:{
+agent
+}
+
+}
+
+)
+
+);
 </button>
 
 
