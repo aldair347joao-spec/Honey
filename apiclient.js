@@ -8,7 +8,7 @@ V1.0
 */
 
 
-class ApiClient {
+class apiclient {
 
 
 
@@ -142,7 +142,7 @@ method:"POST",
 
 
 body:
-JSON.stringify(user)
+json.stringify(user)
 
 
 }
@@ -161,7 +161,7 @@ JSON.stringify(user)
 
 
 
-async getProfile(){
+async getprofile(){
 
 
 
@@ -187,7 +187,7 @@ method:"GET"
 
 
 
-async getAgents(){
+async getagents(){
 
 
 
@@ -227,7 +227,7 @@ method:"POST",
 
 
 body:
-JSON.stringify({
+json.stringify({
 
 plan
 
@@ -249,4 +249,4 @@ plan
 
 
 
-export default new ApiClient();
+export default new apiclient();
