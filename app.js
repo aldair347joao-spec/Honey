@@ -11,6 +11,7 @@ import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
 import AgentsUI from "./agents-ui.js";
 import AgentStudioView from "./agentStudioView.js";
+import AgentsNavigation from "./agentsNavigation.js";
 const SESSION_ID = crypto.randomUUID();
 
 
