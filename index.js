@@ -287,11 +287,7 @@ const user={
 
 
 let orchestratorResult=null;
-
-
-let systemPrompt =
-"Você é a Honey IA. Responda em Português de forma profissional.";
-
+let systemPrompt = "Você é a Honey IA. Responda em Português de forma profissional.";
 
 
 try{
@@ -299,33 +295,22 @@ try{
 
 if(
 Orchestrator &&
-typeof Orchestrator.process==="function"
+typeof Orchestrator.processRequest==="function"
 ){
 
 
 orchestratorResult =
-await Orchestrator.process({
+await Orchestrator.processRequest({
 
-    userId:user.id,
-
-    message:
+    userPrompt:
     prompt ||
     "Analisa o conteúdo enviado.",
 
-    user,
-
-    agent,
+    agentId: agent,
 
     mode
 
 });
-
-
-
-systemPrompt =
-orchestratorResult.prompt ||
-systemPrompt;
-
 
 }
 
@@ -600,7 +585,7 @@ return res.json({
     resposta,
 
     agent:
-    orchestratorResult?.agentId ||
+    orchestratorResult?.agent?.id ||
     agent,
 
 
