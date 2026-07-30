@@ -8,7 +8,7 @@ V1.0
 */
 
 
-class Subscription {
+class subscription {
 
 
 
@@ -146,7 +146,7 @@ return this.plans[this.plan];
 
 
 
-canUseAgent(agentId){
+canuseagent(agentId){
 
 
 
@@ -194,4 +194,4 @@ return this.getPlan().export;
 
 
 
-export default new Subscription();
+export default new subscription();
