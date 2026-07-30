@@ -3,6 +3,7 @@
 HONEY IA
 LIVE ROUTE
 Comunicação em tempo real com agentes
+Versão 2.0
 ==========================================
 */
 
@@ -21,17 +22,55 @@ const groq = new Groq({
 });
 
 
-router.post("/live/agent", async(req,res)=>{
+
+
+
+/*
+==========================================
+SELECIONAR AGENTE LIVE
+==========================================
+*/
+
+router.post("/live/agent", async (req,res)=>{
 
 
     try{
 
 
-        const {agentId}=req.body;
+        const { agentId } = req.body;
 
 
-        const result =
-        LiveEngine.switchActiveAgent(agentId);
+
+        if(!agentId){
+
+            return res.status(400).json({
+
+                success:false,
+
+                error:"Nenhum agente informado."
+
+            });
+
+        }
+
+
+
+        const selected =
+            LiveEngine.switchAgent(agentId);
+
+
+
+        if(!selected){
+
+            return res.status(404).json({
+
+                success:false,
+
+                error:"Agente não encontrado."
+
+            });
+
+        }
 
 
 
@@ -63,13 +102,32 @@ router.post("/live/agent", async(req,res)=>{
 
 });
 
-// Iniciar sessão Live
-router.post("/live/start", async (req,res)=>{
+
+
+
+
+
+
+/*
+==========================================
+INICIAR SESSÃO LIVE
+==========================================
+*/
+
+
+router.post("/live/start", async(req,res)=>{
+
 
     try{
 
 
-        const session = LiveEngine.start();
+        const { agentId } = req.body;
+
+
+
+        const session =
+            LiveEngine.start(agentId);
+
 
 
         res.json({
@@ -104,18 +162,29 @@ router.post("/live/start", async (req,res)=>{
 
 
 
-// Conversa Live
-router.post("/live/chat", async (req,res)=>{
+
+
+
+/*
+==========================================
+CHAT LIVE
+==========================================
+*/
+
+
+router.post("/live/chat", async(req,res)=>{
 
 
     try{
 
 
-        const {message}=req.body;
+        const { message } = req.body;
+
 
 
 
         if(!message){
+
 
             return res.status(400).json({
 
@@ -125,60 +194,113 @@ router.post("/live/chat", async (req,res)=>{
 
             });
 
+
         }
 
 
 
 
-        const context = LiveEngine.getLiveContext();
+
+
+        const context =
+            LiveEngine.getLiveContext();
+
+
+
+
+
+
+        if(!context.active){
+
+
+            return res.status(400).json({
+
+                success:false,
+
+                error:"Nenhuma sessão Live ativa."
+
+            });
+
+
+        }
+
+
+
 
 
 
         LiveEngine.addMessage(
+
             "user",
+
             message
+
         );
 
 
 
 
 
-        const completion = await groq.chat.completions.create({
 
-            model:"llama-3.3-70b-versatile",
+
+        const completion =
+        await groq.chat.completions.create({
+
+
+
+            model:
+            "llama-3.3-70b-versatile",
+
+
 
 
             messages:[
 
 
+
                 {
+
 
                     role:"system",
 
-                    content:context.systemPrompt
+
+                    content:
+                    context.systemPrompt
+
 
                 },
 
 
-                ...context.messages,
+
+                ...context.messages.map(msg=>({
 
 
-                {
+                    role:msg.role,
 
-                    role:"user",
 
-                    content:message
+                    content:msg.content
 
-                }
+
+
+                }))
+
+
+
 
 
             ],
 
 
+
+
+
             temperature:0.7,
 
 
+
             max_tokens:2048
+
+
 
 
         });
@@ -187,16 +309,37 @@ router.post("/live/chat", async (req,res)=>{
 
 
 
+
+
+
         const response =
-        completion.choices[0].message.content;
+
+        completion
+        .choices[0]
+        ?.message
+        ?.content
+
+        ||
+
+        "Não consegui responder neste momento.";
+
+
+
+
 
 
 
 
         LiveEngine.addMessage(
+
             "assistant",
+
             response
+
         );
+
+
+
 
 
 
@@ -204,23 +347,103 @@ router.post("/live/chat", async (req,res)=>{
 
         res.json({
 
+
+
             success:true,
 
-            agent:context.identity,
 
-            response
+
+            agent:
+            LiveEngine.getIdentity(),
+
+
+
+            response,
+
+
+
+            context:
+            LiveEngine.getLiveContext()
+
+
 
         });
+
+
+
 
 
 
     }catch(error){
 
 
+
         console.error(
+
             "Erro Live Engine:",
+
             error
+
         );
+
+
+
+        res.status(500).json({
+
+
+            success:false,
+
+
+            error:error.message
+
+
+        });
+
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+ENCERRAR LIVE
+==========================================
+*/
+
+
+router.post("/live/stop", async(req,res)=>{
+
+
+    try{
+
+
+        const session =
+            LiveEngine.stop();
+
+
+
+        res.json({
+
+            success:true,
+
+            session
+
+        });
+
+
+
+    }catch(error){
 
 
         res.status(500).json({
@@ -236,6 +459,7 @@ router.post("/live/chat", async (req,res)=>{
 
 
 });
+
 
 
 
