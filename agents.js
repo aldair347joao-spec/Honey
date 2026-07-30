@@ -8,7 +8,16 @@ import DesignerAgent from "./agents/designerAgent.js";
 import GeneralAgent from "./agents/generalAgent.js";
 import DeveloperAgent from "./agents/developerAgent.js";
 import MarketingAgent from "./agents/marketingAgent.js";
-
+import FinanceAgent from "./agents/financeAgent.js";
+import HealthAgent from "./agents/healthAgent.js";
+import EducationAgent from "./agents/educationAgent.js";
+import LegalAgent from "./agents/legalAgent.js";
+import ArchitectAgent from "./agents/architectAgent.js";
+import ExcelAgent from "./agents/excelAgent.js";
+import SalesAgent from "./agents/salesAgent.js";
+import VideoAgent from "./agents/videoAgent.js";
+import ImageAgent from "./agents/imageAgent.js";
+import SecurityAgent from "./agents/securityAgent.js";
 
 class AgentEngine {
 
@@ -24,7 +33,16 @@ class AgentEngine {
 Agents.register(DeveloperAgent);
         Agents.register(DesignerAgent);
 Agents.register(MarketingAgent);
-    
+   Agents.register(FinanceAgent);
+Agents.register(HealthAgent);
+Agents.register(EducationAgent);
+Agents.register(LegalAgent);
+Agents.register(ArchitectAgent);
+Agents.register(ExcelAgent);
+Agents.register(SalesAgent);
+Agents.register(VideoAgent);
+Agents.register(ImageAgent);
+Agents.register(SecurityAgent); 
 
         this.agents.set(agent.id, {
             status: "online",
