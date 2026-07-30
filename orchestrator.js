@@ -507,7 +507,7 @@ export class Orchestrator {
                 });
             }
 
-            return finalOutput;
+            return fullContent;
 
         } catch (error) {
             console.error(`[Orchestrator Stream Error] Agente ${selectedAgent?.id}:`, error);
