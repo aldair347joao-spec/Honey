@@ -15,6 +15,7 @@ import AgentsNavigation from "./agentsNavigation.js";
 import Dashboard from "./dashboard.js";
 import AuthManager from "./auth.js";
 import Dashboard from "./dashboard.js";
+import LoginController from "./login.js";
 const SESSION_ID = crypto.randomUUID();
 
 
