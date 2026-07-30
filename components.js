@@ -1,899 +1,579 @@
-/**
- * ==========================================================
- * HONEY IA OS
- * COMPONENTS MODULE V3.0
- * Dynamic Enterprise UI Components
- * ==========================================================
- */
+/*
+==========================================
+HONEY IA
+COMPONENTS MODULE V2.0
+Dynamic Agent Studio UI
+==========================================
+*/
+
+import Agents from "./agents.js";
+import AgentStudio from "./agentStudio.js";
+
+
 
 export const Components = {
 
 
-    /*
-    ==========================================================
-    WORKSPACES
-    ==========================================================
-    */
 
-    renderWorkspaces(container){
+/*
+==========================================
+WORKSPACES
+==========================================
+*/
 
 
-        container.innerHTML = `
+renderWorkspaces(container){
 
-        <section class="studio-page">
 
+container.innerHTML = `
 
-            <header class="page-header">
+<div class="panel-page">
 
-                <div>
+<h2>📂 Workspaces Ativos</h2>
 
-                    <h2>
-                        📂 Workspaces
-                    </h2>
+<p class="muted">
+Ambientes isolados com memória e contexto próprio.
+</p>
 
-                    <p>
-                        Ambientes isolados com memória,
-                        contexto e projetos próprios.
-                    </p>
 
-                </div>
+<div class="cards-grid">
 
 
-                <button class="primary-btn">
+<div class="honey-card">
 
-                    + Novo Workspace
+<h3>📌 Geral & Desenvolvimento</h3>
 
-                </button>
+<p>
+Ambiente principal da Honey IA.
+</p>
 
+<span class="status-online">
+● Ativo
+</span>
 
-            </header>
+</div>
 
 
 
 
+<div class="honey-card">
 
-            <div class="workspace-grid">
+<h3>📊 Financeiro</h3>
 
+<p>
+Análise de dados, Excel e documentos.
+</p>
 
+<span>
+5 conversas
+</span>
 
-                ${this.workspaceCard(
-                    "🐝",
-                    "Honey General",
-                    "Ambiente principal da Honey IA para tarefas gerais e conversação.",
-                    "Ativo agora"
-                )}
+</div>
 
 
 
+<div class="honey-card">
 
-                ${this.workspaceCard(
-                    "💻",
-                    "Development Lab",
-                    "Programação, APIs, Node.js, React e arquitetura de software.",
-                    "14 conversas"
-                )}
+<h3>🎨 Design Studio</h3>
 
+<p>
+UI, UX e criação visual.
+</p>
 
+<span>
+Preview Live
+</span>
 
+</div>
 
 
+</div>
 
-                ${this.workspaceCard(
-                    "📊",
-                    "Business Analytics",
-                    "Dados, Excel, relatórios financeiros e documentos.",
-                    "Atualizado recentemente"
-                )}
+</div>
 
+`;
 
+},
 
 
 
 
-                ${this.workspaceCard(
-                    "🎨",
-                    "Creative Studio",
-                    "Design, imagens, UI/UX e criação visual.",
-                    "8 projetos"
-                )}
 
 
 
-            </div>
+/*
+==========================================
+MEMÓRIA
+==========================================
+*/
 
 
-        </section>
+renderMemories(container){
 
-        `;
 
 
-    },
+container.innerHTML = `
 
+<div class="panel-page">
 
 
+<h2>🧠 Memória Inteligente</h2>
 
 
-    workspaceCard(icon,title,description,status){
+<p class="muted">
+Contextos aprendidos pela Honey IA.
+</p>
 
 
-        return `
 
-        <article class="workspace-card">
+<div class="honey-card">
 
 
-            <div class="workspace-icon">
+<h3>
+Preferências do Sistema
+</h3>
 
-                ${icon}
 
-            </div>
+<p>
+Arquitetura modular, ES Modules,
+Node.js moderno.
+</p>
 
 
+</div>
 
-            <h3>
 
-                ${title}
 
-            </h3>
+<div class="honey-card">
 
 
+<h3>
+Contexto do Utilizador
+</h3>
 
-            <p>
 
-                ${description}
+<p>
+Projetos, conversas e preferências guardadas.
+</p>
 
-            </p>
 
+</div>
 
 
-            <span class="workspace-status">
+</div>
 
-                ${status}
+`;
 
-            </span>
+},
 
 
 
-        </article>
 
-        `;
 
 
-    },
 
 
 
+/*
+==========================================
+AGENTES DINÂMICOS
+==========================================
+*/
 
 
+renderAgents(container){
 
-    /*
-    ==========================================================
-    MEMORY CENTER
-    ==========================================================
-    */
 
-    renderMemories(container){
 
+const agents =
+Agents.getAll();
 
-        container.innerHTML = `
 
 
-        <section class="studio-page">
 
 
-            <header class="page-header">
 
+container.innerHTML = `
 
-                <div>
 
+<div class="panel-page">
 
-                    <h2>
-                        🧠 Memória Inteligente
-                    </h2>
 
+<h2>🤖 Honey Agent Studio</h2>
 
-                    <p>
-                        Contextos aprendidos e informações
-                        persistentes da Honey IA.
-                    </p>
 
+<p class="muted">
+Escolha um especialista para trabalhar.
+</p>
 
-                </div>
 
 
-            </header>
 
+<div class="agents-grid">
 
 
+${agents.map(agent=>`
 
 
-            <div class="memory-list">
 
+<div class="agent-card">
 
 
-                ${this.memoryCard(
-                    "Código",
-                    "Preferência por arquitetura modular ES Modules e Node.js moderno."
-                )}
+<div class="agent-header">
 
 
+<div class="agent-avatar">
 
+${agent.emoji || "🐝"}
 
+</div>
 
-                ${this.memoryCard(
-                    "Sistema",
-                    "Projeto Honey IA utiliza agentes especializados e orquestração."
-                )}
 
 
+<div>
 
 
+<h3>
 
-                ${this.memoryCard(
-                    "Workspace",
-                    "Contextos separados por projeto para melhor organização."
-                )}
+${agent.name}
 
+</h3>
 
 
-            </div>
+<span class="status-online">
 
+● Online
 
+</span>
 
-        </section>
 
+</div>
 
 
-        `;
+</div>
 
 
-    },
 
 
+<p>
 
+${agent.description}
 
+</p>
 
 
-    memoryCard(title,text){
 
 
-        return `
 
-        <article class="memory-card">
+<button
 
+class="activate-agent-btn"
 
-            <div>
+data-agent="${agent.id}"
 
-                <small>
-                    ${title}
-                </small>
+>
 
+Ativar Agente
 
-                <p>
-                    ${text}
-                </p>
+</button>
 
 
-            </div>
 
+</div>
 
 
-            <button class="danger-btn">
 
-                Remover
+`).join("")}
 
-            </button>
 
 
+</div>
 
-        </article>
 
-        `;
+</div>
 
 
-    },    /*
-    ==========================================================
-    AGENTS STUDIO
-    Integração com AgentEngine V3.0
-    ==========================================================
-    */
+`;
 
 
-    renderAgents(container){
 
 
-        import("./agents.js")
-        .then(({default:Agents})=>{
 
 
-            const agents =
-            Agents.getAll();
+container
+.querySelectorAll(".activate-agent-btn")
+.forEach(button=>{
 
 
 
-            container.innerHTML = `
+button.addEventListener(
+"click",
+async()=>{
 
 
-            <section class="studio-page">
+const id =
+button.dataset.agent;
 
 
-                <header class="page-header">
 
 
-                    <div>
+const agent =
+AgentStudio.setAgent(id);
 
 
-                        <h2>
-                            🤖 Honey Agents Studio
-                        </h2>
 
 
-                        <p>
-                            Especialistas IA disponíveis
-                            no Kernel Honey.
-                        </p>
+if(agent){
 
 
-                    </div>
+button.innerText =
+"✓ Ativo";
 
 
+document.dispatchEvent(
 
-                </header>
+new CustomEvent(
+"agent-changed",
+{
 
+detail:agent
 
+}
 
+)
 
+);
 
-                <div class="agents-grid">
 
 
+}
 
-                ${
-                    agents.map(agent=>`
 
 
-                    <article class="agent-card"
-                    data-agent="${agent.id}">
+}
 
+);
 
 
-                        <div class="agent-top">
 
+});
 
-                            <span class="agent-avatar">
 
-                                ${agent.emoji || "🐝"}
 
-                            </span>
 
+},
 
 
-                            <div>
 
 
-                                <h3>
 
-                                    ${agent.name}
 
-                                </h3>
 
 
-                                <span class="agent-online">
 
-                                    ● Online
+/*
+==========================================
+TOOLS
+==========================================
+*/
 
-                                </span>
 
+renderTools(container){
 
-                            </div>
 
 
+container.innerHTML=`
 
-                        </div>
 
+<div class="panel-page">
 
 
+<h2>
+🧩 Ferramentas
+</h2>
 
 
-                        <p>
 
-                            ${agent.description}
+<div class="cards-grid">
 
-                        </p>
 
+<div class="honey-card">
 
 
+<h3>
+🌐 Web
+</h3>
 
 
-                        <button
-                        class="agent-open-btn"
-                        data-id="${agent.id}">
+<p>
+Pesquisa e análise.
+</p>
 
 
-                            Abrir Studio
+</div>
 
 
-                        </button>
 
+<div class="honey-card">
 
 
+<h3>
+💻 Code
+</h3>
 
 
-                    </article>
+<p>
+Programação e automação.
+</p>
 
 
+</div>
 
-                    `).join("")
-                }
 
+</div>
 
 
-                </div>
+</div>
 
 
+`;
 
-            </section>
 
 
-            `;
+},
 
 
 
 
 
-            this.bindAgentEvents(container);
 
 
 
-        });
 
+/*
+==========================================
+ANALYTICS
+==========================================
+*/
 
 
-    },
+renderAnalytics(container){
 
 
 
+container.innerHTML=`
 
 
+<div class="panel-page">
 
 
+<h2>
+📊 Analytics
+</h2>
 
-    bindAgentEvents(container){
 
+<div class="cards-grid">
 
-        import("./agentStudio.js")
-        .then(({default:AgentStudio})=>{
 
+<div class="honey-card">
 
-            import("./liveClient.js")
-            .then(({default:LiveClient})=>{
 
+<h3>
+420ms
+</h3>
 
 
+<p>
+Tempo médio resposta
+</p>
 
 
-                container
-                .querySelectorAll(
-                    ".agent-open-btn"
-                )
-                .forEach(button=>{
+</div>
 
 
-                    button.addEventListener(
-                        "click",
-                        async()=>{
 
+<div class="honey-card">
 
-                            const id =
-                            button.dataset.id;
 
+<h3>
+99.8%
+</h3>
 
 
-                            AgentStudio.setAgent(
-                                id
-                            );
+<p>
+Sucesso API
+</p>
 
 
+</div>
 
 
-                            await LiveClient.changeAgent(
-                                id
-                            );
+</div>
 
 
+</div>
 
 
+`;
 
-                            container
-                            .querySelectorAll(
-                                ".agent-card"
-                            )
-                            .forEach(card=>{
 
-                                card.classList.remove(
-                                    "active"
-                                );
 
-                            });
+},
 
 
 
 
 
-                            button
-                            .closest(
-                                ".agent-card"
-                            )
-                            .classList.add(
-                                "active"
-                            );
 
 
 
 
-                            document.dispatchEvent(
+/*
+==========================================
+SISTEMA
+==========================================
+*/
 
-                                new CustomEvent(
-                                    "agent-selected",
-                                    {
 
-                                        detail:{
-                                            id
-                                        }
+renderSystem(container){
 
-                                    }
 
-                                )
 
-                            );
+container.innerHTML=`
 
 
+<div class="panel-page">
 
 
+<h2>
+⚙ Sistema
+</h2>
 
-                        }
 
-                    );
+<div class="honey-card">
 
 
-                });
+<p>
+Honey IA OS V6
+</p>
 
 
+<p>
+Sistema operacional de agentes inteligentes.
+</p>
 
-            });
 
+</div>
 
 
-        });
+</div>
 
 
+`;
 
-    },    /*
-    ==========================================================
-    TOOLS CENTER
-    ==========================================================
-    */
 
-    renderTools(container){
 
-
-        container.innerHTML = `
-
-
-        <section class="studio-page">
-
-
-            <header class="page-header">
-
-                <div>
-
-                    <h2>
-                        🧩 Tools Center
-                    </h2>
-
-
-                    <p>
-                        Ferramentas disponíveis para os agentes.
-                    </p>
-
-                </div>
-
-
-            </header>
-
-
-
-
-
-            <div class="tools-grid">
-
-
-
-                <article class="tool-card">
-
-                    <h3>
-                        🌐 Web Intelligence
-                    </h3>
-
-                    <p>
-                        Pesquisa e análise de informações externas.
-                    </p>
-
-                </article>
-
-
-
-
-
-                <article class="tool-card">
-
-                    <h3>
-                        📄 Document Engine
-                    </h3>
-
-                    <p>
-                        Processamento de documentos,
-                        PDFs e ficheiros.
-                    </p>
-
-                </article>
-
-
-
-
-
-                <article class="tool-card">
-
-                    <h3>
-                        👁️ Vision Engine
-                    </h3>
-
-                    <p>
-                        Análise de imagens e conteúdos visuais.
-                    </p>
-
-                </article>
-
-
-
-            </div>
-
-
-
-        </section>
-
-
-        `;
-
-
-    },
-
-
-
-
-
-
-
-    /*
-    ==========================================================
-    ANALYTICS
-    ==========================================================
-    */
-
-
-    renderAnalytics(container){
-
-
-        container.innerHTML = `
-
-
-        <section class="studio-page">
-
-
-            <header class="page-header">
-
-
-                <div>
-
-
-                    <h2>
-                        📊 Analytics Kernel
-                    </h2>
-
-
-                    <p>
-                        Estado operacional da Honey IA.
-                    </p>
-
-
-                </div>
-
-
-            </header>
-
-
-
-
-
-
-            <div class="analytics-grid">
-
-
-
-                <div class="analytics-card">
-
-
-                    <span>
-                        Agentes Online
-                    </span>
-
-
-                    <strong>
-                        14
-                    </strong>
-
-
-                </div>
-
-
-
-
-
-                <div class="analytics-card">
-
-
-                    <span>
-                        Sistema
-                    </span>
-
-
-                    <strong>
-                        ONLINE
-                    </strong>
-
-
-                </div>
-
-
-
-
-
-                <div class="analytics-card">
-
-
-                    <span>
-                        Kernel
-                    </span>
-
-
-                    <strong>
-                        V5
-                    </strong>
-
-
-                </div>
-
-
-
-            </div>
-
-
-
-        </section>
-
-
-
-        `;
-
-
-    },
-
-
-
-
-
-
-
-
-    /*
-    ==========================================================
-    SYSTEM SETTINGS
-    ==========================================================
-    */
-
-
-    renderSystem(container){
-
-
-        container.innerHTML = `
-
-
-        <section class="studio-page">
-
-
-            <header class="page-header">
-
-
-                <div>
-
-
-                    <h2>
-                        ⚙ Sistema
-                    </h2>
-
-
-                    <p>
-                        Configurações da plataforma.
-                    </p>
-
-
-                </div>
-
-
-            </header>
-
-
-
-
-
-
-            <div class="system-card">
-
-
-
-                <label>
-
-                    Backend Endpoint
-
-                </label>
-
-
-
-                <input
-
-                readonly
-
-                value="/gerar-gratis"
-
-                />
-
-
-
-
-
-                <label>
-
-                    IA Engine
-
-                </label>
-
-
-
-
-                <input
-
-                readonly
-
-                value="Groq + Honey Orchestrator"
-
-                />
-
-
-
-
-
-            </div>
-
-
-
-        </section>
-
-
-        `;
-
-
-    }
-
-
+}
 
 
 
