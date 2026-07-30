@@ -2,12 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Groq from 'groq-sdk';
-import orchestratorInstance from './orchestrator.js';
+import orchestratorinstance from './orchestrator.js';
 
 // Carrega variáveis de ambiente (.env)
 dotenv.config();
 
-class Kernel {
+class kernel {
     constructor() {
         this.app = express();
         this.groq = null;
@@ -57,5 +57,5 @@ class Kernel {
     }
 }
 
-const kernelInstance = new Kernel();
+const kernelInstance = new kernel();
 export default kernelInstance;
