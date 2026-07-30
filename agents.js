@@ -7,20 +7,20 @@ Central Agent Registry
 */
 
 
-import DesignerAgent from "./agents/designerAgent.js";
-import GeneralAgent from "./agents/generalAgent.js";
-import DeveloperAgent from "./agents/developerAgent.js";
-import MarketingAgent from "./agents/marketingAgent.js";
-import FinanceAgent from "./agents/financeAgent.js";
-import HealthcareAgent from "./agents/HealthcareAgent.js";
-import EducationAgent from "./agents/educationAgent.js";
-import LegalAgent from "./agents/legalAgent.js";
-import ArchitectAgent from "./agents/architectAgent.js";
-import ExcelAgent from "./agents/excelAgent.js";
-import SalesAgent from "./agents/salesAgent.js";
-import VideoAgent from "./agents/videoAgent.js";
-import ImageAgent from "./agents/imageAgent.js";
-import SecurityAgent from "./agents/securityAgent.js";
+import designeragent from "./agents/designeragent.js";
+import generalagent from "./agents/generalagent.js";
+import developeragent from "./agents/developeragent.js";
+import marketingagent from "./agents/marketingagent.js";
+import financeagent from "./agents/financeagent.js";
+import healthcareagent from "./agents/healthcareagent.js";
+import educationagent from "./agents/educationagent.js";
+import legalagent from "./agents/legalagent.js";
+import architectagent from "./agents/architectagent.js";
+import excelagent from "./agents/excelagent.js";
+import salesagent from "./agents/salesagent.js";
+import videoagent from "./agents/videoagent.js";
+import imageagent from "./agents/imageagent.js";
+import securityagent from "./agents/securityagent.js";
 
 
 
@@ -53,33 +53,33 @@ class AgentEngine {
         const agents = [
 
 
-            GeneralAgent,
+            generalagent,
 
-            DeveloperAgent,
+            developeragent,
 
-            DesignerAgent,
+            designeragent,
 
-            MarketingAgent,
+            marketingagent,
 
-            FinanceAgent,
+            financeagent,
 
-            HealthcareAgent,
+            healthcareagent,
 
-            EducationAgent,
+            educationagent,
 
-            LegalAgent,
+            legalagent,
 
-            ArchitectAgent,
+            architectagent,
 
-            ExcelAgent,
+            excelagent,
 
-            SalesAgent,
+            salesagent,
 
-            VideoAgent,
+            videoagent,
 
-            ImageAgent,
+            imageagent,
 
-            SecurityAgent
+            securityagent
 
 
         ];
