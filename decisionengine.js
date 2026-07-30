@@ -6,9 +6,9 @@ Versão 2.0
 ==========================================
 */
 
-class DecisionEngine {
+class decisionengine {
 
-    detectAgent(prompt = "") {
+    detectagent(prompt = "") {
 
         const text = prompt.toLowerCase();
 
@@ -167,4 +167,4 @@ class DecisionEngine {
 
 }
 
-export default new DecisionEngine();
+export default new decisionengine();
