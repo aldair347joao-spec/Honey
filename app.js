@@ -306,7 +306,193 @@ class HoneyAIApp {
                 this.handleVoiceInput();
             });
         }
-            // ==========================================================
+
+        // Navegação da Sidebar
+        if(this.navItems){
+            this.navItems.forEach(item => {
+                item.addEventListener("click", (e) => {
+                    const target = item.getAttribute("data-target");
+                    if(target){
+                        e.preventDefault();
+                        this.switchView(target);
+                    }
+                });
+            });
+        }
+
+        // Toggle Sidebar Mobile
+        if(this.btnToggleMenu){
+            this.btnToggleMenu.addEventListener("click", () => {
+                this.osSidebar?.classList.toggle("open");
+                this.sidebarOverlay?.classList.toggle("active");
+            });
+        }
+
+        if(this.sidebarOverlay){
+            this.sidebarOverlay.addEventListener("click", () => {
+                this.osSidebar?.classList.remove("open");
+                this.sidebarOverlay?.classList.remove("active");
+            });
+        }
+
+        // Login Submit
+        if(this.loginForm){
+            LoginController.init("loginForm");
+        }
+
+        document.addEventListener("user-login", (e) => {
+            const user = e.detail;
+            if(user){
+                Store.setState("isAuthenticated", true);
+                this.updateUserInterface(user);
+                if(this.loginPage && this.studioApp){
+                    this.loginPage.style.display = "none";
+                    this.studioApp.style.display = "flex";
+                }
+                this.showToast(`Bem-vindo, ${user.name}!`, "success");
+            }
+        });
+    }
+
+    // ==========================================================
+    // SWITCH VIEWS
+    // ==========================================================
+
+    switchView(targetView){
+        this.navItems.forEach(nav => {
+            if(nav.getAttribute("data-target") === targetView){
+                nav.classList.add("active");
+            } else {
+                nav.classList.remove("active");
+            }
+        });
+
+        const sections = document.querySelectorAll(".main > section");
+        sections.forEach(sec => {
+            if(sec.id === `${targetView}Section` || sec.classList.contains(targetView) || sec.id === targetView){
+                sec.style.display = "block";
+            } else {
+                sec.style.display = "none";
+            }
+        });
+
+        this.osSidebar?.classList.remove("open");
+        this.sidebarOverlay?.classList.remove("active");
+    }
+
+    // ==========================================================
+    // MARKDOWN ENGINE & TOASTS
+    // ==========================================================
+
+    initMarkdownEngine(){
+        if(window.marked){
+            window.marked.setOptions({
+                highlight: function(code, lang) {
+                    if (window.hljs && lang && window.hljs.getLanguage(lang)) {
+                        return window.hljs.highlight(code, { language: lang }).value;
+                    }
+                    return window.hljs ? window.hljs.highlightAuto(code).value : code;
+                },
+                langPrefix: 'hljs language-',
+                pedantic: false,
+                gfm: true,
+                breaks: true
+            });
+        }
+    }
+
+    initModalsAndUiActions(){
+        const btnNewProject = document.getElementById("btnNewProject");
+        const modalNewProject = document.getElementById("modalNewProject");
+        const formNewProject = document.getElementById("formNewProject");
+
+        if(btnNewProject && modalNewProject){
+            btnNewProject.addEventListener("click", () => {
+                modalNewProject.style.display = "flex";
+            });
+        }
+
+        const closeButtons = document.querySelectorAll("[data-close]");
+        closeButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const modalId = btn.getAttribute("data-close");
+                const modal = document.getElementById(modalId);
+                if(modal){
+                    modal.style.display = "none";
+                }
+            });
+        });
+
+        if(formNewProject){
+            formNewProject.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const projectName = document.getElementById("projectName")?.value;
+                if(projectName){
+                    this.showToast(`Projeto "${projectName}" criado com sucesso!`, "success");
+                    modalNewProject.style.display = "none";
+                    formNewProject.reset();
+                }
+            });
+        }
+
+        const btnNewAgent = document.getElementById("btnNewAgent");
+        const modalNewAgent = document.getElementById("modalNewAgent");
+        const formNewAgent = document.getElementById("formNewAgent");
+
+        if(btnNewAgent && modalNewAgent){
+            btnNewAgent.addEventListener("click", () => {
+                modalNewAgent.style.display = "flex";
+            });
+        }
+
+        if(formNewAgent){
+            formNewAgent.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const agentName = document.getElementById("agentName")?.value;
+                if(agentName){
+                    this.showToast(`Agente "${agentName}" criado com sucesso!`, "success");
+                    modalNewAgent.style.display = "none";
+                    formNewAgent.reset();
+                }
+            });
+        }
+    }
+
+    showToast(message, type = "info"){
+        if(!this.toastContainer) return;
+
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.style.cssText = `
+            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeInOut 3s forwards;
+        `;
+        toast.innerHTML = `<span>${message}</span>`;
+
+        this.toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3500);
+    }
+
+    scrollToBottom(){
+        if(this.chatFeed){
+            this.chatFeed.scrollTop = this.chatFeed.scrollHeight;
+        }
+    }
+
+    // ==========================================================
     // ENVIO PRINCIPAL
     // ==========================================================
 
@@ -698,7 +884,22 @@ class HoneyAIApp {
 
         if(!this.livePreviewIframe) return;
 
-        const match = text.match(
-            /```html([\s\S]*?)
+        const match = text.match(/```html([\s\S]*?)```/);
+
+        if(match && match[1]){
+            const htmlCode = match[1];
+            const doc = this.livePreviewIframe.contentDocument || this.livePreviewIframe.contentWindow.document;
+            doc.open();
+            doc.write(htmlCode);
+            doc.close();
+
+            if(this.previewPane){
+                this.previewPane.style.display = "block";
+            }
+        }
 
     }
+
+}
+
+export default new HoneyAIApp();
