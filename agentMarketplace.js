@@ -10,7 +10,8 @@ V1.0
 
 import Agents from "./agents.js";
 import AgentStudio from "./agentStudio.js";
-
+import Subscription from "./subscription.js";
+import UpgradeModal from "./upgradeModal.js";
 
 
 class AgentMarketplace {
