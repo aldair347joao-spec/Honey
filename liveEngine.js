@@ -2,8 +2,8 @@
 ==========================================
 HONEY IA
 LIVE ENGINE
-Agent Identity + Session Memory
-Versão 2.0
+Agent Identity + Live Session Manager
+Versão 3.0
 ==========================================
 */
 
@@ -12,36 +12,7 @@ import AgentStudio from "./agentStudio.js";
 
 class LiveEngine {
 
-switchActiveAgent(agentId){
 
-    const result = AgentStudio.selectAgent(agentId);
-
-
-    if(this.session){
-
-        const agent = AgentStudio.getActiveAgent();
-
-
-        this.session.agentId = agent.id;
-
-
-        this.session.identity = {
-
-            name: agent.name,
-
-            role: agent.description,
-
-            emoji: agent.emoji
-
-        };
-
-
-    }
-
-
-    return result;
-
-}
     constructor(){
 
         this.session = null;
@@ -50,14 +21,37 @@ switchActiveAgent(agentId){
 
 
 
-    start(){
 
-        const agent = AgentStudio.getActiveAgent();
+    /*
+    ======================================
+    INICIAR SESSÃO LIVE
+    ======================================
+    */
+
+
+    start(agentId = null){
+
+
+        let agent;
+
+
+        if(agentId){
+
+            AgentStudio.selectAgent(agentId);
+
+        }
+
+
+
+        agent = AgentStudio.getActiveAgent();
+
 
 
         if(!agent){
 
-            throw new Error("Nenhum agente ativo encontrado.");
+            throw new Error(
+                "Nenhum agente disponível para iniciar Live."
+            );
 
         }
 
@@ -65,42 +59,120 @@ switchActiveAgent(agentId){
 
         this.session = {
 
-            agentId: agent.id,
 
-            identity: {
+            active:true,
 
-                name: agent.name,
 
-                role: agent.description,
+            agentId:agent.id,
 
-                emoji: agent.emoji
+
+            identity:{
+
+
+                id:agent.id,
+
+                name:agent.name,
+
+                role:agent.description,
+
+                emoji:agent.emoji
+
 
             },
 
 
-            messages: [],
+            messages:[],
 
-            startedAt: new Date()
+
+            startedAt:new Date(),
+
+
+            lastActivity:new Date()
+
 
         };
 
 
+
         return this.session;
+
 
     }
 
 
+
+
+
+
+
+    /*
+    ======================================
+    TROCAR AGENTE DURANTE LIVE
+    ======================================
+    */
 
 
     switchAgent(agentId){
 
-        const result = AgentStudio.selectAgent(agentId);
+
+        const result =
+            AgentStudio.selectAgent(agentId);
 
 
-        this.session = null;
+
+        if(!result){
+
+            return false;
+
+        }
 
 
-        return result;
+
+
+        const agent =
+            AgentStudio.getActiveAgent();
+
+
+
+
+        if(this.session && agent){
+
+
+
+            this.session.agentId =
+                agent.id;
+
+
+
+            this.session.identity = {
+
+
+                id:agent.id,
+
+                name:agent.name,
+
+                role:agent.description,
+
+                emoji:agent.emoji
+
+
+            };
+
+
+
+            this.addMessage(
+                "system",
+                `Agente alterado para ${agent.name}`
+            );
+
+
+        }
+
+
+
+
+        return true;
+
 
     }
 
@@ -108,7 +180,17 @@ switchActiveAgent(agentId){
 
 
 
+
+
+    /*
+    ======================================
+    IDENTIDADE ATUAL
+    ======================================
+    */
+
+
     getIdentity(){
+
 
         if(!this.session){
 
@@ -119,13 +201,26 @@ switchActiveAgent(agentId){
 
         return this.session.identity;
 
+
     }
 
 
 
 
 
-    addMessage(role, content){
+
+
+
+    /*
+    ======================================
+    ADICIONAR MENSAGEM LIVE
+    ======================================
+    */
+
+
+    addMessage(role,content){
+
+
 
         if(!this.session){
 
@@ -134,15 +229,26 @@ switchActiveAgent(agentId){
         }
 
 
+
         this.session.messages.push({
+
 
             role,
 
+
             content,
+
 
             time:new Date()
 
+
         });
+
+
+
+        this.session.lastActivity =
+            new Date();
+
 
     }
 
@@ -150,7 +256,17 @@ switchActiveAgent(agentId){
 
 
 
+
+
+    /*
+    ======================================
+    HISTÓRICO LIVE
+    ======================================
+    */
+
+
     getMessages(){
+
 
         if(!this.session){
 
@@ -161,6 +277,7 @@ switchActiveAgent(agentId){
 
         return this.session.messages;
 
+
     }
 
 
@@ -168,37 +285,107 @@ switchActiveAgent(agentId){
 
 
 
+
+    /*
+    ======================================
+    ENCERRAR LIVE
+    ======================================
+    */
+
+
+    stop(){
+
+
+        if(this.session){
+
+
+            this.session.active=false;
+
+
+        }
+
+
+        return this.session;
+
+
+    }
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    PROMPT DE IDENTIDADE DO AGENTE
+    ======================================
+    */
+
+
     buildSystemIdentity(){
 
 
-        const identity = this.getIdentity();
+
+        const identity =
+            this.getIdentity();
+
 
 
 
         if(!identity){
 
-            return "Você é a Honey IA.";
+
+            return `
+Você é a Honey IA.
+`;
 
         }
 
 
 
 
+
+
         return `
 
-Você é ${identity.name}.
 
-Identidade:
+Você é ${identity.name} ${identity.emoji}.
+
+
+
+Sua função é:
+
 ${identity.role}
 
-Regra principal:
-Mantenha esta personalidade durante toda a conversa ao vivo.
 
-Não mude de agente.
-Não diga que é outro assistente.
-Responda sempre dentro da sua especialidade.
+
+Modo:
+
+Conversação ao vivo.
+
+
+
+Regras:
+
+
+
+- Mantenha sempre esta identidade.
+
+- Nunca diga que é outro agente.
+
+- Nunca mude de personalidade.
+
+- Responda dentro da sua especialidade.
+
+- Preserve o contexto desta sessão.
+
+
 
 `;
+
+
 
     }
 
@@ -207,16 +394,44 @@ Responda sempre dentro da sua especialidade.
 
 
 
+
+
+    /*
+    ======================================
+    CONTEXTO COMPLETO LIVE
+    ======================================
+    */
+
+
     getLiveContext(){
+
 
 
         return {
 
-            identity:this.getIdentity(),
 
-            messages:this.getMessages(),
+            active:
+                this.session?.active || false,
 
-            systemPrompt:this.buildSystemIdentity()
+
+            agentId:
+                this.session?.agentId || null,
+
+
+            identity:
+                this.getIdentity(),
+
+
+
+            messages:
+                this.getMessages(),
+
+
+
+            systemPrompt:
+                this.buildSystemIdentity()
+
+
 
         };
 
@@ -226,6 +441,7 @@ Responda sempre dentro da sua especialidade.
 
 
 }
+
 
 
 export default new LiveEngine();
