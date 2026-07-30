@@ -5,7 +5,7 @@ GENERAL AGENT V2.0
 ==========================================
 */
 
-const GeneralAgent = {
+const generalagent = {
 
     id: "general",
 
