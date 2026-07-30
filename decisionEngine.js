@@ -1,114 +1,168 @@
+/*
+==========================================
+HONEY IA
+Decision Engine
+Versão 2.0
+==========================================
+*/
+
 class DecisionEngine {
-    constructor() {
-        this.rules = [
-            {
-                id: "developer",
-                keywords: [
-                    "código",
-                    "programar",
-                    "javascript",
-                    "node",
-                    "html",
-                    "css",
-                    "python",
-                    "api",
-                    "bug",
-                    "erro",
-                    "backend",
-                    "frontend"
-                ]
-            },
-            {
-                id: "designer",
-                keywords: [
-                    "design",
-                    "ui",
-                    "ux",
-                    "logo",
-                    "flyer",
-                    "banner",
-                    "cores",
-                    "figma",
-                    "layout"
-                ]
-            },
-            {
-                id: "marketing",
-                keywords: [
-                    "marketing",
-                    "facebook",
-                    "instagram",
-                    "anúncio",
-                    "copy",
-                    "vendas",
-                    "cliente",
-                    "produto",
-                    "negócio"
-                ]
-            },
-            {
-                id: "lawyer",
-                keywords: [
-                    "contrato",
-                    "lei",
-                    "jurídico",
-                    "advogado",
-                    "processo",
-                    "tribunal"
-                ]
-            }
-        ];
-    }
 
-    detectAgent(message) {
+    detectAgent(prompt = "") {
 
-        const text = message.toLowerCase();
+        const text = prompt.toLowerCase();
 
-        for (const rule of this.rules) {
+        // Developer
+        if (
+            text.includes("html") ||
+            text.includes("css") ||
+            text.includes("javascript") ||
+            text.includes("node") ||
+            text.includes("react") ||
+            text.includes("python") ||
+            text.includes("api") ||
+            text.includes("program")
+        ) {
+            return "developer";
+        }
 
-            const found = rule.keywords.some(keyword =>
-                text.includes(keyword)
-            );
+        // Designer
+        if (
+            text.includes("design") ||
+            text.includes("ui") ||
+            text.includes("ux") ||
+            text.includes("logo") ||
+            text.includes("figma") ||
+            text.includes("interface")
+        ) {
+            return "designer";
+        }
 
-            if (found) {
-                return rule.id;
-            }
+        // Marketing
+        if (
+            text.includes("marketing") ||
+            text.includes("facebook") ||
+            text.includes("instagram") ||
+            text.includes("publicidade") ||
+            text.includes("copy") ||
+            text.includes("campanha")
+        ) {
+            return "marketing";
+        }
 
+        // Financeiro
+        if (
+            text.includes("banco") ||
+            text.includes("financeiro") ||
+            text.includes("finanças") ||
+            text.includes("crédito") ||
+            text.includes("empréstimo") ||
+            text.includes("pagamento") ||
+            text.includes("conta")
+        ) {
+            return "finance";
+        }
+
+        // Saúde
+        if (
+            text.includes("hospital") ||
+            text.includes("clínica") ||
+            text.includes("medicina") ||
+            text.includes("médico") ||
+            text.includes("paciente") ||
+            text.includes("saúde")
+        ) {
+            return "health";
+        }
+
+        // Educação
+        if (
+            text.includes("escola") ||
+            text.includes("professor") ||
+            text.includes("educação") ||
+            text.includes("aluno") ||
+            text.includes("curso") ||
+            text.includes("universidade")
+        ) {
+            return "education";
+        }
+
+        // Jurídico
+        if (
+            text.includes("advogado") ||
+            text.includes("contrato") ||
+            text.includes("lei") ||
+            text.includes("tribunal") ||
+            text.includes("jurídico")
+        ) {
+            return "legal";
+        }
+
+        // Arquitetura
+        if (
+            text.includes("arquitetura") ||
+            text.includes("planta") ||
+            text.includes("casa") ||
+            text.includes("edifício") ||
+            text.includes("3d")
+        ) {
+            return "architect";
+        }
+
+        // Excel
+        if (
+            text.includes("excel") ||
+            text.includes("planilha") ||
+            text.includes("xlsx") ||
+            text.includes("tabela") ||
+            text.includes("gráfico")
+        ) {
+            return "excel";
+        }
+
+        // Vendas
+        if (
+            text.includes("venda") ||
+            text.includes("cliente") ||
+            text.includes("crm") ||
+            text.includes("negócio") ||
+            text.includes("proposta")
+        ) {
+            return "sales";
+        }
+
+        // Vídeo
+        if (
+            text.includes("vídeo") ||
+            text.includes("video") ||
+            text.includes("youtube") ||
+            text.includes("edição")
+        ) {
+            return "video";
+        }
+
+        // Imagens
+        if (
+            text.includes("imagem") ||
+            text.includes("foto") ||
+            text.includes("banner") ||
+            text.includes("cartaz")
+        ) {
+            return "image";
+        }
+
+        // Segurança
+        if (
+            text.includes("segurança") ||
+            text.includes("security") ||
+            text.includes("criptografia") ||
+            text.includes("hack") ||
+            text.includes("firewall")
+        ) {
+            return "security";
         }
 
         return "general";
-    }
-
-    buildContext({
-        user,
-        memories,
-        history,
-        message,
-        agentPrompt
-    }) {
-
-        return `
-INFORMAÇÕES DO UTILIZADOR
-
-${JSON.stringify(user, null, 2)}
-
-MEMÓRIAS IMPORTANTES
-
-${JSON.stringify(memories, null, 2)}
-
-ÚLTIMAS CONVERSAS
-
-${JSON.stringify(history, null, 2)}
-
-AGENTE RESPONSÁVEL
-
-${agentPrompt}
-
-PERGUNTA
-
-${message}
-`;
-
     }
 
 }
