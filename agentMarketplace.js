@@ -36,14 +36,6 @@ init(containerId){
     this.container =
     document.getElementById(containerId);
 
-if(!Subscription.canUseAgent(id)){
-
-UpgradeModal.open();
-
-return;
-
-}
-
     if(!this.container){
 
         console.error(
@@ -181,20 +173,7 @@ data-id="${agent.id}"
 >
 
 Usar Agente
-if(!Subscription.canUseAgent(id)){
 
-
-    UpgradeModal.open();
-
-
-    return;
-
-
-}
-
-
-
-AgentStudio.setAgent(id);
 </button>
 
 
@@ -209,40 +188,7 @@ data-id="${agent.id}"
 >
 
 Ver Studio
-if(!Subscription.canUseAgent(id)){
 
-
-    UpgradeModal.open();
-
-
-    return;
-
-
-}
-
-
-const agent =
-Agents.get(id);
-
-
-AgentStudio.setAgent(id);
-
-
-document.dispatchEvent(
-
-new CustomEvent(
-"agent-studio-open",
-{
-
-detail:{
-agent
-}
-
-}
-
-)
-
-);
 </button>
 
 
@@ -304,6 +250,14 @@ const id =
 button.dataset.id;
 
 
+if(!Subscription.canUseAgent(id)){
+
+    UpgradeModal.open();
+
+    return;
+
+}
+
 
 AgentStudio.setAgent(id);
 
@@ -352,6 +306,14 @@ button.addEventListener(
 const id =
 button.dataset.id;
 
+
+if(!Subscription.canUseAgent(id)){
+
+    UpgradeModal.open();
+
+    return;
+
+}
 
 
 const agent =
