@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 let conectado = false;
 
-export async function connectDatabase() {
+export async function connectdatabase() {
     if (conectado) {
         console.log("📦 MongoDB já está ligado.");
         return;
