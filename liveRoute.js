@@ -3,9 +3,10 @@
 HONEY IA
 LIVE ROUTE
 Comunicação em tempo real com agentes
-Versão 2.0
+Versão 3.0
 ==========================================
 */
+
 
 import express from "express";
 import LiveEngine from "./LiveEngine.js";
@@ -13,6 +14,7 @@ import Groq from "groq-sdk";
 
 
 const router = express.Router();
+
 
 
 const groq = new Groq({
@@ -25,42 +27,53 @@ const groq = new Groq({
 
 
 
+
+
+
 /*
 ==========================================
 SELECIONAR AGENTE LIVE
 ==========================================
 */
 
-router.post("/live/agent", async (req,res)=>{
+
+router.post("/live/agent", async(req,res)=>{
 
 
     try{
 
 
-        const { agentId } = req.body;
+        const {agentId}=req.body;
 
 
 
         if(!agentId){
 
+
             return res.status(400).json({
 
                 success:false,
 
-                error:"Nenhum agente informado."
+                error:"Agente não informado."
 
             });
+
 
         }
 
 
 
-        const selected =
-            LiveEngine.switchAgent(agentId);
+
+
+        const result =
+        LiveEngine.switchAgent(agentId);
 
 
 
-        if(!selected){
+
+
+        if(!result){
+
 
             return res.status(404).json({
 
@@ -70,7 +83,10 @@ router.post("/live/agent", async (req,res)=>{
 
             });
 
+
         }
+
+
 
 
 
@@ -78,14 +94,20 @@ router.post("/live/agent", async (req,res)=>{
 
             success:true,
 
+
             agent:
             LiveEngine.getIdentity()
+
 
         });
 
 
 
+
+
+
     }catch(error){
+
 
 
         res.status(500).json({
@@ -100,7 +122,10 @@ router.post("/live/agent", async (req,res)=>{
     }
 
 
+
 });
+
+
 
 
 
@@ -121,12 +146,11 @@ router.post("/live/start", async(req,res)=>{
     try{
 
 
-        const { agentId } = req.body;
-
-
 
         const session =
-            LiveEngine.start(agentId);
+        LiveEngine.start();
+
+
 
 
 
@@ -136,11 +160,15 @@ router.post("/live/start", async(req,res)=>{
 
             session
 
+
         });
 
 
 
+
+
     }catch(error){
+
 
 
         res.status(500).json({
@@ -149,10 +177,13 @@ router.post("/live/start", async(req,res)=>{
 
             error:error.message
 
+
         });
 
 
+
     }
+
 
 
 });
@@ -167,7 +198,7 @@ router.post("/live/start", async(req,res)=>{
 
 /*
 ==========================================
-CHAT LIVE
+CONVERSA LIVE
 ==========================================
 */
 
@@ -178,7 +209,9 @@ router.post("/live/chat", async(req,res)=>{
     try{
 
 
-        const { message } = req.body;
+
+        const {message}=req.body;
+
 
 
 
@@ -202,27 +235,29 @@ router.post("/live/chat", async(req,res)=>{
 
 
 
-        const context =
-            LiveEngine.getLiveContext();
+
+        const identity =
+        LiveEngine.getIdentity();
 
 
 
 
 
-
-        if(!context.active){
+        if(!identity){
 
 
             return res.status(400).json({
 
                 success:false,
 
-                error:"Nenhuma sessão Live ativa."
+                error:"Sessão Live não iniciada."
 
             });
 
 
         }
+
+
 
 
 
@@ -236,6 +271,15 @@ router.post("/live/chat", async(req,res)=>{
             message
 
         );
+
+
+
+
+
+
+        const context =
+        LiveEngine.getLiveContext();
+
 
 
 
@@ -260,9 +304,7 @@ router.post("/live/chat", async(req,res)=>{
 
                 {
 
-
                     role:"system",
-
 
                     content:
                     context.systemPrompt
@@ -281,15 +323,11 @@ router.post("/live/chat", async(req,res)=>{
                     content:msg.content
 
 
-
                 }))
 
 
 
-
-
             ],
-
 
 
 
@@ -299,7 +337,6 @@ router.post("/live/chat", async(req,res)=>{
 
 
             max_tokens:2048
-
 
 
 
@@ -321,7 +358,7 @@ router.post("/live/chat", async(req,res)=>{
 
         ||
 
-        "Não consegui responder neste momento.";
+        "Não consegui responder agora.";
 
 
 
@@ -347,10 +384,7 @@ router.post("/live/chat", async(req,res)=>{
 
         res.json({
 
-
-
             success:true,
-
 
 
             agent:
@@ -358,16 +392,11 @@ router.post("/live/chat", async(req,res)=>{
 
 
 
-            response,
-
-
-
-            context:
-            LiveEngine.getLiveContext()
-
+            response
 
 
         });
+
 
 
 
@@ -382,17 +411,17 @@ router.post("/live/chat", async(req,res)=>{
 
             "Erro Live Engine:",
 
-            error
+            error.message
 
         );
 
 
 
+
+
         res.status(500).json({
 
-
             success:false,
-
 
             error:error.message
 
@@ -428,8 +457,11 @@ router.post("/live/stop", async(req,res)=>{
     try{
 
 
+
         const session =
-            LiveEngine.stop();
+        LiveEngine.stop();
+
+
 
 
 
@@ -439,11 +471,15 @@ router.post("/live/stop", async(req,res)=>{
 
             session
 
+
         });
 
 
 
+
+
     }catch(error){
+
 
 
         res.status(500).json({
@@ -452,10 +488,13 @@ router.post("/live/stop", async(req,res)=>{
 
             error:error.message
 
+
         });
 
 
+
     }
+
 
 
 });
