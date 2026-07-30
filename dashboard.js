@@ -8,12 +8,12 @@ V1.0
 */
 
 
-import Subscription from "./subscription.js";
-import Agents from "./agents.js";
+import subscription from "./subscription.js";
+import agents from "./agents.js";
 
 
 
-class Dashboard {
+class dashboard {
 
 
 
@@ -69,12 +69,12 @@ render(){
 
 
 const plan =
-Subscription.getPlan();
+subscription.getPlan();
 
 
 
 const agents =
-Agents.getAll();
+agents.getAll();
 
 
 
@@ -326,4 +326,4 @@ ${agent.name}
 
 
 
-export default new Dashboard();
+export default new dashboard();
