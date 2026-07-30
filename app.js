@@ -16,6 +16,7 @@ import Dashboard from "./dashboard.js";
 import AuthManager from "./auth.js";
 import Dashboard from "./dashboard.js";
 import LoginController from "./login.js";
+import UserProfile from "./userProfile.js";
 const SESSION_ID = crypto.randomUUID();
 
 
