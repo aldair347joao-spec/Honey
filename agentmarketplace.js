@@ -8,13 +8,13 @@ V1.0
 */
 
 
-import Agents from "./agents.js";
-import AgentStudio from "./agentStudio.js";
-import Subscription from "./subscription.js";
-import UpgradeModal from "./upgradeModal.js";
+import agents from "./agents.js";
+import agentstudio from "./agentstudio.js";
+import subscription from "./subscription.js";
+import upgrademodal from "./upgrademodal.js";
 
 
-class AgentMarketplace {
+class agentmarketplace {
 
 
 
@@ -66,7 +66,7 @@ render(){
 
 
 const agents =
-Agents.getAll();
+agents.getAll();
 
 
 
@@ -250,7 +250,7 @@ const id =
 button.dataset.id;
 
 
-if(!Subscription.canUseAgent(id)){
+if(!subscription.canuseagent(id)){
 
     UpgradeModal.open();
 
@@ -259,18 +259,18 @@ if(!Subscription.canUseAgent(id)){
 }
 
 
-AgentStudio.setAgent(id);
+agentstudio.setagent(id);
 
 
 
-document.dispatchEvent(
+document.dispatchevent(
 
-new CustomEvent(
+new customvvent(
 "agent-selected",
 {
 
 detail:
-Agents.get(id)
+agents.get(id)
 
 }
 
@@ -294,11 +294,11 @@ Agents.get(id)
 
 
 this.container
-.querySelectorAll(".open-agent")
+.queryselectorall(".open-agent")
 .forEach(button=>{
 
 
-button.addEventListener(
+button.addeventlistener(
 "click",
 ()=>{
 
@@ -307,9 +307,9 @@ const id =
 button.dataset.id;
 
 
-if(!Subscription.canUseAgent(id)){
+if(!subscription.canuseagent(id)){
 
-    UpgradeModal.open();
+    upgradeModal.open();
 
     return;
 
@@ -317,17 +317,17 @@ if(!Subscription.canUseAgent(id)){
 
 
 const agent =
-Agents.get(id);
+agents.get(id);
 
 
 
-AgentStudio.setAgent(id);
+agentstudio.setagent(id);
 
 
 
-document.dispatchEvent(
+document.dispatchevent(
 
-new CustomEvent(
+new customevent(
 "agent-studio-open",
 {
 
