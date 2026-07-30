@@ -8,11 +8,11 @@ Compatible with AgentEngine V3
 */
 
 
-import AgentStudio from "./agentStudio.js";
+import agentstudio from "./agentstudio.js";
 
 
 
-class LiveEngine {
+class liveengine {
 
 
 
@@ -49,7 +49,7 @@ class LiveEngine {
             if(agentId){
 
 
-                AgentStudio.setAgent(agentId);
+                agentstudio.setagent(agentId);
 
 
             }
@@ -60,7 +60,7 @@ class LiveEngine {
 
 
             const agent =
-            AgentStudio.getActiveAgent();
+            agentstudio.getActiveAgent();
 
 
 
@@ -207,7 +207,7 @@ class LiveEngine {
 
 
             const agent =
-            AgentStudio.setAgent(agentId);
+            agentstudio.setagent(agentId);
 
 
 
@@ -535,7 +535,7 @@ Regras:
     */
 
 
-    getLiveContext(){
+    getlivecontext(){
 
 
 
@@ -581,4 +581,4 @@ Regras:
 
 
 
-export default new LiveEngine();
+export default new liveengine();
