@@ -1,4 +1,4 @@
-class PromptBuilder {
+class promptbuilder {
 
     build({
         systemPrompt,
@@ -87,4 +87,4 @@ Quando fores escrever código, produz código limpo, modular e pronto para produ
 
 }
 
-export default new PromptBuilder();
+export default new promptbuilder();
