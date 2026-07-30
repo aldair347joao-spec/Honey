@@ -1,9 +1,12 @@
 /*
 ==========================================
 HONEY IA
-AGENT ENGINE V2.0
+AGENT ENGINE V3.0
+Central Agent Registry
 ==========================================
 */
+
+
 import DesignerAgent from "./agents/designerAgent.js";
 import GeneralAgent from "./agents/generalAgent.js";
 import DeveloperAgent from "./agents/developerAgent.js";
@@ -19,318 +22,626 @@ import VideoAgent from "./agents/videoAgent.js";
 import ImageAgent from "./agents/imageAgent.js";
 import SecurityAgent from "./agents/securityAgent.js";
 
+
+
 class AgentEngine {
 
-    constructor() {
+
+    constructor(){
+
 
         this.agents = new Map();
+
+
         this.activeAgent = "general";
 
+
+        this.loadAgents();
+
+
     }
 
-    register(agent) {
-        Agents.register(GeneralAgent);
-Agents.register(DeveloperAgent);
-        Agents.register(DesignerAgent);
-Agents.register(MarketingAgent);
-   Agents.register(FinanceAgent);
-Agents.register(HealthAgent);
-Agents.register(EducationAgent);
-Agents.register(LegalAgent);
-Agents.register(ArchitectAgent);
-Agents.register(ExcelAgent);
-Agents.register(SalesAgent);
-Agents.register(VideoAgent);
-Agents.register(ImageAgent);
-Agents.register(SecurityAgent); 
 
-        this.agents.set(agent.id, {
-            status: "online",
-            conversations: [],
-            memory: [],
-            tools: [],
-            ...agent
+
+
+
+
+    loadAgents(){
+
+
+
+        const agents = [
+
+
+            GeneralAgent,
+
+            DeveloperAgent,
+
+            DesignerAgent,
+
+            MarketingAgent,
+
+            FinanceAgent,
+
+            HealthAgent,
+
+            EducationAgent,
+
+            LegalAgent,
+
+            ArchitectAgent,
+
+            ExcelAgent,
+
+            SalesAgent,
+
+            VideoAgent,
+
+            ImageAgent,
+
+            SecurityAgent
+
+
+        ];
+
+
+
+
+
+        agents.forEach(agent=>{
+
+
+            this.register(agent);
+
+
         });
 
-        console.log(`✅ Agente carregado: ${agent.name}`);
+
 
     }
 
-    get(id) {
 
-        return this.agents.get(id);
 
-    }
 
-    getAll() {
 
-        return [...this.agents.values()];
 
-    }
 
-    setActive(id) {
 
-        if (this.agents.has(id)) {
 
-            this.activeAgent = id;
+    register(agent){
 
-            return this.agents.get(id);
+
+
+        if(!agent || !agent.id){
+
+
+            return;
+
 
         }
 
-        return this.agents.get("general");
+
+
+
+
+
+        this.agents.set(
+
+            agent.id,
+
+            {
+
+
+                status:"online",
+
+
+                conversations:[],
+
+
+                memory:[],
+
+
+                tools:[],
+
+
+                ...agent
+
+
+            }
+
+
+        );
+
+
+
+
+
+        console.log(
+            `✅ Agente carregado: ${agent.name}`
+        );
+
+
 
     }
 
-    getActive() {
 
-        return this.agents.get(this.activeAgent);
+
+
+
+
+
+
+    get(id){
+
+
+        return this.agents.get(id);
+
 
     }
 
-    addConversation(id, role, content) {
 
-        const agent = this.agents.get(id);
 
-        if (!agent) return;
+
+
+
+
+    getById(id){
+
+
+        return this.agents.get(id);
+
+
+    }
+
+
+
+
+
+
+
+
+    getAll(){
+
+
+        return [
+            ...this.agents.values()
+        ];
+
+
+    }
+
+
+
+
+
+
+
+
+    setActive(id){
+
+
+
+        if(this.agents.has(id)){
+
+
+            this.activeAgent=id;
+
+
+
+            return this.agents.get(id);
+
+
+        }
+
+
+
+
+
+        return this.agents.get(
+            "general"
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+    getActive(){
+
+
+        return this.agents.get(
+            this.activeAgent
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    addConversation(id,role,content){
+
+
+
+        const agent =
+        this.agents.get(id);
+
+
+
+
+        if(!agent)return;
+
+
+
+
 
         agent.conversations.push({
 
             role,
+
             content,
-            date: new Date()
+
+            date:new Date()
 
         });
 
+
+
     }
 
-    getConversation(id) {
 
-        const agent = this.agents.get(id);
 
-        if (!agent) return [];
+
+
+
+
+
+
+    getConversation(id){
+
+
+
+        const agent =
+        this.agents.get(id);
+
+
+
+
+        if(!agent)return [];
+
+
 
         return agent.conversations;
 
+
+
     }
 
-    saveMemory(id, key, value) {
 
-        const agent = this.agents.get(id);
 
-        if (!agent) return;
+
+
+
+
+
+
+    saveMemory(id,key,value){
+
+
+
+        const agent =
+        this.agents.get(id);
+
+
+
+
+        if(!agent)return;
+
+
+
+
 
         agent.memory.push({
 
             key,
+
             value,
-            createdAt: new Date()
+
+            createdAt:new Date()
 
         });
 
+
+
     }
 
-    getMemory(id) {
 
-        const agent = this.agents.get(id);
 
-        if (!agent) return [];
+
+
+
+
+
+
+    getMemory(id){
+
+
+
+        const agent =
+        this.agents.get(id);
+
+
+
+        if(!agent)return [];
+
+
 
         return agent.memory;
 
+
+
     }
 
-    detect(prompt = "") {
 
-        const text = prompt.toLowerCase();
 
-        if (
-            text.includes("html") ||
-            text.includes("css") ||
+
+
+
+
+
+
+    detect(prompt=""){
+
+
+
+        const text =
+        prompt.toLowerCase();
+
+
+
+
+
+        if(
+            text.includes("código") ||
+            text.includes("program") ||
             text.includes("javascript") ||
-            text.includes("node") ||
-            text.includes("react") ||
             text.includes("python") ||
             text.includes("api") ||
-            text.includes("código") ||
-            text.includes("program")
-        ) {
+            text.includes("node") ||
+            text.includes("react")
+        ){
+
             return this.get("developer");
+
         }
 
-        if (
+
+
+
+
+
+
+        if(
             text.includes("logo") ||
+            text.includes("design") ||
             text.includes("ui") ||
             text.includes("ux") ||
-            text.includes("figma") ||
-            text.includes("design")
-        ) {
+            text.includes("figma")
+        ){
+
             return this.get("designer");
+
         }
 
-        if (
+
+
+
+
+
+
+        if(
             text.includes("marketing") ||
-            text.includes("facebook") ||
-            text.includes("instagram") ||
-            text.includes("tiktok") ||
             text.includes("publicidade") ||
-            text.includes("copy")
-        ) {
+            text.includes("instagram") ||
+            text.includes("facebook") ||
+            text.includes("vendas")
+        ){
+
             return this.get("marketing");
+
         }
 
-        if (
-            text.includes("pdf") ||
-            text.includes("documento") ||
-            text.includes("contrato") ||
+
+
+
+
+
+
+        if(
+            text.includes("banco") ||
+            text.includes("finança") ||
+            text.includes("financeiro") ||
+            text.includes("investimento")
+        ){
+
+            return this.get("finance");
+
+        }
+
+
+
+
+
+
+
+        if(
+            text.includes("hospital") ||
+            text.includes("clínica") ||
+            text.includes("saúde") ||
+            text.includes("medicina")
+        ){
+
+            return this.get("health");
+
+        }
+
+
+
+
+
+
+
+        if(
+            text.includes("escola") ||
+            text.includes("curso") ||
+            text.includes("educação") ||
+            text.includes("ensino")
+        ){
+
+            return this.get("education");
+
+        }
+
+
+
+
+
+
+
+        if(
             text.includes("excel") ||
-            text.includes("planilha")
-        ) {
-            return this.get("document");
+            text.includes("planilha") ||
+            text.includes("dados")
+        ){
+
+            return this.get("excel");
+
         }
 
-        if (
+
+
+
+
+
+
+        if(
+            text.includes("segurança") ||
+            text.includes("hacker") ||
+            text.includes("proteção")
+        ){
+
+            return this.get("security");
+
+        }
+
+
+
+
+
+
+
+        if(
             text.includes("imagem") ||
-            text.includes("foto") ||
-            text.includes("print") ||
-            text.includes("screenshot")
-        ) {
-            return this.get("vision");
+            text.includes("foto")
+        ){
+
+            return this.get("image");
+
         }
 
-        if (
-            text.includes("projeto") ||
+
+
+
+
+
+
+        if(
+            text.includes("vídeo") ||
+            text.includes("video")
+        ){
+
+            return this.get("video");
+
+        }
+
+
+
+
+
+
+
+        if(
+            text.includes("casa") ||
+            text.includes("planta") ||
             text.includes("arquitetura")
-        ) {
-            return this.get("project");
+        ){
+
+            return this.get("architect");
+
         }
 
-        if (
-            text.includes("pesquise") ||
-            text.includes("internet") ||
-            text.includes("web")
-        ) {
-            return this.get("web");
+
+
+
+
+
+
+        if(
+            text.includes("contrato") ||
+            text.includes("lei") ||
+            text.includes("jurídico")
+        ){
+
+            return this.get("legal");
+
         }
+
+
+
+
+
+
+
+        if(
+            text.includes("cliente") ||
+            text.includes("vender")
+        ){
+
+            return this.get("sales");
+
+        }
+
+
+
+
+
+
 
         return this.get("general");
 
+
+
     }
+
+
 
 }
 
+
+
+
 const Agents = new AgentEngine();
 
-Agents.register({
-
-    id: "general",
-
-    emoji: "🐝",
-
-    name: "Honey Assistant",
-
-    color: "#F4B400",
-
-    description: "Assistente principal da Honey IA."
-
-});
-
-Agents.register({
-
-    id: "developer",
-
-    emoji: "💻",
-
-    name: "Honey Developer",
-
-    color: "#3B82F6",
-
-    description: "Especialista em programação."
-
-});
-
-Agents.register({
-
-    id: "designer",
-
-    emoji: "🎨",
-
-    name: "Honey Designer",
-
-    color: "#EC4899",
-
-    description: "Especialista em UI, UX e Design."
-
-});
-
-Agents.register({
-
-    id: "marketing",
-
-    emoji: "📈",
-
-    name: "Honey Marketing",
-
-    color: "#10B981",
-
-    description: "Especialista em Marketing."
-
-});
-
-Agents.register({
-
-    id: "document",
-
-    emoji: "📄",
-
-    name: "Honey Documents",
-
-    color: "#F97316",
-
-    description: "Especialista em documentos."
-
-});
-
-Agents.register({
-
-    id: "vision",
-
-    emoji: "👁️",
-
-    name: "Honey Vision",
-
-    color: "#8B5CF6",
-
-    description: "Especialista em imagens."
-
-});
-
-Agents.register({
-
-    id: "project",
-
-    emoji: "📂",
-
-    name: "Honey Projects",
-
-    color: "#06B6D4",
-
-    description: "Especialista em projetos."
-
-});
-
-Agents.register({
-
-    id: "web",
-
-    emoji: "🌍",
-
-    name: "Honey Web",
-
-    color: "#22C55E",
-
-    description: "Especialista em pesquisa web."
-
-});
 
 export default Agents;
