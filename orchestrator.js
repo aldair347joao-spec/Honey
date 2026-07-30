@@ -5,39 +5,39 @@ ORCHESTRATOR ENGINE V4.0 (FULL PRODUCTION)
 ==========================================
 */
 
-import GeneralAgent from "./agents/GeneralAgent.js";
-import ArchitectAgent from "./agents/ArchitectAgent.js";
-import DesignerAgent from "./agents/DesignerAgent.js";
-import DeveloperAgent from "./agents/DeveloperAgent.js";
-import EducationAgent from "./agents/EducationAgent.js";
-import ExcelAgent from "./agents/ExcelAgent.js";
-import FinanceAgent from "./agents/FinanceAgent.js";
-import HealthcareAgent from "./agents/HealthcareAgent.js";
-import ImageAgent from "./agents/ImageAgent.js";
-import LegalAgent from "./agents/LegalAgent.js";
-import MarketingAgent from "./agents/MarketingAgent.js";
-import SalesAgent from "./agents/SalesAgent.js";
-import SecurityAgent from "./agents/SecurityAgent.js";
-import VideoAgent from "./agents/VideoAgent.js";
+import generalAgent from "./agents/generalAgent.js";
+import architectAgent from "./agents/architectAgent.js";
+import designerAgent from "./agents/designerAgent.js";
+import developerAgent from "./agents/developerAgent.js";
+import educationAgent from "./agents/educationAgent.js";
+import excelAgent from "./agents/excelAgent.js";
+import financeAgent from "./agents/financeAgent.js";
+import healthcareAgent from "./agents/healthcareAgent.js";
+import imageAgent from "./agents/imageAgent.js";
+import legalAgent from "./agents/legalAgent.js";
+import marketingAgent from "./agents/marketingAgent.js";
+import salesAgent from "./agents/salesAgent.js";
+import securityAgent from "./agents/securityAgent.js";
+import videoAgent from "./agents/videoAgent.js";
 
 /**
  * Registo Central de Todos os Agentes da Plataforma
  */
 const AGENTS_REGISTRY = {
-    general: GeneralAgent,
-    architect: ArchitectAgent,
-    designer: DesignerAgent,
-    developer: DeveloperAgent,
-    education: EducationAgent,
-    excel: ExcelAgent,
-    finance: FinanceAgent,
-    healthcare: HealthcareAgent,
-    image: ImageAgent,
-    legal: LegalAgent,
-    marketing: MarketingAgent,
-    sales: SalesAgent,
-    security: SecurityAgent,
-    video: VideoAgent
+    general: generalAgent,
+    architect: architectAgent,
+    designer: designerAgent,
+    developer: developerAgent,
+    education: educationAgent,
+    excel: excelAgent,
+    finance: financeAgent,
+    healthcare: healthcareAgent,
+    image: imageAgent,
+    legal: legalAgent,
+    marketing: marketingAgent,
+    sales: salesAgent,
+    security: securityAgent,
+    video: videoAgent
 };
 
 /**
@@ -101,14 +101,14 @@ export class AgentRouter {
 
         if (!userMessage || typeof userMessage !== "string") {
             return {
-                agent: GeneralAgent,
+                agent: generalAgent,
                 score: 1.0,
                 reason: "default_fallback"
             };
         }
 
         const normalizedText = userMessage.toLowerCase().trim();
-        let bestMatchAgent = GeneralAgent;
+        let bestMatchAgent = generalAgent;
         let highestScore = 0;
 
         // Iterar sobre todos os agentes para calcular relevância
@@ -145,10 +145,10 @@ export class AgentRouter {
             }
         }
 
-        // Se a pontuação mínima não for atingida, cai no GeneralAgent
+        // Se a pontuação mínima não for atingida, cai no generalAgent
         if (highestScore < 0.3) {
             return {
-                agent: GeneralAgent,
+                agent: generalAgent,
                 score: 0.0,
                 reason: "low_confidence_fallback"
             };
