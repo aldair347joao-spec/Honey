@@ -5,7 +5,7 @@ DEVELOPER AGENT V2.0
 ==========================================
 */
 
-const DeveloperAgent = {
+const developeragent = {
 
     id: "developer",
 
