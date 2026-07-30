@@ -124,7 +124,101 @@ export const Store = {
 
 
 class HoneyAIApp {
+    
+// ==========================================================
+// USER SESSION
+// ==========================================================
 
+initUserSession(){
+
+
+const user =
+AuthManager.getUser();
+
+
+
+if(user){
+
+
+Store.setState(
+"isAuthenticated",
+true
+);
+
+
+
+this.updateUserInterface(
+user
+);
+
+
+
+return;
+
+}
+
+
+
+
+Store.setState(
+"isAuthenticated",
+false
+);
+
+
+
+}
+
+
+
+
+
+
+
+updateUserInterface(user){
+
+
+
+const userBox =
+this.userBox;
+
+
+
+if(userBox){
+
+
+userBox.innerHTML = `
+
+
+<div class="user-profile">
+
+
+<strong>
+
+${user.name}
+
+</strong>
+
+
+<span>
+
+Plano: ${user.plan}
+
+</span>
+
+
+</div>
+
+
+`;
+
+
+
+}
+
+
+
+}
 
 
 constructor(){
