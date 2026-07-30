@@ -1,9 +1,9 @@
 /*
 ==========================================
 HONEY IA
-LIVE CLIENT
+LIVE CLIENT V3.0
 Frontend Live Controller
-Versão 2.0
+Agent Studio Integration
 ==========================================
 */
 
@@ -13,61 +13,14 @@ class LiveClient {
 
     constructor(){
 
+
         this.active = false;
+
 
         this.agent = null;
 
-    }
 
-
-
-
-
-
-    async changeAgent(agentId){
-
-
-        const response =
-        await fetch(
-            "/api/live/agent",
-            {
-
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-
-                body:JSON.stringify({
-
-                    agentId
-
-                })
-
-            }
-        );
-
-
-
-        const data =
-        await response.json();
-
-
-
-
-        if(data.success){
-
-
-            this.agent =
-            data.agent;
-
-
-        }
-
-
-
-        return data;
+        this.session = null;
 
 
     }
@@ -78,37 +31,33 @@ class LiveClient {
 
 
 
-
-    async start(agentId=null){
-
-
-
-        try{
-
+    /*
+    ======================================
+    INICIAR LIVE
+    ======================================
+    */
 
 
-            if(agentId){
-
-
-                await this.changeAgent(agentId);
-
-
-            }
+    async start(agentId = null){
 
 
 
+        try {
 
 
 
-            const response =
-            await fetch(
+            const response = await fetch(
+
                 "/api/live/start",
+
                 {
 
                     method:"POST",
 
                     headers:{
+
                         "Content-Type":"application/json"
+
                     },
 
 
@@ -120,6 +69,173 @@ class LiveClient {
 
 
                 }
+
+            );
+
+
+
+
+
+
+            const data =
+            await response.json();
+
+
+
+
+
+
+            if(data.success){
+
+
+
+                this.active = true;
+
+
+
+                this.session =
+                data.session;
+
+
+
+
+
+                this.agent =
+                data.session.identity;
+
+
+
+
+
+
+                document.dispatchEvent(
+
+                    new CustomEvent(
+                        "live-started",
+                        {
+
+                            detail:this.agent
+
+                        }
+
+                    )
+
+                );
+
+
+
+            }
+
+
+
+
+
+
+            return data;
+
+
+
+
+
+
+        } catch(error){
+
+
+
+            console.error(
+
+                "Erro ao iniciar Live:",
+
+                error
+
+            );
+
+
+
+            return {
+
+                success:false,
+
+                error:error.message
+
+            };
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    ENVIAR MENSAGEM
+    ======================================
+    */
+
+
+    async send(message){
+
+
+
+        if(!this.active){
+
+
+            throw new Error(
+
+                "Modo Live não iniciado."
+
+            );
+
+
+        }
+
+
+
+
+
+
+        try {
+
+
+
+            const response =
+            await fetch(
+
+                "/api/live/chat",
+
+                {
+
+
+                    method:"POST",
+
+
+                    headers:{
+
+
+                        "Content-Type":
+                        "application/json"
+
+
+                    },
+
+
+
+                    body:JSON.stringify({
+
+                        message
+
+                    })
+
+                }
+
             );
 
 
@@ -139,16 +255,38 @@ class LiveClient {
             if(data.success){
 
 
-                this.active=true;
+
+                this.session =
+                data.context;
 
 
 
                 this.agent =
-                data.session.identity;
+                data.agent;
 
+
+
+
+
+                document.dispatchEvent(
+
+                    new CustomEvent(
+                        "live-message",
+                        {
+
+                            detail:data
+
+                        }
+
+                    )
+
+                );
 
 
             }
+
+
+
 
 
 
@@ -159,15 +297,32 @@ class LiveClient {
 
 
 
+
+
         }catch(error){
 
 
 
-            throw new Error(
-                "Falha ao iniciar Live: "
-                +
-                error.message
+            console.error(
+
+                "Erro Live Chat:",
+
+                error
+
             );
+
+
+
+            return {
+
+
+                success:false,
+
+                error:error.message
+
+
+            };
+
 
 
         }
@@ -184,75 +339,138 @@ class LiveClient {
 
 
 
-    async send(message){
+    /*
+    ======================================
+    TROCAR AGENTE
+    ======================================
+    */
+
+
+    async changeAgent(agentId){
 
 
 
-        if(!this.active){
+        try {
 
 
-            throw new Error(
-                "Modo Live não iniciado."
+
+            const response =
+            await fetch(
+
+                "/api/live/agent",
+
+                {
+
+
+                    method:"POST",
+
+
+                    headers:{
+
+
+                        "Content-Type":
+                        "application/json"
+
+
+                    },
+
+
+                    body:JSON.stringify({
+
+                        agentId
+
+                    })
+
+
+                }
+
             );
 
 
-        }
+
+
+
+
+            const data =
+            await response.json();
 
 
 
 
 
 
-        const response =
-        await fetch(
-            "/api/live/chat",
-            {
-
-                method:"POST",
+            if(data.success){
 
 
-                headers:{
-                    "Content-Type":"application/json"
-                },
+
+                this.agent =
+                data.agent;
 
 
-                body:JSON.stringify({
 
-                    message
 
-                })
+
+
+                document.dispatchEvent(
+
+                    new CustomEvent(
+                        "agent-changed",
+                        {
+
+                            detail:
+                            this.agent
+
+                        }
+
+                    )
+
+                );
+
 
 
             }
-        );
 
 
 
 
 
 
-        const data =
-        await response.json();
+            return data;
 
 
 
 
 
-        if(data.agent){
 
 
-            this.agent =
-            data.agent;
+        }catch(error){
+
+
+
+            console.error(
+
+                "Erro ao trocar agente:",
+
+                error
+
+            );
+
+
+
+            return {
+
+
+                success:false,
+
+                error:error.message
+
+
+            };
+
 
 
         }
 
-
-
-
-
-
-        return data;
 
 
 
@@ -264,35 +482,45 @@ class LiveClient {
 
 
 
+
+
+    /*
+    ======================================
+    PARAR LIVE
+    ======================================
+    */
 
 
     async stop(){
 
 
 
-        try{
+        try {
+
 
 
             await fetch(
+
                 "/api/live/stop",
+
                 {
 
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":"application/json"
-                    }
+                    method:"POST"
 
                 }
+
             );
+
 
 
         }catch(error){
 
 
-            console.warn(
-                "Erro ao fechar Live:",
-                error.message
+
+            console.error(
+
+                error
+
             );
 
 
@@ -309,6 +537,24 @@ class LiveClient {
         this.agent=null;
 
 
+        this.session=null;
+
+
+
+
+
+
+        document.dispatchEvent(
+
+            new Event(
+                "live-stopped"
+            )
+
+        );
+
+
+
+
 
     }
 
@@ -318,6 +564,12 @@ class LiveClient {
 
 
 
+
+    /*
+    ======================================
+    GETTERS
+    ======================================
+    */
 
 
     getAgent(){
@@ -328,6 +580,29 @@ class LiveClient {
 
     }
 
+
+
+
+
+    isActive(){
+
+
+        return this.active;
+
+
+    }
+
+
+
+
+
+    getSession(){
+
+
+        return this.session;
+
+
+    }
 
 
 
