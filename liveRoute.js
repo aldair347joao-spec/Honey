@@ -1,549 +1,141 @@
 /*
 ==========================================
-HONEY IA
-LIVE ROUTE V3.0
-Real Time Agent Communication
-Orchestrator Integration
+HONEY IA OS - LIVE ROUTE ENGINE V4.0
+FULL PRODUCTION (LIVE & STREAMING ENGINE)
 ==========================================
 */
 
-
-import express from "express";
-import LiveEngine from "./LiveEngine.js";
-import Orchestrator from "./Orchestrator.js";
-
-
-const router = express.Router();
-
-
-
-
-
-
-
-/*
-==========================================
-SELECIONAR AGENTE LIVE
-==========================================
-*/
-
-
-router.post("/live/agent", async(req,res)=>{
-
-
-    try{
-
-
-        const {
-            agentId
-        } = req.body;
-
-
-
-
-
-        if(!agentId){
-
-
-            return res.status(400).json({
-
-
-                success:false,
-
-
-                error:"Agente não informado."
-
-
-            });
-
-
-        }
-
-
-
-
-
-
-
-        const changed =
-        LiveEngine.switchAgent(agentId);
-
-
-
-
-
-
-        if(!changed){
-
-
-            return res.status(404).json({
-
-
-                success:false,
-
-
-                error:"Agente não encontrado."
-
-
-            });
-
-
-        }
-
-
-
-
-
-
-
-
-        res.json({
-
-
-            success:true,
-
-
-            agent:
-            LiveEngine.getIdentity()
-
-
-
+import orchestratorInstance from './orchestrator.js';
+
+/**
+ * Utilitário para formatar eventos SSE
+ */
+const formatSSEEvent = (event, data) => {
+    return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+};
+
+/**
+ * Controller principal para rotas em tempo real (Server-Sent Events - SSE)
+ */
+export const handleLiveStreamRoute = async (req, res) => {
+    const startTime = Date.now();
+
+    // 1. Extração segura dos parâmetros do body
+    const {
+        prompt,
+        agentId = null,
+        history = [],
+        workspaceContext = {},
+        userMemory = [],
+        mode = "live",
+        audioEnabled = false
+    } = req.body || {};
+
+    // 2. Validação inicial de entrada
+    if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
+        return res.status(400).json({
+            success: false,
+            error: "O campo 'prompt' é obrigatório e deve ser uma string válida."
         });
-
-
-
-
-
-
-    }catch(error){
-
-
-
-        res.status(500).json({
-
-
-            success:false,
-
-
-            error:error.message
-
-
-
-        });
-
-
-
     }
 
+    // 3. Configuração rigorosa dos cabeçalhos HTTP para Server-Sent Events (SSE)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // Desativa buffering no Nginx/Reverse Proxy
 
-});
+    // Notificar o cliente que a conexão SSE foi estabelecida com sucesso
+    res.write(formatSSEEvent('connected', {
+        status: 'online',
+        timestamp: new Date().toISOString(),
+        mode: mode
+    }));
 
+    // Monitorizar se o cliente cancelou a conexão a meio da transmissão
+    let isClientConnected = true;
+    req.on('close', () => {
+        isClientConnected = false;
+        console.log('[LiveRoute] Cliente desligou a conexão SSE prematuramente.');
+    });
 
+    try {
+        let accumulatedText = "";
 
+        // 4. Iniciar o processamento via Streaming no Orchestrator
+        await orchestratorInstance.processStream({
+            userPrompt: prompt,
+            agentId,
+            history,
+            workspaceContext,
+            userMemory,
+            mode,
+            onChunk: (chunkText) => {
+                if (!isClientConnected) return;
 
+                accumulatedText += chunkText;
 
+                // Envia o fragmento de texto para o cliente
+                res.write(formatSSEEvent('chunk', {
+                    content: chunkText,
+                    accumulatedLength: accumulatedText.length
+                }));
+            },
+            onComplete: (summary) => {
+                if (!isClientConnected) return;
 
+                const durationMs = Date.now() - startTime;
 
+                // Envia o sinalizador de conclusão e as estatísticas do agente selecionado
+                res.write(formatSSEEvent('end', {
+                    success: true,
+                    agent: summary.agent,
+                    fullResponse: summary.fullResponse,
+                    audioEnabled: audioEnabled,
+                    metrics: {
+                        durationMs,
+                        ...(summary.metrics || {})
+                    }
+                }));
 
+                res.end();
+            },
+            onError: (err) => {
+                if (!isClientConnected) return;
 
-/*
-==========================================
-INICIAR LIVE
-==========================================
-*/
+                console.error('[LiveRoute Stream Inner Error]:', err);
 
+                res.write(formatSSEEvent('stream_error', {
+                    success: false,
+                    error: err.message || "Erro durante o streaming da resposta."
+                }));
 
-router.post("/live/start", async(req,res)=>{
-
-
-    try{
-
-
-        const {
-            agentId
-        } = req.body;
-
-
-
-
-
-
-        const session =
-        LiveEngine.start(agentId);
-
-
-
-
-
-
-
-        res.json({
-
-
-            success:true,
-
-
-            session
-
-
-
+                res.end();
+            }
         });
 
+    } catch (error) {
+        console.error('[LiveRoute Stream Execution Error]:', error);
 
-
-
-
-
-    }catch(error){
-
-
-
-        res.status(500).json({
-
-
-            success:false,
-
-
-            error:error.message
-
-
-
-        });
-
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-CHAT LIVE
-==========================================
-*/
-
-
-router.post("/live/chat", async(req,res)=>{
-
-
-    try{
-
-
-
-        const {
-            message,
-            userId="guest"
-        } = req.body;
-
-
-
-
-
-
-        if(!message){
-
-
-
-            return res.status(400).json({
-
-
-                success:false,
-
-
-                error:"Mensagem vazia."
-
-
-            });
-
-
-
+        if (isClientConnected) {
+            res.write(formatSSEEvent('error', {
+                success: false,
+                error: error.message || "Falha crítica no motor de streaming Live."
+            }));
+            res.end();
         }
-
-
-
-
-
-
-
-
-        const context =
-        LiveEngine.getLiveContext();
-
-
-
-
-
-
-
-
-        if(!context.active){
-
-
-
-            return res.status(400).json({
-
-
-                success:false,
-
-
-                error:"Sessão Live não iniciada."
-
-
-
-            });
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        LiveEngine.addMessage(
-
-            "user",
-
-            message
-
-        );
-
-
-
-
-
-
-
-
-        const result =
-        await Orchestrator.process({
-
-
-
-            userId,
-
-
-            message,
-
-
-
-            agent:
-            context.agentId,
-
-
-
-            mode:"live"
-
-
-
-        });
-
-
-
-
-
-
-
-
-
-        /*
-        Aqui o backend principal
-        usa o prompt construído
-        pelo Orchestrator.
-        */
-
-
-
-
-
-
-
-
-        const response =
-        result.prompt;
-
-
-
-
-
-
-
-
-
-        LiveEngine.addMessage(
-
-
-            "assistant",
-
-
-            response
-
-
-        );
-
-
-
-
-
-
-
-
-        res.json({
-
-
-
-            success:true,
-
-
-
-            agent:
-            LiveEngine.getIdentity(),
-
-
-
-            response,
-
-
-
-            context:
-            LiveEngine.getLiveContext()
-
-
-
-        });
-
-
-
-
-
-
-
-    }catch(error){
-
-
-
-        console.error(
-
-            "Erro Live:",
-
-            error
-
-        );
-
-
-
-        res.status(500).json({
-
-
-
-            success:false,
-
-
-            error:error.message
-
-
-
-        });
-
-
-
     }
+};
 
+/**
+ * Controller secundário para verificação de estado do canal Live
+ */
+export const handleLiveStatusCheck = (req, res) => {
+    return res.status(200).json({
+        status: "active",
+        service: "Honey IA Live Engine",
+        timestamp: new Date().toISOString()
+    });
+};
 
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-PARAR LIVE
-==========================================
-*/
-
-
-router.post("/live/stop", async(req,res)=>{
-
-
-    try{
-
-
-        const session =
-        LiveEngine.stop();
-
-
-
-
-
-
-        res.json({
-
-
-            success:true,
-
-
-            session
-
-
-
-        });
-
-
-
-
-
-
-
-    }catch(error){
-
-
-
-        res.status(500).json({
-
-
-
-            success:false,
-
-
-            error:error.message
-
-
-
-        });
-
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-export default router;
+export default handleLiveStreamRoute;
