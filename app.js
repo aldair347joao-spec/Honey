@@ -9,7 +9,7 @@ Chat + Live Agent Integration
 import LiveClient from "./liveClient.js";
 import AgentStudio from "./agentStudio.js";
 import { Components } from "./components.js";
-
+import AgentsUI from "./agents-ui.js";
 const SESSION_ID = crypto.randomUUID();
 
 
