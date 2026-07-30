@@ -5,7 +5,7 @@ DESIGNER AGENT V2.0
 ==========================================
 */
 
-const DesignerAgent = {
+const designeragent = {
 
     id: "designer",
 
