@@ -5,158 +5,155 @@ ORCHESTRATOR ENGINE V4.0 (FULL PRODUCTION)
 ==========================================
 */
 
-import generalAgent from "./agents/generalAgent.js";
-import architectAgent from "./agents/architectAgent.js";
-import designerAgent from "./agents/designerAgent.js";
-import developerAgent from "./agents/developerAgent.js";
-import educationAgent from "./agents/educationAgent.js";
-import excelAgent from "./agents/excelAgent.js";
-import financeAgent from "./agents/financeAgent.js";
-import healthcareAgent from "./agents/healthcareAgent.js";
-import imageAgent from "./agents/imageAgent.js";
-import legalAgent from "./agents/legalAgent.js";
-import marketingAgent from "./agents/marketingAgent.js";
-import salesAgent from "./agents/salesAgent.js";
-import securityAgent from "./agents/securityAgent.js";
-import videoAgent from "./agents/videoAgent.js";
+import generalagent from "./agents/generalagent.js";
+import architectagent from "./agents/architectagent.js";
+import designeragent from "./agents/designeragent.js";
+import developeragent from "./agents/developeragent.js";
+import educationagent from "./agents/educationagent.js";
+import excelagent from "./agents/excelagent.js";
+import financeagent from "./agents/financeagent.js";
+import healthcareagent from "./agents/healthcareagent.js";
+import imageagent from "./agents/imageagent.js";
+import legalagent from "./agents/legalagent.js";
+import marketingagent from "./agents/marketingagent.js";
+import salesagent from "./agents/salesagent.js";
+import securityagent from "./agents/securityagent.js";
+import videoagent from "./agents/videoagent.js";
 
 /**
  * Registo Central de Todos os Agentes da Plataforma
  */
-const AGENTS_REGISTRY = {
-    general: generalAgent,
-    architect: architectAgent,
-    designer: designerAgent,
-    developer: developerAgent,
-    education: educationAgent,
-    excel: excelAgent,
-    finance: financeAgent,
-    healthcare: healthcareAgent,
-    image: imageAgent,
-    legal: legalAgent,
-    marketing: marketingAgent,
-    sales: salesAgent,
-    security: securityAgent,
-    video: videoAgent
+const agents_registry = {
+    general: generalagent,
+    architect: architectagent,
+    designer: designeragent,
+    developer: developeragent,
+    education: educationagent,
+    excel: excelagent,
+    finance: financeagent,
+    healthcare: healthcareagent,
+    image: imageagent,
+    legal: legalagent,
+    marketing: marketingagent,
+    sales: salesagent,
+    security: securityagent,
+    video: videoagent
 };
 
 /**
  * Estado Global de Métricas e Telemetria do Orquestrador
  */
-const OrchestratorMetrics = {
-    totalRequests: 0,
-    successfulRequests: 0,
-    failedRequests: 0,
-    agentExecutions: {},
-    tokenUsage: {
-        promptTokens: 0,
-        completionTokens: 0,
-        totalTokens: 0
+const orchestrator_metrics = {
+    totalrequests: 0,
+    successfulrequests: 0,
+    failedrequests: 0,
+    agentexecutions: {},
+    tokenusage: {
+        prompttokens: 0,
+        completiontokens: 0,
+        totaltokens: 0
     },
-    latencyHistory: [],
+    latencyhistory: [],
     
-    recordRequest(agentId, latencyMs, tokens = {}) {
-        this.totalRequests++;
-        this.successfulRequests++;
-        this.agentExecutions[agentId] = (this.agentExecutions[agentId] || 0) + 1;
+    recordrequest(agentid, latencyms, tokens = {}) {
+        this.totalrequests++;
+        this.successfulrequests++;
+        this.agentexecutions[agentid] = (this.agentexecutions[agentid] || 0) + 1;
         
-        if (tokens.prompt_tokens) this.tokenUsage.promptTokens += tokens.prompt_tokens;
-        if (tokens.completion_tokens) this.tokenUsage.completionTokens += tokens.completion_tokens;
-        if (tokens.total_tokens) this.tokenUsage.totalTokens += tokens.total_tokens;
+        if (tokens.prompt_tokens) this.tokenusage.prompttokens += tokens.prompt_tokens;
+        if (tokens.completion_tokens) this.tokenusage.completiontokens += tokens.completion_tokens;
+        if (tokens.total_tokens) this.tokenusage.totaltokens += tokens.total_tokens;
 
-        this.latencyHistory.push(latencyMs);
-        if (this.latencyHistory.length > 100) this.latencyHistory.shift();
+        this.latencyhistory.push(latencyms);
+        if (this.latencyhistory.length > 100) this.latencyhistory.shift();
     },
 
-    recordFailure(agentId) {
-        this.totalRequests++;
-        this.failedRequests++;
-        this.agentExecutions[agentId] = (this.agentExecutions[agentId] || 0) + 1;
+    recordfailure(agentid) {
+        this.totalrequests++;
+        this.failedrequests++;
+        this.agentexecutions[agentid] = (this.agentexecutions[agentid] || 0) + 1;
     },
 
-    getAverageLatency() {
-        if (this.latencyHistory.length === 0) return 0;
-        const sum = this.latencyHistory.reduce((a, b) => a + b, 0);
-        return Math.round(sum / this.latencyHistory.length);
+    getaveragelatency() {
+        if (this.latencyhistory.length === 0) return 0;
+        const sum = this.latencyhistory.reduce((a, b) => a + b, 0);
+        return Math.round(sum / this.latencyhistory.length);
     }
 };
 
 /**
  * Motor Central de Roteamento e Seleção de Agentes
  */
-export class AgentRouter {
+export class agentrouter {
     
     /**
      * Pontua e escolhe o melhor agente para a mensagem
      */
-    static selectAgent(userMessage = "", forcedAgentId = null) {
-        // Se o utilizador forçou um agente específico pela UI
-        if (forcedAgentId && AGENTS_REGISTRY[forcedAgentId]) {
+    static selectagent(usermessage = "", forcedagentid = null) {
+        const normalizedforcedid = forcedagentid ? String(forcedagentid).toLowerCase().trim() : null;
+
+        if (normalizedforcedid && agents_registry[normalizedforcedid]) {
             return {
-                agent: AGENTS_REGISTRY[forcedAgentId],
+                agent: agents_registry[normalizedforcedid],
                 score: 1.0,
                 reason: "forced_by_user"
             };
         }
 
-        if (!userMessage || typeof userMessage !== "string") {
+        if (!usermessage || typeof usermessage !== "string") {
             return {
-                agent: generalAgent,
+                agent: generalagent,
                 score: 1.0,
                 reason: "default_fallback"
             };
         }
 
-        const normalizedText = userMessage.toLowerCase().trim();
-        let bestMatchAgent = generalAgent;
-        let highestScore = 0;
+        const normalizedtext = usermessage.toLowerCase().trim();
+        let bestmatchagent = generalagent;
+        let highestscore = 0;
 
-        // Iterar sobre todos os agentes para calcular relevância
-        for (const [id, agent] of Object.entries(AGENTS_REGISTRY)) {
+        for (const [id, agent] of Object.entries(agents_registry)) {
             if (id === "general") continue;
 
-            let currentScore = 0;
+            let currentscore = 0;
 
-            // 1. Avaliação via método canHandle()
             if (typeof agent.canHandle === "function") {
                 try {
-                    const canHandleResult = agent.canHandle(normalizedText);
-                    if (canHandleResult === true) {
-                        currentScore += 0.8;
-                    } else if (typeof canHandleResult === "number") {
-                        currentScore += canHandleResult;
+                    const canhandleresult = agent.canHandle(normalizedtext);
+                    if (canhandleresult === true) {
+                        currentscore += 0.8;
+                    } else if (typeof canhandleresult === "number") {
+                        currentscore += canhandleresult;
                     }
                 } catch (err) {
                     console.warn(`[Orchestrator] Erro ao executar canHandle() no agente ${id}:`, err.message);
                 }
             }
 
-            // 2. Avaliação complementar via Keywords (caso existam no objeto)
             if (Array.isArray(agent.keywords)) {
-                const keywordMatches = agent.keywords.filter(kw => normalizedText.includes(kw.toLowerCase()));
-                if (keywordMatches.length > 0) {
-                    currentScore += Math.min(0.6, keywordMatches.length * 0.2);
+                const keywordmatches = agent.keywords.filter(kw => normalizedtext.includes(kw.toLowerCase()));
+                if (keywordmatches.length > 0) {
+                    currentscore += Math.min(0.6, keywordmatches.length * 0.2);
                 }
             }
 
-            if (currentScore > highestScore) {
-                highestScore = currentScore;
-                bestMatchAgent = agent;
+            if (currentscore > highestscore) {
+                highestscore = currentscore;
+                bestmatchagent = agent;
             }
         }
 
-        // Se a pontuação mínima não for atingida, cai no generalAgent
-        if (highestScore < 0.3) {
+        if (highestscore < 0.3) {
             return {
-                agent: generalAgent,
+                agent: generalagent,
                 score: 0.0,
                 reason: "low_confidence_fallback"
             };
         }
 
         return {
-            agent: bestMatchAgent,
-            score: Number(highestScore.toFixed(2)),
+            agent: bestmatchagent,
+            score: Number(highestscore.toFixed(2)),
             reason: "keyword_and_logic_match"
         };
     }
@@ -165,12 +162,9 @@ export class AgentRouter {
 /**
  * Construtor de Contexto e Gerenciador de Prompts do Sistema
  */
-export class PromptFactory {
+export class promptfactory {
 
-    /**
-     * Resolve de forma totalmente segura o systemPrompt do agente
-     */
-    static extractSystemPrompt(agent) {
+    static extractsystemprompt(agent) {
         if (!agent) return "Você é um assistente virtual da Honey IA.";
 
         if (typeof agent.systemPrompt === "function") {
@@ -192,78 +186,66 @@ export class PromptFactory {
         return "Você é um assistente virtual da Honey IA.";
     }
 
-    /**
-     * Injeta memórias históricas e contexto do Workspace no prompt do sistema
-     */
-    static injectWorkspaceContext(basePrompt, workspaceContext = {}, userMemory = []) {
-        let enhancedPrompt = basePrompt;
+    static injectworkspacecontext(baseprompt, workspacecontext = {}, usermemory = []) {
+        let enhancedprompt = baseprompt;
 
-        // Injeção de Contexto do Workspace
-        if (workspaceContext && Object.keys(workspaceContext).length > 0) {
-            enhancedPrompt += "\n\n=== CONTEXTO DO WORKSPACE ATIVO ===";
-            if (workspaceContext.projectName) enhancedPrompt += `\n- Projeto: ${workspaceContext.projectName}`;
-            if (workspaceContext.activeFile) enhancedPrompt += `\n- Ficheiro em Foco: ${workspaceContext.activeFile}`;
-            if (workspaceContext.language) enhancedPrompt += `\n- Linguagem/Tecnologia: ${workspaceContext.language}`;
-            if (workspaceContext.environment) enhancedPrompt += `\n- Ambiente: ${workspaceContext.environment}`;
+        if (workspacecontext && Object.keys(workspacecontext).length > 0) {
+            enhancedprompt += "\n\n=== CONTEXTO DO WORKSPACE ATIVO ===";
+            if (workspacecontext.projectName) enhancedprompt += `\n- Projeto: ${workspacecontext.projectName}`;
+            if (workspacecontext.activeFile) enhancedprompt += `\n- Ficheiro em Foco: ${workspacecontext.activeFile}`;
+            if (workspacecontext.language) enhancedprompt += `\n- Linguagem/Tecnologia: ${workspacecontext.language}`;
+            if (workspacecontext.environment) enhancedprompt += `\n- Ambiente: ${workspacecontext.environment}`;
         }
 
-        // Injeção de Memórias Persistentes do Utilizador
-        if (Array.isArray(userMemory) && userMemory.length > 0) {
-            enhancedPrompt += "\n\n=== MEMÓRIA PERSISTENTE DO UTILIZADOR ===";
-            userMemory.forEach((mem, index) => {
-                enhancedPrompt += `\n${index + 1}. ${mem}`;
+        if (Array.isArray(usermemory) && usermemory.length > 0) {
+            enhancedprompt += "\n\n=== MEMÓRIA PERSISTENTE DO UTILIZADOR ===";
+            usermemory.forEach((mem, index) => {
+                enhancedprompt += `\n${index + 1}. ${mem}`;
             });
         }
 
-        return enhancedPrompt;
+        return enhancedprompt;
     }
 
-    /**
-     * Adapta as instruções da IA de acordo com o modo de interação (Live vs Texto)
-     */
-    static applyModeRules(promptText, mode = "text") {
+    static applymoderules(prompttext, mode = "text") {
         if (mode === "live") {
-            return promptText + `\n\n[INSTRUÇÕES DO MODO LIVE]:
+            return prompttext + `\n\n[INSTRUÇÕES DO MODO LIVE]:
 - Responda de forma extremamente natural, humana e fluida.
 - Use frases mais curtas e diretas ao ponto.
 - Evite blocos extensos de código ou listas muito longas a menos que estritamente solicitado.
 - Converse como um especialista numa chamada de voz em tempo real.`;
         }
 
-        return promptText + `\n\n[INSTRUÇÕES DO MODO TEXTO]:
+        return prompttext + `\n\n[INSTRUÇÕES DO MODO TEXTO]:
 - Explique detalhadamente e de forma estruturada.
 - Utilize Markdown com tabelas, negritos e títulos quando apropriado.
 - Utilize blocos de código completos e formatados com sintaxe destacada.
 - Garanta respostas ricas, profissionais e bem explicadas.`;
     }
 
-    /**
-     * Constrói o payload de mensagens completo formatado para a API da Groq
-     */
-    static buildMessagesPayload({ agent, userPrompt, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
-        const rawSystemPrompt = this.extractSystemPrompt(agent);
-        const promptWithContext = this.injectWorkspaceContext(rawSystemPrompt, workspaceContext, userMemory);
-        const finalSystemPrompt = this.applyModeRules(promptWithContext, mode);
+    static buildmessagespayload({ agent, userPrompt, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
+        const rawsystemprompt = this.extractsystemprompt(agent);
+        const promptwithcontext = this.injectworkspacecontext(rawsystemprompt, workspaceContext, userMemory);
+        const finalsystemprompt = this.applymoderules(promptwithcontext, mode);
 
-        // Pré-processamento do prompt pelo agente
-        let processedUserPrompt = userPrompt;
+        let processeduserprompt = userPrompt;
         if (typeof agent.before === "function") {
             try {
-                processedUserPrompt = agent.before(userPrompt);
+                processeduserprompt = agent.before(userPrompt);
             } catch (err) {
                 console.warn(`[Orchestrator] Erro ao executar before() no agente ${agent.id}:`, err.message);
             }
         }
 
-        const formattedHistory = history.map(msg => ({
+        const formattedhistory = history.map(msg => ({
             role: msg.role === "user" ? "user" : "assistant",
             content: msg.content || ""
         }));
 
         return [
-            { role: "system", content: finalSystemPrompt },
-            ...formattedHistory,
-            { role: "user", content: processedUserPrompt }
+            { role: "system", content: finalsystemprompt },
+            ...formattedhistory,
+            { role: "user", content: processeduserprompt }
         ];
     }
 }
@@ -271,18 +253,15 @@ export class PromptFactory {
 /**
  * Gestor e Orquestrador de Ferramentas / Plugins (Tools)
  */
-export class ToolOrchestrator {
+export class toolorchestrator {
     
-    /**
-     * Retorna a lista de definições de ferramentas suportadas para o agente
-     */
-    static getAvailableTools(agent) {
+    static getavailabletools(agent) {
         if (!agent.tools || !Array.isArray(agent.tools)) return undefined;
 
-        const toolsDefinitions = [];
+        const toolsdefinitions = [];
 
         if (agent.tools.includes("web")) {
-            toolsDefinitions.push({
+            toolsdefinitions.push({
                 type: "function",
                 function: {
                     name: "web_search",
@@ -299,7 +278,7 @@ export class ToolOrchestrator {
         }
 
         if (agent.tools.includes("analytics")) {
-            toolsDefinitions.push({
+            toolsdefinitions.push({
                 type: "function",
                 function: {
                     name: "get_analytics",
@@ -315,7 +294,7 @@ export class ToolOrchestrator {
             });
         }
 
-        return toolsDefinitions.length > 0 ? toolsDefinitions : undefined;
+        return toolsdefinitions.length > 0 ? toolsdefinitions : undefined;
     }
 }
 
@@ -324,31 +303,23 @@ export class ToolOrchestrator {
  */
 export class Orchestrator {
     
-    constructor(groqSdkClient = null) {
-        this.groq = groqSdkClient;
+    constructor(groqsdkclient = null) {
+        this.groq = groqsdkclient;
     }
 
-    /**
-     * Define/atualiza o cliente SDK da Groq
-     */
     setGroqClient(client) {
         this.groq = client;
     }
 
-    /**
-     * Executa uma requisição completa (Standard Completion)
-     */
     async processRequest({ userPrompt, agentId = null, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
-        const startTime = Date.now();
+        conststarttime = Date.now();
 
-        // 1. Seleciona o agente ideal
-        const selection = AgentRouter.selectAgent(userPrompt, agentId);
-        const selectedAgent = selection.agent;
+        const selection = agentrouter.selectagent(userPrompt, agentId);
+        const selectedagent = selection.agent;
 
         try {
-            // 2. Constrói o payload de mensagens
-            const messages = PromptFactory.buildMessagesPayload({
-                agent: selectedAgent,
+            const messages = promptfactory.buildmessagespayload({
+                agent: selectedagent,
                 userPrompt,
                 history,
                 workspaceContext,
@@ -356,95 +327,86 @@ export class Orchestrator {
                 mode
             });
 
-            // 3. Prepara opções do modelo
-            const model = selectedAgent.model || "llama-3.3-70b-versatile";
-            const temperature = selectedAgent.temperature ?? 0.5;
-            const max_tokens = selectedAgent.maxTokens || 4096;
-            const tools = ToolOrchestrator.getAvailableTools(selectedAgent);
+            const model = selectedagent.model || "llama-3.3-70b-versatile";
+            const temperature = selectedagent.temperature ?? 0.5;
+            const max_tokens = selectedagent.maxTokens || 4096;
+            const tools = toolorchestrator.getavailabletools(selectedagent);
 
             if (!this.groq) {
                 throw new Error("[Orchestrator] SDK da Groq não foi inicializada no Orchestrator.");
             }
 
-            // 4. Chamada à API da Groq
-            const apiPayload = {
+            const apipayload = {
                 model,
                 messages,
                 temperature,
                 max_tokens
             };
 
-            if (tools) apiPayload.tools = tools;
+            if (tools) apipayload.tools = tools;
 
-            const completion = await this.groq.chat.completions.create(apiPayload);
+            const completion = await this.groq.chat.completions.create(apipayload);
 
-            let rawOutput = completion.choices[0]?.message?.content || "";
+            let rawoutput = completion.choices[0]?.message?.content || "";
 
-            // 5. Pós-processamento pelo agente
-            let finalOutput = rawOutput;
-            if (typeof selectedAgent.after === "function") {
+            let finaloutput = rawoutput;
+            if (typeof selectedagent.after === "function") {
                 try {
-                    finalOutput = selectedAgent.after(rawOutput);
+                    finaloutput = selectedagent.after(rawoutput);
                 } catch (err) {
-                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedAgent.id}:`, err.message);
+                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedagent.id}:`, err.message);
                 }
             }
 
-            // 6. Regista métricas
-            const latencyMs = Date.now() - startTime;
-            OrchestratorMetrics.recordRequest(selectedAgent.id, latencyMs, completion.usage || {});
+            const latencyms = Date.now() - starttime;
+            orchestrator_metrics.recordrequest(selectedagent.id, latencyms, completion.usage || {});
 
             return {
                 success: true,
                 agent: {
-                    id: selectedAgent.id,
-                    name: selectedAgent.name,
-                    emoji: selectedAgent.emoji
+                    id: selectedagent.id,
+                    name: selectedagent.name,
+                    emoji: selectedagent.emoji
                 },
                 routingInfo: {
                     score: selection.score,
                     reason: selection.reason
                 },
-                response: finalOutput,
+                response: finaloutput,
                 toolCalls: completion.choices[0]?.message?.tool_calls || null,
                 metrics: {
-                    latencyMs,
+                    latencyms,
                     tokens: completion.usage || null
                 }
             };
 
         } catch (error) {
-            console.error(`[Orchestrator] Falha ao processar requisição com agente ${selectedAgent?.id}:`, error);
-            OrchestratorMetrics.recordFailure(selectedAgent?.id || "unknown");
+            console.error(`[Orchestrator] Falha ao processar requisição com agente ${selectedagent?.id}:`, error);
+            orchestrator_metrics.recordfailure(selectedagent?.id || "unknown");
 
             return {
                 success: false,
                 agent: {
-                    id: selectedAgent?.id || "general",
-                    name: selectedAgent?.name || "Honey IA"
+                    id: selectedagent?.id || "general",
+                    name: selectedagent?.name || "Honey IA"
                 },
                 error: error.message || "Erro interno no processamento da Honey IA.",
                 metrics: {
-                    latencyMs: Date.now() - startTime
+                    latencyms: Date.now() - starttime
                 }
             };
         }
     }
 
-    /**
-     * Executa uma requisição em tempo real (Streaming Response)
-     */
     async processStream({ userPrompt, agentId = null, history = [], workspaceContext = {}, userMemory = [], mode = "text", onChunk, onComplete, onError }) {
-        const startTime = Date.now();
+        const starttime = Date.now();
 
-        // 1. Seleciona o agente
-        const selection = AgentRouter.selectAgent(userPrompt, agentId);
-        const selectedAgent = selection.agent;
+        const selection = agentrouter.selectagent(userPrompt, agentId);
+        const selectedagent = selection.agent;
 
         try {
-            // 2. Constrói o payload de mensagens
-            const messages = PromptFactory.buildMessagesPayload({
-                agent: selectedAgent,
+            const messages = promptfactory.buildmessagespayload({
+                agent: selectedagent,
                 userPrompt,
                 history,
                 workspaceContext,
@@ -452,15 +414,14 @@ export class Orchestrator {
                 mode
             });
 
-            const model = selectedAgent.model || "llama-3.3-70b-versatile";
-            const temperature = selectedAgent.temperature ?? 0.5;
-            const max_tokens = selectedAgent.maxTokens || 4096;
+            const model = selectedagent.model || "llama-3.3-70b-versatile";
+            const temperature = selectedagent.temperature ?? 0.5;
+            const max_tokens = selectedagent.maxTokens || 4096;
 
             if (!this.groq) {
                 throw new Error("[Orchestrator] SDK da Groq não foi inicializada no Orchestrator.");
             }
 
-            // 3. Chamada via Streaming
             const stream = await this.groq.chat.completions.create({
                 model,
                 messages,
@@ -469,49 +430,48 @@ export class Orchestrator {
                 stream: true
             });
 
-            let fullContent = "";
+            let fullcontent = "";
 
             for await (const chunk of stream) {
-                const contentChunk = chunk.choices[0]?.delta?.content || "";
-                if (contentChunk) {
-                    fullContent += contentChunk;
+                const contentchunk = chunk.choices[0]?.delta?.content || "";
+                if (contentchunk) {
+                    fullcontent += contentchunk;
                     if (typeof onChunk === "function") {
-                        onChunk(contentChunk);
+                        onChunk(contentchunk);
                     }
                 }
             }
 
-            // 4. Pós-processamento final
-            let finalOutput = fullContent;
-            if (typeof selectedAgent.after === "function") {
+            let finaloutput = fullcontent;
+            if (typeof selectedagent.after === "function") {
                 try {
-                    finalOutput = selectedAgent.after(fullContent);
+                    finaloutput = selectedagent.after(fullcontent);
                 } catch (err) {
-                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedAgent.id}:`, err.message);
+                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedagent.id}:`, err.message);
                 }
             }
 
-            const latencyMs = Date.now() - startTime;
-            OrchestratorMetrics.recordRequest(selectedAgent.id, latencyMs);
+            const latencyms = Date.now() - starttime;
+            orchestrator_metrics.recordrequest(selectedagent.id, latencyms);
 
             if (typeof onComplete === "function") {
                 onComplete({
                     success: true,
                     agent: {
-                        id: selectedAgent.id,
-                        name: selectedAgent.name,
-                        emoji: selectedAgent.emoji
+                        id: selectedagent.id,
+                        name: selectedagent.name,
+                        emoji: selectedagent.emoji
                     },
-                    fullResponse: finalOutput,
-                    metrics: { latencyMs }
+                    fullResponse: finaloutput,
+                    metrics: { latencyms }
                 });
             }
 
-            return fullContent;
+            return fullcontent;
 
         } catch (error) {
-            console.error(`[Orchestrator Stream Error] Agente ${selectedAgent?.id}:`, error);
-            OrchestratorMetrics.recordFailure(selectedAgent?.id || "unknown");
+            console.error(`[Orchestrator Stream Error] Agente ${selectedagent?.id}:`, error);
+            orchestrator_metrics.recordfailure(selectedagent?.id || "unknown");
 
             if (typeof onError === "function") {
                 onError(error);
@@ -520,20 +480,16 @@ export class Orchestrator {
         }
     }
 
-    /**
-     * Retorna o relatório de telemetria e métricas do sistema
-     */
     getTelemetry() {
         return {
-            ...OrchestratorMetrics,
-            averageLatencyMs: OrchestratorMetrics.getAverageLatency(),
-            availableAgentsCount: Object.keys(AGENTS_REGISTRY).length
+            ...orchestrator_metrics,
+            averageLatencyMs: orchestrator_metrics.getaveragelatency(),
+            availableAgentsCount: Object.keys(agents_registry).length
         };
     }
 }
 
-// Instância padrão pronta a usar
-const orchestratorInstance = new Orchestrator();
+const orchestratorinstance = new Orchestrator();
 
-export { AGENTS_REGISTRY, OrchestratorMetrics };
-export default orchestratorInstance;
+export { agents_registry, orchestrator_metrics };
+export default orchestratorinstance;
