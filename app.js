@@ -13,6 +13,8 @@ import AgentsUI from "./agents-ui.js";
 import AgentStudioView from "./agentStudioView.js";
 import AgentsNavigation from "./agentsNavigation.js";
 import Dashboard from "./dashboard.js";
+import AuthManager from "./auth.js";
+import Dashboard from "./dashboard.js";
 const SESSION_ID = crypto.randomUUID();
 
 
@@ -140,6 +142,7 @@ constructor(){
     this.initDOMReferences();
 
     this.initAuthState();
+    this.initUserSession();
 
     this.initEventListeners();
 
