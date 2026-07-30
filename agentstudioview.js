@@ -8,12 +8,12 @@ V1.0
 */
 
 
-import AgentStudio from "./agentStudio.js";
-import LiveClient from "./liveClient.js";
+import agentstudio from "./agentstudio.js";
+import liveclient from "./liveclient.js";
 
 
 
-class AgentStudioView {
+class agentstudioview {
 
 
 
@@ -33,7 +33,7 @@ init(containerId){
 
 
     this.container =
-    document.getElementById(containerId);
+    document.getelementbyid(containerid);
 
 
 
@@ -49,7 +49,7 @@ init(containerId){
 
 
 
-    document.addEventListener(
+    document.addeventlistener(
         "agent-studio-open",
         (event)=>{
 
@@ -196,7 +196,7 @@ class="back-agent-list"
 
 
 
-this.attachEvents();
+this.attachevents();
 
 
 
@@ -210,7 +210,7 @@ this.attachEvents();
 
 
 
-generateTools(agent){
+generatetools(agent){
 
 
 const tools = {
@@ -304,24 +304,24 @@ ${tool}
 
 
 
-attachEvents(){
+attachevents(){
 
 
 
-const liveButton =
+const livebutton =
 this.container.querySelector(
 ".start-live-agent"
 );
 
 
 
-liveButton?.addEventListener(
+livebutton?.addeventlistener(
 "click",
 async()=>{
 
 
-await LiveClient.start(
-AgentStudio.getAgent()
+await liveclient.start(
+agentstudio.getagent()
 );
 
 
@@ -335,10 +335,10 @@ AgentStudio.getAgent()
 
 
 this.container
-.querySelector(
+.queryselector(
 ".back-agent-list"
 )
-?.addEventListener(
+?.addeventlistener(
 "click",
 ()=>{
 
@@ -346,8 +346,8 @@ this.container
 this.container.innerHTML="";
 
 
-document.dispatchEvent(
-new CustomEvent(
+document.dispatchevent(
+new customEvent(
 "agents-back"
 )
 );
