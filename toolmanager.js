@@ -1,4 +1,4 @@
-class ToolManager {
+class Toolmanager {
 
     constructor() {
 
@@ -52,4 +52,4 @@ class ToolManager {
 
 }
 
-export default new ToolManager();
+export default new toolmanager();
