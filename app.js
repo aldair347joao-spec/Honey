@@ -6,16 +6,16 @@ Chat + Live Agent Integration
 ==========================================
 */
 
-import LiveClient from "./liveClient.js";
-import AgentStudio from "./agentStudio.js";
-import { Components } from "./components.js";
-import AgentsUI from "./agents-ui.js";
-import AgentStudioView from "./agentStudioView.js";
-import AgentsNavigation from "./agentsNavigation.js";
-import Dashboard from "./dashboard.js";
-import AuthManager from "./auth.js";
-import LoginController from "./login.js";
-import UserProfile from "./userProfile.js";
+import liveclient from "./liveclient.js";
+import agentstudio from "./agentstudio.js";
+import { components } from "./components.js";
+import agentsui from "./agents-ui.js";
+import agentstudioview from "./agentstudioview.js";
+import agentsnavigation from "./agentsnavigation.js";
+import dashboard from "./dashboard.js";
+import authmanager from "./auth.js";
+import logincontroller from "./login.js";
+import userprofile from "./userprofile.js";
 
 const SESSION_ID = crypto.randomUUID();
 
@@ -107,12 +107,12 @@ class HoneyAIApp {
 
     initDashboard(){
         if(document.getElementById("dashboardContainer")){
-            Dashboard.init("dashboardContainer");
+            dashboard.init("dashboardContainer");
         }
     }
 
     initUserSession(){
-        const user = AuthManager.getUser();
+        const user = authmanager.getUser();
 
         if(user){
             Store.setState("isAuthenticated", true);
@@ -205,15 +205,15 @@ class HoneyAIApp {
                 this.currentMode = "chat";
                 this.liveMode = false;
 
-                if(AgentStudio && typeof AgentStudio.setMode === "function"){
-                    AgentStudio.setMode("chat");
+                if(agentstudio && typeof agentstudio.setMode === "function"){
+                    agentstudio.setMode("chat");
                 }
 
                 this.btnChatMode.classList.add("active");
                 this.btnLiveMode?.classList.remove("active");
 
-                if(LiveClient && typeof LiveClient.stop === "function"){
-                    LiveClient.stop();
+                if(liveclient && typeof liveclient.stop === "function"){
+                    liveclient.stop();
                 }
 
                 this.showToast("Modo Chat ativado.", "success");
@@ -228,11 +228,11 @@ class HoneyAIApp {
         if(this.btnLiveMode){
             this.btnLiveMode.addEventListener("click", async () => {
                 try {
-                    if(AgentStudio && typeof AgentStudio.setMode === "function"){
-                        AgentStudio.setMode("live");
+                    if(agentstudio && typeof agentstudio.setMode === "function"){
+                        agentstudio.setMode("live");
                     }
 
-                    const result = await LiveClient.start();
+                    const result = await liveclient.start();
 
                     if(result && result.success){
                         this.currentMode = "live";
@@ -337,7 +337,7 @@ class HoneyAIApp {
 
         // Login Submit
         if(this.loginForm){
-            LoginController.init("loginForm");
+            logincontroller.init("loginForm");
         }
 
         document.addEventListener("user-login", (e) => {
@@ -526,7 +526,7 @@ class HoneyAIApp {
             */
             if(this.currentMode === "live"){
 
-                const result = await LiveClient.send(text);
+                const result = await liveclient.send(text);
 
                 const content = agentBox.querySelector(
                     ".message-content"
@@ -557,8 +557,8 @@ class HoneyAIApp {
 
                 prompt: text,
 
-                agent: (AgentStudio && typeof AgentStudio.getAgent === "function") 
-                    ? AgentStudio.getAgent() 
+                agent: (agentstudio && typeof agentstudio.getAgent === "function") 
+                    ? agentstudio.getAgent() 
                     : "general",
 
                 mode: "chat"
@@ -700,14 +700,14 @@ class HoneyAIApp {
 
             if(this.currentMode === "live"){
 
-                LiveClient.send(text)
+                liveclient.send(text)
                     .then(result => {
 
                         this.appendAgentMessage(
                             result.response
                         );
 
-                        this.speakResponse(
+                        this.speakresponse(
                             result.response
                         );
 
@@ -718,7 +718,7 @@ class HoneyAIApp {
                 if(this.promptTextarea){
                     this.promptTextarea.value = text;
                 }
-                this.handleSubmitPrompt();
+                this.handlesubmitprompt();
 
             }
 
@@ -830,9 +830,9 @@ class HoneyAIApp {
     }
 
 
-    appendAgentMessage(text){
+    appendagentmessage(text){
 
-        const box = this.createAgentMessagePlaceholder();
+        const box = this.createagentmessageplaceholder();
 
         const content = box.querySelector(
             ".message-content"
@@ -849,11 +849,11 @@ class HoneyAIApp {
     }
 
 
-    createAgentMessagePlaceholder(){
+    createagentmessagePlaceholder(){
 
-        const div = document.createElement("div");
+        const div = document.createelement("div");
 
-        div.className = "agent-message";
+        div.classname = "agent-message";
 
         div.innerHTML = `
         <div>
@@ -880,15 +880,15 @@ class HoneyAIApp {
     // PREVIEW HTML
     // ==========================================================
 
-    detectAndRenderPreview(text){
+    detectandrenderpreview(text){
 
-        if(!this.livePreviewIframe) return;
+        if(!this.livepreviewiframe) return;
 
         const match = text.match(/```html([\s\S]*?)```/);
 
         if(match && match[1]){
             const htmlCode = match[1];
-            const doc = this.livePreviewIframe.contentDocument || this.livePreviewIframe.contentWindow.document;
+            const doc = this.livepreviewiframe.contentDocument || this.livePreviewIframe.contentWindow.document;
             doc.open();
             doc.write(htmlCode);
             doc.close();
