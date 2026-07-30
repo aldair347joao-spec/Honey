@@ -8,17 +8,17 @@ Versão 2.0
 */
 
 
-import Agents from "./agents.js";
+import agents from "./agents.js";
 
 
-class AgentStudio {
+class agentstudio {
 
 
 
     constructor(){
 
 
-        this.currentAgent = "general";
+        this.currentagent = "general";
 
 
         this.mode = "chat";
@@ -41,18 +41,18 @@ class AgentStudio {
     */
 
 
-    setAgent(agentId){
+    setagent(agentid){
 
 
         const agent =
-        Agents.getById(agentId);
+        agents.getbyid(agentid);
 
 
 
         if(!agent){
 
 
-            throw new Error(
+            throw new error(
                 "Agente não encontrado."
             );
 
@@ -61,7 +61,7 @@ class AgentStudio {
 
 
 
-        this.currentAgent =
+        this.currentagent =
         agent.id;
 
 
@@ -84,10 +84,10 @@ class AgentStudio {
     */
 
 
-    getAgent(){
+    getagent(){
 
 
-        return this.currentAgent;
+        return this.currentagent;
 
 
     }
@@ -105,11 +105,11 @@ class AgentStudio {
     */
 
 
-    getActiveAgent(){
+    getactiveagent(){
 
 
-        return Agents.getById(
-            this.currentAgent
+        return agents.getbyid(
+            this.currentagent
         );
 
 
@@ -129,7 +129,7 @@ class AgentStudio {
     */
 
 
-    setMode(mode){
+    setmode(mode){
 
 
         if(
@@ -155,7 +155,7 @@ class AgentStudio {
 
 
 
-    getMode(){
+    getmode(){
 
 
         return this.mode;
@@ -177,7 +177,7 @@ class AgentStudio {
     */
 
 
-    setStatus(status){
+    setstatus(status){
 
 
         this.status =
@@ -185,9 +185,9 @@ class AgentStudio {
 
 
 
-        document.dispatchEvent(
+        document.dispatchevent(
 
-            new CustomEvent(
+            new customevent(
                 "agent-status",
                 {
 
