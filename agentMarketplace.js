@@ -35,7 +35,13 @@ init(containerId){
     this.container =
     document.getElementById(containerId);
 
+if(!Subscription.canUseAgent(id)){
 
+UpgradeModal.open();
+
+return;
+
+}
 
     if(!this.container){
 
