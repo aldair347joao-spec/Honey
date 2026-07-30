@@ -1,0 +1,381 @@
+/*
+==========================================
+HONEY IA
+UPGRADE MODAL STYLE
+Premium Subscription UI
+V1.0
+==========================================
+*/
+
+
+.upgrade-modal {
+
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+
+    background:
+
+    rgba(0,0,0,.75);
+
+
+    backdrop-filter:blur(10px);
+
+
+    opacity:0;
+
+    pointer-events:none;
+
+
+    transition:.3s;
+
+
+    z-index:9999;
+
+}
+
+
+
+
+
+.upgrade-modal.active {
+
+
+    opacity:1;
+
+    pointer-events:auto;
+
+
+}
+
+
+
+
+
+.upgrade-box {
+
+
+    width:min(90%,700px);
+
+
+    background:
+
+
+    linear-gradient(
+        145deg,
+        #111827,
+        #07080a
+    );
+
+
+    border:
+
+    1px solid
+
+    rgba(245,158,11,.35);
+
+
+
+    border-radius:30px;
+
+
+    padding:35px;
+
+
+    position:relative;
+
+
+    box-shadow:
+
+    0 25px 80px
+
+    rgba(0,0,0,.5);
+
+
+
+}
+
+
+
+
+
+.upgrade-box h2 {
+
+
+    font-size:2rem;
+
+
+    font-weight:800;
+
+
+    text-align:center;
+
+
+    color:#f59e0b;
+
+
+}
+
+
+
+
+
+.upgrade-box p {
+
+
+    text-align:center;
+
+
+    color:var(--text-muted);
+
+
+    margin-bottom:30px;
+
+
+}
+
+
+
+
+
+.close-upgrade {
+
+
+    position:absolute;
+
+
+    right:20px;
+
+
+    top:20px;
+
+
+    width:35px;
+
+
+    height:35px;
+
+
+    border-radius:50%;
+
+
+    border:none;
+
+
+    cursor:pointer;
+
+
+    background:
+
+    rgba(255,255,255,.1);
+
+
+    color:white;
+
+
+    font-size:18px;
+
+
+}
+
+
+
+
+
+.upgrade-plans {
+
+
+    display:grid;
+
+
+    grid-template-columns:
+
+    repeat(
+        2,
+        1fr
+    );
+
+
+    gap:20px;
+
+
+}
+
+
+
+
+
+.upgrade-card {
+
+
+    padding:25px;
+
+
+    border-radius:24px;
+
+
+    background:
+
+    rgba(255,255,255,.05);
+
+
+    border:
+
+    1px solid
+
+    rgba(255,255,255,.08);
+
+
+
+}
+
+
+
+
+
+.upgrade-card:hover {
+
+
+    border-color:#f59e0b;
+
+
+    transform:translateY(-5px);
+
+
+}
+
+
+
+
+
+.upgrade-card h3 {
+
+
+    font-size:1.3rem;
+
+
+}
+
+
+
+
+
+.upgrade-card strong {
+
+
+    display:block;
+
+
+    color:#f59e0b;
+
+
+    font-size:1.4rem;
+
+
+    margin:15px 0;
+
+
+}
+
+
+
+
+
+.upgrade-card ul {
+
+
+    padding-left:20px;
+
+
+    color:var(--text-muted);
+
+
+    line-height:1.8;
+
+
+}
+
+
+
+
+
+.upgrade-btn {
+
+
+    width:100%;
+
+
+    padding:14px;
+
+
+    margin-top:20px;
+
+
+    border:none;
+
+
+    border-radius:15px;
+
+
+    cursor:pointer;
+
+
+    background:#f59e0b;
+
+
+    color:#111;
+
+
+    font-weight:800;
+
+
+}
+
+
+
+
+
+.upgrade-btn:hover {
+
+
+    transform:scale(1.04);
+
+
+}
+
+
+
+
+
+@media(max-width:700px){
+
+
+
+.upgrade-plans {
+
+
+    grid-template-columns:1fr;
+
+
+}
+
+
+
+.upgrade-box {
+
+
+    padding:25px;
+
+
+}
+
+
+
+}
