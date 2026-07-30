@@ -158,7 +158,11 @@ export class AgentRouter {
             agent: bestMatchAgent,
             score: Number(highestScore.toFixed(2)),
             reason: "keyword_and_logic_match"
-        };/**
+        };
+    }
+}
+
+/**
  * Construtor de Contexto e Gerenciador de Prompts do Sistema
  */
 export class PromptFactory {
@@ -315,8 +319,6 @@ export class ToolOrchestrator {
     }
 }
 
-    }
-}
 /**
  * CLASSE PRINCIPAL: ORCHESTRATOR ENGINE V4.0
  */
