@@ -6,7 +6,7 @@ Versão 1.0
 ==========================================
 */
 
-class Workspace {
+class workspace {
 
     constructor(){
 
