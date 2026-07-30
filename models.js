@@ -55,6 +55,12 @@ const MessageSchema = new mongoose.Schema({
         ref: "Conversation"
     },
 
+    // Adicionado para suportar o isolamento de contexto por agente (V4.0)
+    agentId: {
+        type: String,
+        default: "general"
+    },
+
     role: {
         type: String,
         enum: ["user", "assistant", "system"]
