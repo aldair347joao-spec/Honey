@@ -2,10 +2,13 @@
 ==========================================
 HONEY IA
 ORCHESTRATOR V4.0
-Enterprise Multi-Agent Core
-14 Agents Integrated
+Enterprise Multi-Agent Brain
+Groq Integration
 ==========================================
 */
+
+
+import Groq from "groq-sdk";
 
 import Agents from "./agents.js";
 import Workspace from "./workspace.js";
@@ -14,7 +17,21 @@ import { getRecentMessages } from "./chat.js";
 import Tools from "./tools.js";
 
 
+
+const groq = new Groq({
+
+    apiKey:
+    process.env.GROQ_API_KEY
+
+});
+
+
+
+
+
+
 class Orchestrator {
+
 
 
     constructor(){
@@ -22,13 +39,19 @@ class Orchestrator {
 
         this.metrics = {
 
+
             requests:0,
+
 
             success:0,
 
+
             errors:0,
 
+
             totalTime:0
+
+
 
         };
 
@@ -41,23 +64,29 @@ class Orchestrator {
 
 
 
+
     async process({
+
 
         userId,
 
         message,
 
-        user = {},
+        user={},
 
-        agent = "general",
+        agent="general",
 
-        mode = "chat"
+        mode="chat"
+
 
 
     }){
 
 
-        const started = Date.now();
+
+        const started =
+        Date.now();
+
 
 
 
@@ -66,24 +95,26 @@ class Orchestrator {
 
 
             const workspace =
-                Workspace.getCurrent();
+            Workspace.getCurrent();
 
 
 
 
 
             const memories =
-                await listMemories(userId);
+            await listMemories(userId);
 
 
 
 
 
             const history =
-                await getRecentMessages(
-                    userId,
-                    15
-                );
+            await getRecentMessages(
+                userId,
+                15
+            );
+
+
 
 
 
@@ -97,12 +128,6 @@ class Orchestrator {
 
 
 
-            /*
-            ======================================
-            SELEÇÃO DO AGENTE
-            ======================================
-            */
-
 
             if(
                 agent &&
@@ -111,21 +136,21 @@ class Orchestrator {
 
 
                 selectedAgent =
-                    Agents.getById(agent);
+                Agents.getById(agent);
 
 
-            }
 
-            else{
+            }else{
 
 
                 selectedAgent =
-                    Agents.detect(
-                        message || ""
-                    );
+                Agents.detect(message);
 
 
             }
+
+
+
 
 
 
@@ -136,9 +161,9 @@ class Orchestrator {
 
 
                 selectedAgent =
-                    Agents.getById(
-                        "general"
-                    );
+                Agents.getById(
+                    "general"
+                );
 
 
             }
@@ -149,8 +174,11 @@ class Orchestrator {
 
 
 
+
             Agents.setActive(
+
                 selectedAgent.id
+
             );
 
 
@@ -160,7 +188,9 @@ class Orchestrator {
 
 
 
-            let toolResult = null;
+            let toolResult=null;
+
+
 
 
 
@@ -169,17 +199,14 @@ class Orchestrator {
 
             if(
                 Tools &&
-                typeof Tools.shouldUseTool === "function" &&
                 Tools.shouldUseTool(message)
             ){
 
 
-
                 toolResult =
-                    await Tools.executeByMessage(
-                        message
-                    );
-
+                await Tools.executeByMessage(
+                    message
+                );
 
 
             }
@@ -191,27 +218,119 @@ class Orchestrator {
 
 
 
-
-            const prompt =
-                this.buildPrompt({
-
-
-                    agent:selectedAgent,
-
-                    workspace,
-
-                    user,
-
-                    memories,
-
-                    history,
-
-                    toolResult,
-
-                    mode
+            const systemPrompt =
+            this.buildPrompt({
 
 
-                });
+                agent:selectedAgent,
+
+
+                workspace,
+
+
+                user,
+
+
+                memories,
+
+
+                history,
+
+
+                toolResult,
+
+
+                mode
+
+
+            });
+
+
+
+
+
+
+
+
+
+            const completion =
+            await groq.chat.completions.create({
+
+
+
+                model:
+                "llama-3.3-70b-versatile",
+
+
+
+
+                messages:[
+
+
+                    {
+
+
+                        role:"system",
+
+
+                        content:
+                        systemPrompt
+
+
+                    },
+
+
+
+                    {
+
+
+                        role:"user",
+
+
+                        content:
+                        message
+
+
+                    }
+
+
+
+                ],
+
+
+
+
+
+
+                temperature:0.7,
+
+
+
+                max_tokens:2048
+
+
+
+            });
+
+
+
+
+
+
+
+
+            const response =
+
+            completion
+            .choices[0]
+            ?.message
+            ?.content
+
+            ||
+
+            "Não consegui responder agora.";
+
+
 
 
 
@@ -221,10 +340,14 @@ class Orchestrator {
 
             this.metrics.requests++;
 
+
             this.metrics.success++;
 
+
             this.metrics.totalTime +=
-                Date.now() - started;
+
+            Date.now()-started;
+
 
 
 
@@ -236,8 +359,17 @@ class Orchestrator {
             return {
 
 
+                response,
 
-                prompt,
+
+
+                agentId:
+                selectedAgent.id,
+
+
+
+                agent:
+                selectedAgent,
 
 
 
@@ -253,7 +385,6 @@ class Orchestrator {
                     history
 
 
-
                 },
 
 
@@ -262,25 +393,7 @@ class Orchestrator {
 
 
 
-                agentId:
-                    selectedAgent.id,
-
-
-
-                agent:selectedAgent,
-
-
-
-                mode,
-
-
-
-                memories,
-
-
-
-                history
-
+                mode
 
 
             };
@@ -292,15 +405,26 @@ class Orchestrator {
 
 
 
-        }
-
-        catch(error){
+        }catch(error){
 
 
 
             this.metrics.requests++;
 
+
             this.metrics.errors++;
+
+
+
+
+            console.error(
+
+                "Orchestrator Error:",
+
+                error
+
+            );
+
 
 
 
@@ -351,21 +475,12 @@ class Orchestrator {
 
 
 
-
-
-
         return `
 
 
 
-====================================
-
-IDENTIDADE DO AGENTE
-
-====================================
-
-
 Você é ${agent.name} ${agent.emoji || ""}.
+
 
 
 Especialidade:
@@ -374,34 +489,59 @@ ${agent.description}
 
 
 
-====================================
 
-MODO ATUAL
 
-====================================
+==============================
+
+IDENTIDADE
+
+==============================
+
+
+
+Você mantém sempre esta identidade.
+
+
+
+Nunca diga que é outro agente.
+
+
+
+Nunca altere sua personalidade.
+
+
+
+==============================
+
+MODO
+
+==============================
+
 
 
 ${
-mode === "live"
+mode==="live"
 
 ?
 
-"Conversa ao vivo. Responda de forma natural e próxima, como uma conversa por voz."
+"Conversa em tempo real."
 
 :
 
-"Conversa escrita. Responda de forma clara e profissional."
+"Conversa escrita."
 
 }
 
 
 
 
-====================================
+
+==============================
 
 UTILIZADOR
 
-====================================
+==============================
+
 
 
 ${JSON.stringify(user)}
@@ -409,35 +549,37 @@ ${JSON.stringify(user)}
 
 
 
-====================================
+
+
+
+==============================
 
 WORKSPACE
 
-====================================
+==============================
+
 
 
 ${
 workspace
-
 ?
-
 workspace.name
-
 :
-
-"Sem Workspace ativo"
-
+"Sem workspace"
 }
 
 
 
 
 
-====================================
+
+
+==============================
 
 MEMÓRIA
 
-====================================
+==============================
+
 
 
 ${JSON.stringify(memories)}
@@ -447,11 +589,13 @@ ${JSON.stringify(memories)}
 
 
 
-====================================
+
+==============================
 
 HISTÓRICO
 
-====================================
+==============================
+
 
 
 ${JSON.stringify(history)}
@@ -462,11 +606,12 @@ ${JSON.stringify(history)}
 
 
 
-====================================
+==============================
 
 FERRAMENTAS
 
-====================================
+==============================
+
 
 
 ${JSON.stringify(toolResult)}
@@ -476,36 +621,24 @@ ${JSON.stringify(toolResult)}
 
 
 
-====================================
 
-REGRAS PRINCIPAIS
-
-====================================
+REGRAS:
 
 
-- Você é sempre ${agent.name}.
 
-- Nunca diga que é outro agente.
+- Responda sempre em Português.
 
-- Nunca altere a sua identidade durante a conversa.
-
-- Responda sempre dentro da sua especialidade.
-
-- Se a pergunta estiver fora da sua área, ajude mantendo a personalidade do agente.
-
-- Preserve o contexto do utilizador.
+- Ajude de forma profissional.
 
 - Gere código completo quando solicitado.
 
 - Não invente informações.
 
-- Responda sempre em Português.
+- Preserve contexto.
 
 
 
 `;
-
-
 
 
 
@@ -527,43 +660,42 @@ REGRAS PRINCIPAIS
 
 
             requests:
-                this.metrics.requests,
+            this.metrics.requests,
 
 
 
             success:
-                this.metrics.success,
+            this.metrics.success,
 
 
 
             errors:
-                this.metrics.errors,
+            this.metrics.errors,
 
 
 
             average:
 
 
-                this.metrics.requests === 0
+            this.metrics.requests===0
 
+            ?
 
-                ? 0
+            0
 
+            :
 
-                :
+            Math.round(
 
-                Math.round(
+                this.metrics.totalTime /
 
-                    this.metrics.totalTime /
+                this.metrics.requests
 
-                    this.metrics.requests
-
-                )
+            )
 
 
 
         };
-
 
 
     }
@@ -572,7 +704,6 @@ REGRAS PRINCIPAIS
 
 
 }
-
 
 
 
