@@ -1,7 +1,7 @@
 /*
 ==========================================
 HONEY IA OS
-ORCHESTRATOR ENGINE V4.0 (FULL PRODUCTION)
+ORCHESTRATOR ENGINE V4.0 (FULL PRODUCTION - OPTIMIZED)
 ==========================================
 */
 
@@ -41,6 +41,16 @@ const agents_registry = {
 };
 
 /**
+ * Garante que todos os agentes registados possuem um ID e Nome válidos por defeito
+ */
+Object.entries(agents_registry).forEach(([key, agent]) => {
+    if (agent && typeof agent === "object") {
+        if (!agent.id) agent.id = key;
+        if (!agent.name) agent.name = `Agente ${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    }
+});
+
+/**
  * Estado Global de Métricas e Telemetria do Orquestrador
  */
 const orchestrator_metrics = {
@@ -56,9 +66,10 @@ const orchestrator_metrics = {
     latencyhistory: [],
     
     recordrequest(agentid, latencyms, tokens = {}) {
+        const safeAgentId = agentid || "general";
         this.totalrequests++;
         this.successfulrequests++;
-        this.agentexecutions[agentid] = (this.agentexecutions[agentid] || 0) + 1;
+        this.agentexecutions[safeAgentId] = (this.agentexecutions[safeAgentId] || 0) + 1;
         
         if (tokens.prompt_tokens) this.tokenusage.prompttokens += tokens.prompt_tokens;
         if (tokens.completion_tokens) this.tokenusage.completiontokens += tokens.completion_tokens;
@@ -69,9 +80,10 @@ const orchestrator_metrics = {
     },
 
     recordfailure(agentid) {
+        const safeAgentId = agentid || "general";
         this.totalrequests++;
         this.failedrequests++;
-        this.agentexecutions[agentid] = (this.agentexecutions[agentid] || 0) + 1;
+        this.agentexecutions[safeAgentId] = (this.agentexecutions[safeAgentId] || 0) + 1;
     },
 
     getaveragelatency() {
@@ -86,9 +98,6 @@ const orchestrator_metrics = {
  */
 export class agentrouter {
     
-    /**
-     * Pontua e escolhe o melhor agente para a mensagem
-     */
     static selectagent(usermessage = "", forcedagentid = null) {
         const normalizedforcedid = forcedagentid ? String(forcedagentid).toLowerCase().trim() : null;
 
@@ -256,7 +265,7 @@ export class promptfactory {
 export class toolorchestrator {
     
     static getavailabletools(agent) {
-        if (!agent.tools || !Array.isArray(agent.tools)) return undefined;
+        if (!agent || !agent.tools || !Array.isArray(agent.tools)) return undefined;
 
         const toolsdefinitions = [];
 
@@ -312,7 +321,7 @@ export class Orchestrator {
     }
 
     async processRequest({ userPrompt, agentId = null, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
-        conststarttime = Date.now();
+        const starttime = Date.now();
 
         const selection = agentrouter.selectagent(userPrompt, agentId);
         const selectedagent = selection.agent;
@@ -366,7 +375,7 @@ export class Orchestrator {
                 agent: {
                     id: selectedagent.id,
                     name: selectedagent.name,
-                    emoji: selectedagent.emoji
+                    emoji: selectedagent.emoji || "🤖"
                 },
                 routingInfo: {
                     score: selection.score,
@@ -382,7 +391,7 @@ export class Orchestrator {
 
         } catch (error) {
             console.error(`[Orchestrator] Falha ao processar requisição com agente ${selectedagent?.id}:`, error);
-            orchestrator_metrics.recordfailure(selectedagent?.id || "unknown");
+            orchestrator_metrics.recordfailure(selectedagent?.id || "general");
 
             return {
                 success: false,
@@ -417,23 +426,35 @@ export class Orchestrator {
             const model = selectedagent.model || "llama-3.3-70b-versatile";
             const temperature = selectedagent.temperature ?? 0.5;
             const max_tokens = selectedagent.maxTokens || 4096;
+            const tools = toolorchestrator.getavailabletools(selectedagent);
 
             if (!this.groq) {
                 throw new Error("[Orchestrator] SDK da Groq não foi inicializada no Orchestrator.");
             }
 
-            const stream = await this.groq.chat.completions.create({
+            const apipayload = {
                 model,
                 messages,
                 temperature,
                 max_tokens,
                 stream: true
-            });
+            };
+
+            if (tools) apipayload.tools = tools;
+
+            const stream = await this.groq.chat.completions.create(apipayload);
 
             let fullcontent = "";
+            let toolCallsDetected = null;
 
             for await (const chunk of stream) {
-                const contentchunk = chunk.choices[0]?.delta?.content || "";
+                const delta = chunk.choices[0]?.delta;
+                const contentchunk = delta?.content || "";
+                
+                if (delta?.tool_calls) {
+                    toolCallsDetected = delta.tool_calls;
+                }
+
                 if (contentchunk) {
                     fullcontent += contentchunk;
                     if (typeof onChunk === "function") {
@@ -460,9 +481,10 @@ export class Orchestrator {
                     agent: {
                         id: selectedagent.id,
                         name: selectedagent.name,
-                        emoji: selectedagent.emoji
+                        emoji: selectedagent.emoji || "🤖"
                     },
                     fullResponse: finaloutput,
+                    toolCalls: toolCallsDetected,
                     metrics: { latencyms }
                 });
             }
@@ -471,7 +493,7 @@ export class Orchestrator {
 
         } catch (error) {
             console.error(`[Orchestrator Stream Error] Agente ${selectedagent?.id}:`, error);
-            orchestrator_metrics.recordfailure(selectedagent?.id || "unknown");
+            orchestrator_metrics.recordfailure(selectedagent?.id || "general");
 
             if (typeof onError === "function") {
                 onError(error);
