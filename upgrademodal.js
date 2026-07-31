@@ -8,11 +8,11 @@ V1.0
 */
 
 
-import Subscription from "./subscription.js";
+import subscription from "./subscription.js";
 
 
 
-class UpgradeModal {
+class upgrademodal {
 
 
 
@@ -256,7 +256,7 @@ button.dataset.plan;
 
 
 
-Subscription.setPlan(
+subscription.setPlan(
 plan
 );
 
@@ -274,7 +274,7 @@ new CustomEvent(
 {
 
 detail:
-Subscription.getPlan()
+subscription.getPlan()
 
 }
 
@@ -343,4 +343,4 @@ this.modal?.classList.remove(
 
 
 
-export default new UpgradeModal();
+export default new upgrademodal();
