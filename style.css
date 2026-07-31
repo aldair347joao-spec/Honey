@@ -81,6 +81,25 @@ body {
     min-height: 100vh;
 }
 
+/* Scrollbar personalizada para o Studio */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 140, 255, 0.4);
+}
+
 /* ==========================================================
    BACKGROUND EFFECTS
 ========================================================== */
@@ -959,11 +978,39 @@ body {
    WORKSPACE & WORKFLOW INTERFACES
 ========================================================== */
 
-.workspace-container {
-    padding: 35px;
+.workspace-section {
+    margin-top: 60px;
+}
+
+.workspace-header {
     display: flex;
-    flex-direction: column;
-    gap: 30px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.workspace-header h2 {
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.workspace-header button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, .05);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.workspace-header button:hover {
+    background: rgba(255, 255, 255, .1);
 }
 
 .workspace-card {
@@ -984,7 +1031,7 @@ body {
     margin: auto;
 }
 
-.workspace-welcome i {
+.workspace-logo {
     font-size: 60px;
     color: var(--primary);
     margin-bottom: 20px;
@@ -1001,15 +1048,16 @@ body {
     line-height: 1.7;
 }
 
+/* Estilização corrigida para o prompt-box com suporte aos botões attach, voice, mode-switch e send */
 .prompt-box {
     background: rgba(255, 255, 255, .05);
     border: 1px solid var(--border);
     border-radius: 22px;
-    padding: 15px 20px;
+    padding: 12px 18px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-top: 25px;
+    gap: 12px;
+    margin-top: 20px;
     transition: var(--transition);
 }
 
@@ -1030,13 +1078,10 @@ body {
     padding-top: 10px;
 }
 
-.prompt-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.prompt-actions button {
+.prompt-box button,
+.prompt-box .attach,
+.prompt-box .voice,
+.prompt-box .send {
     width: 45px;
     height: 45px;
     border-radius: 14px;
@@ -1048,27 +1093,33 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 16px;
 }
 
-.prompt-actions button:hover {
+.prompt-box button:hover,
+.prompt-box .attach:hover,
+.prompt-box .voice:hover {
     background: rgba(255, 255, 255, .15);
 }
 
-.prompt-actions button.send-btn {
+.prompt-box .send {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 4px 15px rgba(79, 140, 255, .3);
 }
 
-.prompt-actions button.send-btn:hover {
+.prompt-box .send:hover {
     transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(79, 140, 255, .4);
 }
 
-.chat-history {
+.chat-messages {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    overflow-y: auto;
+    gap: 15px;
     max-height: 450px;
-    padding-right: 10px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding-right: 5px;
 }
 
 .chat-message {
@@ -1287,5 +1338,8 @@ body {
     }
     .module-grid, .plans-grid, .stats-grid {
         grid-template-columns: 1fr;
+    }
+    .prompt-box {
+        flex-wrap: wrap;
     }
 }
