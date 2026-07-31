@@ -8,13 +8,13 @@ V1.0
 */
 
 
-import AuthManager from "./auth.js";
-import Subscription from "./subscription.js";
-import UpgradeModal from "./upgradeModal.js";
+import authmanager from "./auth.js";
+import subscription from "./subscription.js";
+import upgrademodal from "./upgrademodal.js";
 
 
 
-class UserProfile {
+class userprofile {
 
 
 
@@ -65,7 +65,7 @@ render(){
 
 
 const user =
-AuthManager.getUser();
+authmanager.getUser();
 
 
 
@@ -88,7 +88,7 @@ return;
 
 
 const plan =
-Subscription.getPlan();
+subscription.getPlan();
 
 
 
@@ -214,7 +214,7 @@ this.container
 ()=>{
 
 
-UpgradeModal.open();
+upgrademodal.open();
 
 
 }
@@ -237,7 +237,7 @@ this.container
 ()=>{
 
 
-AuthManager.logout();
+authmanager.logout();
 
 
 
@@ -259,4 +259,4 @@ location.reload();
 
 
 
-export default new UserProfile();
+export default new userprofile();
