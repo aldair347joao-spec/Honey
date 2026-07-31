@@ -160,4 +160,4 @@ Modo Texto:
 
 };
 
-export default DeveloperAgent;
+export default developeragent;
