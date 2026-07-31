@@ -28,10 +28,10 @@ dotenv.config();
 
 try {
 
-    await connectDatabase();
+    await connectdatabase();
 
     kernel.register(
-        "Database",
+        "database",
         "MongoDB"
     );
 
@@ -51,13 +51,13 @@ catch(err){
 // KERNEL MODULES
 // ==========================================
 
-Kernel.register(
+kernel.register(
     "AI",
     "Groq"
 );
 
 
-Kernel.register(
+kernel.register(
     "Server",
     "Express"
 );
