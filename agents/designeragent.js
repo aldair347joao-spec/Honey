@@ -131,4 +131,4 @@ Respostas completas com exemplos.
 
 };
 
-export default DesignerAgent;
+export default designeragent;
