@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-class ToolEngine {
+class toolengine {
     constructor() {
         this.tools = new Map();
     }
@@ -43,9 +43,9 @@ class ToolEngine {
     }
 }
 
-const Tools = new ToolEngine();
+const tools = new ToolEngine();
 
-Tools.register({
+tools.register({
     id: "calculator",
     name: "Calculadora",
     async run({ expression }) {
@@ -59,7 +59,7 @@ Tools.register({
     }
 });
 
-Tools.register({
+tools.register({
     id: "timestamp",
     name: "Timestamp",
     async run() {
@@ -70,7 +70,7 @@ Tools.register({
     }
 });
 
-Tools.register({
+tools.register({
     id: "uuid",
     name: "UUID Generator",
     async run() {
@@ -78,4 +78,4 @@ Tools.register({
     }
 });
 
-export default Tools;
+export default tools;
