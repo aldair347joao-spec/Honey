@@ -13,10 +13,10 @@ import dotenv from "dotenv";
 import Groq from "groq-sdk";
 import rateLimit from "express-rate-limit";
 
-import liveRoute from "./liveRoute.js";
+import liveroute from "./liveroute.js";
 import Orchestrator from "./orchestrator.js";
 import { connectDatabase } from "./database.js";
-import Kernel from "./kernel.js";
+import kernel from "./kernel.js";
 import { saveMessage } from "./chat.js";
 
 dotenv.config();
@@ -30,7 +30,7 @@ try {
 
     await connectDatabase();
 
-    Kernel.register(
+    kernel.register(
         "Database",
         "MongoDB"
     );
@@ -102,7 +102,7 @@ app.use(express.static("."));
 
 app.use(
     "/api",
-    liveRoute
+    liveroute
 );
 
 
@@ -294,13 +294,13 @@ try{
 
 
 if(
-Orchestrator &&
-typeof Orchestrator.processRequest==="function"
+orchestrator &&
+typeof orchestrator.processRequest==="function"
 ){
 
 
 orchestratorResult =
-await Orchestrator.processRequest({
+await orchestrator.processRequest({
 
     userPrompt:
     prompt ||
