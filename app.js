@@ -707,7 +707,7 @@ class HoneyAIApp {
                             result.response
                         );
 
-                        this.speakresponse(
+                        this.speakResponse(
                             result.response
                         );
 
@@ -718,7 +718,7 @@ class HoneyAIApp {
                 if(this.promptTextarea){
                     this.promptTextarea.value = text;
                 }
-                this.handlesubmitprompt();
+                this.handleSubmitPrompt();
 
             }
 
@@ -830,9 +830,9 @@ class HoneyAIApp {
     }
 
 
-    appendagentmessage(text){
+    appendAgentMessage(text){
 
-        const box = this.createagentmessageplaceholder();
+        const box = this.createAgentMessagePlaceholder();
 
         const content = box.querySelector(
             ".message-content"
@@ -849,11 +849,11 @@ class HoneyAIApp {
     }
 
 
-    createagentmessagePlaceholder(){
+    createAgentMessagePlaceholder(){
 
-        const div = document.createelement("div");
+        const div = document.createElement("div");
 
-        div.classname = "agent-message";
+        div.className = "agent-message";
 
         div.innerHTML = `
         <div>
@@ -880,15 +880,15 @@ class HoneyAIApp {
     // PREVIEW HTML
     // ==========================================================
 
-    detectandrenderpreview(text){
+    detectAndRenderPreview(text){
 
-        if(!this.livepreviewiframe) return;
+        if(!this.livePreviewIframe) return;
 
         const match = text.match(/```html([\s\S]*?)```/);
 
         if(match && match[1]){
             const htmlCode = match[1];
-            const doc = this.livepreviewiframe.contentDocument || this.livePreviewIframe.contentWindow.document;
+            const doc = this.livePreviewIframe.contentDocument || this.livePreviewIframe.contentWindow.document;
             doc.open();
             doc.write(htmlCode);
             doc.close();
