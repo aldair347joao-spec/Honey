@@ -8,6 +8,10 @@ import orchestratorinstance from './orchestrator.js';
 dotenv.config();
 
 class kernel {
+        register(name, module) {
+        console.log(`🐝 [Kernel] Módulo registado: ${name} (${module})`);
+    }
+
     constructor() {
         this.app = express();
         this.groq = null;
