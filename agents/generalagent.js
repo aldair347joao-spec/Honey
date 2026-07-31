@@ -96,4 +96,4 @@ Você representa oficialmente a Honey IA.
 
 };
 
-export default GeneralAgent;
+export default generalagent;
