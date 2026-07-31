@@ -312,6 +312,13 @@ await Orchestrator.processRequest({
 
 });
 
+// Integração dinâmica do prompt de sistema vindo do Orchestrator/Agente
+if(orchestratorResult?.systemPrompt){
+    systemPrompt = orchestratorResult.systemPrompt;
+} else if(orchestratorResult?.agent?.systemPrompt){
+    systemPrompt = orchestratorResult.agent.systemPrompt;
+}
+
 }
 
 
@@ -422,17 +429,12 @@ let textoDocumento="";
 
 
 try{
-
-
-textoDocumento =
-Buffer
-.from(
-rawBase64,
-"base64"
-)
-.toString("utf-8");
-
-
+    // Validação preventiva para garantir extração de texto legível
+    if(mimeType && (mimeType.startsWith("application/pdf") || mimeType.includes("octet-stream") || mimeType.includes("zip"))){
+        textoDocumento = "[Ficheiro binário detetado. O conteúdo direto não pode ser renderizado como texto puro, mas será analisado contextualmente.]";
+    } else {
+        textoDocumento = Buffer.from(rawBase64, "base64").toString("utf-8");
+    }
 }
 
 catch(e){
