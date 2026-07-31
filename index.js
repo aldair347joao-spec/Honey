@@ -15,7 +15,7 @@ import rateLimit from "express-rate-limit";
 
 import liveroute from "./liveroute.js";
 import Orchestrator from "./orchestrator.js";
-import { connectDatabase } from "./database.js";
+import database from "./database.js";
 import kernel from "./kernel.js";
 import { saveMessage } from "./chat.js";
 
