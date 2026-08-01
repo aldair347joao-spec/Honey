@@ -7,13 +7,13 @@ Agent Studio Frontend
 */
 
 
-import Agents from "./agents.js";
-import AgentStudio from "./agentStudio.js";
-import LiveClient from "./liveClient.js";
+import agents from "./agents.js";
+import agentstudio from "./agentstudio.js";
+import liveclient from "./liveclient.js";
 
 
 
-class AgentsUI {
+class agentsui {
 
 
 
@@ -62,8 +62,8 @@ render(){
 
 
 
-const agents =
-Agents.getAll();
+const allAgents =
+agents.getAll();
 
 
 
@@ -96,7 +96,7 @@ Escolha um especialista da Honey IA.
 <div class="agents-grid">
 
 
-${agents.map(agent=>`
+${allAgents.map(agent=>`
 
 
 
@@ -237,7 +237,7 @@ try{
 
 
 const agent =
-AgentStudio.setAgent(
+agentstudio.setagent(
 agentId
 );
 
@@ -277,11 +277,11 @@ detail:agent
 
 
 if(
-AgentStudio.getMode()
+agentstudio.getmode()
 ==="live"
 ){
 
-await LiveClient.changeAgent(
+await liveclient.changeAgent(
 agentId
 );
 
@@ -355,7 +355,7 @@ getCurrent(){
 
 
 
-return AgentStudio.getActiveAgent();
+return agentstudio.getactiveagent();
 
 
 
@@ -369,4 +369,4 @@ return AgentStudio.getActiveAgent();
 
 
 
-export default new AgentsUI();
+export default new agentsui();
