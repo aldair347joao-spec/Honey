@@ -161,12 +161,12 @@ class HoneyAIApp {
         this.attachedFileName = document.getElementById("attached-file-name");
         this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
 
-        // Layout (Corrigido para garantir captura correta dos elementos do menu)
-        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.querySelector(".mobile-menu") || document.querySelector(".menu-toggle");
-        this.osSidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
-        this.sidebarOverlay = document.getElementById("sidebarOverlay");
-        this.navItems = document.querySelectorAll("#sidebarNav a, .nav-item, nav a, .sidebar-menu a, .sidebar a");
-        this.workspaceViews = document.querySelectorAll(".workspace-view");
+        // Layout (Captura rigorosa do menu mobile e sidebar)
+        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.querySelector(".mobile-menu") || document.querySelector(".menu-toggle") || document.querySelector(".hamburger");
+        this.osSidebar = document.getElementById("sidebar") || document.querySelector(".sidebar") || document.querySelector("aside");
+        this.sidebarOverlay = document.getElementById("sidebarOverlay") || document.querySelector(".sidebar-overlay");
+        this.navItems = document.querySelectorAll("#sidebarNav a, .nav-item, nav a, .sidebar-menu a, .sidebar a, [data-target]");
+        this.workspaceViews = document.querySelectorAll(".workspace-view, .main-section, .view-section, main > section");
 
         // Preview
         this.previewPane = document.getElementById("preview-pane");
@@ -284,12 +284,12 @@ class HoneyAIApp {
             });
         }
 
-        // Navegação da Sidebar (Ajustada para lidar com data-target ou href)
+        // Navegação da Sidebar robusta
         if(this.navItems){
             this.navItems.forEach(item => {
                 item.addEventListener("click", (e) => {
                     const target = item.getAttribute("data-target") || item.getAttribute("href")?.replace("#", "");
-                    if(target && !target.startsWith("http")){
+                    if(target && !target.startsWith("http") && !target.startsWith("javascript")){
                         e.preventDefault();
                         this.switchView(target);
                     }
@@ -299,7 +299,8 @@ class HoneyAIApp {
 
         // Toggle Sidebar Mobile
         if(this.btnToggleMenu){
-            this.btnToggleMenu.addEventListener("click", () => {
+            this.btnToggleMenu.addEventListener("click", (e) => {
+                e.stopPropagation();
                 this.osSidebar?.classList.toggle("open");
                 this.sidebarOverlay?.classList.toggle("active");
             });
@@ -331,10 +332,12 @@ class HoneyAIApp {
     }
 
     // ==========================================================
-    // SWITCH VIEWS
+    // SWITCH VIEWS (Corrigido para exibir corretamente as abas)
     // ==========================================================
 
     switchView(targetView){
+        if(!targetView) return;
+
         this.navItems.forEach(nav => {
             const navTarget = nav.getAttribute("data-target") || nav.getAttribute("href")?.replace("#", "");
             if(navTarget === targetView){
@@ -344,14 +347,27 @@ class HoneyAIApp {
             }
         });
 
-        const sections = document.querySelectorAll(".main > section, .workspace-view");
-        sections.forEach(sec => {
-            if(sec.id === `${targetView}Section` || sec.classList.contains(targetView) || sec.id === targetView){
+        // Oculta todas as vistas gerais
+        const allViews = document.querySelectorAll(".workspace-view, .main > section, .view-section, main > div, .app-section");
+        allViews.forEach(sec => {
+            sec.style.display = "none";
+        });
+
+        // Mostra a secção correspondente
+        let found = false;
+        allViews.forEach(sec => {
+            if(sec.id === targetView || sec.id === `${targetView}Section` || sec.classList.contains(targetView)){
                 sec.style.display = "block";
-            } else {
-                sec.style.display = "none";
+                found = true;
             }
         });
+
+        // Fallback caso encontre diretamente pelo ID
+        const directEl = document.getElementById(targetView) || document.getElementById(`${targetView}Section`);
+        if(directEl){
+            directEl.style.display = "block";
+            found = true;
+        }
 
         this.osSidebar?.classList.remove("open");
         this.sidebarOverlay?.classList.remove("active");
@@ -403,6 +419,7 @@ class HoneyAIApp {
             display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 9999;
         `;
         toast.innerHTML = `<span>${message}</span>`;
 
