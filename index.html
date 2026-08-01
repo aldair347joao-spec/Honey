@@ -918,12 +918,48 @@ Enterprise Artificial Intelligence Platform
 
 </section>
 
-<!-- SEÇÕES ADICIONAIS PARA OS MÓDULOS DO MENU -->
+<!-- SEÇÕES ADICIONAIS PARA OS MÓDULOS DO MENU (AGORA COM O CONTEÚDO CORRETO DO AGENTS STUDIO) -->
 <section class="workspace-view" id="agentsSection" style="display: none; padding: 35px;">
-    <h2>Agentes IA</h2>
-    <p>Gerencie e crie novos agentes especializados.</p>
-    <div id="agentmarketplacecontainer"></div>
-    <div id="agentstudiocontainer"></div>
+    <div class="agents-page" style="padding: 0; height: auto;">
+        <header class="agents-header">
+            <div class="brand" style="display: flex; align-items: center; gap: 12px;">
+                <span class="logo" style="font-size: 28px;">🐝</span>
+                <div>
+                    <h1 style="font-size: 24px; margin: 0;">Honey IA Agents Studio</h1>
+                    <p style="margin: 0; color: var(--text-muted);">Agentes inteligentes especializados</p>
+                </div>
+            </div>
+            <div class="agent-status">
+                <span class="status-dot"></span>
+                Sistema Online
+            </div>
+        </header>
+
+        <section class="agents-hero">
+            <h2>Escolha o seu especialista IA</h2>
+            <p>Cada agente possui uma identidade, memória e ferramentas próprias.</p>
+        </section>
+
+        <!-- Container onde o agents.js vai injetar os cartões -->
+        <main id="agentsContainer" class="agents-grid">
+            <!-- Os agentes serão carregados automaticamente -->
+        </main>
+
+        <!-- Painel do Agente Ativo -->
+        <section id="activeAgentPanel" class="active-agent hidden">
+            <div class="active-header">
+                <span id="activeEmoji" style="font-size: 30px;">🐝</span>
+                <div>
+                    <h3 id="activeName" style="margin: 0; font-size: 1.1rem;">Honey Assistant</h3>
+                    <p id="activeRole" style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Assistente geral</p>
+                </div>
+            </div>
+            <div class="active-actions">
+                <button id="btnAgentChat">💬 Abrir Chat</button>
+                <button id="btnAgentLive">🎙️ Iniciar Live</button>
+            </div>
+        </section>
+    </div>
 </section>
 
 <section class="workspace-view" id="projectsSection" style="display: none; padding: 35px;">
@@ -993,8 +1029,10 @@ Enterprise Artificial Intelligence Platform
 
 <script type="module" src="app.js"></script>
 
-<!-- SCRIPT DE SUPORTE INTEGRADO PARA CORRIGIR AS ABAS E O CHAT IMEDIATAMENTE -->
-<script>
+<!-- SCRIPT DE SUPORTE INTEGRADO PARA CORRIGIR AS ABAS, O CHAT E CARREGAR OS AGENTES DO agents.js -->
+<script type="module">
+import Agents from './agents.js';
+
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Correção do Login
     const loginPage = document.getElementById("loginPage");
@@ -1119,6 +1157,62 @@ document.addEventListener("DOMContentLoaded", () => {
                 sendMessage();
             }
         });
+    }
+
+    // 6. Integração do Agents Studio com o agents.js
+    const container = document.getElementById("agentsContainer");
+    const activePanel = document.getElementById("activeAgentPanel");
+    const activeEmoji = document.getElementById("activeEmoji");
+    const activeName = document.getElementById("activeName");
+    const activeRole = document.getElementById("activeRole");
+    const btnAgentChat = document.getElementById("btnAgentChat");
+
+    if (container && typeof Agents !== 'undefined') {
+        const allAgents = Agents.getAll();
+        let html = '';
+        
+        allAgents.forEach(agent => {
+            const emoji = agent.emoji || '🤖';
+            const name = agent.name || agent.id;
+            const desc = agent.description || 'Especialista em inteligência artificial aplicado.';
+
+            html += `
+                <div class="agent-card" data-id="${agent.id}">
+                    <div class="agent-top">
+                        <div class="agent-avatar">${emoji}</div>
+                        <div>
+                            <h3>${name}</h3>
+                        </div>
+                    </div>
+                    <p>${desc}</p>
+                    <button class="agent-open-btn">Selecionar Agente</button>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+
+        container.querySelectorAll(".agent-card").forEach(card => {
+            card.addEventListener("click", () => {
+                const agentId = card.getAttribute("data-id");
+                const selected = Agents.setActive(agentId);
+
+                if (selected) {
+                    if (activeEmoji) activeEmoji.innerText = selected.emoji || '🐝';
+                    if (activeName) activeName.innerText = selected.name || selected.id;
+                    if (activeRole) activeRole.innerText = selected.description || 'Especialista IA';
+                    if (activePanel) activePanel.classList.remove("hidden");
+                }
+            });
+        });
+
+        if (btnAgentChat) {
+            btnAgentChat.addEventListener("click", () => {
+                const active = Agents.getActive();
+                alert(`Chat iniciado com o agente: ${active ? active.name : 'Geral'}`);
+                switchView('dashboard');
+            });
+        }
     }
 });
 </script>
