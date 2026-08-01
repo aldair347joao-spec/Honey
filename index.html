@@ -1,1222 +1,231 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Honey IA Studio</title>
-
-<meta name="theme-color" content="#070b11">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="style.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="stylesheet" href="agents.css">
-    <link rel="stylesheet" href="upgrade.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honey IA - Plataforma de Inteligência Artificial Corporativa</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
-
-<div class="bg-grid"></div>
-
-<div class="bg-gradient"></div>
-
-<div class="noise"></div>
-
-<!-- OVERLAY PARA MENU MOBILE -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<!-- LOGIN -->
-
-<section class="login-page" id="loginPage">
-
-<div class="login-wrapper">
-
-<div class="login-left">
-
-<div class="logo-area">
-
-<div class="logo">
-
-<img src="logo.png">
-
-</div>
-
-<div>
-
-<h1>Honey IA</h1>
-
-<p>Enterprise AI Studio</p>
-
-</div>
-
-</div>
-
-<span class="version">
-
-VERSÃO ENTERPRISE
-
-</span>
-
-<h2>
-
-A Inteligência Artificial construída para empresas, bancos, startups e profissionais.
-
-</h2>
-
-<p>
-
-Crie agentes inteligentes.
-
-Automatize empresas.
-
-Analise milhares de documentos.
-
-Crie projetos.
-
-Tudo numa única plataforma.
-
-</p>
-
-<div class="hero-buttons">
-
-<button id="btnStartLogin">
-
-<i class="fa-solid fa-rocket"></i>
-
-Começar
-
-</button>
-
-<button class="outline" id="btnDemoLogin">
-
-Ver demonstração
-
-</button>
-
-</div>
-
-<div class="hero-stats">
-
-<div>
-
-<h3>120+</h3>
-
-<span>Agentes IA</span>
-
-</div>
-
-<div>
-
-<h3>99.9%</h3>
-
-<span>Disponibilidade</span>
-
-</div>
-
-<div>
-
-<h3>Enterprise</h3>
-
-<span>Segurança</span>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="login-right">
-
-<div class="login-card">
-
-<h2>
-
-Entrar
-
-</h2>
-
-<p>
-
-Bem-vindo ao Honey IA Studio.
-
-</p>
-
-<form id="loginForm">
-
-<div class="input">
-
-<label>
-
-Email
-
-</label>
-
-<input
-type="email"
-id="loginEmail"
-placeholder="empresa@email.com" required>
-
-</div>
-
-<div class="input">
-
-<label>
-
-Palavra-passe
-
-</label>
-
-<input
-type="password"
-id="loginPassword"
-placeholder="********" required>
-
-</div>
-
-<button
-class="login-button" type="submit">
-
-Entrar
-
-</button>
-
-</form>
-
-<div class="separator">
-
-<span>
-
-OU
-
-</span>
-
-</div>
-
-<button class="social google" id="btnGoogleAuth">
-
-<i class="fa-brands fa-google"></i>
-
-Continuar com Google
-
-</button>
-
-<button class="social facebook" id="btnFacebookAuth">
-
-<i class="fa-brands fa-facebook-f"></i>
-
-Continuar com Facebook
-
-</button>
-
-<div class="links">
-
-<a href="#" id="linkRegister">
-
-Criar conta
-
-</a>
-
-<a href="#" id="linkForgotPassword">
-
-Recuperar senha
-
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- STUDIO -->
-
-<div class="studio" id="studioApp">
-
-<aside class="sidebar" id="sidebar">
-
-<div class="sidebar-header">
-
-<div class="brand">
-
-<div class="brand-logo">
-
-<img src="logo.png">
-
-</div>
-
-<div>
-
-<h2>
-
-Honey IA
-
-</h2>
-
-<span>
-
-Studio
-
-</span>
-
-</div>
-
-</div>
-
-<button class="collapse" id="btnCollapseSidebar">
-
-<i class="fa-solid fa-bars"></i>
-
-</button>
-
-</div>
-
-<nav id="sidebarNav">
-
-<a class="active" data-target="dashboard" href="#dashboard">
-
-<i class="fa-solid fa-house"></i>
-
-Dashboard
-
-</a>
-
-<a data-target="agents" href="#agents">
-
-<i class="fa-solid fa-robot"></i>
-
-Agentes
-
-</a>
-
-<a data-target="projects" href="#projects">
-
-<i class="fa-solid fa-folder"></i>
-
-Projetos
-
-</a>
-
-<a data-target="documents" href="#documents">
-
-<i class="fa-solid fa-file-lines"></i>
-
-Documentos
-
-</a>
-
-<a data-target="automations" href="#automations">
-
-<i class="fa-solid fa-bolt"></i>
-
-Automações
-
-</a>
-
-<a data-target="memory" href="#memory">
-
-<i class="fa-solid fa-brain"></i>
-
-Memória
-
-</a>
-
-</nav>
-
-<div class="sidebar-footer">
-
-    <div class="plan-card">
-
-        <span class="plan-label">
-            PLANO
-        </span>
-
-        <h3>
-            Gratuito
-        </h3>
-
-        <p>
-            1 projeto disponível
-        </p>
-
-        <button id="btnSidebarUpgrade">
-            Upgrade
-        </button>
-
-    </div>
-
-</div>
-
-</aside>
-
-<main class="main">
-
-<header class="topbar">
-
-<div class="top-left">
-
-<button class="mobile-menu" id="btnMobileMenu">
-
-<i class="fa-solid fa-bars"></i>
-
-</button>
-
-<div class="search-box">
-
-<i class="fa-solid fa-magnifying-glass"></i>
-
-<input
-type="text"
-id="globalSearch"
-placeholder="Pesquisar agentes, projetos, documentos...">
-
-</div>
-
-</div>
-
-<div class="top-right">
-
-<button id="btnNotifications">
-
-<i class="fa-regular fa-bell"></i>
-
-</button>
-
-<button id="btnQuickAdd">
-
-<i class="fa-solid fa-plus"></i>
-
-</button>
-
-<div class="user-box" id="userBox">
-
-<div class="avatar">
-
-A
-
-</div>
-
-<div>
-
-<strong>
-
-Aldair
-
-</strong>
-
-<span>
-
-Plano Gratuito
-
-</span>
-
-</div>
-
-</div>
-
-</div>
-
-</header>
-
-<section class="dashboard workspace-view active" id="dashboardSection" data-view="dashboard">
-
-<div class="hero">
-
-<div class="hero-content">
-
-<span class="badge">
-
-🐝 Honey IA Enterprise
-
-</span>
-
-<h1>
-
-Construa agentes inteligentes e automatize o trabalho da sua empresa.
-
-</h1>
-
-<p>
-
-Uma plataforma desenvolvida para empresas, bancos, empreendedores e profissionais que precisam processar documentos, criar agentes de IA e automatizar tarefas.
-
-</p>
-
-<div class="hero-actions">
-
-<button class="primary" id="btnNewProject">
-
-Novo Projeto
-
-</button>
-
-<button class="secondary" id="btnNewAgent">
-
-Criar Agente
-
-</button>
-
-</div>
-
-</div>
-
-<div class="hero-image">
-
-<div class="circle one"></div>
-
-<div class="circle two"></div>
-
-<div class="circle three"></div>
-
-<i class="fa-solid fa-brain"></i>
-
-</div>
-
-</div>
-
-<section class="stats-grid">
-
-<div class="stat">
-
-<i class="fa-solid fa-robot"></i>
-
-<h2>
-
-120
-
-</h2>
-
-<p>
-
-Agentes disponíveis
-
-</p>
-
-</div>
-
-<div class="stat">
-
-<i class="fa-solid fa-folder-open"></i>
-
-<h2 id="statProjectCount">
-
-1
-
-</h2>
-
-<p>
-
-Projeto disponível
-
-</p>
-
-</div>
-
-<div class="stat">
-
-<i class="fa-solid fa-file-lines"></i>
-
-<h2>
-
-∞
-
-</h2>
-
-<p>
-
-Conversas
-
-</p>
-
-</div>
-
-<div class="stat">
-
-<i class="fa-solid fa-server"></i>
-
-<h2>
-
-99.9%
-
-</h2>
-
-<p>
-
-Disponibilidade
-
-</p>
-
-</div>
-
-</section>
-
-<section class="modules">
-
-<h2>
-
-Explorar o Studio
-
-</h2>
-
-<div class="module-grid">
-
-<div class="module" data-action="agents" data-target="agents">
-
-<i class="fa-solid fa-robot"></i>
-
-<h3>
-
-Agentes IA
-
-</h3>
-
-<p>
-
-Crie agentes especializados para qualquer área.
-
-</p>
-
-</div>
-
-<div class="module" data-action="documents" data-target="documents">
-
-<i class="fa-solid fa-file-arrow-up"></i>
-
-<h3>
-
-Documentos
-
-</h3>
-
-<p>
-
-Envie PDFs, Word, Excel, imagens e outros ficheiros.
-
-</p>
-
-</div>
-
-<div class="module" data-action="projects" data-target="projects">
-
-<i class="fa-solid fa-folder-tree"></i>
-
-<h3>
-
-Projetos
-
-</h3>
-
-<p>
-
-Organize todo o trabalho num único lugar.
-
-</p>
-
-</div>
-
-<div class="module" data-action="automations" data-target="automations">
-
-<i class="fa-solid fa-bolt"></i>
-
-<h3>
-
-Automações
-
-</h3>
-
-<p>
-
-Automatize tarefas repetitivas com IA.
-
-</p>
-
-</div>
-
-<div class="module" data-action="memory" data-target="memory">
-
-<i class="fa-solid fa-brain"></i>
-
-<h3>
-
-Memória
-
-</h3>
-
-<p>
-
-Permita que a Honey IA aprenda continuamente.
-
-</p>
-
-</div>
-
-<div class="module" data-action="analytics" data-target="analytics">
-
-<i class="fa-solid fa-chart-line"></i>
-
-<h3>
-
-Analytics
-
-</h3>
-
-<p>
-
-Visualize métricas e produtividade em tempo real.
-
-</p>
-
-</div>
-
-</div>
-
-</section>
-
-<section class="plans-section">
-
-    <div class="section-header">
-
-        <h2>Planos Honey IA</h2>
-
-        <p>Escolha o plano ideal para o seu trabalho.</p>
-
-    </div>
-
-    <div class="plans-grid">
-
-        <article class="pricing-card free">
-
-            <span class="pricing-badge">
-                Gratuito
-            </span>
-
-            <h2>0 Kz</h2>
-
-            <p class="period">
-                Para uso pessoal
-            </p>
-
-            <ul>
-
-                <li><i class="fa-solid fa-check"></i> Conversas ilimitadas</li>
-
-                <li><i class="fa-solid fa-check"></i> Identificação de documentos</li>
-
-                <li><i class="fa-solid fa-check"></i> 1 Projeto</li>
-
-                <li><i class="fa-solid fa-xmark"></i> Exportação</li>
-
-                <li><i class="fa-solid fa-xmark"></i> Agentes Premium</li>
-
-            </ul>
-
-            <button>
-                Plano Atual
-            </button>
-
-        </article>
-
-        <article class="pricing-card pro">
-
-            <span class="pricing-badge premium">
-                Recomendado
-            </span>
-
-            <h2>15.000 Kz</h2>
-
-            <p class="period">
-                Mensal
-            </p>
-
-            <h3>
-                ou 175.000 Kz / Ano
-            </h3>
-
-            <ul>
-
-                <li><i class="fa-solid fa-check"></i> Projetos ilimitados</li>
-
-                <li><i class="fa-solid fa-check"></i> Exportação</li>
-
-                <li><i class="fa-solid fa-check"></i> OCR Inteligente</li>
-
-                <li><i class="fa-solid fa-check"></i> Memória Premium</li>
-
-                <li><i class="fa-solid fa-check"></i> APIs</li>
-
-            </ul>
-
-            <button id="btnSubscribePro">
-                Assinar Agora
-            </button>
-
-        </article>
-
-        <article class="pricing-card enterprise">
-
-            <span class="pricing-badge enterprise-tag">
-                Empresas
-            </span>
-
-            <h2>400.000 Kz</h2>
-
-            <p class="period">
-                Mensal
-            </p>
-
-            <h3>
-                ou 4.600.000 Kz / Ano
-            </h3>
-
-            <ul>
-
-                <li><i class="fa-solid fa-check"></i> Tudo do Plano Pro</li>
-
-                <li><i class="fa-solid fa-check"></i> Utilizadores ilimitados</li>
-
-                <li><i class="fa-solid fa-check"></i> Administração</li>
-
-                <li><i class="fa-solid fa-check"></i> Segurança empresarial</li>
-
-                <li><i class="fa-solid fa-check"></i> Suporte prioritário</li>
-
-            </ul>
-
-            <button id="btnContactSales">
-                Assinar agora
-            </button>
-
-        </article>
-
-    </div>
-
-</section>
-
-<section class="workspace-section">
-
-    <div class="workspace-header">
-
-        <h2>Workspace</h2>
-
-        <button id="btnNewChat">
-
-            <i class="fa-solid fa-plus"></i>
-
-            Novo Chat
-
-        </button>
-
-    </div>
-
-    <div class="workspace-card">
-
-        <div class="workspace-welcome" id="welcomeBox">
-
-            <div class="workspace-logo">
-
-                <i class="fa-solid fa-brain"></i>
-
-            </div>
-
-            <h2>
-
-                Como posso ajudar hoje?
-
-            </h2>
-
-            <p>
-
-                Escreva uma instrução ou envie documentos para começar.
-
-            </p>
-
-        </div>
-
-        <!-- Área onde as mensagens do Chat vão ser adicionadas dinamicamente -->
-        <div id="chatMessages" class="chat-messages" style="display: flex; flex-direction: column; gap: 15px; max-height: 450px; overflow-y: auto; margin-bottom: 20px;"></div>
-
-        <div class="prompt-box">
-
-            <!-- Input invisível para captura de ficheiros -->
-            <input type="file" id="fileInput" hidden>
-
-            <button class="attach" id="btnAttach">
-
-                <i class="fa-solid fa-paperclip"></i>
-
-            </button>
-
-            <textarea
-            id="chatInput"
-            placeholder="Escreva uma mensagem para a Honey IA..."></textarea>
-
-            <button class="voice" id="btnVoice">
-
-                <i class="fa-solid fa-microphone"></i>
-
-            </button>
-            <div class="mode-switch" id="modeSwitch">
-
-    <button 
-        id="btnChatMode" 
-        class="mode-btn active">
-        💬 Chat
-    </button>
-
-
-    <button 
-        id="btnLiveMode" 
-        class="mode-btn">
-        🎙️ Live
-    </button>
-
-</div>
-
-            <button class="send" id="btnSend">
-
-                <i class="fa-solid fa-paper-plane"></i>
-
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-<footer class="footer">
-
-<div>
-
-© 2026 Honey IA Studio
-
-</div>
-
-<div>
-
-Enterprise Artificial Intelligence Platform
-
-</div>
-
-</footer>
-
-</section>
-
-<!-- SEÇÕES ADICIONAIS PARA OS MÓDULOS DO MENU (AGORA COM O CONTEÚDO CORRETO DO AGENTS STUDIO) -->
-<section class="workspace-view" id="agentsSection" style="display: none; padding: 35px;">
-    <div class="agents-page" style="padding: 0; height: auto;">
-        <header class="agents-header">
-            <div class="brand" style="display: flex; align-items: center; gap: 12px;">
-                <span class="logo" style="font-size: 28px;">🐝</span>
-                <div>
-                    <h1 style="font-size: 24px; margin: 0;">Honey IA Agents Studio</h1>
-                    <p style="margin: 0; color: var(--text-muted);">Agentes inteligentes especializados</p>
+    <div class="app-container">
+        <!-- Menu Lateral -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-hexagon-nodes"></i>
+                    <span>Honey IA</span>
                 </div>
             </div>
-            <div class="agent-status">
-                <span class="status-dot"></span>
-                Sistema Online
-            </div>
-        </header>
+            
+            <nav class="sidebar-nav">
+                <a href="#chat" class="nav-item active" data-tab="chat">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Chat Principal</span>
+                </a>
+                <a href="#agents" class="nav-item" data-tab="agents">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>Agentes Corporativos</span>
+                </a>
+                <a href="#plans" class="nav-item" data-tab="plans">
+                    <i class="fa-solid fa-crown"></i>
+                    <span>Planos & Assinaturas</span>
+                </a>
+                <a href="#analytics" class="nav-item" data-tab="analytics">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Análises & Dados</span>
+                </a>
+                <a href="#settings" class="nav-item" data-tab="settings">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Configurações</span>
+                </a>
+            </nav>
 
-        <section class="agents-hero">
-            <h2>Escolha o seu especialista IA</h2>
-            <p>Cada agente possui uma identidade, memória e ferramentas próprias.</p>
-        </section>
-
-        <!-- Container onde o agents.js vai injetar os cartões -->
-        <main id="agentsContainer" class="agents-grid">
-            <!-- Os agentes serão carregados automaticamente -->
-        </main>
-
-        <!-- Painel do Agente Ativo -->
-        <section id="activeAgentPanel" class="active-agent hidden">
-            <div class="active-header">
-                <span id="activeEmoji" style="font-size: 30px;">🐝</span>
-                <div>
-                    <h3 id="activeName" style="margin: 0; font-size: 1.1rem;">Honey Assistant</h3>
-                    <p id="activeRole" style="margin: 4px 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Assistente geral</p>
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <div class="user-info">
+                        <span class="user-name">Administrador</span>
+                        <span class="user-plan">Empresa Pro</span>
+                    </div>
                 </div>
             </div>
-            <div class="active-actions">
-                <button id="btnAgentChat">💬 Abrir Chat</button>
-                <button id="btnAgentLive">🎙️ Iniciar Live</button>
-            </div>
-        </section>
-    </div>
-</section>
+        </aside>
 
-<section class="workspace-view" id="projectsSection" style="display: none; padding: 35px;">
-    <h2>Projetos</h2>
-    <p>Organize seus projetos e fluxos de trabalho de IA.</p>
-</section>
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Topbar Simplificada (Sem Pesquisa e Sem botão +) -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    <h1 id="pageTitle">Assistente Inteligente</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button class="icon-btn" title="Notificações"><i class="fa-regular fa-bell"></i></button>
+                    <button class="icon-btn" title="Ajuda"><i class="fa-regular fa-circle-question"></i></button>
+                </div>
+            </header>
 
-<section class="workspace-view" id="documentsSection" style="display: none; padding: 35px;">
-    <h2>Documentos</h2>
-    <p>Repositório de arquivos, PDFs e bases de conhecimento.</p>
-</section>
+            <!-- Área de Abas / Conteúdo Dinâmico -->
+            <div class="content-body">
+                
+                <!-- ABA 1: CHAT PRINCIPAL (Com Hero inicial e Chat Premium) -->
+                <div id="tab-chat" class="tab-pane active">
+                    <div class="chat-wrapper-clean">
+                        <!-- Hero Section Compacto e Elegante -->
+                        <div class="chat-hero">
+                            <h2>Bem-vindo ao Núcleo de Inteligência Honey IA</h2>
+                            <p>Análise avançada de documentos, suporte técnico especializado e automação de fluxos corporativos para o mercado angolano.</p>
+                        </div>
 
-<section class="workspace-view" id="automationsSection" style="display: none; padding: 35px;">
-    <h2>Automações</h2>
-    <p>Configure gatilhos e fluxos automatizados.</p>
-</section>
+                        <!-- Interface do Chat Corporativo Premium -->
+                        <div class="chat-container-premium">
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="message ai-message">
+                                    <div class="msg-avatar"><i class="fa-solid fa-hexagon-nodes"></i></div>
+                                    <div class="msg-content">
+                                        <p>Olá! Sou a Honey IA, o teu sistema corporativo de inteligência artificial. Como posso ajudar a otimizar os processos da tua empresa hoje?</p>
+                                        <span class="msg-time">Agora mesmo</span>
+                                    </div>
+                                </div>
+                            </div>
 
-<section class="workspace-view" id="memorySection" style="display: none; padding: 35px;">
-    <h2>Memória</h2>
-    <p>Contexto global e persistência de dados da IA.</p>
-</section>
-
-<section class="workspace-view" id="analyticsSection" style="display: none; padding: 35px;">
-    <h2>Analytics</h2>
-    <p>Métricas de uso e desempenho do Studio.</p>
-</section>
-
-</main>
-
-</div>
-
-<!-- MODAL PARA NOVO PROJETO -->
-<div class="modal-overlay" id="modalNewProject" style="display: none;">
-    <div class="modal-content" style="background: #0f172a; padding: 25px; border-radius: 12px; border: 1px solid #1e293b; max-width: 450px; width: 90%; color: #fff;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">Novo Projeto</h3>
-            <button data-close="modalNewProject" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <form id="formNewProject">
-            <div class="input" style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; color: #94a3b8;">Nome do Projeto</label>
-                <input type="text" id="projectName" placeholder="Ex: Automação Financeira" required style="width: 100%; padding: 10px; border-radius: 6px; background: #070b11; border: 1px solid #334155; color: #fff;">
-            </div>
-            <button type="submit" class="login-button" style="width: 100%; padding: 10px; background: #0066ff; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Criar Projeto</button>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL PARA CRIAR AGENTE -->
-<div class="modal-overlay" id="modalNewAgent" style="display: none;">
-    <div class="modal-content" style="background: #0f172a; padding: 25px; border-radius: 12px; border: 1px solid #1e293b; max-width: 450px; width: 90%; color: #fff;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0;">Criar Agente IA</h3>
-            <button data-close="modalNewAgent" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <form id="formNewAgent">
-            <div class="input" style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; color: #94a3b8;">Nome do Agente</label>
-                <input type="text" id="agentName" placeholder="Ex: Assistente Jurídico" required style="width: 100%; padding: 10px; border-radius: 6px; background: #070b11; border: 1px solid #334155; color: #fff;">
-            </div>
-            <button type="submit" class="login-button" style="width: 100%; padding: 10px; background: #0066ff; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Criar Agente</button>
-        </form>
-    </div>
-</div>
-
-<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
-
-<script type="module" src="app.js"></script>
-
-<!-- SCRIPT DE SUPORTE INTEGRADO PARA CORRIGIR AS ABAS, O CHAT E CARREGAR OS AGENTES DO agents.js -->
-<script type="module">
-import Agents from './agents.js';
-
-document.addEventListener("DOMContentLoaded", () => {
-    // 1. Correção do Login
-    const loginPage = document.getElementById("loginPage");
-    const loginForm = document.getElementById("loginForm");
-    const btnStartLogin = document.getElementById("btnStartLogin");
-
-    function closeLogin() {
-        if (loginPage) loginPage.classList.remove("active");
-    }
-
-    if (loginForm) loginForm.addEventListener("submit", (e) => { e.preventDefault(); closeLogin(); });
-    if (btnStartLogin) btnStartLogin.addEventListener("click", closeLogin);
-
-    // 2. Menu Lateral e Responsividade Mobile
-    const sidebar = document.getElementById("sidebar");
-    const sidebarOverlay = document.getElementById("sidebarOverlay");
-    const btnMobileMenu = document.getElementById("btnMobileMenu");
-    const btnCollapseSidebar = document.getElementById("btnCollapseSidebar");
-
-    function toggleSidebar() {
-        if (sidebar) sidebar.classList.toggle("active");
-        if (sidebarOverlay) sidebarOverlay.classList.toggle("active");
-    }
-
-    if (btnMobileMenu) btnMobileMenu.addEventListener("click", toggleSidebar);
-    if (btnCollapseSidebar) btnCollapseSidebar.addEventListener("click", toggleSidebar);
-    if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
-
-    // 3. Sistema de Abas Funcional (Menu e Módulos do Dashboard)
-    const navLinks = document.querySelectorAll("#sidebarNav a, .module-grid .module");
-    const views = document.querySelectorAll(".workspace-view");
-
-    function switchView(targetName) {
-        views.forEach(view => {
-            view.style.display = "none";
-            view.classList.remove("active");
-        });
-
-        const targetSection = document.getElementById(targetName + "Section") || document.getElementById("dashboardSection");
-        if (targetSection) {
-            targetSection.style.display = "block";
-            targetSection.classList.add("active");
-        }
-
-        // Atualiza classe active no menu lateral
-        document.querySelectorAll("#sidebarNav a").forEach(nav => {
-            if (nav.getAttribute("data-target") === targetName) {
-                nav.classList.add("active");
-            } else {
-                nav.classList.remove("active");
-            }
-        });
-
-        if (window.innerWidth <= 992 && sidebar) {
-            sidebar.classList.remove("active");
-            if (sidebarOverlay) sidebarOverlay.classList.remove("active");
-        }
-    }
-
-    navLinks.forEach(link => {
-        link.addEventListener("click", (e) => {
-            const target = link.getAttribute("data-target") || link.getAttribute("data-action");
-            if (target) {
-                e.preventDefault();
-                switchView(target);
-            }
-        });
-    });
-
-    // 4. Modais
-    const modalNewProject = document.getElementById("modalNewProject");
-    const modalNewAgent = document.getElementById("modalNewAgent");
-    const btnNewProject = document.getElementById("btnNewProject");
-    const btnNewAgent = document.getElementById("btnNewAgent");
-
-    if (btnNewProject && modalNewProject) btnNewProject.addEventListener("click", () => modalNewProject.style.display = "flex");
-    if (btnNewAgent && modalNewAgent) btnNewAgent.addEventListener("click", () => modalNewAgent.style.display = "flex");
-
-    document.querySelectorAll("[data-close]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const modalId = btn.getAttribute("data-close");
-            const modal = document.getElementById(modalId);
-            if (modal) modal.style.display = "none";
-        });
-    });
-
-    // 5. Chat Organizado
-    const chatInput = document.getElementById("chatInput");
-    const btnSend = document.getElementById("btnSend");
-    const chatMessages = document.getElementById("chatMessages");
-    const welcomeBox = document.getElementById("welcomeBox");
-
-    function sendMessage() {
-        if (!chatInput) return;
-        const text = chatInput.value.trim();
-        if (!text) return;
-
-        if (welcomeBox) welcomeBox.style.display = "none";
-
-        const userMsg = document.createElement("div");
-        userMsg.style.cssText = "display: flex; justify-content: flex-end; margin-bottom: 12px;";
-        userMsg.innerHTML = `<div style="background: #2563eb; color: #fff; padding: 12px 16px; border-radius: 14px; max-width: 75%; font-size: 14px;">${text}</div>`;
-        chatMessages.appendChild(userMsg);
-
-        chatInput.value = "";
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        setTimeout(() => {
-            const aiMsg = document.createElement("div");
-            aiMsg.style.cssText = "display: flex; justify-content: flex-start; margin-bottom: 12px;";
-            aiMsg.innerHTML = `<div style="background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 14px; max-width: 75%; border: 1px solid #334155; font-size: 14px;">Processado com sucesso pela arquitetura da Honey IA.</div>`;
-            chatMessages.appendChild(aiMsg);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 500);
-    }
-
-    if (btnSend) btnSend.addEventListener("click", sendMessage);
-    if (chatInput) {
-        chatInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    }
-
-    // 6. Integração do Agents Studio com o agents.js
-    const container = document.getElementById("agentsContainer");
-    const activePanel = document.getElementById("activeAgentPanel");
-    const activeEmoji = document.getElementById("activeEmoji");
-    const activeName = document.getElementById("activeName");
-    const activeRole = document.getElementById("activeRole");
-    const btnAgentChat = document.getElementById("btnAgentChat");
-
-    if (container && typeof Agents !== 'undefined') {
-        const allAgents = Agents.getAll();
-        let html = '';
-        
-        allAgents.forEach(agent => {
-            const emoji = agent.emoji || '🤖';
-            const name = agent.name || agent.id;
-            const desc = agent.description || 'Especialista em inteligência artificial aplicado.';
-
-            html += `
-                <div class="agent-card" data-id="${agent.id}">
-                    <div class="agent-top">
-                        <div class="agent-avatar">${emoji}</div>
-                        <div>
-                            <h3>${name}</h3>
+                            <div class="chat-input-area">
+                                <div class="input-toolbar">
+                                    <button class="tool-action-btn" title="Anexar Documento"><i class="fa-solid fa-paperclip"></i></button>
+                                    <button class="tool-action-btn" title="Ativar Pesquisa Web"><i class="fa-solid fa-globe"></i></button>
+                                    <button class="tool-action-btn" title="Modo Especialista"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                                </div>
+                                <div class="input-box-wrapper">
+                                    <textarea id="chatInput" placeholder="Escreve o teu prompt ou comando analítico..." rows="1"></textarea>
+                                    <button id="sendBtn" class="send-btn" title="Enviar Mensagem"><i class="fa-solid fa-arrow-up"></i></button>
+                                </div>
+                                <div class="input-footer-note">
+                                    <span>Honey IA - Processamento seguro de dados para negócios.</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <p>${desc}</p>
-                    <button class="agent-open-btn">Selecionar Agente</button>
                 </div>
-            `;
-        });
-        
-        container.innerHTML = html;
 
-        container.querySelectorAll(".agent-card").forEach(card => {
-            card.addEventListener("click", () => {
-                const agentId = card.getAttribute("data-id");
-                const selected = Agents.setActive(agentId);
+                <!-- ABA 2: AGENTES CORPORATIVOS (Totalmente preservada) -->
+                <div id="tab-agents" class="tab-pane">
+                    <div class="agents-section-header">
+                        <h2>Agentes de IA Especializados</h2>
+                        <p>Seleciona e configura agentes autónomos para tarefas específicas do teu negócio.</p>
+                    </div>
+                    <div class="agents-grid">
+                        <div class="agent-card">
+                            <div class="agent-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <h3>Analista Fiscal & Contabilístico</h3>
+                            <p>Especializado em relatórios financeiros, conformidade e auditoria de documentos corporativos.</p>
+                            <button class="btn-secondary">Configurar Agente</button>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                            <h3>Consultor Jurídico</h3>
+                            <p>Revisão de contratos, termos legais e verificação de conformidade regulatória em Angola.</p>
+                            <button class="btn-secondary">Configurar Agente</button>
+                        </div>
+                        <div class="agent-card">
+                            <div class="agent-icon"><i class="fa-solid fa-headset"></i></div>
+                            <h3>Suporte ao Cliente & Vendas</h3>
+                            <p>Gestão automatizada de leads, atendimento multicanal e integração com canais comerciais.</p>
+                            <button class="btn-secondary">Configurar Agente</button>
+                        </div>
+                    </div>
+                </div>
 
-                if (selected) {
-                    if (activeEmoji) activeEmoji.innerText = selected.emoji || '🐝';
-                    if (activeName) activeName.innerText = selected.name || selected.id;
-                    if (activeRole) activeRole.innerText = selected.description || 'Especialista IA';
-                    if (activePanel) activePanel.classList.remove("hidden");
-                }
+                <!-- ABA 3: PLANOS & ASSINATURAS (Movido para aqui de forma limpa) -->
+                <div id="tab-plans" class="tab-pane">
+                    <div class="plans-header">
+                        <h2>Planos Corporativos Honey IA</h2>
+                        <p>Escolhe o nível de potência e escalabilidade ideal para a tua empresa em Angola.</p>
+                    </div>
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <h3>Starter Business</h3>
+                            <div class="price"><span>Kz</span> 75.000<span>/mês</span></div>
+                            <p>Ideal para pequenas equipas a iniciar a automação digital.</p>
+                            <ul>
+                                <li><i class="fa-solid fa-check"></i> 3 Agentes Ativos</li>
+                                <li><i class="fa-solid fa-check"></i> 5.000 requisições mensais</li>
+                                <li><i class="fa-solid fa-check"></i> Suporte por Email</li>
+                            </ul>
+                            <button class="btn-secondary">Selecionar Plano</button>
+                        </div>
+                        <div class="pricing-card featured">
+                            <div class="badge-popular">Mais Popular</div>
+                            <h3>Enterprise Pro</h3>
+                            <div class="price"><span>Kz</span> 220.000<span>/mês</span></div>
+                            <p>Potência máxima para empresas em rápido crescimento e alta demanda.</p>
+                            <ul>
+                                <li><i class="fa-solid fa-check"></i> Agentes Ilimitados</li>
+                                <li><i class="fa-solid fa-check"></i> Requisições Ilimitadas</li>
+                                <li><i class="fa-solid fa-check"></i> Análise Avançada de Documentos</li>
+                                <li><i class="fa-solid fa-check"></i> Suporte Prioritário 24/7</li>
+                            </ul>
+                            <button class="btn-primary">Assinar Agora</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA 4: ANÁLISES -->
+                <div id="tab-analytics" class="tab-pane">
+                    <div class="placeholder-pane">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <h3>Painel de Métricas e Performance</h3>
+                        <p>Acompanha o desempenho dos teus agentes e o volume de dados processados em tempo real.</p>
+                    </div>
+                </div>
+
+                <!-- ABA 5: CONFIGURAÇÕES -->
+                <div id="tab-settings" class="tab-pane">
+                    <div class="placeholder-pane">
+                        <i class="fa-solid fa-gear"></i>
+                        <h3>Configurações do Sistema</h3>
+                        <p>Gere chaves de API, utilizadores da organização e preferências de segurança.</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sistema de navegação por abas fluido
+        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+        const tabPanes = document.querySelectorAll('.content-pane, .tab-pane');
+        const pageTitle = document.getElementById('pageTitle');
+
+        const titles = {
+            chat: 'Assistente Inteligente',
+            agents: 'Agentes Corporativos',
+            plans: 'Planos & Assinaturas',
+            analytics: 'Análises & Dados',
+            settings: 'Configurações'
+        };
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetTab = item.getAttribute('data-tab');
+
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                document.getElementById(`tab-${targetTab}`).classList.add('active');
+
+                pageTitle.textContent = titles[targetTab];
             });
         });
 
-        if (btnAgentChat) {
-            btnAgentChat.addEventListener("click", () => {
-                const active = Agents.getActive();
-                alert(`Chat iniciado com o agente: ${active ? active.name : 'Geral'}`);
-                switchView('dashboard');
-            });
-        }
-    }
-});
-</script>
-
+        // Auto-resize textarea e envio simples no chat
+        const chatInput = document.getElementById('chatInput');
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    </script>
 </body>
-
 </html>
