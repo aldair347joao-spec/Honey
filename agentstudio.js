@@ -52,7 +52,7 @@ class agentstudio {
         if(!agent){
 
 
-            throw new error(
+            throw new Error(
                 "Agente não encontrado."
             );
 
@@ -185,9 +185,9 @@ class agentstudio {
 
 
 
-        document.dispatchevent(
+        document.dispatchEvent(
 
-            new customevent(
+            new CustomEvent(
                 "agent-status",
                 {
 
@@ -227,4 +227,4 @@ class agentstudio {
 
 
 
-export default new AgentStudio();
+export default new agentstudio();
