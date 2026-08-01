@@ -8,14 +8,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-container" id="appContainer">
+        <!-- Overlay para fechar o menu no telemóvel -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Menu Lateral -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <i class="fa-solid fa-hexagon-nodes"></i>
                     <span>Honey IA</span>
                 </div>
+                <button class="close-sidebar-btn" id="closeSidebarBtn" title="Fechar Menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             
             <nav class="sidebar-nav">
@@ -54,10 +60,15 @@
 
         <!-- Conteúdo Principal -->
         <main class="main-content">
-            <!-- Topbar Simplificada (Sem Pesquisa e Sem botão +) -->
+            <!-- Topbar com botão para abrir o menu em dispositivos móveis -->
             <header class="topbar">
-                <div class="topbar-title">
-                    <h1 id="pageTitle">Assistente Inteligente</h1>
+                <div class="topbar-left">
+                    <button class="icon-btn mobile-menu-toggle" id="mobileMenuToggle" title="Abrir Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="topbar-title">
+                        <h1 id="pageTitle">Assistente Inteligente</h1>
+                    </div>
                 </div>
                 <div class="topbar-actions">
                     <button class="icon-btn" title="Notificações"><i class="fa-regular fa-bell"></i></button>
@@ -68,16 +79,14 @@
             <!-- Área de Abas / Conteúdo Dinâmico -->
             <div class="content-body">
                 
-                <!-- ABA 1: CHAT PRINCIPAL (Com Hero inicial e Chat Premium) -->
+                <!-- ABA 1: CHAT PRINCIPAL -->
                 <div id="tab-chat" class="tab-pane active">
                     <div class="chat-wrapper-clean">
-                        <!-- Hero Section Compacto e Elegante -->
                         <div class="chat-hero">
                             <h2>Bem-vindo ao Núcleo de Inteligência Honey IA</h2>
                             <p>Análise avançada de documentos, suporte técnico especializado e automação de fluxos corporativos para o mercado angolano.</p>
                         </div>
 
-                        <!-- Interface do Chat Corporativo Premium -->
                         <div class="chat-container-premium">
                             <div class="chat-messages" id="chatMessages">
                                 <div class="message ai-message">
@@ -107,7 +116,7 @@
                     </div>
                 </div>
 
-                <!-- ABA 2: AGENTES CORPORATIVOS (Totalmente preservada) -->
+                <!-- ABA 2: AGENTES CORPORATIVOS -->
                 <div id="tab-agents" class="tab-pane">
                     <div class="agents-section-header">
                         <h2>Agentes de IA Especializados</h2>
@@ -135,7 +144,7 @@
                     </div>
                 </div>
 
-                <!-- ABA 3: PLANOS & ASSINATURAS (Movido para aqui de forma limpa) -->
+                <!-- ABA 3: PLANOS & ASSINATURAS -->
                 <div id="tab-plans" class="tab-pane">
                     <div class="plans-header">
                         <h2>Planos Corporativos Honey IA</h2>
@@ -194,8 +203,11 @@
     <script>
         // Sistema de navegação por abas fluido
         const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-        const tabPanes = document.querySelectorAll('.content-pane, .tab-pane');
         const pageTitle = document.getElementById('pageTitle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
         const titles = {
             chat: 'Assistente Inteligente',
@@ -217,10 +229,32 @@
                 document.getElementById(`tab-${targetTab}`).classList.add('active');
 
                 pageTitle.textContent = titles[targetTab];
+
+                // Fechar menu automaticamente em telemóvel ao selecionar uma opção
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('active');
+                }
             });
         });
 
-        // Auto-resize textarea e envio simples no chat
+        // Controlo do menu em mobile
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+        });
+
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Auto-resize textarea do chat
         const chatInput = document.getElementById('chatInput');
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
