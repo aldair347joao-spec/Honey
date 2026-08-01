@@ -10,8 +10,6 @@ import liveclient from "./liveclient.js";
 import agentstudio from "./agentstudio.js";
 import { components } from "./components.js";
 import agentsui from "./agents-ui.js";
-import agentstudioview from "./agentstudioview.js";
-import agentsnavigation from "./agentsnavigation.js";
 import dashboard from "./dashboard.js";
 import authmanager from "./auth.js";
 import logincontroller from "./login.js";
@@ -99,6 +97,11 @@ class HoneyAIApp {
         this.initEventListeners();
         this.initMarkdownEngine();
         this.initModalsAndUiActions();
+
+        // Inicializa a UI dos Agentes se o contentor existir
+        if(document.getElementById("agentsContainer")){
+            agentsui.init("agentsContainer");
+        }
     }
 
     // ==========================================================
@@ -158,11 +161,11 @@ class HoneyAIApp {
         this.attachedFileName = document.getElementById("attached-file-name");
         this.btnRemoveAttachment = document.getElementById("btn-remove-attachment");
 
-        // Layout
-        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.querySelector(".mobile-menu");
+        // Layout (Corrigido para garantir captura correta dos elementos do menu)
+        this.btnToggleMenu = document.getElementById("btnMobileMenu") || document.querySelector(".mobile-menu") || document.querySelector(".menu-toggle");
         this.osSidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
         this.sidebarOverlay = document.getElementById("sidebarOverlay");
-        this.navItems = document.querySelectorAll("#sidebarNav a,.nav-item,nav a");
+        this.navItems = document.querySelectorAll("#sidebarNav a, .nav-item, nav a, .sidebar-menu a, .sidebar a");
         this.workspaceViews = document.querySelectorAll(".workspace-view");
 
         // Preview
@@ -195,18 +198,13 @@ class HoneyAIApp {
     // ==========================================================
 
     initEventListeners(){
-        /*
-        ==========================================
-        CHAT MODE
-        ==========================================
-        */
         if(this.btnChatMode){
             this.btnChatMode.addEventListener("click", () => {
                 this.currentMode = "chat";
                 this.liveMode = false;
 
-                if(agentstudio && typeof agentstudio.setMode === "function"){
-                    agentstudio.setMode("chat");
+                if(agentstudio && typeof agentstudio.setmode === "function"){
+                    agentstudio.setmode("chat");
                 }
 
                 this.btnChatMode.classList.add("active");
@@ -220,16 +218,11 @@ class HoneyAIApp {
             });
         }
 
-        /*
-        ==========================================
-        LIVE MODE
-        ==========================================
-        */
         if(this.btnLiveMode){
             this.btnLiveMode.addEventListener("click", async () => {
                 try {
-                    if(agentstudio && typeof agentstudio.setMode === "function"){
-                        agentstudio.setMode("live");
+                    if(agentstudio && typeof agentstudio.setmode === "function"){
+                        agentstudio.setmode("live");
                     }
 
                     const result = await liveclient.start();
@@ -252,11 +245,6 @@ class HoneyAIApp {
             });
         }
 
-        /*
-        ==========================================
-        INPUT DE MENSAGEM
-        ==========================================
-        */
         if(this.promptTextarea){
             this.promptTextarea.addEventListener("keydown", (e) => {
                 if(e.key === "Enter" && !e.shiftKey){
@@ -266,18 +254,12 @@ class HoneyAIApp {
             });
         }
 
-        // Botão Enviar
         if(this.btnSend){
             this.btnSend.addEventListener("click", () => {
                 this.handleSubmitPrompt();
             });
         }
 
-        /*
-        ==========================================
-        ANEXOS
-        ==========================================
-        */
         if(this.btnAttach && this.fileUploadInput){
             this.btnAttach.addEventListener("click", () => {
                 this.fileUploadInput.click();
@@ -296,23 +278,18 @@ class HoneyAIApp {
             });
         }
 
-        /*
-        ==========================================
-        VOZ
-        ==========================================
-        */
         if(this.btnVoice){
             this.btnVoice.addEventListener("click", () => {
                 this.handleVoiceInput();
             });
         }
 
-        // Navegação da Sidebar
+        // Navegação da Sidebar (Ajustada para lidar com data-target ou href)
         if(this.navItems){
             this.navItems.forEach(item => {
                 item.addEventListener("click", (e) => {
-                    const target = item.getAttribute("data-target");
-                    if(target){
+                    const target = item.getAttribute("data-target") || item.getAttribute("href")?.replace("#", "");
+                    if(target && !target.startsWith("http")){
                         e.preventDefault();
                         this.switchView(target);
                     }
@@ -335,7 +312,6 @@ class HoneyAIApp {
             });
         }
 
-        // Login Submit
         if(this.loginForm){
             logincontroller.init("loginForm");
         }
@@ -360,14 +336,15 @@ class HoneyAIApp {
 
     switchView(targetView){
         this.navItems.forEach(nav => {
-            if(nav.getAttribute("data-target") === targetView){
+            const navTarget = nav.getAttribute("data-target") || nav.getAttribute("href")?.replace("#", "");
+            if(navTarget === targetView){
                 nav.classList.add("active");
             } else {
                 nav.classList.remove("active");
             }
         });
 
-        const sections = document.querySelectorAll(".main > section");
+        const sections = document.querySelectorAll(".main > section, .workspace-view");
         sections.forEach(sec => {
             if(sec.id === `${targetView}Section` || sec.classList.contains(targetView) || sec.id === targetView){
                 sec.style.display = "block";
@@ -380,10 +357,6 @@ class HoneyAIApp {
         this.sidebarOverlay?.classList.remove("active");
     }
 
-    // ==========================================================
-    // MARKDOWN ENGINE & TOASTS
-    // ==========================================================
-
     initMarkdownEngine(){
         if(window.marked){
             window.marked.setOptions({
@@ -394,7 +367,6 @@ class HoneyAIApp {
                     return window.hljs ? window.hljs.highlightAuto(code).value : code;
                 },
                 langPrefix: 'hljs language-',
-                pedantic: false,
                 gfm: true,
                 breaks: true
             });
@@ -402,16 +374,6 @@ class HoneyAIApp {
     }
 
     initModalsAndUiActions(){
-        const btnNewProject = document.getElementById("btnNewProject");
-        const modalNewProject = document.getElementById("modalNewProject");
-        const formNewProject = document.getElementById("formNewProject");
-
-        if(btnNewProject && modalNewProject){
-            btnNewProject.addEventListener("click", () => {
-                modalNewProject.style.display = "flex";
-            });
-        }
-
         const closeButtons = document.querySelectorAll("[data-close]");
         closeButtons.forEach(btn => {
             btn.addEventListener("click", () => {
@@ -422,40 +384,6 @@ class HoneyAIApp {
                 }
             });
         });
-
-        if(formNewProject){
-            formNewProject.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const projectName = document.getElementById("projectName")?.value;
-                if(projectName){
-                    this.showToast(`Projeto "${projectName}" criado com sucesso!`, "success");
-                    modalNewProject.style.display = "none";
-                    formNewProject.reset();
-                }
-            });
-        }
-
-        const btnNewAgent = document.getElementById("btnNewAgent");
-        const modalNewAgent = document.getElementById("modalNewAgent");
-        const formNewAgent = document.getElementById("formNewAgent");
-
-        if(btnNewAgent && modalNewAgent){
-            btnNewAgent.addEventListener("click", () => {
-                modalNewAgent.style.display = "flex";
-            });
-        }
-
-        if(formNewAgent){
-            formNewAgent.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const agentName = document.getElementById("agentName")?.value;
-                if(agentName){
-                    this.showToast(`Agente "${agentName}" criado com sucesso!`, "success");
-                    modalNewAgent.style.display = "none";
-                    formNewAgent.reset();
-                }
-            });
-        }
     }
 
     showToast(message, type = "info"){
@@ -475,7 +403,6 @@ class HoneyAIApp {
             display: flex;
             align-items: center;
             gap: 10px;
-            animation: fadeInOut 3s forwards;
         `;
         toast.innerHTML = `<span>${message}</span>`;
 
@@ -492,24 +419,14 @@ class HoneyAIApp {
         }
     }
 
-    // ==========================================================
-    // ENVIO PRINCIPAL
-    // ==========================================================
-
     async handleSubmitPrompt(){
-
         const text = this.promptTextarea ? this.promptTextarea.value.trim() : "";
         const fileBase64 = Store.state.selectedFileBase64;
         const fileName = Store.state.selectedFileName;
 
-        if(!text && !fileBase64){
-            return;
-        }
+        if(!text && !fileBase64) return;
 
-        this.appendUserMessage(
-            text,
-            fileName
-        );
+        this.appendUserMessage(text, fileName);
 
         if(this.promptTextarea){
             this.promptTextarea.value = "";
@@ -518,51 +435,23 @@ class HoneyAIApp {
         const agentBox = this.createAgentMessagePlaceholder();
 
         try {
-
-            /*
-            ==========================================
-            LIVE MODE
-            ==========================================
-            */
             if(this.currentMode === "live"){
-
                 const result = await liveclient.send(text);
-
-                const content = agentBox.querySelector(
-                    ".message-content"
-                );
-
+                const content = agentBox.querySelector(".message-content");
                 if(content){
-                    content.innerHTML = window.marked
-                        ? window.marked.parse(result.response)
-                        : result.response;
+                    content.innerHTML = window.marked ? window.marked.parse(result.response) : result.response;
                 }
-
-                this.speakResponse(
-                    result.response
-                );
-
+                this.speakResponse(result.response);
                 this.clearAttachment();
                 return;
-
             }
 
-            /*
-            ==========================================
-            CHAT MODE NORMAL
-            ==========================================
-            */
-
             const payload = {
-
                 prompt: text,
-
-                agent: (agentstudio && typeof agentstudio.getAgent === "function") 
-                    ? agentstudio.getAgent() 
+                agent: (agentstudio && typeof agentstudio.getagent === "function") 
+                    ? agentstudio.getagent() 
                     : "general",
-
                 mode: "chat"
-
             };
 
             if(fileBase64){
@@ -574,330 +463,121 @@ class HoneyAIApp {
             const response = await fetch(
                 "https://honey-ia.onrender.com/gerar-gratis",
                 {
-
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
-
                 }
             );
 
             const data = await response.json();
 
             if(!response.ok){
-                throw new Error(
-                    data.erro || "Erro no servidor."
-                );
+                throw new Error(data.erro || "Erro no servidor.");
             }
 
-            const content = agentBox.querySelector(
-                ".message-content"
-            );
-
+            const content = agentBox.querySelector(".message-content");
             if(content){
-                content.innerHTML = window.marked
-                    ? window.marked.parse(data.resposta)
-                    : data.resposta;
-
+                content.innerHTML = window.marked ? window.marked.parse(data.resposta) : data.resposta;
                 this.detectAndRenderPreview(data.resposta);
             }
 
         } catch(error) {
-
-            const content = agentBox?.querySelector(
-                ".message-content"
-            );
-
+            const content = agentBox?.querySelector(".message-content");
             if(content){
-                content.innerHTML = `
-                <div style="color:#ef4444">
-                Erro: ${error.message}
-                </div>
-                `;
+                content.innerHTML = `<div style="color:#ef4444">Erro: ${error.message}</div>`;
             }
-
         }
-
     }
-
-
-    // ==========================================================
-    // RESPOSTA POR VOZ
-    // ==========================================================
 
     speakResponse(text){
-
-        if(!window.speechSynthesis){
-            return;
-        }
-
+        if(!window.speechSynthesis) return;
         const speech = new SpeechSynthesisUtterance(text);
-
         speech.lang = "pt-PT";
-        speech.rate = 1;
-        speech.pitch = 1;
-
         window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(
-            speech
-        );
-
+        window.speechSynthesis.speak(speech);
     }
 
-
-    // ==========================================================
-    // VOICE INPUT
-    // ==========================================================
-
     handleVoiceInput(){
-
-        const SpeechRecognition =
-            window.SpeechRecognition ||
-            window.webkitSpeechRecognition;
-
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if(!SpeechRecognition){
-            this.showToast(
-                "Reconhecimento de voz não suportado.",
-                "error"
-            );
+            this.showToast("Reconhecimento de voz não suportado.", "error");
             return;
         }
 
         if(this.voiceActive){
             this.voiceRecognition?.stop();
             this.voiceActive = false;
-            this.showToast(
-                "Voz desligada.",
-                "info"
-            );
+            this.showToast("Voz desligada.", "info");
             return;
         }
 
         const recognition = new SpeechRecognition();
-
         this.voiceRecognition = recognition;
-
         recognition.lang = "pt-PT";
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
         recognition.start();
-
         this.voiceActive = true;
-
-        this.showToast(
-            "🎙️ A ouvir...",
-            "info"
-        );
+        this.showToast("🎙️ A ouvir...", "info");
 
         recognition.onresult = (event) => {
-
             const text = event.results[0][0].transcript;
-
-            if(this.currentMode === "live"){
-
-                liveclient.send(text)
-                    .then(result => {
-
-                        this.appendAgentMessage(
-                            result.response
-                        );
-
-                        this.speakResponse(
-                            result.response
-                        );
-
-                    });
-
-            } else {
-
-                if(this.promptTextarea){
-                    this.promptTextarea.value = text;
-                }
-                this.handleSubmitPrompt();
-
-            }
-
+            if(this.promptTextarea) this.promptTextarea.value = text;
+            this.handleSubmitPrompt();
         };
 
-        recognition.onerror = () => {
-
-            this.voiceActive = false;
-
-            this.showToast(
-                "Erro no reconhecimento de voz.",
-                "error"
-            );
-
-        };
-
-        recognition.onend = () => {
-
-            this.voiceActive = false;
-
-        };
-
+        recognition.onerror = () => { this.voiceActive = false; };
+        recognition.onend = () => { this.voiceActive = false; };
     }
-
-
-    // ==========================================================
-    // FILE UPLOAD
-    // ==========================================================
 
     handleFileUpload(event){
-
         const file = event.target.files[0];
-
         if(!file) return;
-
-        Store.setState(
-            "selectedFileName",
-            file.name
-        );
+        Store.setState("selectedFileName", file.name);
 
         const reader = new FileReader();
-
         reader.onload = (e) => {
-
-            Store.setState(
-                "selectedFileBase64",
-                e.target.result
-            );
-
+            Store.setState("selectedFileBase64", e.target.result);
         };
-
         reader.readAsDataURL(file);
 
-        if(this.attachedFileName){
-            this.attachedFileName.textContent = file.name;
-        }
-
-        this.attachmentBar?.classList.remove(
-            "hidden"
-        );
-
+        if(this.attachedFileName) this.attachedFileName.textContent = file.name;
+        this.attachmentBar?.classList.remove("hidden");
     }
-
 
     clearAttachment(){
-
-        Store.setState(
-            "selectedFileBase64",
-            null
-        );
-
-        Store.setState(
-            "selectedFileName",
-            null
-        );
-
-        if(this.fileUploadInput){
-            this.fileUploadInput.value = "";
-        }
-
-        this.attachmentBar?.classList.add(
-            "hidden"
-        );
-
+        Store.setState("selectedFileBase64", null);
+        Store.setState("selectedFileName", null);
+        if(this.fileUploadInput) this.fileUploadInput.value = "";
+        this.attachmentBar?.classList.add("hidden");
     }
-
-
-    // ==========================================================
-    // MENSAGENS
-    // ==========================================================
 
     appendUserMessage(text, file){
-
         if(!this.chatFeed) return;
-
         const div = document.createElement("div");
-
         div.className = "user-message";
-
-        div.innerHTML = `
-        ${file ? "📎 " + file : ""}
-        <div>${text}</div>
-        `;
-
+        div.innerHTML = `${file ? "📎 " + file : ""}<div>${text}</div>`;
         this.chatFeed.appendChild(div);
-
         this.scrollToBottom();
-
     }
-
-
-    appendAgentMessage(text){
-
-        const box = this.createAgentMessagePlaceholder();
-
-        const content = box.querySelector(
-            ".message-content"
-        );
-
-        if(content){
-            content.innerHTML = window.marked
-                ? window.marked.parse(text)
-                : text;
-        }
-
-        this.scrollToBottom();
-
-    }
-
 
     createAgentMessagePlaceholder(){
-
         const div = document.createElement("div");
-
         div.className = "agent-message";
-
-        div.innerHTML = `
-        <div>
-        🐝 <strong>Honey IA</strong>
-        </div>
-
-        <div class="message-content">
-        A processar...
-        </div>
-        `;
-
-        if(this.chatFeed){
-            this.chatFeed.appendChild(div);
-        }
-
+        div.innerHTML = `<div>🐝 <strong>Honey IA</strong></div><div class="message-content">A processar...</div>`;
+        if(this.chatFeed) this.chatFeed.appendChild(div);
         this.scrollToBottom();
-
         return div;
-
     }
 
-
-    // ==========================================================
-    // PREVIEW HTML
-    // ==========================================================
-
     detectAndRenderPreview(text){
-
         if(!this.livePreviewIframe) return;
-
         const match = text.match(/```html([\s\S]*?)```/);
-
         if(match && match[1]){
-            const htmlCode = match[1];
             const doc = this.livePreviewIframe.contentDocument || this.livePreviewIframe.contentWindow.document;
             doc.open();
-            doc.write(htmlCode);
+            doc.write(match[1]);
             doc.close();
-
-            if(this.previewPane){
-                this.previewPane.style.display = "block";
-            }
+            if(this.previewPane) this.previewPane.style.display = "block";
         }
-
     }
 
 }
