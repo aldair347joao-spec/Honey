@@ -37,34 +37,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
 
 <!-- OVERLAY PARA MENU MOBILE -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    <a id="navAgents" class="nav-item">
-
-🤖 Agents
-            <section 
-id="agentsmarketplaceview"
-class="workspace-view">
-
-<div id="agentmarketplacecontainer"></div>
-
-</section>
-
-
-<section
-id="agentstudioView"
-class="workspace-view">
-
-<div id="agentstudiocontainer"></div>
-    
-
-</section>
-        <section 
-id="dashboardcontainer"
-class="workspace-view">
-
-</section>
-
-</a>
-
 
 <!-- LOGIN -->
 
@@ -317,7 +289,7 @@ Studio
 
 <nav id="sidebarNav">
 
-<a class="active" data-target="dashboard">
+<a class="active" data-target="dashboard" href="#dashboard">
 
 <i class="fa-solid fa-house"></i>
 
@@ -325,7 +297,7 @@ Dashboard
 
 </a>
 
-<a data-target="agents">
+<a data-target="agents" href="#agents">
 
 <i class="fa-solid fa-robot"></i>
 
@@ -333,7 +305,7 @@ Agentes
 
 </a>
 
-<a data-target="projects">
+<a data-target="projects" href="#projects">
 
 <i class="fa-solid fa-folder"></i>
 
@@ -341,7 +313,7 @@ Projetos
 
 </a>
 
-<a data-target="documents">
+<a data-target="documents" href="#documents">
 
 <i class="fa-solid fa-file-lines"></i>
 
@@ -349,7 +321,7 @@ Documentos
 
 </a>
 
-<a data-target="automations">
+<a data-target="automations" href="#automations">
 
 <i class="fa-solid fa-bolt"></i>
 
@@ -357,7 +329,7 @@ Automações
 
 </a>
 
-<a data-target="memory">
+<a data-target="memory" href="#memory">
 
 <i class="fa-solid fa-brain"></i>
 
@@ -462,7 +434,7 @@ Plano Gratuito
 
 </header>
 
-<section class="dashboard" id="dashboardSection">
+<section class="dashboard workspace-view active" id="dashboardSection" data-view="dashboard">
 
 <div class="hero">
 
@@ -604,7 +576,7 @@ Explorar o Studio
 
 <div class="module-grid">
 
-<div class="module" data-action="agents">
+<div class="module" data-action="agents" data-target="agents">
 
 <i class="fa-solid fa-robot"></i>
 
@@ -622,7 +594,7 @@ Crie agentes especializados para qualquer área.
 
 </div>
 
-<div class="module" data-action="documents">
+<div class="module" data-action="documents" data-target="documents">
 
 <i class="fa-solid fa-file-arrow-up"></i>
 
@@ -640,7 +612,7 @@ Envie PDFs, Word, Excel, imagens e outros ficheiros.
 
 </div>
 
-<div class="module" data-action="projects">
+<div class="module" data-action="projects" data-target="projects">
 
 <i class="fa-solid fa-folder-tree"></i>
 
@@ -658,7 +630,7 @@ Organize todo o trabalho num único lugar.
 
 </div>
 
-<div class="module" data-action="automations">
+<div class="module" data-action="automations" data-target="automations">
 
 <i class="fa-solid fa-bolt"></i>
 
@@ -676,7 +648,7 @@ Automatize tarefas repetitivas com IA.
 
 </div>
 
-<div class="module" data-action="memory">
+<div class="module" data-action="memory" data-target="memory">
 
 <i class="fa-solid fa-brain"></i>
 
@@ -694,7 +666,7 @@ Permita que a Honey IA aprenda continuamente.
 
 </div>
 
-<div class="module" data-action="analytics">
+<div class="module" data-action="analytics" data-target="analytics">
 
 <i class="fa-solid fa-chart-line"></i>
 
@@ -946,6 +918,39 @@ Enterprise Artificial Intelligence Platform
 
 </section>
 
+<!-- SEÇÕES ADICIONAIS PARA OS MÓDULOS DO MENU -->
+<section class="workspace-view" id="agentsSection" style="display: none; padding: 35px;">
+    <h2>Agentes IA</h2>
+    <p>Gerencie e crie novos agentes especializados.</p>
+    <div id="agentmarketplacecontainer"></div>
+    <div id="agentstudiocontainer"></div>
+</section>
+
+<section class="workspace-view" id="projectsSection" style="display: none; padding: 35px;">
+    <h2>Projetos</h2>
+    <p>Organize seus projetos e fluxos de trabalho de IA.</p>
+</section>
+
+<section class="workspace-view" id="documentsSection" style="display: none; padding: 35px;">
+    <h2>Documentos</h2>
+    <p>Repositório de arquivos, PDFs e bases de conhecimento.</p>
+</section>
+
+<section class="workspace-view" id="automationsSection" style="display: none; padding: 35px;">
+    <h2>Automações</h2>
+    <p>Configure gatilhos e fluxos automatizados.</p>
+</section>
+
+<section class="workspace-view" id="memorySection" style="display: none; padding: 35px;">
+    <h2>Memória</h2>
+    <p>Contexto global e persistência de dados da IA.</p>
+</section>
+
+<section class="workspace-view" id="analyticsSection" style="display: none; padding: 35px;">
+    <h2>Analytics</h2>
+    <p>Métricas de uso e desempenho do Studio.</p>
+</section>
+
 </main>
 
 </div>
@@ -987,6 +992,136 @@ Enterprise Artificial Intelligence Platform
 <div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
 
 <script type="module" src="app.js"></script>
+
+<!-- SCRIPT DE SUPORTE INTEGRADO PARA CORRIGIR AS ABAS E O CHAT IMEDIATAMENTE -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Correção do Login
+    const loginPage = document.getElementById("loginPage");
+    const loginForm = document.getElementById("loginForm");
+    const btnStartLogin = document.getElementById("btnStartLogin");
+
+    function closeLogin() {
+        if (loginPage) loginPage.classList.remove("active");
+    }
+
+    if (loginForm) loginForm.addEventListener("submit", (e) => { e.preventDefault(); closeLogin(); });
+    if (btnStartLogin) btnStartLogin.addEventListener("click", closeLogin);
+
+    // 2. Menu Lateral e Responsividade Mobile
+    const sidebar = document.getElementById("sidebar");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+    const btnMobileMenu = document.getElementById("btnMobileMenu");
+    const btnCollapseSidebar = document.getElementById("btnCollapseSidebar");
+
+    function toggleSidebar() {
+        if (sidebar) sidebar.classList.toggle("active");
+        if (sidebarOverlay) sidebarOverlay.classList.toggle("active");
+    }
+
+    if (btnMobileMenu) btnMobileMenu.addEventListener("click", toggleSidebar);
+    if (btnCollapseSidebar) btnCollapseSidebar.addEventListener("click", toggleSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener("click", toggleSidebar);
+
+    // 3. Sistema de Abas Funcional (Menu e Módulos do Dashboard)
+    const navLinks = document.querySelectorAll("#sidebarNav a, .module-grid .module");
+    const views = document.querySelectorAll(".workspace-view");
+
+    function switchView(targetName) {
+        views.forEach(view => {
+            view.style.display = "none";
+            view.classList.remove("active");
+        });
+
+        const targetSection = document.getElementById(targetName + "Section") || document.getElementById("dashboardSection");
+        if (targetSection) {
+            targetSection.style.display = "block";
+            targetSection.classList.add("active");
+        }
+
+        // Atualiza classe active no menu lateral
+        document.querySelectorAll("#sidebarNav a").forEach(nav => {
+            if (nav.getAttribute("data-target") === targetName) {
+                nav.classList.add("active");
+            } else {
+                nav.classList.remove("active");
+            }
+        });
+
+        if (window.innerWidth <= 992 && sidebar) {
+            sidebar.classList.remove("active");
+            if (sidebarOverlay) sidebarOverlay.classList.remove("active");
+        }
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+            const target = link.getAttribute("data-target") || link.getAttribute("data-action");
+            if (target) {
+                e.preventDefault();
+                switchView(target);
+            }
+        });
+    });
+
+    // 4. Modais
+    const modalNewProject = document.getElementById("modalNewProject");
+    const modalNewAgent = document.getElementById("modalNewAgent");
+    const btnNewProject = document.getElementById("btnNewProject");
+    const btnNewAgent = document.getElementById("btnNewAgent");
+
+    if (btnNewProject && modalNewProject) btnNewProject.addEventListener("click", () => modalNewProject.style.display = "flex");
+    if (btnNewAgent && modalNewAgent) btnNewAgent.addEventListener("click", () => modalNewAgent.style.display = "flex");
+
+    document.querySelectorAll("[data-close]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const modalId = btn.getAttribute("data-close");
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "none";
+        });
+    });
+
+    // 5. Chat Organizado
+    const chatInput = document.getElementById("chatInput");
+    const btnSend = document.getElementById("btnSend");
+    const chatMessages = document.getElementById("chatMessages");
+    const welcomeBox = document.getElementById("welcomeBox");
+
+    function sendMessage() {
+        if (!chatInput) return;
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        if (welcomeBox) welcomeBox.style.display = "none";
+
+        const userMsg = document.createElement("div");
+        userMsg.style.cssText = "display: flex; justify-content: flex-end; margin-bottom: 12px;";
+        userMsg.innerHTML = `<div style="background: #2563eb; color: #fff; padding: 12px 16px; border-radius: 14px; max-width: 75%; font-size: 14px;">${text}</div>`;
+        chatMessages.appendChild(userMsg);
+
+        chatInput.value = "";
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        setTimeout(() => {
+            const aiMsg = document.createElement("div");
+            aiMsg.style.cssText = "display: flex; justify-content: flex-start; margin-bottom: 12px;";
+            aiMsg.innerHTML = `<div style="background: #1e293b; color: #fff; padding: 12px 16px; border-radius: 14px; max-width: 75%; border: 1px solid #334155; font-size: 14px;">Processado com sucesso pela arquitetura da Honey IA.</div>`;
+            chatMessages.appendChild(aiMsg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 500);
+    }
+
+    if (btnSend) btnSend.addEventListener("click", sendMessage);
+    if (chatInput) {
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
+});
+</script>
 
 </body>
 
