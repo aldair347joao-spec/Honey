@@ -1048,15 +1048,15 @@ body {
     line-height: 1.7;
 }
 
-/* Estilização corrigida para o prompt-box com suporte aos botões attach, voice, mode-switch e send */
+/* Estilização otimizada e limpa para o prompt-box em Mobile/Desktop */
 .prompt-box {
     background: rgba(255, 255, 255, .05);
     border: 1px solid var(--border);
     border-radius: 22px;
-    padding: 12px 18px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     margin-top: 20px;
     transition: var(--transition);
 }
@@ -1073,8 +1073,9 @@ body {
     outline: none;
     color: white;
     resize: none;
-    height: 45px;
-    font-size: 15px;
+    height: 44px;
+    min-width: 120px;
+    font-size: 14px;
     padding-top: 10px;
 }
 
@@ -1082,9 +1083,9 @@ body {
 .prompt-box .attach,
 .prompt-box .voice,
 .prompt-box .send {
-    width: 45px;
-    height: 45px;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     border: none;
     background: rgba(255, 255, 255, .08);
     color: white;
@@ -1093,7 +1094,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 15px;
+    flex-shrink: 0;
 }
 
 .prompt-box button:hover,
@@ -1334,12 +1336,58 @@ body {
 
 @media (max-width: 768px) {
     .dashboard, .workspace-container {
-        padding: 20px 15px;
+        padding: 15px 12px;
     }
     .module-grid, .plans-grid, .stats-grid {
         grid-template-columns: 1fr;
     }
+    
+    /* Correção de tamanhos exagerados em mobile */
+    .hero {
+        padding: 25px 20px;
+        min-height: auto;
+    }
+    .hero h1 {
+        font-size: 28px;
+        line-height: 1.2;
+    }
+    .hero p {
+        font-size: 14px;
+    }
+    .hero-image {
+        display: none; /* Esconde a imagem flutuante grande em mobile para poupar espaço */
+    }
+    
+    .workspace-card {
+        padding: 20px 15px;
+        min-height: 450px;
+    }
+    .workspace-welcome h2 {
+        font-size: 24px;
+    }
+    .workspace-welcome p {
+        font-size: 14px;
+    }
+
+    /* Correção compacta e organizada da caixa de chat / prompt em telemóveis */
     .prompt-box {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        gap: 6px;
+        padding: 8px 10px;
+        border-radius: 16px;
+    }
+    .prompt-box textarea {
+        font-size: 14px;
+        height: 38px;
+        padding-top: 6px;
+    }
+    .prompt-box button,
+    .prompt-box .attach,
+    .prompt-box .voice,
+    .prompt-box .send {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 13px;
     }
 }
