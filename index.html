@@ -3,263 +3,1288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA - Plataforma de Inteligência Artificial Corporativa</title>
+
+    <title>Honey IA — Inteligência Artificial para Empresas</title>
+
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
 </head>
+
 <body>
-    <div class="app-container" id="appContainer">
-        <!-- Overlay para fechar o menu no telemóvel -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-        <!-- Menu Lateral -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <i class="fa-solid fa-hexagon-nodes"></i>
-                    <span>Honey IA</span>
-                </div>
-                <button class="close-sidebar-btn" id="closeSidebarBtn" title="Fechar Menu">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+<div class="honey-app">
+
+
+    <!-- ==============================
+         MENU LATERAL PREMIUM
+    =============================== -->
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+    <aside class="honey-sidebar" id="sidebar">
+
+
+        <div class="sidebar-brand">
+
+            <div class="brand-icon">
+                <i class="fa-solid fa-hexagon-nodes"></i>
             </div>
-            
-            <nav class="sidebar-nav">
-                <a href="#chat" class="nav-item active" data-tab="chat">
-                    <i class="fa-solid fa-comments"></i>
-                    <span>Chat Principal</span>
-                </a>
-                <a href="#agents" class="nav-item" data-tab="agents">
-                    <i class="fa-solid fa-robot"></i>
-                    <span>Agentes Corporativos</span>
-                </a>
-                <a href="#plans" class="nav-item" data-tab="plans">
-                    <i class="fa-solid fa-crown"></i>
-                    <span>Planos & Assinaturas</span>
-                </a>
-                <a href="#analytics" class="nav-item" data-tab="analytics">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Análises & Dados</span>
-                </a>
-                <a href="#settings" class="nav-item" data-tab="settings">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Configurações</span>
-                </a>
-            </nav>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="user-avatar">AD</div>
-                    <div class="user-info">
-                        <span class="user-name">Administrador</span>
-                        <span class="user-plan">Empresa Pro</span>
-                    </div>
-                </div>
+            <div class="brand-text">
+                <strong>Honey IA</strong>
+                <span>Enterprise Intelligence</span>
             </div>
-        </aside>
 
-        <!-- Conteúdo Principal -->
-        <main class="main-content">
-            <!-- Topbar com botão para abrir o menu em dispositivos móveis -->
-            <header class="topbar">
-                <div class="topbar-left">
-                    <button class="icon-btn mobile-menu-toggle" id="mobileMenuToggle" title="Abrir Menu">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="topbar-title">
-                        <h1 id="pageTitle">Assistente Inteligente</h1>
-                    </div>
-                </div>
-                <div class="topbar-actions">
-                    <button class="icon-btn" title="Notificações"><i class="fa-regular fa-bell"></i></button>
-                    <button class="icon-btn" title="Ajuda"><i class="fa-regular fa-circle-question"></i></button>
-                </div>
-            </header>
+        </div>
 
-            <!-- Área de Abas / Conteúdo Dinâmico -->
-            <div class="content-body">
-                
-                <!-- ABA 1: CHAT PRINCIPAL -->
-                <div id="tab-chat" class="tab-pane active">
-                    <div class="chat-wrapper-clean">
-                        <div class="chat-hero">
-                            <h2>Bem-vindo ao Núcleo de Inteligência Honey IA</h2>
-                            <p>Análise avançada de documentos, suporte técnico especializado e automação de fluxos corporativos para o mercado angolano.</p>
-                        </div>
 
-                        <div class="chat-container-premium">
-                            <div class="chat-messages" id="chatMessages">
-                                <div class="message ai-message">
-                                    <div class="msg-avatar"><i class="fa-solid fa-hexagon-nodes"></i></div>
-                                    <div class="msg-content">
-                                        <p>Olá! Sou a Honey IA, o teu sistema corporativo de inteligência artificial. Como posso ajudar a otimizar os processos da tua empresa hoje?</p>
-                                        <span class="msg-time">Agora mesmo</span>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="chat-input-area">
-                                <div class="input-toolbar">
-                                    <button class="tool-action-btn" title="Anexar Documento"><i class="fa-solid fa-paperclip"></i></button>
-                                    <button class="tool-action-btn" title="Ativar Pesquisa Web"><i class="fa-solid fa-globe"></i></button>
-                                    <button class="tool-action-btn" title="Modo Especialista"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-                                </div>
-                                <div class="input-box-wrapper">
-                                    <textarea id="chatInput" placeholder="Escreve o teu prompt ou comando analítico..." rows="1"></textarea>
-                                    <button id="sendBtn" class="send-btn" title="Enviar Mensagem"><i class="fa-solid fa-arrow-up"></i></button>
-                                </div>
-                                <div class="input-footer-note">
-                                    <span>Honey IA - Processamento seguro de dados para negócios.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <nav class="sidebar-menu">
 
-                <!-- ABA 2: AGENTES CORPORATIVOS -->
-                <div id="tab-agents" class="tab-pane">
-                    <div class="agents-section-header">
-                        <h2>Agentes de IA Especializados</h2>
-                        <p>Seleciona e configura agentes autónomos para tarefas específicas do teu negócio.</p>
-                    </div>
-                    <div class="agents-grid">
-                        <div class="agent-card">
-                            <div class="agent-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                            <h3>Analista Fiscal & Contabilístico</h3>
-                            <p>Especializado em relatórios financeiros, conformidade e auditoria de documentos corporativos.</p>
-                            <button class="btn-secondary">Configurar Agente</button>
-                        </div>
-                        <div class="agent-card">
-                            <div class="agent-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-                            <h3>Consultor Jurídico</h3>
-                            <p>Revisão de contratos, termos legais e verificação de conformidade regulatória em Angola.</p>
-                            <button class="btn-secondary">Configurar Agente</button>
-                        </div>
-                        <div class="agent-card">
-                            <div class="agent-icon"><i class="fa-solid fa-headset"></i></div>
-                            <h3>Suporte ao Cliente & Vendas</h3>
-                            <p>Gestão automatizada de leads, atendimento multicanal e integração com canais comerciais.</p>
-                            <button class="btn-secondary">Configurar Agente</button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ABA 3: PLANOS & ASSINATURAS -->
-                <div id="tab-plans" class="tab-pane">
-                    <div class="plans-header">
-                        <h2>Planos Corporativos Honey IA</h2>
-                        <p>Escolhe o nível de potência e escalabilidade ideal para a tua empresa em Angola.</p>
-                    </div>
-                    <div class="pricing-grid">
-                        <div class="pricing-card">
-                            <h3>Starter Business</h3>
-                            <div class="price"><span>Kz</span> 75.000<span>/mês</span></div>
-                            <p>Ideal para pequenas equipas a iniciar a automação digital.</p>
-                            <ul>
-                                <li><i class="fa-solid fa-check"></i> 3 Agentes Ativos</li>
-                                <li><i class="fa-solid fa-check"></i> 5.000 requisições mensais</li>
-                                <li><i class="fa-solid fa-check"></i> Suporte por Email</li>
-                            </ul>
-                            <button class="btn-secondary">Selecionar Plano</button>
-                        </div>
-                        <div class="pricing-card featured">
-                            <div class="badge-popular">Mais Popular</div>
-                            <h3>Enterprise Pro</h3>
-                            <div class="price"><span>Kz</span> 220.000<span>/mês</span></div>
-                            <p>Potência máxima para empresas em rápido crescimento e alta demanda.</p>
-                            <ul>
-                                <li><i class="fa-solid fa-check"></i> Agentes Ilimitados</li>
-                                <li><i class="fa-solid fa-check"></i> Requisições Ilimitadas</li>
-                                <li><i class="fa-solid fa-check"></i> Análise Avançada de Documentos</li>
-                                <li><i class="fa-solid fa-check"></i> Suporte Prioritário 24/7</li>
-                            </ul>
-                            <button class="btn-primary">Assinar Agora</button>
-                        </div>
-                    </div>
-                </div>
+            <a href="#home" class="menu-link active">
 
-                <!-- ABA 4: ANÁLISES -->
-                <div id="tab-analytics" class="tab-pane">
-                    <div class="placeholder-pane">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <h3>Painel de Métricas e Performance</h3>
-                        <p>Acompanha o desempenho dos teus agentes e o volume de dados processados em tempo real.</p>
-                    </div>
-                </div>
+                <i class="fa-solid fa-house"></i>
 
-                <!-- ABA 5: CONFIGURAÇÕES -->
-                <div id="tab-settings" class="tab-pane">
-                    <div class="placeholder-pane">
-                        <i class="fa-solid fa-gear"></i>
-                        <h3>Configurações do Sistema</h3>
-                        <p>Gere chaves de API, utilizadores da organização e preferências de segurança.</p>
-                    </div>
-                </div>
+                <span>Início</span>
+
+            </a>
+
+
+            <a href="agents.html" class="menu-link">
+
+                <i class="fa-solid fa-robot"></i>
+
+                <span>Agentes de IA</span>
+
+            </a>
+
+
+
+            <a href="projects.html" class="menu-link">
+
+                <i class="fa-solid fa-layer-group"></i>
+
+                <span>Projetos</span>
+
+            </a>
+
+
+
+            <a href="plans.html" class="menu-link">
+
+                <i class="fa-solid fa-crown"></i>
+
+                <span>Planos</span>
+
+            </a>
+
+
+
+            <a href="history.html" class="menu-link">
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                <span>Histórico</span>
+
+            </a>
+
+
+
+            <a href="terms.html" class="menu-link">
+
+                <i class="fa-solid fa-file-contract"></i>
+
+                <span>Termos de Uso</span>
+
+            </a>
+
+
+        </nav>
+
+
+
+        <div class="sidebar-bottom">
+
+
+            <a href="login.html" class="login-link">
+
+                <i class="fa-solid fa-right-to-bracket"></i>
+
+                Entrar
+
+            </a>
+
+
+
+            <a href="register.html" class="register-button">
+
+                Criar Conta
+
+            </a>
+
+
+        </div>
+
+
+    </aside>
+
+
+
+
+
+    <!-- ==============================
+            CONTEÚDO PRINCIPAL
+    =============================== -->
+
+
+    <main class="main-page">
+
+
+
+        <!-- HEADER -->
+
+
+        <header class="top-header">
+
+
+            <button class="menu-toggle" id="menuToggle">
+
+
+                <span></span>
+
+                <span></span>
+
+
+            </button>
+
+
+
+            <div class="header-logo">
+
+                <span>Honey IA</span>
 
             </div>
-        </main>
-    </div>
 
-    <script>
-        // Sistema de navegação por abas fluido
-        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
-        const pageTitle = document.getElementById('pageTitle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
-        const titles = {
-            chat: 'Assistente Inteligente',
-            agents: 'Agentes Corporativos',
-            plans: 'Planos & Assinaturas',
-            analytics: 'Análises & Dados',
-            settings: 'Configurações'
-        };
 
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetTab = item.getAttribute('data-tab');
+            <div class="header-actions">
 
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
 
-                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-                document.getElementById(`tab-${targetTab}`).classList.add('active');
+                <a href="login.html" class="header-login">
+                    Entrar
+                </a>
 
-                pageTitle.textContent = titles[targetTab];
 
-                // Fechar menu automaticamente em telemóvel ao selecionar uma opção
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('open');
-                    sidebarOverlay.classList.remove('active');
-                }
-            });
+
+                <a href="register.html" class="header-register">
+                    Começar agora
+                </a>
+
+
+            </div>
+
+
+        </header>
+
+
+
+
+
+        <!-- ==============================
+                HERO PRINCIPAL
+        =============================== -->
+
+
+        <section class="hero-section" id="home">
+
+
+            <div class="hero-content">
+
+
+                <span class="hero-tag">
+
+                    <i class="fa-solid fa-sparkles"></i>
+
+                    Nova geração de inteligência empresarial
+
+                </span>
+
+
+
+                <h1>
+
+                    A inteligência artificial que trabalha pela sua empresa.
+
+                </h1>
+
+
+
+                <p>
+
+                    A Honey IA transforma processos, documentos e operações empresariais
+                    em soluções inteligentes através de agentes especializados de IA.
+
+                </p>
+
+
+
+
+                <div class="hero-buttons">
+
+
+                    <a href="#chat" class="primary-button">
+
+                        Experimentar Honey IA
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+
+
+                    <a href="plans.html" class="secondary-button">
+
+                        Conhecer planos
+
+                    </a>
+
+
+                </div>
+
+
+
+
+            </div>
+
+
+
+
+
+            <div class="hero-visual">
+
+
+                <div class="ai-card">
+
+
+                    <div class="ai-header">
+
+
+                        <div class="ai-logo">
+
+                            <i class="fa-solid fa-hexagon-nodes"></i>
+
+                        </div>
+
+
+
+                        <div>
+
+                            <strong>Honey IA</strong>
+
+                            <span>Online</span>
+
+                        </div>
+
+
+                    </div>
+
+
+
+
+                    <div class="ai-message">
+
+                        Olá. Sou a Honey IA.
+                        Como posso ajudar a sua empresa hoje?
+
+                    </div>
+
+
+
+
+                    <div class="ai-status">
+
+                        <span></span>
+
+                        Inteligência ativa
+
+                    </div>
+
+
+                </div>
+
+
+
+            </div>
+
+
+        </section>        <!-- ==============================
+                CHAT PRINCIPAL HONEY IA
+        =============================== -->
+
+
+        <section class="chat-section" id="chat">
+
+
+            <div class="section-title">
+
+
+                <span>
+
+                    Conversa Inteligente
+
+                </span>
+
+
+
+                <h2>
+
+                    Fale com a Honey IA
+
+                </h2>
+
+
+
+                <p>
+
+                    Tire dúvidas, analise documentos e obtenha apoio inteligente
+                    para as suas tarefas diárias.
+
+                </p>
+
+
+            </div>
+
+
+
+
+
+            <div class="chat-box-premium">
+
+
+
+                <div class="chat-header">
+
+
+                    <div class="chat-brand">
+
+
+                        <div class="chat-icon">
+
+                            <i class="fa-solid fa-hexagon-nodes"></i>
+
+                        </div>
+
+
+
+                        <div>
+
+                            <strong>Honey IA</strong>
+
+                            <span>
+                                Assistente inteligente
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="chat-security">
+
+                        <i class="fa-solid fa-shield-halved"></i>
+
+                        Seguro
+
+                    </div>
+
+
+
+                </div>
+
+
+
+
+
+
+                <div class="chat-messages" id="chatMessages">
+
+
+
+                    <div class="message honey-message">
+
+
+                        <div class="message-avatar">
+
+                            <i class="fa-solid fa-hexagon-nodes"></i>
+
+                        </div>
+
+
+
+                        <div class="message-content">
+
+                            Olá! Eu sou a Honey IA.
+                            Posso ajudar com ideias, documentos,
+                            análises e soluções para o seu negócio.
+
+                            <small>
+                                Agora mesmo
+                            </small>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                </div>
+
+
+
+
+
+
+                <div class="chat-input-area">
+
+
+
+                    <div class="chat-tools">
+
+
+                        <button title="Anexar documento">
+
+                            <i class="fa-solid fa-paperclip"></i>
+
+                        </button>
+
+
+
+                        <button title="Pesquisa inteligente">
+
+                            <i class="fa-solid fa-globe"></i>
+
+                        </button>
+
+
+
+                        <button title="Ferramentas IA">
+
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                        </button>
+
+
+                    </div>
+
+
+
+
+
+                    <div class="input-container">
+
+
+                        <textarea 
+                        id="chatInput"
+                        placeholder="Digite uma mensagem para a Honey IA..."
+                        rows="1"></textarea>
+
+
+
+
+                        <button id="sendBtn">
+
+                            <i class="fa-solid fa-arrow-up"></i>
+
+                        </button>
+
+
+
+                    </div>
+
+
+
+
+                    <small class="privacy-text">
+
+                        A Honey IA protege os seus dados e informações empresariais.
+
+                    </small>
+
+
+
+                </div>
+
+
+
+
+            </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+
+
+        <!-- ==============================
+              PORQUE ESCOLHER HONEY IA
+        =============================== -->
+
+
+
+        <section class="features-section">
+
+
+
+            <div class="section-title">
+
+
+                <span>
+                    Tecnologia empresarial
+                </span>
+
+
+                <h2>
+                    Muito mais que uma IA comum.
+                </h2>
+
+
+                <p>
+                    Uma plataforma criada para empresas que querem
+                    trabalhar de forma mais inteligente.
+                </p>
+
+
+            </div>
+
+
+
+
+
+
+            <div class="features-grid">
+
+
+
+                <article class="feature-card">
+
+
+                    <div class="feature-icon">
+
+                        <i class="fa-solid fa-building"></i>
+
+                    </div>
+
+
+                    <h3>
+
+                        Feita para empresas
+
+                    </h3>
+
+
+                    <p>
+
+                        Soluções inteligentes adaptadas para
+                        negócios de todos os tamanhos.
+
+                    </p>
+
+
+                </article>
+
+
+
+
+
+
+                <article class="feature-card">
+
+
+                    <div class="feature-icon">
+
+                        <i class="fa-solid fa-brain"></i>
+
+                    </div>
+
+
+                    <h3>
+
+                        Inteligência especializada
+
+                    </h3>
+
+
+                    <p>
+
+                        Agentes preparados para diferentes
+                        áreas profissionais.
+
+                    </p>
+
+
+                </article>
+
+
+
+
+
+
+                <article class="feature-card">
+
+
+                    <div class="feature-icon">
+
+                        <i class="fa-solid fa-chart-line"></i>
+
+                    </div>
+
+
+                    <h3>
+
+                        Mais produtividade
+
+                    </h3>
+
+
+                    <p>
+
+                        Automatize tarefas e permita que
+                        a sua equipa foque no crescimento.
+
+                    </p>
+
+
+                </article>
+
+
+
+            </div>
+
+
+
+        </section> id="n4x7q"
+        <!-- ==============================
+              APRESENTAÇÃO DOS AGENTES IA
+        =============================== -->
+
+
+        <section class="agents-preview" id="agents">
+
+
+            <div class="section-title">
+
+
+                <span>
+                    Funcionários digitais
+                </span>
+
+
+                <h2>
+                    Agentes de IA para cada área da sua empresa.
+                </h2>
+
+
+                <p>
+                    Na Honey IA, cada agente funciona como um colaborador
+                    especializado preparado para executar tarefas específicas.
+                </p>
+
+
+            </div>
+
+
+
+
+
+            <div class="agents-preview-grid">
+
+
+
+                <div class="agent-preview-card">
+
+
+                    <div class="agent-symbol">
+
+                        <i class="fa-solid fa-calculator"></i>
+
+                    </div>
+
+
+
+                    <h3>
+                        Agente Financeiro
+                    </h3>
+
+
+
+                    <p>
+                        Apoio em análises financeiras,
+                        relatórios e organização empresarial.
+                    </p>
+
+
+                    <a href="agents.html">
+
+                        Conhecer agente
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+
+                </div>
+
+
+
+
+
+
+
+                <div class="agent-preview-card">
+
+
+                    <div class="agent-symbol">
+
+                        <i class="fa-solid fa-scale-balanced"></i>
+
+                    </div>
+
+
+
+                    <h3>
+                        Agente Jurídico
+                    </h3>
+
+
+
+                    <p>
+                        Ajuda na análise de documentos,
+                        contratos e informações legais.
+                    </p>
+
+
+                    <a href="agents.html">
+
+                        Conhecer agente
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+
+                </div>
+
+
+
+
+
+
+
+
+                <div class="agent-preview-card">
+
+
+                    <div class="agent-symbol">
+
+                        <i class="fa-solid fa-bullhorn"></i>
+
+                    </div>
+
+
+
+                    <h3>
+                        Agente Marketing
+                    </h3>
+
+
+
+                    <p>
+                        Criação de estratégias, conteúdos
+                        e ideias para crescimento.
+                    </p>
+
+
+                    <a href="agents.html">
+
+                        Conhecer agente
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+        </section>
+
+
+
+
+
+
+
+
+
+        <!-- ==============================
+                    PLANOS
+        =============================== -->
+
+
+        <section class="plans-preview" id="plans">
+
+
+            <div class="section-title">
+
+
+                <span>
+                    Subscrições
+                </span>
+
+
+                <h2>
+                    Escolha o nível de inteligência ideal.
+                </h2>
+
+
+                <p>
+                    Tenha acesso a mais capacidades da Honey IA
+                    conforme o crescimento da sua empresa.
+                </p>
+
+
+            </div>
+
+
+
+
+
+            <div class="plans-grid">
+
+
+
+                <div class="plan-card">
+
+
+                    <h3>
+                        Gratuito
+                    </h3>
+
+
+                    <div class="plan-price">
+
+                        0 Kz
+
+                        <span>
+                            /mês
+                        </span>
+
+                    </div>
+
+
+
+                    <p>
+                        Para conhecer a Honey IA
+                        e conversar com a assistente.
+                    </p>
+
+
+
+                    <ul>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Conversa com Honey IA
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Recursos básicos
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            1 projeto
+                        </li>
+
+
+                    </ul>
+
+
+
+                    <a href="register.html" class="plan-button">
+
+                        Começar
+
+                    </a>
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+                <div class="plan-card featured-plan">
+
+
+                    <div class="popular-label">
+
+                        Mais escolhido
+
+                    </div>
+
+
+
+                    <h3>
+                        Individual
+                    </h3>
+
+
+                    <div class="plan-price">
+
+                        15.000 Kz
+
+                        <span>
+                            /mês
+                        </span>
+
+                    </div>
+
+
+
+                    <p>
+                        Para profissionais que querem
+                        maior produtividade.
+                    </p>
+
+
+
+                    <ul>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Acesso a agentes IA
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Projetos avançados
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Exportação de trabalhos
+                        </li>
+
+
+                    </ul>
+
+
+
+                    <a href="plans.html" class="plan-button">
+
+                        Subscrever
+
+                    </a>
+
+
+                </div>
+
+
+
+
+
+
+
+
+                <div class="plan-card">
+
+
+                    <h3>
+                        Empresarial
+                    </h3>
+
+
+                    <div class="plan-price">
+
+                        400.000 Kz
+
+                        <span>
+                            /mês
+                        </span>
+
+                    </div>
+
+
+
+                    <p>
+                        Para empresas que precisam
+                        de inteligência em escala.
+                    </p>
+
+
+
+                    <ul>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Agentes personalizados
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Equipas empresariais
+                        </li>
+
+
+                        <li>
+                            <i class="fa-solid fa-check"></i>
+                            Suporte premium
+                        </li>
+
+
+                    </ul>
+
+
+
+                    <a href="plans.html" class="plan-button">
+
+                        Contactar
+
+                    </a>
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+        </section>        <!-- ==============================
+                    RODAPÉ
+        =============================== -->
+
+
+        <footer class="honey-footer">
+
+
+            <div class="footer-brand">
+
+
+                <strong>
+                    Honey IA
+                </strong>
+
+
+                <p>
+                    Inteligência artificial criada para
+                    transformar empresas e pessoas.
+                </p>
+
+
+            </div>
+
+
+
+
+            <div class="footer-links">
+
+
+                <a href="terms.html">
+                    Termos de Uso
+                </a>
+
+
+                <a href="privacy.html">
+                    Privacidade
+                </a>
+
+
+                <a href="contact.html">
+                    Contacto
+                </a>
+
+
+            </div>
+
+
+
+
+            <div class="footer-copy">
+
+                © 2026 Honey IA. Todos os direitos reservados.
+
+            </div>
+
+
+
+        </footer>
+
+
+
+
+    </main>
+
+
+
+</div>
+
+
+
+
+
+
+
+<!-- ==============================
+        JAVASCRIPT INTERFACE
+=============================== -->
+
+
+<script>
+
+
+const sidebar = document.getElementById("sidebar");
+
+const overlay = document.getElementById("sidebarOverlay");
+
+const menuToggle = document.getElementById("menuToggle");
+
+
+
+
+
+menuToggle.addEventListener("click", () => {
+
+
+    sidebar.classList.toggle("open");
+
+    overlay.classList.toggle("active");
+
+
+});
+
+
+
+
+
+overlay.addEventListener("click", () => {
+
+
+    sidebar.classList.remove("open");
+
+    overlay.classList.remove("active");
+
+
+});
+
+
+
+
+
+
+
+/*
+    Ajuste automático da caixa de mensagem
+*/
+
+
+const textarea = document.getElementById("chatInput");
+
+
+
+if(textarea){
+
+
+textarea.addEventListener("input", function(){
+
+
+    this.style.height = "auto";
+
+    this.style.height = this.scrollHeight + "px";
+
+
+});
+
+
+}
+
+
+
+
+
+
+
+/*
+    Animação simples dos links do menu
+*/
+
+
+const menuLinks = document.querySelectorAll(".menu-link");
+
+
+
+menuLinks.forEach(link => {
+
+
+    link.addEventListener("click", () => {
+
+
+        menuLinks.forEach(item => {
+
+            item.classList.remove("active");
+
         });
 
-        // Controlo do menu em mobile
-        mobileMenuToggle.addEventListener('click', () => {
-            sidebar.classList.add('open');
-            sidebarOverlay.classList.add('active');
-        });
 
-        closeSidebarBtn.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('active');
-        });
+        link.classList.add("active");
 
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('active');
-        });
 
-        // Auto-resize textarea do chat
-        const chatInput = document.getElementById('chatInput');
-        chatInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-    </script>
+    });
+
+
+});
+
+
+
+</script>
+
+
+
 </body>
+
 </html>
