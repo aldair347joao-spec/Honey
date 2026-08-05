@@ -9,9 +9,8 @@
 
 
 <title>
-Honey IA — Agents Studio
+Honey IA — Agents Workspace
 </title>
-
 
 
 <link rel="stylesheet" href="style.css">
@@ -19,18 +18,15 @@ Honey IA — Agents Studio
 <link rel="stylesheet" href="agents.css">
 
 
-
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+rel="stylesheet">
 
 
 </head>
-
 
 
 <body>
@@ -39,14 +35,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 <div class="agents-app">
 
 
-
 <!-- =========================
-OVERLAY MOBILE
+BACKGROUND
 ========================= -->
 
 
+<div class="background-grid"></div>
+
+<div class="light-orb orb-one"></div>
+
+<div class="light-orb orb-two"></div>
+
+
+
+
+
+
+<!-- MOBILE OVERLAY -->
+
+
 <div 
-class="sidebar-overlay" 
+class="sidebar-overlay"
 id="sidebarOverlay">
 </div>
 
@@ -62,7 +71,7 @@ SIDEBAR
 
 
 <aside 
-class="honey-sidebar" 
+class="honey-sidebar"
 id="sidebar">
 
 
@@ -87,7 +96,7 @@ Honey IA
 
 
 <span>
-Agents Intelligence Studio
+AI Agents Workspace
 </span>
 
 
@@ -95,7 +104,6 @@ Agents Intelligence Studio
 
 
 </div>
-
 
 
 
@@ -109,18 +117,13 @@ Agents Intelligence Studio
 
 <a href="index.html" class="menu-link">
 
-
 <i class="fa-solid fa-house"></i>
-
 
 <span>
 Início
 </span>
 
-
 </a>
-
-
 
 
 
@@ -128,18 +131,13 @@ Início
 
 <a href="agents.html" class="menu-link active">
 
-
 <i class="fa-solid fa-robot"></i>
-
 
 <span>
 Agentes IA
 </span>
 
-
 </a>
-
-
 
 
 
@@ -147,18 +145,13 @@ Agentes IA
 
 <a href="projects.html" class="menu-link">
 
-
 <i class="fa-solid fa-layer-group"></i>
-
 
 <span>
 Projetos
 </span>
 
-
 </a>
-
-
 
 
 
@@ -166,18 +159,13 @@ Projetos
 
 <a href="plans.html" class="menu-link">
 
-
 <i class="fa-solid fa-crown"></i>
-
 
 <span>
 Planos
 </span>
 
-
 </a>
-
-
 
 
 
@@ -185,14 +173,11 @@ Planos
 
 <a href="history.html" class="menu-link">
 
-
 <i class="fa-solid fa-clock-rotate-left"></i>
-
 
 <span>
 Histórico
 </span>
-
 
 </a>
 
@@ -200,18 +185,13 @@ Histórico
 
 
 
-
-
 <a href="terms.html" class="menu-link">
 
-
 <i class="fa-solid fa-file-contract"></i>
-
 
 <span>
 Termos
 </span>
-
 
 </a>
 
@@ -226,15 +206,51 @@ Termos
 
 
 
-<div class="sidebar-bottom">
+<div class="sidebar-premium-card">
 
+
+<div class="premium-icon">
+
+<i class="fa-solid fa-bolt"></i>
+
+</div>
+
+
+
+<div>
+
+
+<strong>
+Honey Pro
+</strong>
+
+
+
+<p>
+30+ agentes desbloqueados
+</p>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="sidebar-bottom">
 
 
 <a href="login.html" class="login-link">
 
 
 <i class="fa-solid fa-right-to-bracket"></i>
-
 
 Entrar
 
@@ -259,9 +275,19 @@ Criar conta
 
 
 
+
 </aside>
+
+
+
+
+
+
+
+
+
 <!-- =========================
-MAIN CONTENT
+MAIN WORKSPACE
 ========================= -->
 
 
@@ -272,17 +298,13 @@ MAIN CONTENT
 
 
 
-<!-- =========================
-TOP HEADER
-========================= -->
-
 
 <header class="top-header">
 
 
 
 <button 
-class="menu-toggle" 
+class="menu-toggle"
 id="menuToggle">
 
 
@@ -306,18 +328,20 @@ id="menuToggle">
 
 <div class="mini-logo">
 
+
 <i class="fa-solid fa-hexagon-nodes"></i>
 
+
 </div>
 
 
 
+<span>
 Honey IA
-
+</span>
 
 
 </div>
-
 
 
 
@@ -331,9 +355,7 @@ Honey IA
 
 <a href="index.html" class="header-login">
 
-
 Voltar
-
 
 </a>
 
@@ -343,9 +365,7 @@ Voltar
 
 <a href="register.html" class="header-register">
 
-
 Começar
-
 
 </a>
 
@@ -355,18 +375,8 @@ Começar
 
 
 
-</header>
-
-
-
-
-
-
-
-
-
-<!-- =========================
-AGENTS HERO
+</header><!-- =========================
+AGENTS WORKSPACE HEADER
 ========================= -->
 
 
@@ -380,18 +390,14 @@ AGENTS HERO
 
 
 
+<div class="hero-tag">
+
+<span class="online-dot"></span>
+
+AI Workforce
 
 
-<span class="hero-tag">
-
-
-<i class="fa-solid fa-sparkles"></i>
-
-
-Funcionários digitais inteligentes
-
-
-</span>
+</div>
 
 
 
@@ -401,10 +407,7 @@ Funcionários digitais inteligentes
 
 <h1>
 
-
-Escolha o seu especialista IA
-para cada missão.
-
+A sua equipa de agentes inteligentes.
 
 </h1>
 
@@ -414,16 +417,71 @@ para cada missão.
 
 
 
-
 <p>
 
-
-A Honey IA disponibiliza uma equipa
-de agentes especializados para empresas,
-empreendedores e profissionais.
-
+Escolha um especialista Honey IA para cada tarefa.
+Cada agente possui uma área de conhecimento própria
+para ajudar pessoas, profissionais e empresas.
 
 </p>
+
+
+
+
+
+
+
+<div class="workspace-stats">
+
+
+
+<div>
+
+<strong>
+30+
+</strong>
+
+<span>
+Agentes IA
+</span>
+
+</div>
+
+
+
+
+
+<div>
+
+<strong>
+24/7
+</strong>
+
+<span>
+Disponibilidade
+</span>
+
+</div>
+
+
+
+
+
+<div>
+
+<strong>
+IA
+</strong>
+
+<span>
+Especializada
+</span>
+
+</div>
+
+
+
+</div>
 
 
 
@@ -464,9 +522,7 @@ empreendedores e profissionais.
 
 <strong>
 
-
-30+ Agentes Especializados
-
+Honey AI Workforce
 
 </strong>
 
@@ -474,18 +530,28 @@ empreendedores e profissionais.
 
 
 
-
 <p>
 
-
-Marketing, Financeiro, Jurídico,
-Programação, Design, Negócios e muito mais.
-
+Todos os especialistas digitais
+num único espaço inteligente.
 
 </p>
 
 
 
+<div class="status-online">
+
+
+<span></span>
+
+Sistema online
+
+
+</div>
+
+
+
+
 </div>
 
 
@@ -493,15 +559,13 @@ Programação, Design, Negócios e muito mais.
 
 
 </div>
+
 
 
 
 
 
 </section>
-
-
-
 
 
 
@@ -522,13 +586,20 @@ AGENT MARKETPLACE
 
 
 
-<div class="section-title">
+
+
+<div class="agents-workspace-header">
 
 
 
-<span>
 
-AI Workforce
+
+<div>
+
+
+<span class="section-label">
+
+Biblioteca de agentes
 
 </span>
 
@@ -537,12 +608,9 @@ AI Workforce
 
 
 
-
 <h2>
 
-
-A sua equipa digital está pronta.
-
+Escolha o agente ideal.
 
 </h2>
 
@@ -550,20 +618,142 @@ A sua equipa digital está pronta.
 
 
 
-
-
-
 <p>
 
-
-Selecione um agente abaixo e abra
-um espaço privado de conversa.
-
+Encontre especialistas preparados
+para diferentes áreas profissionais.
 
 </p>
 
 
 
+</div>
+
+
+
+
+
+
+
+<div class="agent-counter">
+
+
+<i class="fa-solid fa-robot"></i>
+
+
+<span>
+
+30 agentes disponíveis
+
+</span>
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<!-- SEARCH + FILTERS -->
+
+
+
+<div class="agent-tools">
+
+
+
+
+
+
+<div class="agent-search">
+
+
+<i class="fa-solid fa-magnifying-glass"></i>
+
+
+
+
+
+<input
+
+type="text"
+
+id="agentSearch"
+
+placeholder="Pesquisar agente..."
+
+>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<div class="agent-filters">
+
+
+
+<button class="filter active">
+
+Todos
+
+</button>
+
+
+
+<button class="filter">
+
+Negócios
+
+</button>
+
+
+
+<button class="filter">
+
+Criatividade
+
+</button>
+
+
+
+<button class="filter">
+
+Tecnologia
+
+</button>
+
+
+
+<button class="filter">
+
+Empresas
+
+</button>
+
+
+
+</div>
+
+
+
+
+
 
 </div>
 
@@ -575,36 +765,36 @@ um espaço privado de conversa.
 
 
 
-<!--
-O agents-ui.js vai inserir aqui
-os 30 agentes automaticamente
--->
-
-
-
-<div 
-id="agentsContainer"
-class="agents-grid">
-
-
-
-</div>
-
-
-
-
-
-
-</section>
 <!-- =========================
-ACTIVE AGENT CHAT STUDIO
+AGENTS GENERATED HERE
 ========================= -->
 
 
-<section 
-id="agentChatStudio"
-class="agent-chat-studio hidden">
+<div
 
+id="agentsContainer"
+
+class="agents-grid">
+
+
+</div>
+
+
+
+
+
+
+
+</section><!-- =========================
+AGENT CHAT WORKSPACE
+========================= -->
+
+
+<section
+
+id="agentChatStudio"
+
+class="agent-chat-studio hidden">
 
 
 
@@ -620,14 +810,17 @@ class="agent-chat-studio hidden">
 
 
 
+
 <div class="selected-agent-info">
 
 
 
 
 
-<div 
+<div
+
 class="selected-agent-avatar"
+
 id="activeEmoji">
 
 
@@ -645,11 +838,17 @@ id="activeEmoji">
 <div>
 
 
+<span class="agent-active-label">
+
+Agente selecionado
+
+</span>
+
+
+
 <h3 id="activeName">
 
-
 Honey Assistant
-
 
 </h3>
 
@@ -658,19 +857,11 @@ Honey Assistant
 
 
 
-<span id="activeRole">
-
+<p id="activeRole">
 
 Assistente Geral IA
 
-
-</span>
-
-
-
-</div>
-
-
+</p>
 
 
 
@@ -681,10 +872,40 @@ Assistente Geral IA
 
 
 
+</div>
 
 
-<button 
+
+
+
+
+
+
+
+<div class="chat-actions">
+
+
+
+<button
+
+class="agent-favorite-btn">
+
+
+<i class="fa-regular fa-star"></i>
+
+
+</button>
+
+
+
+
+
+
+
+<button
+
 class="chat-close-btn"
+
 id="closeAgentChat">
 
 
@@ -695,6 +916,11 @@ Fechar
 
 
 </button>
+
+
+
+</div>
+
 
 
 
@@ -710,13 +936,27 @@ Fechar
 
 
 
+<!-- =========================
+CHAT BODY
+========================= -->
 
-<!-- CHAT MESSAGES -->
 
 
-<div 
+<div
+
+class="agent-chat-body">
+
+
+
+
+
+<div
+
 class="agent-chat-messages"
+
 id="agentMessages">
+
+
 
 
 
@@ -747,9 +987,7 @@ id="agentMessages">
 
 <h4>
 
-
 Olá, sou o seu agente Honey IA.
-
 
 </h4>
 
@@ -757,11 +995,11 @@ Olá, sou o seu agente Honey IA.
 
 
 
+
 <p>
 
-
-Escolha uma tarefa e vamos começar.
-
+Estou pronto para ajudar.
+Envie uma tarefa para começar.
 
 </p>
 
@@ -772,14 +1010,6 @@ Escolha uma tarefa e vamos começar.
 
 
 
-
-</div>
-
-
-
-
-
-
 </div>
 
 
@@ -788,12 +1018,31 @@ Escolha uma tarefa e vamos começar.
 
 
 
+</div>
 
 
-<!-- CHAT INPUT -->
 
 
-<div class="agent-chat-input-area">
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<!-- =========================
+PROMPT AREA
+========================= -->
+
+
+
+<div class="agent-prompt-area">
 
 
 
@@ -804,7 +1053,9 @@ Escolha uma tarefa e vamos começar.
 
 
 
-<button>
+
+
+<button title="Adicionar ficheiro">
 
 
 <i class="fa-solid fa-paperclip"></i>
@@ -816,7 +1067,23 @@ Escolha uma tarefa e vamos começar.
 
 
 
-<button>
+
+
+<button title="Enviar imagem">
+
+
+<i class="fa-solid fa-image"></i>
+
+
+</button>
+
+
+
+
+
+
+
+<button title="Comando de voz">
 
 
 <i class="fa-solid fa-microphone"></i>
@@ -828,13 +1095,18 @@ Escolha uma tarefa e vamos começar.
 
 
 
-<button>
 
 
-<i class="fa-solid fa-image"></i>
+<button title="Ferramentas IA">
+
+
+<i class="fa-solid fa-wand-magic-sparkles"></i>
 
 
 </button>
+
+
+
 
 
 
@@ -854,12 +1126,13 @@ Escolha uma tarefa e vamos começar.
 
 
 
-
 <textarea
 
 id="agentMessageInput"
 
-placeholder="Converse com o seu agente..."
+rows="1"
+
+placeholder="Converse com este agente..."
 
 ></textarea>
 
@@ -869,11 +1142,13 @@ placeholder="Converse com o seu agente..."
 
 
 
-<button 
+
+<button
+
 id="sendAgentMessage">
 
 
-<i class="fa-solid fa-paper-plane"></i>
+<i class="fa-solid fa-arrow-up"></i>
 
 
 </button>
@@ -883,6 +1158,32 @@ id="sendAgentMessage">
 
 
 
+
+</div>
+
+
+
+
+
+
+
+<div class="chat-footer-info">
+
+
+<i class="fa-solid fa-shield-halved"></i>
+
+
+Conversa protegida pela tecnologia Honey IA
+
+
+</div>
+
+
+
+
+
+
+
 </div>
 
 
@@ -892,39 +1193,7 @@ id="sendAgentMessage">
 
 
 
-<p class="chat-security-text">
-
-
-Conversa protegida pela tecnologia Honey IA.
-
-
-</p>
-
-
-
-
-
-</div>
-
-
-
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- =========================
+</section><!-- =========================
 FOOTER
 ========================= -->
 
@@ -939,6 +1208,12 @@ FOOTER
 
 
 
+<div class="footer-logo">
+
+
+<i class="fa-solid fa-hexagon-nodes"></i>
+
+
 <strong>
 
 Honey IA
@@ -946,15 +1221,19 @@ Honey IA
 </strong>
 
 
+</div>
+
+
+
+
 
 
 
 <p>
 
-
-Inteligência artificial para pessoas,
-profissionais e empresas.
-
+Uma plataforma de inteligência artificial
+com agentes especializados para pessoas
+e empresas.
 
 </p>
 
@@ -962,6 +1241,104 @@ profissionais e empresas.
 
 </div>
 
+
+
+
+
+
+
+<div class="footer-links">
+
+
+
+
+
+<div>
+
+
+<h4>
+
+Plataforma
+
+</h4>
+
+
+
+<a href="agents.html">
+
+Agentes IA
+
+</a>
+
+
+
+<a href="projects.html">
+
+Projetos
+
+</a>
+
+
+
+<a href="plans.html">
+
+Planos
+
+</a>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div>
+
+
+<h4>
+
+Empresa
+
+</h4>
+
+
+
+<a href="terms.html">
+
+Termos de Uso
+
+</a>
+
+
+
+<a href="privacy.html">
+
+Privacidade
+
+</a>
+
+
+
+<a href="contact.html">
+
+Contacto
+
+</a>
+
+
+
+</div>
+
+
+
+
+
+
+</div>
 
 
 
@@ -981,7 +1358,10 @@ profissionais e empresas.
 
 
 
+
+
 </footer>
+
 
 
 
@@ -991,8 +1371,17 @@ profissionais e empresas.
 
 
 </div>
+
+
+
+
+
+
+
+
+
 <!-- =========================
-SCRIPTS
+AGENTS SYSTEM
 ========================= -->
 
 
@@ -1004,37 +1393,33 @@ SCRIPTS
 
 
 
+
 <script>
 
 
 /*
-================================
-MENU MOBILE
-================================
+================================================
+MOBILE SIDEBAR
+================================================
 */
 
 
 const sidebar =
 
-document.getElementById(
-    "sidebar"
-);
+document.getElementById("sidebar");
 
 
 
 const overlay =
 
-document.getElementById(
-    "sidebarOverlay"
-);
+document.getElementById("sidebarOverlay");
 
 
 
 const menuToggle =
 
-document.getElementById(
-    "menuToggle"
-);
+document.getElementById("menuToggle");
+
 
 
 
@@ -1043,27 +1428,21 @@ document.getElementById(
 if(menuToggle){
 
 
-menuToggle.addEventListener(
-"click",
-()=>{
+menuToggle.onclick = ()=>{
 
 
-sidebar.classList.toggle(
-"open"
-);
+sidebar.classList.toggle("open");
 
 
-
-overlay.classList.toggle(
-"active"
-);
+overlay.classList.toggle("active");
 
 
-
-});
+};
 
 
 }
+
+
 
 
 
@@ -1073,24 +1452,16 @@ overlay.classList.toggle(
 if(overlay){
 
 
-overlay.addEventListener(
-"click",
-()=>{
+overlay.onclick = ()=>{
 
 
-sidebar.classList.remove(
-"open"
-);
+sidebar.classList.remove("open");
 
 
-
-overlay.classList.remove(
-"active"
-);
+overlay.classList.remove("active");
 
 
-
-});
+};
 
 
 }
@@ -1103,47 +1474,40 @@ overlay.classList.remove(
 
 
 
+
+
 /*
-================================
-FECHAR CHAT DO AGENTE
-================================
+================================================
+CLOSE AGENT CHAT
+================================================
 */
 
 
-const closeChat =
+const closeAgentChat =
 
-document.getElementById(
-"closeAgentChat"
-);
+document.getElementById("closeAgentChat");
 
 
 
-const chatStudio =
+const agentChatStudio =
 
-document.getElementById(
-"agentChatStudio"
-);
+document.getElementById("agentChatStudio");
 
 
 
 
 
 
-if(closeChat){
+if(closeAgentChat){
 
 
-closeChat.addEventListener(
-"click",
-()=>{
+closeAgentChat.onclick = ()=>{
 
 
-chatStudio.classList.add(
-"hidden"
-);
+agentChatStudio.classList.add("hidden");
 
 
-
-});
+};
 
 
 }
@@ -1156,36 +1520,37 @@ chatStudio.classList.add(
 
 
 
+
+
+
 /*
-================================
-EVENTO AGENTE SELECIONADO
-================================
+================================================
+OPEN AGENT EVENT
+Mantém compatibilidade
+com agents-ui.js
+================================================
 */
 
 
 document.addEventListener(
+
 "agent-studio-open",
+
 (event)=>{
 
 
-const chat =
 
-document.getElementById(
-"agentChatStudio"
-);
+if(agentChatStudio){
 
 
 
-if(chat){
-
-
-chat.classList.remove(
+agentChatStudio.classList.remove(
 "hidden"
 );
 
 
 
-chat.scrollIntoView({
+agentChatStudio.scrollIntoView({
 
 behavior:"smooth",
 
@@ -1194,11 +1559,14 @@ block:"center"
 });
 
 
+
 }
 
 
 
-});
+}
+
+);
 
 
 
@@ -1209,13 +1577,13 @@ block:"center"
 
 
 /*
-================================
-CHAT SIMPLES LOCAL
-================================
+================================================
+LOCAL CHAT INTERFACE
+================================================
 */
 
 
-const sendButton =
+const sendAgentMessage =
 
 document.getElementById(
 "sendAgentMessage"
@@ -1223,7 +1591,7 @@ document.getElementById(
 
 
 
-const input =
+const agentInput =
 
 document.getElementById(
 "agentMessageInput"
@@ -1231,7 +1599,7 @@ document.getElementById(
 
 
 
-const messages =
+const agentMessages =
 
 document.getElementById(
 "agentMessages"
@@ -1243,22 +1611,19 @@ document.getElementById(
 
 
 
-function addMessage(
-text,
-type
-){
+
+
+function addAgentMessage(text,type){
 
 
 
-const div =
+const message =
 
-document.createElement(
-"div"
-);
+document.createElement("div");
 
 
 
-div.className =
+message.className =
 
 type === "user"
 
@@ -1272,20 +1637,33 @@ type === "user"
 
 
 
-div.textContent = text;
 
 
 
-messages.appendChild(
-div
-);
+
+message.innerHTML = `
+
+<div class="message-content">
+
+${text}
+
+</div>
+
+`;
 
 
 
-messages.scrollTop =
 
-messages.scrollHeight;
 
+
+
+agentMessages.appendChild(message);
+
+
+
+agentMessages.scrollTop =
+
+agentMessages.scrollHeight;
 
 
 }
@@ -1298,19 +1676,17 @@ messages.scrollHeight;
 
 
 
-if(sendButton){
+
+if(sendAgentMessage){
 
 
-sendButton.addEventListener(
-"click",
-()=>{
+sendAgentMessage.onclick = ()=>{
 
 
 
 const text =
 
-input.value.trim();
-
+agentInput.value.trim();
 
 
 
@@ -1321,26 +1697,29 @@ if(!text) return;
 
 
 
-addMessage(
+addAgentMessage(
+
 text,
+
 "user"
+
 );
 
 
 
-input.value = "";
+
+agentInput.value="";
 
 
 
 
 
-setTimeout(
-()=>{
+setTimeout(()=>{
 
 
-addMessage(
+addAgentMessage(
 
-"Estou a analisar a sua solicitação. Em breve vou responder com uma solução personalizada.",
+"Estou a processar a sua solicitação com inteligência especializada Honey IA.",
 
 "ai"
 
@@ -1348,60 +1727,74 @@ addMessage(
 
 
 
-},
-700
+},700);
+
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+if(agentInput){
+
+
+
+agentInput.addEventListener(
+
+"keydown",
+
+(e)=>{
+
+
+
+if(
+e.key==="Enter"
+&&
+!e.shiftKey
+){
+
+
+e.preventDefault();
+
+
+sendAgentMessage.click();
+
+
+}
+
+
+
+}
+
+
+
 );
 
 
 
-
-});
-
-
 }
 
 
 
-
-
-
-
-
-if(input){
-
-
-input.addEventListener(
-"keydown",
-(event)=>{
-
-
-if(
-event.key === "Enter"
-&&
-!event.shiftKey
-){
-
-
-event.preventDefault();
-
-
-
-sendButton.click();
-
-
-
-}
-
-
-
-});
-
-
-}
 
 
 
 </script>
+
+
+
+
 
 
 
