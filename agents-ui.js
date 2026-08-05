@@ -1,9 +1,9 @@
 /*
-==========================================
+==================================================
 HONEY IA
-AGENTS UI CONTROLLER V2.0
+AGENTS UI CONTROLLER V3.0
 Premium Agent Marketplace
-==========================================
+==================================================
 */
 
 
@@ -13,16 +13,31 @@ import liveclient from "./liveclient.js";
 
 
 
+
+
 class AgentsUI {
+
 
 
     constructor(){
 
+
         this.container = null;
+
 
         this.search = "";
 
+
         this.category = "Todos";
+
+
+        this.categories = [
+            "Todos",
+            "Negócios",
+            "Criativos",
+            "Técnicos"
+        ];
+
 
     }
 
@@ -30,7 +45,10 @@ class AgentsUI {
 
 
 
+
+
     init(containerId){
+
 
 
         this.container =
@@ -45,21 +63,38 @@ class AgentsUI {
 
 
 
+
+
+
         if(!this.container){
 
+
             console.error(
-                "Agents UI container não encontrado."
+
+                "Agents UI: container não encontrado."
+
             );
 
+
             return;
+
 
         }
 
 
 
+
+
+
+
         this.render();
 
+
+
     }
+
+
+
 
 
 
@@ -69,47 +104,82 @@ class AgentsUI {
     render(){
 
 
-        const allAgents = agents.getAll();
+
+        const allAgents =
+
+        agents.getAll();
+
+
+
+
 
 
 
         this.container.innerHTML = `
 
 
+
         <div class="agent-studio">
+
+
 
 
 
             <header class="agent-market-header">
 
 
-                <div>
+
+
+
+                <div class="market-title">
+
+
+
 
 
                     <span class="market-badge">
 
-                    <i class="fa-solid fa-sparkles"></i>
 
-                    Honey Intelligence
+                        <i class="fa-solid fa-sparkles"></i>
+
+
+                        Honey Intelligence
+
 
                     </span>
 
 
 
+
+
+
+
                     <h2>
 
+
                     Agents Studio
+
 
                     </h2>
 
 
 
+
+
+
+
                     <p>
 
-                    Escolha especialistas digitais
-                    preparados para empresas e profissionais.
+
+                    Especialistas digitais
+                    preparados para empresas,
+                    profissionais e criadores.
+
 
                     </p>
+
+
+
 
 
                 </div>
@@ -124,27 +194,46 @@ class AgentsUI {
 
 
 
+
+
+
             <div class="agent-tools">
+
+
+
+
 
 
                 <div class="agent-search">
 
 
-                    <i class="fa-solid fa-search"></i>
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+
 
 
                     <input
 
+
                     type="text"
+
 
                     id="agentSearch"
 
+
                     placeholder="Pesquisar agente..."
+
 
                     >
 
 
+
+
                 </div>
+
+
+
 
 
 
@@ -154,38 +243,18 @@ class AgentsUI {
                 <div class="agent-filters">
 
 
-                    <button class="filter active">
 
-                    Todos
-
-                    </button>
-
-
-                    <button class="filter">
-
-                    Negócios
-
-                    </button>
-
-
-                    <button class="filter">
-
-                    Criativos
-
-                    </button>
-
-
-                    <button class="filter">
-
-                    Técnicos
-
-                    </button>
+                    ${this.createFilters()}
 
 
 
                 </div>
 
 
+
+
+
+
             </div>
 
 
@@ -193,13 +262,31 @@ class AgentsUI {
 
 
 
-            <div class="agents-grid" id="agentsGrid">
+
+
+
+            <div
+
+
+            class="agents-grid"
+
+
+            id="agentsGrid"
+
+
+
+            >
+
 
 
             ${this.createCards(allAgents)}
 
 
+
             </div>
+
+
+
 
 
 
@@ -207,11 +294,19 @@ class AgentsUI {
         </div>
 
 
+
         `;
 
 
 
+
+
+
+
         this.attachEvents();
+
+
+
 
 
     }
@@ -221,19 +316,98 @@ class AgentsUI {
 
 
 
-    createCards(list){
+
+
+    createFilters(){
+
+
+
+        return this.categories.map(
+
+            (category,index)=>`
+
+
+
+            <button
+
+
+            class="filter ${index===0 ? "active":""}"
+
+
+            >
+
+
+            ${category}
+
+
+            </button>
+
+
+
+            `
+
+
+        ).join("");
+
+
+
+    }    createCards(list){
+
+
+
+        if(!list || list.length === 0){
+
+
+
+            return `
+
+
+            <div class="agent-loading">
+
+
+                <p>
+
+                Nenhum agente encontrado.
+
+                </p>
+
+
+            </div>
+
+
+
+            `;
+
+
+        }
+
+
+
+
+
+
 
 
         return list.map(agent => `
 
 
+
+
+
         <article
+
 
         class="agent-card"
 
+
         data-agent="${agent.id}"
 
+
         >
+
+
+
+
 
 
 
@@ -241,11 +415,17 @@ class AgentsUI {
 
 
 
+
+
                 <div class="agent-avatar">
+
 
                     ${agent.emoji || "🐝"}
 
+
                 </div>
+
+
 
 
 
@@ -254,21 +434,34 @@ class AgentsUI {
                 <div>
 
 
+
                     <h3>
 
+
                     ${agent.name}
+
 
                     </h3>
 
 
+
+
+
                     <span class="agent-role">
 
+
                     ${agent.category || "Especialista IA"}
+
 
                     </span>
 
 
+
+
                 </div>
+
+
+
 
 
 
@@ -278,11 +471,20 @@ class AgentsUI {
 
 
 
+
+
+
+
             <p>
+
 
             ${agent.description}
 
+
             </p>
+
+
+
 
 
 
@@ -292,9 +494,12 @@ class AgentsUI {
             <div class="agent-online">
 
 
+
                 <span></span>
 
+
                 Online agora
+
 
 
             </div>
@@ -303,30 +508,89 @@ class AgentsUI {
 
 
 
+
+
+
+            <div class="agent-tags">
+
+
+
+            ${
+                agent.tags ?
+
+                agent.tags.map(tag=>`
+
+                    <span>
+
+                    ${tag}
+
+                    </span>
+
+                `).join("")
+
+                :
+
+                ""
+
+            }
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
             <button
+
 
             class="agent-open-btn"
 
+
             data-id="${agent.id}"
+
 
             >
 
 
+
             Abrir Studio
 
+
+
             <i class="fa-solid fa-arrow-right"></i>
+
 
 
             </button>
 
 
 
+
+
+
         </article>
+
+
+
 
 
         `).join("");
 
+
+
     }
+
+
+
+
+
+
 
 
 
@@ -334,14 +598,11 @@ class AgentsUI {
 
 
 
-        /*
-        ===============================
-        PESQUISA DE AGENTES
-        ===============================
-        */
+
 
 
         const searchInput =
+
 
         document.getElementById(
             "agentSearch"
@@ -349,24 +610,40 @@ class AgentsUI {
 
 
 
+
+
+
+
         if(searchInput){
 
 
+
             searchInput.addEventListener(
+
                 "input",
+
                 (event)=>{
 
 
+
                     this.search =
+
                     event.target.value
-                    .toLowerCase();
+
+                    .toLowerCase()
+
+                    .trim();
+
+
 
 
 
                     this.updateAgents();
 
 
+
                 }
+
 
             );
 
@@ -379,18 +656,19 @@ class AgentsUI {
 
 
 
-        /*
-        ===============================
-        FILTROS
-        ===============================
-        */
 
 
         const filters =
 
+
         this.container.querySelectorAll(
+
             ".filter"
+
         );
+
+
+
 
 
 
@@ -398,17 +676,30 @@ class AgentsUI {
         filters.forEach(button=>{
 
 
+
             button.addEventListener(
+
                 "click",
+
                 ()=>{
 
 
-                    filters.forEach(
-                        item=>
+
+
+
+
+                    filters.forEach(item=>{
+
+
                         item.classList.remove(
                             "active"
-                        )
-                    );
+                        );
+
+
+                    });
+
+
+
 
 
 
@@ -418,17 +709,29 @@ class AgentsUI {
 
 
 
+
+
+
+
                     this.category =
-                    button.textContent;
+
+                    button.textContent.trim();
+
+
+
 
 
 
                     this.updateAgents();
 
 
+
+
                 }
 
+
             );
+
 
 
         });
@@ -441,42 +744,8 @@ class AgentsUI {
 
 
 
-        /*
-        ===============================
-        ABRIR AGENTE
-        ===============================
-        */
+        this.attachCardEvents();
 
-
-        this.container
-
-        .querySelectorAll(
-            ".agent-open-btn"
-        )
-
-        .forEach(button=>{
-
-
-            button.addEventListener(
-                "click",
-                ()=>{
-
-
-                    const id =
-                    button.dataset.id;
-
-
-
-                    this.openAgent(id);
-
-
-
-                }
-
-            );
-
-
-        });
 
 
 
@@ -495,40 +764,67 @@ class AgentsUI {
 
 
         let list =
+
+
         agents.getAll();
 
 
 
 
-        /*
-        FILTRO POR TEXTO
-        */
+
+
+
 
 
         if(this.search){
 
 
+
             list =
+
+
             list.filter(agent=>{
+
+
+                const name =
+
+                agent.name
+
+                .toLowerCase();
+
+
+
+
+
+                const description =
+
+                agent.description
+
+                .toLowerCase();
+
+
+
 
 
                 return (
 
-                    agent.name
-                    .toLowerCase()
-                    .includes(this.search)
+                    name.includes(
+                        this.search
+                    )
 
                     ||
 
-                    agent.description
-                    .toLowerCase()
-                    .includes(this.search)
+                    description.includes(
+                        this.search
+                    )
 
 
                 );
 
 
+
             });
+
 
 
         }
@@ -539,29 +835,26 @@ class AgentsUI {
 
 
 
-        /*
-        FILTRO POR CATEGORIA
-        */
 
 
-        if(
+        if(this.category !== "Todos"){
 
-        this.category !== "Todos"
-
-        ){
 
 
             list =
+
 
             list.filter(agent=>{
 
 
                 return (
 
-                agent.category ===
-                this.category
+                    agent.category ===
+
+                    this.category
 
                 );
+
 
 
             });
@@ -569,6 +862,8 @@ class AgentsUI {
 
 
         }
+
+
 
 
 
@@ -578,25 +873,38 @@ class AgentsUI {
 
         const grid =
 
+
         document.getElementById(
             "agentsGrid"
         );
 
 
 
+
+
+
+
         if(grid){
+
 
 
             grid.innerHTML =
 
+
             this.createCards(list);
+
+
+
 
 
 
             this.attachCardEvents();
 
 
+
         }
+
+
 
 
 
@@ -613,65 +921,98 @@ class AgentsUI {
 
 
 
-        this.container
+        const buttons =
 
-        .querySelectorAll(
+
+        this.container.querySelectorAll(
+
             ".agent-open-btn"
-        )
 
-        .forEach(button=>{
+        );
+
+
+
+
+
+
+
+        buttons.forEach(button=>{
+
 
 
             button.addEventListener(
+
                 "click",
+
                 ()=>{
 
 
-                    this.openAgent(
-                        button.dataset.id
-                    );
+
+                    const id =
+
+                    button.dataset.id;
+
+
+
+
+
+                    this.openAgent(id);
+
 
 
                 }
 
+
             );
+
 
 
         });
 
 
-    }
 
+    }    async openAgent(agentId){
 
-
-
-
-
-
-
-    async openAgent(agentId){
 
 
         try{
 
 
 
+
+
             const agent =
 
+
             agentstudio.setagent(
+
                 agentId
+
             );
+
+
+
+
 
 
 
 
             if(!agent){
 
+
+
                 console.error(
-                    "Agente não encontrado"
+
+                    "Agente não encontrado:",
+
+                    agentId
+
                 );
 
+
                 return;
+
+
 
             }
 
@@ -682,22 +1023,25 @@ class AgentsUI {
 
 
 
-            /*
-            EVENTO GLOBAL
-            */
-
 
             document.dispatchEvent(
 
+
                 new CustomEvent(
+
                     "agent-selected",
+
                     {
+
 
                         detail:agent
 
+
                     }
 
+
                 )
+
 
             );
 
@@ -708,28 +1052,31 @@ class AgentsUI {
 
 
 
-            /*
-            MODO LIVE
-            */
-
 
             if(
 
-            agentstudio.getmode()
+                agentstudio.getmode()
 
-            ===
+                ===
 
-            "live"
+                "live"
+
 
             ){
 
 
+
                 await liveclient.changeAgent(
+
                     agentId
+
                 );
 
 
+
             }
+
+
 
 
 
@@ -742,19 +1089,24 @@ class AgentsUI {
 
 
 
+
+
+
         }
 
 
         catch(error){
 
 
+
             console.error(
 
-            "Erro ao abrir agente:",
+                "Erro ao abrir agente:",
 
-            error
+                error
 
             );
+
 
 
         }
@@ -763,29 +1115,60 @@ class AgentsUI {
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     showStudio(agent){
 
 
 
-        const event =
 
-        new CustomEvent(
 
-            "agent-studio-open",
 
-            {
+        document.dispatchEvent(
 
-                detail:{
-                    agent
+
+
+            new CustomEvent(
+
+                "agent-studio-open",
+
+                {
+
+
+
+                    detail:{
+
+
+                        agent
+
+
+                    }
+
+
+
                 }
 
-            }
+
+            )
+
+
 
         );
 
 
 
-        document.dispatchEvent(event);
+
+
 
 
 
@@ -794,7 +1177,14 @@ class AgentsUI {
 
 
 
+
+
+
     }
+
+
+
+
 
 
 
@@ -807,17 +1197,31 @@ class AgentsUI {
 
 
 
+
+
         const panel =
 
+
         document.getElementById(
+
             "activeAgentPanel"
+
         );
+
+
+
+
+
 
 
 
         if(!panel){
 
+
+
             return;
+
+
 
         }
 
@@ -827,9 +1231,15 @@ class AgentsUI {
 
 
 
+
+
         panel.classList.remove(
+
             "hidden"
+
         );
+
+
 
 
 
@@ -839,25 +1249,44 @@ class AgentsUI {
 
         const icon =
 
+
         document.getElementById(
+
             "activeEmoji"
+
         );
+
+
+
 
 
 
         const name =
 
+
         document.getElementById(
+
             "activeName"
+
         );
+
+
+
+
 
 
 
         const role =
 
+
         document.getElementById(
+
             "activeRole"
+
         );
+
+
+
 
 
 
@@ -866,11 +1295,19 @@ class AgentsUI {
 
         if(icon){
 
-            icon.innerHTML =
+
+
+            icon.textContent =
+
 
             agent.emoji || "🐝";
 
+
+
         }
+
+
+
 
 
 
@@ -879,11 +1316,18 @@ class AgentsUI {
 
         if(name){
 
+
+
             name.textContent =
+
 
             agent.name;
 
+
+
         }
+
+
 
 
 
@@ -893,13 +1337,19 @@ class AgentsUI {
 
         if(role){
 
+
+
             role.textContent =
+
 
             agent.category ||
 
             "Especialista Honey IA";
 
+
+
         }
+
 
 
 
@@ -910,11 +1360,19 @@ class AgentsUI {
 
         panel.scrollIntoView({
 
+
+
             behavior:"smooth",
+
+
 
             block:"center"
 
+
+
         });
+
+
 
 
 
@@ -934,13 +1392,22 @@ class AgentsUI {
 
         return (
 
+
+
             agentstudio
+
             .getactiveagent()
+
+
 
         );
 
 
+
     }
+
+
+
 
 
 
@@ -950,4 +1417,16 @@ class AgentsUI {
 
 
 
-export default new agentsui();
+
+
+
+
+const agentsui = new agentsui();
+
+
+
+
+
+
+
+export default agentsui;
