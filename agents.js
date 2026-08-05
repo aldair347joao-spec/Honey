@@ -1,7 +1,7 @@
 /*
 ==========================================
 HONEY IA
-AGENT ENGINE V4.0
+AGENT ENGINE V5.0
 Enterprise Agent Registry
 ==========================================
 */
@@ -23,6 +23,29 @@ import imageagent from "./agents/imageagent.js";
 import securityagent from "./agents/securityagent.js";
 
 
+// ======================================
+// HONEY IA ENTERPRISE AGENTS
+// ======================================
+
+
+import writeragent from "./agents/writeragent.js";
+import documentagent from "./agents/documentagent.js";
+import bankingagent from "./agents/bankingagent.js";
+import entrepreneuragent from "./agents/entrepreneuragent.js";
+import interiordesignagent from "./agents/interiordesignagent.js";
+import ecommerceagent from "./agents/ecommerceagent.js";
+import socialmediaagent from "./agents/socialmediaagent.js";
+import researchagent from "./agents/researchagent.js";
+import automationagent from "./agents/automationagent.js";
+import analyticsagent from "./agents/analyticsagent.js";
+import customeragent from "./agents/customeragent.js";
+import translationagent from "./agents/translationagent.js";
+import businessagent from "./agents/businessagent.js";
+import accountingagent from "./agents/accountingagent.js";
+import strategistagent from "./agents/strategistagent.js";
+
+
+
 
 
 class AgentEngine {
@@ -38,7 +61,9 @@ constructor(){
     this.activeAgent = "general";
 
 
+
     this.categories = [
+
 
         "Todos",
 
@@ -50,7 +75,12 @@ constructor(){
 
         "Educação",
 
-        "Saúde"
+        "Saúde",
+
+        "Comunicação",
+
+        "Produtividade"
+
 
     ];
 
@@ -59,14 +89,12 @@ constructor(){
     this.loadAgents();
 
 
-}
 
-
-
-
-
-
-
+}/*
+==========================================
+CARREGAMENTO DOS AGENTES
+==========================================
+*/
 
 
 loadAgents(){
@@ -74,6 +102,12 @@ loadAgents(){
 
 
 const agents = [
+
+
+
+// ======================================
+// CORE AGENTS
+// ======================================
 
 
 generalagent,
@@ -102,11 +136,49 @@ videoagent,
 
 imageagent,
 
-securityagent
+securityagent,
+
+
+
+// ======================================
+// ENTERPRISE AGENTS
+// ======================================
+
+
+writeragent,
+
+documentagent,
+
+bankingagent,
+
+entrepreneuragent,
+
+interiordesignagent,
+
+ecommerceagent,
+
+socialmediaagent,
+
+researchagent,
+
+automationagent,
+
+analyticsagent,
+
+customeragent,
+
+translationagent,
+
+businessagent,
+
+accountingagent,
+
+strategistagent
 
 
 
 ];
+
 
 
 
@@ -123,7 +195,6 @@ agents.forEach(agent=>{
 
 
 
-
 }
 
 
@@ -132,6 +203,13 @@ agents.forEach(agent=>{
 
 
 
+
+
+/*
+==========================================
+REGISTRO DE AGENTES
+==========================================
+*/
 
 
 register(agent){
@@ -141,16 +219,23 @@ register(agent){
 if(!agent || !agent.id){
 
 
+
     console.warn(
+
         "Agente inválido:",
+
         agent
+
     );
+
 
 
     return;
 
 
+
 }
+
 
 
 
@@ -177,25 +262,33 @@ const profile = {
 
 
     category:
+
     agent.category ||
+
     "Tecnologia",
 
 
 
     level:
+
     agent.level ||
+
     "Professional",
 
 
 
     featured:
+
     agent.featured ||
+
     false,
 
 
 
     users:
+
     agent.users ||
+
     0,
 
 
@@ -214,11 +307,15 @@ const profile = {
 
 this.agents.set(
 
+
     agent.id,
+
 
     profile
 
+
 );
+
 
 
 
@@ -228,25 +325,25 @@ this.agents.set(
 
 console.log(
 
+
 `✅ Honey Agent carregado: ${agent.name}`
+
 
 );
 
 
 
-}
-
-
-
-
-
-
+}/*
+==========================================
+BUSCA DOS AGENTES
+==========================================
+*/
 
 
 get(id){
 
 
-return this.agents.get(id);
+    return this.agents.get(id);
 
 
 }
@@ -261,7 +358,7 @@ return this.agents.get(id);
 getById(id){
 
 
-return this.get(id);
+    return this.get(id);
 
 
 }
@@ -276,11 +373,11 @@ return this.get(id);
 getAll(){
 
 
-return [
+    return [
 
-...this.agents.values()
+        ...this.agents.values()
 
-];
+    ];
 
 
 }
@@ -295,15 +392,22 @@ return [
 getCategories(){
 
 
-return this.categories;
+    return this.categories;
 
 
 }
 
 
+
+
+
+
+
+
+
 /*
 ==========================================
-PESQUISA DE AGENTES
+PESQUISA INTELIGENTE
 ==========================================
 */
 
@@ -314,9 +418,14 @@ search(query=""){
 
 const text =
 
+
 query
+
 .toLowerCase()
+
 .trim();
+
+
 
 
 
@@ -334,6 +443,7 @@ if(!text){
 
 
 
+
 return this.getAll()
 
 .filter(agent=>{
@@ -342,19 +452,30 @@ return this.getAll()
 return (
 
 
+
 agent.name
+
 .toLowerCase()
+
 .includes(text)
 
 
 
+
+
 ||
+
+
 
 
 
 agent.description
+
 .toLowerCase()
+
 .includes(text)
+
+
 
 
 
@@ -362,9 +483,15 @@ agent.description
 
 
 
+
+
 agent.category
+
 .toLowerCase()
+
 .includes(text)
+
+
 
 
 
@@ -377,6 +504,7 @@ agent.category
 
 
 }
+
 
 
 
@@ -398,19 +526,26 @@ filterByCategory(category){
 
 if(
 
+
 !category
+
 
 ||
 
-category==="Todos"
+
+category === "Todos"
+
 
 ){
+
 
 
     return this.getAll();
 
 
+
 }
+
 
 
 
@@ -442,6 +577,7 @@ agent.category === category
 
 
 
+
 /*
 ==========================================
 AGENTES DESTACADOS
@@ -461,11 +597,13 @@ return this.getAll()
 return agent.featured === true;
 
 
+
 });
 
 
 
 }
+
 
 
 
@@ -487,13 +625,15 @@ setActive(id){
 
 if(
 
+
 this.agents.has(id)
+
 
 ){
 
 
 
-this.activeAgent=id;
+this.activeAgent = id;
 
 
 
@@ -502,6 +642,7 @@ return this.agents.get(id);
 
 
 }
+
 
 
 
@@ -517,7 +658,6 @@ return this.agents.get(
 
 
 }
-
 
 
 
@@ -550,15 +690,19 @@ this.activeAgent
 
 /*
 ==========================================
-MEMÓRIA E CONVERSAS
+MEMÓRIA DOS AGENTES
 ==========================================
 */
 
 
 addConversation(
+
 id,
+
 role,
+
 content
+
 ){
 
 
@@ -566,6 +710,7 @@ content
 const agent =
 
 this.get(id);
+
 
 
 
@@ -579,19 +724,20 @@ return;
 
 
 
+
 agent.conversations.push({
 
 
 
-role,
+    role,
 
 
-content,
+    content,
 
 
-date:
+    date:
 
-new Date()
+    new Date()
 
 
 
@@ -619,6 +765,7 @@ this.get(id);
 
 
 
+
 if(!agent)
 
 return [];
@@ -642,9 +789,13 @@ return agent.conversations;
 
 
 saveMemory(
+
 id,
+
 key,
+
 value
+
 ){
 
 
@@ -652,6 +803,7 @@ value
 const agent =
 
 this.get(id);
+
 
 
 
@@ -667,18 +819,20 @@ return;
 
 
 
+
 agent.memory.push({
 
 
-key,
+
+    key,
 
 
-value,
+    value,
 
 
-createdAt:
+    createdAt:
 
-new Date()
+    new Date()
 
 
 
@@ -706,9 +860,12 @@ this.get(id);
 
 
 
+
+
 if(!agent)
 
 return [];
+
 
 
 
@@ -717,16 +874,7 @@ return agent.memory;
 
 
 
-}
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
 RECOMENDAÇÃO INTELIGENTE
 ==========================================
@@ -743,23 +891,30 @@ this.detect(prompt);
 
 
 
+
+
 return {
 
 
-primary:agent,
+
+    primary:agent,
 
 
-alternatives:
 
-this.getAll()
+    alternatives:
 
-.filter(item=>
 
-item.id !== agent.id
+    this.getAll()
 
-)
+    .filter(item=>
 
-.slice(0,3)
+
+        item.id !== agent.id
+
+
+    )
+
+    .slice(0,3)
 
 
 
@@ -770,9 +925,16 @@ item.id !== agent.id
 }
 
 
+
+
+
+
+
+
+
 /*
 ==========================================
-DETECÇÃO INTELIGENTE DE AGENTE
+DETECÇÃO INTELIGENTE
 ==========================================
 */
 
@@ -784,6 +946,7 @@ detect(prompt=""){
 const text =
 
 prompt
+
 .toLowerCase();
 
 
@@ -792,16 +955,15 @@ prompt
 
 
 
-/*
-==============================
-DESENVOLVIMENTO
-==============================
-*/
+// DESENVOLVIMENTO
 
 
 if(
 
+
 text.includes("código") ||
+
+text.includes("codigo") ||
 
 text.includes("programar") ||
 
@@ -817,12 +979,11 @@ text.includes("app") ||
 
 text.includes("website")
 
+
 ){
 
 
-return this.get(
-"developer"
-);
+return this.get("developer");
 
 
 }
@@ -834,14 +995,11 @@ return this.get(
 
 
 
-/*
-==============================
-DESIGN
-==============================
-*/
+// DESIGN
 
 
 if(
+
 
 text.includes("design") ||
 
@@ -853,16 +1011,13 @@ text.includes("ui") ||
 
 text.includes("ux") ||
 
-text.includes("figma") ||
+text.includes("figma")
 
-text.includes("imagem")
 
 ){
 
 
-return this.get(
-"designer"
-);
+return this.get("designer");
 
 
 }
@@ -874,15 +1029,11 @@ return this.get(
 
 
 
-
-/*
-==============================
-MARKETING
-==============================
-*/
+// MARKETING
 
 
 if(
+
 
 text.includes("marketing") ||
 
@@ -892,18 +1043,13 @@ text.includes("campanha") ||
 
 text.includes("instagram") ||
 
-text.includes("facebook") ||
+text.includes("facebook")
 
-text.includes("cliente") ||
-
-text.includes("vendas")
 
 ){
 
 
-return this.get(
-"marketing"
-);
+return this.get("marketing");
 
 
 }
@@ -915,14 +1061,11 @@ return this.get(
 
 
 
-/*
-==============================
-FINANÇAS
-==============================
-*/
+// FINANÇAS
 
 
 if(
+
 
 text.includes("financeiro") ||
 
@@ -932,16 +1075,13 @@ text.includes("investimento") ||
 
 text.includes("lucro") ||
 
-text.includes("contabilidade") ||
-
 text.includes("orçamento")
 
+
 ){
 
 
-return this.get(
-"finance"
-);
+return this.get("finance");
 
 
 }
@@ -953,32 +1093,25 @@ return this.get(
 
 
 
-
-/*
-==============================
-SAÚDE
-==============================
-*/
+// CONTABILIDADE
 
 
 if(
 
-text.includes("hospital") ||
 
-text.includes("clínica") ||
+text.includes("contabilidade") ||
 
-text.includes("saúde") ||
+text.includes("contabilista") ||
 
-text.includes("medicina") ||
+text.includes("imposto") ||
 
-text.includes("paciente")
+text.includes("balanço")
+
 
 ){
 
 
-return this.get(
-"health"
-);
+return this.get("accounting");
 
 
 }
@@ -990,32 +1123,205 @@ return this.get(
 
 
 
-
-/*
-==============================
-EDUCAÇÃO
-==============================
-*/
+// NEGÓCIOS
 
 
 if(
+
+
+text.includes("empresa") ||
+
+text.includes("negócio") ||
+
+text.includes("negocio") ||
+
+text.includes("gestão")
+
+
+){
+
+
+return this.get("business");
+
+
+}
+
+
+
+
+
+
+
+
+// ESTRATÉGIA
+
+
+if(
+
+
+text.includes("estratégia") ||
+
+text.includes("estrategia") ||
+
+text.includes("crescimento") ||
+
+text.includes("planeamento")
+
+
+){
+
+
+return this.get("strategist");
+
+
+}
+
+
+
+
+
+
+
+
+// AUTOMAÇÃO
+
+
+if(
+
+
+text.includes("automatizar") ||
+
+text.includes("automação") ||
+
+text.includes("automacao") ||
+
+text.includes("workflow")
+
+
+){
+
+
+return this.get("automation");
+
+
+}
+
+
+
+
+
+
+
+
+// TRADUÇÃO
+
+
+if(
+
+
+text.includes("traduzir") ||
+
+text.includes("tradução") ||
+
+text.includes("idioma") ||
+
+text.includes("inglês")
+
+
+){
+
+
+return this.get("translator");
+
+
+}
+
+
+
+
+
+
+
+
+// DOCUMENTOS
+
+
+if(
+
+
+text.includes("documento") ||
+
+text.includes("pdf") ||
+
+text.includes("relatório") ||
+
+text.includes("relatorio")
+
+
+){
+
+
+return this.get("document");
+
+
+}
+
+
+
+
+
+
+
+
+// DADOS
+
+
+if(
+
+
+text.includes("dados") ||
+
+text.includes("dashboard") ||
+
+text.includes("análise") ||
+
+text.includes("analise")
+
+
+){
+
+
+return this.get("analytics");
+
+
+}
+
+
+
+
+
+
+
+
+// EDUCAÇÃO
+
+
+if(
+
 
 text.includes("escola") ||
 
 text.includes("curso") ||
 
-text.includes("estudar") ||
-
 text.includes("aula") ||
 
-text.includes("professor")
+text.includes("estudar")
+
 
 ){
 
 
-return this.get(
-"education"
-);
+return this.get("education");
 
 
 }
@@ -1027,30 +1333,51 @@ return this.get(
 
 
 
-
-/*
-==============================
-JURÍDICO
-==============================
-*/
+// SAÚDE
 
 
 if(
+
+
+text.includes("hospital") ||
+
+text.includes("saúde") ||
+
+text.includes("medicina")
+
+
+){
+
+
+return this.get("health");
+
+
+}
+
+
+
+
+
+
+
+
+// JURÍDICO
+
+
+if(
+
 
 text.includes("contrato") ||
 
 text.includes("advogado") ||
 
-text.includes("lei") ||
+text.includes("lei")
 
-text.includes("jurídico")
 
 ){
 
 
-return this.get(
-"legal"
-);
+return this.get("legal");
 
 
 }
@@ -1062,32 +1389,23 @@ return this.get(
 
 
 
-
-/*
-==============================
-ARQUITETURA
-==============================
-*/
+// ARQUITETURA
 
 
 if(
+
 
 text.includes("casa") ||
 
 text.includes("planta") ||
 
-text.includes("obra") ||
+text.includes("arquitetura")
 
-text.includes("arquitetura") ||
-
-text.includes("construção")
 
 ){
 
 
-return this.get(
-"architect"
-);
+return this.get("architect");
 
 
 }
@@ -1099,98 +1417,21 @@ return this.get(
 
 
 
-
-/*
-==============================
-EXCEL / DADOS
-==============================
-*/
+// VÍDEO
 
 
 if(
 
-text.includes("excel") ||
-
-text.includes("planilha") ||
-
-text.includes("dados") ||
-
-text.includes("tabela")
-
-){
-
-
-return this.get(
-"excel"
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==============================
-SEGURANÇA
-==============================
-*/
-
-
-if(
-
-text.includes("segurança") ||
-
-text.includes("proteção") ||
-
-text.includes("hacker") ||
-
-text.includes("vulnerabilidade")
-
-){
-
-
-return this.get(
-"security"
-);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==============================
-VÍDEO
-==============================
-*/
-
-
-if(
 
 text.includes("vídeo") ||
 
-text.includes("video") ||
+text.includes("video")
 
-text.includes("animação")
 
 ){
 
 
-return this.get(
-"video"
-);
+return this.get("video");
 
 
 }
@@ -1202,30 +1443,21 @@ return this.get(
 
 
 
-
-/*
-==============================
-VENDAS
-==============================
-*/
+// IMAGEM
 
 
 if(
 
-text.includes("vender") ||
 
-text.includes("produto") ||
+text.includes("imagem") ||
 
-text.includes("negócio") ||
+text.includes("foto")
 
-text.includes("comercial")
 
 ){
 
 
-return this.get(
-"sales"
-);
+return this.get("image");
 
 
 }
@@ -1237,10 +1469,11 @@ return this.get(
 
 
 
+return this.get("general");
 
-return this.get(
-"general"
-);
+
+
+}
 
 
 
@@ -1252,14 +1485,8 @@ return this.get(
 
 
 
-
-}
-
+const agents = new agentengine();
 
 
 
-const Agents = new agentengine();
-
-
-
-export default agents;
+export default Agents;
