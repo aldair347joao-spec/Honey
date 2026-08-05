@@ -2,64 +2,548 @@
 <html lang="pt-PT">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honey IA — Agents Studio</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%%3E<text y=%22.9em%22 font-size=%2290%%3E🐝</text></svg>">
-    <link rel="stylesheet" href="agents.css">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Honey IA — Agents Studio</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link rel="stylesheet" href="agents.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+
 </head>
+
 
 <body>
 
-<div class="agents-page">
 
-    <!-- HEADER -->
-    <header class="agents-header">
-        <div class="brand">
-            <span class="logo">🐝</span>
-            <div>
-                <h1>Honey IA Agents Studio</h1>
-                <p>Agentes inteligentes especializados</p>
-            </div>
-        </div>
+<div class="agents-app">
 
-        <div class="agent-status">
-            <span class="status-dot"></span>
-            Sistema Online
-        </div>
-    </header>
 
-    <!-- HERO -->
-    <section class="agents-hero">
-        <h2>Escolha o seu especialista IA</h2>
-        <p>Cada agente possui uma identidade, memória e ferramentas próprias.</p>
-    </section>
+<!-- OVERLAY MOBILE -->
 
-    <!-- AGENTS GRID -->
-    <main id="agentsContainer" class="agents-grid">
-        <!-- Os agentes serão carregados automaticamente pelo agentsUI.js -->
-    </main>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- ACTIVE AGENT PANEL -->
-    <section id="activeAgentPanel" class="active-agent hidden">
-        <div class="active-header">
-            <span id="activeEmoji">🐝</span>
-            <div>
-                <h3 id="activeName">Honey Assistant</h3>
-                <p id="activeRole">Assistente geral</p>
-            </div>
-        </div>
 
-        <div class="active-actions">
-            <button id="btnAgentChat">💬 Abrir Chat</button>
-            <button id="btnAgentLive">🎙️ Iniciar Live</button>
-        </div>
-    </section>
+
+<!-- =========================
+SIDEBAR
+========================= -->
+
+
+<aside class="honey-sidebar" id="sidebar">
+
+
+<div class="sidebar-brand">
+
+
+<div class="brand-icon">
+
+<i class="fa-solid fa-hexagon-nodes"></i>
 
 </div>
+
+
+<div class="brand-text">
+
+<strong>Honey IA</strong>
+
+<span>Agents Intelligence Studio</span>
+
+</div>
+
+
+</div>
+
+
+
+
+<nav class="sidebar-menu">
+
+
+<a href="index.html" class="menu-link">
+
+<i class="fa-solid fa-house"></i>
+
+<span>Início</span>
+
+</a>
+
+
+
+<a href="agents.html" class="menu-link active">
+
+<i class="fa-solid fa-robot"></i>
+
+<span>Agentes IA</span>
+
+</a>
+
+
+
+<a href="projects.html" class="menu-link">
+
+<i class="fa-solid fa-layer-group"></i>
+
+<span>Projetos</span>
+
+</a>
+
+
+
+<a href="plans.html" class="menu-link">
+
+<i class="fa-solid fa-crown"></i>
+
+<span>Planos</span>
+
+</a>
+
+
+
+<a href="history.html" class="menu-link">
+
+<i class="fa-solid fa-clock-rotate-left"></i>
+
+<span>Histórico</span>
+
+</a>
+
+
+
+<a href="terms.html" class="menu-link">
+
+<i class="fa-solid fa-file-contract"></i>
+
+<span>Termos</span>
+
+</a>
+
+
+</nav>
+
+
+
+
+<div class="sidebar-bottom">
+
+
+<a href="login.html" class="login-link">
+
+<i class="fa-solid fa-right-to-bracket"></i>
+
+Entrar
+
+</a>
+
+
+
+<a href="register.html" class="register-button">
+
+Criar conta
+
+</a>
+
+
+</div>
+
+
+</aside>
+
+
+
+
+
+
+
+<!-- =========================
+MAIN
+========================= -->
+
+
+<main class="main-page">
+
+
+
+
+
+<header class="top-header">
+
+
+<button class="menu-toggle" id="menuToggle">
+
+
+<span></span>
+
+<span></span>
+
+
+</button>
+
+
+
+<div class="header-logo">
+
+Honey IA
+
+</div>
+
+
+
+
+<div class="header-actions">
+
+
+<a href="index.html" class="header-login">
+
+Voltar
+
+</a>
+
+
+
+<a href="register.html" class="header-register">
+
+Começar
+
+</a>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+
+
+
+<!-- HERO AGENTS -->
+
+
+<section class="agents-hero">
+
+
+<div class="agents-title">
+
+
+<span class="hero-tag">
+
+<i class="fa-solid fa-sparkles"></i>
+
+Funcionários digitais inteligentes
+
+</span>
+
+
+
+<h1>
+
+Escolha o especialista IA ideal para a sua missão.
+
+</h1>
+
+
+
+<p>
+
+Cada agente Honey IA possui conhecimentos,
+personalidade e ferramentas próprias para resolver
+tarefas específicas de empresas e profissionais.
+
+</p>
+
+
+</div>
+
+
+
+
+
+<div class="agents-status-card">
+
+
+<div class="status-icon">
+
+<i class="fa-solid fa-circle-nodes"></i>
+
+</div>
+
+
+
+<div>
+
+
+<strong>
+
+30+ Agentes Especializados
+
+</strong>
+
+
+<p>
+
+Financeiro, Jurídico, Marketing,
+Programação, Design e muito mais.
+
+</p>
+
+
+</div>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+
+<!-- GRID DOS AGENTES -->
+
+
+<section class="agents-section">
+
+
+<div class="section-title">
+
+
+<span>
+
+AI Workforce
+
+</span>
+
+
+<h2>
+
+Os seus novos colaboradores digitais.
+
+</h2>
+
+
+<p>
+
+Escolha um agente e transforme a forma
+como trabalha.
+
+</p>
+
+
+</div>
+
+
+
+
+
+<main id="agentsContainer" class="agents-grid">
+
+<!--
+Os agentes continuam sendo carregados
+automaticamente pelo agents-ui.js
+-->
+
+</main>
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+<!-- ACTIVE AGENT PANEL -->
+
+
+<section id="activeAgentPanel" class="active-agent hidden">
+
+
+<div class="active-header">
+
+
+<div class="active-agent-icon">
+
+<i class="fa-solid fa-robot"></i>
+
+</div>
+
+
+<div>
+
+
+<h3 id="activeName">
+
+Honey Assistant
+
+</h3>
+
+
+
+<p id="activeRole">
+
+Assistente geral
+
+</p>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<div class="active-actions">
+
+
+<button id="btnAgentChat">
+
+<i class="fa-solid fa-message"></i>
+
+Abrir Chat
+
+</button>
+
+
+
+<button id="btnAgentLive">
+
+<i class="fa-solid fa-microphone"></i>
+
+Iniciar Live
+
+</button>
+
+
+
+</div>
+
+
+</section>
+
+
+
+
+
+
+
+<footer class="honey-footer">
+
+
+<div>
+
+
+<strong>
+
+Honey IA
+
+</strong>
+
+
+<p>
+
+Inteligência artificial para pessoas
+e empresas.
+
+</p>
+
+
+</div>
+
+
+
+<div class="footer-copy">
+
+© 2026 Honey IA. Todos os direitos reservados.
+
+</div>
+
+
+
+</footer>
+
+
+
+
+
+</main>
+
+
+</div>
+
+
+
+
 
 <script type="module" src="./agents-ui.js"></script>
 
 
+
+<script>
+
+
+const sidebar =
+document.getElementById("sidebar");
+
+
+const overlay =
+document.getElementById("sidebarOverlay");
+
+
+const menuToggle =
+document.getElementById("menuToggle");
+
+
+
+menuToggle.addEventListener("click",()=>{
+
+sidebar.classList.toggle("open");
+
+overlay.classList.toggle("active");
+
+});
+
+
+
+overlay.addEventListener("click",()=>{
+
+sidebar.classList.remove("open");
+
+overlay.classList.remove("active");
+
+});
+
+
+</script>
+
+
+
 </body>
+
 </html>
