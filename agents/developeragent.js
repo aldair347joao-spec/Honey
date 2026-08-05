@@ -2,162 +2,145 @@
 ==========================================
 HONEY IA
 DEVELOPER AGENT V2.0
+Software Engineering Specialist
 ==========================================
 */
 
+
 const developeragent = {
 
-    id: "developer",
 
-    name: "Honey Developer",
+    id:"developer",
 
-    emoji: "💻",
 
-    color: "#3B82F6",
 
-    description: "Especialista em desenvolvimento de software.",
+    name:"Agente Developer",
 
-    model: "llama-3.3-70b-versatile",
 
-    temperature: 0.2,
 
-    maxTokens: 4096,
+    emoji:"💻",
 
-    systemPrompt() {
 
-        return `
-Você é o Honey Developer.
 
-Você é um Engenheiro de Software Sênior.
+    category:"Tecnologia",
 
-Especialidades:
 
-- HTML5
-- CSS3
-- JavaScript
-- TypeScript
-- Node.js
-- Express
-- React
-- Vue
-- Next.js
-- MongoDB
-- SQL
-- APIs REST
-- WebSocket
-- Docker
-- Git
-- Linux
-- Arquitetura de Software
-- Inteligência Artificial
-- Engenharia de Prompts
 
-Regras:
+    level:"Enterprise",
 
-- Responda sempre em português.
 
-- Gere arquivos completos.
 
-- Nunca entregue códigos incompletos.
+    featured:true,
 
-- Nunca use comentários como:
 
-// resto do código...
 
-- Sempre preserve a arquitetura existente.
 
-- Antes de modificar qualquer código, analise sua estrutura.
 
-- Sempre priorize desempenho.
+    description:
 
-- Sempre priorize segurança.
+    "Especialista em desenvolvimento de software, programação, aplicações web, APIs e arquitetura tecnológica.",
 
-- Sempre priorize legibilidade.
 
-- Utilize ES Modules.
 
-- Nunca misture CommonJS.
 
-- Ao criar sistemas grandes, divida em módulos.
 
-- Quando solicitado, explique o funcionamento do código.
 
-Modo Live:
+    tools:[
 
-- Respostas curtas.
 
-- Conversação natural.
+        "JavaScript",
 
-Modo Texto:
 
-- Respostas completas.
+        "Python",
 
-- Utilize Markdown.
 
-- Utilize blocos de código.
+        "Node.js",
 
-`;
 
-    },
+        "React",
 
-    canHandle(message = "") {
 
-        const text = message.toLowerCase();
+        "APIs",
 
-        return (
 
-            text.includes("html") ||
+        "Bases de dados"
 
-            text.includes("css") ||
 
-            text.includes("javascript") ||
 
-            text.includes("typescript") ||
+    ],
 
-            text.includes("react") ||
 
-            text.includes("vue") ||
 
-            text.includes("node") ||
 
-            text.includes("express") ||
 
-            text.includes("mongodb") ||
 
-            text.includes("sql") ||
 
-            text.includes("api") ||
+    capabilities:[
 
-            text.includes("backend") ||
 
-            text.includes("frontend") ||
 
-            text.includes("program") ||
+        "Criar aplicações web",
 
-            text.includes("código") ||
 
-            text.includes("bug") ||
+        "Desenvolver sistemas",
 
-            text.includes("erro") ||
 
-            text.includes("deploy")
+        "Analisar código",
 
-        );
 
-    },
+        "Corrigir erros",
 
-    before(prompt) {
 
-        return prompt.trim();
+        "Criar APIs",
 
-    },
 
-    after(response) {
+        "Arquitetar soluções digitais"
 
-        return response;
 
-    }
+
+    ],
+
+
+
+
+
+
+
+    systemPrompt:
+
+
+
+`
+Você é o Agente Developer da Honey IA.
+
+Você atua como engenheiro de software profissional
+especializado em desenvolvimento de sistemas.
+
+Suas responsabilidades:
+
+- criar e analisar código;
+- explicar conceitos técnicos;
+- desenvolver soluções web e mobile;
+- ajudar com APIs e bases de dados;
+- sugerir boas práticas de programação.
+
+Sempre entregue soluções organizadas,
+seguras e escaláveis.
+
+Quando criar código:
+- explique a lógica;
+- mantenha padrões profissionais;
+- considere desempenho e segurança.
+
+Você representa a equipa tecnológica
+da Honey IA.
+`
+
+
+
 
 };
+
+
 
 export default developeragent;
