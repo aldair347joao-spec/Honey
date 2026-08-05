@@ -2,133 +2,144 @@
 ==========================================
 HONEY IA
 DESIGNER AGENT V2.0
+UI/UX & Brand Specialist
 ==========================================
 */
 
+
 const designeragent = {
 
-    id: "designer",
 
-    name: "Honey Designer",
+    id:"designer",
 
-    emoji: "🎨",
 
-    color: "#EC4899",
 
-    description: "Especialista em UI, UX, Design de Produtos e Identidade Visual.",
+    name:"Agente Designer",
 
-    model: "llama-3.3-70b-versatile",
 
-    temperature: 0.6,
 
-    maxTokens: 4096,
+    emoji:"🎨",
 
-    systemPrompt() {
 
-        return `
-Você é o Honey Designer.
 
-Especialista em:
+    category:"Criativos",
 
-- UI Design
-- UX Design
-- Design Systems
-- Figma
-- HTML
-- CSS
-- Tailwind
-- Bootstrap
-- Responsividade
-- Landing Pages
-- Dashboards
-- Aplicações SaaS
-- Mobile Design
-- Web Design
-- Branding
-- Identidade Visual
-- Paletas de Cores
-- Tipografia
-- Experiência do Utilizador
 
-Regras:
 
-- Sempre priorize interfaces modernas.
+    level:"Enterprise",
 
-- Nunca produza layouts antigos.
 
-- Utilize hierarquia visual.
 
-- Utilize espaçamentos consistentes.
+    featured:true,
 
-- Explique decisões de UX quando necessário.
 
-- Gere HTML e CSS completos quando solicitado.
 
-- Preserve a identidade visual existente.
 
-Modo Live:
 
-Respostas naturais e curtas.
+    description:
 
-Modo Texto:
+    "Especialista em design visual, criação de marcas, interfaces digitais e experiências modernas para empresas.",
 
-Respostas completas com exemplos.
-`;
 
-    },
 
-    canHandle(message = "") {
 
-        const text = message.toLowerCase();
 
-        return (
 
-            text.includes("design") ||
+    tools:[
 
-            text.includes("ui") ||
 
-            text.includes("ux") ||
+        "UI/UX Design",
 
-            text.includes("figma") ||
 
-            text.includes("wireframe") ||
+        "Branding",
 
-            text.includes("layout") ||
 
-            text.includes("interface") ||
+        "Logotipos",
 
-            text.includes("dashboard") ||
 
-            text.includes("landing page") ||
+        "Design de interfaces",
 
-            text.includes("responsivo") ||
 
-            text.includes("responsividade") ||
+        "Identidade visual",
 
-            text.includes("logo") ||
 
-            text.includes("branding") ||
+        "Prototipagem"
 
-            text.includes("cores") ||
 
-            text.includes("tipografia")
 
-        );
+    ],
 
-    },
 
-    before(prompt) {
 
-        return prompt.trim();
 
-    },
 
-    after(response) {
 
-        return response;
 
-    }
+    capabilities:[
+
+
+
+        "Criar identidades visuais",
+
+
+        "Desenvolver conceitos de marca",
+
+
+        "Projetar interfaces profissionais",
+
+
+        "Melhorar experiências digitais",
+
+
+        "Criar materiais visuais",
+
+
+        "Analisar tendências de design"
+
+
+
+    ],
+
+
+
+
+
+
+
+    systemPrompt:
+
+
+
+`
+Você é o Agente Designer da Honey IA.
+
+Você atua como um designer profissional
+especializado em criação visual, branding
+e experiência digital.
+
+Suas responsabilidades:
+
+- criar conceitos visuais para marcas;
+- desenvolver ideias de logotipos;
+- melhorar interfaces de aplicações;
+- sugerir layouts modernos;
+- criar experiências intuitivas para utilizadores.
+
+Ao propor um design:
+
+- pense como um especialista de produto;
+- considere estética e funcionalidade;
+- priorize uma experiência premium.
+
+Você representa a equipa criativa
+da Honey IA.
+`
+
+
+
 
 };
+
+
 
 export default designeragent;
