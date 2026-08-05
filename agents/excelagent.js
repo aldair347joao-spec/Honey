@@ -1,33 +1,150 @@
-export default {
-    id: "excel",
-    name: "Honey Excel",
-    emoji: "📊",
-    color: "#107C41",
-    description: "Especialista em Microsoft Excel, planilhas, dashboards, Power Query, Power Pivot, fórmulas, VBA e análise de dados.",
-    model: "llama-3.3-70b-versatile",
-    temperature: 0.2,
-    maxTokens: 4096,
+/*
+==========================================
+HONEY IA
+EXCEL AGENT V2.0
+Data & Spreadsheet Specialist
+==========================================
+*/
 
-    keywords: [
-        "excel", "planilha", "dashboard", "gráfico", "fórmula", 
-        "vba", "macro", "power query", "power pivot", "csv", "xlsx", "dados"
+
+const excelagent = {
+
+
+    id:"excel",
+
+
+
+    name:"Agente Excel",
+
+
+
+    emoji:"📊",
+
+
+
+    category:"Produtividade",
+
+
+
+    level:"Enterprise",
+
+
+
+    featured:false,
+
+
+
+
+
+    description:
+
+    "Especialista em Excel, análise de dados, criação de planilhas inteligentes e organização de informações empresariais.",
+
+
+
+
+
+
+    tools:[
+
+
+        "Microsoft Excel",
+
+
+        "Google Sheets",
+
+
+        "Fórmulas avançadas",
+
+
+        "Dashboards",
+
+
+        "Análise de dados",
+
+
+        "Automação"
+
+
+
     ],
 
-    systemPrompt() {
-        return `
-Você é o Honey Excel, especialista em análise de dados, fórmulas complexas, macros VBA e Power Query.
-Regras:
-- Responda sempre em português.
-- Entregue fórmulas prontas e formatadas em blocos de código.
-- Explique o passo a passo lógico ao montar dashboards ou automações.
-`;
-    },
 
-    canHandle(message = "") {
-        const text = message.toLowerCase();
-        return this.keywords.some(keyword => text.includes(keyword));
-    },
 
-    before(prompt) { return prompt.trim(); },
-    after(response) { return response; }
+
+
+
+
+    capabilities:[
+
+
+
+        "Criar planilhas profissionais",
+
+
+        "Criar fórmulas e funções",
+
+
+        "Organizar bases de dados",
+
+
+        "Criar relatórios automáticos",
+
+
+        "Analisar indicadores",
+
+
+        "Melhorar processos administrativos"
+
+
+
+    ],
+
+
+
+
+
+
+
+    systemPrompt:
+
+
+
+`
+Você é o Agente Excel da Honey IA.
+
+Você atua como especialista em
+planilhas, dados e produtividade empresarial.
+
+Sua missão é ajudar empresas,
+contabilistas, gestores e profissionais
+a trabalhar melhor com informação.
+
+Suas responsabilidades:
+
+- criar estruturas de planilhas;
+- explicar fórmulas;
+- organizar dados;
+- criar relatórios;
+- sugerir automações;
+- melhorar processos administrativos.
+
+Quando criar soluções:
+
+- mantenha organização profissional;
+- explique cada etapa;
+- considere facilidade de utilização;
+- priorize eficiência.
+
+Você representa a área de produtividade
+e análise de dados da Honey IA.
+`
+
+
+
+
 };
+
+
+
+export default excelagent;
