@@ -1,6 +1,5 @@
 /* ==========================================================
-   HONEY IA — AGENTS STUDIO PREMIUM
-   Responsive Edition
+   HONEY IA — AGENTS STUDIO PREMIUM V3
 ========================================================== */
 
 
@@ -14,26 +13,36 @@
     --agent-surface-hover:
     rgba(255,255,255,.10);
 
+
     --agent-border:
     rgba(255,255,255,.12);
+
 
     --agent-gold:#f5b942;
 
     --agent-gold-light:#ffd86b;
 
+
     --agent-blue:#4f8cff;
 
     --agent-purple:#8b5cf6;
 
-    --agent-green:#22c55e;
+
+    --agent-success:#22c55e;
+
 
     --agent-text:#ffffff;
 
     --agent-muted:#9ca8bd;
 
-    --agent-radius:28px;
+
+    --agent-shadow:
+
+    0 30px 80px rgba(0,0,0,.45);
+
 
 }
+
 
 
 
@@ -47,106 +56,141 @@ RESET
 
 *{
 
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+margin:0;
+
+padding:0;
+
+box-sizing:border-box;
 
 }
+
+
+
+html{
+
+scroll-behavior:smooth;
+
+}
+
 
 
 
 body{
 
-    font-family:
-    "Plus Jakarta Sans",
-    "Inter",
-    sans-serif;
 
-    background:
-    var(--agent-bg);
+font-family:
 
-    color:var(--agent-text);
+"Plus Jakarta Sans",
+"Inter",
+sans-serif;
 
-    overflow-x:hidden;
+
+background:
+
+var(--agent-bg);
+
+
+color:white;
+
+
+overflow-x:hidden;
+
 
 }
+
+
+
+
+button,
+input,
+textarea{
+
+
+font-family:inherit;
+
+
+}
+
 
 
 
 a{
 
-    text-decoration:none;
 
-    color:inherit;
+text-decoration:none;
+
+color:inherit;
+
 
 }
 
 
 
 
-button{
-
-    font-family:inherit;
-
-}
 
 
 
 
 
 /* ==========================
-APP
+BACKGROUND PREMIUM
 ========================== */
 
 
 .agents-app{
 
-    min-height:100vh;
 
-    position:relative;
+min-height:100vh;
+
+position:relative;
+
+overflow:hidden;
+
 
 }
 
 
-
-
-
-
-
-/* ==========================
-BACKGROUND EFFECTS
-========================== */
 
 
 .agents-app::before{
 
 
-    content:"";
-
-    position:fixed;
-
-    width:500px;
-
-    height:500px;
-
-    top:-180px;
-
-    right:-150px;
-
-    border-radius:50%;
+content:"";
 
 
-    background:
-
-    rgba(245,185,66,.18);
+position:fixed;
 
 
-    filter:blur(120px);
+width:500px;
 
-    pointer-events:none;
+height:500px;
+
+
+border-radius:50%;
+
+
+background:
+
+rgba(245,185,66,.18);
+
+
+filter:
+
+blur(130px);
+
+
+top:-220px;
+
+right:-150px;
+
+
+pointer-events:none;
 
 
 }
+
+
+
 
 
 
@@ -154,32 +198,41 @@ BACKGROUND EFFECTS
 .agents-app::after{
 
 
-    content:"";
-
-    position:fixed;
-
-    width:400px;
-
-    height:400px;
-
-    bottom:-150px;
-
-    left:-100px;
-
-    border-radius:50%;
+content:"";
 
 
-    background:
-
-    rgba(79,140,255,.15);
+position:fixed;
 
 
-    filter:blur(120px);
+width:450px;
 
-    pointer-events:none;
+height:450px;
+
+
+border-radius:50%;
+
+
+background:
+
+rgba(79,140,255,.15);
+
+
+filter:
+
+blur(130px);
+
+
+bottom:-150px;
+
+left:-150px;
+
+
+pointer-events:none;
 
 
 }
+
+
 
 
 
@@ -189,17 +242,24 @@ BACKGROUND EFFECTS
 
 
 /* ==========================
-MAIN AREA
+MAIN CONTENT
 ========================== */
 
 
 .main-page{
 
-    position:relative;
 
-    z-index:2;
+margin-left:290px;
+
+
+min-height:100vh;
+
+
+position:relative;
+
 
 }
+
 
 
 
@@ -216,24 +276,21 @@ AGENTS HERO
 .agents-hero{
 
 
-    min-height:500px;
+padding:
+
+80px 70px 50px;
 
 
-    padding:
-
-    70px;
+display:flex;
 
 
-    display:flex;
+justify-content:space-between;
 
 
-    align-items:center;
+align-items:center;
 
 
-    justify-content:space-between;
-
-
-    gap:50px;
+gap:50px;
 
 
 }
@@ -245,9 +302,11 @@ AGENTS HERO
 .agents-title{
 
 
-    max-width:720px;
+max-width:720px;
+
 
 }
+
 
 
 
@@ -255,43 +314,42 @@ AGENTS HERO
 .hero-tag{
 
 
-    display:inline-flex;
+display:inline-flex;
 
 
-    align-items:center;
+align-items:center;
 
 
-    gap:10px;
+gap:10px;
 
 
-    padding:
+padding:
 
-    10px 18px;
-
-
-    border-radius:50px;
+10px 18px;
 
 
-    background:
-
-    rgba(245,185,66,.12);
+border-radius:50px;
 
 
-    border:
+background:
 
-    1px solid rgba(245,185,66,.25);
-
-
-    color:
-
-    var(--agent-gold-light);
+rgba(245,185,66,.12);
 
 
-    font-size:13px;
+border:
+
+1px solid rgba(245,185,66,.25);
+
+
+color:
+
+var(--agent-gold-light);
+
+
+font-size:13px;
 
 
 }
-
 
 
 
@@ -299,21 +357,25 @@ AGENTS HERO
 .agents-title h1{
 
 
-    margin-top:25px;
+margin-top:25px;
 
 
-    font-size:
+font-size:
 
-    clamp(42px,5vw,70px);
-
-
-    line-height:1.05;
+clamp(42px,5vw,68px);
 
 
-    letter-spacing:-2.5px;
+line-height:1.05;
+
+
+letter-spacing:-2.5px;
+
+
+font-weight:900;
 
 
 }
+
 
 
 
@@ -321,71 +383,21 @@ AGENTS HERO
 .agents-title p{
 
 
-    margin-top:25px;
+margin-top:25px;
 
 
-    max-width:620px;
+max-width:600px;
 
 
-    color:
-
-    var(--agent-muted);
+font-size:18px;
 
 
-    font-size:18px;
+line-height:1.8;
 
 
-    line-height:1.8;
+color:
 
-
-}/* ==========================
-STATUS CARD
-========================== */
-
-
-.agents-status-card{
-
-
-    width:360px;
-
-
-    padding:28px;
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    gap:18px;
-
-
-    border-radius:
-
-    var(--agent-radius);
-
-
-    background:
-
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,.10),
-        rgba(255,255,255,.03)
-    );
-
-
-    border:
-
-    1px solid var(--agent-border);
-
-
-    backdrop-filter:blur(25px);
-
-
-    box-shadow:
-
-    0 30px 80px rgba(0,0,0,.35);
+var(--agent-muted);
 
 
 }
@@ -394,41 +406,101 @@ STATUS CARD
 
 
 
+
+
+
+
+/* ==========================
+STATUS CARD
+========================== */
+
+
+.agents-status-card{
+
+
+width:360px;
+
+
+padding:28px;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:18px;
+
+
+border-radius:30px;
+
+
+background:
+
+linear-gradient(
+
+145deg,
+
+rgba(255,255,255,.12),
+
+rgba(255,255,255,.03)
+
+);
+
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+backdrop-filter:
+
+blur(25px);
+
+
+box-shadow:
+
+var(--agent-shadow);
+
+
+}
+
+
+
 .status-icon{
 
 
-    width:65px;
+width:65px;
 
 
-    height:65px;
+height:65px;
 
 
-    flex-shrink:0;
+border-radius:22px;
 
 
-    display:flex;
+display:flex;
 
 
-    align-items:center;
+align-items:center;
 
 
-    justify-content:center;
+justify-content:center;
 
 
-    border-radius:22px;
+background:
+
+rgba(245,185,66,.18);
 
 
-    background:
+color:
 
-    rgba(245,185,66,.18);
-
-
-    color:
-
-    var(--agent-gold);
+var(--agent-gold);
 
 
-    font-size:28px;
+font-size:28px;
 
 
 }
@@ -440,10 +512,7 @@ STATUS CARD
 .agents-status-card strong{
 
 
-    display:block;
-
-
-    font-size:18px;
+font-size:18px;
 
 
 }
@@ -451,22 +520,21 @@ STATUS CARD
 
 
 
-
 .agents-status-card p{
 
 
-    margin-top:8px;
+margin-top:8px;
 
 
-    color:
-
-    var(--agent-muted);
+font-size:13px;
 
 
-    font-size:13px;
+line-height:1.6;
 
 
-    line-height:1.6;
+color:
+
+var(--agent-muted);
 
 
 }
@@ -487,12 +555,332 @@ AGENTS SECTION
 .agents-section{
 
 
-    padding:
+padding:
 
-    30px 70px 100px;
+30px 70px 100px;
 
 
 }
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT STUDIO HEADER
+========================== */
+
+
+.agent-studio{
+
+
+width:100%;
+
+
+}
+
+
+
+
+.agent-market-header{
+
+
+margin-bottom:35px;
+
+
+}
+
+
+
+
+.market-badge{
+
+
+display:inline-flex;
+
+
+gap:8px;
+
+
+align-items:center;
+
+
+font-size:12px;
+
+
+color:var(--agent-gold);
+
+
+text-transform:uppercase;
+
+
+letter-spacing:2px;
+
+
+}
+
+
+
+
+
+.agent-market-header h2{
+
+
+font-size:40px;
+
+
+margin:15px 0;
+
+
+letter-spacing:-1px;
+
+
+}
+
+
+
+
+
+.agent-market-header p{
+
+
+color:var(--agent-muted);
+
+
+font-size:16px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+SEARCH + FILTERS
+========================== */
+
+
+.agent-tools{
+
+
+display:flex;
+
+
+justify-content:space-between;
+
+
+align-items:center;
+
+
+gap:20px;
+
+
+margin-bottom:35px;
+
+
+flex-wrap:wrap;
+
+
+}
+
+
+
+
+.agent-search{
+
+
+flex:1;
+
+
+min-width:280px;
+
+
+height:55px;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:12px;
+
+
+padding:0 20px;
+
+
+border-radius:18px;
+
+
+background:
+
+rgba(255,255,255,.06);
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+}
+
+
+
+.agent-search i{
+
+
+color:var(--agent-gold);
+
+
+}
+
+
+
+.agent-search input{
+
+
+width:100%;
+
+
+border:none;
+
+
+outline:none;
+
+
+background:none;
+
+
+color:white;
+
+
+font-size:15px;
+
+
+}
+
+
+
+.agent-search input::placeholder{
+
+
+color:var(--agent-muted);
+
+
+}/* ==========================
+FILTERS
+========================== */
+
+
+.agent-filters{
+
+
+display:flex;
+
+
+gap:10px;
+
+
+flex-wrap:wrap;
+
+
+}
+
+
+
+
+.filter{
+
+
+padding:
+
+10px 18px;
+
+
+border-radius:30px;
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+background:
+
+rgba(255,255,255,.05);
+
+
+color:
+
+var(--agent-muted);
+
+
+cursor:pointer;
+
+
+transition:.3s;
+
+
+font-size:13px;
+
+
+}
+
+
+
+.filter:hover{
+
+
+background:
+
+rgba(255,255,255,.10);
+
+
+color:white;
+
+
+}
+
+
+
+
+.filter.active{
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+color:#111;
+
+
+border-color:transparent;
+
+
+font-weight:800;
+
+
+}
+
 
 
 
@@ -509,21 +897,19 @@ AGENTS GRID
 .agents-grid{
 
 
-    width:100%;
+display:grid;
 
 
-    display:grid;
+grid-template-columns:
+
+repeat(auto-fit,minmax(280px,1fr));
 
 
-    grid-template-columns:
-
-    repeat(auto-fit,minmax(280px,1fr));
-
-
-    gap:25px;
+gap:25px;
 
 
 }
+
 
 
 
@@ -540,61 +926,64 @@ AGENT CARD
 .agent-card{
 
 
-    position:relative;
+position:relative;
 
 
-    overflow:hidden;
+overflow:hidden;
 
 
-    padding:30px;
+padding:30px;
 
 
-    border-radius:
-
-    var(--agent-radius);
+min-height:390px;
 
 
-
-    background:
-
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,.09),
-        rgba(255,255,255,.03)
-    );
+display:flex;
 
 
-
-    border:
-
-    1px solid var(--agent-border);
+flex-direction:column;
 
 
-    backdrop-filter:blur(20px);
+justify-content:space-between;
 
 
-    transition:.35s;
-
-
-    opacity:0;
-
-
-    transform:translateY(30px);
-
-
-}
+border-radius:30px;
 
 
 
+background:
+
+linear-gradient(
+
+145deg,
+
+rgba(255,255,255,.10),
+
+rgba(255,255,255,.03)
+
+);
 
 
-.agent-card.show{
+
+border:
+
+1px solid var(--agent-border);
 
 
-    opacity:1;
+
+backdrop-filter:
+
+blur(20px);
 
 
-    transform:translateY(0);
+
+transition:.35s;
+
+
+
+animation:
+
+agentReveal .6s ease forwards;
 
 
 }
@@ -606,39 +995,38 @@ AGENT CARD
 .agent-card::before{
 
 
-    content:"";
+content:"";
 
 
-    position:absolute;
+position:absolute;
 
 
-    width:230px;
+width:250px;
 
 
-    height:230px;
+height:250px;
 
 
-    right:-100px;
+right:-120px;
 
 
-    top:-120px;
+top:-120px;
 
 
-    border-radius:50%;
+background:
+
+rgba(245,185,66,.20);
 
 
-    background:
+filter:
 
-    rgba(245,185,66,.18);
-
-
-    filter:blur(80px);
+blur(80px);
 
 
-    opacity:0;
+opacity:0;
 
 
-    transition:.4s;
+transition:.4s;
 
 
 }
@@ -646,11 +1034,10 @@ AGENT CARD
 
 
 
-
 .agent-card:hover::before{
 
 
-    opacity:1;
+opacity:1;
 
 
 }
@@ -662,23 +1049,22 @@ AGENT CARD
 .agent-card:hover{
 
 
-    transform:
+transform:
 
-    translateY(-10px);
-
-
-    border-color:
-
-    rgba(245,185,66,.45);
+translateY(-10px);
 
 
-    box-shadow:
+border-color:
 
-    0 30px 70px rgba(0,0,0,.45);
+rgba(245,185,66,.45);
+
+
+box-shadow:
+
+var(--agent-shadow);
 
 
 }
-
 
 
 
@@ -687,29 +1073,30 @@ AGENT CARD
 
 
 /* ==========================
-AGENT HEADER
+AGENT TOP
 ========================== */
 
 
 .agent-top{
 
 
-    display:flex;
+display:flex;
 
 
-    align-items:center;
+align-items:center;
 
 
-    gap:16px;
+gap:16px;
 
 
-    position:relative;
+position:relative;
 
 
-    z-index:2;
+z-index:2;
 
 
 }
+
 
 
 
@@ -719,52 +1106,52 @@ AGENT HEADER
 .agent-avatar{
 
 
-    width:70px;
+width:75px;
 
 
-    height:70px;
+height:75px;
 
 
-    display:flex;
+border-radius:24px;
 
 
-    align-items:center;
+display:flex;
 
 
-    justify-content:center;
+align-items:center;
 
 
-    flex-shrink:0;
+justify-content:center;
 
 
-    border-radius:22px;
+font-size:36px;
 
 
-    font-size:32px;
+background:
+
+linear-gradient(
+
+145deg,
+
+rgba(245,185,66,.25),
+
+rgba(245,185,66,.05)
+
+);
 
 
 
-    background:
+border:
 
-    linear-gradient(
-        145deg,
-        rgba(245,185,66,.25),
-        rgba(245,185,66,.08)
-    );
+1px solid rgba(245,185,66,.25);
 
 
+box-shadow:
 
-    border:
-
-    1px solid rgba(245,185,66,.25);
-
-
-    color:
-
-    var(--agent-gold);
+0 15px 35px rgba(245,185,66,.15);
 
 
-    transition:.35s;
+transition:.35s;
 
 
 }
@@ -772,14 +1159,14 @@ AGENT HEADER
 
 
 
-
-
 .agent-card:hover .agent-avatar{
 
 
-    transform:
+transform:
 
-    scale(1.08) rotate(-5deg);
+scale(1.08)
+
+rotate(-5deg);
 
 
 }
@@ -791,13 +1178,13 @@ AGENT HEADER
 .agent-card h3{
 
 
-    font-size:21px;
+font-size:22px;
 
 
-    font-weight:800;
+font-weight:900;
 
 
-    letter-spacing:-.5px;
+letter-spacing:-.5px;
 
 
 }
@@ -809,18 +1196,22 @@ AGENT HEADER
 .agent-role{
 
 
-    margin-top:5px;
+display:block;
 
 
-    font-size:13px;
+margin-top:6px;
 
 
-    color:
+font-size:13px;
 
-    var(--agent-gold);
+
+color:
+
+var(--agent-gold);
 
 
 }
+
 
 
 
@@ -837,445 +1228,24 @@ DESCRIPTION
 .agent-card p{
 
 
-    margin:
+margin:
 
-    22px 0;
-
-
-    color:
-
-    var(--agent-muted);
+25px 0;
 
 
-    line-height:1.7;
+color:
+
+var(--agent-muted);
 
 
-    font-size:14px;
+line-height:1.7;
 
 
-}
-
-
-
-
-
-
-
-
-/* ==========================
-TAGS
-========================== */
-
-
-.agent-tags{
-
-
-    display:flex;
-
-
-    flex-wrap:wrap;
-
-
-    gap:8px;
-
-
-    margin-bottom:25px;
+font-size:14px;
 
 
 }
 
-
-
-
-.agent-tags span{
-
-
-    padding:
-
-    6px 12px;
-
-
-    border-radius:20px;
-
-
-    background:
-
-    rgba(255,255,255,.07);
-
-
-    border:
-
-    1px solid rgba(255,255,255,.08);
-
-
-    color:
-
-    var(--agent-muted);
-
-
-    font-size:11px;
-
-
-}
-
-
-
-
-
-
-/* ==========================
-OPEN BUTTON
-========================== */
-
-
-.agent-open-btn{
-
-
-    width:100%;
-
-
-    padding:15px;
-
-
-    border:none;
-
-
-    border-radius:17px;
-
-
-    cursor:pointer;
-
-
-    font-weight:800;
-
-
-    font-size:14px;
-
-
-    background:
-
-    linear-gradient(
-        135deg,
-        var(--agent-gold),
-        var(--agent-gold-light)
-    );
-
-
-    color:#111;
-
-
-    transition:.3s;
-
-
-}
-
-
-
-
-
-.agent-open-btn:hover{
-
-
-    transform:
-
-    translateY(-4px);
-
-
-    box-shadow:
-
-    0 20px 40px rgba(245,185,66,.25);
-
-
-}
-
-
-
-
-
-.agent-open-btn i{
-
-
-    margin-left:8px;
-
-
-}/* ==========================
-ACTIVE AGENT PANEL
-========================== */
-
-
-.active-agent{
-
-
-    margin:
-
-    40px 70px 80px;
-
-
-    padding:35px;
-
-
-    border-radius:
-
-    var(--agent-radius);
-
-
-
-    background:
-
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,.08),
-        rgba(255,255,255,.03)
-    );
-
-
-
-    border:
-
-    1px solid var(--agent-border);
-
-
-
-    backdrop-filter:blur(25px);
-
-
-    box-shadow:
-
-    0 30px 80px rgba(0,0,0,.35);
-
-
-    transition:.35s;
-
-
-}
-
-
-
-
-
-.active-agent.hidden{
-
-
-    display:none;
-
-
-}
-
-
-
-
-
-
-
-
-.active-header{
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    gap:18px;
-
-
-    margin-bottom:30px;
-
-
-}
-
-
-
-
-
-
-.active-agent-icon{
-
-
-    width:70px;
-
-
-    height:70px;
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    justify-content:center;
-
-
-    border-radius:24px;
-
-
-    background:
-
-    linear-gradient(
-        135deg,
-        var(--agent-gold),
-        var(--agent-gold-light)
-    );
-
-
-    color:#111;
-
-
-    font-size:28px;
-
-
-}
-
-
-
-
-
-
-
-
-.active-header h3{
-
-
-    font-size:26px;
-
-
-    font-weight:800;
-
-
-}
-
-
-
-
-
-.active-header p{
-
-
-    color:
-
-    var(--agent-muted);
-
-
-    margin-top:6px;
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-ACTIVE BUTTONS
-========================== */
-
-
-.active-actions{
-
-
-    display:flex;
-
-
-    gap:15px;
-
-
-    flex-wrap:wrap;
-
-
-}
-
-
-
-
-
-.active-actions button{
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    justify-content:center;
-
-
-    gap:10px;
-
-
-    padding:
-
-    15px 28px;
-
-
-    border-radius:18px;
-
-
-    cursor:pointer;
-
-
-    font-weight:800;
-
-
-    border:
-
-    1px solid var(--agent-border);
-
-
-    background:
-
-    rgba(255,255,255,.06);
-
-
-    color:white;
-
-
-    transition:.3s;
-
-
-}
-
-
-
-
-.active-actions button:first-child{
-
-
-    background:
-
-    linear-gradient(
-        135deg,
-        var(--agent-gold),
-        var(--agent-gold-light)
-    );
-
-
-    color:#111;
-
-
-    border:none;
-
-
-}
-
-
-
-
-
-.active-actions button:hover{
-
-
-    transform:
-
-    translateY(-4px);
-
-
-}
 
 
 
@@ -1292,52 +1262,144 @@ ONLINE STATUS
 .agent-online{
 
 
-    display:flex;
+display:flex;
 
 
-    align-items:center;
+align-items:center;
 
 
-    gap:8px;
+gap:8px;
 
 
-    font-size:12px;
+font-size:12px;
 
 
-    color:
+color:
 
-    var(--agent-success);
+var(--agent-success);
+
+
+margin-bottom:20px;
 
 
 }
-
-
 
 
 
 .agent-online span{
 
 
-    width:8px;
+width:8px;
 
 
-    height:8px;
+height:8px;
 
 
-    border-radius:50%;
+border-radius:50%;
 
 
-    background:
+background:
 
-    var(--agent-success);
+var(--agent-success);
 
 
-    box-shadow:
+box-shadow:
 
-    0 0 15px var(--agent-success);
+0 0 15px var(--agent-success);
 
 
 }
+
+
+
+
+
+
+
+
+
+/* ==========================
+OPEN BUTTON
+========================== */
+
+
+.agent-open-btn{
+
+
+width:100%;
+
+
+padding:15px;
+
+
+border:none;
+
+
+border-radius:18px;
+
+
+cursor:pointer;
+
+
+font-size:14px;
+
+
+font-weight:900;
+
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+transition:.3s;
+
+
+}
+
+
+
+
+
+.agent-open-btn:hover{
+
+
+transform:
+
+translateY(-4px);
+
+
+box-shadow:
+
+0 15px 35px rgba(245,185,66,.35);
+
+
+}
+
+
+
+
+.agent-open-btn i{
+
+
+margin-left:8px;
+
+
+}
+
 
 
 
@@ -1354,14 +1416,14 @@ ACTIVE CARD
 .agent-card.active{
 
 
-    border-color:
+border-color:
 
-    var(--agent-gold);
+var(--agent-gold);
 
 
-    box-shadow:
+box-shadow:
 
-    0 0 45px rgba(245,185,66,.25);
+0 0 45px rgba(245,185,66,.25);
 
 
 }
@@ -1373,38 +1435,38 @@ ACTIVE CARD
 .agent-card.active::after{
 
 
-    content:"ATIVO";
+content:"ATIVO";
 
 
-    position:absolute;
+position:absolute;
 
 
-    top:20px;
+top:20px;
 
 
-    right:20px;
+right:20px;
 
 
-    padding:
+padding:
 
-    6px 12px;
-
-
-    border-radius:30px;
+6px 14px;
 
 
-    background:
-
-    var(--agent-gold);
+border-radius:30px;
 
 
-    color:#111;
+background:
+
+var(--agent-gold);
 
 
-    font-size:11px;
+color:#111;
 
 
-    font-weight:900;
+font-size:11px;
+
+
+font-weight:900;
 
 
 }
@@ -1416,8 +1478,9 @@ ACTIVE CARD
 
 
 
+
 /* ==========================
-REVEAL ANIMATION
+ANIMATION
 ========================== */
 
 
@@ -1427,154 +1490,27 @@ REVEAL ANIMATION
 from{
 
 
-    opacity:0;
+opacity:0;
 
 
-    transform:
+transform:
 
-    translateY(35px);
+translateY(30px);
 
 
 }
+
 
 
 to{
 
 
-    opacity:1;
+opacity:1;
 
 
-    transform:
+transform:
 
-    translateY(0);
-
-
-}
-
-
-}
-
-
-
-
-
-
-
-.agent-card{
-
-
-    animation:
-
-    agentReveal .7s ease forwards;
-
-
-}
-
-
-
-
-
-
-
-
-/* ==========================
-LOADING
-========================== */
-
-
-.agent-loading{
-
-
-    min-height:250px;
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    justify-content:center;
-
-
-    gap:10px;
-
-
-    color:
-
-    var(--agent-muted);
-
-
-}
-
-
-
-
-
-.agent-loading span{
-
-
-    width:10px;
-
-
-    height:10px;
-
-
-    border-radius:50%;
-
-
-    background:
-
-    var(--agent-gold);
-
-
-    animation:
-
-    loadingPulse 1s infinite;
-
-
-}
-
-
-
-
-
-.agent-loading span:nth-child(2){
-
-
-    animation-delay:.2s;
-
-
-}
-
-
-
-
-
-.agent-loading span:nth-child(3){
-
-
-    animation-delay:.4s;
-
-
-}
-
-
-
-
-
-
-
-@keyframes loadingPulse{
-
-
-50%{
-
-
-    opacity:.3;
-
-
-    transform:scale(.7);
+translateY(0);
 
 
 }
@@ -1585,300 +1521,101 @@ LOADING
 
 
 
+.agent-card:nth-child(1){
 
-
-
-
-/* ==========================
-ACCESSIBILITY
-========================== */
-
-
-.agent-open-btn:focus,
-.active-actions button:focus{
-
-
-    outline:
-
-    2px solid var(--agent-gold);
-
-
-    outline-offset:3px;
-
+animation-delay:.1s;
 
 }
 
 
+.agent-card:nth-child(2){
 
-
-
-
-
-
-/* ==========================
-TABLET
-========================== */
-
-
-@media(max-width:1100px){
-
-
-
-.agents-hero{
-
-
-    flex-direction:column;
-
-
-    align-items:flex-start;
-
-
-    padding:60px 35px;
-
+animation-delay:.2s;
 
 }
 
 
+.agent-card:nth-child(3){
 
-
-.agents-status-card{
-
-
-    width:100%;
-
+animation-delay:.3s;
 
 }
 
 
+.agent-card:nth-child(4){
 
-.agents-section{
-
-
-    padding:
-
-    30px 35px 80px;
-
+animation-delay:.4s;
 
 }
 
 
+.agent-card:nth-child(5){
 
-
-
-.active-agent{
-
-
-    margin:
-
-    40px 35px 70px;
-
-
-}
-
-
-
+animation-delay:.5s;
 
 }/* ==========================
-MOBILE
+ACTIVE AGENT PANEL
 ========================== */
-
-
-@media(max-width:768px){
-
-
-
-.agents-hero{
-
-
-    padding:
-
-    45px 20px;
-
-
-    gap:35px;
-
-
-}
-
-
-
-
-
-.agents-title h1{
-
-
-    font-size:38px;
-
-
-    letter-spacing:-1.5px;
-
-
-}
-
-
-
-
-.agents-title p{
-
-
-    font-size:16px;
-
-
-}
-
-
-
-
-.hero-tag{
-
-
-    font-size:12px;
-
-
-    padding:9px 15px;
-
-
-}
-
-
-
-
-
-.agents-status-card{
-
-
-    width:100%;
-
-
-    padding:22px;
-
-
-    border-radius:24px;
-
-
-}
-
-
-
-
-.status-icon{
-
-
-    width:55px;
-
-
-    height:55px;
-
-
-    font-size:23px;
-
-
-}
-
-
-
-
-
-.agents-section{
-
-
-    padding:
-
-    20px 20px 60px;
-
-
-}
-
-
-
-
-
-.agents-grid{
-
-
-    grid-template-columns:
-
-    1fr;
-
-
-    gap:18px;
-
-
-}
-
-
-
-
-
-.agent-card{
-
-
-    padding:24px;
-
-
-    border-radius:24px;
-
-
-}
-
-
-
-
-
-.agent-avatar{
-
-
-    width:60px;
-
-
-    height:60px;
-
-
-    font-size:27px;
-
-
-}
-
-
-
-
-
-.agent-card h3{
-
-
-    font-size:19px;
-
-
-}
-
-
-
-
-
-.agent-card p{
-
-
-    font-size:13px;
-
-
-}
-
-
-
 
 
 .active-agent{
 
 
-    margin:
+margin:
 
-    30px 20px 60px;
-
-
-    padding:25px;
+50px 70px 80px;
 
 
-    border-radius:24px;
+padding:
+
+35px;
+
+
+border-radius:32px;
+
+
+
+background:
+
+linear-gradient(
+
+145deg,
+
+rgba(255,255,255,.10),
+
+rgba(255,255,255,.03)
+
+);
+
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+
+backdrop-filter:
+
+blur(25px);
+
+
+
+box-shadow:
+
+var(--agent-shadow);
+
+
+
+}
+
+
+
+
+.active-agent.hidden{
+
+
+display:none;
 
 
 }
@@ -1890,22 +1627,19 @@ MOBILE
 .active-header{
 
 
-    align-items:flex-start;
+display:flex;
+
+
+align-items:center;
+
+
+gap:18px;
+
+
+margin-bottom:30px;
 
 
 }
-
-
-
-
-.active-header h3{
-
-
-    font-size:21px;
-
-
-}
-
 
 
 
@@ -1913,13 +1647,1054 @@ MOBILE
 .active-agent-icon{
 
 
-    width:60px;
+width:70px;
 
 
-    height:60px;
+height:70px;
 
 
-    font-size:24px;
+border-radius:24px;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+justify-content:center;
+
+
+font-size:30px;
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+}
+
+
+
+
+
+.active-header h3{
+
+
+font-size:26px;
+
+
+}
+
+
+
+.active-header p{
+
+
+margin-top:6px;
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT CHAT
+========================== */
+
+
+.agent-chat{
+
+
+margin-top:30px;
+
+
+border-radius:28px;
+
+
+overflow:hidden;
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+background:
+
+rgba(0,0,0,.25);
+
+
+}
+
+
+
+
+
+.agent-chat-header{
+
+
+padding:
+
+20px 25px;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+justify-content:space-between;
+
+
+border-bottom:
+
+1px solid var(--agent-border);
+
+
+}
+
+
+
+
+
+.agent-chat-header strong{
+
+
+font-size:16px;
+
+
+}
+
+
+
+
+
+.chat-status{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:8px;
+
+
+font-size:12px;
+
+
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+.chat-status span{
+
+
+width:8px;
+
+
+height:8px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-success);
+
+
+box-shadow:
+
+0 0 15px var(--agent-success);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+MESSAGES
+========================== */
+
+
+.agent-messages{
+
+
+height:350px;
+
+
+overflow-y:auto;
+
+
+padding:25px;
+
+
+display:flex;
+
+
+flex-direction:column;
+
+
+gap:18px;
+
+
+}
+
+
+
+
+.agent-message{
+
+
+max-width:75%;
+
+
+padding:
+
+16px 20px;
+
+
+border-radius:22px;
+
+
+font-size:14px;
+
+
+line-height:1.6;
+
+
+}
+
+
+
+
+
+.agent-message.bot{
+
+
+align-self:flex-start;
+
+
+background:
+
+rgba(255,255,255,.08);
+
+
+border:
+
+1px solid rgba(255,255,255,.08);
+
+
+}
+
+
+
+
+
+.agent-message.user{
+
+
+align-self:flex-end;
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+font-weight:600;
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+CHAT INPUT
+========================== */
+
+
+.agent-chat-input{
+
+
+padding:
+
+20px;
+
+
+border-top:
+
+1px solid var(--agent-border);
+
+
+display:flex;
+
+
+gap:12px;
+
+
+}
+
+
+
+
+
+.agent-chat-input textarea{
+
+
+flex:1;
+
+
+resize:none;
+
+
+height:55px;
+
+
+padding:
+
+16px;
+
+
+border-radius:18px;
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+background:
+
+rgba(255,255,255,.05);
+
+
+color:white;
+
+
+outline:none;
+
+
+font-family:inherit;
+
+
+}
+
+
+
+
+.agent-chat-input textarea::placeholder{
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+
+.agent-chat-input button{
+
+
+width:55px;
+
+
+height:55px;
+
+
+border:none;
+
+
+border-radius:18px;
+
+
+cursor:pointer;
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+font-size:18px;
+
+
+transition:.3s;
+
+
+}
+
+
+
+
+.agent-chat-input button:hover{
+
+
+transform:
+
+translateY(-3px);
+
+
+box-shadow:
+
+0 15px 30px rgba(245,185,66,.35);
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+LIVE BUTTONS
+========================== */
+
+
+.active-actions{
+
+
+display:flex;
+
+
+gap:15px;
+
+
+margin-bottom:20px;
+
+
+flex-wrap:wrap;
+
+
+}
+
+
+
+
+.active-actions button{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:10px;
+
+
+padding:
+
+15px 25px;
+
+
+border-radius:18px;
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+background:
+
+rgba(255,255,255,.06);
+
+
+color:white;
+
+
+font-weight:800;
+
+
+cursor:pointer;
+
+
+transition:.3s;
+
+
+}
+
+
+
+
+.active-actions button:first-child{
+
+
+background:
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+border:none;
+
+
+}
+
+
+
+
+
+.active-actions button:hover{
+
+
+transform:
+
+translateY(-3px);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+FOOTER AGENTS
+========================== */
+
+
+.honey-footer{
+
+
+padding:
+
+60px 70px;
+
+
+border-top:
+
+1px solid var(--agent-border);
+
+
+display:flex;
+
+
+justify-content:space-between;
+
+
+gap:30px;
+
+
+flex-wrap:wrap;
+
+
+}
+
+
+
+
+.honey-footer strong{
+
+
+font-size:28px;
+
+
+}
+
+
+
+
+
+.honey-footer p{
+
+
+margin-top:10px;
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+.footer-copy{
+
+
+width:100%;
+
+
+font-size:13px;
+
+
+color:
+
+var(--agent-muted);
+
+
+margin-top:20px;
+
+
+}/* ==========================
+RESPONSIVE TABLET
+========================== */
+
+
+@media(max-width:1100px){
+
+
+
+.agents-hero{
+
+
+flex-direction:column;
+
+
+align-items:flex-start;
+
+
+padding:
+
+60px 35px;
+
+
+}
+
+
+
+.agents-title{
+
+
+max-width:100%;
+
+
+}
+
+
+
+
+.agents-title h1{
+
+
+font-size:50px;
+
+
+}
+
+
+
+.agents-status-card{
+
+
+width:100%;
+
+
+min-width:auto;
+
+
+}
+
+
+
+.agents-section{
+
+
+padding:
+
+30px 35px 80px;
+
+
+}
+
+
+
+
+.agents-grid{
+
+
+grid-template-columns:
+
+repeat(2,1fr);
+
+
+}
+
+
+
+
+.active-agent{
+
+
+margin:
+
+40px 35px 70px;
+
+
+}
+
+
+
+.honey-footer{
+
+
+padding:
+
+50px 35px;
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+/* ==========================
+RESPONSIVE MOBILE
+========================== */
+
+
+@media(max-width:768px){
+
+
+
+.agents-hero{
+
+
+padding:
+
+45px 20px;
+
+
+gap:30px;
+
+
+}
+
+
+
+.agents-title h1{
+
+
+font-size:
+
+38px;
+
+
+letter-spacing:-1px;
+
+
+}
+
+
+
+.agents-title p{
+
+
+font-size:
+
+15px;
+
+
+}
+
+
+
+.hero-tag{
+
+
+font-size:12px;
+
+
+}
+
+
+
+
+.agents-status-card{
+
+
+padding:
+
+20px;
+
+
+border-radius:
+
+22px;
+
+
+}
+
+
+
+
+.agents-status-card strong{
+
+
+font-size:15px;
+
+
+}
+
+
+
+
+
+.agents-section{
+
+
+padding:
+
+20px 20px 60px;
+
+
+}
+
+
+
+
+.agents-grid{
+
+
+grid-template-columns:
+
+1fr;
+
+
+gap:
+
+18px;
+
+
+}
+
+
+
+
+
+
+.agent-card{
+
+
+padding:
+
+24px;
+
+
+border-radius:
+
+24px;
+
+
+}
+
+
+
+
+.agent-avatar{
+
+
+width:
+
+60px;
+
+
+height:
+
+60px;
+
+
+font-size:
+
+28px;
+
+
+}
+
+
+
+
+.agent-card h3{
+
+
+font-size:
+
+19px;
+
+
+}
+
+
+
+
+
+.agent-card p{
+
+
+font-size:
+
+13px;
+
+
+}
+
+
+
+
+.active-agent{
+
+
+margin:
+
+30px 20px 60px;
+
+
+padding:
+
+22px;
+
+
+border-radius:
+
+25px;
+
+
+}
+
+
+
+
+
+.active-header{
+
+
+align-items:flex-start;
+
+
+}
+
+
+
+.active-agent-icon{
+
+
+width:
+
+60px;
+
+
+height:
+
+60px;
+
+
+font-size:
+
+24px;
+
+
+}
+
+
+
+.active-header h3{
+
+
+font-size:
+
+21px;
 
 
 }
@@ -1931,19 +2706,24 @@ MOBILE
 .active-actions{
 
 
-    flex-direction:column;
+flex-direction:
+
+column;
 
 
 }
-
-
 
 
 
 .active-actions button{
 
 
-    width:100%;
+width:
+
+100%;
+
+
+justify-content:center;
 
 
 }
@@ -1952,8 +2732,113 @@ MOBILE
 
 
 
+.agent-messages{
+
+
+height:
+
+300px;
+
+
+padding:
+
+18px;
+
 
 }
+
+
+
+
+
+.agent-message{
+
+
+max-width:
+
+90%;
+
+
+font-size:
+
+13px;
+
+
+}
+
+
+
+
+
+.agent-chat-input{
+
+
+padding:
+
+15px;
+
+
+}
+
+
+
+
+
+.agent-chat-input textarea{
+
+
+height:
+
+50px;
+
+
+}
+
+
+
+
+
+.agent-chat-input button{
+
+
+width:
+
+50px;
+
+
+height:
+
+50px;
+
+
+}
+
+
+
+
+
+.honey-footer{
+
+
+padding:
+
+40px 20px;
+
+
+flex-direction:
+
+column;
+
+
+}
+
+
+
+}
+
+
+
+
 
 
 
@@ -1970,26 +2855,29 @@ SMALL MOBILE
 .agents-title h1{
 
 
-    font-size:33px;
+font-size:
+
+33px;
 
 
 }
-
-
 
 
 
 .agents-status-card{
 
 
-    flex-direction:column;
+flex-direction:
+
+column;
 
 
-    align-items:flex-start;
+align-items:
+
+flex-start;
 
 
 }
-
 
 
 
@@ -1997,11 +2885,12 @@ SMALL MOBILE
 .agent-top{
 
 
-    gap:12px;
+gap:
+
+12px;
 
 
 }
-
 
 
 
@@ -2009,44 +2898,61 @@ SMALL MOBILE
 .agent-card{
 
 
-    padding:22px;
+padding:
+
+20px;
 
 
 }
 
 
 
-
-.agent-tags span{
-
-
-    font-size:10px;
-
-
 }
-
-
-
-
-
-}
-
-
-
 
 
 
 
 
 /* ==========================
-SMOOTH SCROLL
+SCROLL PREMIUM
 ========================== */
 
 
-html{
+.agent-messages::-webkit-scrollbar{
 
 
-    scroll-behavior:smooth;
+width:
+
+6px;
+
+
+}
+
+
+
+.agent-messages::-webkit-scrollbar-track{
+
+
+background:
+
+rgba(255,255,255,.05);
+
+
+}
+
+
+
+.agent-messages::-webkit-scrollbar-thumb{
+
+
+background:
+
+rgba(245,185,66,.45);
+
+
+border-radius:
+
+20px;
 
 
 }
@@ -2055,50 +2961,27 @@ html{
 
 
 
-
-
 /* ==========================
-CUSTOM SCROLLBAR
+ACCESSIBILITY
 ========================== */
 
 
-::-webkit-scrollbar{
+.agent-open-btn:focus,
+.active-actions button:focus,
+.agent-chat-input button:focus{
 
 
-    width:8px;
+outline:
+
+2px solid var(--agent-gold);
 
 
-}
+outline-offset:
 
-
-
-::-webkit-scrollbar-track{
-
-
-    background:
-
-    var(--agent-bg);
+3px;
 
 
 }
-
-
-
-
-
-::-webkit-scrollbar-thumb{
-
-
-    background:
-
-    rgba(245,185,66,.45);
-
-
-    border-radius:20px;
-
-
-}
-
 
 
 
@@ -2107,16 +2990,62 @@ CUSTOM SCROLLBAR
 
 
 /* ==========================
-FINAL POLISH
+CARD PERFORMANCE
 ========================== */
 
 
 .agent-card,
-.agents-status-card,
-.active-agent{
+.agent-avatar,
+.agent-open-btn{
 
 
-    will-change:transform;
+will-change:
+
+transform;
+
+
+}
+
+
+
+
+/* ==========================
+FINAL PREMIUM GLOW
+========================== */
+
+
+.agents-grid::after{
+
+
+content:"";
+
+
+position:absolute;
+
+
+width:300px;
+
+
+height:300px;
+
+
+right:-150px;
+
+
+bottom:-150px;
+
+
+background:
+
+rgba(245,185,66,.12);
+
+
+filter:
+
+blur(100px);
+
+
+pointer-events:none;
 
 
 }
@@ -2125,13 +3054,53 @@ FINAL POLISH
 
 
 
-.agent-card:hover,
-.agents-status-card:hover{
 
 
-    border-color:
 
-    rgba(245,185,66,.35);
+/* ==========================
+30 AGENTS OPTIMIZATION
+========================== */
+
+
+.agents-grid{
+
+
+position:relative;
 
 
 }
+
+
+
+.agent-card:nth-child(n){
+
+
+animation-fill-mode:
+
+both;
+
+
+}
+
+
+
+
+
+.agent-card:hover{
+
+
+z-index:5;
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+END AGENTS STUDIO
+========================== */
