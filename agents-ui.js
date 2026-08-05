@@ -1,14 +1,15 @@
-// ======================================================
-// HONEY IA
-// AGENTS UI CONTROLLER V3.0
-// Premium Agent Marketplace + Agent Chat
-// ======================================================
+/*
+====================================================
+HONEY IA
+AGENTS UI CONTROLLER V3.0
+30 AGENTS MARKETPLACE + CHAT
+====================================================
+*/
 
 
 import agents from "./agents.js";
 import agentstudio from "./agentstudio.js";
 import liveclient from "./liveclient.js";
-
 
 
 
@@ -40,7 +41,11 @@ this.activeAgent = null;
 
 
 
-
+/*
+====================================================
+INICIALIZAÇÃO
+====================================================
+*/
 
 
 init(containerId){
@@ -49,9 +54,7 @@ init(containerId){
 
 this.container =
 
-document.getElementById(
-containerId
-)
+document.getElementById(containerId)
 
 ||
 
@@ -61,12 +64,7 @@ document.getElementById(
 
 
 
-
-
-
-
 if(!this.container){
-
 
 
 console.error(
@@ -74,24 +72,14 @@ console.error(
 );
 
 
-
 return;
 
 
-
 }
 
 
 
-
-
-
-
-this.renderAgents();
-
-
-
-
+this.render();
 
 
 
@@ -105,73 +93,199 @@ this.renderAgents();
 
 
 
-// ======================================================
-// RENDER PRINCIPAL
-// ======================================================
+/*
+====================================================
+RENDER PRINCIPAL
+====================================================
+*/
+
+
+render(){
 
 
 
-renderAgents(){
-
-
-
-const allAgents =
-agents.getAll();
-
-
-
-
-
-
-this.container.innerHTML =
-
-this.createCards(
-allAgents
-);
+const allAgents = agents.getAll();
 
 
 
 
 
-
-this.attachEvents();
-
+this.container.innerHTML = `
 
 
 
-
-}
-
+<div class="agent-studio">
 
 
 
+<header class="agent-market-header">
+
+
+
+<div>
+
+
+
+<span class="market-badge">
+
+
+<i class="fa-solid fa-sparkles"></i>
+
+Honey Intelligence
+
+
+</span>
+
+
+
+
+<h2>
+
+Agents Studio
+
+</h2>
+
+
+
+<p>
+
+Escolha um dos 30 especialistas IA
+para trabalhar consigo.
+
+</p>
+
+
+
+</div>
+
+
+
+</header>
 
 
 
 
 
-// ======================================================
-// CRIAÇÃO DOS CARDS DOS 30 AGENTES
-// ======================================================
 
 
 
-createCards(list){
+
+<div class="agent-tools">
 
 
 
-if(!list.length){
+
+
+<div class="agent-search">
 
 
 
-return `
+<i class="fa-solid fa-search"></i>
 
 
 
-<div class="agent-empty">
+<input
+
+id="agentSearch"
+
+type="text"
+
+placeholder="Pesquisar agente..."
+
+>
 
 
-Nenhum agente encontrado.
+</div>
+
+
+
+
+
+
+
+
+
+<div class="agent-filters">
+
+
+
+<button class="filter active">
+
+Todos
+
+</button>
+
+
+
+<button class="filter">
+
+Negócios
+
+</button>
+
+
+
+<button class="filter">
+
+Criativos
+
+</button>
+
+
+
+<button class="filter">
+
+Técnicos
+
+</button>
+
+
+
+<button class="filter">
+
+Produtividade
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div
+
+class="agents-grid"
+
+id="agentsGrid"
+
+
+
+>
+
+
+${this.createCards(allAgents)}
+
+
+
+</div>
+
+
+
+
 
 
 </div>
@@ -182,11 +296,30 @@ Nenhum agente encontrado.
 
 
 
+
+
+this.attachEvents();
+
+
+
 }
 
 
 
 
+
+
+
+
+
+/*
+====================================================
+CRIAR CARDS DOS 30 AGENTES
+====================================================
+*/
+
+
+createCards(list){
 
 
 
@@ -207,10 +340,7 @@ data-agent="${agent.id}"
 
 
 
-
-
 <div class="agent-top">
-
 
 
 
@@ -219,7 +349,7 @@ data-agent="${agent.id}"
 <div class="agent-avatar">
 
 
-${agent.emoji || "🤖"}
+${agent.emoji || "🐝"}
 
 
 </div>
@@ -233,43 +363,28 @@ ${agent.emoji || "🤖"}
 <div>
 
 
-
 <h3>
 
-
 ${agent.name}
-
 
 </h3>
 
 
 
-
-
-
-
 <span class="agent-role">
 
-
 ${agent.category || "Especialista IA"}
-
 
 </span>
 
 
 
-
-
-
 </div>
 
 
 
 
-
-
 </div>
-
 
 
 
@@ -280,9 +395,7 @@ ${agent.category || "Especialista IA"}
 
 <p>
 
-
 ${agent.description}
-
 
 </p>
 
@@ -297,11 +410,40 @@ ${agent.description}
 <div class="agent-online">
 
 
-
 <span></span>
 
 
 Online agora
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="agent-tags">
+
+
+${
+
+(agent.tags || [])
+
+.map(tag=>`
+
+<span>
+
+${tag}
+
+</span>
+
+`).join("")
+
+}
 
 
 
@@ -317,25 +459,23 @@ Online agora
 
 <button
 
+
 class="agent-open-btn"
 
+
 data-id="${agent.id}"
+
 
 >
 
 
-
-
-
-Usar agente
+Abrir Chat
 
 
 <i class="fa-solid fa-arrow-right"></i>
 
 
-
 </button>
-
 
 
 
@@ -351,156 +491,22 @@ Usar agente
 
 
 
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ======================================================
-// EVENTOS
-// ======================================================
-
+}/*
+====================================================
+EVENTOS
+====================================================
+*/
 
 
 attachEvents(){
 
 
 
-this.attachSearch();
-
-
-this.attachFilters();
-
-
-this.attachAgentButtons();
-
-
-this.attachChatEvents();
-
-
-
-}
-
-
-// ======================================================
-// EVENTOS DO CHAT
-// ======================================================
-
-
-attachChatEvents(){
-
-
-
-const sendBtn =
-
-document.getElementById(
-"agentSendBtn"
-);
-
-
-
-
-const input =
-
-document.getElementById(
-"agentChatInput"
-);
-
-
-
-
-
-
-
-if(sendBtn){
-
-
-
-sendBtn.addEventListener(
-"click",
-()=>{
-
-
-this.sendMessage();
-
-
-});
-
-
-
-}
-
-
-
-
-
-
-
-if(input){
-
-
-
-input.addEventListener(
-"keydown",
-(event)=>{
-
-
-
-if(
-event.key === "Enter"
-&&
-!event.shiftKey
-){
-
-
-event.preventDefault();
-
-
-this.sendMessage();
-
-
-
-}
-
-
-
-});
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-}
-
-
-
-
-
-
-export default new agentsui();// ======================================================
-// PESQUISA DE AGENTES
-// ======================================================
-
-
-attachSearch(){
-
+/*
+==============================
+PESQUISA
+==============================
+*/
 
 
 const searchInput =
@@ -511,15 +517,7 @@ document.getElementById(
 
 
 
-
-
-if(!searchInput)
-
-return;
-
-
-
-
+if(searchInput){
 
 
 
@@ -532,9 +530,8 @@ searchInput.addEventListener(
 this.search =
 
 event.target.value
+
 .toLowerCase();
-
-
 
 
 
@@ -542,9 +539,11 @@ this.updateAgents();
 
 
 
+}
 
 
-});
+
+);
 
 
 
@@ -556,26 +555,18 @@ this.updateAgents();
 
 
 
-
-
-
-
-// ======================================================
-// FILTROS
-// ======================================================
-
-
-attachFilters(){
-
+/*
+==============================
+FILTROS
+==============================
+*/
 
 
 const filters =
 
-document.querySelectorAll(
+this.container.querySelectorAll(
 ".filter"
 );
-
-
 
 
 
@@ -590,18 +581,15 @@ button.addEventListener(
 
 
 
-
-
-
 filters.forEach(item=>{
+
 
 item.classList.remove(
 "active"
 );
 
+
 });
-
-
 
 
 
@@ -615,13 +603,9 @@ button.classList.add(
 
 
 
-
-
 this.category =
 
-button.textContent.trim();
-
-
+button.textContent;
 
 
 
@@ -633,77 +617,7 @@ this.updateAgents();
 
 
 
-
-});
-
-
-
-});
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-// ======================================================
-// ATUALIZAR LISTA
-// ======================================================
-
-
-
-updateAgents(){
-
-
-
-let list =
-
-agents.getAll();
-
-
-
-
-
-
-
-
-// PESQUISA
-
-
-
-if(this.search){
-
-
-
-list =
-
-list.filter(agent=>{
-
-
-
-return (
-
-
-
-agent.name
-.toLowerCase()
-.includes(this.search)
-
-||
-
-
-agent.description
-.toLowerCase()
-.includes(this.search)
-
 
 
 );
@@ -714,67 +628,20 @@ agent.description
 
 
 
-}
 
 
 
 
 
+/*
+==============================
+ABRIR CHAT DO AGENTE
+==============================
+*/
 
 
 
-
-
-// CATEGORIA
-
-
-
-if(
-this.category !== "Todos"
-){
-
-
-
-list =
-
-list.filter(agent=>
-
-
-
-agent.category ===
-this.category
-
-
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-this.container.innerHTML =
-
-this.createCards(
-list
-);
-
-
-
-
-
-
-
-
-this.attachAgentButtons();
-
-
-
+this.attachCardEvents();
 
 
 
@@ -789,31 +656,24 @@ this.attachAgentButtons();
 
 
 
-
-// ======================================================
-// BOTÕES DOS AGENTES
-// ======================================================
-
-
-
-attachAgentButtons(){
+/*
+====================================================
+EVENTOS DOS CARDS
+====================================================
+*/
 
 
+attachCardEvents(){
 
-const buttons =
 
-this.container.querySelectorAll(
+
+this.container
+
+.querySelectorAll(
 ".agent-open-btn"
-);
+)
 
-
-
-
-
-
-
-
-buttons.forEach(button=>{
+.forEach(button=>{
 
 
 
@@ -831,14 +691,14 @@ button.dataset.id;
 
 
 
-
 this.openAgent(id);
 
 
 
 
+}
 
-});
+);
 
 
 
@@ -856,12 +716,175 @@ this.openAgent(id);
 
 
 
+/*
+====================================================
+ATUALIZAR LISTA
+====================================================
+*/
 
 
-// ======================================================
-// ABRIR AGENTE
-// ======================================================
+updateAgents(){
 
+
+
+let list =
+
+agents.getAll();
+
+
+
+
+
+
+
+/*
+BUSCA
+*/
+
+
+if(this.search){
+
+
+
+list =
+
+list.filter(agent=>{
+
+
+return(
+
+
+agent.name
+
+.toLowerCase()
+
+.includes(
+this.search
+)
+
+
+
+||
+
+
+
+agent.description
+
+.toLowerCase()
+
+.includes(
+this.search
+)
+
+
+
+);
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+/*
+CATEGORIA
+*/
+
+
+if(
+
+this.category !== "Todos"
+
+){
+
+
+
+list =
+
+list.filter(agent=>{
+
+
+return (
+
+agent.category ===
+
+this.category
+
+
+);
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+const grid =
+
+document.getElementById(
+"agentsGrid"
+);
+
+
+
+
+
+
+if(grid){
+
+
+
+grid.innerHTML =
+
+
+this.createCards(list);
+
+
+
+
+
+this.attachCardEvents();
+
+
+
+}
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+====================================================
+ABRIR AGENTE SELECIONADO
+====================================================
+*/
 
 
 async openAgent(agentId){
@@ -869,8 +892,6 @@ async openAgent(agentId){
 
 
 try{
-
-
 
 
 
@@ -885,13 +906,14 @@ agentId
 
 
 
-
 if(!agent){
 
 
 
 console.error(
-"Agente não encontrado."
+
+"Agente não encontrado"
+
 );
 
 
@@ -907,7 +929,6 @@ return;
 
 
 
-
 this.activeAgent = agent;
 
 
@@ -915,15 +936,18 @@ this.activeAgent = agent;
 
 
 
-
+/*
+EVENTO GLOBAL
+*/
 
 
 document.dispatchEvent(
 
 
-
 new CustomEvent(
+
 "agent-selected",
+
 {
 
 detail:agent
@@ -931,7 +955,6 @@ detail:agent
 }
 
 )
-
 
 
 );
@@ -942,13 +965,9 @@ detail:agent
 
 
 
-
-
-
-
-
-// MODO LIVE (SE ATIVO)
-
+/*
+MODO LIVE
+*/
 
 
 if(
@@ -960,7 +979,6 @@ agentstudio.getmode()
 "live"
 
 ){
-
 
 
 await liveclient.changeAgent(
@@ -977,6 +995,7 @@ agentId
 
 
 
+
 this.openChat(agent);
 
 
@@ -984,10 +1003,7 @@ this.openChat(agent);
 
 
 
-
 }
-
-
 
 
 
@@ -1009,6 +1025,742 @@ error
 
 
 
+}    attachCardEvents(){
+
+
+        const buttons =
+
+        this.container.querySelectorAll(
+            ".agent-open-btn"
+        );
+
+
+
+        buttons.forEach(button=>{
+
+
+            button.addEventListener(
+                "click",
+                ()=>{
+
+
+                    const id =
+                    button.dataset.id;
+
+
+
+                    this.openAgent(id);
+
+
+
+                }
+
+            );
+
+
+        });
+
+
+    }
+
+
+
+
+
+
+
+    async openAgent(agentId){
+
+
+        try{
+
+
+            const agent =
+
+            agents.getById(agentId);
+
+
+
+            if(!agent){
+
+                console.error(
+                    "Agente não encontrado"
+                );
+
+                return;
+
+            }
+
+
+
+
+
+
+
+            this.activeAgent = agent;
+
+
+
+
+
+
+
+            /*
+            Guardar agente selecionado
+            */
+
+
+            localStorage.setItem(
+
+                "honey_active_agent",
+
+                JSON.stringify(agent)
+
+            );
+
+
+
+
+
+
+
+            /*
+            Informar outros módulos
+            */
+
+
+            document.dispatchEvent(
+
+                new CustomEvent(
+
+                    "agent-selected",
+
+                    {
+
+                        detail:agent
+
+                    }
+
+                )
+
+            );
+
+
+
+
+
+
+
+
+            this.showChat(agent);
+
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "Erro ao selecionar agente:",
+
+                error
+
+            );
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    showChat(agent){
+
+
+
+        let chat =
+
+        document.getElementById(
+            "agentChatWindow"
+        );
+
+
+
+
+
+        if(!chat){
+
+
+
+            chat = document.createElement(
+                "section"
+            );
+
+
+
+            chat.id =
+            "agentChatWindow";
+
+
+
+            chat.className =
+            "agent-chat-window";
+
+
+
+            document.querySelector(
+                ".main-page"
+            )
+            .appendChild(chat);
+
+
+
+        }
+
+
+
+
+
+
+
+        chat.innerHTML = `
+
+
+
+        <div class="agent-chat-header">
+
+
+
+            <div class="agent-chat-profile">
+
+
+                <div class="agent-chat-avatar">
+
+                    ${agent.emoji || "🐝"}
+
+                </div>
+
+
+
+                <div>
+
+                    <h3>
+
+                    ${agent.name}
+
+                    </h3>
+
+
+                    <span>
+
+                    ${agent.category || "Especialista IA"}
+
+                    </span>
+
+
+                </div>
+
+
+            </div>
+
+
+
+
+
+            <button 
+            id="closeAgentChat"
+            >
+
+            <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+        <div 
+        class="agent-chat-messages"
+        id="agentMessages"
+        >
+
+
+            <div class="agent-message">
+
+
+                <strong>
+
+                ${agent.name}
+
+                </strong>
+
+
+                <p>
+
+                Olá, sou o ${agent.name}.
+                Estou pronto para ajudar na sua tarefa.
+
+                </p>
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+
+
+        <div class="agent-chat-input">
+
+
+
+            <textarea
+
+            id="agentMessageInput"
+
+            placeholder="Escreva uma mensagem..."
+
+            ></textarea>
+
+
+
+
+
+            <button
+
+            id="sendAgentMessage"
+
+            >
+
+            <i class="fa-solid fa-paper-plane"></i>
+
+            </button>
+
+
+
+        </div>
+
+
+
+        `;
+
+
+
+
+
+
+        chat.scrollIntoView({
+
+            behavior:"smooth"
+
+        });
+
+
+
+
+
+        this.attachChatEvents(agent);
+
+
+
+    }    attachChatEvents(agent){
+
+
+        const closeButton =
+
+        document.getElementById(
+            "closeAgentChat"
+        );
+
+
+
+        if(closeButton){
+
+
+            closeButton.onclick = ()=>{
+
+
+                const chat =
+
+                document.getElementById(
+                    "agentChatWindow"
+                );
+
+
+
+                if(chat){
+
+                    chat.remove();
+
+                }
+
+
+            };
+
+
+        }
+
+
+
+
+
+
+
+
+
+        const input =
+
+        document.getElementById(
+            "agentMessageInput"
+        );
+
+
+
+        const sendButton =
+
+        document.getElementById(
+            "sendAgentMessage"
+        );
+
+
+
+        if(!input || !sendButton){
+
+            return;
+
+        }
+
+
+
+
+
+
+
+
+        const sendMessage = async ()=>{
+
+
+
+            const message =
+
+            input.value.trim();
+
+
+
+
+            if(!message){
+
+                return;
+
+            }
+
+
+
+
+
+
+            input.value = "";
+
+
+
+
+
+
+            this.addMessage(
+
+                message,
+
+                "user"
+
+            );
+
+
+
+
+
+
+
+            /*
+            Aqui futuramente entra
+            a chamada para a API
+            da Honey IA
+            */
+
+
+
+
+
+            setTimeout(()=>{
+
+
+
+                this.addMessage(
+
+                `Estou a analisar a sua solicitação.
+                Sou o ${agent.name} e vou ajudar com
+                a minha especialidade: ${agent.category}.`,
+
+                "agent"
+
+                );
+
+
+
+            },800);
+
+
+
+
+
+        };
+
+
+
+
+
+
+
+
+
+        sendButton.onclick =
+        sendMessage;
+
+
+
+
+
+        input.addEventListener(
+
+            "keydown",
+
+            (event)=>{
+
+
+                if(
+
+                event.key === "Enter"
+
+                &&
+
+                !event.shiftKey
+
+                ){
+
+
+                    event.preventDefault();
+
+
+                    sendMessage();
+
+
+                }
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    addMessage(text,type){
+
+
+
+        const box =
+
+        document.getElementById(
+            "agentMessages"
+        );
+
+
+
+        if(!box){
+
+            return;
+
+        }
+
+
+
+
+
+
+        const message =
+
+        document.createElement(
+            "div"
+        );
+
+
+
+        message.className =
+
+        type === "user"
+
+        ?
+
+        "user-message"
+
+        :
+
+        "agent-message";
+
+
+
+
+
+
+
+        message.innerHTML = `
+
+
+
+        <p>
+
+        ${text}
+
+        </p>
+
+
+        `;
+
+
+
+
+
+
+
+        box.appendChild(message);
+
+
+
+
+
+
+        box.scrollTop =
+
+        box.scrollHeight;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    restoreAgent(){
+
+
+
+        const saved =
+
+        localStorage.getItem(
+
+            "honey_active_agent"
+
+        );
+
+
+
+
+        if(saved){
+
+
+            try{
+
+
+                this.activeAgent =
+
+                JSON.parse(saved);
+
+
+
+            }
+
+            catch(error){
+
+
+                console.error(
+                    "Erro ao recuperar agente",
+                    error
+                );
+
+
+            }
+
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+
+
+    getCurrent(){
+
+
+
+        return this.activeAgent;
+
+
+
+    }
+
+
+
+
 
 
 }
@@ -1019,127 +1771,25 @@ error
 
 
 
-// ======================================================
-// ABRIR CHAT DO AGENTE
-// ======================================================
 
+const agentsUI =
 
+new AgentsUI();
 
-openChat(agent){
 
 
 
+document.addEventListener(
 
+"DOMContentLoaded",
 
-const panel =
+()=>{
 
-document.getElementById(
-"activeAgentPanel"
-);
 
+    agentsui.init(
+        "agentsContainer"
+    );
 
-
-
-
-
-
-if(!panel)
-
-return;
-
-
-
-
-
-
-
-panel.classList.remove(
-"hidden"
-);
-
-
-
-
-
-
-
-
-const emoji =
-
-document.getElementById(
-"activeEmoji"
-);
-
-
-
-
-
-
-const name =
-
-document.getElementById(
-"activeName"
-);
-
-
-
-
-
-
-const role =
-
-document.getElementById(
-"activeRole"
-);
-
-
-
-
-
-
-
-if(emoji)
-
-emoji.textContent =
-
-agent.emoji || "🤖";
-
-
-
-
-
-
-
-if(name)
-
-name.textContent =
-
-agent.name;
-
-
-
-
-
-
-
-if(role)
-
-role.textContent =
-
-agent.category ||
-"Especialista Honey IA";
-
-
-
-
-
-
-
-panel.scrollIntoView({
-
-behavior:"smooth",
-
-block:"center"
 
 });
 
@@ -1148,361 +1798,4 @@ block:"center"
 
 
 
-
-}// ======================================================
-// CHAT DO AGENTE
-// ======================================================
-
-
-sendMessage(){
-
-
-
-const input =
-
-document.getElementById(
-"agentChatInput"
-);
-
-
-
-
-
-const messages =
-
-document.getElementById(
-"agentChatMessages"
-);
-
-
-
-
-
-
-if(
-!input ||
-!messages ||
-!input.value.trim()
-)
-
-return;
-
-
-
-
-
-
-
-const text =
-
-input.value.trim();
-
-
-
-
-
-
-// MENSAGEM DO UTILIZADOR
-
-
-
-this.addMessage(
-"Você",
-text,
-"user"
-);
-
-
-
-
-
-
-input.value = "";
-
-
-
-
-
-
-// RESPOSTA TEMPORÁRIA
-// (será substituída pela API)
-
-
-
-setTimeout(()=>{
-
-
-
-this.addMessage(
-
-
-this.activeAgent?.name ||
-
-"Honey IA",
-
-
-this.generateLocalReply(
-text
-),
-
-
-"honey"
-
-
-
-);
-
-
-
-},800);
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ======================================================
-// ADICIONAR MENSAGEM NO CHAT
-// ======================================================
-
-
-
-addMessage(
-sender,
-message,
-type
-){
-
-
-
-const messages =
-
-document.getElementById(
-"agentChatMessages"
-);
-
-
-
-
-
-
-if(!messages)
-
-return;
-
-
-
-
-
-
-
-const div =
-
-document.createElement(
-"div"
-);
-
-
-
-
-
-
-
-div.className =
-
-`agent-message ${type}`;
-
-
-
-
-
-
-
-
-div.innerHTML = `
-
-
-
-<div class="message-bubble">
-
-
-<strong>
-
-${sender}
-
-</strong>
-
-
-<br><br>
-
-
-${message}
-
-
-</div>
-
-
-
-`;
-
-
-
-
-
-
-
-
-messages.appendChild(
-div
-);
-
-
-
-
-
-
-
-
-messages.scrollTop =
-
-messages.scrollHeight;
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ======================================================
-// RESPOSTA LOCAL TEMPORÁRIA
-// ======================================================
-
-
-
-generateLocalReply(message){
-
-
-
-if(
-!this.activeAgent
-)
-
-return "Estou pronto para ajudar.";
-
-
-
-
-
-
-
-return `
-
-Sou o ${this.activeAgent.name}.
-
-Recebi a sua mensagem:
-
-"${message}"
-
-<br><br>
-
-Estou preparado para ajudar
-com a minha especialidade:
-${this.activeAgent.category}.
-
-`;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ======================================================
-// PREPARAÇÃO PARA API HONEY IA
-// ======================================================
-
-
-
-async sendToHoneyAPI(message){
-
-
-
-/*
-
-Aqui ficará a ligação
-com o backend:
-
-POST /gerar-gratis
-
-ou
-
-POST /agent-chat
-
-
-Exemplo futuro:
-
-fetch("/agent-chat",{
-method:"POST",
-body:JSON.stringify({
-agent:this.activeAgent.id,
-message
-})
-})
-
-
-*/
-
-
-
-
-
-return null;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-export default new agentsui();
+export default agentsui;
