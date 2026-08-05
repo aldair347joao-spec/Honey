@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="pt-PT">
 
 <head>
@@ -7,9 +8,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+
 <title>
 Honey IA — AI Workspace
 </title>
+
 
 
 <link rel="stylesheet" href="style.css">
@@ -19,11 +22,15 @@ Honey IA — AI Workspace
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
 rel="stylesheet">
 
 
+
 </head>
+
+
 
 
 
@@ -34,9 +41,11 @@ rel="stylesheet">
 
 
 
-<!-- ==========================
+
+
+<!-- =================================
 BACKGROUND SYSTEM
-========================== -->
+================================= -->
 
 
 <div class="workspace-grid"></div>
@@ -44,18 +53,26 @@ BACKGROUND SYSTEM
 
 <div class="workspace-glow glow-gold"></div>
 
+
 <div class="workspace-glow glow-blue"></div>
 
 
 
 
 
-<!-- ==========================
+
+
+
+
+<!-- =================================
 MOBILE OVERLAY
-========================== -->
+================================= -->
 
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div 
+class="sidebar-overlay"
+id="sidebarOverlay">
+</div>
 
 
 
@@ -63,12 +80,20 @@ MOBILE OVERLAY
 
 
 
-<!-- ==========================
-MAIN SIDEBAR
-========================== -->
 
 
-<aside class="workspace-sidebar" id="sidebar">
+<!-- =================================
+HONEY IA SIDEBAR
+================================= -->
+
+
+<aside 
+class="honey-sidebar"
+id="sidebar">
+
+
+
+
 
 
 
@@ -76,29 +101,40 @@ MAIN SIDEBAR
 
 
 
-<div class="brand-symbol">
+
+
+<div class="brand-icon">
+
 
 <i class="fa-solid fa-hexagon-nodes"></i>
 
+
 </div>
 
 
 
-<div class="brand-info">
+
+
+
+<div class="brand-text">
+
 
 <strong>
+
 Honey IA
+
 </strong>
 
 
+
+
 <span>
+
 AI Workspace
+
 </span>
 
 
-</div>
-
-
 
 </div>
 
@@ -107,35 +143,62 @@ AI Workspace
 
 
 
+</div>
 
 
 
-<nav class="workspace-menu">
 
 
 
-<div class="menu-label">
 
-Workspace
+
+
+<nav class="sidebar-menu">
+
+
+
+
+
+<div class="menu-title">
+
+WORKSPACE
 
 </div>
 
 
 
 
-<a href="index.html" class="workspace-link active">
 
 
-<div class="workspace-icon">
 
-<i class="fa-solid fa-grid-2"></i>
+
+<a href="index.html"
+class="menu-link active">
+
+
+
+
+
+<div class="menu-icon">
+
+
+<i class="fa-solid fa-house"></i>
+
 
 </div>
+
+
+
 
 
 <span>
+
 Início
+
 </span>
+
+
+
 
 
 </a>
@@ -145,19 +208,36 @@ Início
 
 
 
-<a href="#chat" class="workspace-link">
 
 
-<div class="workspace-icon">
+
+<a href="#chat"
+class="menu-link">
+
+
+
+
+
+<div class="menu-icon">
+
 
 <i class="fa-solid fa-message"></i>
 
+
 </div>
 
 
+
+
+
 <span>
+
 Chat IA
+
 </span>
+
+
+
 
 
 </a>
@@ -168,19 +248,35 @@ Chat IA
 
 
 
-<a href="agents.html" class="workspace-link">
 
 
-<div class="workspace-icon">
+<a href="agents.html"
+class="menu-link">
+
+
+
+
+
+<div class="menu-icon">
+
 
 <i class="fa-solid fa-robot"></i>
 
+
 </div>
 
 
+
+
+
 <span>
+
 Agentes IA
+
 </span>
+
+
+
 
 
 </a>
@@ -191,19 +287,35 @@ Agentes IA
 
 
 
-<a href="projects.html" class="workspace-link">
 
 
-<div class="workspace-icon">
+<a href="projects.html"
+class="menu-link">
 
-<i class="fa-solid fa-folder-open"></i>
+
+
+
+
+<div class="menu-icon">
+
+
+<i class="fa-solid fa-layer-group"></i>
+
 
 </div>
 
 
+
+
+
 <span>
+
 Projetos
+
 </span>
+
+
+
 
 
 </a>
@@ -214,19 +326,35 @@ Projetos
 
 
 
-<a href="history.html" class="workspace-link">
 
 
-<div class="workspace-icon">
+<a href="history.html"
+class="menu-link">
+
+
+
+
+
+<div class="menu-icon">
+
 
 <i class="fa-solid fa-clock-rotate-left"></i>
 
+
 </div>
 
 
+
+
+
 <span>
+
 Histórico
+
 </span>
+
+
+
 
 
 </a>
@@ -235,9 +363,23 @@ Histórico
 
 
 
-<div class="menu-label account-label">
 
-Conta
+
+
+
+<div class="menu-divider"></div>
+
+
+
+
+
+
+
+
+
+<div class="menu-title">
+
+CONTA
 
 </div>
 
@@ -247,19 +389,35 @@ Conta
 
 
 
-<a href="plans.html" class="workspace-link">
 
 
-<div class="workspace-icon">
+<a href="plans.html"
+class="menu-link">
+
+
+
+
+
+<div class="menu-icon">
+
 
 <i class="fa-solid fa-crown"></i>
 
+
 </div>
 
 
+
+
+
 <span>
-Plano
+
+Planos
+
 </span>
+
+
+
 
 
 </a>
@@ -270,22 +428,40 @@ Plano
 
 
 
-<a href="terms.html" class="workspace-link">
 
 
-<div class="workspace-icon">
+<a href="terms.html"
+class="menu-link">
 
-<i class="fa-solid fa-file-lines"></i>
+
+
+
+
+<div class="menu-icon">
+
+
+<i class="fa-solid fa-file-contract"></i>
+
 
 </div>
 
 
+
+
+
 <span>
-Termos
+
+Termos de Uso
+
 </span>
 
 
+
+
+
 </a>
+
+
 
 
 
@@ -300,16 +476,26 @@ Termos
 
 
 
-
-<div class="sidebar-plan-card">
-
+<!-- PREMIUM CARD -->
 
 
-<div class="plan-symbol">
+<div class="sidebar-premium-card">
+
+
+
+
+
+<div class="premium-icon">
+
 
 <i class="fa-solid fa-bolt"></i>
 
+
 </div>
+
+
+
+
 
 
 
@@ -317,18 +503,20 @@ Termos
 
 
 <strong>
+
 Honey Premium
+
 </strong>
 
 
+
 <p>
+
 30 agentes desbloqueados
+
 </p>
 
 
-</div>
-
-
 
 </div>
 
@@ -337,27 +525,54 @@ Honey Premium
 
 
 
+</div>
 
-<div class="sidebar-actions">
 
 
-<a href="login.html" class="sidebar-login">
+
+
+
+
+
+
+<div class="sidebar-bottom">
+
+
+
+
+
+<a href="login.html"
+class="login-link">
+
 
 Entrar
 
+
 </a>
 
 
 
 
-<a href="register.html" class="sidebar-create">
+
+
+
+<a href="register.html"
+class="register-button">
+
 
 Criar conta
 
+
 </a>
 
 
+
+
+
 </div>
+
+
+
 
 
 
@@ -371,21 +586,27 @@ Criar conta
 
 
 
-<!-- ==========================
-MAIN AREA
-========================== -->
+
+<!-- =================================
+MAIN WORKSPACE
+================================= -->
 
 
-<main class="workspace-main"><!-- ==========================
+<main class="workspace-main"><!-- =================================
 TOP HEADER
-========================== -->
+================================= -->
 
 
 <header class="workspace-header">
 
 
 
-<button class="menu-toggle" id="menuToggle">
+
+
+
+<button 
+class="menu-toggle"
+id="menuToggle">
 
 
 <span></span>
@@ -403,22 +624,39 @@ TOP HEADER
 
 
 
+
+
 <div class="mobile-brand">
+
+
+
 
 
 <div class="mobile-brand-icon">
 
+
 <i class="fa-solid fa-hexagon-nodes"></i>
 
+
 </div>
+
+
+
+
 
 
 <strong>
+
 Honey IA
+
 </strong>
 
 
+
+
+
 </div>
+
 
 
 
@@ -430,13 +668,27 @@ Honey IA
 <div class="workspace-search">
 
 
+
+
+
 <i class="fa-solid fa-magnifying-glass"></i>
 
 
-<input 
+
+
+
+
+
+<input
+
 type="text"
-placeholder="Pesquisar projetos, agentes ou ferramentas..."
+
+placeholder="Pesquisar agentes, projetos ou ferramentas..."
+
 >
+
+
+
 
 
 </div>
@@ -448,7 +700,10 @@ placeholder="Pesquisar projetos, agentes ou ferramentas..."
 
 
 
+
 <div class="header-tools">
+
+
 
 
 
@@ -468,33 +723,47 @@ placeholder="Pesquisar projetos, agentes ou ferramentas..."
 
 
 
+
+
 <div class="user-profile">
+
+
+
 
 
 <div class="user-avatar">
 
+
 JD
+
 
 </div>
 
 
 
-<div class="user-data">
+
+
+
+
+<div class="user-info">
+
 
 
 <strong>
+
 Utilizador
+
 </strong>
 
 
+
 <span>
+
 Free Plan
+
 </span>
 
 
-</div>
-
-
 
 </div>
 
@@ -503,7 +772,21 @@ Free Plan
 
 
 
+
 </div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
 
 
 
@@ -517,9 +800,14 @@ Free Plan
 
 
 
-<!-- ==========================
+
+
+
+
+
+<!-- =================================
 WORKSPACE HOME
-========================== -->
+================================= -->
 
 
 <section class="workspace-home">
@@ -529,13 +817,20 @@ WORKSPACE HOME
 
 
 
-<div class="welcome-area">
+
+<div class="hero-workspace">
 
 
 
 
 
-<div class="welcome-text">
+
+
+<div class="hero-content">
+
+
+
+
 
 
 
@@ -544,7 +839,9 @@ WORKSPACE HOME
 
 <span></span>
 
+
 Honey IA Online
+
 
 </span>
 
@@ -565,12 +862,59 @@ O que vamos criar hoje?
 
 
 
+
+
 <p>
 
-Utilize agentes inteligentes para criar,
-analisar e transformar ideias em resultados.
+
+Transforme ideias em resultados usando
+agentes inteligentes e ferramentas
+de inteligência artificial.
+
 
 </p>
+
+
+
+
+
+
+
+
+<div class="hero-actions">
+
+
+
+
+
+<button class="primary-action">
+
+
+<i class="fa-solid fa-wand-magic-sparkles"></i>
+
+
+Criar com IA
+
+
+</button>
+
+
+
+
+
+
+
+<button class="secondary-action">
+
+
+<i class="fa-solid fa-robot"></i>
+
+
+Explorar agentes
+
+
+</button>
+
 
 
 
@@ -581,6 +925,121 @@ analisar e transformar ideias em resultados.
 
 
 
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="hero-ai-card">
+
+
+
+
+
+
+<div class="ai-card-glow"></div>
+
+
+
+
+
+
+<div class="hero-ai-icon">
+
+
+<i class="fa-solid fa-hexagon-nodes"></i>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div>
+
+
+<strong>
+
+Honey Assistant
+
+</strong>
+
+
+
+
+<p>
+
+Assistente principal ativo
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+
+<div class="ai-card-status">
+
+
+<span></span>
+
+
+Online
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =================================
+QUICK CREATION ACTIONS
+================================= -->
 
 
 
@@ -590,14 +1049,24 @@ analisar e transformar ideias em resultados.
 
 
 
-<button class="quick-action-card">
+
+
+<button class="quick-card">
+
+
+
 
 
 <div class="quick-icon document">
 
+
 <i class="fa-solid fa-file-lines"></i>
 
+
 </div>
+
+
+
 
 
 
@@ -605,16 +1074,26 @@ analisar e transformar ideias em resultados.
 
 
 <strong>
+
 Criar documento
+
 </strong>
 
 
+
+
 <span>
-Textos e relatórios
+
+Relatórios e textos
+
 </span>
 
 
+
 </div>
+
+
+
 
 
 
@@ -626,14 +1105,24 @@ Textos e relatórios
 
 
 
-<button class="quick-action-card">
+
+
+<button class="quick-card">
+
+
+
 
 
 <div class="quick-icon image">
 
+
 <i class="fa-solid fa-image"></i>
 
+
 </div>
+
+
+
 
 
 
@@ -641,16 +1130,26 @@ Textos e relatórios
 
 
 <strong>
+
 Criar imagem
+
 </strong>
 
 
+
+
 <span>
+
 Design e criatividade
+
 </span>
 
 
+
 </div>
+
+
+
 
 
 
@@ -663,14 +1162,23 @@ Design e criatividade
 
 
 
-<button class="quick-action-card">
+
+<button class="quick-card">
+
+
+
 
 
 <div class="quick-icon code">
 
+
 <i class="fa-solid fa-code"></i>
 
+
 </div>
+
+
+
 
 
 
@@ -678,16 +1186,26 @@ Design e criatividade
 
 
 <strong>
+
 Programar
+
 </strong>
 
 
+
+
 <span>
+
 Código e aplicações
+
 </span>
 
 
+
 </div>
+
+
+
 
 
 
@@ -700,14 +1218,23 @@ Código e aplicações
 
 
 
-<button class="quick-action-card">
+
+<button class="quick-card">
 
 
-<div class="quick-icon analysis">
+
+
+
+<div class="quick-icon analytics">
+
 
 <i class="fa-solid fa-chart-line"></i>
 
+
 </div>
+
+
+
 
 
 
@@ -715,16 +1242,26 @@ Código e aplicações
 
 
 <strong>
+
 Analisar dados
+
 </strong>
 
 
+
+
 <span>
+
 Informação inteligente
+
 </span>
 
 
+
 </div>
+
+
+
 
 
 
@@ -734,6 +1271,9 @@ Informação inteligente
 
 
 
+
+
+
 </div>
 
 
@@ -742,12 +1282,18 @@ Informação inteligente
 
 
 
-</div><!-- ==========================
+
+
+</section><!-- =================================
 AI CHAT WORKSPACE
-========================== -->
+================================= -->
 
 
-<section class="main-ai-chat" id="chat">
+<section 
+class="main-ai-chat"
+id="chat">
+
+
 
 
 
@@ -759,13 +1305,24 @@ AI CHAT WORKSPACE
 
 
 
+
+
+<!-- CHAT HEADER -->
+
+
 <header class="ai-chat-header">
 
 
 
 
 
+
+
+
 <div class="ai-identity">
+
+
+
 
 
 
@@ -782,12 +1339,18 @@ AI CHAT WORKSPACE
 
 
 
+
 <div>
 
 
 <strong>
+
 Honey Assistant
+
 </strong>
+
+
+
 
 
 <span>
@@ -797,10 +1360,18 @@ Assistente principal • Online
 </span>
 
 
+
+
+
+
 </div>
 
 
 
+
+
+
+
 </div>
 
 
@@ -809,11 +1380,18 @@ Assistente principal • Online
 
 
 
-<div class="ai-actions">
+
+
+<div class="ai-header-actions">
 
 
 
-<button title="Novo chat">
+
+
+
+
+<button 
+title="Novo chat">
 
 
 <i class="fa-solid fa-plus"></i>
@@ -826,7 +1404,24 @@ Assistente principal • Online
 
 
 
-<button title="Configurações">
+
+<button 
+title="Modelos IA">
+
+
+<i class="fa-solid fa-brain"></i>
+
+
+</button>
+
+
+
+
+
+
+
+<button 
+title="Configurações">
 
 
 <i class="fa-solid fa-sliders"></i>
@@ -837,7 +1432,11 @@ Assistente principal • Online
 
 
 
+
+
+
 </div>
+
 
 
 
@@ -853,7 +1452,17 @@ Assistente principal • Online
 
 
 
-<div class="ai-chat-messages" id="chatMessages">
+
+
+
+
+<!-- CHAT MESSAGES -->
+
+
+<div 
+class="ai-chat-messages"
+id="chatMessages">
+
 
 
 
@@ -866,13 +1475,19 @@ Assistente principal • Online
 
 
 
-<div class="message-avatar ai">
+
+
+
+<div class="message-avatar">
+
 
 
 <i class="fa-solid fa-robot"></i>
 
 
+
 </div>
+
 
 
 
@@ -883,9 +1498,18 @@ Assistente principal • Online
 
 
 
+
+
 <p>
 
-Olá! Sou a Honey IA. Estou pronta para ajudar a criar documentos, analisar informações, desenvolver ideias e trabalhar nos seus projetos.
+
+Olá! Eu sou a Honey IA.
+
+
+Estou pronta para ajudar a criar
+documentos, imagens, estratégias,
+códigos e soluções para os seus projetos.
+
 
 </p>
 
@@ -893,18 +1517,18 @@ Olá! Sou a Honey IA. Estou pronta para ajudar a criar documentos, analisar info
 
 
 
+
+
 <span>
 
+
 Agora mesmo
+
 
 </span>
 
 
 
-</div>
-
-
-
 
 
 
@@ -916,6 +1540,14 @@ Agora mesmo
 
 
 
+</div>
+
+
+
+
+
+
+
 
 
 </div>
@@ -928,7 +1560,17 @@ Agora mesmo
 
 
 
-<div class="suggestion-area">
+
+
+
+
+
+
+<!-- QUICK PROMPTS -->
+
+
+<div class="chat-suggestions">
+
 
 
 
@@ -936,7 +1578,9 @@ Agora mesmo
 
 <button>
 
-Criar um plano de negócio
+
+Criar plano de negócio
+
 
 </button>
 
@@ -944,21 +1588,31 @@ Criar um plano de negócio
 
 
 
+
+
 <button>
+
 
 Analisar documento
 
+
 </button>
 
 
 
 
 
+
+
 <button>
+
 
 Criar estratégia de marketing
 
+
 </button>
+
+
 
 
 
@@ -966,9 +1620,13 @@ Criar estratégia de marketing
 
 <button>
 
-Ajudar com código
+
+Criar aplicação
+
 
 </button>
+
+
 
 
 
@@ -984,7 +1642,15 @@ Ajudar com código
 
 
 
+
+
+
+
+<!-- CHAT INPUT AREA -->
+
+
 <div class="chat-composer">
+
 
 
 
@@ -997,7 +1663,10 @@ Ajudar com código
 
 
 
-<button title="Anexar ficheiro">
+
+
+<button 
+title="Anexar ficheiro">
 
 
 <i class="fa-solid fa-paperclip"></i>
@@ -1011,7 +1680,8 @@ Ajudar com código
 
 
 
-<button title="Imagem">
+<button 
+title="Criar imagem">
 
 
 <i class="fa-solid fa-image"></i>
@@ -1025,7 +1695,23 @@ Ajudar com código
 
 
 
-<button title="Ferramentas">
+<button 
+title="Usar agente">
+
+
+<i class="fa-solid fa-users-gear"></i>
+
+
+</button>
+
+
+
+
+
+
+
+<button 
+title="Ferramentas">
 
 
 <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -1033,18 +1719,6 @@ Ajudar com código
 
 </button>
 
-
-
-
-
-
-<button title="Agentes">
-
-
-<i class="fa-solid fa-users-gear"></i>
-
-
-</button>
 
 
 
@@ -1067,6 +1741,7 @@ Ajudar com código
 
 
 
+
 <textarea
 
 id="chatInput"
@@ -1084,7 +1759,10 @@ placeholder="Escreva uma mensagem para a Honey IA..."
 
 
 
-<button id="sendBtn">
+
+<button
+
+id="sendBtn">
 
 
 <i class="fa-solid fa-arrow-up"></i>
@@ -1097,6 +1775,8 @@ placeholder="Escreva uma mensagem para a Honey IA..."
 
 
 
+
+
 </div>
 
 
@@ -1106,23 +1786,18 @@ placeholder="Escreva uma mensagem para a Honey IA..."
 
 
 
-<div class="chat-footer-info">
+
+<div class="chat-security">
+
+
+
 
 
 <i class="fa-solid fa-shield-halved"></i>
 
 
-As suas conversas estão protegidas
 
-
-</div>
-
-
-
-
-
-</div>
-
+As suas conversas estão protegidas pela Honey IA
 
 
 
@@ -1136,9 +1811,30 @@ As suas conversas estão protegidas
 
 
 
-</section><!-- ==========================
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</section><!-- =================================
 WORKSPACE PANELS
-========================== -->
+================================= -->
 
 
 <section class="workspace-panels">
@@ -1147,7 +1843,12 @@ WORKSPACE PANELS
 
 
 
-<!-- RECENT PROJECTS -->
+
+
+<!-- ===============================
+RECENT PROJECTS
+================================ -->
+
 
 
 <div class="workspace-panel">
@@ -1156,7 +1857,10 @@ WORKSPACE PANELS
 
 
 
+
 <div class="panel-header">
+
+
 
 
 
@@ -1170,11 +1874,14 @@ Projetos
 </span>
 
 
+
+
 <h2>
 
 Recentes
 
 </h2>
+
 
 
 </div>
@@ -1183,13 +1890,22 @@ Recentes
 
 
 
+
+
 <a href="projects.html">
+
 
 Ver todos
 
+
 <i class="fa-solid fa-arrow-right"></i>
 
+
 </a>
+
+
+
+
 
 
 
@@ -1210,7 +1926,11 @@ Ver todos
 
 
 
+
 <div class="project-item">
+
+
+
 
 
 
@@ -1226,22 +1946,32 @@ Ver todos
 
 
 
+
+
 <div class="project-info">
+
 
 
 <strong>
 
-Website Empresa
+Website Empresarial
 
 </strong>
 
 
 
+
+
+
 <p>
 
-Desenvolvimento com IA
+Criado com Honey IA
 
 </p>
+
+
+
+
 
 
 </div>
@@ -1254,9 +1984,14 @@ Desenvolvimento com IA
 
 <span class="project-status">
 
+
 Ativo
 
+
 </span>
+
+
+
 
 
 
@@ -1272,6 +2007,9 @@ Ativo
 
 
 <div class="project-item">
+
+
+
 
 
 
@@ -1287,7 +2025,10 @@ Ativo
 
 
 
+
+
 <div class="project-info">
+
 
 
 <strong>
@@ -1298,11 +2039,18 @@ Plano de Negócio
 
 
 
+
+
+
 <p>
 
-Documento empresarial
+Documento profissional
 
 </p>
+
+
+
+
 
 
 </div>
@@ -1315,9 +2063,14 @@ Documento empresarial
 
 <span class="project-status">
 
+
 Editado
 
+
 </span>
+
+
+
 
 
 
@@ -1336,6 +2089,9 @@ Editado
 
 
 
+
+
+
 <div class="project-icon design">
 
 
@@ -1348,7 +2104,10 @@ Editado
 
 
 
+
+
 <div class="project-info">
+
 
 
 <strong>
@@ -1359,11 +2118,18 @@ Identidade Visual
 
 
 
+
+
+
 <p>
 
 Projeto criativo
 
 </p>
+
+
+
+
 
 
 </div>
@@ -1376,13 +2142,27 @@ Projeto criativo
 
 <span class="project-status">
 
+
 Novo
+
 
 </span>
 
 
 
 
+
+
+
+</div>
+
+
+
+
+
+
+
+
 </div>
 
 
@@ -1399,7 +2179,6 @@ Novo
 
 
 
-</div>
 
 
 
@@ -1407,13 +2186,10 @@ Novo
 
 
 
+<!-- ===============================
+FAVORITE AGENTS
+================================ -->
 
-
-
-
-
-
-<!-- RECENT AGENTS -->
 
 
 
@@ -1423,7 +2199,10 @@ Novo
 
 
 
+
 <div class="panel-header">
+
+
 
 
 
@@ -1437,11 +2216,14 @@ Agentes
 </span>
 
 
+
+
 <h2>
 
 Favoritos
 
 </h2>
+
 
 
 </div>
@@ -1450,13 +2232,22 @@ Favoritos
 
 
 
+
+
 <a href="agents.html">
+
 
 Explorar
 
+
 <i class="fa-solid fa-arrow-right"></i>
 
+
 </a>
+
+
+
+
 
 
 
@@ -1482,10 +2273,13 @@ Explorar
 
 
 
+
+
+
 <div class="mini-agent-icon finance">
 
 
-<i class="fa-solid fa-chart-pie"></i>
+<i class="fa-solid fa-chart-line"></i>
 
 
 </div>
@@ -1494,7 +2288,10 @@ Explorar
 
 
 
+
+
 <div>
+
 
 
 <strong>
@@ -1505,11 +2302,18 @@ Finance AI
 
 
 
+
+
+
 <p>
 
 Analista financeiro
 
 </p>
+
+
+
+
 
 
 </div>
@@ -1518,11 +2322,19 @@ Analista financeiro
 
 
 
+
+
 <span class="online">
+
 
 Online
 
+
 </span>
+
+
+
+
 
 
 
@@ -1537,6 +2349,9 @@ Online
 
 
 <div class="agent-mini-card">
+
+
+
 
 
 
@@ -1552,7 +2367,10 @@ Online
 
 
 
+
+
 <div>
+
 
 
 <strong>
@@ -1563,11 +2381,18 @@ Marketing AI
 
 
 
+
+
+
 <p>
 
-Estratégia e conteúdo
+Estratégias e conteúdo
 
 </p>
+
+
+
+
 
 
 </div>
@@ -1576,11 +2401,19 @@ Estratégia e conteúdo
 
 
 
+
+
 <span class="online">
+
 
 Online
 
+
 </span>
+
+
+
+
 
 
 
@@ -1598,7 +2431,10 @@ Online
 
 
 
-<div class="mini-agent-icon code">
+
+
+
+<div class="mini-agent-icon developer">
 
 
 <i class="fa-solid fa-code"></i>
@@ -1610,7 +2446,10 @@ Online
 
 
 
+
+
 <div>
+
 
 
 <strong>
@@ -1621,14 +2460,23 @@ Developer AI
 
 
 
+
+
+
 <p>
 
-Programação
+Programação e sistemas
 
 </p>
 
 
+
+
+
+
 </div>
+
+
 
 
 
@@ -1636,70 +2484,15 @@ Programação
 
 <span class="online">
 
+
 Online
 
-</span>
-
-
-
-</div>
-
-
-
-
-
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-</section><!-- ==========================
-PRODUCTIVITY AREA
-========================== -->
-
-
-<section class="productivity-section">
-
-
-
-
-
-<div class="section-heading">
-
-
-
-<span>
-
-Honey Intelligence
 
 </span>
 
 
 
-<h2>
 
-Tudo num único espaço inteligente.
-
-</h2>
-
-
-
-<p>
-
-Crie, analise e automatize tarefas com ferramentas de inteligência artificial.
-
-</p>
 
 
 
@@ -1713,59 +2506,6 @@ Crie, analise e automatize tarefas com ferramentas de inteligência artificial.
 
 
 
-<div class="productivity-grid">
-
-
-
-
-
-
-
-<div class="productivity-card">
-
-
-
-<div class="productivity-icon purple">
-
-
-<i class="fa-solid fa-wand-magic-sparkles"></i>
-
-
-</div>
-
-
-
-
-
-<h3>
-
-Criação Inteligente
-
-</h3>
-
-
-
-
-<p>
-
-Gere textos, imagens, ideias e conteúdos profissionais em poucos segundos.
-
-</p>
-
-
-
-
-
-<a href="#chat">
-
-Criar agora
-
-<i class="fa-solid fa-arrow-right"></i>
-
-</a>
-
-
-
 </div>
 
 
@@ -1776,116 +2516,10 @@ Criar agora
 
 
 
-<div class="productivity-card">
-
-
-
-<div class="productivity-icon blue">
-
-
-<i class="fa-solid fa-folder-open"></i>
-
-
 </div>
 
 
 
-
-
-<h3>
-
-Gestão de Projetos
-
-</h3>
-
-
-
-
-<p>
-
-Organize trabalhos, documentos e resultados dentro do seu espaço.
-
-</p>
-
-
-
-
-
-<a href="projects.html">
-
-Abrir projetos
-
-<i class="fa-solid fa-arrow-right"></i>
-
-</a>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="productivity-card">
-
-
-
-<div class="productivity-icon gold">
-
-
-<i class="fa-solid fa-robot"></i>
-
-
-</div>
-
-
-
-
-
-<h3>
-
-Agentes Especializados
-
-</h3>
-
-
-
-
-<p>
-
-Use especialistas digitais preparados para diferentes áreas.
-
-</p>
-
-
-
-
-
-<a href="agents.html">
-
-Ver agentes
-
-<i class="fa-solid fa-arrow-right"></i>
-
-</a>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-</div>
 
 
 
@@ -1902,12 +2536,306 @@ Ver agentes
 
 
 
-<!-- ==========================
+
+
+
+
+<!-- =================================
+HONEY INTELLIGENCE
+================================= -->
+
+
+<section class="intelligence-section">
+
+
+
+
+
+
+
+<div class="section-heading">
+
+
+
+
+
+
+<span>
+
+Honey Intelligence
+
+</span>
+
+
+
+
+
+
+<h2>
+
+Tudo num único estúdio inteligente.
+
+</h2>
+
+
+
+
+
+
+<p>
+
+
+Crie, analise e automatize tarefas
+com ferramentas de inteligência artificial.
+
+</p>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="intelligence-grid">
+
+
+
+
+
+
+
+
+<div class="intelligence-card">
+
+
+
+
+
+<div class="intelligence-icon purple">
+
+
+<i class="fa-solid fa-wand-magic-sparkles"></i>
+
+
+</div>
+
+
+
+
+
+
+<h3>
+
+Criação Inteligente
+
+</h3>
+
+
+
+
+
+
+<p>
+
+
+Gere conteúdos, imagens e ideias
+profissionais rapidamente.
+
+</p>
+
+
+
+
+
+
+<a href="#chat">
+
+
+Criar agora
+
+
+<i class="fa-solid fa-arrow-right"></i>
+
+
+</a>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="intelligence-card">
+
+
+
+
+
+<div class="intelligence-icon blue">
+
+
+<i class="fa-solid fa-folder-open"></i>
+
+
+</div>
+
+
+
+
+
+
+<h3>
+
+Gestão de Projetos
+
+</h3>
+
+
+
+
+
+
+<p>
+
+
+Organize trabalhos, ficheiros e
+resultados num único espaço.
+
+</p>
+
+
+
+
+
+
+<a href="projects.html">
+
+
+Abrir projetos
+
+
+<i class="fa-solid fa-arrow-right"></i>
+
+
+</a>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+<div class="intelligence-card">
+
+
+
+
+
+<div class="intelligence-icon gold">
+
+
+<i class="fa-solid fa-robot"></i>
+
+
+</div>
+
+
+
+
+
+
+<h3>
+
+Agentes Especializados
+
+</h3>
+
+
+
+
+
+
+<p>
+
+
+Tenha especialistas digitais para
+diferentes áreas profissionais.
+
+</p>
+
+
+
+
+
+
+<a href="agents.html">
+
+
+Explorar agentes
+
+
+<i class="fa-solid fa-arrow-right"></i>
+
+
+</a>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</section><!-- =================================
 AI STATS
-========================== -->
+================================= -->
 
 
 <section class="workspace-stats">
+
 
 
 
@@ -1919,6 +2847,8 @@ AI STATS
 
 
 
+
+
 <div class="stat-icon">
 
 
@@ -1926,6 +2856,9 @@ AI STATS
 
 
 </div>
+
+
+
 
 
 
@@ -1941,6 +2874,8 @@ AI STATS
 
 
 
+
+
 <span>
 
 Agentes IA
@@ -1948,11 +2883,19 @@ Agentes IA
 </span>
 
 
-</div>
 
 
 
 </div>
+
+
+
+
+
+
+
+</div>
+
 
 
 
@@ -1965,6 +2908,8 @@ Agentes IA
 
 
 
+
+
 <div class="stat-icon">
 
 
@@ -1972,6 +2917,9 @@ Agentes IA
 
 
 </div>
+
+
+
 
 
 
@@ -1987,6 +2935,8 @@ Agentes IA
 
 
 
+
+
 <span>
 
 Disponibilidade
@@ -1994,11 +2944,19 @@ Disponibilidade
 </span>
 
 
-</div>
 
 
 
 </div>
+
+
+
+
+
+
+
+</div>
+
 
 
 
@@ -2011,6 +2969,8 @@ Disponibilidade
 
 
 
+
+
 <div class="stat-icon">
 
 
@@ -2018,6 +2978,9 @@ Disponibilidade
 
 
 </div>
+
+
+
 
 
 
@@ -2033,6 +2996,8 @@ Disponibilidade
 
 
 
+
+
 <span>
 
 Possibilidades
@@ -2040,11 +3005,19 @@ Possibilidades
 </span>
 
 
-</div>
 
 
 
 </div>
+
+
+
+
+
+
+
+</div>
+
 
 
 
@@ -2057,6 +3030,8 @@ Possibilidades
 
 
 
+
+
 <div class="stat-icon">
 
 
@@ -2064,6 +3039,9 @@ Possibilidades
 
 
 </div>
+
+
+
 
 
 
@@ -2079,6 +3057,8 @@ Seguro
 
 
 
+
+
 <span>
 
 Ambiente protegido
@@ -2086,7 +3066,6 @@ Ambiente protegido
 </span>
 
 
-</div>
 
 
 
@@ -2097,9 +3076,32 @@ Ambiente protegido
 
 
 
-</section><!-- ==========================
-FEATURED AGENTS SECTION
-========================== -->
+
+</div>
+
+
+
+
+
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =================================
+FEATURED AI AGENTS
+================================= -->
 
 
 <section class="featured-agents">
@@ -2113,11 +3115,16 @@ FEATURED AGENTS SECTION
 
 
 
+
+
 <span>
 
 AI Workforce
 
 </span>
+
+
+
 
 
 
@@ -2130,11 +3137,20 @@ Os seus especialistas digitais.
 
 
 
+
+
 <p>
 
-Cada agente foi criado para uma função específica dentro do seu trabalho.
+
+Agentes preparados para áreas específicas
+do seu trabalho.
+
 
 </p>
+
+
+
+
 
 
 
@@ -2160,7 +3176,12 @@ Cada agente foi criado para uma função específica dentro do seu trabalho.
 
 
 
+
+
 <div class="featured-agent-header">
+
+
+
 
 
 
@@ -2175,15 +3196,23 @@ Cada agente foi criado para uma função específica dentro do seu trabalho.
 
 
 
+
+
+
 <div class="agent-state">
 
 
 <span></span>
 
+
 Online
 
 
 </div>
+
+
+
+
 
 
 
@@ -2205,9 +3234,16 @@ Finance AI
 
 
 
+
+
+
 <p>
 
-Analisa dados financeiros, relatórios, custos e ajuda nas decisões empresariais.
+
+Analisa dados financeiros,
+relatórios e ajuda nas decisões
+empresariais.
+
 
 </p>
 
@@ -2217,7 +3253,8 @@ Analisa dados financeiros, relatórios, custos e ajuda nas decisões empresariai
 
 
 
-<div class="agent-capabilities">
+
+<div class="agent-tags">
 
 
 
@@ -2229,11 +3266,13 @@ Excel
 
 
 
+
 <span>
 
 Dados
 
 </span>
+
 
 
 
@@ -2245,8 +3284,8 @@ Relatórios
 
 
 
-</div>
 
+</div>
 
 
 
@@ -2288,135 +3327,12 @@ Abrir Studio
 
 
 
+
+
 <div class="featured-agent-header">
 
 
 
-<div class="featured-agent-icon legal">
-
-
-<i class="fa-solid fa-scale-balanced"></i>
-
-
-</div>
-
-
-
-
-<div class="agent-state">
-
-
-<span></span>
-
-Online
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<h3>
-
-Legal AI
-
-</h3>
-
-
-
-
-<p>
-
-Auxilia na análise de contratos, documentos e informações jurídicas.
-
-</p>
-
-
-
-
-
-
-
-<div class="agent-capabilities">
-
-
-
-<span>
-
-Contratos
-
-</span>
-
-
-
-<span>
-
-Documentos
-
-</span>
-
-
-
-<span>
-
-Leis
-
-</span>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-<a href="agents.html">
-
-
-Abrir Studio
-
-
-<i class="fa-solid fa-arrow-right"></i>
-
-
-</a>
-
-
-
-
-
-
-</article>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<article class="featured-agent-card">
-
-
-
-<div class="featured-agent-header">
 
 
 
@@ -2431,15 +3347,23 @@ Abrir Studio
 
 
 
+
+
+
 <div class="agent-state">
 
 
 <span></span>
 
+
 Online
 
 
 </div>
+
+
+
+
 
 
 
@@ -2461,9 +3385,16 @@ Creative AI
 
 
 
+
+
+
 <p>
 
-Cria conceitos visuais, conteúdos e ideias para projetos criativos.
+
+Cria conceitos visuais,
+conteúdos e ideias criativas
+para projetos.
+
 
 </p>
 
@@ -2473,7 +3404,8 @@ Cria conceitos visuais, conteúdos e ideias para projetos criativos.
 
 
 
-<div class="agent-capabilities">
+
+<div class="agent-tags">
 
 
 
@@ -2485,11 +3417,13 @@ Design
 
 
 
+
 <span>
 
 Conteúdo
 
 </span>
+
 
 
 
@@ -2501,8 +3435,8 @@ Ideias
 
 
 
-</div>
 
+</div>
 
 
 
@@ -2536,6 +3470,29 @@ Abrir Studio
 
 
 
+
+
+
+
+<article class="featured-agent-card">
+
+
+
+
+
+<div class="featured-agent-header">
+
+
+
+
+
+
+<div class="featured-agent-icon developer">
+
+
+<i class="fa-solid fa-code"></i>
+
+
 </div>
 
 
@@ -2544,12 +3501,152 @@ Abrir Studio
 
 
 
-</section><!-- ==========================
+<div class="agent-state">
+
+
+<span></span>
+
+
+Online
+
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<h3>
+
+Developer AI
+
+</h3>
+
+
+
+
+
+
+
+<p>
+
+
+Cria código, aplicações,
+sites e soluções digitais.
+
+
+</p>
+
+
+
+
+
+
+
+
+<div class="agent-tags">
+
+
+
+<span>
+
+Código
+
+</span>
+
+
+
+
+<span>
+
+Apps
+
+</span>
+
+
+
+
+<span>
+
+Web
+
+</span>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<a href="agents.html">
+
+
+Abrir Studio
+
+
+<i class="fa-solid fa-arrow-right"></i>
+
+
+</a>
+
+
+
+
+
+
+</article>
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- =================================
 TOOLS HUB
-========================== -->
+================================= -->
 
 
 <section class="tools-hub">
+
 
 
 
@@ -2559,11 +3656,16 @@ TOOLS HUB
 
 
 
+
+
 <span>
 
 Ferramentas IA
 
 </span>
+
+
+
 
 
 
@@ -2576,11 +3678,19 @@ Um estúdio completo de criação.
 
 
 
+
+
 <p>
 
-Tenha várias ferramentas inteligentes num único ambiente.
+
+Ferramentas inteligentes para
+trabalhar mais rápido.
+
 
 </p>
+
+
+
 
 
 
@@ -2606,8 +3716,6 @@ Tenha várias ferramentas inteligentes num único ambiente.
 
 
 
-<div class="tool-top">
-
 
 
 <div class="tool-icon blue">
@@ -2618,18 +3726,6 @@ Tenha várias ferramentas inteligentes num único ambiente.
 
 </div>
 
-
-
-
-<span>
-
-Documento
-
-</span>
-
-
-
-</div>
 
 
 
@@ -2645,22 +3741,38 @@ AI Writer
 
 
 
+
+
+
 <p>
 
-Criação de relatórios, propostas, artigos e documentos profissionais.
+
+Criação de documentos,
+relatórios e propostas.
+
 
 </p>
 
 
 
 
+
+
+
 <button>
+
 
 Usar ferramenta
 
+
 <i class="fa-solid fa-arrow-right"></i>
 
+
 </button>
+
+
+
+
 
 
 
@@ -2678,8 +3790,6 @@ Usar ferramenta
 
 
 
-<div class="tool-top">
-
 
 
 <div class="tool-icon purple">
@@ -2690,18 +3800,6 @@ Usar ferramenta
 
 </div>
 
-
-
-
-<span>
-
-Imagem
-
-</span>
-
-
-
-</div>
 
 
 
@@ -2717,22 +3815,38 @@ AI Designer
 
 
 
+
+
+
 <p>
 
-Crie imagens, conceitos visuais e materiais gráficos.
+
+Crie imagens, artes e
+conceitos visuais.
+
 
 </p>
 
 
 
 
+
+
+
 <button>
+
 
 Criar imagem
 
+
 <i class="fa-solid fa-arrow-right"></i>
 
+
 </button>
+
+
+
+
 
 
 
@@ -2750,8 +3864,6 @@ Criar imagem
 
 
 
-<div class="tool-top">
-
 
 
 <div class="tool-icon green">
@@ -2762,18 +3874,6 @@ Criar imagem
 
 </div>
 
-
-
-
-<span>
-
-Programação
-
-</span>
-
-
-
-</div>
 
 
 
@@ -2789,22 +3889,38 @@ AI Developer
 
 
 
+
+
+
 <p>
 
-Desenvolva código, aplicações e soluções digitais.
+
+Desenvolvimento de código
+e aplicações.
+
 
 </p>
 
 
 
 
+
+
+
 <button>
+
 
 Programar
 
+
 <i class="fa-solid fa-arrow-right"></i>
 
+
 </button>
+
+
+
+
 
 
 
@@ -2822,8 +3938,6 @@ Programar
 
 
 
-<div class="tool-top">
-
 
 
 <div class="tool-icon gold">
@@ -2834,18 +3948,6 @@ Programar
 
 </div>
 
-
-
-
-<span>
-
-Negócios
-
-</span>
-
-
-
-</div>
 
 
 
@@ -2861,223 +3963,42 @@ Business AI
 
 
 
+
+
+
 <p>
 
-Estratégias, análises e decisões inteligentes para empresas.
+
+Estratégias e análises
+para empresas.
+
 
 </p>
+
+
+
 
 
 
 
 <button>
 
+
 Analisar
 
+
 <i class="fa-solid fa-arrow-right"></i>
+
 
 </button>
 
 
 
-</div>
-
-
-
 
 
 
 
 </div>
-
-
-
-
-
-
-</section>
-
-
-
-
-
-
-
-
-
-<!-- ==========================
-WORKFLOW PREVIEW
-========================== -->
-
-
-<section class="workflow-preview">
-
-
-
-
-
-<div class="section-heading">
-
-
-
-<span>
-
-Como funciona
-
-</span>
-
-
-
-<h2>
-
-Do pedido ao resultado.
-
-</h2>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="workflow-items">
-
-
-
-
-
-
-
-<div class="workflow-item">
-
-
-
-<div class="workflow-number">
-
-01
-
-</div>
-
-
-
-<div>
-
-
-<h3>
-
-Escolha uma ferramenta
-
-</h3>
-
-
-
-<p>
-
-Selecione um agente ou recurso da Honey IA.
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="workflow-item">
-
-
-
-<div class="workflow-number">
-
-02
-
-</div>
-
-
-
-<div>
-
-
-<h3>
-
-Envie a tarefa
-
-</h3>
-
-
-
-<p>
-
-Adicione informações, ficheiros ou ideias.
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-<div class="workflow-item">
-
-
-
-<div class="workflow-number">
-
-03
-
-</div>
-
-
-
-<div>
-
-
-<h3>
-
-Receba resultados
-
-</h3>
-
-
-
-<p>
-
-A IA cria uma solução personalizada.
-
-</p>
-
-
-</div>
-
-
-
-</div>
-
 
 
 
@@ -3092,9 +4013,11 @@ A IA cria uma solução personalizada.
 
 
 
-</section><!-- ==========================
+
+
+</section><!-- =================================
 PLANS PREVIEW
-========================== -->
+================================= -->
 
 
 <section class="plans-workspace">
@@ -3106,12 +4029,12 @@ PLANS PREVIEW
 <div class="section-heading">
 
 
-
 <span>
 
 Planos
 
 </span>
+
 
 
 
@@ -3126,7 +4049,8 @@ Escolha o nível da sua inteligência.
 
 <p>
 
-Comece gratuitamente e evolua conforme as suas necessidades.
+Comece gratuitamente e evolua conforme
+as suas necessidades.
 
 </p>
 
@@ -3154,14 +4078,11 @@ Comece gratuitamente e evolua conforme as suas necessidades.
 
 
 
-<div class="plan-card-icon">
-
+<div class="plan-icon">
 
 <i class="fa-solid fa-user"></i>
 
-
 </div>
-
 
 
 
@@ -3177,8 +4098,7 @@ Gratuito
 
 
 
-
-<div class="plan-value">
+<div class="plan-price">
 
 0 Kz
 
@@ -3189,8 +4109,6 @@ Gratuito
 </span>
 
 </div>
-
-
 
 
 
@@ -3209,9 +4127,7 @@ Para experimentar a Honey IA.
 
 
 
-
 <ul>
-
 
 
 <li>
@@ -3221,8 +4137,6 @@ Para experimentar a Honey IA.
 Chat IA
 
 </li>
-
-
 
 
 
@@ -3236,8 +4150,6 @@ Chat IA
 
 
 
-
-
 <li>
 
 <i class="fa-solid fa-check"></i>
@@ -3245,7 +4157,6 @@ Chat IA
 Recursos básicos
 
 </li>
-
 
 
 </ul>
@@ -3277,17 +4188,13 @@ Começar
 
 
 
-
-
-
-
 <article class="workspace-plan-card featured">
 
 
 
-<div class="featured-badge">
+<div class="popular-badge">
 
-Popular
+Mais escolhido
 
 </div>
 
@@ -3296,14 +4203,12 @@ Popular
 
 
 
-<div class="plan-card-icon">
 
+<div class="plan-icon">
 
 <i class="fa-solid fa-bolt"></i>
 
-
 </div>
-
 
 
 
@@ -3319,8 +4224,7 @@ Individual
 
 
 
-
-<div class="plan-value">
+<div class="plan-price">
 
 15.000 Kz
 
@@ -3331,8 +4235,6 @@ Individual
 </span>
 
 </div>
-
-
 
 
 
@@ -3351,9 +4253,7 @@ Para profissionais e criadores.
 
 
 
-
 <ul>
-
 
 
 <li>
@@ -3363,8 +4263,6 @@ Para profissionais e criadores.
 Agentes IA
 
 </li>
-
-
 
 
 
@@ -3378,8 +4276,6 @@ Projetos avançados
 
 
 
-
-
 <li>
 
 <i class="fa-solid fa-check"></i>
@@ -3387,7 +4283,6 @@ Projetos avançados
 Exportação
 
 </li>
-
 
 
 </ul>
@@ -3419,22 +4314,15 @@ Subscrever
 
 
 
-
-
-
-
 <article class="workspace-plan-card">
 
 
 
-<div class="plan-card-icon">
-
+<div class="plan-icon">
 
 <i class="fa-solid fa-building"></i>
 
-
 </div>
-
 
 
 
@@ -3450,8 +4338,7 @@ Empresarial
 
 
 
-
-<div class="plan-value">
+<div class="plan-price">
 
 400.000 Kz
 
@@ -3468,14 +4355,11 @@ Empresarial
 
 
 
-
-
 <p>
 
-Inteligência para equipas e empresas.
+Para equipas e empresas.
 
 </p>
-
 
 
 
@@ -3486,7 +4370,6 @@ Inteligência para equipas e empresas.
 <ul>
 
 
-
 <li>
 
 <i class="fa-solid fa-check"></i>
@@ -3494,8 +4377,6 @@ Inteligência para equipas e empresas.
 Agentes personalizados
 
 </li>
-
-
 
 
 
@@ -3509,8 +4390,6 @@ Equipas
 
 
 
-
-
 <li>
 
 <i class="fa-solid fa-check"></i>
@@ -3518,7 +4397,6 @@ Equipas
 Suporte premium
 
 </li>
-
 
 
 </ul>
@@ -3555,9 +4433,19 @@ Contactar
 
 
 
-</section><!-- ==========================
-FINAL CTA WORKSPACE
-========================== -->
+</section>
+
+
+
+
+
+
+
+
+
+<!-- =================================
+FINAL CTA
+================================= -->
 
 
 <section class="final-cta">
@@ -3566,19 +4454,15 @@ FINAL CTA WORKSPACE
 
 
 
-
-<div class="cta-container">
-
+<div class="cta-box">
 
 
 
 
 
-<div class="cta-icon">
-
+<div class="cta-logo">
 
 <i class="fa-solid fa-hexagon-nodes"></i>
-
 
 </div>
 
@@ -3600,10 +4484,10 @@ Construa o futuro com inteligência artificial.
 
 
 
-
 <p>
 
-A Honey IA reúne agentes, ferramentas e automação inteligente num único estúdio profissional.
+A Honey IA reúne agentes, ferramentas
+e automação inteligente num único estúdio.
 
 </p>
 
@@ -3613,15 +4497,17 @@ A Honey IA reúne agentes, ferramentas e automação inteligente num único est�
 
 
 
-<div class="cta-actions">
+<div class="cta-buttons">
 
 
 
-<a href="register.html" class="cta-primary">
+
+
+<a href="register.html"
+class="cta-primary">
 
 
 Criar conta gratuita
-
 
 <i class="fa-solid fa-arrow-right"></i>
 
@@ -3634,11 +4520,11 @@ Criar conta gratuita
 
 
 
-<a href="agents.html" class="cta-secondary">
+<a href="agents.html"
+class="cta-secondary">
 
 
 Explorar agentes
-
 
 </a>
 
@@ -3646,15 +4532,18 @@ Explorar agentes
 
 
 
+
+</div>
+
+
+
+
+
+
+
 </div>
 
 
-
-
-
-
-
-</div>
 
 
 
@@ -3671,9 +4560,9 @@ Explorar agentes
 
 
 
-<!-- ==========================
+<!-- =================================
 FOOTER
-========================== -->
+================================= -->
 
 
 <footer class="honey-footer">
@@ -3683,8 +4572,7 @@ FOOTER
 
 
 
-
-<div class="footer-main">
+<div class="footer-content">
 
 
 
@@ -3695,18 +4583,12 @@ FOOTER
 
 
 
+
+
 <div class="footer-logo">
 
 
-
-<div class="mini-logo">
-
-
 <i class="fa-solid fa-hexagon-nodes"></i>
-
-
-</div>
-
 
 
 
@@ -3728,9 +4610,12 @@ Honey IA
 
 <p>
 
-O estúdio de inteligência artificial para pessoas, profissionais e empresas.
+O estúdio de inteligência artificial
+para pessoas, profissionais e empresas.
 
 </p>
+
+
 
 
 
@@ -3746,15 +4631,14 @@ O estúdio de inteligência artificial para pessoas, profissionais e empresas.
 
 
 
-<div class="footer-columns">
+<div class="footer-links">
 
 
 
 
 
 
-<div class="footer-column">
-
+<div>
 
 
 <h4>
@@ -3764,13 +4648,11 @@ Produto
 </h4>
 
 
-
 <a href="agents.html">
 
 Agentes IA
 
 </a>
-
 
 
 <a href="projects.html">
@@ -3780,13 +4662,11 @@ Projetos
 </a>
 
 
-
 <a href="plans.html">
 
 Planos
 
 </a>
-
 
 
 </div>
@@ -3797,10 +4677,7 @@ Planos
 
 
 
-
-
-<div class="footer-column">
-
+<div>
 
 
 <h4>
@@ -3810,13 +4687,11 @@ Empresa
 </h4>
 
 
-
 <a href="terms.html">
 
-Termos de Uso
+Termos
 
 </a>
-
 
 
 <a href="privacy.html">
@@ -3826,7 +4701,6 @@ Privacidade
 </a>
 
 
-
 <a href="contact.html">
 
 Contacto
@@ -3834,50 +4708,11 @@ Contacto
 </a>
 
 
-
 </div>
 
 
 
 
-
-
-
-
-
-<div class="footer-column">
-
-
-
-<h4>
-
-Recursos
-
-</h4>
-
-
-
-<a href="#chat">
-
-Assistente IA
-
-</a>
-
-
-
-<a href="agents.html">
-
-Workforce IA
-
-</a>
-
-
-
-<a href="#">
-
-Central de ajuda
-
-</a>
 
 
 
@@ -3891,15 +4726,6 @@ Central de ajuda
 
 
 </div>
-
-
-
-
-
-
-
-</div>
-
 
 
 
@@ -3911,52 +4737,8 @@ Central de ajuda
 <div class="footer-bottom">
 
 
-
-<span>
-
 © 2026 Honey IA. Todos os direitos reservados.
 
-</span>
-
-
-
-
-<div class="footer-social">
-
-
-
-<a href="#">
-
-<i class="fa-brands fa-linkedin"></i>
-
-</a>
-
-
-
-
-<a href="#">
-
-<i class="fa-brands fa-x-twitter"></i>
-
-</a>
-
-
-
-
-<a href="#">
-
-<i class="fa-brands fa-instagram"></i>
-
-</a>
-
-
-
-</div>
-
-
-
-
-
 
 </div>
 
@@ -3966,20 +4748,23 @@ Central de ajuda
 
 
 
+</footer>
 
-</footer><!-- ==========================
-GLOBAL APP SCRIPTS
-========================== -->
+
+
+
+
+
+
+
+
+<!-- =================================
+SCRIPTS
+================================= -->
+
 
 
 <script>
-
-
-/*
-================================================
-MOBILE SIDEBAR CONTROL
-================================================
-*/
 
 
 const sidebar = document.getElementById(
@@ -4003,9 +4788,7 @@ const menuToggle = document.getElementById(
 if(menuToggle){
 
 
-menuToggle.addEventListener(
-"click",
-()=>{
+menuToggle.onclick = ()=>{
 
 
 sidebar.classList.toggle(
@@ -4013,16 +4796,12 @@ sidebar.classList.toggle(
 );
 
 
-
 overlay.classList.toggle(
 "active"
 );
 
 
-
-}
-
-);
+};
 
 
 }
@@ -4036,9 +4815,7 @@ overlay.classList.toggle(
 if(overlay){
 
 
-overlay.addEventListener(
-"click",
-()=>{
+overlay.onclick = ()=>{
 
 
 sidebar.classList.remove(
@@ -4046,16 +4823,12 @@ sidebar.classList.remove(
 );
 
 
-
 overlay.classList.remove(
 "active"
 );
 
 
-
-}
-
-);
+};
 
 
 }
@@ -4068,18 +4841,10 @@ overlay.classList.remove(
 
 
 
-/*
-================================================
-CHAT INPUT AUTO RESIZE
-================================================
-*/
-
-
-const chatInput = document.getElementById(
+const chatInput =
+document.getElementById(
 "chatInput"
 );
-
-
 
 
 
@@ -4091,19 +4856,14 @@ chatInput.addEventListener(
 ()=>{
 
 
-chatInput.style.height =
-"auto";
-
+chatInput.style.height="auto";
 
 
 chatInput.style.height =
-chatInput.scrollHeight + "px";
+chatInput.scrollHeight+"px";
 
 
-
-}
-
-);
+});
 
 
 }
@@ -4116,24 +4876,15 @@ chatInput.scrollHeight + "px";
 
 
 
-/*
-================================================
-SCROLL ANIMATION CARDS
-================================================
-*/
-
-
-const animatedElements = document.querySelectorAll(
-".feature-card, .tool-card, .featured-agent-card, .workflow-item, .workspace-plan-card"
+const cards =
+document.querySelectorAll(
+".tool-card, .featured-agent-card, .workspace-plan-card"
 );
 
 
 
-
-
-
-
-const animationObserver = new IntersectionObserver(
+const observer =
+new IntersectionObserver(
 (entries)=>{
 
 
@@ -4149,112 +4900,27 @@ entry.target.classList.add(
 );
 
 
-
 }
 
 
-}
-
-
-);
-
+});
 
 
 },
 {
-
-
-threshold:0.15
-
-
+threshold:.15
 }
-
 );
 
 
 
 
 
-
-
-animatedElements.forEach(
-(element)=>{
-
-
-animationObserver.observe(
-element
+cards.forEach(
+(card)=>observer.observe(card)
 );
 
 
-
-}
-
-);
-
-
-
-
-
-
-
-
-
-/*
-================================================
-BUTTON EFFECTS
-================================================
-*/
-
-
-const buttons = document.querySelectorAll(
-"a, button"
-);
-
-
-
-
-
-buttons.forEach(
-(button)=>{
-
-
-button.addEventListener(
-"mouseenter",
-()=>{
-
-
-button.classList.add(
-"button-hover"
-);
-
-
-
-}
-
-);
-
-
-
-button.addEventListener(
-"mouseleave",
-()=>{
-
-
-button.classList.remove(
-"button-hover"
-);
-
-
-
-}
-
-);
-
-
-
-}
-
-);
 
 
 
@@ -4268,8 +4934,20 @@ button.classList.remove(
 
 
 
+</main>
+
+
+
+
+
+
+</div>
+
+
+
+
+
 
 </body>
-
 
 </html>
