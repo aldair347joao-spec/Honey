@@ -1,23 +1,25 @@
 /*
 ==========================================================
-HONEY IA — AGENTS STUDIO
-Enterprise Agent Workspace UI
+HONEY IA — AGENTS WORKSPACE
+Premium AI Studio Interface
 ==========================================================
 */
+
+
+/* ==========================
+ROOT
+========================== */
 
 
 :root{
 
 --agent-bg:#05070d;
 
---agent-surface:
-rgba(255,255,255,.05);
+--agent-surface:rgba(255,255,255,.06);
 
---agent-surface-hover:
-rgba(255,255,255,.09);
+--agent-surface-strong:rgba(255,255,255,.10);
 
---agent-border:
-rgba(255,255,255,.12);
+--agent-border:rgba(255,255,255,.12);
 
 
 --agent-gold:#f5b942;
@@ -30,15 +32,16 @@ rgba(255,255,255,.12);
 --agent-purple:#8b5cf6;
 
 
---agent-green:#22c55e;
+--agent-success:#22c55e;
 
 
 --agent-text:#ffffff;
 
---agent-muted:#94a3b8;
+--agent-muted:#98a3b8;
 
 
 --agent-shadow:
+
 0 30px 80px rgba(0,0,0,.45);
 
 
@@ -46,7 +49,7 @@ rgba(255,255,255,.12);
 
 --agent-radius-lg:24px;
 
---agent-radius-md:16px;
+--agent-radius-md:18px;
 
 
 }
@@ -59,34 +62,148 @@ rgba(255,255,255,.12);
 
 
 
-/*
-==========================================================
-BASE
-==========================================================
-*/
-
-
-.agents-app{
-
-
-min-height:100vh;
-
-
-background:transparent;
-
-
-color:var(--agent-text);
-
-
-}
-
-
+/* ==========================
+RESET
+========================== */
 
 
 .agents-app *{
 
+margin:0;
+
+padding:0;
 
 box-sizing:border-box;
+
+}
+
+
+
+.agents-app{
+
+min-height:100vh;
+
+position:relative;
+
+color:var(--agent-text);
+
+overflow:hidden;
+
+}
+
+
+
+
+
+.agents-app a{
+
+text-decoration:none;
+
+color:inherit;
+
+}
+
+
+
+
+
+.agents-app button,
+.agents-app textarea,
+.agents-app input{
+
+font-family:inherit;
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+BACKGROUND EFFECTS
+========================== */
+
+
+.agents-app::before{
+
+
+content:"";
+
+position:absolute;
+
+width:550px;
+
+height:550px;
+
+top:-250px;
+
+right:-200px;
+
+border-radius:50%;
+
+
+background:
+
+radial-gradient(
+
+circle,
+
+rgba(245,185,66,.18),
+
+transparent 70%
+
+);
+
+
+pointer-events:none;
+
+
+}
+
+
+
+
+
+
+
+
+.agents-app::after{
+
+
+content:"";
+
+position:absolute;
+
+width:450px;
+
+height:450px;
+
+bottom:100px;
+
+left:-220px;
+
+border-radius:50%;
+
+
+background:
+
+radial-gradient(
+
+circle,
+
+rgba(79,140,255,.12),
+
+transparent 70%
+
+);
+
+
+
+pointer-events:none;
 
 
 }
@@ -99,45 +216,38 @@ box-sizing:border-box;
 
 
 
-/*
-==========================================================
-AGENT WORKSPACE HERO
-==========================================================
-*/
+/* ==========================
+WORKSPACE HERO
+========================== */
 
 
 .agents-hero{
 
 
-min-height:
-
-calc(100vh - 85px);
-
+min-height:calc(100vh - 85px);
 
 
 padding:
 
-70px 70px 40px;
-
+70px;
 
 
 display:flex;
 
 
-
 align-items:center;
-
 
 
 justify-content:space-between;
 
 
-
-gap:60px;
-
+gap:50px;
 
 
 position:relative;
+
+
+z-index:2;
 
 
 }
@@ -173,19 +283,15 @@ display:inline-flex;
 align-items:center;
 
 
-
 gap:10px;
-
 
 
 padding:
 
-9px 18px;
+10px 18px;
 
 
-
-border-radius:30px;
-
+border-radius:50px;
 
 
 background:
@@ -209,33 +315,10 @@ var(--agent-gold-light);
 font-size:13px;
 
 
-
-font-weight:600;
-
-
-}
-
-
-
-
-
-
-
-
-.hero-tag i{
-
-
-font-size:14px;
-
-
-
-color:
-
-var(--agent-gold);
+margin-bottom:25px;
 
 
 }
-
 
 
 
@@ -247,29 +330,28 @@ var(--agent-gold);
 .agents-title h1{
 
 
-margin-top:25px;
-
-
-
 font-size:
 
-clamp(42px,5vw,68px);
-
+clamp(42px,6vw,72px);
 
 
 line-height:1.05;
 
 
-
 letter-spacing:-3px;
-
 
 
 font-weight:900;
 
 
+margin-bottom:25px;
+
 
 }
+
+
+
+
 
 
 
@@ -277,25 +359,86 @@ font-weight:900;
 .agents-title p{
 
 
-margin-top:25px;
-
-
-
-max-width:620px;
-
-
-
-font-size:17px;
-
+font-size:18px;
 
 
 line-height:1.8;
 
 
-
 color:
 
 var(--agent-muted);
+
+
+max-width:620px;
+
+
+}/* ==========================
+WORKSPACE STATS
+========================== */
+
+
+.workspace-stats{
+
+
+display:flex;
+
+
+gap:45px;
+
+
+margin-top:45px;
+
+
+}
+
+
+
+
+
+.workspace-stats div{
+
+
+display:flex;
+
+
+flex-direction:column;
+
+
+gap:6px;
+
+
+}
+
+
+
+
+
+.workspace-stats strong{
+
+
+font-size:32px;
+
+
+font-weight:900;
+
+
+letter-spacing:-1px;
+
+
+}
+
+
+
+
+
+.workspace-stats span{
+
+
+font-size:13px;
+
+
+color:var(--agent-muted);
 
 
 }
@@ -308,54 +451,46 @@ var(--agent-muted);
 
 
 
-/*
-==========================================================
-AGENT SYSTEM STATUS CARD
-==========================================================
-*/
+/* ==========================
+STATUS CARD
+========================== */
 
 
 .agents-status-card{
 
 
-display:flex;
+min-width:350px;
 
+
+display:flex;
 
 
 align-items:center;
 
 
-
 gap:18px;
 
 
-
-padding:
-
-25px;
-
-
-
-min-width:350px;
-
-
-
-max-width:400px;
-
+padding:28px;
 
 
 border-radius:
 
-var(--agent-radius-xl);
+30px;
 
 
 
 background:
 
+
 linear-gradient(
+
 145deg,
-rgba(255,255,255,.10),
+
+rgba(255,255,255,.12),
+
 rgba(255,255,255,.03)
+
 );
 
 
@@ -386,19 +521,16 @@ var(--agent-shadow);
 
 
 
-
 .status-icon{
 
 
-width:65px;
+width:70px;
 
 
-height:65px;
+height:70px;
 
 
-
-flex-shrink:0;
-
+border-radius:22px;
 
 
 display:flex;
@@ -407,18 +539,13 @@ display:flex;
 align-items:center;
 
 
-
 justify-content:center;
-
-
-
-border-radius:22px;
-
 
 
 background:
 
-rgba(245,185,66,.15);
+
+rgba(245,185,66,.18);
 
 
 
@@ -428,7 +555,7 @@ var(--agent-gold);
 
 
 
-font-size:27px;
+font-size:30px;
 
 
 }
@@ -443,8 +570,10 @@ font-size:27px;
 .agents-status-card strong{
 
 
-font-size:18px;
+display:block;
 
+
+font-size:18px;
 
 
 font-weight:800;
@@ -456,22 +585,16 @@ font-weight:800;
 
 
 
-
-
-
 .agents-status-card p{
 
 
 margin-top:8px;
 
 
-
 font-size:13px;
 
 
-
 line-height:1.6;
-
 
 
 color:
@@ -479,11 +602,80 @@ color:
 var(--agent-muted);
 
 
-}/*
-==========================================================
-AGENT MARKETPLACE WORKSPACE
-==========================================================
-*/
+}
+
+
+
+
+
+
+
+
+
+.status-online{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:8px;
+
+
+margin-top:12px;
+
+
+font-size:12px;
+
+
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+.status-online span{
+
+
+width:8px;
+
+
+height:8px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-success);
+
+
+box-shadow:
+
+0 0 15px var(--agent-success);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENTS SECTION
+========================== */
 
 
 .agents-section{
@@ -494,239 +686,7 @@ padding:
 40px 70px 100px;
 
 
-}
-
-
-
-
-
-
-
-
-.agents-section .section-title{
-
-
-margin-bottom:45px;
-
-
-}
-
-
-
-
-
-
-
-
-.agents-grid{
-
-
-display:grid;
-
-
-
-grid-template-columns:
-
-repeat(auto-fit,minmax(290px,1fr));
-
-
-
-gap:24px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT CARD — AI TOOL STYLE
-==========================================================
-*/
-
-
-.agent-card{
-
-
 position:relative;
-
-
-
-padding:
-
-28px;
-
-
-
-border-radius:
-
-28px;
-
-
-
-background:
-
-linear-gradient(
-145deg,
-rgba(255,255,255,.08),
-rgba(255,255,255,.025)
-);
-
-
-
-border:
-
-1px solid var(--agent-border);
-
-
-
-backdrop-filter:
-
-blur(20px);
-
-
-
-overflow:hidden;
-
-
-
-transition:
-
-.35s ease;
-
-
-
-cursor:pointer;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-card::after{
-
-
-content:"";
-
-
-
-position:absolute;
-
-
-
-inset:0;
-
-
-
-background:
-
-linear-gradient(
-135deg,
-rgba(245,185,66,.10),
-transparent 40%
-);
-
-
-
-opacity:0;
-
-
-
-transition:.35s;
-
-
-
-pointer-events:none;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-card:hover::after{
-
-
-opacity:1;
-
-
-}
-
-
-
-
-
-
-
-.agent-card:hover{
-
-
-transform:
-
-translateY(-8px);
-
-
-
-border-color:
-
-rgba(245,185,66,.35);
-
-
-
-box-shadow:
-
-var(--agent-shadow);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT HEADER
-==========================================================
-*/
-
-
-.agent-top{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:16px;
-
-
-
-position:relative;
-
 
 
 z-index:2;
@@ -741,58 +701,22 @@ z-index:2;
 
 
 
-.agent-avatar{
-
-
-width:64px;
-
-
-
-height:64px;
-
+.agents-workspace-header{
 
 
 display:flex;
 
 
-
-align-items:center;
-
+justify-content:space-between;
 
 
-justify-content:center;
+align-items:flex-end;
 
 
-
-border-radius:20px;
-
+gap:30px;
 
 
-background:
-
-linear-gradient(
-145deg,
-rgba(245,185,66,.22),
-rgba(245,185,66,.05)
-);
-
-
-
-border:
-
-1px solid rgba(245,185,66,.25);
-
-
-
-font-size:30px;
-
-
-
-flex-shrink:0;
-
-
-
-transition:.3s;
+margin-bottom:40px;
 
 
 }
@@ -801,63 +725,16 @@ transition:.3s;
 
 
 
-
-
-
-.agent-card:hover .agent-avatar{
-
-
-transform:
-
-scale(1.08) rotate(-4deg);
-
-
-}
-
-
-
-
-
-
-
-
-
-.agent-card h3{
-
-
-font-size:20px;
-
-
-
-font-weight:800;
-
-
-
-letter-spacing:-.4px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-role{
-
-
-display:block;
-
-
-
-margin-top:5px;
-
+.section-label{
 
 
 font-size:12px;
 
+
+letter-spacing:2px;
+
+
+text-transform:uppercase;
 
 
 color:
@@ -865,8 +742,22 @@ color:
 var(--agent-gold);
 
 
+}
 
-font-weight:600;
+
+
+
+
+.agents-workspace-header h2{
+
+
+font-size:42px;
+
+
+letter-spacing:-1.5px;
+
+
+margin:12px 0;
 
 
 }
@@ -875,111 +766,17 @@ font-weight:600;
 
 
 
-
-
-
-
-/*
-==========================================================
-AGENT STATUS
-==========================================================
-*/
-
-
-.agent-online{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:8px;
-
-
-
-margin-top:22px;
-
-
-
-font-size:12px;
-
+.agents-workspace-header p{
 
 
 color:
 
-var(--agent-green);
-
-
-}
-
-
-
-
-
-
-
-
-.agent-online span{
-
-
-width:8px;
-
-
-
-height:8px;
-
-
-
-border-radius:50%;
-
-
-
-background:
-
-var(--agent-green);
-
-
-
-box-shadow:
-
-0 0 12px var(--agent-green);
-
-
-}
-
-
-
-
-
-
-
-
-.agent-card p{
-
-
-margin:
-
-18px 0;
-
-
-
-font-size:14px;
-
+var(--agent-muted);
 
 
 line-height:1.7;
 
 
-
-color:
-
-var(--agent-muted);
-
-
 }
 
 
@@ -990,261 +787,34 @@ var(--agent-muted);
 
 
 
-/*
-==========================================================
-AGENT CAPABILITIES
-==========================================================
-*/
+/* ==========================
+AGENT COUNTER
+========================== */
 
 
-.agent-tags{
+.agent-counter{
 
 
 display:flex;
-
-
-
-gap:8px;
-
-
-
-flex-wrap:wrap;
-
-
-
-margin-bottom:22px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-tags span{
-
-
-padding:
-
-6px 12px;
-
-
-
-border-radius:20px;
-
-
-
-background:
-
-rgba(255,255,255,.07);
-
-
-
-border:
-
-1px solid rgba(255,255,255,.08);
-
-
-
-font-size:11px;
-
-
-
-color:
-
-var(--agent-muted);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-OPEN AGENT BUTTON
-==========================================================
-*/
-
-
-.agent-open-btn{
-
-
-width:100%;
-
-
-
-height:46px;
-
-
-
-border:none;
-
-
-
-border-radius:16px;
-
-
-
-display:flex;
-
 
 
 align-items:center;
-
-
-
-justify-content:center;
-
 
 
 gap:10px;
 
 
-
-background:
-
-linear-gradient(
-135deg,
-var(--agent-gold),
-var(--agent-gold-light)
-);
-
-
-
-color:#111;
-
-
-
-font-weight:800;
-
-
-
-cursor:pointer;
-
-
-
-transition:.3s;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-open-btn:hover{
-
-
-transform:
-
-translateY(-3px);
-
-
-
-box-shadow:
-
-0 15px 35px rgba(245,185,66,.30);
-
-
-}/*
-==========================================================
-AGENT CONTROL BAR
-Pesquisa + Categorias + Organização
-==========================================================
-*/
-
-
-.agent-tools{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-justify-content:space-between;
-
-
-
-gap:20px;
-
-
-
-margin-bottom:40px;
-
-
-
-flex-wrap:wrap;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-SEARCH SYSTEM
-==========================================================
-*/
-
-
-.agent-search{
-
-
-height:52px;
-
-
-
-width:380px;
-
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:12px;
-
-
-
 padding:
 
-0 18px;
-
+14px 20px;
 
 
 border-radius:18px;
 
 
-
 background:
 
-rgba(255,255,255,.05);
+rgba(255,255,255,.06);
 
 
 
@@ -1254,7 +824,29 @@ border:
 
 
 
-transition:.3s;
+color:
+
+var(--agent-muted);
+
+
+font-size:14px;
+
+
+}
+
+
+
+
+
+.agent-counter i{
+
+
+color:
+
+var(--agent-gold);
+
+
+font-size:18px;
 
 
 }
@@ -1266,24 +858,76 @@ transition:.3s;
 
 
 
-.agent-search:focus-within{
+
+/* ==========================
+SEARCH + FILTERS
+========================== */
 
 
-border-color:
-
-rgba(245,185,66,.55);
+.agent-tools{
 
 
+display:flex;
 
-box-shadow:
 
-0 0 0 4px rgba(245,185,66,.08);
+justify-content:space-between;
+
+
+align-items:center;
+
+
+gap:20px;
+
+
+margin-bottom:35px;
+
+
+flex-wrap:wrap;
 
 
 }
 
 
 
+
+
+.agent-search{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:12px;
+
+
+width:360px;
+
+
+padding:
+
+15px 20px;
+
+
+border-radius:
+
+20px;
+
+
+background:
+
+rgba(255,255,255,.06);
+
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+}
 
 
 
@@ -1297,14 +941,7 @@ color:
 var(--agent-gold);
 
 
-
-font-size:16px;
-
-
 }
-
-
-
 
 
 
@@ -1316,30 +953,22 @@ font-size:16px;
 width:100%;
 
 
-
 background:none;
-
 
 
 border:none;
 
 
-
 outline:none;
 
 
-
 color:white;
-
 
 
 font-size:14px;
 
 
 }
-
-
-
 
 
 
@@ -1353,21 +982,9 @@ color:
 var(--agent-muted);
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-CATEGORY FILTERS
-==========================================================
-*/
+}/* ==========================
+FILTERS
+========================== */
 
 
 .agent-filters{
@@ -1376,13 +993,10 @@ CATEGORY FILTERS
 display:flex;
 
 
-
 align-items:center;
 
 
-
 gap:10px;
-
 
 
 flex-wrap:wrap;
@@ -1394,42 +1008,17 @@ flex-wrap:wrap;
 
 
 
-
-
-
 .filter{
-
-
-height:42px;
-
 
 
 padding:
 
-0 18px;
+12px 20px;
 
 
+border-radius:
 
-display:flex;
-
-
-
-align-items:center;
-
-
-
-justify-content:center;
-
-
-
-border-radius:20px;
-
-
-
-background:
-
-rgba(255,255,255,.05);
-
+20px;
 
 
 border:
@@ -1437,23 +1026,23 @@ border:
 1px solid var(--agent-border);
 
 
+background:
+
+rgba(255,255,255,.05);
+
 
 color:
 
 var(--agent-muted);
 
 
-
 font-size:13px;
 
 
-
-font-weight:600;
-
+font-weight:700;
 
 
 cursor:pointer;
-
 
 
 transition:.3s;
@@ -1465,16 +1054,12 @@ transition:.3s;
 
 
 
-
-
-
 .filter:hover{
 
 
 background:
 
-rgba(255,255,255,.10);
-
+rgba(255,255,255,.12);
 
 
 color:white;
@@ -1486,27 +1071,28 @@ color:white;
 
 
 
-
-
-
 .filter.active{
 
 
 background:
 
+
 linear-gradient(
+
 135deg,
+
 var(--agent-gold),
+
 var(--agent-gold-light)
+
 );
 
 
 
-border-color:transparent;
-
-
-
 color:#111;
+
+
+border-color:transparent;
 
 
 }
@@ -1519,28 +1105,47 @@ color:#111;
 
 
 
-/*
-==========================================================
-AGENT EMPTY STATE
-==========================================================
-*/
+/* ==========================
+AGENTS GRID
+========================== */
 
 
-.agents-empty{
+.agents-grid{
 
 
-display:none;
+display:grid;
+
+
+grid-template-columns:
+
+repeat(3,1fr);
+
+
+gap:25px;
+
+
+}
 
 
 
-padding:
-
-60px 30px;
 
 
 
-text-align:center;
 
+
+
+/* ==========================
+AGENT CARD
+========================== */
+
+
+.agent-card{
+
+
+position:relative;
+
+
+padding:30px;
 
 
 border-radius:
@@ -1548,10 +1153,18 @@ border-radius:
 30px;
 
 
-
 background:
 
-rgba(255,255,255,.04);
+
+linear-gradient(
+
+145deg,
+
+rgba(255,255,255,.10),
+
+rgba(255,255,255,.03)
+
+);
 
 
 
@@ -1560,94 +1173,24 @@ border:
 1px solid var(--agent-border);
 
 
-}
+
+overflow:hidden;
 
 
+transition:.35s;
 
 
+backdrop-filter:
 
-
-
-
-.agents-empty i{
-
-
-font-size:40px;
-
-
-
-color:
-
-var(--agent-gold);
-
-
-
-margin-bottom:20px;
-
-
-}
-
-
-
-
-
-
-
-
-.agents-empty h3{
-
-
-font-size:22px;
-
-
-
-margin-bottom:10px;
-
-
-}
-
-
-
-
-
-
-
-
-.agents-empty p{
-
-
-color:
-
-var(--agent-muted);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT CARD ANIMATION
-==========================================================
-*/
-
-
-.agent-card{
+blur(20px);
 
 
 opacity:0;
 
 
-
 animation:
 
-agentAppear .5s ease forwards;
+agentAppear .6s forwards;
 
 
 }
@@ -1668,11 +1211,9 @@ from{
 opacity:0;
 
 
-
 transform:
 
 translateY(25px);
-
 
 
 }
@@ -1685,31 +1226,16 @@ to{
 opacity:1;
 
 
-
 transform:
 
 translateY(0);
 
 
-
-}
-
-
 }
 
 
 
-
-
-
-
-
-.agent-card:nth-child(1){animation-delay:.05s;}
-.agent-card:nth-child(2){animation-delay:.1s;}
-.agent-card:nth-child(3){animation-delay:.15s;}
-.agent-card:nth-child(4){animation-delay:.2s;}
-.agent-card:nth-child(5){animation-delay:.25s;}
-.agent-card:nth-child(6){animation-delay:.3s;}
+}
 
 
 
@@ -1717,44 +1243,317 @@ translateY(0);
 
 
 
-/*
-==========================================================
-AGENT QUICK INFO
-==========================================================
-*/
+
+.agent-card::before{
 
 
-.agent-meta{
+content:"";
+
+
+position:absolute;
+
+
+width:240px;
+
+
+height:240px;
+
+
+right:-120px;
+
+
+top:-120px;
+
+
+
+background:
+
+rgba(245,185,66,.18);
+
+
+
+filter:
+
+blur(80px);
+
+
+
+opacity:0;
+
+
+transition:.4s;
+
+
+}
+
+
+
+
+
+.agent-card:hover::before{
+
+
+opacity:1;
+
+
+}
+
+
+
+
+
+
+
+
+.agent-card:hover{
+
+
+transform:
+
+translateY(-10px);
+
+
+
+border-color:
+
+rgba(245,185,66,.45);
+
+
+
+box-shadow:
+
+var(--agent-shadow);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT TOP
+========================== */
+
+
+.agent-top{
 
 
 display:flex;
 
 
+align-items:center;
+
+
+gap:16px;
+
+
+position:relative;
+
+
+z-index:2;
+
+
+}
+
+
+
+
+
+.agent-avatar{
+
+
+width:70px;
+
+
+height:70px;
+
+
+border-radius:22px;
+
+
+display:flex;
+
 
 align-items:center;
 
 
-
-justify-content:space-between;
-
+justify-content:center;
 
 
-margin-top:18px;
+font-size:32px;
+
+
+background:
+
+
+linear-gradient(
+
+145deg,
+
+rgba(245,185,66,.25),
+
+rgba(245,185,66,.08)
+
+);
 
 
 
-padding-top:15px;
+border:
+
+1px solid rgba(245,185,66,.25);
+
+
+transition:.35s;
+
+
+}
 
 
 
-border-top:
 
-1px solid rgba(255,255,255,.08);
 
+
+
+
+.agent-card:hover .agent-avatar{
+
+
+transform:
+
+scale(1.08)
+rotate(-5deg);
+
+
+}
+
+
+
+
+
+
+
+
+
+.agent-card h3{
+
+
+font-size:21px;
+
+
+font-weight:800;
+
+
+}
+
+
+
+
+
+.agent-role{
+
+
+display:block;
+
+
+margin-top:6px;
+
+
+font-size:13px;
+
+
+color:
+
+var(--agent-gold);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+ONLINE STATUS
+========================== */
+
+
+.agent-online{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:8px;
+
+
+margin-top:22px;
 
 
 font-size:12px;
 
+
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+.agent-online span{
+
+
+width:8px;
+
+
+height:8px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-success);
+
+
+box-shadow:
+
+0 0 15px var(--agent-success);
+
+
+}/* ==========================
+AGENT CONTENT
+========================== */
+
+
+.agent-card p{
+
+
+margin:
+
+22px 0;
+
+
+font-size:14px;
+
+
+line-height:1.7;
 
 
 color:
@@ -1771,7 +1570,193 @@ var(--agent-muted);
 
 
 
-.agent-meta strong{
+
+/* ==========================
+AGENT TAGS
+========================== */
+
+
+.agent-tags{
+
+
+display:flex;
+
+
+gap:8px;
+
+
+flex-wrap:wrap;
+
+
+margin-bottom:25px;
+
+
+}
+
+
+
+
+
+.agent-tags span{
+
+
+padding:
+
+7px 13px;
+
+
+border-radius:
+
+20px;
+
+
+background:
+
+rgba(255,255,255,.08);
+
+
+border:
+
+1px solid rgba(255,255,255,.06);
+
+
+font-size:11px;
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+OPEN AGENT BUTTON
+========================== */
+
+
+.agent-open-btn{
+
+
+width:100%;
+
+
+padding:
+
+16px;
+
+
+border:none;
+
+
+border-radius:
+
+18px;
+
+
+
+background:
+
+
+linear-gradient(
+
+135deg,
+
+var(--agent-gold),
+
+var(--agent-gold-light)
+
+);
+
+
+
+color:#111;
+
+
+font-size:14px;
+
+
+font-weight:800;
+
+
+cursor:pointer;
+
+
+transition:.35s;
+
+
+display:flex;
+
+
+align-items:center;
+
+
+justify-content:center;
+
+
+gap:10px;
+
+
+}
+
+
+
+
+
+.agent-open-btn:hover{
+
+
+transform:
+
+translateY(-4px);
+
+
+box-shadow:
+
+0 20px 45px rgba(245,185,66,.35);
+
+
+}
+
+
+
+
+
+.agent-open-btn i{
+
+
+font-size:14px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT COLOR VARIATIONS
+========================== */
+
+
+.agent-card.finance .agent-avatar{
+
+
+background:
+
+rgba(245,185,66,.18);
 
 
 color:
@@ -1779,43 +1764,162 @@ color:
 var(--agent-gold);
 
 
-}/*
-==========================================================
+}
+
+
+
+
+
+.agent-card.business .agent-avatar{
+
+
+background:
+
+rgba(79,140,255,.18);
+
+
+color:
+
+var(--agent-blue);
+
+
+}
+
+
+
+
+
+.agent-card.creative .agent-avatar{
+
+
+background:
+
+rgba(139,92,246,.18);
+
+
+color:
+
+var(--agent-purple);
+
+
+}
+
+
+
+
+
+.agent-card.tech .agent-avatar{
+
+
+background:
+
+rgba(34,197,94,.15);
+
+
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+EMPTY STATE
+========================== */
+
+
+.agents-grid.empty{
+
+
+min-height:300px;
+
+
+display:flex;
+
+
+justify-content:center;
+
+
+align-items:center;
+
+
+}
+
+
+
+
+
+.agents-grid.empty::after{
+
+
+content:
+
+"Nenhum agente encontrado";
+
+
+font-size:15px;
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
 AGENT CHAT STUDIO
-Workspace de conversa profissional
-==========================================================
-*/
+========================== */
 
 
 .agent-chat-studio{
 
 
-max-width:1100px;
+max-width:
 
+1100px;
 
 
 margin:
 
-50px auto 100px;
-
+40px auto 100px;
 
 
 border-radius:
 
-34px;
-
+35px;
 
 
 overflow:hidden;
 
 
-
 background:
 
+
 linear-gradient(
+
 145deg,
-rgba(255,255,255,.09),
+
+rgba(255,255,255,.12),
+
 rgba(255,255,255,.03)
+
 );
 
 
@@ -1837,17 +1941,12 @@ box-shadow:
 var(--agent-shadow);
 
 
-
 animation:
 
-studioOpen .45s ease;
+chatAppear .5s ease;
 
 
 }
-
-
-
-
 
 
 
@@ -1856,7 +1955,7 @@ studioOpen .45s ease;
 .agent-chat-studio.hidden{
 
 
-display:none;
+display:none!important;
 
 
 }
@@ -1865,10 +1964,7 @@ display:none;
 
 
 
-
-
-
-@keyframes studioOpen{
+@keyframes chatAppear{
 
 
 from{
@@ -1877,11 +1973,9 @@ from{
 opacity:0;
 
 
-
 transform:
 
 translateY(30px);
-
 
 
 }
@@ -1894,62 +1988,40 @@ to{
 opacity:1;
 
 
-
 transform:
 
 translateY(0);
 
 
-
-}
-
-
 }
 
 
 
-
-
-
-
-
-
-/*
-==========================================================
+}/* ==========================
 CHAT HEADER
-==========================================================
-*/
+========================== */
 
 
 .chat-studio-header{
 
 
-height:90px;
-
-
-
-padding:
-
-20px 28px;
-
-
-
 display:flex;
-
 
 
 align-items:center;
 
 
-
 justify-content:space-between;
 
+
+padding:
+
+25px 30px;
 
 
 border-bottom:
 
 1px solid var(--agent-border);
-
 
 
 background:
@@ -1963,27 +2035,19 @@ rgba(0,0,0,.15);
 
 
 
-
-
-
 .selected-agent-info{
 
 
 display:flex;
 
 
-
 align-items:center;
 
 
-
-gap:15px;
+gap:16px;
 
 
 }
-
-
-
 
 
 
@@ -1992,49 +2056,71 @@ gap:15px;
 .selected-agent-avatar{
 
 
-width:58px;
+width:68px;
 
 
+height:68px;
 
-height:58px;
 
+border-radius:
+
+22px;
 
 
 display:flex;
 
 
-
 align-items:center;
-
 
 
 justify-content:center;
 
 
-
-border-radius:20px;
-
+font-size:32px;
 
 
 background:
 
-rgba(245,185,66,.15);
+
+rgba(245,185,66,.18);
 
 
 
 border:
 
-1px solid rgba(245,185,66,.25);
-
-
-
-font-size:28px;
+1px solid rgba(245,185,66,.35);
 
 
 }
 
 
 
+
+
+.agent-active-label{
+
+
+display:block;
+
+
+font-size:11px;
+
+
+text-transform:uppercase;
+
+
+letter-spacing:1px;
+
+
+color:
+
+var(--agent-gold);
+
+
+margin-bottom:5px;
+
+
+}
 
 
 
@@ -2043,11 +2129,13 @@ font-size:28px;
 .selected-agent-info h3{
 
 
-font-size:21px;
+font-size:24px;
 
 
+font-weight:900;
 
-font-weight:800;
+
+letter-spacing:-.5px;
 
 
 }
@@ -2056,22 +2144,13 @@ font-weight:800;
 
 
 
+.selected-agent-info p{
 
 
-
-.selected-agent-info span{
-
-
-display:block;
+margin-top:5px;
 
 
-
-margin-top:4px;
-
-
-
-font-size:12px;
-
+font-size:13px;
 
 
 color:
@@ -2089,40 +2168,41 @@ var(--agent-muted);
 
 
 
-/*
-==========================================================
-CLOSE CHAT BUTTON
-==========================================================
-*/
+/* ==========================
+CHAT ACTIONS
+========================== */
 
 
-.chat-close-btn{
-
-
-height:42px;
-
-
-
-padding:
-
-0 18px;
-
+.chat-actions{
 
 
 display:flex;
 
 
-
 align-items:center;
 
 
-
-gap:8px;
-
+gap:12px;
 
 
-border-radius:15px;
+}
 
+
+
+
+
+.agent-favorite-btn{
+
+
+width:45px;
+
+
+height:45px;
+
+
+border-radius:
+
+15px;
 
 
 background:
@@ -2130,23 +2210,15 @@ background:
 rgba(255,255,255,.06);
 
 
-
 border:
 
 1px solid var(--agent-border);
 
 
-
 color:white;
 
 
-
 cursor:pointer;
-
-
-
-font-weight:600;
-
 
 
 transition:.3s;
@@ -2158,6 +2230,75 @@ transition:.3s;
 
 
 
+.agent-favorite-btn:hover{
+
+
+color:
+
+var(--agent-gold);
+
+
+background:
+
+rgba(255,255,255,.12);
+
+
+}
+
+
+
+
+
+
+
+
+.chat-close-btn{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:8px;
+
+
+padding:
+
+13px 20px;
+
+
+border-radius:
+
+16px;
+
+
+background:
+
+rgba(255,255,255,.06);
+
+
+border:
+
+1px solid var(--agent-border);
+
+
+color:white;
+
+
+cursor:pointer;
+
+
+font-weight:600;
+
+
+transition:.3s;
+
+
+}
+
+
 
 
 
@@ -2166,13 +2307,7 @@ transition:.3s;
 
 background:
 
-rgba(255,255,255,.12);
-
-
-
-color:
-
-var(--agent-gold);
+rgba(255,255,255,.14);
 
 
 }
@@ -2185,22 +2320,37 @@ var(--agent-gold);
 
 
 
-/*
-==========================================================
-MESSAGE AREA
-==========================================================
-*/
+/* ==========================
+CHAT BODY
+========================== */
+
+
+.agent-chat-body{
+
+
+background:
+
+rgba(0,0,0,.10);
+
+
+}
+
+
+
+
+
+
 
 
 .agent-chat-messages{
 
 
-height:450px;
+height:
 
+450px;
 
 
 overflow-y:auto;
-
 
 
 padding:
@@ -2208,13 +2358,10 @@ padding:
 30px;
 
 
-
 display:flex;
 
 
-
 flex-direction:column;
-
 
 
 gap:18px;
@@ -2241,19 +2388,17 @@ width:7px;
 
 
 
-
-
-
 .agent-chat-messages::-webkit-scrollbar-thumb{
 
 
 background:
 
-rgba(245,185,66,.45);
+rgba(245,185,66,.4);
 
 
+border-radius:
 
-border-radius:20px;
+20px;
 
 
 }
@@ -2265,12 +2410,9 @@ border-radius:20px;
 
 
 
-
-/*
-==========================================================
+/* ==========================
 WELCOME MESSAGE
-==========================================================
-*/
+========================== */
 
 
 .agent-welcome-message{
@@ -2279,31 +2421,25 @@ WELCOME MESSAGE
 display:flex;
 
 
-
 align-items:center;
-
 
 
 gap:15px;
 
 
-
 padding:
-
-20px;
-
-
-
-border-radius:
 
 22px;
 
 
+border-radius:
+
+24px;
+
 
 background:
 
-rgba(255,255,255,.05);
-
+rgba(255,255,255,.06);
 
 
 border:
@@ -2317,34 +2453,31 @@ border:
 
 
 
-
-
-
 .welcome-icon{
 
 
-width:45px;
+width:
+
+50px;
 
 
+height:
 
-height:45px;
+50px;
 
+
+border-radius:
+
+16px;
 
 
 display:flex;
 
 
-
 align-items:center;
 
 
-
 justify-content:center;
-
-
-
-border-radius:15px;
-
 
 
 background:
@@ -2352,14 +2485,13 @@ background:
 var(--agent-gold);
 
 
-
 color:#111;
 
 
+font-size:20px;
+
+
 }
-
-
-
 
 
 
@@ -2368,11 +2500,7 @@ color:#111;
 .agent-welcome-message h4{
 
 
-font-size:16px;
-
-
-
-margin-bottom:5px;
+font-size:17px;
 
 
 }
@@ -2381,14 +2509,10 @@ margin-bottom:5px;
 
 
 
-
-
-
 .agent-welcome-message p{
 
 
-font-size:13px;
-
+margin-top:5px;
 
 
 color:
@@ -2396,12 +2520,12 @@ color:
 var(--agent-muted);
 
 
-}/*
-==========================================================
-CHAT MESSAGE BUBBLES
-Sistema de mensagens IA
-==========================================================
-*/
+font-size:14px;
+
+
+}/* ==========================
+CHAT MESSAGES BUBBLES
+========================== */
 
 
 .user-chat-message,
@@ -2411,8 +2535,49 @@ Sistema de mensagens IA
 display:flex;
 
 
-
 width:100%;
+
+
+animation:
+
+messageShow .3s ease;
+
+
+}
+
+
+
+
+
+@keyframes messageShow{
+
+
+from{
+
+
+opacity:0;
+
+
+transform:
+
+translateY(10px);
+
+
+}
+
+
+to{
+
+
+opacity:1;
+
+
+transform:
+
+translateY(0);
+
+
+}
 
 
 }
@@ -2436,9 +2601,6 @@ justify-content:flex-end;
 
 
 
-
-
-
 .ai-chat-message{
 
 
@@ -2454,80 +2616,32 @@ justify-content:flex-start;
 
 
 
-.user-chat-message .message-content,
-.ai-chat-message .message-content{
+.message-content{
 
 
-max-width:75%;
+max-width:
 
+70%;
 
 
 padding:
 
-15px 20px;
-
+16px 22px;
 
 
 border-radius:
 
-22px;
+24px;
 
 
+font-size:
 
-font-size:14px;
-
-
-
-line-height:1.7;
+14px;
 
 
+line-height:
 
-animation:
-
-messageShow .3s ease;
-
-
-}
-
-
-
-
-
-
-
-
-@keyframes messageShow{
-
-
-from{
-
-
-opacity:0;
-
-
-
-transform:
-
-translateY(10px);
-
-
-}
-
-
-
-to{
-
-
-opacity:1;
-
-
-
-transform:
-
-translateY(0);
-
-
-}
+1.7;
 
 
 }
@@ -2544,10 +2658,15 @@ translateY(0);
 
 background:
 
+
 linear-gradient(
+
 135deg,
+
 var(--agent-gold),
+
 var(--agent-gold-light)
+
 );
 
 
@@ -2555,12 +2674,12 @@ var(--agent-gold-light)
 color:#111;
 
 
-
-border-bottom-right-radius:6px;
-
+font-weight:600;
 
 
-font-weight:500;
+border-bottom-right-radius:
+
+6px;
 
 
 }
@@ -2577,21 +2696,140 @@ font-weight:500;
 
 background:
 
-rgba(255,255,255,.07);
+rgba(255,255,255,.08);
 
 
 
 border:
 
-1px solid rgba(255,255,255,.08);
-
+1px solid rgba(255,255,255,.06);
 
 
 color:white;
 
 
+border-bottom-left-radius:
 
-border-bottom-left-radius:6px;
+6px;
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+TYPING INDICATOR
+========================== */
+
+
+.ai-typing{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:6px;
+
+
+padding:
+
+15px 20px;
+
+
+background:
+
+rgba(255,255,255,.06);
+
+
+border-radius:
+
+20px;
+
+
+width:max-content;
+
+
+}
+
+
+
+
+
+.ai-typing span{
+
+
+width:7px;
+
+
+height:7px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-gold);
+
+
+animation:
+
+typing .9s infinite;
+
+
+}
+
+
+
+
+
+.ai-typing span:nth-child(2){
+
+
+animation-delay:.15s;
+
+
+}
+
+
+
+
+
+.ai-typing span:nth-child(3){
+
+
+animation-delay:.3s;
+
+
+}
+
+
+
+
+
+@keyframes typing{
+
+
+50%{
+
+
+opacity:.3;
+
+
+transform:
+
+translateY(-3px);
+
+
+}
 
 
 }
@@ -2604,12 +2842,9 @@ border-bottom-left-radius:6px;
 
 
 
-/*
-==========================================================
+/* ==========================
 CHAT INPUT AREA
-Painel de comando IA
-==========================================================
-*/
+========================== */
 
 
 .agent-chat-input-area{
@@ -2620,11 +2855,9 @@ padding:
 25px 30px;
 
 
-
 border-top:
 
 1px solid var(--agent-border);
-
 
 
 background:
@@ -2647,18 +2880,15 @@ rgba(0,0,0,.18);
 display:flex;
 
 
-
 gap:10px;
 
 
+margin-bottom:
 
-margin-bottom:15px;
+15px;
 
 
 }
-
-
-
 
 
 
@@ -2667,28 +2897,28 @@ margin-bottom:15px;
 .agent-chat-tools button{
 
 
-width:40px;
+width:
+
+42px;
 
 
+height:
 
-height:40px;
+42px;
 
 
+border-radius:
 
-border-radius:14px;
-
+14px;
 
 
 display:flex;
 
 
-
 align-items:center;
 
 
-
 justify-content:center;
-
 
 
 background:
@@ -2696,30 +2926,21 @@ background:
 rgba(255,255,255,.06);
 
 
-
 border:
 
 1px solid var(--agent-border);
 
 
-
-color:
-
-var(--agent-muted);
-
+color:white;
 
 
 cursor:pointer;
-
 
 
 transition:.3s;
 
 
 }
-
-
-
 
 
 
@@ -2728,15 +2949,19 @@ transition:.3s;
 .agent-chat-tools button:hover{
 
 
-background:
-
-rgba(245,185,66,.15);
-
-
-
 color:
 
 var(--agent-gold);
+
+
+border-color:
+
+rgba(245,185,66,.35);
+
+
+transform:
+
+translateY(-3px);
 
 
 }
@@ -2746,14 +2971,6 @@ var(--agent-gold);
 
 
 
-
-
-
-/*
-==========================================================
-MESSAGE INPUT BOX
-==========================================================
-*/
 
 
 .agent-input-box{
@@ -2762,25 +2979,20 @@ MESSAGE INPUT BOX
 display:flex;
 
 
-
 align-items:flex-end;
-
 
 
 gap:12px;
 
 
-
 padding:
 
-10px;
-
+12px;
 
 
 border-radius:
 
-22px;
-
+24px;
 
 
 background:
@@ -2788,20 +3000,12 @@ background:
 rgba(255,255,255,.06);
 
 
-
 border:
 
 1px solid var(--agent-border);
 
 
-
-transition:.3s;
-
-
 }
-
-
-
 
 
 
@@ -2813,33 +3017,35 @@ transition:.3s;
 flex:1;
 
 
+height:
 
-height:55px;
+55px;
 
 
+max-height:
 
-max-height:160px;
-
+150px;
 
 
 resize:none;
 
 
-
 background:none;
-
 
 
 border:none;
 
 
-
 outline:none;
-
 
 
 color:white;
 
+
+font-family:inherit;
+
+
+font-size:15px;
 
 
 padding:
@@ -2847,18 +3053,7 @@ padding:
 15px;
 
 
-
-font-size:14px;
-
-
-
-font-family:inherit;
-
-
 }
-
-
-
 
 
 
@@ -2878,46 +3073,47 @@ var(--agent-muted);
 
 
 
-
-
-
 .agent-input-box button{
 
 
-width:50px;
+width:
+
+52px;
 
 
+height:
 
-height:50px;
-
+52px;
 
 
 border:none;
 
 
+border-radius:
 
-border-radius:16px;
-
+17px;
 
 
 display:flex;
 
 
-
 align-items:center;
-
 
 
 justify-content:center;
 
 
-
 background:
 
+
 linear-gradient(
+
 135deg,
+
 var(--agent-gold),
+
 var(--agent-gold-light)
+
 );
 
 
@@ -2925,13 +3121,10 @@ var(--agent-gold-light)
 color:#111;
 
 
+font-size:18px;
+
 
 cursor:pointer;
-
-
-
-font-size:17px;
-
 
 
 transition:.3s;
@@ -2943,27 +3136,20 @@ transition:.3s;
 
 
 
-
-
-
 .agent-input-box button:hover{
 
 
 transform:
 
-translateY(-3px);
-
+translateY(-4px);
 
 
 box-shadow:
 
-0 15px 35px rgba(245,185,66,.3);
+0 18px 40px rgba(245,185,66,.35);
 
 
 }
-
-
-
 
 
 
@@ -2975,13 +3161,14 @@ box-shadow:
 text-align:center;
 
 
+margin-top:
 
-margin-top:12px;
+12px;
 
 
+font-size:
 
-font-size:12px;
-
+12px;
 
 
 color:
@@ -2989,226 +3176,9 @@ color:
 var(--agent-muted);
 
 
-}/*
-==========================================================
-AGENT PROFILE DETAILS
-Área de identidade do agente
-==========================================================
-*/
-
-
-.agent-profile-panel{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-justify-content:space-between;
-
-
-
-gap:25px;
-
-
-
-padding:
-
-25px;
-
-
-
-margin-bottom:30px;
-
-
-
-border-radius:
-
-28px;
-
-
-
-background:
-
-rgba(255,255,255,.05);
-
-
-
-border:
-
-1px solid var(--agent-border);
-
-
-}
-
-
-
-
-
-
-
-
-.agent-profile-left{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:18px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-profile-icon{
-
-
-width:75px;
-
-
-
-height:75px;
-
-
-
-border-radius:25px;
-
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-justify-content:center;
-
-
-
-font-size:35px;
-
-
-
-background:
-
-linear-gradient(
-145deg,
-rgba(245,185,66,.25),
-rgba(245,185,66,.08)
-);
-
-
-
-border:
-
-1px solid rgba(245,185,66,.25);
-
-
-}
-
-
-
-
-
-
-
-
-.agent-profile-info h3{
-
-
-font-size:24px;
-
-
-
-font-weight:900;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-profile-info span{
-
-
-display:block;
-
-
-
-margin-top:6px;
-
-
-
-color:
-
-var(--agent-gold);
-
-
-
-font-size:13px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-profile-info p{
-
-
-margin-top:10px;
-
-
-
-color:
-
-var(--agent-muted);
-
-
-
-font-size:14px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT STATUS INDICATOR
-==========================================================
-*/
+}/* ==========================
+AGENT STATUS SYSTEM
+========================== */
 
 
 .agent-status{
@@ -3217,345 +3187,95 @@ AGENT STATUS INDICATOR
 display:flex;
 
 
-
 align-items:center;
-
 
 
 gap:8px;
 
 
-
-padding:
-
-10px 15px;
-
-
-
-border-radius:
-
-20px;
-
-
-
-background:
-
-rgba(34,197,94,.10);
-
-
-
-border:
-
-1px solid rgba(34,197,94,.20);
-
-
-
-color:
-
-var(--agent-green);
-
-
-
-font-size:13px;
-
-
-
-font-weight:700;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-status span{
-
-
-width:8px;
-
-
-
-height:8px;
-
-
-
-border-radius:50%;
-
-
-
-background:
-
-var(--agent-green);
-
-
-
-box-shadow:
-
-0 0 15px var(--agent-green);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-CAPABILITY MODULES
-Ferramentas do agente
-==========================================================
-*/
-
-
-.agent-capabilities{
-
-
-display:grid;
-
-
-
-grid-template-columns:
-
-repeat(3,1fr);
-
-
-
-gap:15px;
-
-
-
-margin-top:25px;
-
-
-}
-
-
-
-
-
-
-
-
-.capability-box{
-
-
-padding:
-
-20px;
-
-
-
-border-radius:
-
-20px;
-
-
-
-background:
-
-rgba(255,255,255,.05);
-
-
-
-border:
-
-1px solid var(--agent-border);
-
-
-
-text-align:center;
-
-
-
-transition:.3s;
-
-
-}
-
-
-
-
-
-
-
-
-.capability-box:hover{
-
-
-background:
-
-rgba(255,255,255,.09);
-
-
-
-transform:
-
-translateY(-5px);
-
-
-}
-
-
-
-
-
-
-
-
-.capability-box i{
-
-
-font-size:22px;
-
-
-
-color:
-
-var(--agent-gold);
-
-
-
-margin-bottom:10px;
-
-
-}
-
-
-
-
-
-
-
-
-.capability-box strong{
-
-
-display:block;
-
-
-
-font-size:14px;
-
-
-
-margin-bottom:5px;
-
-
-}
-
-
-
-
-
-
-
-
-.capability-box span{
-
-
 font-size:12px;
-
-
-
-color:
-
-var(--agent-muted);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT POWER TAGS
-==========================================================
-*/
-
-
-.power-tags{
-
-
-display:flex;
-
-
-
-gap:10px;
-
-
-
-flex-wrap:wrap;
-
-
-
-margin-top:25px;
-
-
-}
-
-
-
-
-
-
-
-
-.power-tags span{
-
-
-padding:
-
-8px 14px;
-
-
-
-border-radius:
-
-30px;
-
-
-
-background:
-
-rgba(79,140,255,.12);
-
-
-
-border:
-
-1px solid rgba(79,140,255,.25);
-
-
-
-color:
-
-#93c5fd;
-
-
-
-font-size:12px;
-
 
 
 font-weight:600;
 
 
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+.agent-status-dot{
+
+
+width:8px;
+
+
+height:8px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-success);
+
+
+box-shadow:
+
+0 0 15px var(--agent-success);
+
+
+animation:
+
+statusPulse 2s infinite;
+
+
+}
+
+
+
+
+
+@keyframes statusPulse{
+
+
+0%,100%{
+
+
+opacity:1;
+
+
+transform:
+
+scale(1);
+
+
+}
+
+
+
+50%{
+
+
+opacity:.5;
+
+
+transform:
+
+scale(1.3);
+
+
+}
+
+
+
 }
 
 
@@ -3565,69 +3285,93 @@ font-weight:600;
 
 
 
-.power-tags span:nth-child(2n){
+
+/* ==========================
+AGENT CARD PREMIUM EFFECTS
+========================== */
+
+
+.agent-card{
+
+
+isolation:isolate;
+
+
+}
+
+
+
+
+
+.agent-card::after{
+
+
+content:"";
+
+
+position:absolute;
+
+
+inset:0;
 
 
 background:
 
-rgba(139,92,246,.12);
+linear-gradient(
+
+120deg,
+
+transparent,
+
+rgba(245,185,66,.08),
+
+transparent
+
+);
 
 
 
-border-color:
+transform:
 
-rgba(139,92,246,.25);
-
-
-
-color:
-
-#c4b5fd;
+translateX(-100%);
 
 
-}/*
-==========================================================
-AGENT SPECIALIZATION SYSTEM
-Identidade visual por área
-==========================================================
-*/
+transition:.8s;
 
 
-.agent-symbol{
+z-index:-1;
 
 
-width:70px;
+}
 
 
 
-height:70px;
+
+
+.agent-card:hover::after{
+
+
+transform:
+
+translateX(100%);
+
+
+}
 
 
 
-border-radius:
-
-22px;
 
 
 
-display:flex;
 
 
 
-align-items:center;
+/* ==========================
+AGENT ICON ANIMATION
+========================== */
 
 
-
-justify-content:center;
-
-
-
-font-size:30px;
-
-
-
-margin-bottom:20px;
-
+.agent-avatar i{
 
 
 transition:.35s;
@@ -3639,53 +3383,12 @@ transition:.35s;
 
 
 
-
-
-
-.agent-card:hover .agent-symbol{
+.agent-card:hover .agent-avatar i{
 
 
 transform:
 
-scale(1.08);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-FINANCE AGENT
-==========================================================
-*/
-
-
-.agent-symbol.finance{
-
-
-background:
-
-rgba(245,185,66,.15);
-
-
-
-border:
-
-1px solid rgba(245,185,66,.25);
-
-
-
-color:
-
-var(--agent-gold);
+scale(1.15);
 
 
 }
@@ -3698,749 +3401,48 @@ var(--agent-gold);
 
 
 
-/*
-==========================================================
-LEGAL AGENT
-==========================================================
-*/
-
-
-.agent-symbol.legal{
-
-
-background:
-
-rgba(79,140,255,.15);
-
-
-
-border:
-
-1px solid rgba(79,140,255,.25);
-
-
-
-color:
-
-var(--agent-blue);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-MARKETING AGENT
-==========================================================
-*/
-
-
-.agent-symbol.marketing{
-
-
-background:
-
-rgba(139,92,246,.15);
-
-
-
-border:
-
-1px solid rgba(139,92,246,.25);
-
-
-
-color:
-
-var(--agent-purple);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-CODE AGENT
-==========================================================
-*/
-
-
-.agent-symbol.code{
-
-
-background:
-
-rgba(34,197,94,.15);
-
-
-
-border:
-
-1px solid rgba(34,197,94,.25);
-
-
-
-color:
-
-var(--agent-green);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-DESIGN AGENT
-==========================================================
-*/
-
-
-.agent-symbol.design{
-
-
-background:
-
-rgba(236,72,153,.15);
-
-
-
-border:
-
-1px solid rgba(236,72,153,.25);
-
-
-
-color:
-
-#f472b6;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-BUSINESS AGENT
-==========================================================
-*/
-
-
-.agent-symbol.business{
-
-
-background:
-
-rgba(14,165,233,.15);
-
-
-
-border:
-
-1px solid rgba(14,165,233,.25);
-
-
-
-color:
-
-#38bdf8;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT ONLINE CARD
-==========================================================
-*/
-
-
-.agent-live{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:8px;
-
-
-
-position:absolute;
-
-
-
-top:20px;
-
-
-
-right:20px;
-
-
-
-padding:
-
-6px 12px;
-
-
-
-border-radius:
-
-20px;
-
-
-
-background:
-
-rgba(34,197,94,.10);
-
-
-
-border:
-
-1px solid rgba(34,197,94,.25);
-
-
-
-color:
-
-var(--agent-green);
-
-
-
-font-size:11px;
-
-
-
-font-weight:700;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-live span{
-
-
-width:7px;
-
-
-
-height:7px;
-
-
-
-border-radius:50%;
-
-
-
-background:
-
-var(--agent-green);
-
-
-
-box-shadow:
-
-0 0 10px var(--agent-green);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT FEATURE LIST
-==========================================================
-*/
-
-
-.agent-features{
-
-
-display:flex;
-
-
-
-flex-direction:column;
-
-
-
-gap:10px;
-
-
-
-margin-top:20px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-feature{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:10px;
-
-
-
-font-size:13px;
-
-
-
-color:
-
-var(--agent-muted);
-
-
-}
-
-
-
-
-
-
-
-
-.agent-feature i{
-
-
-color:
-
-var(--agent-gold);
-
-
-
-font-size:14px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-PREMIUM AGENT HIGHLIGHT
-==========================================================
-*/
-
-
-.agent-card.premium{
-
-
-border-color:
-
-rgba(245,185,66,.45);
-
-
-
-background:
-
-linear-gradient(
-145deg,
-rgba(245,185,66,.12),
-rgba(255,255,255,.03)
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-.agent-card.premium::before{
-
-
-content:"Premium";
-
-
-
-position:absolute;
-
-
-
-top:18px;
-
-
-
-right:20px;
-
-
-
-padding:
-
-6px 12px;
-
-
-
-border-radius:20px;
-
-
-
-background:
-
-var(--agent-gold);
-
-
-
-color:#111;
-
-
-
-font-size:11px;
-
-
-
-font-weight:800;
-
-
-}/*
-==========================================================
-RESPONSIVE TABLET
-==========================================================
-*/
-
-
-@media(max-width:1200px){
-
-
-.agents-hero{
-
-
-padding:
-
-60px 35px;
-
-
-
-flex-direction:column;
-
-
-
-align-items:flex-start;
-
-
-}
-
-
-
-
-.agents-status-card{
-
-
-width:100%;
-
-
-
-max-width:500px;
-
-
-}
-
-
-
-
-
-
-
-.agents-section{
-
-
-padding:
-
-40px 35px 80px;
-
-
-}
-
-
-
-
-
-
-
-.agent-profile-panel{
-
-
-flex-direction:column;
-
-
-
-align-items:flex-start;
-
-
-}
-
-
-
-
-
-
-
-.agent-capabilities{
-
-
-grid-template-columns:
-
-repeat(2,1fr);
-
-
-}
-
-
-
-
-.agent-chat-studio{
-
-
-margin:
-
-40px 35px 80px;
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-RESPONSIVE MOBILE
-==========================================================
-*/
-
-
-@media(max-width:768px){
-
-
-
-
-
-.agents-hero{
-
-
-padding:
-
-40px 20px;
-
-
-
-min-height:auto;
-
-
-}
-
-
-
-
-
-.agents-title h1{
-
-
-font-size:
-
-38px;
-
-
-
-letter-spacing:-1.5px;
-
-
-}
-
-
-
-
-
-
-
-.agents-title p{
-
-
-font-size:
-
-15px;
-
-
-
-line-height:1.7;
-
-
-}
-
-
-
-
-
-
-
-.hero-tag{
-
-
-font-size:
-
-12px;
-
-
-}
-
-
-
-
-
-
-
-.agents-status-card{
-
-
-min-width:0;
-
-
-
-padding:
-
-20px;
-
-
-
-border-radius:
-
-24px;
-
-
-}
-
-
-
-
-
-
-
-
-
-.agents-section{
-
-
-padding:
-
-30px 20px 70px;
-
-
-}
-
-
-
-
-
-
-
-.agent-tools{
-
-
-flex-direction:column;
-
-
-
-align-items:stretch;
-
-
-}
-
-
-
-
-
-
+/* ==========================
+SEARCH EXPERIENCE
+========================== */
 
 
 .agent-search{
 
 
-width:100%;
+transition:.3s;
+
+
+}
+
+
+
+
+
+.agent-search:focus-within{
+
+
+border-color:
+
+rgba(245,185,66,.5);
+
+
+box-shadow:
+
+0 0 25px rgba(245,185,66,.15);
+
+
+}
+
+
+
+
+
+.agent-search input{
+
+
+caret-color:
+
+var(--agent-gold);
 
 
 }
@@ -4452,30 +3454,42 @@ width:100%;
 
 
 
-.agent-filters{
 
-
-overflow-x:auto;
-
-
-
-flex-wrap:nowrap;
-
-
-
-padding-bottom:8px;
-
-
-}
-
-
-
+/* ==========================
+FILTER SYSTEM
+========================== */
 
 
 .filter{
 
 
-flex-shrink:0;
+white-space:nowrap;
+
+
+}
+
+
+
+
+
+.filter.active{
+
+
+box-shadow:
+
+0 12px 30px rgba(245,185,66,.25);
+
+
+}
+
+
+
+
+
+.filter i{
+
+
+margin-right:7px;
 
 
 }
@@ -4488,152 +3502,46 @@ flex-shrink:0;
 
 
 
-.agents-grid{
+/* ==========================
+AGENT PROFILE HEADER
+========================== */
 
 
-grid-template-columns:
-
-1fr;
+.agent-profile-bar{
 
 
-
-gap:
-
-18px;
+display:flex;
 
 
-}
+align-items:center;
 
 
-
-
-
-
-
-
-.agent-card{
+justify-content:space-between;
 
 
 padding:
 
-24px;
+20px 25px;
 
 
-
-border-radius:
-
-24px;
-
-
-}
-
-
-
-
-
-
-
-
-
-.agent-card h3{
-
-
-font-size:
-
-19px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-avatar{
-
-
-width:
-
-58px;
-
-
-
-height:
-
-58px;
-
-
-
-font-size:
-
-26px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-CHAT MOBILE
-*/
-
-
-.agent-chat-studio{
-
-
-margin:
-
-30px 20px 60px;
-
-
-
-border-radius:
+margin-bottom:
 
 25px;
 
 
-}
+border-radius:
+
+24px;
 
 
+background:
+
+rgba(255,255,255,.05);
 
 
+border:
 
-
-
-
-.chat-studio-header{
-
-
-height:auto;
-
-
-
-padding:
-
-18px;
-
-
-
-flex-direction:column;
-
-
-
-align-items:flex-start;
-
-
-
-gap:
-
-18px;
+1px solid var(--agent-border);
 
 
 }
@@ -4642,10 +3550,25 @@ gap:
 
 
 
+.agent-profile-left{
+
+
+display:flex;
+
+
+align-items:center;
+
+
+gap:15px;
+
+
+}
 
 
 
-.selected-agent-avatar{
+
+
+.agent-profile-avatar{
 
 
 width:
@@ -4653,93 +3576,33 @@ width:
 55px;
 
 
-
 height:
 
 55px;
 
 
-}
+border-radius:
+
+18px;
 
 
+display:flex;
 
 
-
-
-
-
-.selected-agent-info h3{
-
-
-font-size:
-
-19px;
-
-
-}
-
-
-
-
-
-
-
-
-.chat-close-btn{
-
-
-width:100%;
-
+align-items:center;
 
 
 justify-content:center;
 
 
-}
-
-
-
-
-
-
-
-
-.agent-chat-messages{
-
-
-height:
-
-380px;
-
-
-
-padding:
-
-20px;
-
-
-}
-
-
-
-
-
-
-
-
-.user-chat-message .message-content,
-.ai-chat-message .message-content{
-
-
-max-width:
-
-90%;
-
-
-
 font-size:
 
-13px;
+25px;
+
+
+background:
+
+rgba(245,185,66,.18);
 
 
 }
@@ -4751,137 +3614,9 @@ font-size:
 
 
 
-.agent-chat-input-area{
-
-
-padding:
-
-18px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-chat-tools button{
-
-
-width:
-
-36px;
-
-
-
-height:
-
-36px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-input-box{
-
-
-border-radius:
-
-18px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-input-box textarea{
-
-
-height:
-
-50px;
-
-
-
-font-size:
-
-13px;
-
-
-}
-
-
-
-
-
-
-
-
-.agent-input-box button{
-
-
-width:
-
-45px;
-
-
-
-height:
-
-45px;
-
-
-}
-
-
-
-
-
-}/*
-==========================================================
-PREMIUM MICRO INTERACTIONS
-Detalhes de estúdio
-==========================================================
-*/
-
-
-.agent-card,
-.agent-chat-studio,
-.capability-box{
-
-
-will-change:transform;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT LOADING STATE
-==========================================================
-*/
+/* ==========================
+LOADING AGENT
+========================== */
 
 
 .agent-loading{
@@ -4890,23 +3625,18 @@ AGENT LOADING STATE
 display:flex;
 
 
+justify-content:center;
+
 
 align-items:center;
 
 
-
-justify-content:center;
-
-
-
-gap:8px;
-
+gap:12px;
 
 
 padding:
 
-40px;
-
+60px;
 
 
 color:
@@ -4914,14 +3644,7 @@ color:
 var(--agent-muted);
 
 
-
-font-size:14px;
-
-
 }
-
-
-
 
 
 
@@ -4930,16 +3653,19 @@ font-size:14px;
 .agent-loading span{
 
 
-width:8px;
+width:
+
+10px;
 
 
+height:
 
-height:8px;
+10px;
 
 
+border-radius:
 
-border-radius:50%;
-
+50%;
 
 
 background:
@@ -4947,16 +3673,12 @@ background:
 var(--agent-gold);
 
 
-
 animation:
 
-agentLoading 1.2s infinite;
+loadingDots 1s infinite;
 
 
 }
-
-
-
 
 
 
@@ -4986,96 +3708,44 @@ animation-delay:.4s;
 
 
 
-
-
-
-@keyframes agentLoading{
-
-
-0%,
-100%{
-
-
-opacity:.3;
-
-
-
-transform:
-
-translateY(0);
-
-
-}
-
+@keyframes loadingDots{
 
 
 50%{
 
 
-opacity:1;
-
-
-
 transform:
 
-translateY(-5px);
+translateY(-8px);
+
+
+opacity:.5;
 
 
 }
 
 
-
-}
-
-
-
+}/* ==========================
+RESPONSIVE TABLET
+========================== */
 
 
-
+@media(max-width:1100px){
 
 
 
-/*
-==========================================================
-CHAT TYPING INDICATOR
-==========================================================
-*/
-
-
-.typing-indicator{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:5px;
-
+.agents-hero{
 
 
 padding:
 
-12px 18px;
+60px 35px;
 
 
-
-width:max-content;
-
+flex-direction:column;
 
 
-border-radius:
-
-20px;
-
-
-
-background:
-
-rgba(255,255,255,.07);
+align-items:flex-start;
 
 
 }
@@ -5083,555 +3753,15 @@ rgba(255,255,255,.07);
 
 
 
+.agents-title{
 
 
-
-
-.typing-indicator span{
-
-
-width:
-
-7px;
-
-
-
-height:
-
-7px;
-
-
-
-border-radius:
-
-50%;
-
-
-
-background:
-
-var(--agent-muted);
-
-
-
-animation:
-
-typingAnimation 1.4s infinite;
+max-width:100%;
 
 
 }
 
 
-
-
-
-
-
-
-.typing-indicator span:nth-child(2){
-
-
-animation-delay:.2s;
-
-
-}
-
-
-
-
-
-.typing-indicator span:nth-child(3){
-
-
-animation-delay:.4s;
-
-
-}
-
-
-
-
-
-
-
-
-@keyframes typingAnimation{
-
-
-0%,
-60%,
-100%{
-
-
-transform:
-
-translateY(0);
-
-
-
-opacity:.4;
-
-
-}
-
-
-
-30%{
-
-
-transform:
-
-translateY(-5px);
-
-
-
-opacity:1;
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-CHAT SCROLLBAR PREMIUM
-==========================================================
-*/
-
-
-.agent-chat-messages::-webkit-scrollbar{
-
-
-width:8px;
-
-
-}
-
-
-
-
-
-.agent-chat-messages::-webkit-scrollbar-track{
-
-
-background:
-
-transparent;
-
-
-}
-
-
-
-
-
-.agent-chat-messages::-webkit-scrollbar-thumb{
-
-
-background:
-
-rgba(245,185,66,.35);
-
-
-
-border-radius:
-
-20px;
-
-
-}
-
-
-
-
-
-.agent-chat-messages::-webkit-scrollbar-thumb:hover{
-
-
-background:
-
-rgba(245,185,66,.65);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-FOCUS STATES
-==========================================================
-*/
-
-
-.agent-open-btn:focus,
-.chat-close-btn:focus,
-.agent-input-box button:focus{
-
-
-outline:none;
-
-
-
-box-shadow:
-
-0 0 0 4px rgba(245,185,66,.18);
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-AGENT GRID EMPTY ANIMATION
-==========================================================
-*/
-
-
-.agents-grid.empty{
-
-
-display:flex;
-
-
-
-justify-content:center;
-
-
-
-align-items:center;
-
-
-
-min-height:300px;
-
-
-}
-
-
-
-
-
-
-
-
-.agents-grid.empty::after{
-
-
-content:
-
-"Nenhum agente encontrado";
-
-
-
-color:
-
-var(--agent-muted);
-
-
-
-font-size:15px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-REDUCED MOTION
-==========================================================
-*/
-
-
-@media(prefers-reduced-motion:reduce){
-
-
-*{
-
-
-animation:none!important;
-
-
-
-transition:none!important;
-
-
-}
-
-
-
-}/*
-==========================================================
-FINAL POLISH
-HONEY IA AGENTS STUDIO
-==========================================================
-*/
-
-
-/*
-Melhor integração com o layout principal
-*/
-
-.agents-app{
-
-
-position:relative;
-
-
-overflow:hidden;
-
-
-}
-
-
-
-
-
-
-.agents-app::before{
-
-
-content:"";
-
-
-position:absolute;
-
-
-width:500px;
-
-
-height:500px;
-
-
-top:-200px;
-
-
-right:-200px;
-
-
-border-radius:50%;
-
-
-background:
-
-
-radial-gradient(
-
-circle,
-
-rgba(245,185,66,.15),
-
-transparent 70%
-
-);
-
-
-
-pointer-events:none;
-
-
-
-}
-
-
-
-
-.agents-app::after{
-
-
-content:"";
-
-
-position:absolute;
-
-
-width:450px;
-
-
-height:450px;
-
-
-bottom:200px;
-
-
-left:-200px;
-
-
-border-radius:50%;
-
-
-background:
-
-
-radial-gradient(
-
-circle,
-
-rgba(79,140,255,.12),
-
-transparent 70%
-
-);
-
-
-
-pointer-events:none;
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-BUTTON TOUCH MOBILE
-==========================================================
-*/
-
-
-@media(max-width:500px){
-
-
-
-.agent-open-btn{
-
-
-height:
-
-48px;
-
-
-
-font-size:
-
-13px;
-
-
-}
-
-
-
-
-
-.agent-tags span{
-
-
-font-size:
-
-10px;
-
-
-
-padding:
-
-5px 10px;
-
-
-}
-
-
-
-
-
-.agent-online{
-
-
-font-size:
-
-11px;
-
-
-}
-
-
-
-
-
-
-
-
-.footer-brand strong{
-
-
-font-size:
-
-22px;
-
-
-}
-
-
-
-
-
-.footer-copy{
-
-
-font-size:
-
-12px;
-
-
-}
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-VERY SMALL DEVICES
-==========================================================
-*/
-
-
-@media(max-width:360px){
 
 
 
@@ -5640,7 +3770,136 @@ VERY SMALL DEVICES
 
 font-size:
 
-30px;
+55px;
+
+
+}
+
+
+
+
+
+.agents-status-card{
+
+
+width:100%;
+
+
+min-width:auto;
+
+
+}
+
+
+
+
+
+.agents-section{
+
+
+padding:
+
+40px 35px 80px;
+
+
+}
+
+
+
+
+
+.agents-grid{
+
+
+grid-template-columns:
+
+repeat(2,1fr);
+
+
+}
+
+
+
+
+
+.agent-chat-studio{
+
+
+margin:
+
+40px 35px 80px;
+
+
+}
+
+
+
+
+
+.message-content{
+
+
+max-width:
+
+80%;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+RESPONSIVE MOBILE
+========================== */
+
+
+@media(max-width:768px){
+
+
+
+.agents-hero{
+
+
+padding:
+
+45px 20px;
+
+
+gap:30px;
+
+
+}
+
+
+
+
+
+.agents-title h1{
+
+
+font-size:
+
+38px;
+
+
+line-height:
+
+1.1;
+
+
+letter-spacing:
+
+-1.5px;
 
 
 }
@@ -5654,7 +3913,114 @@ font-size:
 
 font-size:
 
-14px;
+16px;
+
+
+line-height:
+
+1.7;
+
+
+}
+
+
+
+
+
+.hero-tag{
+
+
+font-size:
+
+12px;
+
+
+}
+
+
+
+
+
+.agents-status-card{
+
+
+padding:
+
+22px;
+
+
+border-radius:
+
+24px;
+
+
+flex-direction:
+
+column;
+
+
+align-items:flex-start;
+
+
+}
+
+
+
+
+
+.status-icon{
+
+
+width:
+
+55px;
+
+
+height:
+
+55px;
+
+
+font-size:
+
+22px;
+
+
+}
+
+
+
+
+
+
+
+
+
+.agents-section{
+
+
+padding:
+
+25px 20px 70px;
+
+
+}
+
+
+
+
+
+.agents-grid{
+
+
+grid-template-columns:
+
+1fr;
+
+
+gap:
+
+18px;
 
 
 }
@@ -5668,7 +4034,12 @@ font-size:
 
 padding:
 
-20px;
+24px;
+
+
+border-radius:
+
+25px;
 
 
 }
@@ -5682,19 +4053,859 @@ padding:
 
 width:
 
-52px;
-
+60px;
 
 
 height:
 
-52px;
-
+60px;
 
 
 font-size:
 
+28px;
+
+
+}
+
+
+
+
+
+
+
+
+.agent-card h3{
+
+
+font-size:
+
+19px;
+
+
+}
+
+
+
+
+
+.agent-card p{
+
+
+font-size:
+
+13px;
+
+
+}
+
+
+
+
+
+.agent-open-btn{
+
+
+padding:
+
+15px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* CHAT MOBILE */
+
+
+.agent-chat-studio{
+
+
+margin:
+
+25px 15px 60px;
+
+
+border-radius:
+
 24px;
+
+
+}
+
+
+
+
+
+.chat-studio-header{
+
+
+padding:
+
+20px;
+
+
+flex-direction:
+
+column;
+
+
+align-items:
+
+flex-start;
+
+
+gap:
+
+18px;
+
+
+}
+
+
+
+
+
+.selected-agent-avatar{
+
+
+width:
+
+58px;
+
+
+height:
+
+58px;
+
+
+font-size:
+
+27px;
+
+
+}
+
+
+
+
+
+.selected-agent-info h3{
+
+
+font-size:
+
+20px;
+
+
+}
+
+
+
+
+
+.chat-actions{
+
+
+width:100%;
+
+
+}
+
+
+
+
+
+.chat-close-btn{
+
+
+width:
+
+100%;
+
+
+justify-content:
+
+center;
+
+
+}
+
+
+
+
+
+
+
+
+.agent-chat-messages{
+
+
+height:
+
+380px;
+
+
+padding:
+
+20px;
+
+
+}
+
+
+
+
+
+.message-content{
+
+
+max-width:
+
+90%;
+
+
+padding:
+
+14px 17px;
+
+
+font-size:
+
+13px;
+
+
+}
+
+
+
+
+
+.agent-chat-input-area{
+
+
+padding:
+
+18px;
+
+
+}
+
+
+
+
+
+.agent-chat-tools{
+
+
+overflow-x:auto;
+
+
+}
+
+
+
+
+
+.agent-input-box{
+
+
+padding:
+
+8px;
+
+
+}
+
+
+
+
+
+.agent-input-box textarea{
+
+
+height:
+
+50px;
+
+
+font-size:
+
+14px;
+
+
+}
+
+
+
+
+
+.agent-input-box button{
+
+
+width:
+
+46px;
+
+
+height:
+
+46px;
+
+
+border-radius:
+
+15px;
+
+
+}
+
+
+
+
+
+
+
+
+
+.honey-footer{
+
+
+padding:
+
+40px 20px;
+
+
+flex-direction:
+
+column;
+
+
+align-items:flex-start;
+
+
+}
+
+
+
+}/* ==========================
+FINAL POLISH — AI STUDIO DETAILS
+========================== */
+
+
+/* Smooth sections */
+
+.agents-section,
+.agent-chat-studio{
+
+
+position:relative;
+
+
+z-index:2;
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+PREMIUM BACKGROUND EFFECT
+========================== */
+
+
+.agents-app::before{
+
+
+content:"";
+
+
+position:fixed;
+
+
+width:500px;
+
+
+height:500px;
+
+
+right:-250px;
+
+
+top:150px;
+
+
+border-radius:50%;
+
+
+background:
+
+rgba(245,185,66,.08);
+
+
+filter:
+
+blur(130px);
+
+
+pointer-events:none;
+
+
+z-index:-1;
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT CARD INFORMATION
+========================== */
+
+
+.agent-card .agent-role{
+
+
+font-weight:600;
+
+
+}
+
+
+
+
+
+.agent-card .agent-role::before{
+
+
+content:"";
+
+
+display:inline-block;
+
+
+width:6px;
+
+
+height:6px;
+
+
+border-radius:50%;
+
+
+background:
+
+var(--agent-success);
+
+
+margin-right:8px;
+
+
+box-shadow:
+
+0 0 12px var(--agent-success);
+
+
+}
+
+
+
+
+
+
+
+
+/* ==========================
+BUTTON MICRO INTERACTIONS
+========================== */
+
+
+.agent-open-btn:active,
+
+
+.chat-close-btn:active,
+
+
+.agent-input-box button:active{
+
+
+transform:
+
+scale(.96);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+CHAT EXPERIENCE
+========================== */
+
+
+.agent-chat-studio{
+
+
+scroll-margin-top:100px;
+
+
+}
+
+
+
+
+
+.agent-chat-messages{
+
+
+scroll-behavior:smooth;
+
+
+}
+
+
+
+
+
+.ai-chat-message,
+
+
+.user-chat-message{
+
+
+position:relative;
+
+
+}
+
+
+
+
+
+.ai-chat-message::before{
+
+
+content:"";
+
+
+width:4px;
+
+
+height:70%;
+
+
+position:absolute;
+
+
+left:-10px;
+
+
+top:15%;
+
+
+border-radius:10px;
+
+
+background:
+
+rgba(245,185,66,.5);
+
+
+opacity:.5;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+EMPTY / INITIAL STATE
+========================== */
+
+
+.agent-empty-state{
+
+
+display:flex;
+
+
+flex-direction:column;
+
+
+align-items:center;
+
+
+justify-content:center;
+
+
+text-align:center;
+
+
+padding:70px 20px;
+
+
+color:
+
+var(--agent-muted);
+
+
+}
+
+
+
+
+
+.agent-empty-state i{
+
+
+font-size:
+
+50px;
+
+
+color:
+
+var(--agent-gold);
+
+
+margin-bottom:
+
+20px;
+
+
+}
+
+
+
+
+
+.agent-empty-state h3{
+
+
+color:white;
+
+
+font-size:
+
+22px;
+
+
+margin-bottom:
+
+10px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+AGENT CATEGORY COLORS
+========================== */
+
+
+.category-business{
+
+
+color:
+
+var(--agent-blue);
+
+
+}
+
+
+
+
+
+.category-creative{
+
+
+color:
+
+var(--agent-purple);
+
+
+}
+
+
+
+
+
+.category-security{
+
+
+color:
+
+var(--agent-success);
+
+
+}
+
+
+
+
+
+.category-finance{
+
+
+color:
+
+var(--agent-gold);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+DESKTOP LARGE SCREENS
+========================== */
+
+
+@media(min-width:1400px){
+
+
+
+.agents-hero{
+
+
+padding-left:
+
+100px;
+
+
+padding-right:
+
+100px;
+
+
+}
+
+
+
+
+
+.agents-section{
+
+
+padding-left:
+
+100px;
+
+
+padding-right:
+
+100px;
+
+
+}
+
+
+
+
+
+.agents-grid{
+
+
+grid-template-columns:
+
+repeat(4,1fr);
+
+
+}
+
+
+
+}
+
+
+
+
+
+/* ==========================
+SMALL PHONES
+========================== */
+
+
+@media(max-width:420px){
+
+
+
+.agents-title h1{
+
+
+font-size:
+
+33px;
+
+
+}
+
+
+
+
+
+.hero-tag{
+
+
+max-width:
+
+100%;
+
+
+}
+
+
+
+
+
+.agent-card{
+
+
+padding:
+
+22px;
 
 
 }
@@ -5708,44 +4919,7 @@ font-size:
 
 height:
 
-320px;
-
-
-}
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================================
-DESKTOP LARGE SCREENS
-==========================================================
-*/
-
-
-@media(min-width:1500px){
-
-
-
-.agents-section{
-
-
-max-width:
-
-1500px;
-
-
-
-margin:auto;
+330px;
 
 
 }
@@ -5754,34 +4928,12 @@ margin:auto;
 
 
 
+.selected-agent-info{
 
 
-.agent-chat-studio{
+gap:
 
-
-max-width:
-
-1200px;
-
-
-}
-
-
-
-.agents-hero{
-
-
-max-width:
-
-1500px;
-
-
-
-margin:auto;
-
-
-}
-
+12px;
 
 
 }
@@ -5790,30 +4942,12 @@ margin:auto;
 
 
 
+.selected-agent-info h3{
 
 
+font-size:
 
-
-/*
-==========================================================
-FINAL CLASS FIXES
-Compatibilidade com HTML atual
-==========================================================
-*/
-
-
-.agents-status-card{
-
-
-display:flex;
-
-
-
-align-items:center;
-
-
-
-gap:18px;
+18px;
 
 
 }
@@ -5822,10 +4956,35 @@ gap:18px;
 
 
 
+.agent-chat-tools button{
+
+
+width:
+
+38px;
+
+
+height:
+
+38px;
+
+
+}
 
 
 
-.agent-chat-studio.hidden{
+}/* ======================================================
+HONEY IA — FINAL COMPATIBILITY LAYER
+Mantém compatibilidade com agents.html existente
+====================================================== */
+
+
+/* ==========================
+GLOBAL SAFETY
+========================== */
+
+
+.hidden{
 
 
 display:none!important;
@@ -5836,14 +4995,11 @@ display:none!important;
 
 
 
+img,
+svg{
 
 
-
-
-.agent-chat-studio:not(.hidden){
-
-
-display:block;
+max-width:100%;
 
 
 }
@@ -5856,31 +5012,15 @@ display:block;
 
 
 
-/*
-==========================================================
-SMOOTH PAGE EXPERIENCE
-==========================================================
-*/
+/* ==========================
+AGENTS CONTAINER FIX
+========================== */
 
 
-html{
+#agentsContainer{
 
 
-scroll-behavior:smooth;
-
-
-}
-
-
-
-
-
-.agent-card,
-.agent-chat-studio,
-.agents-status-card{
-
-
-backface-visibility:hidden;
+width:100%;
 
 
 }
@@ -5889,13 +5029,231 @@ backface-visibility:hidden;
 
 
 
+.agent-card a{
+
+
+color:inherit;
+
+
+}
 
 
 
 
-/*
-==========================================================
-END
-HONEY IA — AGENTS STUDIO PREMIUM
-==========================================================
-*/
+
+.agent-card button{
+
+
+font-family:inherit;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+ACTIVE AGENT SELECTED STATE
+========================== */
+
+
+.agent-card.selected{
+
+
+border-color:
+
+rgba(245,185,66,.7);
+
+
+box-shadow:
+
+0 0 40px rgba(245,185,66,.18);
+
+
+}
+
+
+
+
+
+.agent-card.selected .agent-avatar{
+
+
+transform:
+
+scale(1.08);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+CHAT INPUT FOCUS
+========================== */
+
+
+.agent-input-box:focus-within{
+
+
+border-color:
+
+rgba(245,185,66,.45);
+
+
+box-shadow:
+
+0 0 30px rgba(245,185,66,.12);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+ACCESSIBILITY
+========================== */
+
+
+button:focus-visible,
+a:focus-visible,
+textarea:focus-visible{
+
+
+outline:
+
+2px solid var(--agent-gold);
+
+
+outline-offset:
+
+3px;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+PREMIUM SCROLL AREA
+========================== */
+
+
+.agent-chat-messages{
+
+
+overscroll-behavior:
+
+contain;
+
+
+}
+
+
+
+
+
+body{
+
+
+-webkit-font-smoothing:
+
+antialiased;
+
+
+-moz-osx-font-smoothing:
+
+grayscale;
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ==========================
+FINAL MOBILE TOUCH
+========================== */
+
+
+@media(max-width:768px){
+
+
+
+.agent-card:hover{
+
+
+transform:
+
+none;
+
+
+}
+
+
+
+.agent-open-btn:hover{
+
+
+transform:
+
+none;
+
+
+}
+
+
+
+.chat-close-btn:hover{
+
+
+transform:
+
+none;
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* ======================================================
+END — HONEY IA AGENTS STUDIO PREMIUM
+====================================================== */
