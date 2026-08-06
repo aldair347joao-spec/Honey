@@ -1,8 +1,9 @@
 /*
 ==========================================
 HONEY IA
-AGENTS UI ENGINE V7
+AGENTS UI ENGINE V8
 30 Specialist Agents Workspace
+Connected with Agent Studio V7
 ==========================================
 */
 
@@ -19,16 +20,138 @@ class AgentsUI {
 
 
 
-    constructor(){
+constructor(){
 
 
-        this.container = null;
+    this.container = null;
 
 
-        this.searchInput = null;
+    this.searchInput = null;
 
 
-        this.activeFilter = "all";
+    this.activeFilter = "all";
+
+
+    this.agents = [];
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+INITIALIZATION
+==========================================
+*/
+
+
+init(containerId){
+
+
+
+    this.container =
+
+    document.getElementById(
+        containerId
+    );
+
+
+
+
+
+    if(!this.container){
+
+
+
+        console.warn(
+
+        "[Agents UI] Container não encontrado:",
+
+        containerId
+
+        );
+
+        return;
+
+    }
+
+
+
+
+
+
+
+
+
+    this.loadAgents();
+
+
+    this.render();
+
+
+    this.bindEvents();
+
+
+    this.listenStudioEvents();
+
+
+    this.listenAgentChanges();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+LOAD AGENTS
+==========================================
+*/
+
+
+loadAgents(){
+
+
+
+    if(
+
+        agents &&
+
+        typeof agents.getAll === "function"
+
+    ){
+
+
+
+        this.agents =
+
+        agents.getAll();
+
+
+
+    }else{
+
+
+
+        console.warn(
+
+        "[Agents UI] Engine de agentes inválida."
+
+        );
 
 
         this.agents = [];
@@ -39,440 +162,185 @@ class AgentsUI {
 
 
 
+}
 
 
 
 
 
 
-    /*
-    ======================================
-    INITIALIZATION
-    ======================================
-    */
 
 
-    init(containerId){
 
-
-
-        this.container =
-
-        document.getElementById(
-            containerId
-        );
-
-
-
-
-
-        if(
-            !this.container
-        ){
-
-
-
-            console.warn(
-
-            "[Agents UI] Container não encontrado:",
-
-            containerId
-
-            );
-
-
-
-            return;
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        this.loadAgents();
-
-
-
-        this.render();
-
-
-
-        this.bindEvents();
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    LOAD AGENTS
-    ======================================
-    */
-
-
-    loadAgents(){
-
-
-
-        if(
-            typeof Agents.getAll ===
-            "function"
-        ){
-
-
-
-            this.agents =
-
-            Agents.getAll();
-
-
-
-        }
-
-        else{
-
-
-
-            this.agents =
-
-            Object.values(
-                Agents.registry || {}
-            );
-
-
-
-        }
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    FILTER AGENTS
-    ======================================
-    */
-
-
-    filterAgents(){
-
-
-
-        if(
-            this.activeFilter ===
-            "all"
-        ){
-
-
-
-            return this.agents;
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        return this.agents.filter(
-
-            agent=>{
-
-
-                return (
-
-                    agent.category ===
-
-                    this.activeFilter
-
-                );
-
-
-            }
-
-        );
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    RENDER MAIN
-    ======================================
-    */
-
-
-    render(){
-
-
-
-        if(
-            !this.container
-        )
-        return;
-
-
-
-
-
-        const agents =
-
-        this.filterAgents();
-
-
-
-
-
-        this.container.innerHTML = `
-
-
-
-        <div class="agents-header">
-
-
-
-            <div>
-
-
-                <h1>
-
-                Agentes Honey IA
-
-                </h1>
-
-
-
-                <p>
-
-                Especialistas inteligentes para cada área.
-
-                </p>
-
-
-            </div>
-
-
-
-
-
-            <input
-
-            id="agentSearch"
-
-            class="agent-search"
-
-            placeholder="Pesquisar agente..."
-
-            />
-
-
-
-        </div>
-
-
-
-
-        <div
-
-        class="agents-grid"
-
-        id="agentsGrid">
-
-
-        ${
-
-            agents
-
-            .map(agent=>
-
-                this.createAgentCard(agent)
-
-            )
-
-            .join("")
-
-        }
-
-
-        </div>
-
-
-
-        `;
-
-
-
-    }/*
+/*
 ==========================================
-CREATE AGENT CARD
+FILTER AGENTS
 ==========================================
 */
 
 
-createAgentCard(agent){
+filterAgents(){
 
 
 
-    return `
+    if(
+
+        this.activeFilter === "all"
+
+    ){
 
 
 
-    <div
-
-    class="agent-card"
-
-    data-agent-id="${agent.id}"
-
-    >
+        return this.agents;
 
 
 
-
-        <div class="agent-card-icon">
-
-
-            ${
-
-                agent.emoji ||
-
-                "🤖"
-
-            }
-
-
-        </div>
+    }
 
 
 
 
 
-        <div class="agent-card-info">
 
 
 
-            <h3>
+    return this.agents.filter(
+
+        agent =>
+
+        agent.category === this.activeFilter
+
+    );
 
 
-            ${
 
-                agent.name ||
-
-                "Agente Honey IA"
-
-            }
+}
 
 
-            </h3>
 
 
+
+
+
+
+
+/*
+==========================================
+MAIN RENDER
+==========================================
+*/
+
+
+render(){
+
+
+
+    if(!this.container)
+
+    return;
+
+
+
+
+
+
+
+
+    const list =
+
+    this.filterAgents();
+
+
+
+
+
+
+
+
+    this.container.innerHTML = `
+
+
+
+    <div class="agents-header">
+
+
+        <div>
+
+
+            <h1>
+
+            Agentes Honey IA
+
+            </h1>
 
 
 
             <p>
 
-
-            ${
-
-                agent.description ||
-
-                "Especialista inteligente."
-
-            }
-
+            Especialistas inteligentes para cada área.
 
             </p>
 
 
-
-
-
-            <span class="agent-category">
-
-
-            ${
-
-                agent.category ||
-
-                "Tecnologia"
-
-            }
-
-
-            </span>
-
-
-
         </div>
 
 
 
 
 
+        <input
+
+        id="agentSearch"
+
+        class="agent-search"
+
+        placeholder="Pesquisar agente..."
+
+        />
 
 
 
-        <div class="agent-card-actions">
+    </div>
 
 
 
-            <button
-
-            class="open-agent-btn"
-
-            data-agent="${agent.id}"
-
-            >
 
 
 
-            Abrir Studio
+
+    ${
+
+        this.renderFilters()
+
+    }
 
 
 
-            </button>
 
 
 
-        </div>
+
+    <div
+
+    class="agents-grid"
+
+    id="agentsGrid">
 
 
+
+    ${
+
+        list
+
+        .map(agent =>
+
+            this.createAgentCard(agent)
+
+        )
+
+        .join("")
+
+    }
 
 
 
@@ -496,6 +364,134 @@ createAgentCard(agent){
 
 /*
 ==========================================
+CREATE AGENT CARD
+==========================================
+*/
+
+
+createAgentCard(agent){
+
+
+
+return `
+
+
+
+<div
+
+class="agent-card"
+
+data-agent-id="${agent.id}"
+
+>
+
+
+
+
+
+<div class="agent-card-icon">
+
+${
+
+agent.emoji || "🤖"
+
+}
+
+</div>
+
+
+
+
+
+
+<div class="agent-card-info">
+
+
+<h3>
+
+${
+
+agent.name || "Honey Agent"
+
+}
+
+</h3>
+
+
+
+
+
+<p>
+
+${
+
+agent.description ||
+
+"Especialista inteligente."
+
+}
+
+</p>
+
+
+
+
+
+
+<span class="agent-category">
+
+${
+
+agent.category ||
+
+"Tecnologia"
+
+}
+
+</span>
+
+
+
+</div>
+
+
+
+
+
+
+<div class="agent-card-actions">
+
+
+<button
+
+class="open-agent-btn"
+
+data-agent="${agent.id}"
+
+>
+
+Abrir Studio
+
+</button>
+
+
+
+</div>
+
+
+
+
+
+</div>
+
+
+
+`;
+
+
+
+}/*
+==========================================
 EVENT BINDING
 ==========================================
 */
@@ -505,23 +501,14 @@ bindEvents(){
 
 
 
-    if(
-        !this.container
-    )
+    if(!this.container)
+
     return;
 
 
 
 
 
-
-
-
-    /*
-    ------------------------------
-    SEARCH
-    ------------------------------
-    */
 
 
     this.searchInput =
@@ -539,15 +526,11 @@ bindEvents(){
 
 
 
-
-    if(
-        this.searchInput
-    ){
+    if(this.searchInput){
 
 
 
-        this.searchInput
-        .addEventListener(
+        this.searchInput.addEventListener(
 
             "input",
 
@@ -555,7 +538,9 @@ bindEvents(){
 
 
                 this.search(
+
                     this.searchInput.value
+
                 );
 
 
@@ -575,22 +560,49 @@ bindEvents(){
 
 
 
-    /*
-    ------------------------------
-    OPEN AGENT BUTTONS
-    ------------------------------
-    */
+    this.bindCardEvents();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+CARD BUTTON EVENTS
+==========================================
+*/
+
+
+bindCardEvents(){
+
+
+
+    if(!this.container)
+
+    return;
+
+
+
+
+
+
 
 
     const buttons =
 
-    this.container
-    .querySelectorAll(
+    this.container.querySelectorAll(
 
         ".open-agent-btn"
 
     );
-
 
 
 
@@ -610,7 +622,6 @@ bindEvents(){
             ()=>{
 
 
-
                 const agentId =
 
                 button.dataset.agent;
@@ -620,7 +631,9 @@ bindEvents(){
 
 
                 this.openAgent(
+
                     agentId
+
                 );
 
 
@@ -647,7 +660,7 @@ bindEvents(){
 
 /*
 ==========================================
-SEARCH AGENTS
+SEARCH
 ==========================================
 */
 
@@ -672,18 +685,14 @@ search(term){
 
 
 
-    if(
-        !value
-    ){
+    if(!value){
 
 
 
         this.render();
 
 
-
         this.bindEvents();
-
 
 
         return;
@@ -707,15 +716,16 @@ search(term){
         agent=>{
 
 
-            const text =
 
-            `
+            const content = `
 
             ${agent.name}
 
             ${agent.description}
 
             ${agent.category}
+
+            ${agent.id}
 
             `
 
@@ -725,8 +735,10 @@ search(term){
 
 
 
-            return text.includes(
+            return content.includes(
+
                 value
+
             );
 
 
@@ -744,7 +756,9 @@ search(term){
 
 
     this.renderList(
+
         filtered
+
     );
 
 
@@ -787,9 +801,7 @@ openAgent(agentId){
 
 
 
-    if(
-        !agent
-    ){
+    if(!agent){
 
 
 
@@ -800,7 +812,6 @@ openAgent(agentId){
         agentId
 
         );
-
 
 
         return;
@@ -816,19 +827,48 @@ openAgent(agentId){
 
 
 
+    if(
+
+        agents &&
+
+        typeof agents.setActive === "function"
+
+    ){
+
+
+
+        agents.setActive(
+
+            agent.id
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
 
     if(
+
         agentstudio &&
 
-        typeof agentstudio.open ===
-        "function"
+        typeof agentstudio.open === "function"
 
     ){
 
 
 
         agentstudio.open(
+
             agent
+
         );
 
 
@@ -861,7 +901,41 @@ openAgent(agentId){
 
 
 
-}/*
+
+
+
+
+
+
+    document.dispatchEvent(
+
+        new CustomEvent(
+
+            "agent-opened",
+
+            {
+
+                detail:agent
+
+            }
+
+        )
+
+    );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================
 RENDER FILTERED LIST
 ==========================================
@@ -872,9 +946,8 @@ renderList(list){
 
 
 
-    if(
-        !this.container
-    )
+    if(!this.container)
+
     return;
 
 
@@ -899,10 +972,8 @@ renderList(list){
 
 
 
+    if(!grid)
 
-    if(
-        !grid
-    )
     return;
 
 
@@ -914,8 +985,6 @@ renderList(list){
 
 
     grid.innerHTML =
-
-
 
     list
 
@@ -934,103 +1003,13 @@ renderList(list){
 
 
 
-
     this.bindCardEvents();
 
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
-CARD EVENTS ONLY
-==========================================
-*/
-
-
-bindCardEvents(){
-
-
-
-    if(
-        !this.container
-    )
-    return;
-
-
-
-
-
-
-
-
-    const buttons =
-
-    this.container
-    .querySelectorAll(
-
-        ".open-agent-btn"
-
-    );
-
-
-
-
-
-
-
-
-
-    buttons.forEach(button=>{
-
-
-
-        button.addEventListener(
-
-            "click",
-
-            ()=>{
-
-
-                this.openAgent(
-
-                    button.dataset.agent
-
-                );
-
-
-
-            }
-
-        );
-
-
-
-    });
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-GET CATEGORIES
+FILTER SYSTEM
 ==========================================
 */
 
@@ -1054,9 +1033,7 @@ getCategories(){
 
 
 
-        if(
-            agent.category
-        ){
+        if(agent.category){
 
 
 
@@ -1101,13 +1078,6 @@ getCategories(){
 
 
 
-/*
-==========================================
-RENDER FILTER BAR
-==========================================
-*/
-
-
 renderFilters(){
 
 
@@ -1139,49 +1109,49 @@ renderFilters(){
 
 
 
-            <button
+        <button
 
-            class="filter-btn
+        class="filter-btn
 
-            ${
+        ${
 
-                this.activeFilter === category
+            this.activeFilter === category
 
-                ?
+            ?
 
-                "active"
+            "active"
 
-                :
+            :
 
-                ""
+            ""
 
-            }"
+        }
 
+        "
 
+        data-filter="${category}"
 
-            data-filter="${category}"
-
-            >
-
-
-
-            ${
-
-                category === "all"
-
-                ?
-
-                "Todos"
-
-                :
-
-                category
-
-            }
+        >
 
 
 
-            </button>
+        ${
+
+            category === "all"
+
+            ?
+
+            "Todos"
+
+            :
+
+            category
+
+        }
+
+
+
+        </button>
 
 
 
@@ -1213,21 +1183,24 @@ renderFilters(){
 
 /*
 ==========================================
-UPDATE COMPLETE RENDER
+SET FILTER
 ==========================================
 */
 
 
-refresh(){
+setFilter(category){
 
 
 
-    this.loadAgents();
+    this.activeFilter =
+
+    category;
+
+
 
 
 
     this.render();
-
 
 
     this.bindEvents();
@@ -1255,13 +1228,22 @@ selectAgent(agentId){
 
 
 
-    const agent =
+    if(!this.container)
 
-    this.agents.find(
+    return null;
 
-        item=>
 
-        item.id === agentId
+
+
+
+
+
+
+    const cards =
+
+    this.container.querySelectorAll(
+
+        ".agent-card"
 
     );
 
@@ -1272,26 +1254,7 @@ selectAgent(agentId){
 
 
 
-    if(
-        !agent
-    )
-    return;
-
-
-
-
-
-
-
-
-    this.container
-    .querySelectorAll(
-
-        ".agent-card"
-
-    )
-
-    .forEach(card=>{
+    cards.forEach(card=>{
 
 
 
@@ -1312,11 +1275,9 @@ selectAgent(agentId){
 
 
 
-
     const activeCard =
 
-    this.container
-    .querySelector(
+    this.container.querySelector(
 
         `[data-agent-id="${agentId}"]`
 
@@ -1329,9 +1290,7 @@ selectAgent(agentId){
 
 
 
-    if(
-        activeCard
-    ){
+    if(activeCard){
 
 
 
@@ -1352,7 +1311,13 @@ selectAgent(agentId){
 
 
 
-    return agent;
+    return this.agents.find(
+
+        agent =>
+
+        agent.id === agentId
+
+    );
 
 
 
@@ -1368,7 +1333,7 @@ selectAgent(agentId){
 
 /*
 ==========================================
-EVENT FROM AGENT STUDIO
+STUDIO EVENT LISTENER
 ==========================================
 */
 
@@ -1393,7 +1358,13 @@ listenStudioEvents(){
 
 
 
-            if(agent?.id){
+            if(
+
+                agent &&
+
+                agent.id
+
+            ){
 
 
 
@@ -1415,10 +1386,19 @@ listenStudioEvents(){
 
 
 
-}/*
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================
-AGENT STATE LISTENER
-SYNC WITH STUDIO
+AGENT CHANGE LISTENER
 ==========================================
 */
 
@@ -1444,8 +1424,11 @@ listenAgentChanges(){
 
 
             if(
+
                 agent &&
+
                 agent.id
+
             ){
 
 
@@ -1489,21 +1472,24 @@ getActiveAgent(){
 
 
 
-    const active =
+    if(!this.container)
 
-    this.container
+    return null;
 
-    ?
+
+
+
+
+
+
+
+    const card =
 
     this.container.querySelector(
 
         ".agent-card.active"
 
-    )
-
-    :
-
-    null;
+    );
 
 
 
@@ -1512,10 +1498,8 @@ getActiveAgent(){
 
 
 
+    if(!card)
 
-    if(
-        !active
-    )
     return null;
 
 
@@ -1527,7 +1511,7 @@ getActiveAgent(){
 
     const id =
 
-    active.dataset.agentId;
+    card.dataset.agentId;
 
 
 
@@ -1558,41 +1542,26 @@ getActiveAgent(){
 
 /*
 ==========================================
-SET FILTER
+REFRESH ENGINE
 ==========================================
 */
 
 
-setFilter(category){
+refresh(){
 
 
 
-    this.activeFilter =
-    category;
-
-
-
+    this.loadAgents();
 
 
     this.render();
-
 
 
     this.bindEvents();
 
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
 DESTROY
 ==========================================
@@ -1603,14 +1572,11 @@ destroy(){
 
 
 
-    if(
-        this.container
-    ){
+    if(this.container){
 
 
 
-        this.container.innerHTML =
-        "";
+        this.container.innerHTML = "";
 
 
 
@@ -1620,14 +1586,16 @@ destroy(){
 
 
 
-    this.container =
-    null;
 
 
 
-    this.agents =
-    [];
+    this.container = null;
 
+
+    this.searchInput = null;
+
+
+    this.agents = [];
 
 
 }
@@ -1642,7 +1610,7 @@ destroy(){
 
 /*
 ==========================================
-SAFE INIT
+AUTO INIT
 ==========================================
 */
 
@@ -1666,9 +1634,7 @@ autoInit(){
 
 
 
-    if(
-        container
-    ){
+    if(container){
 
 
 
@@ -1694,12 +1660,94 @@ autoInit(){
 
 
 
+/*
+==========================================
+GET ALL LOADED AGENTS
+==========================================
+*/
+
+
+getAgents(){
+
+
+
+    return this.agents;
+
+
+
 }
 
 
-// ==========================================================
-// EXPORT SINGLE INSTANCE
-// ==========================================================
+
+
+
+
+
+
+
+/*
+==========================================
+OPEN BY ID
+==========================================
+*/
+
+
+openById(agentId){
+
+
+
+    const agent =
+
+    this.agents.find(
+
+        item =>
+
+        item.id === agentId
+
+    );
+
+
+
+
+
+
+
+
+    if(agent){
+
+
+
+        this.openAgent(
+
+            agentId
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+EXPORT SINGLE INSTANCE
+==========================================
+*/
+
+
+}
+
 
 
 export default new AgentsUI();
