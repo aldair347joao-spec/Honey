@@ -8,7 +8,7 @@ Specialist Workspace Controller
 */
 
 
-import agents from "./agents.js";
+import Agents from "./agents.js";
 
 
 
@@ -18,51 +18,26 @@ class AgentStudio {
 
 
 
+    constructor(){
 
 
-constructor(){
+        this.activeAgent = "general";
 
 
-
-    this.activeAgent =
-
-    "general";
+        this.mode = "chat";
 
 
+        this.container = null;
 
 
-
-    this.mode =
-
-    "chat";
+        this.history = [];
 
 
+        this.workspace = {};
 
 
 
-    this.container =
-
-    null;
-
-
-
-
-
-    this.history =
-
-    [];
-
-
-
-
-
-    this.workspace =
-
-    {};
-
-
-
-}
+    }
 
 
 
@@ -71,51 +46,100 @@ constructor(){
 
 
 
-
-/*
-==========================================
-INITIALIZATION
-==========================================
-*/
-
-
-init(containerId){
+    /*
+    ======================================
+    INIT
+    ======================================
+    */
 
 
-
-    this.container =
-
-    document.getElementById(
-
-        containerId
-
-    );
+    init(containerId){
 
 
+        this.container = document.getElementById(
 
-
-
-
-
-
-    if(!this.container){
-
-
-
-        console.warn(
-
-        "[Agent Studio] Container não encontrado:",
-
-        containerId
+            containerId
 
         );
 
 
+
+
+        if(!this.container){
+
+
+            console.warn(
+
+                "[Agent Studio] Container não encontrado:",
+
+                containerId
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
+
+
+
+        this.render();
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    OPEN AGENT
+    ======================================
+    */
+
+
+    open(agent){
+
+
+        if(!agent)
         return;
 
 
 
-    }
+
+
+
+        this.activeAgent = agent.id;
+
+
+
+
+
+
+
+        if(
+            Agents &&
+            typeof Agents.setActive === "function"
+        ){
+
+
+            Agents.setActive(
+
+                agent.id
+
+            );
+
+
+        }
 
 
 
@@ -124,75 +148,66 @@ init(containerId){
 
 
 
-    this.render();
+        this.history =
 
 
-
-    this.listenEvents();
-
+        typeof Agents.getConversation === "function"
 
 
-}
+        ?
 
 
-
-
-
-
-
-
-
-/*
-==========================================
-OPEN AGENT
-==========================================
-*/
-
-
-open(agent){
-
-
-
-    if(!agent)
-
-    return;
-
-
-
-
-
-
-
-
-    this.activeAgent =
-
-    agent.id;
-
-
-
-
-
-
-
-
-    if(
-
-        agents &&
-
-        typeof agents.setActive === "function"
-
-    ){
-
-
-
-        agents.setActive(
+        Agents.getConversation(
 
             agent.id
+
+        )
+
+
+        :
+
+
+        [];
+
+
+
+
+
+
+
+
+        document.dispatchEvent(
+
+
+            new CustomEvent(
+
+                "agent-opened",
+
+                {
+
+
+                    detail: agent
+
+
+                }
+
+
+            )
+
 
         );
 
 
 
+
+
+
+
+
+        this.render();
+
+
+
     }
 
 
@@ -202,29 +217,21 @@ open(agent){
 
 
 
-    this.history =
+
+    /*
+    ======================================
+    CURRENT AGENT
+    ======================================
+    */
 
 
-
-    typeof agents.getConversation === "function"
-
-    ?
+    getAgent(){
 
 
-
-    agents.getConversation(
-
-        agent.id
-
-    )
+        return this.activeAgent;
 
 
-
-    :
-
-
-
-    [];
+    }
 
 
 
@@ -234,241 +241,102 @@ open(agent){
 
 
 
-    document.dispatchEvent(
+    /*
+    ======================================
+    PROFILE
+    ======================================
+    */
 
-        new CustomEvent(
 
-            "agent-opened",
+    getAgentProfile(){
 
-            {
 
-                detail: agent
+        const agent =
 
-            }
+        Agents.get(
 
+            this.activeAgent
+
+        );
+
+
+
+
+
+
+        if(!agent)
+        return null;
+
+
+
+
+
+
+
+        return {
+
+
+            id: agent.id,
+
+
+            name: agent.name,
+
+
+            category: agent.category || "",
+
+
+            level: agent.level || "",
+
+
+            tools: agent.tools || [],
+
+
+            description: agent.description || ""
+
+
+        };
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    MODE
+    ======================================
+    */
+
+
+    setmode(mode){
+
+
+        if(
+            mode !== "chat" &&
+            mode !== "live"
         )
+        return;
 
-    );
 
 
 
 
+        this.mode = mode;
 
 
 
 
+        this.updateModeUI();
 
-    this.render();
 
 
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-GET CURRENT AGENT ID
-==========================================
-*/
-
-
-getAgent(){
-
-
-
-    return this.activeAgent;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-GET AGENT PROFILE
-==========================================
-*/
-
-
-getAgentProfile(){
-
-
-
-    if(
-
-        !agents ||
-
-        typeof agents.get !== "function"
-
-    )
-
-    return null;
-
-
-
-
-
-
-
-
-    const agent =
-
-    agents.get(
-
-        this.activeAgent
-
-    );
-
-
-
-
-
-
-
-
-    if(!agent)
-
-    return null;
-
-
-
-
-
-
-
-
-    return {
-
-
-
-        id:
-
-        agent.id,
-
-
-
-
-
-        name:
-
-        agent.name || "",
-
-
-
-
-
-        emoji:
-
-        agent.emoji || "🤖",
-
-
-
-
-
-        category:
-
-        agent.category || "",
-
-
-
-
-
-        level:
-
-        agent.level || "Professional",
-
-
-
-
-
-        tools:
-
-        agent.tools || [],
-
-
-
-
-
-        description:
-
-        agent.description || ""
-
-
-
-    };
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-MODE CONTROL
-==========================================
-*/
-
-
-setmode(mode){
-
-
-
-    if(
-
-        mode !== "chat"
-
-        &&
-
-        mode !== "live"
-
-    )
-
-    return;
-
-
-
-
-
-
-
-
-    this.mode =
-
-    mode;
-
-
-
-
-
-
-
-
-    this.updateModeUI();
-
-
-
-}/*
+    }/*
 ==========================================
 RENDER STUDIO
 ==========================================
@@ -478,11 +346,8 @@ RENDER STUDIO
 render(){
 
 
-
     if(!this.container)
-
     return;
-
 
 
 
@@ -492,7 +357,7 @@ render(){
 
     const agent =
 
-    agents.get(
+    Agents.get(
 
         this.activeAgent
 
@@ -504,9 +369,7 @@ render(){
 
 
 
-
     if(!agent)
-
     return;
 
 
@@ -526,26 +389,21 @@ render(){
 
 
 
+        <div class="studio-header">
 
-        <div class="studio-agent-header">
+
 
 
 
             <div class="studio-agent-icon">
 
-
                 ${
 
-                    agent.emoji ||
-
-                    "🤖"
+                    agent.emoji || "🤖"
 
                 }
 
-
             </div>
-
-
 
 
 
@@ -558,15 +416,7 @@ render(){
 
                 <h2>
 
-
-                ${
-
-                    agent.name ||
-
-                    "Honey Agent"
-
-                }
-
+                    ${agent.name}
 
                 </h2>
 
@@ -574,19 +424,15 @@ render(){
 
 
 
-
-
                 <p>
 
+                    ${
 
-                ${
+                        agent.description ||
 
-                    agent.description ||
+                        "Especialista Honey IA"
 
-                    "Especialista Honey IA."
-
-                }
-
+                    }
 
                 </p>
 
@@ -595,18 +441,15 @@ render(){
 
 
 
-
                 <span class="agent-level">
 
+                    ${
 
-                ${
+                        agent.level ||
 
-                    agent.level ||
+                        "Professional"
 
-                    "Professional"
-
-                }
-
+                    }
 
                 </span>
 
@@ -625,18 +468,15 @@ render(){
 
 
 
-
         <div class="studio-tools">
 
 
 
             <h3>
 
-            Ferramentas
+                Ferramentas
 
             </h3>
-
-
 
 
 
@@ -645,9 +485,7 @@ render(){
             <div class="tools-list">
 
 
-
             ${
-
 
 
                 (agent.tools || [])
@@ -655,13 +493,11 @@ render(){
                 .map(tool=>`
 
 
-
                     <span class="tool-item">
 
-                    ${tool}
+                        ${tool}
 
                     </span>
-
 
 
                 `)
@@ -669,12 +505,12 @@ render(){
                 .join("")
 
 
-
             }
 
 
 
             </div>
+
 
 
 
@@ -700,7 +536,9 @@ render(){
 
             >
 
+
             💬 Chat
+
 
             </button>
 
@@ -719,7 +557,9 @@ render(){
 
             >
 
+
             ⚡ Live
+
 
             </button>
 
@@ -735,26 +575,22 @@ render(){
 
 
 
-        <div class="studio-chat-area">
+        <div class="studio-chat">
 
 
 
             <div
 
-            class="studio-history"
-
             id="studioHistory"
 
-            >
+            class="studio-history">
 
 
+                ${
 
-            ${
+                    this.renderHistory()
 
-                this.renderHistory()
-
-            }
-
+                }
 
 
             </div>
@@ -765,8 +601,7 @@ render(){
 
 
 
-
-            <div class="studio-input-area">
+            <div class="studio-input">
 
 
 
@@ -774,11 +609,9 @@ render(){
 
                 id="studioInput"
 
-                placeholder="Fale com este especialista..."
+                placeholder="Converse com este especialista..."
 
                 ></textarea>
-
-
 
 
 
@@ -791,13 +624,16 @@ render(){
 
                 >
 
-                Enviar
+
+                    Enviar
+
 
                 </button>
 
 
 
             </div>
+
 
 
 
@@ -808,15 +644,12 @@ render(){
 
 
 
-
-
     </div>
 
 
 
+
     `;
-
-
 
 
 
@@ -839,7 +672,7 @@ render(){
 
 /*
 ==========================================
-RENDER HISTORY
+HISTORY
 ==========================================
 */
 
@@ -849,36 +682,27 @@ renderHistory(){
 
 
     if(
-
         !this.history ||
-
         this.history.length === 0
-
     ){
-
 
 
         return `
 
 
-
         <div class="empty-history">
 
 
-        Inicie uma conversa com este especialista.
+            Inicie uma conversa com este especialista.
 
 
         </div>
 
 
-
         `;
 
 
-
     }
-
-
 
 
 
@@ -891,20 +715,10 @@ renderHistory(){
 
 
 
-        <div
-
-        class="history-message ${message.role}"
-
-        >
+        <div class="history-message ${message.role}">
 
 
-
-        ${
-
-            message.content
-
-        }
-
+            ${message.content}
 
 
         </div>
@@ -927,12 +741,8 @@ EVENT HANDLERS
 bindEvents(){
 
 
-
     if(!this.container)
-
     return;
-
-
 
 
 
@@ -954,10 +764,7 @@ bindEvents(){
 
 
 
-
-
     modeButtons.forEach(button=>{
-
 
 
         button.addEventListener(
@@ -967,7 +774,6 @@ bindEvents(){
             ()=>{
 
 
-
                 this.setmode(
 
                     button.dataset.mode
@@ -975,11 +781,9 @@ bindEvents(){
                 );
 
 
-
             }
 
         );
-
 
 
     });
@@ -1006,9 +810,7 @@ bindEvents(){
 
 
 
-
     if(sendButton){
-
 
 
         sendButton.addEventListener(
@@ -1018,15 +820,12 @@ bindEvents(){
             ()=>{
 
 
-
                 this.sendMessage();
-
 
 
             }
 
         );
-
 
 
     }
@@ -1053,48 +852,37 @@ bindEvents(){
 
 
 
-
-
     if(input){
-
 
 
         input.addEventListener(
 
             "keydown",
 
-            (event)=>{
-
+            event=>{
 
 
                 if(
 
-                    event.key === "Enter"
-
-                    &&
+                    event.key === "Enter" &&
 
                     !event.shiftKey
 
                 ){
 
 
-
                     event.preventDefault();
-
 
 
                     this.sendMessage();
 
 
-
                 }
-
 
 
             }
 
         );
-
 
 
     }
@@ -1113,24 +901,12 @@ bindEvents(){
 
 /*
 ==========================================
-SEND MESSAGE TO AGENT
+SEND MESSAGE
 ==========================================
 */
 
 
 async sendMessage(){
-
-
-
-    if(!this.container)
-
-    return;
-
-
-
-
-
-
 
 
     const input =
@@ -1147,11 +923,8 @@ async sendMessage(){
 
 
 
-
     if(!input)
-
     return;
-
 
 
 
@@ -1169,9 +942,7 @@ async sendMessage(){
 
 
 
-
     if(!text)
-
     return;
 
 
@@ -1180,10 +951,7 @@ async sendMessage(){
 
 
 
-
     input.value = "";
-
-
 
 
 
@@ -1205,10 +973,7 @@ async sendMessage(){
 
 
 
-
     this.render();
-
-
 
 
 
@@ -1229,23 +994,15 @@ async sendMessage(){
             {
 
 
-
-                method:
-
-                "POST",
-
-
-
+                method:"POST",
 
 
                 headers:{
 
 
-
                     "Content-Type":
 
                     "application/json"
-
 
 
                 },
@@ -1254,29 +1011,11 @@ async sendMessage(){
 
 
 
-
-
-                body:
-
-                JSON.stringify({
+                body:JSON.stringify({
 
 
 
-                    prompt:
-
-                    text,
-
-
-
-
-
-
-
-                    agent:
-
-                    this.activeAgent,
-
-
+                    prompt:text,
 
 
 
@@ -1290,21 +1029,17 @@ async sendMessage(){
 
 
 
+                    mode:
+
+                    this.mode,
+
+
+
 
 
                     history:
 
-                    this.history,
-
-
-
-
-
-
-
-                    mode:
-
-                    this.mode
+                    this.history
 
 
 
@@ -1313,8 +1048,6 @@ async sendMessage(){
 
 
             }
-
-
 
         );
 
@@ -1336,19 +1069,13 @@ async sendMessage(){
 
 
 
-
-
         const answer =
-
-
 
         data.response ||
 
         data.resposta ||
 
         "Sem resposta.";
-
-
 
 
 
@@ -1370,7 +1097,6 @@ async sendMessage(){
 
 
 
-
         this.render();
 
 
@@ -1385,14 +1111,9 @@ async sendMessage(){
 
             "assistant",
 
-            "Erro ao comunicar com o servidor Honey IA."
+            "Erro ao comunicar com Honey IA."
 
         );
-
-
-
-
-
 
 
 
@@ -1423,15 +1144,15 @@ saveConversation(
 
     if(
 
-        agents &&
+        Agents &&
 
-        typeof agents.addConversation === "function"
+        typeof Agents.addConversation === "function"
 
     ){
 
 
 
-        agents.addConversation(
+        Agents.addConversation(
 
             this.activeAgent,
 
@@ -1451,18 +1172,13 @@ saveConversation(
 
 
 
-
     this.history.push({
-
 
 
         role,
 
-        content,
 
-        date:
-
-        new Date()
+        content
 
 
 
@@ -1482,7 +1198,7 @@ saveConversation(
 
 /*
 ==========================================
-CLEAR MEMORY
+CLEAR HISTORY
 ==========================================
 */
 
@@ -1493,7 +1209,7 @@ clearHistory(){
 
     const agent =
 
-    agents.get(
+    Agents.get(
 
         this.activeAgent
 
@@ -1531,7 +1247,6 @@ clearHistory(){
 
 
 
-
     this.render();
 
 
@@ -1548,7 +1263,7 @@ clearHistory(){
 
 /*
 ==========================================
-MODE UI UPDATE
+UPDATE MODE UI
 ==========================================
 */
 
@@ -1575,6 +1290,7 @@ updateModeUI(){
         "[data-mode]"
 
     );
+
 
 
 
@@ -1715,9 +1431,6 @@ reset(){
 
 
 
-
-
-
     this.mode =
 
     "chat";
@@ -1726,11 +1439,7 @@ reset(){
 
 
 
-
-
-
     this.history = [];
-
 
 
 
@@ -1750,19 +1459,9 @@ reset(){
 
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
-LISTEN GLOBAL EVENTS
+LISTEN EVENTS
 ==========================================
 */
 
@@ -1775,14 +1474,13 @@ listenEvents(){
 
         "agent-selected",
 
-        (event)=>{
+        event=>{
 
 
 
             const agent =
 
             event.detail;
-
 
 
 
@@ -1812,7 +1510,17 @@ listenEvents(){
 
 
 
-}/*
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================
 EXPORT PROFILE
 ==========================================
@@ -1869,61 +1577,7 @@ exportProfile(){
 
 /*
 ==========================================
-GET ACTIVE PROFILE
-==========================================
-*/
-
-
-getActiveProfile(){
-
-
-
-    return this.getAgentProfile();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-CHECK ACTIVE AGENT
-==========================================
-*/
-
-
-hasActiveAgent(){
-
-
-
-    return !!agents.get(
-
-        this.activeAgent
-
-    );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-DESTROY STUDIO
+DESTROY
 ==========================================
 */
 
@@ -1952,12 +1606,10 @@ destroy(){
     this.container = null;
 
 
+
     this.history = [];
 
 
-    this.workspace = {};
-
-
 
 }
 
@@ -1969,12 +1621,66 @@ destroy(){
 
 
 
+/*
+==========================================
+AUTO INIT
+==========================================
+*/
+
+
+autoInit(){
+
+
+
+    const container =
+
+    document.getElementById(
+
+        "agentStudioContainer"
+
+    );
+
+
+
+
+
+
+
+
+    if(container){
+
+
+
+        this.init(
+
+            "agentStudioContainer"
+
+        );
+
+
+
+    }
+
+
+
 }
+
+
+
+
+
+}
+
+
+
+
+
+
 
 
 
 // ==========================================================
-// SINGLE INSTANCE EXPORT
+// SINGLE INSTANCE
 // ==========================================================
 
 
