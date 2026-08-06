@@ -43,7 +43,7 @@ import translationagent from "./agents/translationagent.js";
 import businessagent from "./agents/businessagent.js";
 import accountingagent from "./agents/accountingagent.js";
 import strategistagent from "./agents/strategistagent.js";
-
+import hragent from "./agents/hragent.js";
 
 
 
@@ -173,7 +173,8 @@ businessagent,
 
 accountingagent,
 
-strategistagent
+strategistagent,
+    hragent,
 
 
 
