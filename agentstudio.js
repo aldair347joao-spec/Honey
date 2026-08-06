@@ -1,14 +1,14 @@
 /*
 ==========================================
 HONEY IA
-AGENT STUDIO ENGINE V7
+AGENT STUDIO ENGINE V8
 Specialist Workspace Controller
 30 Agents Integration
 ==========================================
 */
 
 
-import Agents from "./agents.js";
+import agents from "./agents.js";
 
 
 
@@ -20,428 +20,303 @@ class AgentStudio {
 
 
 
-    constructor(){
+constructor(){
 
 
 
-        this.activeAgent =
-        "general";
+    this.activeAgent =
 
+    "general";
 
 
-        this.mode =
-        "chat";
 
 
 
-        this.container =
-        null;
+    this.mode =
 
+    "chat";
 
 
-        this.history =
-        [];
 
 
 
-        this.workspace =
-        {};
+    this.container =
 
+    null;
 
 
-    }
 
 
 
+    this.history =
 
+    [];
 
 
 
 
 
-    /*
-    ======================================
-    INITIALIZATION
-    ======================================
-    */
+    this.workspace =
 
+    {};
 
-    init(containerId){
 
 
+}
 
-        this.container =
 
-        document.getElementById(
 
-            containerId
 
-        );
 
 
 
 
 
-
-
-
-        if(
-            !this.container
-        ){
-
-
-
-            console.warn(
-
-                "[Agent Studio] Container não encontrado:",
-
-                containerId
-
-            );
-
-
-
-            return;
-
-
-
-        }
-
-
-
-
-
-
-
-
-        this.render();
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    OPEN AGENT
-    ======================================
-    */
-
-
-    open(agent){
-
-
-
-        if(
-            !agent
-        )
-        return;
-
-
-
-
-
-
-
-
-        this.activeAgent =
-
-        agent.id;
-
-
-
-
-
-
-
-
-        if(
-            typeof Agents.setActive ===
-            "function"
-        ){
-
-
-
-            Agents.setActive(
-
-                agent.id
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-        this.history =
-
-
-
-        typeof Agents.getConversation ===
-        "function"
-
-
-
-        ?
-
-
-
-        Agents.getConversation(
-
-            agent.id
-
-        )
-
-
-
-        :
-
-
-
-        [];
-
-
-
-
-
-
-
-
-        document.dispatchEvent(
-
-            new CustomEvent(
-
-                "agent-opened",
-
-                {
-
-                    detail:agent
-
-                }
-
-            )
-
-        );
-
-
-
-
-
-
-
-
-        this.render();
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    CURRENT AGENT
-    ======================================
-    */
-
-
-    getAgent(){
-
-
-
-        return this.activeAgent;
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    PROFILE
-    ======================================
-    */
-
-
-    getAgentProfile(){
-
-
-
-        const agent =
-
-        Agents.get(
-
-            this.activeAgent
-
-        );
-
-
-
-
-
-
-
-
-        if(
-            !agent
-        )
-        return null;
-
-
-
-
-
-
-
-
-        return {
-
-
-
-            id:
-
-            agent.id,
-
-
-
-
-
-            name:
-
-            agent.name,
-
-
-
-
-
-            category:
-
-            agent.category || "",
-
-
-
-
-
-            level:
-
-            agent.level || "",
-
-
-
-
-
-            tools:
-
-            agent.tools || [],
-
-
-
-
-
-            description:
-
-            agent.description || ""
-
-
-
-        };
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ======================================
-    MODE CONTROL
-    ======================================
-    */
-
-
-    setmode(mode){
-
-
-
-        if(
-
-            mode !== "chat"
-
-            &&
-
-            mode !== "live"
-
-        )
-        return;
-
-
-
-
-
-
-
-
-        this.mode =
-        mode;
-
-
-
-
-
-
-
-
-        this.updateModeUI();
-
-
-
-    }/*
+/*
 ==========================================
-RENDER STUDIO
+INITIALIZATION
 ==========================================
 */
 
 
-render(){
+init(containerId){
+
+
+
+    this.container =
+
+    document.getElementById(
+
+        containerId
+
+    );
+
+
+
+
+
+
+
+
+    if(!this.container){
+
+
+
+        console.warn(
+
+        "[Agent Studio] Container não encontrado:",
+
+        containerId
+
+        );
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+
+
+
+    this.render();
+
+
+
+    this.listenEvents();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+OPEN AGENT
+==========================================
+*/
+
+
+open(agent){
+
+
+
+    if(!agent)
+
+    return;
+
+
+
+
+
+
+
+
+    this.activeAgent =
+
+    agent.id;
+
+
+
+
+
 
 
 
     if(
-        !this.container
+
+        agents &&
+
+        typeof agents.setActive === "function"
+
+    ){
+
+
+
+        agents.setActive(
+
+            agent.id
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+    this.history =
+
+
+
+    typeof agents.getConversation === "function"
+
+    ?
+
+
+
+    agents.getConversation(
+
+        agent.id
+
     )
-    return;
+
+
+
+    :
+
+
+
+    [];
+
+
+
+
+
+
+
+
+
+    document.dispatchEvent(
+
+        new CustomEvent(
+
+            "agent-opened",
+
+            {
+
+                detail: agent
+
+            }
+
+        )
+
+    );
+
+
+
+
+
+
+
+
+
+    this.render();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+GET CURRENT AGENT ID
+==========================================
+*/
+
+
+getAgent(){
+
+
+
+    return this.activeAgent;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+GET AGENT PROFILE
+==========================================
+*/
+
+
+getAgentProfile(){
+
+
+
+    if(
+
+        !agents ||
+
+        typeof agents.get !== "function"
+
+    )
+
+    return null;
 
 
 
@@ -452,7 +327,7 @@ render(){
 
     const agent =
 
-    Agents.get(
+    agents.get(
 
         this.activeAgent
 
@@ -465,9 +340,173 @@ render(){
 
 
 
+    if(!agent)
+
+    return null;
+
+
+
+
+
+
+
+
+    return {
+
+
+
+        id:
+
+        agent.id,
+
+
+
+
+
+        name:
+
+        agent.name || "",
+
+
+
+
+
+        emoji:
+
+        agent.emoji || "🤖",
+
+
+
+
+
+        category:
+
+        agent.category || "",
+
+
+
+
+
+        level:
+
+        agent.level || "Professional",
+
+
+
+
+
+        tools:
+
+        agent.tools || [],
+
+
+
+
+
+        description:
+
+        agent.description || ""
+
+
+
+    };
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+MODE CONTROL
+==========================================
+*/
+
+
+setmode(mode){
+
+
+
     if(
-        !agent
+
+        mode !== "chat"
+
+        &&
+
+        mode !== "live"
+
     )
+
+    return;
+
+
+
+
+
+
+
+
+    this.mode =
+
+    mode;
+
+
+
+
+
+
+
+
+    this.updateModeUI();
+
+
+
+}/*
+==========================================
+RENDER STUDIO
+==========================================
+*/
+
+
+render(){
+
+
+
+    if(!this.container)
+
+    return;
+
+
+
+
+
+
+
+
+    const agent =
+
+    agents.get(
+
+        this.activeAgent
+
+    );
+
+
+
+
+
+
+
+
+    if(!agent)
+
     return;
 
 
@@ -482,7 +521,6 @@ render(){
 
 
     <div class="agent-studio-panel">
-
 
 
 
@@ -513,6 +551,7 @@ render(){
 
 
 
+
             <div class="studio-agent-info">
 
 
@@ -522,7 +561,9 @@ render(){
 
                 ${
 
-                    agent.name
+                    agent.name ||
+
+                    "Honey Agent"
 
                 }
 
@@ -542,7 +583,7 @@ render(){
 
                     agent.description ||
 
-                    "Especialista Honey IA"
+                    "Especialista Honey IA."
 
                 }
 
@@ -599,10 +640,14 @@ render(){
 
 
 
+
+
             <div class="tools-list">
 
 
+
             ${
+
 
 
                 (agent.tools || [])
@@ -610,13 +655,13 @@ render(){
                 .map(tool=>`
 
 
-                    <span class="tool-item">
 
+                    <span class="tool-item">
 
                     ${tool}
 
-
                     </span>
+
 
 
                 `)
@@ -649,18 +694,13 @@ render(){
 
             <button
 
-
             class="mode-btn active"
-
 
             data-mode="chat"
 
-
             >
 
-
             💬 Chat
-
 
             </button>
 
@@ -673,18 +713,13 @@ render(){
 
             <button
 
-
             class="mode-btn"
-
 
             data-mode="live"
 
-
             >
 
-
             ⚡ Live
-
 
             </button>
 
@@ -706,9 +741,7 @@ render(){
 
             <div
 
-
             class="studio-history"
-
 
             id="studioHistory"
 
@@ -730,15 +763,16 @@ render(){
 
 
 
+
+
+
             <div class="studio-input-area">
 
 
 
                 <textarea
 
-
                 id="studioInput"
-
 
                 placeholder="Fale com este especialista..."
 
@@ -753,15 +787,11 @@ render(){
 
                 <button
 
-
                 id="studioSend"
-
 
                 >
 
-
                 Enviar
-
 
                 </button>
 
@@ -819,6 +849,7 @@ renderHistory(){
 
 
     if(
+
         !this.history ||
 
         this.history.length === 0
@@ -860,11 +891,19 @@ renderHistory(){
 
 
 
-        <div class="history-message ${message.role}">
+        <div
+
+        class="history-message ${message.role}"
+
+        >
 
 
 
-            ${message.content}
+        ${
+
+            message.content
+
+        }
 
 
 
@@ -889,9 +928,8 @@ bindEvents(){
 
 
 
-    if(
-        !this.container
-    )
+    if(!this.container)
+
     return;
 
 
@@ -969,9 +1007,7 @@ bindEvents(){
 
 
 
-    if(
-        sendButton
-    ){
+    if(sendButton){
 
 
 
@@ -980,6 +1016,7 @@ bindEvents(){
             "click",
 
             ()=>{
+
 
 
                 this.sendMessage();
@@ -1018,9 +1055,7 @@ bindEvents(){
 
 
 
-    if(
-        input
-    ){
+    if(input){
 
 
 
@@ -1078,12 +1113,23 @@ bindEvents(){
 
 /*
 ==========================================
-SEND MESSAGE
+SEND MESSAGE TO AGENT
 ==========================================
 */
 
 
 async sendMessage(){
+
+
+
+    if(!this.container)
+
+    return;
+
+
+
+
+
 
 
 
@@ -1102,12 +1148,9 @@ async sendMessage(){
 
 
 
+    if(!input)
 
-    if(
-        !input
-    )
     return;
-
 
 
 
@@ -1127,10 +1170,8 @@ async sendMessage(){
 
 
 
+    if(!text)
 
-    if(
-        !text
-    )
     return;
 
 
@@ -1140,8 +1181,7 @@ async sendMessage(){
 
 
 
-    input.value =
-    "";
+    input.value = "";
 
 
 
@@ -1184,7 +1224,7 @@ async sendMessage(){
 
         await fetch(
 
-            `${window.location.origin}/gerar-gratis`,
+            "https://honey-ia.onrender.com/gerar-gratis",
 
             {
 
@@ -1225,6 +1265,16 @@ async sendMessage(){
                     prompt:
 
                     text,
+
+
+
+
+
+
+
+                    agent:
+
+                    this.activeAgent,
 
 
 
@@ -1290,6 +1340,8 @@ async sendMessage(){
 
         const answer =
 
+
+
         data.response ||
 
         data.resposta ||
@@ -1319,7 +1371,6 @@ async sendMessage(){
 
 
 
-
         this.render();
 
 
@@ -1334,9 +1385,14 @@ async sendMessage(){
 
             "assistant",
 
-            "Erro ao comunicar com Honey IA."
+            "Erro ao comunicar com o servidor Honey IA."
 
         );
+
+
+
+
+
 
 
 
@@ -1348,17 +1404,7 @@ async sendMessage(){
 
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
 SAVE CONVERSATION
 ==========================================
@@ -1376,14 +1422,16 @@ saveConversation(
 
 
     if(
-        typeof Agents.addConversation ===
-        "function"
+
+        agents &&
+
+        typeof agents.addConversation === "function"
 
     ){
 
 
 
-        Agents.addConversation(
+        agents.addConversation(
 
             this.activeAgent,
 
@@ -1410,7 +1458,11 @@ saveConversation(
 
         role,
 
-        content
+        content,
+
+        date:
+
+        new Date()
 
 
 
@@ -1441,7 +1493,7 @@ clearHistory(){
 
     const agent =
 
-    Agents.get(
+    agents.get(
 
         this.activeAgent
 
@@ -1454,15 +1506,11 @@ clearHistory(){
 
 
 
-    if(
-        agent
-    ){
+    if(agent){
 
 
 
-        agent.conversations =
-
-        [];
+        agent.conversations = [];
 
 
 
@@ -1475,8 +1523,7 @@ clearHistory(){
 
 
 
-    this.history =
-    [];
+    this.history = [];
 
 
 
@@ -1489,7 +1536,17 @@ clearHistory(){
 
 
 
-}/*
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================
 MODE UI UPDATE
 ==========================================
@@ -1500,11 +1557,9 @@ updateModeUI(){
 
 
 
-    if(
-        !this.container
-    )
-    return;
+    if(!this.container)
 
+    return;
 
 
 
@@ -1520,7 +1575,6 @@ updateModeUI(){
         "[data-mode]"
 
     );
-
 
 
 
@@ -1654,23 +1708,37 @@ reset(){
 
 
     this.activeAgent =
+
     "general";
 
 
 
+
+
+
+
+
     this.mode =
+
     "chat";
 
 
 
-    this.history =
-    [];
 
 
 
-    if(
-        this.container
-    ){
+
+
+    this.history = [];
+
+
+
+
+
+
+
+
+    if(this.container){
 
 
 
@@ -1694,7 +1762,7 @@ reset(){
 
 /*
 ==========================================
-OPEN FROM EVENT
+LISTEN GLOBAL EVENTS
 ==========================================
 */
 
@@ -1722,9 +1790,7 @@ listenEvents(){
 
 
 
-            if(
-                agent
-            ){
+            if(agent){
 
 
 
@@ -1746,17 +1812,7 @@ listenEvents(){
 
 
 
-}
-
-
-
-
-
-
-
-
-
-/*
+}/*
 ==========================================
 EXPORT PROFILE
 ==========================================
@@ -1778,12 +1834,9 @@ exportProfile(){
 
 
 
+    if(!profile)
 
-    if(
-        !profile
-    )
     return null;
-
 
 
 
@@ -1816,7 +1869,61 @@ exportProfile(){
 
 /*
 ==========================================
-DESTROY
+GET ACTIVE PROFILE
+==========================================
+*/
+
+
+getActiveProfile(){
+
+
+
+    return this.getAgentProfile();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+CHECK ACTIVE AGENT
+==========================================
+*/
+
+
+hasActiveAgent(){
+
+
+
+    return !!agents.get(
+
+        this.activeAgent
+
+    );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+DESTROY STUDIO
 ==========================================
 */
 
@@ -1825,14 +1932,11 @@ destroy(){
 
 
 
-    if(
-        this.container
-    ){
+    if(this.container){
 
 
 
-        this.container.innerHTML =
-        "";
+        this.container.innerHTML = "";
 
 
 
@@ -1845,13 +1949,13 @@ destroy(){
 
 
 
-    this.container =
-    null;
+    this.container = null;
 
 
+    this.history = [];
 
-    this.history =
-    [];
+
+    this.workspace = {};
 
 
 
@@ -1870,7 +1974,7 @@ destroy(){
 
 
 // ==========================================================
-// SINGLE INSTANCE
+// SINGLE INSTANCE EXPORT
 // ==========================================================
 
 
