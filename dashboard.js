@@ -1,321 +1,1108 @@
-/*
+ /*
 ==========================================
 HONEY IA
-USER DASHBOARD
-SaaS Control Panel
-V1.0
+DASHBOARD ENGINE V6
+Enterprise Workspace Dashboard
 ==========================================
 */
 
 
-import subscription from "./subscription.js";
 import agents from "./agents.js";
 
 
 
-class dashboard {
+class Dashboard {
 
 
 
 constructor(){
 
-    this.container=null;
+
+    this.container = null;
+
+
+    this.refreshInterval = null;
+
 
 }
 
 
 
 
+
+
+
+/*
+==========================================
+INITIALIZATION
+==========================================
+*/
 
 
 init(containerId){
 
 
 
-this.container =
-document.getElementById(
-containerId
-);
+    this.container =
+    document.getElementById(
+        containerId
+    );
 
 
 
-if(!this.container){
+    if(!this.container){
 
-console.error(
-"Dashboard não encontrado."
-);
 
-return;
+        console.warn(
+            "[Dashboard] Container não encontrado:",
+            containerId
+        );
+
+
+        return;
+
+
+    }
+
+
+
+    this.render();
+
+
+    this.bindEvents();
+
+
+    this.startAutoRefresh();
+
+
 
 }
 
 
 
-this.render();
-
-
-
-}
 
 
 
 
 
 
+/*
+==========================================
+MAIN RENDER
+==========================================
+*/
 
 
 render(){
 
 
 
-const plan =
-subscription.getPlan();
+    if(!this.container)
+    return;
 
 
 
-const agents =
-agents.getAll();
-
-
-
-
-this.container.innerHTML = `
-
-
-
-<div class="dashboard-page">
-
-
-
-<header class="dashboard-header">
-
-
-<h1>
-
-🐝 Honey IA Dashboard
-
-</h1>
-
-
-<p>
-
-Centro de controlo da sua inteligência artificial.
-
-</p>
-
-
-</header>
+    const stats =
+    this.getStatistics();
 
 
 
 
+    this.container.innerHTML = `
+
+
+    <section class="dashboard-wrapper">
+
+
+        <div class="dashboard-header">
+
+
+            <div>
+
+
+                <h1>
+
+                🐝 Honey IA Dashboard
+
+                </h1>
+
+
+                <p>
+
+                Centro de controlo inteligente da plataforma.
+
+                </p>
+
+
+            </div>
 
 
 
-<div class="dashboard-grid">
+            <div class="system-status online">
+
+
+                <span class="online-dot"></span>
+
+
+                Sistema Online
+
+
+            </div>
+
+
+        </div>
 
 
 
+
+
+
+        <div class="dashboard-grid">
+
+
+            ${
+
+            this.createMetricCard(
+                "🤖",
+                "Agentes",
+                stats.agents
+            )
+
+            }
+
+
+
+            ${
+
+            this.createMetricCard(
+                "⚡",
+                "Estado",
+                "Online"
+            )
+
+            }
+
+
+
+
+
+            ${
+
+            this.createMetricCard(
+                "📂",
+                "Projetos",
+                stats.projects
+            )
+
+            }
+
+
+
+
+            ${
+
+            this.createMetricCard(
+                "💬",
+                "Conversas",
+                stats.messages
+            )
+
+            }
+
+
+
+        </div>
+
+
+
+
+
+        <div class="dashboard-sections">
+
+
+            <div class="dashboard-panel">
+
+
+                <h2>
+
+                Agentes disponíveis
+
+                </h2>
+
+
+                <div id="dashboardAgents">
+
+
+                ${
+
+                this.renderAgentPreview()
+
+                }
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="dashboard-panel">
+
+
+                <h2>
+
+                Ações rápidas
+
+                </h2>
+
+
+
+                <div class="quick-actions">
+
+
+                    <button data-action="chat">
+
+                    💬 Novo Chat
+
+                    </button>
+
+
+
+                    <button data-action="agents">
+
+                    🤖 Explorar Agentes
+
+                    </button>
+
+
+
+                    <button data-action="projects">
+
+                    📁 Projetos
+
+                    </button>
+
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+    `;
+
+
+
+}
+
+
+
+
+
+
+
+
+/*
+==========================================
+STATISTICS
+==========================================
+*/
+
+
+getStatistics(){
+
+
+    return {
+
+
+        agents:
+        Agents.getAll().length,
+
+
+
+        projects:
+        Number(
+            localStorage.getItem(
+                "honey_projects"
+            )
+        ) || 0,
+
+
+
+        messages:
+        Number(
+            localStorage.getItem(
+                "honey_messages"
+            )
+        ) || 0
+
+
+
+    };
+
+
+} /*
+==========================================
+METRIC CARD COMPONENT
+==========================================
+*/
+
+
+createMetricCard(icon, title, value){
+
+
+return `
 
 
 <div class="dashboard-card">
 
 
-<h3>
-💳 Plano Atual
-</h3>
+    <div class="dashboard-card-icon">
+
+        ${icon}
+
+    </div>
 
 
-<strong>
 
-${plan.name}
-
-</strong>
+    <div class="dashboard-card-content">
 
 
-<p>
+        <span>
 
-Acesso aos agentes:
+        ${title}
 
-${plan.agents==="all"
-?
-"Todos"
-:
-"Limitado"}
+        </span>
 
-</p>
+
+        <strong>
+
+        ${value}
+
+        </strong>
+
+
+    </div>
 
 
 
 </div>
-
-
-
-
-
-
-
-
-<div class="dashboard-card">
-
-
-<h3>
-🤖 Agentes
-</h3>
-
-
-<strong>
-
-${agents.length}
-
-</strong>
-
-
-<p>
-
-Agentes disponíveis no sistema.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div class="dashboard-card">
-
-
-<h3>
-📂 Workspaces
-</h3>
-
-
-<strong>
-
-${plan.workspaces}
-
-</strong>
-
-
-<p>
-
-Ambientes de trabalho.
-
-</p>
-
-
-</div>
-
-
-
-
-
-
-
-
-<div class="dashboard-card">
-
-
-<h3>
-📤 Exportação
-</h3>
-
-
-<strong>
-
-${plan.export
-?
-"Ativa"
-:
-"Bloqueada"}
-
-</strong>
-
-
-<p>
-
-Exportação de projetos.
-
-</p>
-
-
-</div>
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-<section class="dashboard-agents">
-
-
-<h2>
-
-Agentes Recentes
-
-</h2>
-
-
-
-<div class="mini-agent-grid">
-
-
-
-${agents.slice(0,6).map(agent=>`
-
-
-<div class="mini-agent">
-
-
-<span>
-
-${agent.emoji}
-
-</span>
-
-
-<p>
-
-${agent.name}
-
-</p>
-
-
-</div>
-
-
-
-`).join("")}
-
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-</div>
-
 
 
 `;
 
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+AGENT PREVIEW
+==========================================
+*/
+
+
+renderAgentPreview(){
+
+
+
+    const agents =
+    Agents
+    .getAll()
+    .slice(0,6);
+
+
+
+    return agents
+    .map(agent=>`
+
+
+    <div class="dashboard-agent">
+
+
+        <div class="dashboard-agent-icon">
+
+        ${agent.emoji || "🤖"}
+
+        </div>
+
+
+
+        <div>
+
+
+            <strong>
+
+            ${agent.name}
+
+            </strong>
+
+
+
+            <small>
+
+            ${agent.category || "Tecnologia"}
+
+            </small>
+
+
+        </div>
+
+
+
+        <span class="agent-status">
+
+        ●
+
+        </span>
+
+
+
+    </div>
+
+
+
+    `)
+    .join("");
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+EVENT LISTENERS
+==========================================
+*/
+
+
+bindEvents(){
+
+
+    if(!this.container)
+    return;
+
+
+
+    const buttons =
+    this.container.querySelectorAll(
+        "[data-action]"
+    );
+
+
+
+    buttons.forEach(button=>{
+
+
+        button.addEventListener(
+            "click",
+            ()=>{
+
+
+                const action =
+                button.dataset.action;
+
+
+
+                this.handleAction(
+                    action
+                );
+
+
+            }
+        );
+
+
+    });
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+QUICK ACTIONS
+==========================================
+*/
+
+
+handleAction(action){
+
+
+
+    document.dispatchEvent(
+
+        new CustomEvent(
+            "dashboard-action",
+            {
+
+                detail:{
+                    action
+                }
+
+            }
+        )
+
+    );
+
+
+
+    switch(action){
+
+
+        case "chat":
+
+
+            this.openView(
+                "chat"
+            );
+
+
+        break;
+
+
+
+        case "agents":
+
+
+            this.openView(
+                "agents"
+            );
+
+
+        break;
+
+
+
+        case "projects":
+
+
+            this.openView(
+                "projects"
+            );
+
+
+        break;
+
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+VIEW NAVIGATION
+==========================================
+*/
+
+
+openView(view){
+
+
+    const link =
+    document.querySelector(
+        `[data-target="${view}"]`
+    );
+
+
+
+    if(link){
+
+        link.click();
+
+    }
+
+
+} /*
+==========================================
+REAL TIME UPDATE
+==========================================
+*/
+
+
+refresh(){
+
+
+    if(!this.container)
+    return;
+
+
+
+    const currentScroll =
+    this.container.scrollTop;
+
+
+
+    this.render();
+
+
+
+    this.bindEvents();
+
+
+
+    this.container.scrollTop =
+    currentScroll;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+AUTO REFRESH
+==========================================
+*/
+
+
+startAutoRefresh(){
+
+
+
+    this.stopAutoRefresh();
+
+
+
+    this.refreshInterval =
+    setInterval(
+        ()=>{
+
+
+            this.refresh();
+
+
+
+        },
+        30000
+    );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+stopAutoRefresh(){
+
+
+
+    if(this.refreshInterval){
+
+
+        clearInterval(
+            this.refreshInterval
+        );
+
+
+        this.refreshInterval =
+        null;
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+SYSTEM TELEMETRY
+==========================================
+*/
+
+
+getSystemInfo(){
+
+
+
+    return {
+
+
+        platform:
+        "Honey IA OS",
+
+
+
+        version:
+        "V6",
+
+
+
+        agents:
+        Agents.getAll().length,
+
+
+
+        timestamp:
+        new Date()
+        .toISOString()
+
+
+
+    };
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+PROJECT MANAGEMENT
+==========================================
+*/
+
+
+createProject(name){
+
+
+
+    const projects =
+    JSON.parse(
+
+        localStorage.getItem(
+            "honey_projects_list"
+        )
+        ||
+
+        "[]"
+
+    );
+
+
+
+    const project = {
+
+
+        id:
+        crypto.randomUUID(),
+
+
+
+        name,
+
+
+
+        createdAt:
+        new Date()
+
+
+
+    };
+
+
+
+    projects.push(
+        project
+    );
+
+
+
+    localStorage.setItem(
+
+        "honey_projects_list",
+
+        JSON.stringify(
+            projects
+        )
+
+    );
+
+
+
+    return project;
+
+
+}
+
+
+
+
+
+
+
+
+
+getProjects(){
+
+
+
+    return JSON.parse(
+
+        localStorage.getItem(
+            "honey_projects_list"
+        )
+
+        ||
+
+        "[]"
+
+    );
+
+
+}
+
+
+
+
+
+
+
+
+
+deleteProject(id){
+
+
+
+    const projects =
+    this.getProjects()
+    .filter(
+        project=>
+        project.id !== id
+    );
+
+
+
+    localStorage.setItem(
+
+        "honey_projects_list",
+
+        JSON.stringify(
+            projects
+        )
+
+    );
+
+
+
+    this.refresh();
+
+
+
+} /*
+==========================================
+USER ACTIVITY TRACKING
+==========================================
+*/
+
+
+trackMessage(){
+
+
+    let count =
+    Number(
+        localStorage.getItem(
+            "honey_messages"
+        )
+    )
+    || 0;
+
+
+
+    count++;
+
+
+
+    localStorage.setItem(
+
+        "honey_messages",
+
+        count
+
+    );
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+DASHBOARD EVENTS
+==========================================
+*/
+
+
+listenEvents(){
+
+
+
+    document.addEventListener(
+        "chat-message-sent",
+        ()=>{
+
+
+            this.trackMessage();
+
+
+
+        }
+    );
+
+
+
+    document.addEventListener(
+        "agent-selected",
+        ()=>{
+
+
+            this.refresh();
+
+
+
+        }
+    );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+DESTROY
+==========================================
+*/
+
+
+destroy(){
+
+
+
+    this.stopAutoRefresh();
+
+
+
+    this.container =
+    null;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+PUBLIC STATUS
+==========================================
+*/
+
+
+getStatus(){
+
+
+
+    return {
+
+
+        initialized:
+        !!this.container,
+
+
+
+        statistics:
+        this.getStatistics(),
+
+
+
+        system:
+        this.getSystemInfo()
+
+
+
+    };
 
 
 }
@@ -326,4 +1113,14 @@ ${agent.name}
 
 
 
-export default new dashboard();
+
+
+
+
+
+const dashboard =
+new Dashboard();
+
+
+
+export default dashboard;
