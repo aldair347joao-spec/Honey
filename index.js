@@ -68,16 +68,9 @@ STATIC FRONTEND
 */
 
 
-app.use(
+app.use(express.static(__dirname));
 
-    express.static(
-        path.join(
-            __dirname,
-            "public"
-        )
-    )
-
-);/*
+/*
 ==========================================
 DATABASE CONNECTION
 ==========================================
