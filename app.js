@@ -1,8 +1,9 @@
 /*
 ==========================================
 HONEY IA
-CORE ENGINE V7
+CORE ENGINE V8
 Workspace + 30 Agents Integration
+Enterprise Application Controller
 ==========================================
 */
 
@@ -25,8 +26,15 @@ import userprofile from "./userprofile.js";
 
 
 
+
+
 const SESSION_ID =
+
 crypto.randomUUID();
+
+
+
+
 
 
 
@@ -40,74 +48,126 @@ crypto.randomUUID();
 class EventBus {
 
 
+
     constructor(){
+
 
         this.events = {};
 
+
     }
+
+
 
 
 
 
 
     on(
+
         event,
+
         callback
+
     ){
 
 
+
         if(
+
             !this.events[event]
+
         ){
 
+
+
             this.events[event] = [];
+
+
 
         }
 
 
 
-        this.events[event]
-        .push(callback);
+
+
+
+
+        this.events[event].push(
+
+            callback
+
+        );
 
 
 
     }
+
+
+
+
 
 
 
 
 
     emit(
+
         event,
+
         data
+
     ){
 
 
+
         if(
+
             !this.events[event]
+
         )
+
         return;
 
 
 
+
+
+
+
         this.events[event]
+
         .forEach(
-            callback => {
+
+            callback=>{
+
 
                 callback(data);
 
+
+
             }
+
         );
 
 
+
     }
+
 
 
 }
 
 
 
+
+
+
+
+
+
 export const EventBusInstance =
+
 new EventBus();
 
 
@@ -126,35 +186,71 @@ new EventBus();
 export const Store = {
 
 
+
     state:{
 
 
+
         sessionId:
+
         SESSION_ID,
 
 
+
+
+
         conversation:
+
         [],
 
 
+
+
+
         loading:
+
         false,
 
 
+
+
+
         selectedFileBase64:
+
         null,
+
+
+
 
 
         selectedFileName:
+
         null,
 
 
+
+
+
         selectedAgent:
+
         "general",
 
 
+
+
+
         isAuthenticated:
-        false
+
+        false,
+
+
+
+
+
+        workspace:
+
+        "main"
+
 
 
 
@@ -167,14 +263,24 @@ export const Store = {
 
 
 
+
     setState(
+
         key,
+
         value
+
     ){
 
 
+
         this.state[key] =
+
         value;
+
+
+
+
 
 
 
@@ -184,13 +290,18 @@ export const Store = {
 
             {
 
+
                 key,
 
+
                 value
+
+
 
             }
 
         );
+
 
 
     }
@@ -221,22 +332,46 @@ class HoneyAIApp {
 
 
         this.voiceActive =
+
         false;
+
+
 
 
 
         this.voiceRecognition =
+
         null;
 
 
 
+
+
         this.liveMode =
+
         false;
 
 
 
+
+
         this.currentMode =
+
         "chat";
+
+
+
+
+
+        this.initialized =
+
+        false;
+
+
+
+
+
+
 
 
 
@@ -270,46 +405,138 @@ class HoneyAIApp {
 
 
 
-        if(
-            document.getElementById(
-                "agentsContainer"
-            )
-        ){
 
 
 
-            agentsui.init(
-                "agentsContainer"
-            );
+
+        this.initAgents();
+
+
+
+        this.initAgentStudio();
+
+
+
+    }/*
+==========================================================
+AGENTS INITIALIZATION
+==========================================================
+*/
+
+
+initAgents(){
+
+
+
+    const container =
+
+    document.getElementById(
+
+        "agentsContainer"
+
+    );
+
+
+
+
+
+
+
+
+    if(
+
+        container &&
+
+        agentsui &&
+
+        typeof agentsui.init === "function"
+
+    ){
+
+
+
+        agentsui.init(
+
+            "agentsContainer"
+
+        );
+
+
+
+        console.log(
+
+            "🤖 Agents UI carregado"
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    document.addEventListener(
+
+        "agent-selected",
+
+        event=>{
+
+
+
+            const agent =
+
+            event.detail;
+
+
+
+
+
+
+
+            if(
+
+                agent &&
+
+                agent.id
+
+            ){
+
+
+
+                Store.setState(
+
+                    "selectedAgent",
+
+                    agent.id
+
+                );
+
+
+
+                EventBusInstance.emit(
+
+                    "agentChanged",
+
+                    agent
+
+                );
+
+
+
+            }
 
 
 
         }
 
+    );
 
-
-
-    }// ==========================================================
-// USER SESSION & DASHBOARD
-// ==========================================================
-
-
-initDashboard(){
-
-
-    if(
-        document.getElementById(
-            "dashboardContainer"
-        )
-    ){
-
-
-        dashboard.init(
-            "dashboardContainer"
-        );
-
-
-    }
 
 
 }
@@ -320,12 +547,119 @@ initDashboard(){
 
 
 
+
+
+/*
+==========================================================
+AGENT STUDIO INITIALIZATION
+==========================================================
+*/
+
+
+initAgentStudio(){
+
+
+
+    const studioContainer =
+
+    document.getElementById(
+
+        "agentStudioContainer"
+
+    );
+
+
+
+
+
+
+
+
+
+    if(
+
+        studioContainer &&
+
+        agentstudio &&
+
+        typeof agentstudio.init === "function"
+
+    ){
+
+
+
+        agentstudio.init(
+
+            "agentStudioContainer"
+
+        );
+
+
+
+        console.log(
+
+            "⚡ Agent Studio conectado"
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    if(
+
+        agentstudio &&
+
+        typeof agentstudio.listenEvents === "function"
+
+    ){
+
+
+
+        agentstudio.listenEvents();
+
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// USER SESSION
+// ==========================================================
+
+
 initUserSession(){
 
 
 
     const user =
+
     authmanager.getUser();
+
+
+
+
+
+
 
 
 
@@ -343,8 +677,14 @@ initUserSession(){
 
 
 
+
+
+
+
         this.updateUserInterface(
+
             user
+
         );
 
 
@@ -352,7 +692,14 @@ initUserSession(){
         return;
 
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -381,7 +728,9 @@ updateUserInterface(user){
 
 
     if(
+
         this.userBox
+
     ){
 
 
@@ -389,22 +738,49 @@ updateUserInterface(user){
         this.userBox.innerHTML = `
 
 
+
         <div class="user-profile">
 
 
+
             <strong>
-            ${user.name}
+
+            ${
+
+                user.name ||
+
+                "Utilizador"
+
+            }
+
+
+
             </strong>
 
 
 
+
+
             <span>
+
             Plano:
-            ${user.plan || "Gratuito"}
+
+            ${
+
+                user.plan ||
+
+                "Gratuito"
+
+            }
+
+
+
             </span>
 
 
+
         </div>
+
 
 
         `;
@@ -426,37 +802,96 @@ updateUserInterface(user){
 
 
 // ==========================================================
-// DOM REFERENCES
+// DASHBOARD
 // ==========================================================
+
+
+initDashboard(){
+
+
+
+    const dashboardContainer =
+
+    document.getElementById(
+
+        "dashboardContainer"
+
+    );
+
+
+
+
+
+
+
+
+
+    if(
+
+        dashboardContainer &&
+
+        dashboard &&
+
+        typeof dashboard.init === "function"
+
+    ){
+
+
+
+        dashboard.init(
+
+            "dashboardContainer"
+
+        );
+
+
+
+        console.log(
+
+            "📊 Dashboard carregado"
+
+        );
+
+
+
+    }
+
+
+
+}/*
+==========================================================
+DOM REFERENCES
+==========================================================
+*/
 
 
 initDOMReferences(){
 
 
 
-    // MODES
+    // ===============================
+    // CHAT MODE
+    // ===============================
+
 
     this.btnChatMode =
+
     document.getElementById(
+
         "btnChatMode"
+
     );
+
+
+
 
 
     this.btnLiveMode =
+
     document.getElementById(
+
         "btnLiveMode"
-    );
 
-
-    this.btnLive =
-    document.getElementById(
-        "btnLive"
-    );
-
-
-    this.liveStatus =
-    document.getElementById(
-        "liveStatus"
     );
 
 
@@ -465,20 +900,32 @@ initDOMReferences(){
 
 
 
+
+
+    // ===============================
     // CHAT
+    // ===============================
 
 
     this.chatFeed =
 
     document.getElementById(
+
         "chatMessages"
+
     )
 
     ||
 
     document.getElementById(
+
         "chat-feed"
+
     );
+
+
+
+
 
 
 
@@ -487,76 +934,129 @@ initDOMReferences(){
     this.promptTextarea =
 
     document.getElementById(
+
         "chatInput"
+
     )
 
     ||
 
     document.getElementById(
+
         "prompt-textarea"
+
     );
+
+
+
+
 
 
 
 
 
     this.btnSend =
+
     document.getElementById(
+
         "btnSend"
+
     );
+
+
+
+
 
 
 
 
 
     this.btnVoice =
+
     document.getElementById(
+
         "btnVoice"
+
     );
+
+
+
+
 
 
 
 
 
     this.fileUploadInput =
+
     document.getElementById(
+
         "fileInput"
+
     );
+
+
+
+
 
 
 
 
 
     this.btnAttach =
+
     document.getElementById(
+
         "btnAttach"
+
     );
+
+
+
+
 
 
 
 
 
     this.attachmentBar =
+
     document.getElementById(
+
         "attachment-bar"
+
     );
+
+
+
+
 
 
 
 
 
     this.attachedFileName =
+
     document.getElementById(
+
         "attached-file-name"
+
     );
+
+
+
+
 
 
 
 
 
     this.btnRemoveAttachment =
+
     document.getElementById(
+
         "btn-remove-attachment"
+
     );
 
 
@@ -567,42 +1067,38 @@ initDOMReferences(){
 
 
 
+    // ===============================
     // SIDEBAR
+    // ===============================
 
 
     this.btnToggleMenu =
 
     document.getElementById(
+
         "btnMobileMenu"
-    )
 
-    ||
-
-    document.querySelector(
-        ".menu-toggle"
-    )
-
-    ||
-
-    document.querySelector(
-        ".hamburger"
     );
 
 
 
 
 
-    this.osSidebar =
+
+
+
+
+    this.sidebar =
 
     document.getElementById(
+
         "sidebar"
-    )
 
-    ||
-
-    document.querySelector(
-        ".sidebar"
     );
+
+
+
+
 
 
 
@@ -611,14 +1107,14 @@ initDOMReferences(){
     this.sidebarOverlay =
 
     document.getElementById(
+
         "sidebarOverlay"
-    )
 
-    ||
-
-    document.querySelector(
-        ".sidebar-overlay"
     );
+
+
+
+
 
 
 
@@ -628,7 +1124,7 @@ initDOMReferences(){
 
     document.querySelectorAll(
 
-        "#sidebarNav a, .nav-item, [data-target]"
+        "[data-target]"
 
     );
 
@@ -640,14 +1136,22 @@ initDOMReferences(){
 
 
 
+    // ===============================
     // PREVIEW
+    // ===============================
 
 
     this.previewPane =
 
     document.getElementById(
+
         "preview-pane"
+
     );
+
+
+
+
 
 
 
@@ -656,7 +1160,9 @@ initDOMReferences(){
     this.livePreviewIframe =
 
     document.getElementById(
+
         "live-preview-iframe"
+
     );
 
 
@@ -667,14 +1173,22 @@ initDOMReferences(){
 
 
 
+    // ===============================
     // AUTH
+    // ===============================
 
 
     this.loginPage =
 
     document.getElementById(
+
         "loginPage"
+
     );
+
+
+
+
 
 
 
@@ -683,8 +1197,14 @@ initDOMReferences(){
     this.studioApp =
 
     document.getElementById(
+
         "studioApp"
+
     );
+
+
+
+
 
 
 
@@ -693,8 +1213,14 @@ initDOMReferences(){
     this.loginForm =
 
     document.getElementById(
+
         "loginForm"
+
     );
+
+
+
+
 
 
 
@@ -703,8 +1229,14 @@ initDOMReferences(){
     this.userBox =
 
     document.getElementById(
+
         "userBox"
+
     );
+
+
+
+
 
 
 
@@ -713,12 +1245,16 @@ initDOMReferences(){
     this.toastContainer =
 
     document.getElementById(
+
         "toastContainer"
+
     );
 
 
 
 }
+
+
 
 
 
@@ -738,18 +1274,25 @@ initAuthState(){
 
 
     if(
+
         this.loginPage &&
+
         this.studioApp
+
     ){
 
 
 
         this.loginPage.style.display =
+
         "block";
 
 
 
+
+
         this.studioApp.style.display =
+
         "none";
 
 
@@ -768,8 +1311,10 @@ initAuthState(){
 
 
 
+
+
 // ==========================================================
-// EVENT LISTENERS
+// GLOBAL EVENTS
 // ==========================================================
 
 
@@ -777,106 +1322,100 @@ initEventListeners(){
 
 
 
+    // LOGIN
+
+
     if(
-        this.btnChatMode
+
+        this.loginForm
+
     ){
 
 
 
-        this.btnChatMode
-        .addEventListener(
+        logincontroller.init(
 
-            "click",
+            "loginForm"
 
-            ()=>{
-
-
-
-                this.currentMode =
-                "chat";
+        );
 
 
 
-                this.liveMode =
-                false;
+    }
 
 
 
-                agentstudio?.setmode(
-                    "chat"
+
+
+
+
+
+
+    document.addEventListener(
+
+        "user-login",
+
+        event=>{
+
+
+
+            const user =
+
+            event.detail;
+
+
+
+
+
+
+
+            if(user){
+
+
+
+                Store.setState(
+
+                    "isAuthenticated",
+
+                    true
+
                 );
 
 
 
-                this.btnChatMode
-                .classList
-                .add(
-                    "active"
+
+
+
+
+                this.updateUserInterface(
+
+                    user
+
                 );
 
 
 
-                this.btnLiveMode
-                ?.classList
-                .remove(
-                    "active"
+
+
+
+
+                this.showToast(
+
+                    `Bem-vindo, ${user.name}!`,
+
+                    "success"
+
                 );
-
-
-
-                liveclient?.stop?.();
 
 
 
             }
 
 
-        );
-
-
-
-    }// ==========================================================
-// CHAT EVENTS
-// ==========================================================
-
-
-        if(
-            this.promptTextarea
-        ){
-
-
-            this.promptTextarea
-            .addEventListener(
-
-                "keydown",
-
-                (e)=>{
-
-
-                    if(
-                        e.key === "Enter" &&
-                        !e.shiftKey
-                    ){
-
-
-                        e.preventDefault();
-
-
-                        this.handleSubmitPrompt();
-
-
-
-                    }
-
-
-                }
-
-
-            );
-
 
         }
 
+    );
 
 
 
@@ -884,238 +1423,27 @@ initEventListeners(){
 
 
 
-        if(
-            this.btnSend
-        ){
 
 
+    // CHAT SEND
 
-            this.btnSend
-            .addEventListener(
 
-                "click",
+    if(
 
-                ()=>{
+        this.btnSend
 
+    ){
 
-                    this.handleSubmitPrompt();
 
 
+        this.btnSend.addEventListener(
 
-                }
+            "click",
 
-            );
+            ()=>{
 
 
-
-        }
-
-
-
-
-
-
-
-
-        if(
-            this.btnAttach &&
-            this.fileUploadInput
-        ){
-
-
-
-            this.btnAttach
-            .addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.fileUploadInput.click();
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-        if(
-            this.fileUploadInput
-        ){
-
-
-
-            this.fileUploadInput
-            .addEventListener(
-
-                "change",
-
-                (e)=>{
-
-
-                    this.handleFileUpload(e);
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        if(
-            this.btnRemoveAttachment
-        ){
-
-
-
-            this.btnRemoveAttachment
-            .addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.clearAttachment();
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-        if(
-            this.btnVoice
-        ){
-
-
-
-            this.btnVoice
-            .addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.handleVoiceInput();
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-        // LOGIN
-
-
-        if(
-            this.loginForm
-        ){
-
-
-            logincontroller.init(
-                "loginForm"
-            );
-
-
-        }
-
-
-
-
-
-
-
-
-
-        document.addEventListener(
-
-            "user-login",
-
-            (e)=>{
-
-
-                const user =
-                e.detail;
-
-
-
-                if(user){
-
-
-
-                    Store.setState(
-
-                        "isAuthenticated",
-
-                        true
-
-                    );
-
-
-
-                    this.updateUserInterface(
-                        user
-                    );
-
-
-
-                    this.showToast(
-
-                        `Bem-vindo, ${user.name}!`,
-
-                        "success"
-
-                    );
-
-
-                }
+                this.handleSubmitPrompt();
 
 
             }
@@ -1134,8 +1462,326 @@ initEventListeners(){
 
 
 
+    if(
+
+        this.promptTextarea
+
+    ){
+
+
+
+        this.promptTextarea.addEventListener(
+
+            "keydown",
+
+            event=>{
+
+
+
+                if(
+
+                    event.key === "Enter"
+
+                    &&
+
+                    !event.shiftKey
+
+                ){
+
+
+
+                    event.preventDefault();
+
+
+
+                    this.handleSubmitPrompt();
+
+
+
+                }
+
+
+
+            }
+
+        );
+
+
+
+    }/*
+==========================================================
+CHAT EVENTS CONTINUATION
+==========================================================
+*/
+
+
+        if(
+
+            this.btnAttach &&
+
+            this.fileUploadInput
+
+        ){
+
+
+
+            this.btnAttach.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    this.fileUploadInput.click();
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        if(
+
+            this.fileUploadInput
+
+        ){
+
+
+
+            this.fileUploadInput.addEventListener(
+
+                "change",
+
+                event=>{
+
+
+                    this.handleFileUpload(event);
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        if(
+
+            this.btnRemoveAttachment
+
+        ){
+
+
+
+            this.btnRemoveAttachment.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    this.clearAttachment();
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        if(
+
+            this.btnVoice
+
+        ){
+
+
+
+            this.btnVoice.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+                    this.handleVoiceInput();
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        // MOBILE MENU
+
+
+        if(
+
+            this.btnToggleMenu
+
+        ){
+
+
+
+            this.btnToggleMenu.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+
+                    this.sidebar
+
+                    ?.classList
+
+                    .add(
+
+                        "open"
+
+                    );
+
+
+
+                    this.sidebarOverlay
+
+                    ?.classList
+
+                    .add(
+
+                        "active"
+
+                    );
+
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        if(
+
+            this.sidebarOverlay
+
+        ){
+
+
+
+            this.sidebarOverlay.addEventListener(
+
+                "click",
+
+                ()=>{
+
+
+
+                    this.sidebar
+
+                    ?.classList
+
+                    .remove(
+
+                        "open"
+
+                    );
+
+
+
+                    this.sidebarOverlay
+
+                    ?.classList
+
+                    .remove(
+
+                        "active"
+
+                    );
+
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================================
-// SEND MESSAGE TO HONEY IA
+// SEND PROMPT TO HONEY IA
 // ==========================================================
 
 
@@ -1159,12 +1805,24 @@ async handleSubmitPrompt(){
 
 
 
+
+
+
+
     const fileBase64 =
+
     Store.state.selectedFileBase64;
 
 
 
+
+
+
+
+
+
     const fileName =
+
     Store.state.selectedFileName;
 
 
@@ -1174,10 +1832,15 @@ async handleSubmitPrompt(){
 
 
 
+
     if(
+
         !text &&
+
         !fileBase64
+
     )
+
     return;
 
 
@@ -1204,7 +1867,7 @@ async handleSubmitPrompt(){
 
 
 
-    const agentMessage =
+    const loadingMessage =
 
     this.createAgentMessagePlaceholder();
 
@@ -1217,11 +1880,15 @@ async handleSubmitPrompt(){
 
 
     if(
+
         this.promptTextarea
+
     ){
 
 
+
         this.promptTextarea.value =
+
         "";
 
 
@@ -1240,13 +1907,51 @@ async handleSubmitPrompt(){
 
 
 
+        const activeAgent =
+
+
+
+        agentstudio &&
+
+        typeof agentstudio.getAgent ===
+
+        "function"
+
+
+
+        ?
+
+
+
+        agentstudio.getAgent()
+
+
+
+        :
+
+
+
+        Store.state.selectedAgent;
+
+
+
+
+
+
+
+
+
         const payload = {
 
 
 
             prompt:
 
+
+
             text,
+
+
 
 
 
@@ -1256,26 +1961,8 @@ async handleSubmitPrompt(){
 
 
 
-            agentstudio &&
+            activeAgent,
 
-            typeof agentstudio.getAgent ===
-            "function"
-
-
-
-            ?
-
-
-
-            agentstudio.getAgent()
-
-
-
-            :
-
-
-
-            Store.state.selectedAgent,
 
 
 
@@ -1297,36 +1984,41 @@ async handleSubmitPrompt(){
 
 
 
+
             workspaceContext:{
 
 
 
                 session:
 
+
+
                 Store.state.sessionId,
+
+
 
 
 
                 platform:
 
-                "Honey IA Workspace"
+
+
+                "Honey IA Studio",
+
+
+
+
+
+                workspace:
+
+
+
+                Store.state.workspace
 
 
 
             },
 
-
-
-
-
-
-
-
-            memory:
-
-
-
-            [],
 
 
 
@@ -1360,6 +2052,7 @@ async handleSubmitPrompt(){
 
 
             payload.anexoBase64 =
+
             fileBase64;
 
 
@@ -1383,9 +2076,16 @@ async handleSubmitPrompt(){
             {
 
 
+
                 method:
 
+
+
                 "POST",
+
+
+
+
 
 
 
@@ -1395,6 +2095,8 @@ async handleSubmitPrompt(){
 
                     "Content-Type":
 
+
+
                     "application/json"
 
 
@@ -1403,10 +2105,18 @@ async handleSubmitPrompt(){
 
 
 
+
+
+
+
                 body:
 
+
+
                 JSON.stringify(
+
                     payload
+
                 )
 
 
@@ -1424,6 +2134,7 @@ async handleSubmitPrompt(){
 
 
         const data =
+
         await response.json();
 
 
@@ -1435,7 +2146,9 @@ async handleSubmitPrompt(){
 
 
         if(
+
             !response.ok
+
         ){
 
 
@@ -1460,11 +2173,19 @@ async handleSubmitPrompt(){
 
 
 
-        const aiResponse =
+        const answer =
+
+
 
         data.response ||
 
-        "Sem resposta gerada.";
+
+
+        data.resposta ||
+
+
+
+        "Sem resposta.";
 
 
 
@@ -1476,8 +2197,9 @@ async handleSubmitPrompt(){
 
         const content =
 
-        agentMessage
-        .querySelector(
+        loadingMessage
+
+        ?.querySelector(
 
             ".message-content"
 
@@ -1497,17 +2219,27 @@ async handleSubmitPrompt(){
 
             content.innerHTML =
 
+
+
             window.marked
 
             ?
 
+
+
             window.marked.parse(
-                aiResponse
+
+                answer
+
             )
+
+
 
             :
 
-            aiResponse;
+
+
+            answer;
 
 
 
@@ -1527,11 +2259,17 @@ async handleSubmitPrompt(){
 
             role:
 
+
+
             "user",
 
 
 
+
+
             content:
+
+
 
             text
 
@@ -1546,23 +2284,68 @@ async handleSubmitPrompt(){
 
 
 
+
         Store.state.conversation.push({
 
 
 
             role:
 
+
+
             "assistant",
+
+
 
 
 
             content:
 
-            aiResponse
+
+
+            answer
 
 
 
         });
+
+
+
+
+
+
+
+
+
+        EventBusInstance.emit(
+
+            "conversationUpdated",
+
+            {
+
+                agent:
+
+                activeAgent,
+
+                answer
+
+            }
+
+        );
+
+
+
+
+
+
+
+
+
+        this.detectAndRenderPreview(
+
+            answer
+
+        );
 
 
 
@@ -1584,7 +2367,8 @@ async handleSubmitPrompt(){
 
         const content =
 
-        agentMessage
+        loadingMessage
+
         ?.querySelector(
 
             ".message-content"
@@ -1593,27 +2377,49 @@ async handleSubmitPrompt(){
 
 
 
+
+
+
+
+
+
         if(content){
+
 
 
             content.innerHTML =
 
 
-            `Erro:
-            ${error.message}`;
 
+            `Erro:
+
+            ${error.message}`;
 
         }
 
 
 
-    }
 
 
 
-}// ==========================================================
-// LIVE MODE
-// ==========================================================
+
+
+
+        this.showToast(
+
+            "Falha ao comunicar com Honey IA",
+
+            "error"
+
+        );
+
+
+
+    }/*
+==========================================================
+LIVE MODE
+==========================================================
+*/
 
 
 async startLiveMode(){
@@ -1632,20 +2438,51 @@ async startLiveMode(){
 
 
 
+
+
+
+
         if(
+
             result &&
+
             result.success
+
         ){
 
 
 
             this.currentMode =
+
             "live";
 
 
 
+
+
+
+
             this.liveMode =
+
             true;
+
+
+
+
+
+
+
+            EventBusInstance.emit(
+
+                "liveStarted",
+
+                result
+
+            );
+
+
+
+
 
 
 
@@ -1693,6 +2530,8 @@ async startLiveMode(){
 
 
 
+
+
 // ==========================================================
 // VOICE INPUT
 // ==========================================================
@@ -1704,9 +2543,17 @@ handleVoiceInput(){
 
     const SpeechRecognition =
 
+
+
     window.SpeechRecognition ||
 
+
+
     window.webkitSpeechRecognition;
+
+
+
+
 
 
 
@@ -1718,7 +2565,7 @@ handleVoiceInput(){
 
         this.showToast(
 
-            "Reconhecimento de voz não disponível.",
+            "Reconhecimento de voz indisponível.",
 
             "error"
 
@@ -1740,9 +2587,7 @@ handleVoiceInput(){
 
 
 
-    if(
-        this.voiceActive
-    ){
+    if(this.voiceActive){
 
 
 
@@ -1751,6 +2596,7 @@ handleVoiceInput(){
 
 
         this.voiceActive =
+
         false;
 
 
@@ -1777,15 +2623,29 @@ handleVoiceInput(){
 
 
 
+
+
+
+
     this.voiceRecognition =
+
     recognition;
 
 
 
 
 
+
+
+
+
     recognition.lang =
+
     "pt-PT";
+
+
+
+
 
 
 
@@ -1797,8 +2657,17 @@ handleVoiceInput(){
 
 
 
+
+
+
+
     this.voiceActive =
+
     true;
+
+
+
+
 
 
 
@@ -1806,31 +2675,41 @@ handleVoiceInput(){
 
     recognition.onresult =
 
-    (event)=>{
+    event=>{
 
 
 
         const text =
 
         event.results[0][0]
+
         .transcript;
 
 
 
 
 
-        if(
-            this.promptTextarea
-        ){
+
+
+
+
+        if(this.promptTextarea){
 
 
 
             this.promptTextarea.value =
+
             text;
 
 
 
         }
+
+
+
+
+
+
 
 
 
@@ -1847,16 +2726,21 @@ handleVoiceInput(){
 
 
 
+
     recognition.onerror =
 
     ()=>{
 
 
+
         this.voiceActive =
+
         false;
 
 
+
     };
+
 
 
 
@@ -1870,8 +2754,11 @@ handleVoiceInput(){
     ()=>{
 
 
+
         this.voiceActive =
+
         false;
+
 
 
     };
@@ -1888,8 +2775,10 @@ handleVoiceInput(){
 
 
 
+
+
 // ==========================================================
-// FILE UPLOAD
+// FILE MANAGEMENT
 // ==========================================================
 
 
@@ -1905,8 +2794,17 @@ handleFileUpload(event){
 
 
 
+
+
+
+
     if(!file)
+
     return;
+
+
+
+
 
 
 
@@ -1927,6 +2825,7 @@ handleFileUpload(event){
 
 
 
+
     const reader =
 
     new FileReader();
@@ -1935,9 +2834,13 @@ handleFileUpload(event){
 
 
 
+
+
+
+
     reader.onload =
 
-    (e)=>{
+    e=>{
 
 
 
@@ -1957,7 +2860,15 @@ handleFileUpload(event){
 
 
 
-    reader.readAsDataURL(file);
+
+
+
+
+    reader.readAsDataURL(
+
+        file
+
+    );
 
 
 
@@ -1966,13 +2877,13 @@ handleFileUpload(event){
 
 
 
-    if(
-        this.attachedFileName
-    ){
+
+    if(this.attachedFileName){
 
 
 
         this.attachedFileName.textContent =
+
         file.name;
 
 
@@ -1985,10 +2896,16 @@ handleFileUpload(event){
 
 
 
+
+
     this.attachmentBar
+
     ?.classList
+
     .remove(
+
         "hidden"
+
     );
 
 
@@ -2017,6 +2934,12 @@ clearAttachment(){
 
 
 
+
+
+
+
+
+
     Store.setState(
 
         "selectedFileName",
@@ -2029,13 +2952,16 @@ clearAttachment(){
 
 
 
-    if(
-        this.fileUploadInput
-    ){
+
+
+
+
+    if(this.fileUploadInput){
 
 
 
         this.fileUploadInput.value =
+
         "";
 
 
@@ -2046,10 +2972,18 @@ clearAttachment(){
 
 
 
+
+
+
+
     this.attachmentBar
+
     ?.classList
+
     .add(
+
         "hidden"
+
     );
 
 
@@ -2064,22 +2998,30 @@ clearAttachment(){
 
 
 
+
+
 // ==========================================================
-// CHAT UI
+// CHAT UI HELPERS
 // ==========================================================
 
 
 appendUserMessage(
+
     text,
+
     file
+
 ){
 
 
 
-    if(
-        !this.chatFeed
-    )
+    if(!this.chatFeed)
+
     return;
+
+
+
+
 
 
 
@@ -2088,15 +3030,26 @@ appendUserMessage(
     const div =
 
     document.createElement(
+
         "div"
+
     );
 
 
 
 
 
+
+
+
+
     div.className =
+
     "user-message";
+
+
+
+
 
 
 
@@ -2105,27 +3058,29 @@ appendUserMessage(
     div.innerHTML = `
 
 
-    ${
 
-        file
+        ${
 
-        ?
+            file
 
-        "📎 " + file
+            ?
 
-        :
+            "📎 " + file
 
-        ""
+            :
 
-    }
+            ""
+
+        }
 
 
 
-    <div>
+        <div>
 
-    ${text}
+        ${text}
 
-    </div>
+        </div>
+
 
 
     `;
@@ -2134,9 +3089,19 @@ appendUserMessage(
 
 
 
+
+
+
+
     this.chatFeed.appendChild(
+
         div
+
     );
+
+
+
+
 
 
 
@@ -2163,15 +3128,26 @@ createAgentMessagePlaceholder(){
     const div =
 
     document.createElement(
+
         "div"
+
     );
 
 
 
 
 
+
+
+
+
     div.className =
+
     "agent-message";
+
+
+
+
 
 
 
@@ -2180,18 +3156,21 @@ createAgentMessagePlaceholder(){
     div.innerHTML = `
 
 
-    <div>
 
-    🐝 <strong>Honey IA</strong>
+        <div>
 
-    </div>
+        🐝 <strong>Honey IA</strong>
+
+        </div>
 
 
-    <div class="message-content">
 
-    A processar...
+        <div class="message-content">
 
-    </div>
+        A processar...
+
+        </div>
+
 
 
     `;
@@ -2200,16 +3179,31 @@ createAgentMessagePlaceholder(){
 
 
 
+
+
+
+
     this.chatFeed
+
     ?.appendChild(
+
         div
+
     );
 
 
 
 
 
+
+
+
+
     this.scrollToBottom();
+
+
+
+
 
 
 
@@ -2233,9 +3227,7 @@ scrollToBottom(){
 
 
 
-    if(
-        this.chatFeed
-    ){
+    if(this.chatFeed){
 
 
 
@@ -2259,8 +3251,10 @@ scrollToBottom(){
 
 
 
+
+
 // ==========================================================
-// MARKDOWN
+// MARKDOWN ENGINE
 // ==========================================================
 
 
@@ -2268,16 +3262,16 @@ initMarkdownEngine(){
 
 
 
-    if(
-        window.marked
-    ){
+    if(window.marked){
 
 
 
         window.marked.setOptions({
 
 
+
             breaks:true,
+
 
 
             gfm:true
@@ -2302,8 +3296,10 @@ initMarkdownEngine(){
 
 
 
+
+
 // ==========================================================
-// PREVIEW HTML
+// HTML LIVE PREVIEW
 // ==========================================================
 
 
@@ -2311,10 +3307,13 @@ detectAndRenderPreview(text){
 
 
 
-    if(
-        !this.livePreviewIframe
-    )
+    if(!this.livePreviewIframe)
+
     return;
+
+
+
+
 
 
 
@@ -2335,21 +3334,34 @@ detectAndRenderPreview(text){
 
 
 
+
     if(
+
         match &&
+
         match[1]
+
     ){
 
 
 
         const doc =
 
+
+
         this.livePreviewIframe
+
         .contentDocument ||
 
         this.livePreviewIframe
+
         .contentWindow
+
         .document;
+
+
+
+
 
 
 
@@ -2360,7 +3372,9 @@ detectAndRenderPreview(text){
 
 
         doc.write(
+
             match[1]
+
         );
 
 
@@ -2371,13 +3385,16 @@ detectAndRenderPreview(text){
 
 
 
-        if(
-            this.previewPane
-        ){
+
+
+
+
+        if(this.previewPane){
 
 
 
             this.previewPane.style.display =
+
             "block";
 
 
@@ -2400,22 +3417,30 @@ detectAndRenderPreview(text){
 
 
 
+
+
 // ==========================================================
-// TOAST
+// TOAST SYSTEM
 // ==========================================================
 
 
 showToast(
+
     message,
+
     type="info"
+
 ){
 
 
 
-    if(
-        !this.toastContainer
-    )
+    if(!this.toastContainer)
+
     return;
+
+
+
+
 
 
 
@@ -2424,30 +3449,52 @@ showToast(
     const toast =
 
     document.createElement(
+
         "div"
+
     );
+
+
+
+
 
 
 
 
 
     toast.className =
+
     `toast ${type}`;
 
 
 
 
 
-    toast.innerHTML = message;
+
+
+
+
+    toast.innerHTML =
+
+    message;
 
 
 
 
 
-    this.toastContainer
-    .appendChild(
+
+
+
+
+    this.toastContainer.appendChild(
+
         toast
+
     );
+
+
+
+
 
 
 
@@ -2456,7 +3503,9 @@ showToast(
     setTimeout(()=>{
 
 
+
         toast.remove();
+
 
 
     },3500);
@@ -2473,8 +3522,10 @@ showToast(
 
 
 
+
+
 // ==========================================================
-// MODALS
+// MODAL ACTIONS
 // ==========================================================
 
 
@@ -2483,10 +3534,15 @@ initModalsAndUiActions(){
 
 
     document
+
     .querySelectorAll(
+
         "[data-close]"
+
     )
+
     .forEach(button=>{
+
 
 
         button.addEventListener(
@@ -2494,6 +3550,7 @@ initModalsAndUiActions(){
             "click",
 
             ()=>{
+
 
 
                 const modal =
@@ -2506,7 +3563,12 @@ initModalsAndUiActions(){
 
 
 
+
+
+
+
                 modal?.remove();
+
 
 
             }
@@ -2525,13 +3587,76 @@ initModalsAndUiActions(){
 
 
 
+
+
+
+
+
+
+// ==========================================================
+// APPLICATION START
+// ==========================================================
+
+
+init(){
+
+
+
+    if(this.initialized)
+
+    return;
+
+
+
+
+
+
+
+
+
+    this.initialized =
+
+    true;
+
+
+
+
+
+
+
+
+
+    console.log(
+
+        "🐝 Honey IA V8 iniciado",
+
+        SESSION_ID
+
+    );
+
+
+
 }
 
 
 
+}
+
+
+
+
+
+
+
+
+
 // ==========================================================
-// START APPLICATION
+// EXPORT INSTANCE
 // ==========================================================
 
 
 export default new HoneyAIApp();
+
+
+
+}
