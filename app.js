@@ -25,6 +25,7 @@ import logincontroller from "./login.js";
 import userprofile from "./userprofile.js";
 
 
+import authmanager from "./auth.js";
 
 
 
@@ -33,6 +34,48 @@ const SESSION_ID =
 crypto.randomUUID();
 
 
+/* =========================================
+   HONEY IA - APP PRINCIPAL & LOGIN BINDING
+========================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const loginPage = document.getElementById("loginPage");
+    const studioApp = document.getElementById("studioApp");
+    const loginForm = document.getElementById("loginForm");
+
+    // 1. Verifica se o utilizador já tem uma sessão ativa
+    if (authmanager.isAuthenticated()) {
+        if (loginPage) loginPage.style.display = "none";
+        if (studioApp) studioApp.style.display = "flex";
+        return;
+    }
+
+    // 2. Intercepta o envio do formulário de login presente no index.html
+    if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                // Tenta autenticar usando o authmanager
+                authmanager.login({ email, password });
+
+                // Oculta a página de login e revela o estúdio
+                if (loginPage) loginPage.style.display = "none";
+                if (studioApp) studioApp.style.display = "flex";
+
+                // Atualiza a página para carregar o workspace completo
+                location.reload();
+            } catch (err) {
+                alert(err.message || "Erro ao entrar. Verifique os seus dados.");
+            }
+        });
+    }
+});
+
+// ... (resto do seu código atual do app.js continua aqui em baixo)
 
 
 
