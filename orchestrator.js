@@ -1,9 +1,16 @@
 /*
 ==========================================
 HONEY IA OS
-ORCHESTRATOR ENGINE V4.0 (FULL PRODUCTION - OPTIMIZED)
+ORCHESTRATOR ENGINE V5.0
+FULL MULTI-AGENT PRODUCTION
+30 SPECIALIST AGENTS
 ==========================================
 */
+
+
+// ==========================================
+// CORE AGENTS
+// ==========================================
 
 import generalagent from "./agents/generalagent.js";
 import architectagent from "./agents/architectagent.js";
@@ -20,498 +27,2164 @@ import salesagent from "./agents/salesagent.js";
 import securityagent from "./agents/securityagent.js";
 import videoagent from "./agents/videoagent.js";
 
-/**
- * Registo Central de Todos os Agentes da Plataforma
- */
+
+// ==========================================
+// ENTERPRISE AGENTS
+// ==========================================
+
+import writeragent from "./agents/writeragent.js";
+import documentagent from "./agents/documentagent.js";
+import bankingagent from "./agents/bankingagent.js";
+import entrepreneuragent from "./agents/entrepreneuragent.js";
+import interiordesignagent from "./agents/interiordesignagent.js";
+import ecommerceagent from "./agents/ecommerceagent.js";
+import socialmediaagent from "./agents/socialmediaagent.js";
+import researchagent from "./agents/researchagent.js";
+import automationagent from "./agents/automationagent.js";
+import analyticsagent from "./agents/analyticsagent.js";
+import customeragent from "./agents/customeragent.js";
+import translationagent from "./agents/translationagent.js";
+import businessagent from "./agents/businessagent.js";
+import accountingagent from "./agents/accountingagent.js";
+import strategistagent from "./agents/strategistagent.js";
+
+
+
+// ==========================================
+// CENTRAL AGENT REGISTRY
+// ==========================================
+
+
 const agents_registry = {
+
+
     general: generalagent,
+
+
     architect: architectagent,
+
+
     designer: designeragent,
+
+
     developer: developeragent,
+
+
     education: educationagent,
+
+
     excel: excelagent,
+
+
     finance: financeagent,
+
+
     healthcare: healthcareagent,
+
+
     image: imageagent,
+
+
     legal: legalagent,
+
+
     marketing: marketingagent,
+
+
     sales: salesagent,
+
+
     security: securityagent,
-    video: videoagent
+
+
+    video: videoagent,
+
+
+
+    // ENTERPRISE
+
+
+    writer: writeragent,
+
+
+    document: documentagent,
+
+
+    banking: bankingagent,
+
+
+    entrepreneur: entrepreneuragent,
+
+
+    interiordesign: interiordesignagent,
+
+
+    ecommerce: ecommerceagent,
+
+
+    socialmedia: socialmediaagent,
+
+
+    research: researchagent,
+
+
+    automation: automationagent,
+
+
+    analytics: analyticsagent,
+
+
+    customer: customeragent,
+
+
+    translation: translationagent,
+
+
+    business: businessagent,
+
+
+    accounting: accountingagent,
+
+
+    strategist: strategistagent
+
+
 };
 
-/**
- * Garante que todos os agentes registados possuem um ID e Nome válidos por defeito
- */
-Object.entries(agents_registry).forEach(([key, agent]) => {
-    if (agent && typeof agent === "object") {
-        if (!agent.id) agent.id = key;
-        if (!agent.name) agent.name = `Agente ${key.charAt(0).toUpperCase() + key.slice(1)}`;
+
+
+// ==========================================
+// NORMALIZAÇÃO DOS AGENTES
+// ==========================================
+
+
+Object.entries(
+    agents_registry
+)
+.forEach(
+([key,agent])=>{
+
+
+    if(!agent)
+    return;
+
+
+
+    if(!agent.id){
+
+        agent.id = key;
+
     }
-});
 
-/**
- * Estado Global de Métricas e Telemetria do Orquestrador
- */
-const orchestrator_metrics = {
-    totalrequests: 0,
-    successfulrequests: 0,
-    failedrequests: 0,
-    agentexecutions: {},
-    tokenusage: {
-        prompttokens: 0,
-        completiontokens: 0,
-        totaltokens: 0
-    },
-    latencyhistory: [],
-    
-    recordrequest(agentid, latencyms, tokens = {}) {
-        const safeAgentId = agentid || "general";
-        this.totalrequests++;
-        this.successfulrequests++;
-        this.agentexecutions[safeAgentId] = (this.agentexecutions[safeAgentId] || 0) + 1;
-        
-        if (tokens.prompt_tokens) this.tokenusage.prompttokens += tokens.prompt_tokens;
-        if (tokens.completion_tokens) this.tokenusage.completiontokens += tokens.completion_tokens;
-        if (tokens.total_tokens) this.tokenusage.totaltokens += tokens.total_tokens;
 
-        this.latencyhistory.push(latencyms);
-        if (this.latencyhistory.length > 100) this.latencyhistory.shift();
-    },
 
-    recordfailure(agentid) {
-        const safeAgentId = agentid || "general";
-        this.totalrequests++;
-        this.failedrequests++;
-        this.agentexecutions[safeAgentId] = (this.agentexecutions[safeAgentId] || 0) + 1;
-    },
+    if(!agent.name){
 
-    getaveragelatency() {
-        if (this.latencyhistory.length === 0) return 0;
-        const sum = this.latencyhistory.reduce((a, b) => a + b, 0);
-        return Math.round(sum / this.latencyhistory.length);
+        agent.name =
+        `Agente ${key}`;
+
     }
-};
 
-/**
- * Motor Central de Roteamento e Seleção de Agentes
- */
+
+
+    if(!agent.tools){
+
+        agent.tools = [];
+
+    }
+
+
+
+    if(!agent.category){
+
+        agent.category =
+        "Tecnologia";
+
+    }
+
+
+
+});/*
+==========================================
+AGENT ROUTER
+SMART SPECIALIST SELECTION ENGINE
+==========================================
+*/
+
+
 export class agentrouter {
-    
-    static selectagent(usermessage = "", forcedagentid = null) {
-        const normalizedforcedid = forcedagentid ? String(forcedagentid).toLowerCase().trim() : null;
 
-        if (normalizedforcedid && agents_registry[normalizedforcedid]) {
+
+
+    static selectagent(
+        usermessage = "",
+        forcedagentid = null
+    ){
+
+
+
+        const normalizedforcedid =
+        forcedagentid
+        ?
+        String(forcedagentid)
+        .toLowerCase()
+        .trim()
+        :
+        null;
+
+
+
+
+
+        /*
+        ======================================
+        FORCE AGENT SELECTION
+        ======================================
+        */
+
+
+        if(
+            normalizedforcedid &&
+            agents_registry[normalizedforcedid]
+        ){
+
+
             return {
-                agent: agents_registry[normalizedforcedid],
-                score: 1.0,
-                reason: "forced_by_user"
+
+
+                agent:
+                agents_registry[
+                    normalizedforcedid
+                ],
+
+
+                score:1,
+
+
+                reason:
+                "forced_by_user"
+
+
+
             };
+
+
         }
 
-        if (!usermessage || typeof usermessage !== "string") {
+
+
+
+
+
+
+
+
+        /*
+        ======================================
+        DEFAULT FALLBACK
+        ======================================
+        */
+
+
+        if(
+            !usermessage ||
+            typeof usermessage !== "string"
+        ){
+
+
             return {
-                agent: generalagent,
-                score: 1.0,
-                reason: "default_fallback"
+
+
+                agent:
+                generalagent,
+
+
+                score:1,
+
+
+                reason:
+                "default_general"
+
+
+
             };
+
+
         }
 
-        const normalizedtext = usermessage.toLowerCase().trim();
-        let bestmatchagent = generalagent;
-        let highestscore = 0;
 
-        for (const [id, agent] of Object.entries(agents_registry)) {
-            if (id === "general") continue;
 
-            let currentscore = 0;
 
-            if (typeof agent.canHandle === "function") {
-                try {
-                    const canhandleresult = agent.canHandle(normalizedtext);
-                    if (canhandleresult === true) {
-                        currentscore += 0.8;
-                    } else if (typeof canhandleresult === "number") {
-                        currentscore += canhandleresult;
+
+
+
+
+
+        const text =
+        usermessage
+        .toLowerCase()
+        .trim();
+
+
+
+
+        let selected =
+        generalagent;
+
+
+
+        let bestScore = 0;
+
+
+
+
+
+
+
+
+
+        /*
+        ======================================
+        ANALYSIS OF ALL AGENTS
+        ======================================
+        */
+
+
+        for(
+            const [id,agent]
+            of Object.entries(
+                agents_registry
+            )
+        ){
+
+
+
+            if(!agent)
+            continue;
+
+
+
+            let score = 0;
+
+
+
+
+
+            /*
+            -------------------------------
+            Agent Custom Logic
+            -------------------------------
+            */
+
+
+            if(
+                typeof agent.canHandle ===
+                "function"
+            ){
+
+
+                try{
+
+
+                    const result =
+                    agent.canHandle(
+                        text
+                    );
+
+
+
+                    if(result === true){
+
+
+                        score += 0.8;
+
+
                     }
-                } catch (err) {
-                    console.warn(`[Orchestrator] Erro ao executar canHandle() no agente ${id}:`, err.message);
+
+
+                    else if(
+                        typeof result ===
+                        "number"
+                    ){
+
+
+                        score += result;
+
+
+                    }
+
+
+
                 }
+
+                catch(error){
+
+
+                    console.warn(
+
+                    `[Router] Erro no agente ${id}:`,
+                    error.message
+
+                    );
+
+
+                }
+
+
             }
 
-            if (Array.isArray(agent.keywords)) {
-                const keywordmatches = agent.keywords.filter(kw => normalizedtext.includes(kw.toLowerCase()));
-                if (keywordmatches.length > 0) {
-                    currentscore += Math.min(0.6, keywordmatches.length * 0.2);
+
+
+
+
+
+
+
+
+            /*
+            -------------------------------
+            Keyword Detection
+            -------------------------------
+            */
+
+
+            if(
+                Array.isArray(
+                    agent.keywords
+                )
+            ){
+
+
+                const matches =
+                agent.keywords
+                .filter(
+                    keyword =>
+                    text.includes(
+                        keyword
+                        .toLowerCase()
+                    )
+                );
+
+
+
+                if(
+                    matches.length
+                ){
+
+
+                    score +=
+                    Math.min(
+                        0.6,
+                        matches.length *
+                        0.2
+                    );
+
+
                 }
+
+
             }
 
-            if (currentscore > highestscore) {
-                highestscore = currentscore;
-                bestmatchagent = agent;
+
+
+
+
+
+
+
+
+            /*
+            -------------------------------
+            Description Matching
+            -------------------------------
+            */
+
+
+            if(
+                agent.description &&
+                text.includes(
+                    agent.description
+                    .toLowerCase()
+                )
+            ){
+
+
+                score += 0.2;
+
+
             }
+
+
+
+
+
+
+
+
+
+            if(
+                score >
+                bestScore
+            ){
+
+
+                bestScore =
+                score;
+
+
+
+                selected =
+                agent;
+
+
+
+            }
+
+
         }
 
-        if (highestscore < 0.3) {
+
+
+
+
+
+
+
+
+        /*
+        ======================================
+        LOW CONFIDENCE
+        ======================================
+        */
+
+
+        if(
+            bestScore < 0.3
+        ){
+
+
             return {
-                agent: generalagent,
-                score: 0.0,
-                reason: "low_confidence_fallback"
+
+
+                agent:
+                generalagent,
+
+
+                score:0,
+
+
+                reason:
+                "low_confidence"
+
+
+
             };
+
+
         }
+
+
+
+
+
+
+
+
 
         return {
-            agent: bestmatchagent,
-            score: Number(highestscore.toFixed(2)),
-            reason: "keyword_and_logic_match"
-        };
-    }
-}
 
-/**
- * Construtor de Contexto e Gerenciador de Prompts do Sistema
- */
+
+            agent:selected,
+
+
+            score:
+            Number(
+                bestScore
+                .toFixed(2)
+            ),
+
+
+
+            reason:
+            "smart_agent_match"
+
+
+
+        };
+
+
+
+    }
+
+
+}/*
+==========================================
+PROMPT FACTORY
+SYSTEM PROMPT GENERATION ENGINE
+==========================================
+*/
+
+
 export class promptfactory {
 
-    static extractsystemprompt(agent) {
-        if (!agent) return "Você é um assistente virtual da Honey IA.";
 
-        if (typeof agent.systemPrompt === "function") {
-            try {
+
+    /*
+    ======================================
+    EXTRACT AGENT SYSTEM PROMPT
+    ======================================
+    */
+
+
+    static extractsystemprompt(agent){
+
+
+
+        if(!agent){
+
+
+            return `
+            Você é a Honey IA,
+            uma inteligência artificial
+            profissional.
+            `;
+
+
+        }
+
+
+
+
+
+
+        if(
+            typeof agent.systemPrompt ===
+            "function"
+        ){
+
+
+            try{
+
+
                 return agent.systemPrompt();
-            } catch (err) {
-                console.error(`[Orchestrator] Erro ao invocar systemPrompt() do agente ${agent.id}:`, err);
+
+
+
             }
+
+            catch(error){
+
+
+                console.warn(
+
+                "[PromptFactory] Erro no systemPrompt:",
+                error.message
+
+                );
+
+
+            }
+
+
         }
-        
-        if (typeof agent.systemPrompt === "string") {
+
+
+
+
+
+
+
+
+        if(
+            typeof agent.systemPrompt ===
+            "string"
+        ){
+
+
             return agent.systemPrompt;
+
+
         }
 
-        if (agent.description) {
-            return `Você é o ${agent.name || "Agente Honey IA"}. ${agent.description}`;
+
+
+
+
+
+
+
+        return `
+
+        Você é ${agent.name || "um agente Honey IA"}.
+
+        Especialidade:
+        ${
+            agent.description ||
+            "Assistência inteligente profissional."
         }
 
-        return "Você é um assistente virtual da Honey IA.";
+        Responda de forma clara,
+        profissional e útil.
+
+        `;
+
+
+
     }
 
-    static injectworkspacecontext(baseprompt, workspacecontext = {}, usermemory = []) {
-        let enhancedprompt = baseprompt;
 
-        if (workspacecontext && Object.keys(workspacecontext).length > 0) {
-            enhancedprompt += "\n\n=== CONTEXTO DO WORKSPACE ATIVO ===";
-            if (workspacecontext.projectName) enhancedprompt += `\n- Projeto: ${workspacecontext.projectName}`;
-            if (workspacecontext.activeFile) enhancedprompt += `\n- Ficheiro em Foco: ${workspacecontext.activeFile}`;
-            if (workspacecontext.language) enhancedprompt += `\n- Linguagem/Tecnologia: ${workspacecontext.language}`;
-            if (workspacecontext.environment) enhancedprompt += `\n- Ambiente: ${workspacecontext.environment}`;
-        }
 
-        if (Array.isArray(usermemory) && usermemory.length > 0) {
-            enhancedprompt += "\n\n=== MEMÓRIA PERSISTENTE DO UTILIZADOR ===";
-            usermemory.forEach((mem, index) => {
-                enhancedprompt += `\n${index + 1}. ${mem}`;
-            });
-        }
 
-        return enhancedprompt;
-    }
 
-    static applymoderules(prompttext, mode = "text") {
-        if (mode === "live") {
-            return prompttext + `\n\n[INSTRUÇÕES DO MODO LIVE]:
-- Responda de forma extremamente natural, humana e fluida.
-- Use frases mais curtas e diretas ao ponto.
-- Evite blocos extensos de código ou listas muito longas a menos que estritamente solicitado.
-- Converse como um especialista numa chamada de voz em tempo real.`;
-        }
 
-        return prompttext + `\n\n[INSTRUÇÕES DO MODO TEXTO]:
-- Explique detalhadamente e de forma estruturada.
-- Utilize Markdown com tabelas, negritos e títulos quando apropriado.
-- Utilize blocos de código completos e formatados com sintaxe destacada.
-- Garanta respostas ricas, profissionais e bem explicadas.`;
-    }
 
-    static buildmessagespayload({ agent, userPrompt, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
-        const rawsystemprompt = this.extractsystemprompt(agent);
-        const promptwithcontext = this.injectworkspacecontext(rawsystemprompt, workspaceContext, userMemory);
-        const finalsystemprompt = this.applymoderules(promptwithcontext, mode);
 
-        let processeduserprompt = userPrompt;
-        if (typeof agent.before === "function") {
-            try {
-                processeduserprompt = agent.before(userPrompt);
-            } catch (err) {
-                console.warn(`[Orchestrator] Erro ao executar before() no agente ${agent.id}:`, err.message);
+
+    /*
+    ======================================
+    WORKSPACE CONTEXT INJECTION
+    ======================================
+    */
+
+
+    static injectworkspacecontext(
+
+        baseprompt,
+
+        workspaceContext = {},
+
+        userMemory = []
+
+    ){
+
+
+
+        let finalPrompt =
+        baseprompt;
+
+
+
+
+
+
+
+
+        if(
+            workspaceContext &&
+            Object.keys(
+                workspaceContext
+            ).length
+        ){
+
+
+            finalPrompt += `
+
+
+=== CONTEXTO DO WORKSPACE ===
+
+
+`;
+
+
+
+            if(
+                workspaceContext.projectName
+            ){
+
+
+                finalPrompt += `
+
+Projeto:
+${workspaceContext.projectName}
+
+`;
+
             }
+
+
+
+
+
+            if(
+                workspaceContext.activeFile
+            ){
+
+
+                finalPrompt += `
+
+Ficheiro ativo:
+${workspaceContext.activeFile}
+
+`;
+
+            }
+
+
+
+
+
+            if(
+                workspaceContext.language
+            ){
+
+
+                finalPrompt += `
+
+Tecnologia:
+${workspaceContext.language}
+
+`;
+
+            }
+
+
+
+
+
         }
 
-        const formattedhistory = history.map(msg => ({
-            role: msg.role === "user" ? "user" : "assistant",
-            content: msg.content || ""
-        }));
+
+
+
+
+
+
+
+
+        if(
+            Array.isArray(
+                userMemory
+            ) &&
+            userMemory.length
+        ){
+
+
+
+            finalPrompt += `
+
+
+=== MEMÓRIA DO UTILIZADOR ===
+
+`;
+
+
+
+            userMemory.forEach(
+
+                (memory,index)=>{
+
+
+                    finalPrompt += `
+
+${index + 1}.
+${memory}
+
+`;
+
+
+                }
+
+            );
+
+
+
+        }
+
+
+
+
+
+
+        return finalPrompt;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    MODE RULES
+    ======================================
+    */
+
+
+    static applymoderules(
+
+        prompt,
+
+        mode = "chat"
+
+    ){
+
+
+
+        if(
+            mode === "live"
+        ){
+
+
+            return prompt + `
+
+
+=== MODO LIVE ===
+
+- Responda naturalmente.
+- Seja direto.
+- Use frases curtas.
+- Fale como numa conversa em tempo real.
+
+
+`;
+
+
+
+        }
+
+
+
+
+
+
+
+
+        return prompt + `
+
+
+=== MODO TEXTO ===
+
+- Estruture a resposta.
+- Use Markdown quando necessário.
+- Explique como especialista.
+- Forneça soluções profissionais.
+
+
+`;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ======================================
+    BUILD GROQ MESSAGES
+    ======================================
+    */
+
+
+    static buildmessagespayload({
+
+        agent,
+
+        userPrompt,
+
+        history = [],
+
+        workspaceContext = {},
+
+        userMemory = [],
+
+        mode = "chat"
+
+
+    }){
+
+
+
+        let systemPrompt =
+        this.extractsystemprompt(
+            agent
+        );
+
+
+
+        systemPrompt =
+        this.injectworkspacecontext(
+
+            systemPrompt,
+
+            workspaceContext,
+
+            userMemory
+
+        );
+
+
+
+        systemPrompt =
+        this.applymoderules(
+
+            systemPrompt,
+
+            mode
+
+        );
+
+
+
+
+
+
+
+        const formattedHistory =
+        history.map(
+            item=>({
+
+
+                role:
+                item.role === "user"
+                ?
+                "user"
+                :
+                "assistant",
+
+
+                content:
+                item.content || ""
+
+
+            })
+        );
+
+
+
+
+
+
+
 
         return [
-            { role: "system", content: finalsystemprompt },
-            ...formattedhistory,
-            { role: "user", content: processeduserprompt }
+
+
+            {
+
+
+                role:"system",
+
+
+                content:
+                systemPrompt
+
+
+
+            },
+
+
+
+            ...formattedHistory,
+
+
+
+            {
+
+
+                role:"user",
+
+
+                content:
+                userPrompt
+
+
+
+            }
+
+
         ];
-    }
-}
 
-/**
- * Gestor e Orquestrador de Ferramentas / Plugins (Tools)
- */
+
+
+    }
+
+
+}/*
+==========================================
+TOOLS ORCHESTRATOR
+AGENT CAPABILITIES MANAGER
+==========================================
+*/
+
+
 export class toolorchestrator {
-    
-    static getavailabletools(agent) {
-        if (!agent || !agent.tools || !Array.isArray(agent.tools)) return undefined;
 
-        const toolsdefinitions = [];
 
-        if (agent.tools.includes("web")) {
-            toolsdefinitions.push({
-                type: "function",
-                function: {
-                    name: "web_search",
-                    description: "Pesquisa informações atualizadas na web em tempo real.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            query: { type: "string", description: "Termo de pesquisa para a web" }
-                        },
-                        required: ["query"]
-                    }
-                }
-            });
+
+    static getavailabletools(agent){
+
+
+
+        if(
+            !agent ||
+            !Array.isArray(agent.tools)
+        ){
+
+            return undefined;
+
         }
 
-        if (agent.tools.includes("analytics")) {
-            toolsdefinitions.push({
-                type: "function",
-                function: {
-                    name: "get_analytics",
-                    description: "Obtém métricas de desempenho e relatórios do workspace.",
-                    parameters: {
-                        type: "object",
-                        properties: {
-                            metricType: { type: "string", description: "Tipo de métrica (vendas, acessos, conversão)" }
+
+
+
+
+
+
+
+        const tools = [];
+
+
+
+
+
+
+
+
+
+        if(
+            agent.tools.includes(
+                "web"
+            )
+        ){
+
+
+            tools.push({
+
+
+                type:"function",
+
+
+                function:{
+
+
+                    name:
+                    "web_search",
+
+
+
+                    description:
+                    "Pesquisa informações atualizadas.",
+
+
+
+                    parameters:{
+
+
+                        type:"object",
+
+
+                        properties:{
+
+
+                            query:{
+
+
+                                type:"string"
+
+
+                            }
+
+
                         },
-                        required: ["metricType"]
+
+
+                        required:[
+                            "query"
+                        ]
+
+
                     }
+
+
                 }
+
+
             });
+
+
         }
 
-        return toolsdefinitions.length > 0 ? toolsdefinitions : undefined;
+
+
+
+
+
+
+
+
+        if(
+            agent.tools.includes(
+                "analytics"
+            )
+        ){
+
+
+            tools.push({
+
+
+                type:"function",
+
+
+                function:{
+
+
+                    name:
+                    "get_analytics",
+
+
+
+                    description:
+                    "Obtém métricas do sistema.",
+
+
+
+                    parameters:{
+
+
+                        type:"object",
+
+
+                        properties:{
+
+
+                            metric:{
+
+
+                                type:"string"
+
+
+                            }
+
+
+                        },
+
+
+                        required:[
+                            "metric"
+                        ]
+
+
+                    }
+
+
+                }
+
+
+            });
+
+
+        }
+
+
+
+
+
+
+
+
+
+        return tools.length
+        ?
+        tools
+        :
+        undefined;
+
+
+
     }
+
+
 }
 
-/**
- * CLASSE PRINCIPAL: ORCHESTRATOR ENGINE V4.0
- */
+
+
+
+
+
+
+
+
+/*
+==========================================
+ORCHESTRATOR MAIN ENGINE
+==========================================
+*/
+
+
 export class Orchestrator {
-    
-    constructor(groqsdkclient = null) {
-        this.groq = groqsdkclient;
+
+
+
+    constructor(
+        groqClient = null
+    ){
+
+
+        this.groq =
+        groqClient;
+
+
     }
 
-    setGroqClient(client) {
-        this.groq = client;
+
+
+
+
+
+
+
+
+    setGroqClient(client){
+
+
+        this.groq =
+        client;
+
+
     }
 
-    async processRequest({ userPrompt, agentId = null, history = [], workspaceContext = {}, userMemory = [], mode = "text" }) {
-        const starttime = Date.now();
 
-        const selection = agentrouter.selectagent(userPrompt, agentId);
-        const selectedagent = selection.agent;
 
-        try {
-            const messages = promptfactory.buildmessagespayload({
-                agent: selectedagent,
+
+
+
+
+
+
+    async processRequest({
+
+        userPrompt,
+
+        agentId = null,
+
+        history = [],
+
+        workspaceContext = {},
+
+        userMemory = [],
+
+        mode = "chat"
+
+
+    }){
+
+
+
+        const start =
+        Date.now();
+
+
+
+
+
+
+
+
+
+        const selection =
+        agentrouter.selectagent(
+
+            userPrompt,
+
+            agentId
+
+        );
+
+
+
+        const agent =
+        selection.agent;
+
+
+
+
+
+
+
+
+
+        try{
+
+
+
+            if(
+                !this.groq
+            ){
+
+
+                throw new Error(
+
+                "Groq SDK não inicializada."
+
+                );
+
+
+            }
+
+
+
+
+
+
+
+
+
+            const messages =
+            promptfactory
+            .buildmessagespayload({
+
+
+                agent,
+
+
                 userPrompt,
+
+
                 history,
+
+
                 workspaceContext,
+
+
                 userMemory,
+
+
                 mode
+
+
+
             });
 
-            const model = selectedagent.model || "llama-3.3-70b-versatile";
-            const temperature = selectedagent.temperature ?? 0.5;
-            const max_tokens = selectedagent.maxTokens || 4096;
-            const tools = toolorchestrator.getavailabletools(selectedagent);
 
-            if (!this.groq) {
-                throw new Error("[Orchestrator] SDK da Groq não foi inicializada no Orchestrator.");
-            }
 
-            const apipayload = {
-                model,
+
+
+
+
+
+
+            const tools =
+            toolorchestrator
+            .getavailabletools(
+                agent
+            );
+
+
+
+
+
+
+
+
+
+            const payload = {
+
+
+                model:
+
+                agent.model ||
+
+                "llama-3.3-70b-versatile",
+
+
+
                 messages,
-                temperature,
-                max_tokens
+
+
+
+                temperature:
+
+                agent.temperature ??
+
+                0.5,
+
+
+
+                max_tokens:
+
+                agent.maxTokens ||
+
+                4096
+
+
+
             };
 
-            if (tools) apipayload.tools = tools;
 
-            const completion = await this.groq.chat.completions.create(apipayload);
 
-            let rawoutput = completion.choices[0]?.message?.content || "";
 
-            let finaloutput = rawoutput;
-            if (typeof selectedagent.after === "function") {
-                try {
-                    finaloutput = selectedagent.after(rawoutput);
-                } catch (err) {
-                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedagent.id}:`, err.message);
-                }
+
+
+
+
+
+            if(tools){
+
+
+                payload.tools =
+                tools;
+
+
             }
 
-            const latencyms = Date.now() - starttime;
-            orchestrator_metrics.recordrequest(selectedagent.id, latencyms, completion.usage || {});
+
+
+
+
+
+
+
+
+            const completion =
+            await this.groq
+            .chat
+            .completions
+            .create(
+                payload
+            );
+
+
+
+
+
+
+
+
+
+            let response =
+
+            completion
+            .choices[0]
+            ?.message
+            ?.content
+
+            ||
+
+            "Sem resposta gerada.";
+
+
+
+
+
+
+
+
+
+            if(
+                typeof agent.after ===
+                "function"
+            ){
+
+
+                response =
+                agent.after(
+                    response
+                );
+
+
+            }
+
+
+
+
+
+
+
+
 
             return {
-                success: true,
-                agent: {
-                    id: selectedagent.id,
-                    name: selectedagent.name,
-                    emoji: selectedagent.emoji || "🤖"
+
+
+                success:true,
+
+
+
+                agent:{
+
+
+                    id:
+                    agent.id,
+
+
+                    name:
+                    agent.name,
+
+
+                    emoji:
+                    agent.emoji || "🤖"
+
+
+
                 },
-                routingInfo: {
-                    score: selection.score,
-                    reason: selection.reason
+
+
+
+                routing:{
+
+
+                    score:
+                    selection.score,
+
+
+                    reason:
+                    selection.reason
+
+
+
                 },
-                response: finaloutput,
-                toolCalls: completion.choices[0]?.message?.tool_calls || null,
-                metrics: {
-                    latencyms,
-                    tokens: completion.usage || null
-                }
+
+
+
+                response,
+
+
+
+                usage:
+                completion.usage || null,
+
+
+
+                latency:
+
+                Date.now() -
+                start
+
+
+
             };
 
-        } catch (error) {
-            console.error(`[Orchestrator] Falha ao processar requisição com agente ${selectedagent?.id}:`, error);
-            orchestrator_metrics.recordfailure(selectedagent?.id || "general");
 
-            return {
-                success: false,
-                agent: {
-                    id: selectedagent?.id || "general",
-                    name: selectedagent?.name || "Honey IA"
-                },
-                error: error.message || "Erro interno no processamento da Honey IA.",
-                metrics: {
-                    latencyms: Date.now() - starttime
-                }
-            };
+
         }
-    }
 
-    async processStream({ userPrompt, agentId = null, history = [], workspaceContext = {}, userMemory = [], mode = "text", onChunk, onComplete, onError }) {
-        const starttime = Date.now();
+        catch(error){
 
-        const selection = agentrouter.selectagent(userPrompt, agentId);
-        const selectedagent = selection.agent;
 
-        try {
-            const messages = promptfactory.buildmessagespayload({
-                agent: selectedagent,
-                userPrompt,
-                history,
-                workspaceContext,
-                userMemory,
-                mode
-            });
 
-            const model = selectedagent.model || "llama-3.3-70b-versatile";
-            const temperature = selectedagent.temperature ?? 0.5;
-            const max_tokens = selectedagent.maxTokens || 4096;
-            const tools = toolorchestrator.getavailabletools(selectedagent);
+            console.error(
 
-            if (!this.groq) {
-                throw new Error("[Orchestrator] SDK da Groq não foi inicializada no Orchestrator.");
-            }
+            "[Orchestrator Error]",
+            error
 
-            const apipayload = {
-                model,
-                messages,
-                temperature,
-                max_tokens,
-                stream: true
+            );
+
+
+
+            return {
+
+
+                success:false,
+
+
+                agent:{
+
+
+                    id:
+                    agent?.id ||
+                    "general"
+
+
+
+                },
+
+
+
+                error:
+                error.message
+
+
+
             };
 
-            if (tools) apipayload.tools = tools;
 
-            const stream = await this.groq.chat.completions.create(apipayload);
 
-            let fullcontent = "";
-            let toolCallsDetected = null;
+        }
 
-            for await (const chunk of stream) {
-                const delta = chunk.choices[0]?.delta;
-                const contentchunk = delta?.content || "";
-                
-                if (delta?.tool_calls) {
-                    toolCallsDetected = delta.tool_calls;
-                }
 
-                if (contentchunk) {
-                    fullcontent += contentchunk;
-                    if (typeof onChunk === "function") {
-                        onChunk(contentchunk);
+
+    }/*
+==========================================
+STREAM PROCESSING
+LIVE RESPONSE ENGINE
+==========================================
+*/
+
+
+    async processStream({
+
+        userPrompt,
+
+        agentId = null,
+
+        history = [],
+
+        workspaceContext = {},
+
+        userMemory = [],
+
+        mode = "live",
+
+        onChunk,
+
+        onComplete,
+
+        onError
+
+
+    }){
+
+
+
+        const start =
+        Date.now();
+
+
+
+
+
+        const selection =
+        agentrouter.selectagent(
+
+            userPrompt,
+
+            agentId
+
+        );
+
+
+
+        const agent =
+        selection.agent;
+
+
+
+
+
+
+
+        try{
+
+
+
+            if(
+                !this.groq
+            ){
+
+
+                throw new Error(
+                    "Groq SDK não inicializada."
+                );
+
+
+            }
+
+
+
+
+
+
+
+
+
+            const messages =
+            promptfactory
+            .buildmessagespayload({
+
+
+                agent,
+
+
+                userPrompt,
+
+
+                history,
+
+
+                workspaceContext,
+
+
+                userMemory,
+
+
+                mode
+
+
+
+            });
+
+
+
+
+
+
+
+
+
+            const stream =
+            await this.groq
+            .chat
+            .completions
+            .create({
+
+
+                model:
+
+                agent.model ||
+
+                "llama-3.3-70b-versatile",
+
+
+
+                messages,
+
+
+
+                temperature:
+
+                agent.temperature ??
+
+                0.5,
+
+
+
+                max_tokens:
+
+                agent.maxTokens ||
+
+                4096,
+
+
+
+                stream:true
+
+
+
+            });
+
+
+
+
+
+
+
+
+
+            let completeResponse = "";
+
+
+
+
+
+
+
+
+
+            for await(
+                const chunk
+                of stream
+            ){
+
+
+
+                const text =
+
+                chunk
+                .choices[0]
+                ?.delta
+                ?.content
+
+                ||
+
+                "";
+
+
+
+
+
+                if(text){
+
+
+
+                    completeResponse +=
+                    text;
+
+
+
+                    if(
+                        typeof onChunk ===
+                        "function"
+                    ){
+
+
+                        onChunk(
+                            text
+                        );
+
+
                     }
+
+
+
                 }
+
+
+
             }
 
-            let finaloutput = fullcontent;
-            if (typeof selectedagent.after === "function") {
-                try {
-                    finaloutput = selectedagent.after(fullcontent);
-                } catch (err) {
-                    console.warn(`[Orchestrator] Erro no método after() do agente ${selectedagent.id}:`, err.message);
-                }
+
+
+
+
+
+
+
+
+            let finalResponse =
+            completeResponse;
+
+
+
+
+
+
+
+
+
+            if(
+                typeof agent.after ===
+                "function"
+            ){
+
+
+
+                finalResponse =
+                agent.after(
+                    completeResponse
+                );
+
+
+
             }
 
-            const latencyms = Date.now() - starttime;
-            orchestrator_metrics.recordrequest(selectedagent.id, latencyms);
 
-            if (typeof onComplete === "function") {
-                onComplete({
-                    success: true,
-                    agent: {
-                        id: selectedagent.id,
-                        name: selectedagent.name,
-                        emoji: selectedagent.emoji || "🤖"
-                    },
-                    fullResponse: finaloutput,
-                    toolCalls: toolCallsDetected,
-                    metrics: { latencyms }
-                });
+
+
+
+
+
+
+
+            const result = {
+
+
+                success:true,
+
+
+
+                agent:{
+
+
+                    id:
+                    agent.id,
+
+
+                    name:
+                    agent.name,
+
+
+                    emoji:
+                    agent.emoji || "🤖"
+
+
+
+                },
+
+
+
+                response:
+                finalResponse,
+
+
+
+                latency:
+
+                Date.now() -
+                start
+
+
+
+            };
+
+
+
+
+
+
+
+
+
+            if(
+                typeof onComplete ===
+                "function"
+            ){
+
+
+                onComplete(
+                    result
+                );
+
+
             }
 
-            return fullcontent;
 
-        } catch (error) {
-            console.error(`[Orchestrator Stream Error] Agente ${selectedagent?.id}:`, error);
-            orchestrator_metrics.recordfailure(selectedagent?.id || "general");
 
-            if (typeof onError === "function") {
-                onError(error);
-            }
-            throw error;
+
+
+
+
+
+
+            return result;
+
+
+
         }
+
+        catch(error){
+
+
+
+            console.error(
+
+            "[Orchestrator Stream Error]",
+            error
+
+            );
+
+
+
+
+
+            if(
+                typeof onError ===
+                "function"
+            ){
+
+
+                onError(
+                    error
+                );
+
+
+            }
+
+
+
+            throw error;
+
+
+
+        }
+
+
+
     }
 
-    getTelemetry() {
+
+
+
+
+
+
+
+
+/*
+==========================================
+TELEMETRY
+SYSTEM MONITORING
+==========================================
+*/
+
+
+    getTelemetry(){
+
+
+
         return {
-            ...orchestrator_metrics,
-            averageLatencyMs: orchestrator_metrics.getaveragelatency(),
-            availableAgentsCount: Object.keys(agents_registry).length
+
+
+            status:
+            "online",
+
+
+
+            engine:
+            "Honey IA Orchestrator V5",
+
+
+
+            agents:
+
+            Object.keys(
+                agents_registry
+            )
+            .length,
+
+
+
+            timestamp:
+            Date.now()
+
+
+
         };
+
+
+
     }
+
+
+
 }
 
-const orchestratorinstance = new Orchestrator();
 
-export { agents_registry, orchestrator_metrics };
+
+
+
+
+
+
+
+/*
+==========================================
+CREATE INSTANCE
+==========================================
+*/
+
+
+const orchestratorinstance =
+new Orchestrator();
+
+
+
+export {
+
+    agents_registry
+
+};
+
+
+
 export default orchestratorinstance;
