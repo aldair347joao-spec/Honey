@@ -1,670 +1,1062 @@
 /*
 ==========================================
-HONEY IA
-INDEX SERVER
-Enterprise Backend V6
-Multi-Agent + Live Mode
+HONEY IA OS
+SERVER CORE V6
+Enterprise AI Backend
 ==========================================
 */
 
-import express from "express";
-import cors from "cors";
+
 import dotenv from "dotenv";
-import Groq from "groq-sdk";
-import rateLimit from "express-rate-limit";
-
-import liveroute from "./liveroute.js";
-import Orchestrator from "./orchestrator.js";
-import {connectdatabase} from "./database.js";
-import kernel from "./kernel.js";
-import { saveMessage } from "./chat.js";
-
 dotenv.config();
 
 
-// ==========================================
-// DATABASE INITIALIZATION
-// ==========================================
 
-try {
 
-    await connectdatabase();
 
-    kernel.register(
-        "database",
-        "MongoDB"
-    );
+import kernel from "./kernel.js";
+
+import orchestratorinstance from "./orchestrator.js";
+
+
+
+import mongoose from "mongoose";
+
+import rateLimit from "express-rate-limit";
+
+import path from "path";
+
+import { fileURLToPath } from "url";
+
+
+
+
+
+
+
+/*
+==========================================
+PATH CONFIGURATION
+==========================================
+*/
+
+
+const __filename =
+fileURLToPath(
+    import.meta.url
+);
+
+
+const __dirname =
+path.dirname(
+    __filename
+);
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+EXPRESS APPLICATION
+==========================================
+*/
+
+
+await kernel.boot();
+
+
+
+const app =
+kernel.getApp();
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+STATIC FRONTEND
+==========================================
+*/
+
+
+app.use(
+
+    express.static(
+        path.join(
+            __dirname,
+            "public"
+        )
+    )
+
+);/*
+==========================================
+DATABASE CONNECTION
+==========================================
+*/
+
+
+async function connectDatabase(){
+
+
+
+    const mongoURI =
+    process.env.MONGODB_URI;
+
+
+
+    if(!mongoURI){
+
+
+        console.warn(
+
+        "⚠️ MONGODB_URI não encontrada. A iniciar sem base de dados."
+
+        );
+
+
+        return;
+
+
+    }
+
+
+
+
+
+
+    try{
+
+
+        await mongoose.connect(
+            mongoURI
+        );
+
+
+
+        console.log(
+
+        "✅ MongoDB conectado com sucesso."
+
+        );
+
+
+
+    }
+
+
+    catch(error){
+
+
+
+        console.error(
+
+        "❌ Erro MongoDB:",
+        error.message
+
+        );
+
+
+    }
+
+
 
 }
 
-catch(err){
-
-    console.warn(
-        "⚠️ MongoDB indisponível. Sistema continuará em memória.",
-        err.message
-    );
-
-}
-
-
-// ==========================================
-// KERNEL MODULES
-// ==========================================
-
-kernel.register(
-    "AI",
-    "Groq"
-);
-
-
-kernel.register(
-    "Server",
-    "Express"
-);
 
 
 
-// ==========================================
-// EXPRESS SERVER
-// ==========================================
 
-const app = express();
 
-const port = process.env.PORT || 3000;
+await connectDatabase();
 
 
 
-app.use(
-    express.json({
-        limit:"20mb"
-    })
-);
-
-
-app.use(
-    express.urlencoded({
-        limit:"20mb",
-        extended:true
-    })
-);
-
-
-app.use(cors());
-
-
-app.use(express.static("."));
 
 
 
-// ==========================================
-// LIVE ROUTE
-// ==========================================
-
-app.use(
-    "/api",
-    liveroute
-);
 
 
 
-// ==========================================
-// GROQ
-// ==========================================
-
-const groq = new Groq({
-
-    apiKey:
-    process.env.GROQ_API_KEY
-
-});
+/*
+==========================================
+RATE LIMIT
+==========================================
+*/
 
 
+const apiLimiter =
+rateLimit({
 
-// ==========================================
-// RATE LIMIT
-// ==========================================
-
-const apiLimiter = rateLimit({
 
     windowMs:
-    60 * 1000,
+
+    60 *
+
+    1000,
+
 
 
     max:
-    30,
 
+    20,
 
-    standardHeaders:true,
-
-
-    legacyHeaders:false,
 
 
     message:{
 
-        sucesso:false,
 
-        erro:
-        "A Honey IA está a receber muitos pedidos. Aguarde alguns segundos. 🐝"
+        error:
+
+        "Muitas requisições. Aguarde alguns segundos."
+
+
 
     }
+
+
 
 });
 
 
 
-app.use(
-    "/gerar-gratis",
-    apiLimiter
+
+
+
+
+
+
+/*
+==========================================
+API HEALTH
+==========================================
+*/
+
+
+app.get(
+
+    "/",
+
+    (req,res)=>{
+
+
+        res.json({
+
+
+            system:
+
+            "Honey IA OS",
+
+
+
+            status:
+
+            "online",
+
+
+
+            version:
+
+            "6.0.0"
+
+
+
+        });
+
+
+    }
+
 );
 
 
 
-// ==========================================
-// MAIN AI ROUTE
-// ==========================================
+
+
+
+
+
+
+/*
+==========================================
+AI REQUEST ROUTE
+==========================================
+*/
+
 
 app.post(
-"/gerar-gratis",
-async(req,res)=>{
 
+    "/gerar-gratis",
 
-try{
+    apiLimiter,
 
+    async(req,res)=>{
 
-let {
 
-    prompt,
+        try{
 
-    imagem,
 
-    anexoBase64,
 
-    mimeType,
+            const {
 
-    userId="guest_user",
 
-    agent="general",
+                prompt,
 
-    mode="chat"
 
+                agentId,
 
-}=req.body;
 
+                history,
 
 
-const base64Content =
-anexoBase64 || imagem;
+                workspaceContext,
 
 
+                memory,
 
-if(
-!prompt &&
-!base64Content
-){
 
+                mode
 
-return res.status(400).json({
 
-    sucesso:false,
 
-    erro:
-    "Envie uma mensagem ou anexo para análise."
+            } = req.body;
 
-});
 
 
-}
 
 
 
-// ==========================================
-// MIME DETECTION
-// ==========================================
 
 
-if(
-base64Content &&
-!mimeType
-){
 
+            if(!prompt){
 
-const matches =
-base64Content.match(
-/^data:(.+);base64,/
-);
 
+                return res.status(400)
+                .json({
 
 
-if(matches){
+                    error:
 
-    mimeType =
-    matches[1];
+                    "Prompt vazio."
 
-}
 
-else{
 
-    mimeType =
-    "image/png";
+                });
 
-}
 
 
-}
-
-
-
-const rawBase64 =
-base64Content
-?
-base64Content.replace(
-/^data:.+;base64,/,
-""
-)
-:
-null;
-
-
-
-const user={
-
-    id:userId,
-
-    name:"Utilizador",
-
-    language:"pt-PT",
-
-    preferences:{}
-
-};
-
-
-
-// ==========================================
-// ORCHESTRATOR
-// ==========================================
-
-
-let orchestratorResult=null;
-let systemPrompt = "Você é a Honey IA. Responda em Português de forma profissional.";
-
-
-try{
-
-
-if(
-orchestrator &&
-typeof orchestrator.processRequest==="function"
-){
-
-
-orchestratorResult =
-await orchestrator.processRequest({
-
-    userPrompt:
-    prompt ||
-    "Analisa o conteúdo enviado.",
-
-    agentId: agent,
-
-    mode
-
-});
-
-// Integração dinâmica do prompt de sistema vindo do Orchestrator/Agente
-if(orchestratorResult?.systemPrompt){
-    systemPrompt = orchestratorResult.systemPrompt;
-} else if(orchestratorResult?.agent?.systemPrompt){
-    systemPrompt = orchestratorResult.agent.systemPrompt;
-}
-
-}
-
-
-}
-
-catch(err){
-
-
-console.warn(
-
-"Falha no Orchestrator:",
-err.message
-
-);
-
-
-}
-
-// ==========================================
-// GROQ MESSAGE BUILDER
-// ==========================================
-
-const messages = [
-
-    {
-        role:"system",
-        content:systemPrompt
-    }
-
-];
-
-
-
-let selectedModel =
-"llama-3.3-70b-versatile";
-
-
-
-// ==========================================
-// IMAGE / DOCUMENT HANDLING
-// ==========================================
-
-
-if(rawBase64){
-
-
-const isImage =
-mimeType &&
-(
-mimeType.startsWith("image/") ||
-base64Content.startsWith("data:image/")
-);
-
-
-
-if(isImage){
-
-
-selectedModel =
-"llama-3.2-11b-vision-preview";
-
-
-
-const imageUrl =
-base64Content.startsWith("data:")
-?
-base64Content
-:
-`data:${mimeType};base64,${rawBase64}`;
-
-
-
-messages.push({
-
-    role:"user",
-
-    content:[
-
-        {
-            type:"text",
-
-            text:
-            prompt ||
-            "Analisa esta imagem em detalhe."
-        },
-
-
-        {
-            type:"image_url",
-
-            image_url:{
-                url:imageUrl
             }
+
+
+
+
+
+
+
+
+
+            const result =
+
+            await orchestratorinstance
+            .processRequest({
+
+
+
+                userPrompt:
+
+                prompt,
+
+
+
+                agentId:
+
+                agentId || null,
+
+
+
+                history:
+
+                history || [],
+
+
+
+                workspaceContext:
+
+                workspaceContext || {},
+
+
+
+                userMemory:
+
+                memory || [],
+
+
+
+                mode:
+
+                mode || "chat"
+
+
+
+            });
+
+
+
+
+
+
+
+
+
+            res.json(
+                result
+            );
+
+
 
         }
 
-    ]
 
-});
-
-
-}
-
-else{
+        catch(error){
 
 
-let textoDocumento="";
+
+            console.error(
+
+            "[API ERROR]",
+            error
+
+            );
 
 
-try{
-    // Validação preventiva para garantir extração de texto legível
-    if(mimeType && (mimeType.startsWith("application/pdf") || mimeType.includes("octet-stream") || mimeType.includes("zip"))){
-        textoDocumento = "[Ficheiro binário detetado. O conteúdo direto não pode ser renderizado como texto puro, mas será analisado contextualmente.]";
-    } else {
-        textoDocumento = Buffer.from(rawBase64, "base64").toString("utf-8");
+
+            res.status(500)
+            .json({
+
+
+                success:false,
+
+
+                error:
+
+                error.message
+
+
+
+            });
+
+
+
+        }
+
+
+
     }
-}
 
-catch(e){
-
-
-textoDocumento =
-"[Não foi possível extrair o conteúdo do ficheiro.]";
-
-
-}
+);/*
+==========================================
+LIVE AI STREAM ROUTE
+REAL TIME RESPONSES
+==========================================
+*/
 
 
+app.post(
 
-messages.push({
+    "/gerar-live",
 
-role:"user",
+    apiLimiter,
 
-content:
-
-`
-[Conteúdo do ficheiro]
-
-${textoDocumento}
+    async(req,res)=>{
 
 
-[Instrução]
 
-${prompt || "Analisa este ficheiro."}
-
-`
-
-});
+        try{
 
 
-}
+
+            const {
 
 
-}
-
-else{
+                prompt,
 
 
-messages.push({
-
-    role:"user",
-
-    content:prompt
-
-});
+                agentId,
 
 
-}
+                history,
+
+
+                workspaceContext,
+
+
+                memory
+
+
+
+            } = req.body;
 
 
 
 
-// ==========================================
-// GROQ EXECUTION
-// ==========================================
-
-
-const completion =
-await groq.chat.completions.create({
-
-    messages,
-
-    model:selectedModel,
-
-    temperature:0.7,
-
-    max_tokens:4096
-
-});
 
 
 
-const resposta =
-completion
-.choices[0]
-?.message
-?.content
-||
-"Não foi possível gerar resposta.";
+
+
+            if(!prompt){
+
+
+                return res.status(400)
+                .json({
+
+
+                    error:
+
+                    "Prompt vazio."
 
 
 
-// ==========================================
-// SAVE CHAT HISTORY
-// ==========================================
+                });
 
 
-try{
+            }
 
 
-if(
-typeof saveMessage==="function"
-){
 
 
-if(prompt){
 
-await saveMessage(
-user.id,
-"user",
-prompt
+
+
+
+
+            res.setHeader(
+
+                "Content-Type",
+
+                "text/event-stream"
+
+            );
+
+
+
+            res.setHeader(
+
+                "Cache-Control",
+
+                "no-cache"
+
+            );
+
+
+
+            res.setHeader(
+
+                "Connection",
+
+                "keep-alive"
+
+            );
+
+
+
+
+
+
+
+
+
+            await orchestratorinstance
+            .processStream({
+
+
+
+                userPrompt:
+
+                prompt,
+
+
+
+                agentId:
+
+                agentId || null,
+
+
+
+                history:
+
+                history || [],
+
+
+
+                workspaceContext:
+
+                workspaceContext || {},
+
+
+
+                userMemory:
+
+                memory || [],
+
+
+
+                mode:
+
+                "live",
+
+
+
+
+
+
+
+                onChunk:(chunk)=>{
+
+
+
+                    res.write(
+
+                    `data: ${JSON.stringify({
+
+                        text:chunk
+
+                    })}\n\n`
+
+                    );
+
+
+
+                },
+
+
+
+
+
+
+
+
+                onComplete:(result)=>{
+
+
+
+                    res.write(
+
+                    `data: ${JSON.stringify({
+
+                        done:true,
+
+                        agent:
+                        result.agent,
+
+                        latency:
+                        result.latency
+
+                    })}\n\n`
+
+                    );
+
+
+
+                    res.end();
+
+
+
+                },
+
+
+
+
+
+
+
+
+                onError:(error)=>{
+
+
+
+                    res.write(
+
+                    `data: ${JSON.stringify({
+
+                        error:
+                        error.message
+
+                    })}\n\n`
+
+                    );
+
+
+
+                    res.end();
+
+
+
+                }
+
+
+
+            });
+
+
+
+        }
+
+
+        catch(error){
+
+
+
+            console.error(
+
+            "[LIVE ERROR]",
+
+            error
+
+            );
+
+
+
+            res.end();
+
+
+
+        }
+
+
+
+    }
+
 );
 
-}
 
 
 
-await saveMessage(
-user.id,
-"assistant",
-resposta
+
+
+
+
+
+/*
+==========================================
+AGENTS API
+LIST ALL SPECIALISTS
+==========================================
+*/
+
+
+app.get(
+
+    "/agents",
+
+    (req,res)=>{
+
+
+
+        try{
+
+
+
+            const {
+
+                agents_registry
+
+            } = await import(
+
+                "./orchestrator.js"
+
+            );
+
+
+
+            res.json({
+
+
+                success:true,
+
+
+                total:
+
+                Object.keys(
+                    agents_registry
+                )
+                .length,
+
+
+
+                agents:
+
+                Object.values(
+                    agents_registry
+                )
+                .map(agent=>({
+
+
+                    id:
+                    agent.id,
+
+
+                    name:
+                    agent.name,
+
+
+                    description:
+                    agent.description || "",
+
+
+                    category:
+                    agent.category || "Tecnologia",
+
+
+                    emoji:
+                    agent.emoji || "🤖"
+
+
+
+                }))
+
+
+
+            });
+
+
+
+        }
+
+
+        catch(error){
+
+
+
+            res.status(500)
+            .json({
+
+
+                success:false,
+
+
+                error:
+                error.message
+
+
+
+            });
+
+
+
+        }
+
+
+
+    }
+
 );
 
 
 
-}
 
 
-}
-
-catch(dbErr){
 
 
-console.warn(
 
-"Erro ao guardar histórico:",
-dbErr.message
+
+/*
+==========================================
+ORCHESTRATOR STATUS
+==========================================
+*/
+
+
+app.get(
+
+    "/system/status",
+
+    (req,res)=>{
+
+
+
+        res.json(
+
+            orchestratorinstance
+            .getTelemetry()
+
+        );
+
+
+
+    }
+
+);/*
+==========================================
+FRONTEND FALLBACK
+SERVE HONEY IA APP
+==========================================
+*/
+
+
+app.get(
+
+    "*",
+
+    (req,res)=>{
+
+
+        res.sendFile(
+
+            path.join(
+
+                __dirname,
+
+                "public",
+
+                "index.html"
+
+            )
+
+        );
+
+
+    }
 
 );
 
 
-}
-
-
-
-
-// ==========================================
-// RESPONSE
-// ==========================================
-
-
-return res.json({
-
-    sucesso:true,
-
-    resposta,
-
-    agent:
-    orchestratorResult?.agent?.id ||
-    agent,
-
-
-    mode,
-
-
-    timestamp:
-    Date.now()
-
-});
 
 
 
 
 
-}
-
-catch(error){
 
 
+/*
+==========================================
+ERROR HANDLER
+GLOBAL SERVER ERRORS
+==========================================
+*/
 
-console.error(
-"❌ ERRO HONEY IA:",
-error
+
+app.use(
+
+    (err,req,res,next)=>{
+
+
+        console.error(
+
+            "❌ Server Error:",
+
+            err
+
+        );
+
+
+
+        res.status(500)
+        .json({
+
+
+            success:false,
+
+
+            error:
+
+            "Erro interno no servidor."
+
+
+
+        });
+
+
+
+    }
+
 );
 
 
 
-if(error.status===429){
-
-
-return res.status(429).json({
-
-    sucesso:false,
-
-    erro:
-    "Limite da IA atingido. Aguarde alguns instantes. 🐝"
-
-});
-
-
-}
 
 
 
-return res.status(500).json({
-
-    sucesso:false,
-
-    erro:
-    `Erro interno: ${
-        error.message ||
-        "Falha desconhecida"
-    }`
-
-});
 
 
 
-}
+/*
+==========================================
+START SERVER
+RENDER COMPATIBILITY
+==========================================
+*/
 
 
-});
+const PORT =
+
+process.env.PORT ||
+
+3000;
 
 
 
-// ==========================================
-// START SERVER
-// ==========================================
 
 
 app.listen(
-port,
-()=>{
 
-console.log(
-`🐝 Honey IA Enterprise V6 online na porta ${port}`
+    PORT,
+
+    ()=>{
+
+
+        console.log(
+
+        "🐝 =================================="
+
+        );
+
+
+        console.log(
+
+        "🚀 Honey IA OS Online"
+
+        );
+
+
+        console.log(
+
+        `🌐 Porta: ${PORT}`
+
+        );
+
+
+        console.log(
+
+        "🤖 30 Agentes carregados"
+
+        );
+
+
+        console.log(
+
+        "🧠 Orchestrator V5 ativo"
+
+        );
+
+
+        console.log(
+
+        "🐝 =================================="
+
+        );
+
+
+
+    }
+
 );
-
-});
