@@ -5,28 +5,22 @@ SERVER CORE V6
 Enterprise AI Backend
 ==========================================
 */
-
-
+import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
-
-
-
-
-
+import path from "path";
+import { fileURLToPath } from "url";
+import mongoose from "mongoose";
+import rateLimit from "express-rate-limit";
 import kernel from "./kernel.js";
-
 import orchestratorinstance from "./orchestrator.js";
 
+dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-import mongoose from "mongoose";
+const app = express();
 
-import rateLimit from "express-rate-limit";
-
-import path from "path";
-
-import { fileURLToPath } from "url";
 
 
 
