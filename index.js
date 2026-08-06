@@ -68,7 +68,8 @@ STATIC FRONTEND
 */
 
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname)));
+
 
 /*
 ==========================================
@@ -876,30 +877,17 @@ SERVE HONEY IA APP
 
 
 app.get(
-
     "*",
-
-    (req,res)=>{
-
-
+    (req, res) => {
         res.sendFile(
-
             path.join(
-
                 __dirname,
-
-                "public",
-
                 "index.html"
-
             )
-
         );
-
-
     }
-
 );
+
 
 
 
