@@ -1,8 +1,9 @@
 /*
 ==========================================
 HONEY IA
-AGENT ENGINE V5.0
+AGENT ENGINE V6.0
 Enterprise Agent Registry
+30 Specialist Agents Integration
 ==========================================
 */
 
@@ -24,7 +25,7 @@ import securityagent from "./agents/securityagent.js";
 
 
 // ======================================
-// HONEY IA ENTERPRISE AGENTS
+// ENTERPRISE AGENTS
 // ======================================
 
 
@@ -48,6 +49,11 @@ import hragent from "./agents/hragent.js";
 
 
 
+// ==========================================================
+// AGENT ENGINE
+// ==========================================================
+
+
 class AgentEngine {
 
 
@@ -55,7 +61,9 @@ class AgentEngine {
 constructor(){
 
 
+
     this.agents = new Map();
+
 
 
     this.activeAgent = "general";
@@ -63,6 +71,7 @@ constructor(){
 
 
     this.categories = [
+
 
 
         "Todos",
@@ -82,7 +91,9 @@ constructor(){
         "Produtividade"
 
 
+
     ];
+
 
 
 
@@ -90,11 +101,16 @@ constructor(){
 
 
 
-}/*
-==========================================
-CARREGAMENTO DOS AGENTES
-==========================================
-*/
+}
+
+
+
+
+
+
+// ==========================================================
+// LOAD ALL AGENTS
+// ==========================================================
 
 
 loadAgents(){
@@ -105,10 +121,7 @@ const agents = [
 
 
 
-// ======================================
-// CORE AGENTS
-// ======================================
-
+// CORE
 
 generalagent,
 
@@ -140,10 +153,9 @@ securityagent,
 
 
 
-// ======================================
-// ENTERPRISE AGENTS
-// ======================================
 
+
+// ENTERPRISE
 
 writeragent,
 
@@ -174,12 +186,12 @@ businessagent,
 accountingagent,
 
 strategistagent,
-    hragent,
+
+hragent
 
 
 
 ];
-
 
 
 
@@ -203,41 +215,34 @@ agents.forEach(agent=>{
 
 
 
-
-
-
-/*
-==========================================
-REGISTRO DE AGENTES
-==========================================
-*/
+// ==========================================================
+// REGISTER AGENT
+// ==========================================================
 
 
 register(agent){
 
 
 
-if(!agent || !agent.id){
-
+if(
+    !agent ||
+    !agent.id
+){
 
 
     console.warn(
 
-        "Agente inválido:",
+        "[Honey IA] Agente inválido:",
 
         agent
 
     );
 
 
-
     return;
 
 
-
 }
-
-
 
 
 
@@ -270,11 +275,13 @@ const profile = {
 
 
 
+
     level:
 
     agent.level ||
 
     "Professional",
+
 
 
 
@@ -286,11 +293,13 @@ const profile = {
 
 
 
+
     users:
 
     agent.users ||
 
     0,
+
 
 
 
@@ -323,12 +332,9 @@ this.agents.set(
 
 
 
-
 console.log(
 
-
-`✅ Honey Agent carregado: ${agent.name}`
-
+`🐝 Honey Agent carregado: ${agent.name}`
 
 );
 
@@ -336,7 +342,7 @@ console.log(
 
 }/*
 ==========================================
-BUSCA DOS AGENTES
+GET AGENTS
 ==========================================
 */
 
@@ -355,7 +361,6 @@ get(id){
 
 
 
-
 getById(id){
 
 
@@ -363,7 +368,6 @@ getById(id){
 
 
 }
-
 
 
 
@@ -389,7 +393,6 @@ getAll(){
 
 
 
-
 getCategories(){
 
 
@@ -406,11 +409,9 @@ getCategories(){
 
 
 
-/*
-==========================================
-PESQUISA INTELIGENTE
-==========================================
-*/
+// ==========================================================
+// SEARCH ENGINE
+// ==========================================================
 
 
 search(query=""){
@@ -450,53 +451,28 @@ return this.getAll()
 .filter(agent=>{
 
 
-return (
 
+const content = `
 
+${agent.name}
 
-agent.name
+${agent.description}
 
-.toLowerCase()
+${agent.category}
 
-.includes(text)
+${agent.level}
 
+`
 
-
-
-
-||
-
-
-
-
-
-agent.description
-
-.toLowerCase()
-
-.includes(text)
+.toLowerCase();
 
 
 
 
 
-||
 
 
-
-
-
-agent.category
-
-.toLowerCase()
-
-.includes(text)
-
-
-
-
-
-);
+return content.includes(text);
 
 
 
@@ -514,11 +490,9 @@ agent.category
 
 
 
-/*
-==========================================
-FILTRAR POR CATEGORIA
-==========================================
-*/
+// ==========================================================
+// CATEGORY FILTER
+// ==========================================================
 
 
 filterByCategory(category){
@@ -530,9 +504,7 @@ if(
 
 !category
 
-
 ||
-
 
 category === "Todos"
 
@@ -540,9 +512,7 @@ category === "Todos"
 ){
 
 
-
     return this.getAll();
-
 
 
 }
@@ -558,11 +528,13 @@ return this.getAll()
 .filter(agent=>{
 
 
+
 return (
 
 agent.category === category
 
 );
+
 
 
 });
@@ -579,11 +551,9 @@ agent.category === category
 
 
 
-/*
-==========================================
-AGENTES DESTACADOS
-==========================================
-*/
+// ==========================================================
+// FEATURED AGENTS
+// ==========================================================
 
 
 getFeatured(){
@@ -593,6 +563,7 @@ getFeatured(){
 return this.getAll()
 
 .filter(agent=>{
+
 
 
 return agent.featured === true;
@@ -613,11 +584,9 @@ return agent.featured === true;
 
 
 
-/*
-==========================================
-AGENTE ATIVO
-==========================================
-*/
+// ==========================================================
+// ACTIVE AGENT CONTROL
+// ==========================================================
 
 
 setActive(id){
@@ -626,9 +595,7 @@ setActive(id){
 
 if(
 
-
 this.agents.has(id)
-
 
 ){
 
@@ -643,6 +610,7 @@ return this.agents.get(id);
 
 
 }
+
 
 
 
@@ -688,10 +656,17 @@ this.activeAgent
 
 
 
+getActiveId(){
 
-/*
+
+
+return this.activeAgent;
+
+
+
+}/*
 ==========================================
-MEMÓRIA DOS AGENTES
+AGENT MEMORY SYSTEM
 ==========================================
 */
 
@@ -736,6 +711,7 @@ agent.conversations.push({
     content,
 
 
+
     date:
 
     new Date()
@@ -747,6 +723,7 @@ agent.conversations.push({
 
 
 }
+
 
 
 
@@ -775,7 +752,46 @@ return [];
 
 
 
+
+
+
 return agent.conversations;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+clearConversation(id){
+
+
+
+const agent =
+
+this.get(id);
+
+
+
+
+
+if(!agent)
+
+return;
+
+
+
+
+
+
+
+agent.conversations = [];
 
 
 
@@ -809,11 +825,9 @@ this.get(id);
 
 
 
-
 if(!agent)
 
 return;
-
 
 
 
@@ -828,7 +842,9 @@ agent.memory.push({
     key,
 
 
+
     value,
+
 
 
     createdAt:
@@ -850,6 +866,7 @@ agent.memory.push({
 
 
 
+
 getMemory(id){
 
 
@@ -857,7 +874,6 @@ getMemory(id){
 const agent =
 
 this.get(id);
-
 
 
 
@@ -871,24 +887,38 @@ return [];
 
 
 
+
+
+
 return agent.memory;
 
 
 
-}/*
-==========================================
-RECOMENDAÇÃO INTELIGENTE
-==========================================
-*/
+}
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// INTELLIGENT RECOMMENDATION
+// ==========================================================
 
 
 recommend(prompt=""){
 
 
 
-const agent =
+const primary =
 
 this.detect(prompt);
+
+
+
 
 
 
@@ -898,19 +928,22 @@ return {
 
 
 
-    primary:agent,
+    primary,
 
 
 
     alternatives:
 
 
+
     this.getAll()
 
-    .filter(item=>
+    .filter(agent=>
 
 
-        item.id !== agent.id
+
+        agent.id !== primary.id
+
 
 
     )
@@ -933,11 +966,9 @@ return {
 
 
 
-/*
-==========================================
-DETECÇÃO INTELIGENTE
-==========================================
-*/
+// ==========================================================
+// AUTO AGENT DETECTION
+// ==========================================================
 
 
 detect(prompt=""){
@@ -956,6 +987,8 @@ prompt
 
 
 
+
+
 // DESENVOLVIMENTO
 
 
@@ -965,8 +998,6 @@ if(
 text.includes("código") ||
 
 text.includes("codigo") ||
-
-text.includes("programar") ||
 
 text.includes("javascript") ||
 
@@ -984,10 +1015,17 @@ text.includes("website")
 ){
 
 
-return this.get("developer");
+
+return this.get(
+
+"developer"
+
+);
+
 
 
 }
+
 
 
 
@@ -1010,18 +1048,23 @@ text.includes("marca") ||
 
 text.includes("ui") ||
 
-text.includes("ux") ||
-
-text.includes("figma")
+text.includes("ux")
 
 
 ){
 
 
-return this.get("designer");
+
+return this.get(
+
+"designer"
+
+);
+
 
 
 }
+
 
 
 
@@ -1042,18 +1085,23 @@ text.includes("publicidade") ||
 
 text.includes("campanha") ||
 
-text.includes("instagram") ||
-
-text.includes("facebook")
+text.includes("instagram")
 
 
 ){
 
 
-return this.get("marketing");
+
+return this.get(
+
+"marketing"
+
+);
+
 
 
 }
+
 
 
 
@@ -1074,48 +1122,23 @@ text.includes("finanças") ||
 
 text.includes("investimento") ||
 
-text.includes("lucro") ||
-
 text.includes("orçamento")
 
 
 ){
 
 
-return this.get("finance");
+
+return this.get(
+
+"finance"
+
+);
+
 
 
 }
 
-
-
-
-
-
-
-
-// CONTABILIDADE
-
-
-if(
-
-
-text.includes("contabilidade") ||
-
-text.includes("contabilista") ||
-
-text.includes("imposto") ||
-
-text.includes("balanço")
-
-
-){
-
-
-return this.get("accounting");
-
-
-}
 
 
 
@@ -1142,7 +1165,13 @@ text.includes("gestão")
 ){
 
 
-return this.get("business");
+
+return this.get(
+
+"business"
+
+);
+
 
 
 }
@@ -1154,28 +1183,34 @@ return this.get("business");
 
 
 
-// ESTRATÉGIA
+
+// CONTABILIDADE
 
 
 if(
 
 
-text.includes("estratégia") ||
+text.includes("contabilidade") ||
 
-text.includes("estrategia") ||
+text.includes("imposto") ||
 
-text.includes("crescimento") ||
-
-text.includes("planeamento")
+text.includes("balanço")
 
 
 ){
 
 
-return this.get("strategist");
+
+return this.get(
+
+"accounting"
+
+);
+
 
 
 }
+
 
 
 
@@ -1194,48 +1229,23 @@ text.includes("automatizar") ||
 
 text.includes("automação") ||
 
-text.includes("automacao") ||
-
 text.includes("workflow")
 
 
 ){
 
 
-return this.get("automation");
+
+return this.get(
+
+"automation"
+
+);
+
 
 
 }
 
-
-
-
-
-
-
-
-// TRADUÇÃO
-
-
-if(
-
-
-text.includes("traduzir") ||
-
-text.includes("tradução") ||
-
-text.includes("idioma") ||
-
-text.includes("inglês")
-
-
-){
-
-
-return this.get("translator");
-
-
-}
 
 
 
@@ -1262,10 +1272,54 @@ text.includes("relatorio")
 ){
 
 
-return this.get("document");
+
+return this.get(
+
+"document"
+
+);
+
 
 
 }
+
+
+
+
+
+
+
+
+
+// TRADUÇÃO
+
+
+if(
+
+
+text.includes("traduzir") ||
+
+text.includes("tradução") ||
+
+text.includes("idioma") ||
+
+text.includes("inglês")
+
+
+){
+
+
+
+return this.get(
+
+"translation"
+
+);
+
+
+
+}
+
 
 
 
@@ -1292,10 +1346,17 @@ text.includes("analise")
 ){
 
 
-return this.get("analytics");
+
+return this.get(
+
+"analytics"
+
+);
+
 
 
 }
+
 
 
 
@@ -1310,22 +1371,29 @@ return this.get("analytics");
 if(
 
 
-text.includes("escola") ||
+text.includes("aula") ||
 
 text.includes("curso") ||
 
-text.includes("aula") ||
+text.includes("estudar") ||
 
-text.includes("estudar")
+text.includes("escola")
 
 
 ){
 
 
-return this.get("education");
+
+return this.get(
+
+"education"
+
+);
+
 
 
 }
+
 
 
 
@@ -1340,26 +1408,30 @@ return this.get("education");
 if(
 
 
-text.includes("hospital") ||
-
 text.includes("saúde") ||
 
-text.includes("medicina")
+text.includes("medicina") ||
+
+text.includes("hospital")
 
 
 ){
 
 
-return this.get("health");
+
+return this.get(
+
+"healthcare"
+
+);
 
 
-}
 
-
-
-
-
-
+}/*
+==========================================
+CONTINUAÇÃO DETECT ENGINE
+==========================================
+*/
 
 
 // JURÍDICO
@@ -1372,16 +1444,25 @@ text.includes("contrato") ||
 
 text.includes("advogado") ||
 
-text.includes("lei")
+text.includes("lei") ||
+
+text.includes("jurídico")
 
 
 ){
 
 
-return this.get("legal");
+
+return this.get(
+
+"legal"
+
+);
+
 
 
 }
+
 
 
 
@@ -1400,16 +1481,60 @@ text.includes("casa") ||
 
 text.includes("planta") ||
 
-text.includes("arquitetura")
+text.includes("arquitetura") ||
+
+text.includes("construção")
 
 
 ){
 
 
-return this.get("architect");
+
+return this.get(
+
+"architect"
+
+);
+
 
 
 }
+
+
+
+
+
+
+
+
+
+// EXCEL
+
+
+if(
+
+
+text.includes("excel") ||
+
+text.includes("planilha") ||
+
+text.includes("tabela")
+
+
+){
+
+
+
+return this.get(
+
+"excel"
+
+);
+
+
+
+}
+
 
 
 
@@ -1426,16 +1551,25 @@ if(
 
 text.includes("vídeo") ||
 
-text.includes("video")
+text.includes("video") ||
+
+text.includes("animação")
 
 
 ){
 
 
-return this.get("video");
+
+return this.get(
+
+"video"
+
+);
+
 
 
 }
+
 
 
 
@@ -1452,29 +1586,20 @@ if(
 
 text.includes("imagem") ||
 
-text.includes("foto")
+text.includes("foto") ||
+
+text.includes("ilustração")
 
 
 ){
 
 
-return this.get("image");
 
+return this.get(
 
-}
+"image"
 
-
-
-
-
-
-
-
-return this.get("general");
-
-
-
-}
+);
 
 
 
@@ -1486,7 +1611,159 @@ return this.get("general");
 
 
 
-const agents = new agentengine();
+
+
+// ESCRITA
+
+
+if(
+
+
+text.includes("texto") ||
+
+text.includes("artigo") ||
+
+text.includes("livro") ||
+
+text.includes("escrever")
+
+
+){
+
+
+
+return this.get(
+
+"writer"
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+return this.get(
+
+"general"
+
+);
+
+
+
+}
+
+
+
+
+
+// ==========================================================
+// EXPORT ENGINE STATE
+// ==========================================================
+
+
+getState(){
+
+
+
+return {
+
+
+
+    activeAgent:
+
+    this.activeAgent,
+
+
+
+    totalAgents:
+
+    this.agents.size,
+
+
+
+    agents:
+
+    this.getAll()
+
+
+
+};
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// RESET ENGINE
+// ==========================================================
+
+
+reset(){
+
+
+
+this.activeAgent =
+
+"general";
+
+
+
+this.agents.forEach(agent=>{
+
+
+
+    agent.conversations = [];
+
+
+
+    agent.memory = [];
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// INITIALIZE SINGLE INSTANCE
+// ==========================================================
+
+
+}
+
+
+
+
+
+const Agents = new AgentEngine();
+
+
 
 
 
