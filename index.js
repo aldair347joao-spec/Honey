@@ -1,25 +1,43 @@
 /*
 ==========================================
 HONEY IA OS
-SERVER CORE V6
+SERVER CORE V7
 Enterprise AI Backend
+Authentication + AI + Workspace
 ==========================================
 */
+
+
 import express from "express";
+
 import dotenv from "dotenv";
+
 import path from "path";
+
 import { fileURLToPath } from "url";
+
 import mongoose from "mongoose";
+
 import rateLimit from "express-rate-limit";
+
+
 import kernel from "./kernel.js";
+
 import orchestratorinstance from "./orchestrator.js";
+
 import authRoutes from "./auth.routes.js";
-import { authMiddleware } from "./auth.middleware.js";
+
+
+
+/*
+==========================================
+ENVIRONMENT
+==========================================
+*/
+
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 
 
@@ -35,6 +53,17 @@ PATH CONFIGURATION
 */
 
 
+const __filename =
+
+fileURLToPath(import.meta.url);
+
+
+const __dirname =
+
+path.dirname(__filename);
+
+
+
 
 
 
@@ -43,7 +72,7 @@ PATH CONFIGURATION
 
 /*
 ==========================================
-EXPRESS APPLICATION
+APPLICATION BOOT
 ==========================================
 */
 
@@ -51,9 +80,47 @@ EXPRESS APPLICATION
 await kernel.boot();
 
 
-
 const app =
+
 kernel.getApp();
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+BODY PARSER
+==========================================
+*/
+
+
+app.use(
+
+    express.json({
+
+        limit:"15mb"
+
+    })
+
+);
+
+
+app.use(
+
+    express.urlencoded({
+
+        extended:true,
+
+        limit:"15mb"
+
+    })
+
+);
 
 
 
@@ -70,22 +137,27 @@ STATIC FRONTEND
 */
 
 
-app.use(express.static(path.join(__dirname)));
-
-/*
-==========================================
-AUTHENTICATION API
-==========================================
-*/
-
-
 app.use(
 
-    "/api/auth",
+    express.static(
 
-    authRoutes
+        path.join(
+
+            __dirname
+
+        )
+
+    )
 
 );
+
+
+
+
+
+
+
+
 
 /*
 ==========================================
@@ -97,8 +169,8 @@ DATABASE CONNECTION
 async function connectDatabase(){
 
 
-
     const mongoURI =
+
     process.env.MONGODB_URI;
 
 
@@ -108,18 +180,15 @@ async function connectDatabase(){
 
         console.warn(
 
-        "⚠️ MONGODB_URI não encontrada. A iniciar sem base de dados."
+            "⚠️ MONGODB_URI não encontrada. A iniciar sem base de dados."
 
         );
 
 
-        return;
+        return false;
 
 
     }
-
-
-
 
 
 
@@ -127,17 +196,20 @@ async function connectDatabase(){
 
 
         await mongoose.connect(
-            mongoURI
-        );
 
+            mongoURI
+
+        );
 
 
         console.log(
 
-        "✅ MongoDB conectado com sucesso."
+            "✅ MongoDB conectado com sucesso."
 
         );
 
+
+        return true;
 
 
     }
@@ -146,20 +218,25 @@ async function connectDatabase(){
     catch(error){
 
 
-
         console.error(
 
-        "❌ Erro MongoDB:",
-        error.message
+            "❌ Erro MongoDB:",
+
+            error.message
 
         );
+
+
+        return false;
 
 
     }
 
 
-
 }
+
+
+
 
 
 
@@ -179,20 +256,18 @@ await connectDatabase();
 /*
 ==========================================
 RATE LIMIT
+GLOBAL API PROTECTION
 ==========================================
 */
 
 
 const apiLimiter =
-rateLimit({
 
+rateLimit({
 
     windowMs:
 
-    60 *
-
-    1000,
-
+    60 * 1000,
 
 
     max:
@@ -200,21 +275,50 @@ rateLimit({
     20,
 
 
+    standardHeaders:
+
+    true,
+
+
+    legacyHeaders:
+
+    false,
+
 
     message:{
 
+        success:false,
 
         error:
 
         "Muitas requisições. Aguarde alguns segundos."
 
-
-
     }
 
-
-
 });
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+AUTHENTICATION API
+==========================================
+*/
+
+
+app.use(
+
+    "/api/auth",
+
+    authRoutes
+
+);
 
 
 
@@ -231,13 +335,37 @@ API HEALTH
 */
 
 
-app.get("/api/health", (req, res) => {
-    res.json({
-        system: "Honey IA OS",
-        status: "online",
-        version: "6.0.0"
-    });
-});
+app.get(
+
+    "/api/health",
+
+    (req,res)=>{
+
+
+        res.json({
+
+            success:true,
+
+            system:"Honey IA OS",
+
+            status:"online",
+
+            version:"7.0.0",
+
+            database:
+
+            mongoose.connection.readyState === 1
+
+            ? "connected"
+
+            : "disconnected"
+
+        });
+
+
+    }
+
+);
 
 
 
@@ -250,6 +378,7 @@ app.get("/api/health", (req, res) => {
 /*
 ==========================================
 AI REQUEST ROUTE
+STANDARD AI RESPONSE
 ==========================================
 */
 
@@ -266,77 +395,53 @@ app.post(
         try{
 
 
-
             const {
-
 
                 prompt,
 
-
                 agentId,
-
 
                 history,
 
-
                 workspaceContext,
-
 
                 memory,
 
-
                 mode
-
-
 
             } = req.body;
 
 
 
-
-
-
-
-
-
             if(!prompt){
 
+                return res
 
-                return res.status(400)
+                .status(400)
+
                 .json({
 
+                    success:false,
 
                     error:
 
                     "Prompt vazio."
 
-
-
                 });
 
-
-
             }
-
-
-
-
-
-
 
 
 
             const result =
 
             await orchestratorinstance
+
             .processRequest({
-
-
 
                 userPrompt:
 
                 prompt,
-
 
 
                 agentId:
@@ -344,11 +449,9 @@ app.post(
                 agentId || null,
 
 
-
                 history:
 
                 history || [],
-
 
 
                 workspaceContext:
@@ -356,33 +459,24 @@ app.post(
                 workspaceContext || {},
 
 
-
                 userMemory:
 
                 memory || [],
-
 
 
                 mode:
 
                 mode || "chat"
 
-
-
             });
 
 
 
+            return res.json(
 
-
-
-
-
-
-            res.json(
                 result
-            );
 
+            );
 
 
         }
@@ -391,40 +485,46 @@ app.post(
         catch(error){
 
 
-
             console.error(
 
-            "[API ERROR]",
-            error
+                "[API ERROR]",
+
+                error
 
             );
 
 
+            return res
 
-            res.status(500)
+            .status(500)
+
             .json({
 
-
                 success:false,
-
 
                 error:
 
                 error.message
 
-
-
             });
-
 
 
         }
 
 
-
     }
 
-);/*
+);
+
+
+
+
+
+
+
+
+
+/*
 ==========================================
 LIVE AI STREAM ROUTE
 REAL TIME RESPONSES
@@ -441,63 +541,44 @@ app.post(
     async(req,res)=>{
 
 
-
         try{
-
 
 
             const {
 
-
                 prompt,
-
 
                 agentId,
 
-
                 history,
-
 
                 workspaceContext,
 
-
                 memory
 
-
-
             } = req.body;
-
-
-
-
-
-
 
 
 
             if(!prompt){
 
 
-                return res.status(400)
+                return res
+
+                .status(400)
+
                 .json({
 
+                    success:false,
 
                     error:
 
                     "Prompt vazio."
 
-
-
                 });
 
 
             }
-
-
-
-
-
-
 
 
 
@@ -510,7 +591,6 @@ app.post(
             );
 
 
-
             res.setHeader(
 
                 "Cache-Control",
@@ -518,7 +598,6 @@ app.post(
                 "no-cache"
 
             );
-
 
 
             res.setHeader(
@@ -531,21 +610,17 @@ app.post(
 
 
 
-
-
-
+            res.flushHeaders?.();
 
 
 
             await orchestratorinstance
+
             .processStream({
-
-
 
                 userPrompt:
 
                 prompt,
-
 
 
                 agentId:
@@ -553,11 +628,9 @@ app.post(
                 agentId || null,
 
 
-
                 history:
 
                 history || [],
-
 
 
                 workspaceContext:
@@ -565,11 +638,9 @@ app.post(
                 workspaceContext || {},
 
 
-
                 userMemory:
 
                 memory || [],
-
 
 
                 mode:
@@ -578,97 +649,94 @@ app.post(
 
 
 
-
-
-
-
                 onChunk:(chunk)=>{
+
+
+                    if(res.writableEnded)
+
+                    return;
 
 
 
                     res.write(
 
-                    `data: ${JSON.stringify({
+                        `data: ${JSON.stringify({
 
-                        text:chunk
+                            text:chunk
 
-                    })}\n\n`
+                        })}\n\n`
 
                     );
 
 
-
                 },
-
-
-
-
-
 
 
 
                 onComplete:(result)=>{
 
 
+                    if(res.writableEnded)
+
+                    return;
+
+
 
                     res.write(
 
-                    `data: ${JSON.stringify({
+                        `data: ${JSON.stringify({
 
-                        done:true,
+                            done:true,
 
-                        agent:
-                        result.agent,
+                            agent:
 
-                        latency:
-                        result.latency
+                            result.agent,
 
-                    })}\n\n`
+                            latency:
+
+                            result.latency
+
+                        })}\n\n`
 
                     );
 
 
-
                     res.end();
-
 
 
                 },
 
 
 
-
-
-
-
-
                 onError:(error)=>{
+
+
+                    if(res.writableEnded)
+
+                    return;
 
 
 
                     res.write(
 
-                    `data: ${JSON.stringify({
+                        `data: ${JSON.stringify({
 
-                        error:
-                        error.message
+                            error:
 
-                    })}\n\n`
+                            error.message
+
+                        })}\n\n`
 
                     );
-
 
 
                     res.end();
 
 
-
                 }
 
 
-
             });
-
 
 
         }
@@ -677,23 +745,40 @@ app.post(
         catch(error){
 
 
-
             console.error(
 
-            "[LIVE ERROR]",
+                "[LIVE ERROR]",
 
-            error
+                error
 
             );
 
+
+            if(!res.headersSent){
+
+
+                return res
+
+                .status(500)
+
+                .json({
+
+                    success:false,
+
+                    error:
+
+                    error.message
+
+                });
+
+
+            }
 
 
             res.end();
 
 
-
         }
-
 
 
     }
@@ -720,12 +805,10 @@ app.get(
 
     "/agents",
 
- async   (req,res)=>{
-
+    async(req,res)=>{
 
 
         try{
-
 
 
             const {
@@ -740,56 +823,59 @@ app.get(
 
 
 
-            res.json({
+            const agents =
 
+            Object.values(
+
+                agents_registry
+
+            ).map(agent=>({
+
+
+                id:
+
+                agent.id,
+
+
+                name:
+
+                agent.name,
+
+
+                description:
+
+                agent.description || "",
+
+
+                category:
+
+                agent.category ||
+
+                "Tecnologia",
+
+
+                emoji:
+
+                agent.emoji ||
+
+                "🤖"
+
+
+            }));
+
+
+
+            return res.json({
 
                 success:true,
 
-
                 total:
 
-                Object.keys(
-                    agents_registry
-                )
-                .length,
+                agents.length,
 
-
-
-                agents:
-
-                Object.values(
-                    agents_registry
-                )
-                .map(agent=>({
-
-
-                    id:
-                    agent.id,
-
-
-                    name:
-                    agent.name,
-
-
-                    description:
-                    agent.description || "",
-
-
-                    category:
-                    agent.category || "Tecnologia",
-
-
-                    emoji:
-                    agent.emoji || "🤖"
-
-
-
-                }))
-
-
+                agents
 
             });
-
 
 
         }
@@ -798,25 +884,31 @@ app.get(
         catch(error){
 
 
+            console.error(
 
-            res.status(500)
+                "[AGENTS API ERROR]",
+
+                error
+
+            );
+
+
+            return res
+
+            .status(500)
+
             .json({
-
 
                 success:false,
 
-
                 error:
+
                 error.message
-
-
 
             });
 
 
-
         }
-
 
 
     }
@@ -845,87 +937,54 @@ app.get(
     (req,res)=>{
 
 
+        try{
 
-        res.json(
 
-            orchestratorinstance
-            .getTelemetry()
+            return res.json(
 
-        );
+                orchestratorinstance
 
+                .getTelemetry()
+
+            );
+
+
+        }
+
+
+        catch(error){
+
+
+            return res
+
+            .status(500)
+
+            .json({
+
+                success:false,
+
+                error:
+
+                error.message
+
+            });
+
+
+        }
 
 
     }
 
 );
 
-/*
-==========================================
-CURRENT USER SESSION
-==========================================
-*/
-
-
-app.get(
-
-"/api/auth/me",
-
-authMiddleware,
-
-async(req,res)=>{
-
-
-    try{
-
-
-        res.json({
-
-            success:true,
-
-            user:{
-
-                id:req.user._id,
-
-                nome:req.user.nome,
-
-                apelido:req.user.apelido,
-
-                email:req.user.email,
-
-                plano:req.user.plano,
-
-                avatar:req.user.avatar
-
-            }
-
-
-        });
 
 
 
-    }
 
 
-    catch(error){
 
 
-        res.status(500)
 
-        .json({
-
-            success:false,
-
-            error:error.message
-
-        });
-
-
-    }
-
-
-}
-
-);
 /*
 ==========================================
 FRONTEND FALLBACK
@@ -935,17 +994,28 @@ SERVE HONEY IA APP
 
 
 app.get(
+
     "*",
-    (req, res) => {
-        res.sendFile(
-            path.join(
-                __dirname,
-                "index.html"
-            )
-        );
-    }
-);
 
+    (req,res)=>{
+
+
+        res.sendFile(
+
+            path.join(
+
+                __dirname,
+
+                "index.html"
+
+            )
+
+        );
+
+
+    }
+
+);
 
 
 
@@ -957,8 +1027,7 @@ app.get(
 
 /*
 ==========================================
-ERROR HANDLER
-GLOBAL SERVER ERRORS
+GLOBAL ERROR HANDLER
 ==========================================
 */
 
@@ -978,21 +1047,27 @@ app.use(
 
 
 
-        res.status(500)
+        if(res.headersSent){
+
+            return next(err);
+
+        }
+
+
+
+        return res
+
+        .status(500)
+
         .json({
 
-
             success:false,
-
 
             error:
 
             "Erro interno no servidor."
 
-
-
         });
-
 
 
     }
@@ -1009,7 +1084,7 @@ app.use(
 
 /*
 ==========================================
-START SERVER
+SERVER START
 RENDER COMPATIBILITY
 ==========================================
 */
@@ -1025,6 +1100,10 @@ process.env.PORT ||
 
 
 
+
+
+
+
 app.listen(
 
     PORT,
@@ -1034,45 +1113,58 @@ app.listen(
 
         console.log(
 
-        "🐝 =================================="
+            "🐝 =================================="
 
         );
 
 
         console.log(
 
-        "🚀 Honey IA OS Online"
+            "🚀 Honey IA OS Online"
 
         );
 
 
         console.log(
 
-        `🌐 Porta: ${PORT}`
+            `🌐 Porta: ${PORT}`
 
         );
 
 
         console.log(
 
-        "🤖 30 Agentes carregados"
+            "🤖 30 Agentes carregados"
 
         );
 
 
         console.log(
 
-        "🧠 Orchestrator V5 ativo"
+            "🧠 Orchestrator ativo"
 
         );
 
 
         console.log(
 
-        "🐝 =================================="
+            "🔐 Authentication System ativo"
 
         );
 
+
+        console.log(
+
+            "🍃 MongoDB Authentication ativo"
+
+        );
+
+
+        console.log(
+
+            "🐝 =================================="
+
+        );
 
 
     }
