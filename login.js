@@ -3,7 +3,8 @@
 HONEY IA OS
 LOGIN CONTROLLER
 Professional Authentication UI
-V4.0
+V5.0
+Google Identity Services
 ==========================================
 */
 
@@ -29,6 +30,12 @@ class LoginController {
 
 
         this.initialized = false;
+
+
+        this.googleInitialized = false;
+
+
+        this.googleLoading = false;
 
 
     }
@@ -70,14 +77,20 @@ class LoginController {
 
         /*
         --------------------------------------
-        If already authenticated, do not
-        show login screen.
+        Wait for authentication manager
         --------------------------------------
         */
 
 
         await authmanager.waitUntilReady();
 
+
+
+        /*
+        --------------------------------------
+        Existing authenticated session
+        --------------------------------------
+        */
 
 
         if(authmanager.isAuthenticated()){
@@ -92,6 +105,13 @@ class LoginController {
 
 
 
+        /*
+        --------------------------------------
+        Create interface
+        --------------------------------------
+        */
+
+
         this.createContainer();
 
 
@@ -99,6 +119,17 @@ class LoginController {
 
 
         this.attachEvents();
+
+
+
+        /*
+        --------------------------------------
+        Initialize Google
+        --------------------------------------
+        */
+
+
+        await this.setupGoogleLogin();
 
 
     }
@@ -262,6 +293,8 @@ class LoginController {
                         type="button"
 
                         class="google-btn"
+
+                        aria-label="Continuar com Google"
 
                     >
 
@@ -1017,6 +1050,468 @@ class LoginController {
 
         );
 
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GOOGLE IDENTITY SERVICES
+    LOAD LIBRARY
+    ==========================================
+    */
+
+
+    loadGoogleScript(){
+
+
+        return new Promise(
+
+            (resolve,reject)=>{
+
+
+                /*
+                --------------------------------
+                Already available
+                --------------------------------
+                */
+
+
+                if(
+
+                    window.google &&
+
+                    window.google.accounts &&
+
+                    window.google.accounts.id
+
+                ){
+
+                    resolve();
+
+                    return;
+
+                }
+
+
+
+                /*
+                --------------------------------
+                Script already loading
+                --------------------------------
+                */
+
+
+                const existing =
+
+                document.querySelector(
+
+                    'script[data-honey-google="true"]'
+
+                );
+
+
+
+                if(existing){
+
+
+                    existing.addEventListener(
+
+                        "load",
+
+                        () => resolve(),
+
+                        {
+
+                            once:true
+
+                        }
+
+                    );
+
+
+
+                    existing.addEventListener(
+
+                        "error",
+
+                        () => reject(
+
+                            new Error(
+
+                                "Não foi possível carregar o Google Identity Services."
+
+                            )
+
+                        ),
+
+                        {
+
+                            once:true
+
+                        }
+
+                    );
+
+
+
+                    return;
+
+                }
+
+
+
+                /*
+                --------------------------------
+                Create Google script
+                --------------------------------
+                */
+
+
+                const script =
+
+                document.createElement(
+
+                    "script"
+
+                );
+
+
+
+                script.src =
+
+                "https://accounts.google.com/gsi/client";
+
+
+
+                script.async = true;
+
+
+                script.defer = true;
+
+
+
+                script.dataset.honeyGoogle =
+
+                    "true";
+
+
+
+                script.onload = () => {
+
+
+                    if(
+
+                        window.google &&
+
+                        window.google.accounts &&
+
+                        window.google.accounts.id
+
+                    ){
+
+                        resolve();
+
+                    }
+
+                    else{
+
+
+                        reject(
+
+                            new Error(
+
+                                "Google Identity Services foi carregado, mas não está disponível."
+
+                            )
+
+                        );
+
+                    }
+
+                };
+
+
+
+                script.onerror = () => {
+
+
+                    reject(
+
+                        new Error(
+
+                            "Não foi possível carregar o Google Identity Services."
+
+                        )
+
+                    );
+
+                };
+
+
+
+                document.head.appendChild(
+
+                    script
+
+                );
+
+            }
+
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GOOGLE CONFIGURATION
+    ==========================================
+    */
+
+
+    async getGoogleClientId(){
+
+
+        /*
+        --------------------------------------
+        Public browser configuration
+        --------------------------------------
+        */
+
+
+        if(
+
+            window.HONEY_GOOGLE_CLIENT_ID
+
+        ){
+
+            return window.HONEY_GOOGLE_CLIENT_ID;
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        Ask backend for public Client ID
+        --------------------------------------
+        */
+
+
+        const response =
+
+        await fetch(
+
+            "/api/auth/google-config",
+
+            {
+
+                method:"GET",
+
+                headers:{
+
+                    "Accept":
+
+                    "application/json"
+
+                }
+
+            }
+
+        );
+
+
+
+        const data =
+
+        await response.json();
+
+
+
+        if(
+
+            !response.ok ||
+
+            !data.success ||
+
+            !data.clientId
+
+        ){
+
+            throw new Error(
+
+                data.error ||
+
+                "Google Client ID não configurado."
+
+            );
+
+        }
+
+
+
+        return data.clientId;
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    SETUP GOOGLE LOGIN
+    ==========================================
+    */
+
+
+    async setupGoogleLogin(){
+
+
+        const button =
+
+        document.getElementById(
+
+            "googleLogin"
+
+        );
+
+
+
+        if(!button)
+
+            return;
+
+
+
+        try{
+
+
+            button.disabled = true;
+
+
+
+            /*
+            --------------------------------
+            Load Google library
+            --------------------------------
+            */
+
+
+            await this.loadGoogleScript();
+
+
+
+            /*
+            --------------------------------
+            Get public client ID
+            --------------------------------
+            */
+
+
+            const clientId =
+
+            await this.getGoogleClientId();
+
+
+
+            /*
+            --------------------------------
+            Initialize Google
+            --------------------------------
+            */
+
+
+            const initialized =
+
+            this.initializeGoogleLogin(
+
+                clientId
+
+            );
+
+
+
+            if(!initialized){
+
+                throw new Error(
+
+                    "Não foi possível inicializar o Google."
+
+                );
+
+            }
+
+
+
+            this.googleInitialized =
+
+                true;
+
+
+
+            button.disabled = false;
+
+
+
+            button.dataset.ready =
+
+                "true";
+
+
+
+        }
+
+        catch(error){
+
+
+            console.error(
+
+                "GOOGLE SETUP ERROR:",
+
+                error
+
+            );
+
+
+
+            button.disabled = false;
+
+
+
+            button.dataset.ready =
+
+                "false";
+
+
+
+            this.showMessage(
+
+                "Login Google indisponível. Verifique a configuração do Google.",
+
+                "error"
+
+            );
+
+        }
 
     }
 
@@ -1749,15 +2244,22 @@ class LoginController {
     async googleLogin(){
 
 
+        if(this.googleLoading)
+
+            return;
+
+
+
         /*
         --------------------------------------
-        The Google Identity Services library
-        must provide the credential.
+        Google was not initialized
         --------------------------------------
         */
 
 
         if(
+
+            !this.googleInitialized ||
 
             typeof google ===
 
@@ -1772,39 +2274,62 @@ class LoginController {
 
             this.showMessage(
 
-                "O login Google ainda não está disponível. Verifique a configuração do Google Identity Services.",
+                "O login Google ainda está a ser preparado. Tente novamente em alguns segundos.",
 
                 "error"
 
             );
 
 
-            return;
+            /*
+            --------------------------------
+            Try initialization again
+            --------------------------------
+            */
+
+
+            await this.setupGoogleLogin();
+
+
+
+            if(!this.googleInitialized)
+
+                return;
 
         }
 
 
 
-        /*
-        --------------------------------------
-        Start Google authentication.
-        --------------------------------------
-        */
+        this.googleLoading =
+
+            true;
+
+
+
+        this.setLoading(
+
+            "googleLogin",
+
+            true,
+
+            "A conectar..."
+
+        );
+
+
+
+        this.clearMessage();
+
 
 
         try{
 
 
-            this.setLoading(
-
-                "googleLogin",
-
-                true,
-
-                "A conectar..."
-
-            );
-
+            /*
+            --------------------------------
+            Open Google Identity Services
+            --------------------------------
+            */
 
 
             google.accounts.id.prompt(
@@ -1814,9 +2339,7 @@ class LoginController {
 
                     /*
                     --------------------------
-                    Google may return no
-                    credential when the user
-                    closes the prompt.
+                    Prompt not displayed
                     --------------------------
                     */
 
@@ -1827,13 +2350,20 @@ class LoginController {
 
                     ){
 
-                        this.showMessage(
 
-                            "A janela de login Google não pôde ser apresentada.",
+                        console.warn(
 
-                            "error"
+                            "Google prompt não apresentado:",
+
+                            notification.getNotDisplayedReason?.()
 
                         );
+
+
+
+                        this.googleLoading =
+
+                            false;
 
 
 
@@ -1846,6 +2376,42 @@ class LoginController {
                             "Continuar com Google"
 
                         );
+
+
+                    }
+
+
+
+                    /*
+                    --------------------------
+                    Prompt skipped
+                    --------------------------
+                    */
+
+
+                    if(
+
+                        notification.isSkippedMoment?.()
+
+                    ){
+
+
+                        this.googleLoading =
+
+                            false;
+
+
+
+                        this.setLoading(
+
+                            "googleLogin",
+
+                            false,
+
+                            "Continuar com Google"
+
+                        );
+
 
                     }
 
@@ -1863,7 +2429,7 @@ class LoginController {
 
             console.error(
 
-                "GOOGLE LOGIN ERROR:",
+                "GOOGLE PROMPT ERROR:",
 
                 error
 
@@ -1871,13 +2437,9 @@ class LoginController {
 
 
 
-            this.showMessage(
+            this.googleLoading =
 
-                "Não foi possível iniciar o login Google.",
-
-                "error"
-
-            );
+                false;
 
 
 
@@ -1888,6 +2450,16 @@ class LoginController {
                 false,
 
                 "Continuar com Google"
+
+            );
+
+
+
+            this.showMessage(
+
+                "Não foi possível iniciar o login Google.",
+
+                "error"
 
             );
 
@@ -1915,6 +2487,42 @@ class LoginController {
         credential
 
     ){
+
+
+        if(!credential){
+
+
+            this.googleLoading =
+
+                false;
+
+
+
+            this.setLoading(
+
+                "googleLogin",
+
+                false,
+
+                "Continuar com Google"
+
+            );
+
+
+
+            this.showMessage(
+
+                "O Google não forneceu uma credencial válida.",
+
+                "error"
+
+            );
+
+
+            return;
+
+        }
+
 
 
         this.setLoading(
@@ -1988,6 +2596,12 @@ class LoginController {
         }
 
         finally{
+
+
+            this.googleLoading =
+
+                false;
+
 
 
             this.setLoading(
@@ -2096,13 +2710,6 @@ class LoginController {
 
         this.clearMessage();
 
-
-
-        /*
-        --------------------------------------
-        Focus
-        --------------------------------------
-        */
 
 
         setTimeout(
@@ -2415,15 +3022,9 @@ class LoginController {
         */
 
 
-        const target =
-
-            "/index.html";
-
-
-
         window.location.href =
 
-            target;
+            "/index.html";
 
     }
 
@@ -2463,6 +3064,7 @@ class LoginController {
 
         ){
 
+
             console.warn(
 
                 "Google Identity Services não disponível."
@@ -2487,13 +3089,17 @@ class LoginController {
 
                 callback:
 
-                    response =>
+                    response => {
 
-                    this.handleGoogleCredential(
 
-                        response.credential
+                        this.handleGoogleCredential(
 
-                    ),
+                            response?.credential
+
+                        );
+
+
+                    },
 
                 auto_select:
 
