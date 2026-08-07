@@ -2,10 +2,8 @@
 ==========================================
 HONEY IA OS
 AUTH CONTROLLER
-Authentication Business Logic
+Professional Authentication Business Logic
 V2.0
-Local + Google Authentication
-JWT + MongoDB Sessions
 ==========================================
 */
 
@@ -18,9 +16,6 @@ import validator from "validator";
 
 import crypto from "crypto";
 
-import { OAuth2Client } from "google-auth-library";
-
-
 import {
 
     User,
@@ -29,14 +24,13 @@ import {
 
 } from "./models.js";
 
-
 import emailservice from "./emailservice.js";
 
 
 
 /*
 ==========================================
-CONFIG
+CONFIGURATION
 ==========================================
 */
 
@@ -46,9 +40,14 @@ const JWT_SECRET =
 process.env.JWT_SECRET;
 
 
+
 const GOOGLE_CLIENT_ID =
 
 process.env.GOOGLE_CLIENT_ID;
+
+
+
+const SESSION_DAYS = 30;
 
 
 
@@ -59,27 +58,15 @@ SECURITY CONFIGURATION
 */
 
 
-const SESSION_DAYS = 30;
+if(!JWT_SECRET){
 
+    console.warn(
 
-const VERIFICATION_MINUTES = 15;
+        "⚠️ JWT_SECRET não configurado."
 
+    );
 
-
-/*
-==========================================
-GOOGLE CLIENT
-==========================================
-*/
-
-
-const googleClient =
-
-new OAuth2Client(
-
-    GOOGLE_CLIENT_ID
-
-);
+}
 
 
 
@@ -108,14 +95,17 @@ function validatePassword(password){
     }
 
 
-    const hasUpperCase =
-
-    /[A-Z]/.test(password);
-
 
     const hasLowerCase =
 
     /[a-z]/.test(password);
+
+
+
+    const hasUpperCase =
+
+    /[A-Z]/.test(password);
+
 
 
     const hasNumber =
@@ -123,16 +113,18 @@ function validatePassword(password){
     /[0-9]/.test(password);
 
 
+
     const hasSpecial =
 
     /[^A-Za-z0-9]/.test(password);
 
 
+
     return (
 
-        hasUpperCase &&
-
         hasLowerCase &&
+
+        hasUpperCase &&
 
         hasNumber &&
 
@@ -154,13 +146,18 @@ GENERATE VERIFICATION CODE
 function generateCode(){
 
 
-    return crypto.randomInt(
+    return crypto
 
-        100000,
+        .randomInt(
 
-        1000000
+            100000,
 
-    ).toString();
+            1000000
+
+        )
+
+        .toString();
+
 
 }
 
@@ -192,56 +189,27 @@ function normalizeEmail(email){
 
 /*
 ==========================================
-NORMALIZE NAME
+CREATE JWT
 ==========================================
 */
 
 
-function normalizeName(value){
-
-
-    return String(
-
-        value || ""
-
-    )
-
-    .trim();
-
-}
-
-
-
-/*
-==========================================
-CREATE JWT SESSION
-==========================================
-*/
-
-
-async function createSession(
-
-    user,
-
-    req
-
-){
+function createToken(user){
 
 
     if(!JWT_SECRET){
 
         throw new Error(
 
-            "JWT_SECRET não configurado no servidor."
+            "JWT_SECRET não configurado."
 
         );
 
     }
 
 
-    const token =
 
-    jwt.sign(
+    return jwt.sign(
 
         {
 
@@ -267,12 +235,43 @@ async function createSession(
 
     );
 
+}
+
+
+
+/*
+==========================================
+CREATE DATABASE SESSION
+==========================================
+*/
+
+
+async function createSession(
+
+    user,
+
+    req
+
+){
+
+
+    const token =
+
+    createToken(user);
+
+
+
+    const now =
+
+    Date.now();
+
+
 
     const expiresAt =
 
     new Date(
 
-        Date.now() +
+        now +
 
         SESSION_DAYS *
 
@@ -287,11 +286,13 @@ async function createSession(
     );
 
 
+
     const userAgent =
 
     req.headers["user-agent"] ||
 
     "unknown";
+
 
 
     await Session.create({
@@ -319,7 +320,14 @@ async function createSession(
     });
 
 
-    return token;
+
+    return {
+
+        token,
+
+        expiresAt
+
+    };
 
 }
 
@@ -328,12 +336,12 @@ async function createSession(
 /*
 ==========================================
 USER RESPONSE
-REMOVE PRIVATE DATA
+Never expose password or sensitive fields
 ==========================================
 */
 
 
-function sanitizeUser(user){
+function serializeUser(user){
 
 
     return {
@@ -354,25 +362,25 @@ function sanitizeUser(user){
 
         user.email,
 
-        provider:
-
-        user.provider,
-
         avatar:
 
         user.avatar,
-
-        emailVerified:
-
-        user.emailVerified,
 
         plan:
 
         user.plan,
 
+        emailVerified:
+
+        user.emailVerified,
+
         isActive:
 
         user.isActive,
+
+        googleId:
+
+        user.googleId || null,
 
         createdAt:
 
@@ -391,7 +399,7 @@ function sanitizeUser(user){
 /*
 ==========================================
 REGISTER USER
-CREATE LOCAL ACCOUNT
+CREATE ACCOUNT
 ==========================================
 */
 
@@ -420,39 +428,24 @@ export async function registerUser(
 
             confirmPassword
 
-        } = req.body;
-
-
-        const cleanFirstName =
-
-        normalizeName(firstName);
-
-
-        const cleanLastName =
-
-        normalizeName(lastName);
-
-
-        const cleanEmail =
-
-        normalizeEmail(email);
+        } = req.body || {};
 
 
 
         /*
-        ----------------------------------
+        ==============================
         REQUIRED FIELDS
-        ----------------------------------
+        ==============================
         */
 
 
         if(
 
-            !cleanFirstName ||
+            !firstName ||
 
-            !cleanLastName ||
+            !lastName ||
 
-            !cleanEmail ||
+            !email ||
 
             !password ||
 
@@ -475,17 +468,23 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         EMAIL
-        ----------------------------------
+        ==============================
         */
+
+
+        const normalizedEmail =
+
+        normalizeEmail(email);
+
 
 
         if(
 
             !validator.isEmail(
 
-                cleanEmail
+                normalizedEmail
 
             )
 
@@ -506,9 +505,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         PASSWORD MATCH
-        ----------------------------------
+        ==============================
         */
 
 
@@ -535,9 +534,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
-        PASSWORD SECURITY
-        ----------------------------------
+        ==============================
+        PASSWORD STRENGTH
+        ==============================
         */
 
 
@@ -566,9 +565,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
-        EXISTING USER
-        ----------------------------------
+        ==============================
+        CHECK EXISTING USER
+        ==============================
         */
 
 
@@ -578,19 +577,26 @@ export async function registerUser(
 
             email:
 
-            cleanEmail
+            normalizedEmail
 
         });
 
 
+
         if(existingUser){
+
+            /*
+            --------------------------
+            Existing Google account
+            --------------------------
+            */
 
 
             if(
 
-                existingUser.provider ===
+                existingUser.googleId &&
 
-                "google"
+                !existingUser.password
 
             ){
 
@@ -600,11 +606,12 @@ export async function registerUser(
 
                     error:
 
-                    "Este email já está associado ao Google. Entre com o Google."
+                    "Este email já está associado ao Google. Entre com o Google ou utilize a recuperação de conta."
 
                 });
 
             }
+
 
 
             return res.status(409).json({
@@ -622,9 +629,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
-        PASSWORD HASH
-        ----------------------------------
+        ==============================
+        HASH PASSWORD
+        ==============================
         */
 
 
@@ -641,9 +648,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
-        EMAIL VERIFICATION
-        ----------------------------------
+        ==============================
+        VERIFICATION CODE
+        ==============================
         */
 
 
@@ -652,13 +659,14 @@ export async function registerUser(
         generateCode();
 
 
+
         const verificationExpires =
 
         new Date(
 
             Date.now() +
 
-            VERIFICATION_MINUTES *
+            15 *
 
             60 *
 
@@ -669,83 +677,71 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         CREATE USER
-        ----------------------------------
+        ==============================
         */
 
 
-        const newUser =
+        const user =
 
         await User.create({
 
             firstName:
 
-            cleanFirstName,
+            String(firstName)
+
+                .trim(),
 
             lastName:
 
-            cleanLastName,
+            String(lastName)
+
+                .trim(),
 
             email:
 
-            cleanEmail,
+            normalizedEmail,
 
             password:
 
             hashedPassword,
 
-            provider:
-
-            "local",
-
-            googleId:
-
-            null,
-
-            avatar:
-
-            null,
-
-            emailVerified:
-
-            false,
+            emailVerified:false,
 
             verificationCode,
 
             verificationExpires,
 
-            plan:
+            plan:"free",
 
-            "free",
-
-            isActive:
-
-            true
+            isActive:true
 
         });
 
 
 
         /*
-        ----------------------------------
+        ==============================
         SEND VERIFICATION EMAIL
-        ----------------------------------
+        ==============================
         */
 
 
         try{
 
 
-            await emailservice.sendVerificationCode(
+            await emailservice
 
-                newUser.email,
+                .sendVerificationCode(
 
-                verificationCode,
+                    user.email,
 
-                newUser.firstName
+                    verificationCode,
 
-            );
+                    user.firstName
+
+                );
 
 
         }
@@ -755,17 +751,18 @@ export async function registerUser(
 
             console.error(
 
-                "EMAIL VERIFICATION ERROR:",
+                "VERIFICATION EMAIL ERROR:",
 
                 emailError
 
             );
 
 
+
             /*
             --------------------------------
-            Remove conta se email não puder
-            ser enviado.
+            Remove incomplete account if
+            verification email cannot be sent
             --------------------------------
             */
 
@@ -774,9 +771,10 @@ export async function registerUser(
 
                 _id:
 
-                newUser._id
+                user._id
 
             });
+
 
 
             return res.status(503).json({
@@ -794,9 +792,9 @@ export async function registerUser(
 
 
         /*
-        ----------------------------------
-        SUCCESS
-        ----------------------------------
+        ==============================
+        RESPONSE
+        ==============================
         */
 
 
@@ -810,9 +808,10 @@ export async function registerUser(
 
             userId:
 
-            newUser._id
+            user._id
 
         });
+
 
 
     }
@@ -827,6 +826,7 @@ export async function registerUser(
             error
 
         );
+
 
 
         return res.status(500).json({
@@ -848,7 +848,7 @@ export async function registerUser(
 /*
 ==========================================
 VERIFY EMAIL
-CONFIRM LOCAL ACCOUNT
+CONFIRM ACCOUNT
 ==========================================
 */
 
@@ -865,37 +865,37 @@ export async function verifyEmail(
     try{
 
 
-        const email =
+        const {
 
-        normalizeEmail(
+            email,
 
-            req.body.email
+            code
 
-        );
+        } = req.body || {};
 
 
-        const code =
+
+        const normalizedEmail =
+
+        normalizeEmail(email);
+
+
+
+        const normalizedCode =
 
         String(
 
-            req.body.code || ""
+            code || ""
 
         ).trim();
 
 
 
-        /*
-        ----------------------------------
-        VALIDATION
-        ----------------------------------
-        */
-
-
         if(
 
-            !email ||
+            !normalizedEmail ||
 
-            !code
+            !normalizedCode
 
         ){
 
@@ -914,9 +914,9 @@ export async function verifyEmail(
 
 
         /*
-        ----------------------------------
+        ==============================
         FIND USER
-        ----------------------------------
+        ==============================
         */
 
 
@@ -924,9 +924,12 @@ export async function verifyEmail(
 
         await User.findOne({
 
-            email
+            email:
+
+            normalizedEmail
 
         });
+
 
 
         if(!user){
@@ -946,9 +949,9 @@ export async function verifyEmail(
 
 
         /*
-        ----------------------------------
+        ==============================
         ALREADY VERIFIED
-        ----------------------------------
+        ==============================
         */
 
 
@@ -969,9 +972,9 @@ export async function verifyEmail(
 
 
         /*
-        ----------------------------------
-        CODE
-        ----------------------------------
+        ==============================
+        CODE VALIDATION
+        ==============================
         */
 
 
@@ -979,7 +982,7 @@ export async function verifyEmail(
 
             user.verificationCode !==
 
-            code
+            normalizedCode
 
         ){
 
@@ -998,9 +1001,9 @@ export async function verifyEmail(
 
 
         /*
-        ----------------------------------
+        ==============================
         EXPIRATION
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1029,9 +1032,9 @@ export async function verifyEmail(
 
 
         /*
-        ----------------------------------
+        ==============================
         VERIFY
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1042,36 +1045,42 @@ export async function verifyEmail(
         user.verificationExpires = null;
 
 
+
         await user.save();
 
 
 
         /*
-        ----------------------------------
+        ==============================
         WELCOME EMAIL
-        ----------------------------------
+        ==============================
         */
 
 
         try{
 
-            await emailservice.sendWelcomeEmail(
 
-                user.email,
+            await emailservice
 
-                user.firstName
+                .sendWelcomeEmail(
 
-            );
+                    user.email,
+
+                    user.firstName
+
+                );
+
 
         }
 
-        catch(emailError){
+        catch(error){
+
 
             console.error(
 
                 "WELCOME EMAIL ERROR:",
 
-                emailError
+                error
 
             );
 
@@ -1090,6 +1099,7 @@ export async function verifyEmail(
         });
 
 
+
     }
 
     catch(error){
@@ -1102,6 +1112,7 @@ export async function verifyEmail(
             error
 
         );
+
 
 
         return res.status(500).json({
@@ -1122,8 +1133,188 @@ export async function verifyEmail(
 
 /*
 ==========================================
+RESEND VERIFICATION CODE
+==========================================
+*/
+
+
+export async function resendVerificationCode(
+
+    req,
+
+    res
+
+){
+
+
+    try{
+
+
+        const email =
+
+        normalizeEmail(
+
+            req.body?.email
+
+        );
+
+
+
+        if(
+
+            !validator.isEmail(email)
+
+        ){
+
+            return res.status(400).json({
+
+                success:false,
+
+                error:
+
+                "Email inválido."
+
+            });
+
+        }
+
+
+
+        const user =
+
+        await User.findOne({
+
+            email
+
+        });
+
+
+
+        if(!user){
+
+            return res.status(404).json({
+
+                success:false,
+
+                error:
+
+                "Utilizador não encontrado."
+
+            });
+
+        }
+
+
+
+        if(user.emailVerified){
+
+            return res.status(400).json({
+
+                success:false,
+
+                error:
+
+                "Este email já está confirmado."
+
+            });
+
+        }
+
+
+
+        const code =
+
+        generateCode();
+
+
+
+        user.verificationCode =
+
+        code;
+
+
+
+        user.verificationExpires =
+
+        new Date(
+
+            Date.now() +
+
+            15 *
+
+            60 *
+
+            1000
+
+        );
+
+
+
+        await user.save();
+
+
+
+        await emailservice
+
+            .sendVerificationCode(
+
+                user.email,
+
+                code,
+
+                user.firstName
+
+            );
+
+
+
+        return res.json({
+
+            success:true,
+
+            message:
+
+            "Novo código enviado para o seu email."
+
+        });
+
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "RESEND CODE ERROR:",
+
+            error
+
+        );
+
+
+
+        return res.status(500).json({
+
+            success:false,
+
+            error:
+
+            "Não foi possível reenviar o código."
+
+        });
+
+    }
+
+}
+
+
+
+/*
+==========================================
 LOGIN USER
-LOCAL AUTHENTICATION
+EMAIL + PASSWORD
 ==========================================
 */
 
@@ -1140,35 +1331,29 @@ export async function loginUser(
     try{
 
 
-        const email =
+        const {
 
-        normalizeEmail(
+            email,
 
-            req.body.email
+            password
 
-        );
-
-
-        const password =
-
-        String(
-
-            req.body.password || ""
-
-        );
+        } = req.body || {};
 
 
 
-        /*
-        ----------------------------------
-        REQUIRED
-        ----------------------------------
-        */
+        const normalizedEmail =
+
+        normalizeEmail(email);
+
 
 
         if(
 
-            !email ||
+            !validator.isEmail(
+
+                normalizedEmail
+
+            ) ||
 
             !password
 
@@ -1180,7 +1365,7 @@ export async function loginUser(
 
                 error:
 
-                "Email e palavra-passe são obrigatórios."
+                "Email ou palavra-passe inválidos."
 
             });
 
@@ -1189,9 +1374,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         FIND USER
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1199,9 +1384,19 @@ export async function loginUser(
 
         await User.findOne({
 
-            email
+            email:
+
+            normalizedEmail
 
         });
+
+
+
+        /*
+        ==============================
+        GENERIC CREDENTIAL ERROR
+        ==============================
+        */
 
 
         if(!user){
@@ -1221,9 +1416,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         ACCOUNT STATUS
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1244,19 +1439,17 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
-        GOOGLE ACCOUNT
-        ----------------------------------
+        ==============================
+        GOOGLE ONLY ACCOUNT
+        ==============================
         */
 
 
         if(
 
-            user.provider ===
+            !user.password &&
 
-            "google" &&
-
-            !user.password
+            user.googleId
 
         ){
 
@@ -1275,9 +1468,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         EMAIL VERIFICATION
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1298,9 +1491,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         PASSWORD
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1313,6 +1506,7 @@ export async function loginUser(
             user.password
 
         );
+
 
 
         if(!passwordMatch){
@@ -1332,9 +1526,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
-        UPDATE LAST LOGIN
-        ----------------------------------
+        ==============================
+        LAST LOGIN
+        ==============================
         */
 
 
@@ -1343,18 +1537,19 @@ export async function loginUser(
         new Date();
 
 
+
         await user.save();
 
 
 
         /*
-        ----------------------------------
+        ==============================
         CREATE SESSION
-        ----------------------------------
+        ==============================
         */
 
 
-        const token =
+        const session =
 
         await createSession(
 
@@ -1367,9 +1562,9 @@ export async function loginUser(
 
 
         /*
-        ----------------------------------
+        ==============================
         RESPONSE
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1377,13 +1572,24 @@ export async function loginUser(
 
             success:true,
 
-            token,
+            token:
+
+            session.token,
+
+            expiresAt:
+
+            session.expiresAt,
 
             user:
 
-            sanitizeUser(user)
+            serializeUser(
+
+                user
+
+            )
 
         });
+
 
 
     }
@@ -1398,6 +1604,7 @@ export async function loginUser(
             error
 
         );
+
 
 
         return res.status(500).json({
@@ -1419,7 +1626,7 @@ export async function loginUser(
 /*
 ==========================================
 GOOGLE LOGIN
-VERIFY GOOGLE ID TOKEN
+GOOGLE ID TOKEN AUTHENTICATION
 ==========================================
 */
 
@@ -1440,15 +1647,8 @@ export async function googleLogin(
 
             credential
 
-        } = req.body;
+        } = req.body || {};
 
-
-
-        /*
-        ----------------------------------
-        VALIDATION
-        ----------------------------------
-        */
 
 
         if(!credential){
@@ -1471,9 +1671,11 @@ export async function googleLogin(
 
             console.error(
 
-                "GOOGLE_CLIENT_ID não configurado."
+                "❌ GOOGLE_CLIENT_ID não configurado."
 
             );
+
+
 
             return res.status(500).json({
 
@@ -1481,7 +1683,7 @@ export async function googleLogin(
 
                 error:
 
-                "Login com Google não está configurado."
+                "Login Google não configurado no servidor."
 
             });
 
@@ -1490,34 +1692,29 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
-        VERIFY TOKEN
-        ----------------------------------
+        ==============================
+        VERIFY GOOGLE TOKEN
+        ==============================
         */
 
 
-        const ticket =
+        const googleResponse =
 
-        await googleClient.verifyIdToken({
+        await fetch(
 
-            idToken:
+            "https://oauth2.googleapis.com/tokeninfo?id_token=" +
 
-            credential,
+            encodeURIComponent(
 
-            audience:
+                credential
 
-            GOOGLE_CLIENT_ID
+            )
 
-        });
-
-
-        const payload =
-
-        ticket.getPayload();
+        );
 
 
 
-        if(!payload){
+        if(!googleResponse.ok){
 
             return res.status(401).json({
 
@@ -1533,61 +1730,24 @@ export async function googleLogin(
 
 
 
+        const googleData =
+
+        await googleResponse.json();
+
+
+
         /*
-        ----------------------------------
-        GOOGLE DATA
-        ----------------------------------
+        ==============================
+        VERIFY AUDIENCE
+        ==============================
         */
-
-
-        const googleId =
-
-        payload.sub;
-
-
-        const email =
-
-        normalizeEmail(
-
-            payload.email
-
-        );
-
-
-        const firstName =
-
-        normalizeName(
-
-            payload.given_name
-
-        ) || "Utilizador";
-
-
-        const lastName =
-
-        normalizeName(
-
-            payload.family_name
-
-        ) || "";
-
-
-        const avatar =
-
-        payload.picture || null;
-
-
-        const emailVerified =
-
-        payload.email_verified === true;
-
 
 
         if(
 
-            !googleId ||
+            googleData.aud !==
 
-            !email
+            GOOGLE_CLIENT_ID
 
         ){
 
@@ -1597,23 +1757,7 @@ export async function googleLogin(
 
                 error:
 
-                "Não foi possível obter os dados da conta Google."
-
-            });
-
-        }
-
-
-
-        if(!emailVerified){
-
-            return res.status(403).json({
-
-                success:false,
-
-                error:
-
-                "A conta Google precisa ter o email confirmado."
+                "Credencial Google não pertence à aplicação."
 
             });
 
@@ -1622,9 +1766,78 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
+        ==============================
+        GOOGLE EMAIL
+        ==============================
+        */
+
+
+        if(
+
+            googleData.email_verified !==
+
+            "true"
+
+        ){
+
+            return res.status(401).json({
+
+                success:false,
+
+                error:
+
+                "O email Google não está confirmado."
+
+            });
+
+        }
+
+
+
+        const googleId =
+
+        googleData.sub;
+
+
+
+        const email =
+
+        normalizeEmail(
+
+            googleData.email
+
+        );
+
+
+
+        const firstName =
+
+        googleData.given_name ||
+
+        "Utilizador";
+
+
+
+        const lastName =
+
+        googleData.family_name ||
+
+        "";
+
+
+
+        const avatar =
+
+        googleData.picture ||
+
+        null;
+
+
+
+        /*
+        ==============================
         FIND BY GOOGLE ID
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1639,9 +1852,9 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
-        IF NOT FOUND, FIND BY EMAIL
-        ----------------------------------
+        ==============================
+        FIND BY EMAIL
+        ==============================
         */
 
 
@@ -1660,14 +1873,54 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
-        EXISTING USER
-        ----------------------------------
+        ==============================
+        CREATE OR LINK USER
+        ==============================
         */
 
 
-        if(user){
+        if(!user){
 
+
+            user =
+
+            await User.create({
+
+                firstName,
+
+                lastName,
+
+                email,
+
+                googleId,
+
+                avatar,
+
+                password:null,
+
+                emailVerified:true,
+
+                verificationCode:null,
+
+                verificationExpires:null,
+
+                plan:"free",
+
+                isActive:true
+
+            });
+
+
+        }
+
+        else{
+
+
+            /*
+            --------------------------------
+            Existing account
+            --------------------------------
+            */
 
 
             if(!user.isActive){
@@ -1688,16 +1941,12 @@ export async function googleLogin(
 
             /*
             --------------------------------
-            LINK GOOGLE ACCOUNT
+            Link Google account
             --------------------------------
             */
 
 
-            if(
-
-                !user.googleId
-
-            ){
+            if(!user.googleId){
 
                 user.googleId =
 
@@ -1706,24 +1955,49 @@ export async function googleLogin(
             }
 
 
+
             /*
             --------------------------------
-            Update provider only when safe
+            Keep profile updated
             --------------------------------
             */
 
 
+            if(!user.avatar && avatar){
+
+                user.avatar = avatar;
+
+            }
+
+
+
             if(
 
-                user.provider !==
+                !user.firstName &&
 
-                "google"
+                firstName
 
             ){
 
-                user.provider =
+                user.firstName =
 
-                "google";
+                firstName;
+
+            }
+
+
+
+            if(
+
+                !user.lastName &&
+
+                lastName
+
+            ){
+
+                user.lastName =
+
+                lastName;
 
             }
 
@@ -1731,26 +2005,19 @@ export async function googleLogin(
 
             /*
             --------------------------------
-            Update profile data
+            Google verified email
             --------------------------------
             */
 
 
-            user.avatar =
+            user.emailVerified = true;
 
-            avatar ||
-
-            user.avatar;
-
-
-            user.emailVerified =
-
-            true;
 
 
             user.lastLogin =
 
             new Date();
+
 
 
             await user.save();
@@ -1760,61 +2027,30 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
-        NEW GOOGLE USER
-        ----------------------------------
+        ==============================
+        UPDATE LAST LOGIN
+        ==============================
         */
 
 
-        else{
+        user.lastLogin =
+
+        new Date();
 
 
-            user =
 
-            await User.create({
-
-                firstName,
-
-                lastName,
-
-                email,
-
-                password:null,
-
-                provider:"google",
-
-                googleId,
-
-                avatar,
-
-                emailVerified:true,
-
-                verificationCode:null,
-
-                verificationExpires:null,
-
-                plan:"free",
-
-                isActive:true,
-
-                lastLogin:
-
-                new Date()
-
-            });
-
-        }
+        await user.save();
 
 
 
         /*
-        ----------------------------------
+        ==============================
         CREATE SESSION
-        ----------------------------------
+        ==============================
         */
 
 
-        const token =
+        const session =
 
         await createSession(
 
@@ -1827,9 +2063,9 @@ export async function googleLogin(
 
 
         /*
-        ----------------------------------
+        ==============================
         RESPONSE
-        ----------------------------------
+        ==============================
         */
 
 
@@ -1837,13 +2073,24 @@ export async function googleLogin(
 
             success:true,
 
-            token,
+            token:
+
+            session.token,
+
+            expiresAt:
+
+            session.expiresAt,
 
             user:
 
-            sanitizeUser(user)
+            serializeUser(
+
+                user
+
+            )
 
         });
+
 
 
     }
@@ -1860,13 +2107,14 @@ export async function googleLogin(
         );
 
 
-        return res.status(401).json({
+
+        return res.status(500).json({
 
             success:false,
 
             error:
 
-            "Não foi possível autenticar com o Google."
+            "Erro ao entrar com Google."
 
         });
 
@@ -1896,46 +2144,15 @@ export async function getCurrentUser(
     try{
 
 
-        const user =
+        if(!req.user){
 
-        await User.findById(
-
-            req.user.id
-
-        )
-
-        .select(
-
-            "-password -verificationCode -verificationExpires"
-
-        );
-
-
-        if(!user){
-
-            return res.status(404).json({
+            return res.status(401).json({
 
                 success:false,
 
                 error:
 
-                "Utilizador não encontrado."
-
-            });
-
-        }
-
-
-
-        if(!user.isActive){
-
-            return res.status(403).json({
-
-                success:false,
-
-                error:
-
-                "Esta conta está desativada."
+                "Sessão não encontrada."
 
             });
 
@@ -1949,9 +2166,14 @@ export async function getCurrentUser(
 
             user:
 
-            sanitizeUser(user)
+            serializeUser(
+
+                req.user
+
+            )
 
         });
+
 
 
     }
@@ -1966,6 +2188,7 @@ export async function getCurrentUser(
             error
 
         );
+
 
 
         return res.status(500).json({
@@ -1987,7 +2210,7 @@ export async function getCurrentUser(
 /*
 ==========================================
 LOGOUT USER
-REMOVE SESSION
+REMOVE CURRENT SESSION
 ==========================================
 */
 
@@ -2006,22 +2229,23 @@ export async function logoutUser(
 
         const token =
 
+        req.auth?.token ||
+
         req.headers.authorization
 
-        ?.replace(
+            ?.replace(
 
-            /^Bearer\s+/i,
+                /^Bearer\s+/i,
 
-            ""
+                ""
 
-        )
+            )
 
-        .trim();
+            .trim();
 
 
 
         if(token){
-
 
             await Session.deleteOne({
 
@@ -2039,9 +2263,10 @@ export async function logoutUser(
 
             message:
 
-            "Sessão encerrada."
+            "Sessão encerrada com sucesso."
 
         });
+
 
 
     }
@@ -2056,6 +2281,7 @@ export async function logoutUser(
             error
 
         );
+
 
 
         return res.status(500).json({
@@ -2086,6 +2312,8 @@ export default {
     registerUser,
 
     verifyEmail,
+
+    resendVerificationCode,
 
     loginUser,
 
