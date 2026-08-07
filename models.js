@@ -1,21 +1,19 @@
-/*
-==========================================
-HONEY IA OS
-DATABASE MODELS
-MongoDB Enterprise Schema
-V3.0
-==========================================
-*/
-
 import mongoose from "mongoose";
 
 
-
+/*
+==========================================
+HONEY IA
+DATABASE MODELS V3
+Enterprise Authentication + Workspace
+==========================================
+*/
 
 
 /*
 ==========================================
 USER MODEL
+REAL AUTH SYSTEM
 ==========================================
 */
 
@@ -23,156 +21,216 @@ USER MODEL
 const UserSchema = new mongoose.Schema({
 
 
-    nome: {
+    firstName:{
 
-        type: String,
 
-        required: true,
+        type:String,
 
-        trim: true
+        required:true,
+
+        trim:true
+
 
     },
 
 
 
-    apelido: {
 
-        type: String,
 
-        required: true,
+    lastName:{
 
-        trim: true
+
+        type:String,
+
+        required:true,
+
+        trim:true
+
 
     },
 
 
 
-    email: {
 
-        type: String,
 
-        required: true,
+    email:{
 
-        unique: true,
 
-        lowercase: true,
+        type:String,
 
-        trim: true
+        required:true,
+
+        unique:true,
+
+        lowercase:true,
+
+        trim:true
+
 
     },
 
 
 
-    password: {
 
-        type: String,
 
-        default: null
+    password:{
+
+
+        type:String,
+
+
+        default:null
+
 
     },
 
 
 
-    googleId: {
 
-        type: String,
 
-        default: null
+    googleId:{
+
+
+        type:String,
+
+
+        default:null
+
 
     },
 
 
 
-    avatar: {
 
-        type: String,
 
-        default: null
+    avatar:{
+
+
+        type:String,
+
+
+        default:null
+
 
     },
 
 
 
-    plano: {
 
-        type: String,
 
-        default: "free"
+    emailVerified:{
+
+
+        type:Boolean,
+
+
+        default:false
+
 
     },
 
 
 
-    emailVerificado: {
 
-        type: Boolean,
 
-        default: false
+    verificationCode:{
+
+
+        type:String,
+
+
+        default:null
+
 
     },
 
 
 
-    codigoVerificacao: {
 
-        type: String,
 
-        default: null
+    verificationExpires:{
+
+
+        type:Date,
+
+
+        default:null
+
 
     },
 
 
 
-    codigoExpira: {
 
-        type: Date,
 
-        default: null
+    plan:{
+
+
+        type:String,
+
+
+        enum:[
+
+            "free",
+
+            "individual",
+
+            "business"
+
+        ],
+
+
+        default:"free"
+
 
     },
 
 
 
-    ultimoLogin: {
 
-        type: Date,
 
-        default: null
+    sessionToken:{
+
+
+        type:String,
+
+
+        default:null
+
 
     },
 
 
 
-    preferencias: {
-
-        idioma: {
-
-            type: String,
-
-            default: "pt-PT"
-
-        },
 
 
-        tema: {
+    lastLogin:{
 
-            type: String,
 
-            default: "dark"
+        type:Date,
 
-        }
+
+        default:null
+
 
     },
 
 
 
-    criadoEm: {
 
-        type: Date,
 
-        default: Date.now
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
 
     }
+
+
 
 
 
@@ -186,9 +244,18 @@ const UserSchema = new mongoose.Schema({
 
 
 
-/*
+export const User =
+
+mongoose.model(
+
+    "User",
+
+    UserSchema
+
+); /*
 ==========================================
-CONVERSATIONS
+CONVERSATION MODEL
+USER WORKSPACE HISTORY
 ==========================================
 */
 
@@ -196,252 +263,75 @@ CONVERSATIONS
 const ConversationSchema = new mongoose.Schema({
 
 
-    userId: {
-
-        type: mongoose.Schema.Types.ObjectId,
-
-        ref: "User"
-
-    },
-
-
-
-    titulo: {
-
-        type: String,
-
-        default: "Nova Conversa"
-
-    },
-
-
-
-    criadoEm: {
-
-        type: Date,
-
-        default: Date.now
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-MESSAGES
-==========================================
-*/
-
-
-const MessageSchema = new mongoose.Schema({
-
-
-    conversationId: {
-
-        type: mongoose.Schema.Types.ObjectId,
-
-        ref: "Conversation"
-
-    },
-
-
-
-    agentId: {
-
-        type: String,
-
-        default: "general"
-
-    },
-
-
-
-    role: {
-
-        type: String,
-
-        enum:[
-
-            "user",
-
-            "assistant",
-
-            "system"
-
-        ]
-
-    },
-
-
-
-    content: {
-
-        type: String
-
-    },
-
-
-
-    criadoEm: {
-
-        type: Date,
-
-        default: Date.now
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-AI MEMORY
-==========================================
-*/
-
-
-const MemorySchema = new mongoose.Schema({
-
-
-    userId: {
-
-        type: mongoose.Schema.Types.ObjectId,
-
-        ref:"User"
-
-    },
-
-
-
-    chave:String,
-
-
-
-    valor:String,
-
-
-
-    importancia:{
-
-        type:Number,
-
-        default:1
-
-    },
-
-
-
-    criadoEm:{
-
-        type:Date,
-
-        default:Date.now
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-PLUGINS
-==========================================
-*/
-
-
-const PluginSchema = new mongoose.Schema({
-
-
-    nome:String,
-
-
-    descricao:String,
-
-
-    ativo:{
-
-
-        type:Boolean,
-
-        default:true
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-DOCUMENTS
-==========================================
-*/
-
-
-const DocumentSchema = new mongoose.Schema({
-
-
     userId:{
+
 
         type:mongoose.Schema.Types.ObjectId,
 
-        ref:"User"
+        ref:"User",
+
+        required:true
+
 
     },
 
 
 
-    nome:String,
 
 
-    tipo:String,
+    title:{
 
 
-    texto:String,
+        type:String,
+
+
+        default:"Nova Conversa"
+
+
+    },
 
 
 
-    criadoEm:{
+
+
+    agentId:{
+
+
+        type:String,
+
+
+        default:"general"
+
+
+    },
+
+
+
+
+
+    createdAt:{
+
 
         type:Date,
 
+
         default:Date.now
+
+
+    },
+
+
+
+
+
+    updatedAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
 
     }
 
@@ -457,24 +347,9 @@ const DocumentSchema = new mongoose.Schema({
 
 
 
-/*
-==========================================
-EXPORTS
-==========================================
-*/
+export const Conversation =
 
-
-export const User = mongoose.model(
-
-    "User",
-
-    UserSchema
-
-);
-
-
-
-export const Conversation = mongoose.model(
+mongoose.model(
 
     "Conversation",
 
@@ -484,7 +359,137 @@ export const Conversation = mongoose.model(
 
 
 
-export const Message = mongoose.model(
+
+
+
+
+
+
+
+
+/*
+==========================================
+MESSAGE MODEL
+AI MEMORY BY CONVERSATION
+==========================================
+*/
+
+
+const MessageSchema = new mongoose.Schema({
+
+
+    conversationId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"Conversation"
+
+
+    },
+
+
+
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User"
+
+
+    },
+
+
+
+
+
+    agentId:{
+
+
+        type:String,
+
+
+        default:"general"
+
+
+    },
+
+
+
+
+
+    role:{
+
+
+        type:String,
+
+
+        enum:[
+
+            "user",
+
+            "assistant",
+
+            "system"
+
+        ],
+
+
+        default:"user"
+
+
+    },
+
+
+
+
+
+    content:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+export const Message =
+
+mongoose.model(
 
     "Message",
 
@@ -494,17 +499,198 @@ export const Message = mongoose.model(
 
 
 
-export const Memory = mongoose.model(
+
+
+
+
+
+
+
+
+/*
+==========================================
+LONG TERM MEMORY MODEL
+HONEY IA USER MEMORY
+==========================================
+*/
+
+
+const MemorySchema = new mongoose.Schema({
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User"
+
+
+    },
+
+
+
+
+
+    key:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+    value:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+    importance:{
+
+
+        type:Number,
+
+
+        default:1
+
+
+    },
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+export const Memory =
+
+mongoose.model(
 
     "Memory",
 
     MemorySchema
 
-);
+); /*
+==========================================
+PLUGIN MODEL
+EXTENSION SYSTEM
+==========================================
+*/
+
+
+const PluginSchema = new mongoose.Schema({
+
+
+    name:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
 
 
 
-export const Plugin = mongoose.model(
+
+
+    description:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+    active:{
+
+
+        type:Boolean,
+
+
+        default:true
+
+
+    },
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+export const Plugin =
+
+mongoose.model(
 
     "Plugin",
 
@@ -514,7 +700,129 @@ export const Plugin = mongoose.model(
 
 
 
-export const Document = mongoose.model(
+
+
+
+
+
+
+
+
+/*
+==========================================
+DOCUMENT MODEL
+USER FILE STORAGE
+==========================================
+*/
+
+
+const DocumentSchema = new mongoose.Schema({
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+    name:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+    type:{
+
+
+        type:String,
+
+
+        default:"unknown"
+
+
+    },
+
+
+
+
+
+    text:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+    size:{
+
+
+        type:Number,
+
+
+        default:0
+
+
+    },
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+export const Document =
+
+mongoose.model(
 
     "Document",
 
