@@ -1,8 +1,8 @@
 {
   "name": "honey-ia",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "Honey IA - Plataforma empresarial de inteligência artificial, agentes especializados, autenticação e soluções digitais",
+  "description": "Honey IA OS - Plataforma empresarial de inteligência artificial, agentes especializados, autenticação, workspace e soluções digitais",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
