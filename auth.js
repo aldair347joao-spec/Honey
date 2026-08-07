@@ -4,7 +4,7 @@ HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
 JWT + MongoDB + Google Authentication
-V5.0
+V5.1
 ==========================================
 */
 
@@ -47,9 +47,9 @@ class AuthManager {
 
 
         /*
-        --------------------------------------
-        Restore local user
-        --------------------------------------
+        ======================================
+        RESTORE LOCAL USER
+        ======================================
         */
 
 
@@ -58,20 +58,22 @@ class AuthManager {
 
 
         /*
-        --------------------------------------
-        Restore backend session
-        --------------------------------------
+        ======================================
+        RESTORE BACKEND SESSION
+        ======================================
         */
 
+
+        this.sessionPromise =
 
         this.loadSession();
 
 
 
         /*
-        --------------------------------------
-        Initialize Google
-        --------------------------------------
+        ======================================
+        INITIALIZE GOOGLE
+        ======================================
         */
 
 
@@ -111,14 +113,51 @@ class AuthManager {
 
 
 
-            if(storedUser){
+            if(!storedUser){
+
+                this.user = null;
+
+                return;
+
+            }
+
+
+
+            const parsedUser =
+
+            JSON.parse(
+
+                storedUser
+
+            );
+
+
+
+            if(
+
+                parsedUser &&
+
+                typeof parsedUser === "object"
+
+            ){
 
 
                 this.user =
 
-                JSON.parse(
+                parsedUser;
 
-                    storedUser
+
+            }
+
+            else{
+
+
+                this.user = null;
+
+
+                localStorage.removeItem(
+
+                    "honey_user"
 
                 );
 
@@ -141,14 +180,14 @@ class AuthManager {
             );
 
 
+            this.user = null;
+
+
             localStorage.removeItem(
 
                 "honey_user"
 
             );
-
-
-            this.user = null;
 
 
         }
@@ -166,7 +205,7 @@ class AuthManager {
 
     /*
     ==========================================
-    RESTORE SESSION
+    RESTORE BACKEND SESSION
     ==========================================
     */
 
@@ -206,9 +245,7 @@ class AuthManager {
 
                     headers:{
 
-                        "Authorization":
-
-                        `Bearer ${this.token}`,
+                        ...this.getAuthHeader(),
 
                         "Accept":
 
@@ -233,6 +270,13 @@ class AuthManager {
 
 
 
+            /*
+            ----------------------------------
+            VALID SESSION
+            ----------------------------------
+            */
+
+
             if(
 
                 response.ok &&
@@ -246,7 +290,11 @@ class AuthManager {
 
                 this.user =
 
-                data.user;
+                this.normalizeUser(
+
+                    data.user
+
+                );
 
 
                 this.saveUser();
@@ -267,12 +315,29 @@ class AuthManager {
 
             /*
             ----------------------------------
-            Backend rejected session
+            INVALID SESSION
             ----------------------------------
             */
 
 
-            this.clearSession();
+            if(
+
+                response.status === 401 ||
+
+                response.status === 403
+
+            ){
+
+
+                this.clearSession(
+
+                    false
+
+                );
+
+
+            }
+
 
 
             this.loading = false;
@@ -299,10 +364,10 @@ class AuthManager {
             );
 
 
+
             /*
             ----------------------------------
-            Temporary network failure
-            Keep existing local session.
+            Network failure
             ----------------------------------
             */
 
@@ -313,7 +378,7 @@ class AuthManager {
             this.notify();
 
 
-            return null;
+            return this.user;
 
 
         }
@@ -339,22 +404,31 @@ class AuthManager {
     async waitUntilReady(){
 
 
-        while(this.loading){
+        if(this.sessionPromise){
 
 
-            await new Promise(
+            try{
 
-                resolve =>
 
-                setTimeout(
+                await this.sessionPromise;
 
-                    resolve,
 
-                    50
+            }
 
-                )
 
-            );
+            catch(error){
+
+
+                console.error(
+
+                    "AUTH READY ERROR:",
+
+                    error
+
+                );
+
+
+            }
 
 
         }
@@ -362,6 +436,147 @@ class AuthManager {
 
 
         return this.user;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    NORMALIZE USER
+    ==========================================
+    */
+
+
+    normalizeUser(user){
+
+
+        if(
+
+            !user ||
+
+            typeof user !== "object"
+
+        ){
+
+
+            return null;
+
+
+        }
+
+
+
+        const normalized = {
+
+
+            ...user,
+
+
+            id:
+
+            user.id ||
+
+            user._id ||
+
+            null,
+
+
+            firstName:
+
+            user.firstName ||
+
+            "",
+
+
+            lastName:
+
+            user.lastName ||
+
+            "",
+
+
+            email:
+
+            user.email ||
+
+            "",
+
+
+            avatar:
+
+            user.avatar ||
+
+            null,
+
+
+            plan:
+
+            user.plan ||
+
+            "free",
+
+
+            emailVerified:
+
+            user.emailVerified === true,
+
+
+            isActive:
+
+            user.isActive !== false,
+
+
+            googleId:
+
+            user.googleId ||
+
+            null
+
+
+        };
+
+
+
+        /*
+        ----------------------------------
+        Compatibility with older UI
+        ----------------------------------
+        */
+
+
+        normalized.name =
+
+        [
+
+            normalized.firstName,
+
+            normalized.lastName
+
+        ]
+
+        .filter(Boolean)
+
+        .join(" ")
+
+        ||
+
+        normalized.email
+
+        ||
+
+        "Utilizador";
+
+
+
+        return normalized;
 
 
     }
@@ -410,7 +625,11 @@ class AuthManager {
 
                 body:
 
-                JSON.stringify(data)
+                JSON.stringify(
+
+                    data || {}
+
+                )
 
             }
 
@@ -499,7 +718,11 @@ class AuthManager {
 
                 body:
 
-                JSON.stringify(data)
+                JSON.stringify(
+
+                    data || {}
+
+                )
 
             }
 
@@ -590,7 +813,17 @@ class AuthManager {
 
                 JSON.stringify({
 
-                    email
+                    email:
+
+                    String(
+
+                        email || ""
+
+                    )
+
+                    .trim()
+
+                    .toLowerCase()
 
                 })
 
@@ -682,7 +915,11 @@ class AuthManager {
 
                 body:
 
-                JSON.stringify(data)
+                JSON.stringify(
+
+                    data || {}
+
+                )
 
             }
 
@@ -714,6 +951,20 @@ class AuthManager {
                 result.error ||
 
                 "Não foi possível realizar o login."
+
+            );
+
+
+        }
+
+
+
+        if(!result.token){
+
+
+            throw new Error(
+
+                "O servidor não devolveu um token de sessão."
 
             );
 
@@ -843,6 +1094,20 @@ class AuthManager {
 
 
 
+        if(!result.token){
+
+
+            throw new Error(
+
+                "O servidor não devolveu um token Google válido."
+
+            );
+
+
+        }
+
+
+
         this.setSession(
 
             result.token,
@@ -869,7 +1134,6 @@ class AuthManager {
     /*
     ==========================================
     GOOGLE LOGIN ALIAS
-    Compatibility
     ==========================================
     */
 
@@ -906,14 +1170,6 @@ class AuthManager {
 
 
     async initializeGoogleWhenReady(){
-
-
-        /*
-        --------------------------------------
-        If client ID is not available,
-        do not break authentication.
-        --------------------------------------
-        */
 
 
         if(!this.googleClientId){
@@ -990,13 +1246,6 @@ class AuthManager {
 
 
 
-        /*
-        --------------------------------------
-        Verify library
-        --------------------------------------
-        */
-
-
         if(
 
             typeof window.google ===
@@ -1025,13 +1274,6 @@ class AuthManager {
 
 
         try{
-
-
-            /*
-            ----------------------------------
-            Import login controller dynamically
-            ----------------------------------
-            */
 
 
             const module =
@@ -1162,7 +1404,13 @@ class AuthManager {
         this.token = token;
 
 
-        this.user = user || null;
+        this.user =
+
+        this.normalizeUser(
+
+            user
+
+        );
 
 
 
@@ -1342,7 +1590,9 @@ class AuthManager {
 
             !!this.token &&
 
-            !!this.user
+            !!this.user &&
+
+            this.user.isActive !== false
 
         );
 
@@ -1390,10 +1640,16 @@ class AuthManager {
     async logout(){
 
 
+        const currentToken =
+
+        this.token;
+
+
+
         try{
 
 
-            if(this.token){
+            if(currentToken){
 
 
                 await fetch(
@@ -1409,7 +1665,7 @@ class AuthManager {
 
                             "Authorization":
 
-                            `Bearer ${this.token}`,
+                            `Bearer ${currentToken}`,
 
                             "Accept":
 
@@ -1470,7 +1726,11 @@ class AuthManager {
     */
 
 
-    clearSession(){
+    clearSession(
+
+        notify = true
+
+    ){
 
 
         this.user = null;
@@ -1479,8 +1739,9 @@ class AuthManager {
         this.token = null;
 
 
-        this.loading = false;
+        this.googleInitialized =
 
+        false;
 
 
         localStorage.removeItem(
@@ -1488,7 +1749,6 @@ class AuthManager {
             "honey_token"
 
         );
-
 
 
         localStorage.removeItem(
@@ -1499,7 +1759,17 @@ class AuthManager {
 
 
 
-        this.notify();
+        this.loading = false;
+
+
+
+        if(notify){
+
+
+            this.notify();
+
+
+        }
 
 
     }
@@ -1525,6 +1795,12 @@ class AuthManager {
         if(!this.token){
 
 
+            this.user = null;
+
+
+            this.saveUser();
+
+
             return null;
 
 
@@ -1548,9 +1824,7 @@ class AuthManager {
 
                     headers:{
 
-                        "Authorization":
-
-                        `Bearer ${this.token}`,
+                        ...this.getAuthHeader(),
 
                         "Accept":
 
@@ -1588,7 +1862,11 @@ class AuthManager {
 
                 this.user =
 
-                data.user;
+                this.normalizeUser(
+
+                    data.user
+
+                );
 
 
                 this.saveUser();
@@ -1604,7 +1882,20 @@ class AuthManager {
 
 
 
-            this.clearSession();
+            if(
+
+                response.status === 401 ||
+
+                response.status === 403
+
+            ){
+
+
+                this.clearSession();
+
+
+            }
+
 
 
             return null;
@@ -1625,7 +1916,7 @@ class AuthManager {
             );
 
 
-            return null;
+            return this.user;
 
 
         }
@@ -1707,7 +1998,9 @@ class AuthManager {
 
 
 
-        return fetch(
+        const response =
+
+        await fetch(
 
             url,
 
@@ -1720,6 +2013,99 @@ class AuthManager {
             }
 
         );
+
+
+
+        /*
+        --------------------------------------
+        Automatic session invalidation
+        --------------------------------------
+        */
+
+
+        if(
+
+            response.status === 401 ||
+
+            response.status === 403
+
+        ){
+
+
+            /*
+            Do not immediately destroy the
+            session on every protected request
+            unless the server confirms it.
+            */
+
+
+            const clone =
+
+            response.clone();
+
+
+
+            try{
+
+
+                const data =
+
+                await clone.json();
+
+
+
+                if(
+
+                    data?.error &&
+
+                    (
+
+                        data.error
+
+                            .toLowerCase()
+
+                            .includes("sessão") ||
+
+                        data.error
+
+                            .toLowerCase()
+
+                            .includes("token")
+
+                    )
+
+                ){
+
+
+                    this.clearSession();
+
+
+                }
+
+
+            }
+
+
+            catch(error){
+
+
+                console.warn(
+
+                    "AUTH FETCH RESPONSE ERROR:",
+
+                    error
+
+                );
+
+
+            }
+
+
+        }
+
+
+
+        return response;
 
 
     }
@@ -1747,6 +2133,46 @@ class AuthManager {
 
 
         try{
+
+
+            const contentType =
+
+            response.headers
+
+                .get(
+
+                    "content-type"
+
+                ) || "";
+
+
+
+            if(
+
+                !contentType
+
+                    .includes(
+
+                        "application/json"
+
+                    )
+
+            ){
+
+
+                return {
+
+                    success:false,
+
+                    error:
+
+                    `Resposta inválida do servidor (${response.status}).`
+
+                };
+
+
+            }
+
 
 
             return await response.json();
@@ -1794,7 +2220,7 @@ class AuthManager {
 
     /*
     ==========================================
-    EVENT LISTENERS
+    SUBSCRIBE
     ==========================================
     */
 
@@ -1824,6 +2250,13 @@ class AuthManager {
 
         );
 
+
+
+        /*
+        --------------------------------------
+        Return unsubscribe function
+        --------------------------------------
+        */
 
 
         return ()=>{
@@ -2054,6 +2487,8 @@ class AuthManager {
 
             fullName ||
 
+            this.user.name ||
+
             this.user.email ||
 
             "Utilizador"
@@ -2151,12 +2586,6 @@ class AuthManager {
 
 
     }
-
-
-
-
-
-
 
 
 
