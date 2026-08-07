@@ -2,221 +2,164 @@
 ==========================================
 HONEY IA OS
 AUTH ROUTES
-API Authentication
-V1.0
+Professional Authentication API
+V2.0
 ==========================================
 */
 
 
 import express from "express";
 
-import authService from "./auth.service.js";
+
+import {
+
+    registerUser,
+
+    verifyEmail,
+
+    loginUser,
+
+    logoutUser,
+
+    getCurrentUser,
+
+    googleLogin
+
+} from "./authcontroller.js";
+
+
+import { authMiddleware } from "./auth.middleware.js";
 
 
 
+/*
+==========================================
+ROUTER
+==========================================
+*/
 
 
 const router = express.Router();
 
 
 
-
-
-
-
+/*
+==========================================
+REGISTER
+Criar nova conta
+==========================================
+*/
 
 
 router.post(
 
-"/register",
+    "/register",
 
-async(req,res)=>{
-
-
-    try{
-
-
-        const result =
-
-        await authService.register(
-
-            req.body
-
-        );
-
-
-
-        res.json({
-
-            success:true,
-
-            ...result
-
-        });
-
-
-
-    }
-
-
-    catch(error){
-
-
-        res.status(400)
-
-        .json({
-
-            success:false,
-
-            error:error.message
-
-        });
-
-
-    }
-
-
-
-}
+    registerUser
 
 );
 
 
 
-
-
-
-
+/*
+==========================================
+VERIFY EMAIL
+Confirmar código enviado
+==========================================
+*/
 
 
 router.post(
 
-"/verify-email",
+    "/verify-email",
 
-async(req,res)=>{
-
-
-    try{
-
-
-        const result =
-
-        await authService.verifyEmail(
-
-            req.body.email,
-
-            req.body.code
-
-        );
-
-
-
-        res.json({
-
-            success:true,
-
-            ...result
-
-        });
-
-
-
-    }
-
-
-    catch(error){
-
-
-        res.status(400)
-
-        .json({
-
-            success:false,
-
-            error:error.message
-
-        });
-
-
-    }
-
-
-
-}
+    verifyEmail
 
 );
 
 
 
-
-
-
-
+/*
+==========================================
+LOGIN
+Email + Palavra-passe
+==========================================
+*/
 
 
 router.post(
 
-"/login",
+    "/login",
 
-async(req,res)=>{
-
-
-    try{
-
-
-        const result =
-
-        await authService.login(
-
-            req.body.email,
-
-            req.body.password
-
-        );
-
-
-
-        res.json({
-
-            success:true,
-
-            ...result
-
-        });
-
-
-
-    }
-
-
-    catch(error){
-
-
-        res.status(401)
-
-        .json({
-
-            success:false,
-
-            error:error.message
-
-        });
-
-
-    }
-
-
-
-}
+    loginUser
 
 );
 
 
 
+/*
+==========================================
+GOOGLE LOGIN
+Entrar/Criar conta com Google
+==========================================
+*/
+
+
+router.post(
+
+    "/google",
+
+    googleLogin
+
+);
 
 
 
+/*
+==========================================
+LOGOUT
+Encerrar sessão atual
+==========================================
+*/
 
+
+router.post(
+
+    "/logout",
+
+    authMiddleware,
+
+    logoutUser
+
+);
+
+
+
+/*
+==========================================
+CURRENT USER
+Restaurar sessão autenticada
+==========================================
+*/
+
+
+router.get(
+
+    "/me",
+
+    authMiddleware,
+
+    getCurrentUser
+
+);
+
+
+
+/*
+==========================================
+EXPORT ROUTER
+==========================================
+*/
 
 
 export default router;
