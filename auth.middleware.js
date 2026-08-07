@@ -3,7 +3,7 @@
 HONEY IA OS
 AUTH MIDDLEWARE
 JWT + MONGODB SESSION VALIDATION
-V2.0
+V3.0
 ==========================================
 */
 
@@ -53,7 +53,6 @@ export async function authMiddleware(
 
 
     try{
-
 
 
         /*
@@ -117,18 +116,16 @@ export async function authMiddleware(
 
         /*
         ==================================
-        EXTRACT BEARER TOKEN
+        VALIDATE BEARER FORMAT
         ==================================
         */
 
 
         if(
 
-            !authorization
+            typeof authorization !==
 
-            .toLowerCase()
-
-            .startsWith("bearer ")
+            "string"
 
         ){
 
@@ -146,13 +143,44 @@ export async function authMiddleware(
 
 
 
+        if(
+
+            !authorization
+
+                .toLowerCase()
+
+                .startsWith("bearer ")
+
+        ){
+
+            return res.status(401).json({
+
+                success:false,
+
+                error:
+
+                "Token de autenticação inválido."
+
+            });
+
+        }
+
+
+
+        /*
+        ==================================
+        EXTRACT TOKEN
+        ==================================
+        */
+
+
         const token =
 
         authorization
 
-        .slice(7)
+            .slice(7)
 
-        .trim();
+            .trim();
 
 
 
@@ -224,13 +252,35 @@ export async function authMiddleware(
 
 
 
+            if(
+
+                error.name ===
+
+                "JsonWebTokenError"
+
+            ){
+
+                return res.status(401).json({
+
+                    success:false,
+
+                    error:
+
+                    "Sessão inválida."
+
+                });
+
+            }
+
+
+
             return res.status(401).json({
 
                 success:false,
 
                 error:
 
-                "Sessão inválida."
+                "Token de autenticação inválido."
 
             });
 
@@ -248,6 +298,8 @@ export async function authMiddleware(
         if(
 
             !decoded ||
+
+            typeof decoded !== "object" ||
 
             !decoded.id
 
@@ -269,7 +321,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        FIND ACTIVE SESSION
+        FIND MONGODB SESSION
         ==================================
         */
 
@@ -306,7 +358,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        SESSION EXPIRATION
+        VALIDATE SESSION EXPIRATION
         ==================================
         */
 
@@ -315,10 +367,9 @@ export async function authMiddleware(
 
             !session.expiresAt ||
 
-            session.expiresAt < new Date()
+            session.expiresAt <= new Date()
 
         ){
-
 
 
             await Session.deleteOne({
@@ -364,6 +415,7 @@ export async function authMiddleware(
 
         if(!user){
 
+
             await Session.deleteOne({
 
                 _id:
@@ -397,6 +449,7 @@ export async function authMiddleware(
 
         if(!user.isActive){
 
+
             await Session.deleteOne({
 
                 _id:
@@ -423,12 +476,20 @@ export async function authMiddleware(
 
         /*
         ==================================
-        ATTACH AUTH DATA TO REQUEST
+        ATTACH USER
         ==================================
         */
 
 
         req.user = user;
+
+
+
+        /*
+        ==================================
+        ATTACH AUTH SESSION
+        ==================================
+        */
 
 
         req.auth = {
@@ -453,7 +514,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        CONTINUE REQUEST
+        CONTINUE
         ==================================
         */
 
@@ -469,7 +530,7 @@ export async function authMiddleware(
 
         console.error(
 
-            "AUTH MIDDLEWARE ERROR:",
+            "❌ AUTH MIDDLEWARE ERROR:",
 
             error
 
@@ -496,7 +557,7 @@ export async function authMiddleware(
 /*
 ==========================================
 OPTIONAL AUTH MIDDLEWARE
-Useful for public/private hybrid routes
+PUBLIC + PRIVATE ROUTES
 ==========================================
 */
 
@@ -521,6 +582,13 @@ export async function optionalAuth(
 
 
 
+        /*
+        ----------------------------------
+        No authentication
+        ----------------------------------
+        */
+
+
         if(!authorization){
 
             req.user = null;
@@ -535,7 +603,7 @@ export async function optionalAuth(
 
         /*
         ----------------------------------
-        Reuse the normal authentication
+        Authentication supplied
         ----------------------------------
         */
 
@@ -556,14 +624,60 @@ export async function optionalAuth(
     catch(error){
 
 
+        console.error(
+
+            "OPTIONAL AUTH ERROR:",
+
+            error
+
+        );
+
+
+
         req.user = null;
 
         req.auth = null;
 
 
+
         return next();
 
     }
+
+}
+
+
+
+/*
+==========================================
+AUTH HELPERS
+==========================================
+*/
+
+
+export function getAuthToken(req){
+
+    return (
+
+        req.auth?.token ||
+
+        null
+
+    );
+
+}
+
+
+
+export function getAuthUser(req){
+
+    return (
+
+        req.user ||
+
+        null
+
+    );
 
 }
 
@@ -580,6 +694,10 @@ export default {
 
     authMiddleware,
 
-    optionalAuth
+    optionalAuth,
+
+    getAuthToken,
+
+    getAuthUser
 
 };
