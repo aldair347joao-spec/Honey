@@ -12,28 +12,39 @@ import express from "express";
 
 
 import {
+
     registerUser,
+
     verifyEmail,
+
     resendVerificationCode,
+
     loginUser,
+
+    googleLogin,
+
     logoutUser,
-    getCurrentUser,
-    googleLogin
+
+    getCurrentUser
+
 } from "./authcontroller.js";
 
 
-import { authMiddleware } from "./auth.middleware.js";
+import {
 
+    authMiddleware
 
+} from "./auth.middleware.js";
 
-/*
-==========================================
-ROUTER
-==========================================
-*/
 
 
 const router = express.Router();
+
+
+
+
+
+
 
 
 
@@ -55,6 +66,12 @@ router.post(
 
 
 
+
+
+
+
+
+
 /*
 ==========================================
 VERIFY EMAIL
@@ -71,6 +88,22 @@ router.post(
 
 );
 
+
+
+
+
+
+
+
+
+/*
+==========================================
+RESEND VERIFICATION
+Reenviar código de confirmação
+==========================================
+*/
+
+
 router.post(
 
     "/resend-verification",
@@ -79,10 +112,18 @@ router.post(
 
 );
 
+
+
+
+
+
+
+
+
 /*
 ==========================================
 LOGIN
-Email + Palavra-passe
+Email + palavra-passe
 ==========================================
 */
 
@@ -97,10 +138,16 @@ router.post(
 
 
 
+
+
+
+
+
+
 /*
 ==========================================
 GOOGLE LOGIN
-Entrar/Criar conta com Google
+Authentication with Google
 ==========================================
 */
 
@@ -112,6 +159,12 @@ router.post(
     googleLogin
 
 );
+
+
+
+
+
+
 
 
 
@@ -135,10 +188,16 @@ router.post(
 
 
 
+
+
+
+
+
+
 /*
 ==========================================
 CURRENT USER
-Restaurar sessão autenticada
+Restaurar sessão
 ==========================================
 */
 
@@ -152,6 +211,52 @@ router.get(
     getCurrentUser
 
 );
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+ROUTER HEALTH
+Authentication API status
+==========================================
+*/
+
+
+router.get(
+
+    "/status",
+
+    (req, res) => {
+
+
+        res.json({
+
+            success:true,
+
+            system:"Honey IA OS",
+
+            service:"Authentication",
+
+            status:"online"
+
+        });
+
+
+    }
+
+);
+
+
+
+
+
+
 
 
 
