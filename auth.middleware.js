@@ -3,12 +3,15 @@
 HONEY IA OS
 AUTH MIDDLEWARE
 JWT + MONGODB SESSION VALIDATION
-V3.0
+V4.0
+Enterprise Authentication Layer
 ==========================================
 */
 
 
 import jwt from "jsonwebtoken";
+
+import mongoose from "mongoose";
 
 import {
 
@@ -29,14 +32,218 @@ CONFIGURATION
 
 const JWT_SECRET =
 
-process.env.JWT_SECRET;
+    process.env.JWT_SECRET;
+
+
+
+/*
+==========================================
+SESSION CONFIGURATION
+==========================================
+*/
+
+
+const AUTH_CONFIG = {
+
+    algorithm: "HS256",
+
+    issuer: "honey-ia",
+
+    audience: "honey-ia-client"
+
+};
+
+
+
+/*
+==========================================
+SECURITY CONFIGURATION
+==========================================
+*/
+
+
+if(!JWT_SECRET){
+
+    console.error(
+
+        "❌ HONEY IA AUTH: JWT_SECRET não configurado."
+
+    );
+
+}
+
+
+
+/*
+==========================================
+UTILITY
+SAFE ERROR RESPONSE
+==========================================
+*/
+
+
+function sendAuthError(
+
+    res,
+
+    status,
+
+    message
+
+){
+
+    return res.status(status).json({
+
+        success: false,
+
+        error: message
+
+    });
+
+}
+
+
+
+/*
+==========================================
+EXTRACT BEARER TOKEN
+==========================================
+*/
+
+
+export function extractAuthToken(req){
+
+
+    const authorization =
+
+        req.headers.authorization;
+
+
+
+    if(
+
+        !authorization ||
+
+        typeof authorization !== "string"
+
+    ){
+
+        return null;
+
+    }
+
+
+
+    if(
+
+        !authorization
+
+            .toLowerCase()
+
+            .startsWith("bearer ")
+
+    ){
+
+        return null;
+
+    }
+
+
+
+    const token =
+
+        authorization
+
+            .slice(7)
+
+            .trim();
+
+
+
+    if(!token){
+
+        return null;
+
+    }
+
+
+
+    return token;
+
+}
+
+
+
+/*
+==========================================
+VALIDATE OBJECT ID
+==========================================
+*/
+
+
+function isValidUserId(id){
+
+
+    return (
+
+        typeof id === "string" &&
+
+        mongoose.Types.ObjectId.isValid(id)
+
+    );
+
+}
+
+
+
+/*
+==========================================
+VERIFY JWT
+==========================================
+*/
+
+
+function verifyToken(token){
+
+
+    if(!JWT_SECRET){
+
+        throw new Error(
+
+            "JWT_SECRET não configurado."
+
+        );
+
+    }
+
+
+
+    return jwt.verify(
+
+        token,
+
+        JWT_SECRET,
+
+        {
+
+            algorithms: [
+
+                AUTH_CONFIG.algorithm
+
+            ]
+
+        }
+
+    );
+
+}
 
 
 
 /*
 ==========================================
 AUTH MIDDLEWARE
-VALIDATE AUTHENTICATED REQUEST
+REQUIRED AUTHENTICATION
 ==========================================
 */
 
@@ -57,7 +264,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        JWT SECRET
+        1. JWT SECRET
         ==================================
         */
 
@@ -66,20 +273,21 @@ export async function authMiddleware(
 
             console.error(
 
-                "❌ JWT_SECRET não configurado."
+                "❌ AUTH: JWT_SECRET não configurado."
 
             );
 
 
-            return res.status(500).json({
 
-                success:false,
+            return sendAuthError(
 
-                error:
+                res,
+
+                500,
 
                 "Sistema de autenticação não configurado."
 
-            });
+            );
 
         }
 
@@ -87,114 +295,29 @@ export async function authMiddleware(
 
         /*
         ==================================
-        AUTHORIZATION HEADER
-        ==================================
-        */
-
-
-        const authorization =
-
-        req.headers.authorization;
-
-
-
-        if(!authorization){
-
-            return res.status(401).json({
-
-                success:false,
-
-                error:
-
-                "Sessão não encontrada."
-
-            });
-
-        }
-
-
-
-        /*
-        ==================================
-        VALIDATE BEARER FORMAT
-        ==================================
-        */
-
-
-        if(
-
-            typeof authorization !==
-
-            "string"
-
-        ){
-
-            return res.status(401).json({
-
-                success:false,
-
-                error:
-
-                "Token de autenticação inválido."
-
-            });
-
-        }
-
-
-
-        if(
-
-            !authorization
-
-                .toLowerCase()
-
-                .startsWith("bearer ")
-
-        ){
-
-            return res.status(401).json({
-
-                success:false,
-
-                error:
-
-                "Token de autenticação inválido."
-
-            });
-
-        }
-
-
-
-        /*
-        ==================================
-        EXTRACT TOKEN
+        2. EXTRACT TOKEN
         ==================================
         */
 
 
         const token =
 
-        authorization
-
-            .slice(7)
-
-            .trim();
+            extractAuthToken(req);
 
 
 
         if(!token){
 
-            return res.status(401).json({
 
-                success:false,
+            return sendAuthError(
 
-                error:
+                res,
 
-                "Token de autenticação não fornecido."
+                401,
 
-            });
+                "Sessão não encontrada."
+
+            );
 
         }
 
@@ -202,7 +325,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        VERIFY JWT
+        3. VERIFY JWT
         ==================================
         */
 
@@ -216,13 +339,7 @@ export async function authMiddleware(
 
             decoded =
 
-            jwt.verify(
-
-                token,
-
-                JWT_SECRET
-
-            );
+                verifyToken(token);
 
 
         }
@@ -238,15 +355,15 @@ export async function authMiddleware(
 
             ){
 
-                return res.status(401).json({
+                return sendAuthError(
 
-                    success:false,
+                    res,
 
-                    error:
+                    401,
 
                     "Sessão expirada."
 
-                });
+                );
 
             }
 
@@ -260,29 +377,61 @@ export async function authMiddleware(
 
             ){
 
-                return res.status(401).json({
+                return sendAuthError(
 
-                    success:false,
+                    res,
 
-                    error:
+                    401,
 
                     "Sessão inválida."
 
-                });
+                );
 
             }
 
 
 
-            return res.status(401).json({
+            if(
 
-                success:false,
+                error.name ===
 
-                error:
+                "NotBeforeError"
+
+            ){
+
+                return sendAuthError(
+
+                    res,
+
+                    401,
+
+                    "Sessão ainda não está ativa."
+
+                );
+
+            }
+
+
+
+            console.error(
+
+                "JWT VERIFY ERROR:",
+
+                error
+
+            );
+
+
+
+            return sendAuthError(
+
+                res,
+
+                401,
 
                 "Token de autenticação inválido."
 
-            });
+            );
 
         }
 
@@ -290,7 +439,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        VALIDATE JWT PAYLOAD
+        4. VALIDATE JWT PAYLOAD
         ==================================
         */
 
@@ -299,21 +448,59 @@ export async function authMiddleware(
 
             !decoded ||
 
-            typeof decoded !== "object" ||
-
-            !decoded.id
+            typeof decoded !== "object"
 
         ){
 
-            return res.status(401).json({
+            return sendAuthError(
 
-                success:false,
+                res,
 
-                error:
+                401,
 
                 "Token inválido."
 
-            });
+            );
+
+        }
+
+
+
+        if(!decoded.id){
+
+            return sendAuthError(
+
+                res,
+
+                401,
+
+                "Token sem identificação de utilizador."
+
+            );
+
+        }
+
+
+
+        if(
+
+            !isValidUserId(
+
+                decoded.id
+
+            )
+
+        ){
+
+            return sendAuthError(
+
+                res,
+
+                401,
+
+                "Identificação de utilizador inválida."
+
+            );
 
         }
 
@@ -321,36 +508,65 @@ export async function authMiddleware(
 
         /*
         ==================================
-        FIND MONGODB SESSION
+        5. OPTIONAL EMAIL VALIDATION
+        ==================================
+        */
+
+
+        if(
+
+            decoded.email &&
+
+            typeof decoded.email !== "string"
+
+        ){
+
+            return sendAuthError(
+
+                res,
+
+                401,
+
+                "Token inválido."
+
+            );
+
+        }
+
+
+
+        /*
+        ==================================
+        6. FIND DATABASE SESSION
         ==================================
         */
 
 
         const session =
 
-        await Session.findOne({
+            await Session.findOne({
 
-            token,
+                token,
 
-            userId:
+                userId:
 
-            decoded.id
+                    decoded.id
 
-        });
+            });
 
 
 
         if(!session){
 
-            return res.status(401).json({
+            return sendAuthError(
 
-                success:false,
+                res,
 
-                error:
+                401,
 
                 "Sessão não encontrada ou terminada."
 
-            });
+            );
 
         }
 
@@ -358,7 +574,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        VALIDATE SESSION EXPIRATION
+        7. CHECK SESSION EXPIRATION
         ==================================
         */
 
@@ -376,21 +592,21 @@ export async function authMiddleware(
 
                 _id:
 
-                session._id
+                    session._id
 
             });
 
 
 
-            return res.status(401).json({
+            return sendAuthError(
 
-                success:false,
+                res,
 
-                error:
+                401,
 
                 "Sessão expirada."
 
-            });
+            );
 
         }
 
@@ -398,43 +614,50 @@ export async function authMiddleware(
 
         /*
         ==================================
-        FIND USER
+        8. FIND USER
         ==================================
         */
 
 
         const user =
 
-        await User.findById(
+            await User.findById(
 
-            decoded.id
+                decoded.id
 
-        );
+            );
 
 
 
         if(!user){
 
 
+            /*
+            ------------------------------
+            Remove orphan session
+            ------------------------------
+            */
+
+
             await Session.deleteOne({
 
                 _id:
 
-                session._id
+                    session._id
 
             });
 
 
 
-            return res.status(401).json({
+            return sendAuthError(
 
-                success:false,
+                res,
 
-                error:
+                401,
 
                 "Utilizador não encontrado."
 
-            });
+            );
 
         }
 
@@ -442,7 +665,54 @@ export async function authMiddleware(
 
         /*
         ==================================
-        ACCOUNT STATUS
+        9. VERIFY TOKEN EMAIL
+        ==================================
+        */
+
+
+        if(
+
+            decoded.email &&
+
+            user.email !== decoded.email
+
+        ){
+
+            console.warn(
+
+                "⚠️ AUTH: Email do token não corresponde ao utilizador."
+
+            );
+
+
+
+            await Session.deleteOne({
+
+                _id:
+
+                    session._id
+
+            });
+
+
+
+            return sendAuthError(
+
+                res,
+
+                401,
+
+                "Sessão inválida."
+
+            );
+
+        }
+
+
+
+        /*
+        ==================================
+        10. ACCOUNT STATUS
         ==================================
         */
 
@@ -454,21 +724,21 @@ export async function authMiddleware(
 
                 _id:
 
-                session._id
+                    session._id
 
             });
 
 
 
-            return res.status(403).json({
+            return sendAuthError(
 
-                success:false,
+                res,
 
-                error:
+                403,
 
                 "Esta conta está desativada."
 
-            });
+            );
 
         }
 
@@ -476,7 +746,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        ATTACH USER
+        11. ATTACH USER
         ==================================
         */
 
@@ -487,7 +757,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        ATTACH AUTH SESSION
+        12. ATTACH AUTH CONTEXT
         ==================================
         */
 
@@ -496,17 +766,25 @@ export async function authMiddleware(
 
             userId:
 
-            user._id,
+                user._id,
 
             token,
 
             sessionId:
 
-            session._id,
+                session._id,
 
             expiresAt:
 
-            session.expiresAt
+                session.expiresAt,
+
+            provider:
+
+                user.provider || "local",
+
+            plan:
+
+                user.plan || "free"
 
         };
 
@@ -514,7 +792,7 @@ export async function authMiddleware(
 
         /*
         ==================================
-        CONTINUE
+        13. CONTINUE REQUEST
         ==================================
         */
 
@@ -538,15 +816,15 @@ export async function authMiddleware(
 
 
 
-        return res.status(500).json({
+        return sendAuthError(
 
-            success:false,
+            res,
 
-            error:
+            500,
 
             "Erro ao validar a sessão."
 
-        });
+        );
 
     }
 
@@ -556,8 +834,8 @@ export async function authMiddleware(
 
 /*
 ==========================================
-OPTIONAL AUTH MIDDLEWARE
-PUBLIC + PRIVATE ROUTES
+OPTIONAL AUTH
+PUBLIC + AUTHENTICATED REQUESTS
 ==========================================
 */
 
@@ -576,20 +854,20 @@ export async function optionalAuth(
     try{
 
 
-        const authorization =
+        const token =
 
-        req.headers.authorization;
+            extractAuthToken(req);
 
 
 
         /*
         ----------------------------------
-        No authentication
+        No token
         ----------------------------------
         */
 
 
-        if(!authorization){
+        if(!token){
 
             req.user = null;
 
@@ -603,7 +881,7 @@ export async function optionalAuth(
 
         /*
         ----------------------------------
-        Authentication supplied
+        Token supplied
         ----------------------------------
         */
 
@@ -617,6 +895,7 @@ export async function optionalAuth(
             next
 
         );
+
 
 
     }
@@ -650,16 +929,19 @@ export async function optionalAuth(
 
 /*
 ==========================================
-AUTH HELPERS
+GET AUTH TOKEN
 ==========================================
 */
 
 
 export function getAuthToken(req){
 
+
     return (
 
         req.auth?.token ||
+
+        extractAuthToken(req) ||
 
         null
 
@@ -669,7 +951,15 @@ export function getAuthToken(req){
 
 
 
+/*
+==========================================
+GET AUTH USER
+==========================================
+*/
+
+
 export function getAuthUser(req){
+
 
     return (
 
@@ -685,7 +975,277 @@ export function getAuthUser(req){
 
 /*
 ==========================================
-EXPORT
+GET AUTH USER ID
+==========================================
+*/
+
+
+export function getAuthUserId(req){
+
+
+    return (
+
+        req.auth?.userId ||
+
+        req.user?._id ||
+
+        null
+
+    );
+
+}
+
+
+
+/*
+==========================================
+GET AUTH PLAN
+==========================================
+*/
+
+
+export function getAuthPlan(req){
+
+
+    return (
+
+        req.auth?.plan ||
+
+        req.user?.plan ||
+
+        "free"
+
+    );
+
+}
+
+
+
+/*
+==========================================
+CHECK AUTHENTICATION
+==========================================
+*/
+
+
+export function isAuthenticated(req){
+
+
+    return Boolean(
+
+        req.user &&
+
+        req.auth?.userId
+
+    );
+
+}
+
+
+
+/*
+==========================================
+CHECK PLAN
+==========================================
+*/
+
+
+export function hasPlan(
+
+    req,
+
+    allowedPlans = []
+
+){
+
+
+    if(!Array.isArray(allowedPlans)){
+
+        return false;
+
+    }
+
+
+
+    const plan =
+
+        getAuthPlan(req);
+
+
+
+    return allowedPlans.includes(
+
+        plan
+
+    );
+
+}
+
+
+
+/*
+==========================================
+PLAN MIDDLEWARE
+==========================================
+*/
+
+
+export function requirePlan(
+
+    allowedPlans = []
+
+){
+
+
+    return function(
+
+        req,
+
+        res,
+
+        next
+
+    ){
+
+
+        if(
+
+            !isAuthenticated(req)
+
+        ){
+
+            return sendAuthError(
+
+                res,
+
+                401,
+
+                "Autenticação necessária."
+
+            );
+
+        }
+
+
+
+        if(
+
+            !hasPlan(
+
+                req,
+
+                allowedPlans
+
+            )
+
+        ){
+
+            return res.status(403).json({
+
+                success: false,
+
+                error:
+
+                    "O seu plano atual não permite esta funcionalidade.",
+
+                plan:
+
+                    getAuthPlan(req),
+
+                requiredPlans:
+
+                    allowedPlans
+
+            });
+
+        }
+
+
+
+        return next();
+
+    };
+
+}
+
+
+
+/*
+==========================================
+CLEAN EXPIRED SESSION
+HELPER
+==========================================
+*/
+
+
+export async function cleanupExpiredSession(
+
+    req
+
+){
+
+
+    try{
+
+
+        const token =
+
+            getAuthToken(req);
+
+
+
+        if(!token){
+
+            return false;
+
+        }
+
+
+
+        const result =
+
+            await Session.deleteOne({
+
+                token
+
+            });
+
+
+
+        return (
+
+            result.deletedCount > 0
+
+        );
+
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "SESSION CLEANUP ERROR:",
+
+            error
+
+        );
+
+
+
+        return false;
+
+    }
+
+}
+
+
+
+/*
+==========================================
+EXPORT CONTROLLER
 ==========================================
 */
 
@@ -696,8 +1256,22 @@ export default {
 
     optionalAuth,
 
+    extractAuthToken,
+
     getAuthToken,
 
-    getAuthUser
+    getAuthUser,
+
+    getAuthUserId,
+
+    getAuthPlan,
+
+    isAuthenticated,
+
+    hasPlan,
+
+    requirePlan,
+
+    cleanupExpiredSession
 
 };
