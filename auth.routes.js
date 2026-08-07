@@ -12,19 +12,13 @@ import express from "express";
 
 
 import {
-
     registerUser,
-
     verifyEmail,
-
+    resendVerificationCode,
     loginUser,
-
     logoutUser,
-
     getCurrentUser,
-
     googleLogin
-
 } from "./authcontroller.js";
 
 
@@ -77,7 +71,13 @@ router.post(
 
 );
 
+router.post(
 
+    "/resend-verification",
+
+    resendVerificationCode
+
+);
 
 /*
 ==========================================
