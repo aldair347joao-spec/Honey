@@ -4,7 +4,7 @@ HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
 JWT + MongoDB + Google Authentication
-V4.0
+V5.0
 ==========================================
 */
 
@@ -33,10 +33,49 @@ class AuthManager {
         this.listeners = [];
 
 
+        this.googleInitialized = false;
+
+
+        this.googleClientId =
+
+        window.HONEY_GOOGLE_CLIENT_ID ||
+
+        window.GOOGLE_CLIENT_ID ||
+
+        "";
+
+
+
+        /*
+        --------------------------------------
+        Restore local user
+        --------------------------------------
+        */
+
+
         this.loadStoredUser();
 
 
+
+        /*
+        --------------------------------------
+        Restore backend session
+        --------------------------------------
+        */
+
+
         this.loadSession();
+
+
+
+        /*
+        --------------------------------------
+        Initialize Google
+        --------------------------------------
+        */
+
+
+        this.initializeGoogleWhenReady();
 
 
     }
@@ -52,7 +91,6 @@ class AuthManager {
     /*
     ==========================================
     LOAD STORED USER
-    Recupera utilizador localmente
     ==========================================
     */
 
@@ -70,6 +108,7 @@ class AuthManager {
                 "honey_user"
 
             );
+
 
 
             if(storedUser){
@@ -109,6 +148,9 @@ class AuthManager {
             );
 
 
+            this.user = null;
+
+
         }
 
 
@@ -125,7 +167,6 @@ class AuthManager {
     /*
     ==========================================
     RESTORE SESSION
-    Valida JWT com o backend
     ==========================================
     */
 
@@ -224,6 +265,13 @@ class AuthManager {
 
 
 
+            /*
+            ----------------------------------
+            Backend rejected session
+            ----------------------------------
+            */
+
+
             this.clearSession();
 
 
@@ -252,9 +300,10 @@ class AuthManager {
 
 
             /*
-            Não apagamos imediatamente
-            o token quando existe uma falha
-            temporária de rede.
+            ----------------------------------
+            Temporary network failure
+            Keep existing local session.
+            ----------------------------------
             */
 
 
@@ -282,8 +331,52 @@ class AuthManager {
 
     /*
     ==========================================
+    WAIT UNTIL AUTH IS READY
+    ==========================================
+    */
+
+
+    async waitUntilReady(){
+
+
+        while(this.loading){
+
+
+            await new Promise(
+
+                resolve =>
+
+                setTimeout(
+
+                    resolve,
+
+                    50
+
+                )
+
+            );
+
+
+        }
+
+
+
+        return this.user;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
     REGISTER
-    Criar nova conta
     ==========================================
     */
 
@@ -373,7 +466,6 @@ class AuthManager {
     /*
     ==========================================
     VERIFY EMAIL
-    Confirmar código de email
     ==========================================
     */
 
@@ -463,7 +555,6 @@ class AuthManager {
     /*
     ==========================================
     RESEND VERIFICATION
-    Reenviar código
     ==========================================
     */
 
@@ -557,7 +648,7 @@ class AuthManager {
     /*
     ==========================================
     LOGIN
-    Email + palavra-passe
+    EMAIL + PASSWORD
     ==========================================
     */
 
@@ -657,12 +748,15 @@ class AuthManager {
     /*
     ==========================================
     GOOGLE LOGIN
-    Login através do Google
     ==========================================
     */
 
 
-    async googleLogin(credential){
+    async loginWithGoogle(
+
+        credential
+
+    ){
 
 
         if(!credential){
@@ -774,13 +868,281 @@ class AuthManager {
 
     /*
     ==========================================
-    SET SESSION
-    Guarda JWT + utilizador
+    GOOGLE LOGIN ALIAS
+    Compatibility
     ==========================================
     */
 
 
-    setSession(token,user){
+    async googleLogin(
+
+        credential
+
+    ){
+
+
+        return this.loginWithGoogle(
+
+            credential
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    INITIALIZE GOOGLE
+    ==========================================
+    */
+
+
+    async initializeGoogleWhenReady(){
+
+
+        /*
+        --------------------------------------
+        If client ID is not available,
+        do not break authentication.
+        --------------------------------------
+        */
+
+
+        if(!this.googleClientId){
+
+
+            console.warn(
+
+                "GOOGLE_CLIENT_ID não disponível no frontend."
+
+            );
+
+
+            return false;
+
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        Wait for Google Identity Services
+        --------------------------------------
+        */
+
+
+        for(
+
+            let attempt = 0;
+
+            attempt < 100;
+
+            attempt++
+
+        ){
+
+
+            if(
+
+                typeof window.google !==
+
+                "undefined" &&
+
+                window.google.accounts &&
+
+                window.google.accounts.id
+
+            ){
+
+
+                break;
+
+
+            }
+
+
+
+            await new Promise(
+
+                resolve =>
+
+                setTimeout(
+
+                    resolve,
+
+                    100
+
+                )
+
+            );
+
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        Verify library
+        --------------------------------------
+        */
+
+
+        if(
+
+            typeof window.google ===
+
+            "undefined" ||
+
+            !window.google.accounts ||
+
+            !window.google.accounts.id
+
+        ){
+
+
+            console.warn(
+
+                "Google Identity Services não foi carregado."
+
+            );
+
+
+            return false;
+
+
+        }
+
+
+
+        try{
+
+
+            /*
+            ----------------------------------
+            Import login controller dynamically
+            ----------------------------------
+            */
+
+
+            const module =
+
+            await import(
+
+                "./login.js"
+
+            );
+
+
+
+            const logincontroller =
+
+            module.default;
+
+
+
+            if(
+
+                !logincontroller ||
+
+                typeof logincontroller
+
+                    .initializeGoogleLogin !==
+
+                "function"
+
+            ){
+
+
+                console.warn(
+
+                    "Login controller Google não disponível."
+
+                );
+
+
+                return false;
+
+
+            }
+
+
+
+            const initialized =
+
+            logincontroller
+
+                .initializeGoogleLogin(
+
+                    this.googleClientId
+
+                );
+
+
+
+            this.googleInitialized =
+
+                initialized === true;
+
+
+
+            return this.googleInitialized;
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "GOOGLE INITIALIZATION ERROR:",
+
+                error
+
+            );
+
+
+            return false;
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    SET SESSION
+    ==========================================
+    */
+
+
+    setSession(
+
+        token,
+
+        user
+
+    ){
 
 
         if(!token){
@@ -821,6 +1183,10 @@ class AuthManager {
 
 
         }
+
+
+
+        this.loading = false;
 
 
 
@@ -1017,7 +1383,6 @@ class AuthManager {
     /*
     ==========================================
     LOGOUT
-    Encerrar sessão no backend
     ==========================================
     */
 
@@ -1101,7 +1466,6 @@ class AuthManager {
     /*
     ==========================================
     CLEAR SESSION
-    Limpa autenticação local
     ==========================================
     */
 
@@ -1113,6 +1477,9 @@ class AuthManager {
 
 
         this.token = null;
+
+
+        this.loading = false;
 
 
 
@@ -1148,7 +1515,6 @@ class AuthManager {
     /*
     ==========================================
     REFRESH USER
-    Atualiza dados do utilizador
     ==========================================
     */
 
@@ -1278,7 +1644,6 @@ class AuthManager {
     /*
     ==========================================
     AUTH HEADER
-    Header pronto para APIs protegidas
     ==========================================
     */
 
@@ -1319,7 +1684,6 @@ class AuthManager {
     /*
     ==========================================
     AUTH FETCH
-    Fetch autenticado
     ==========================================
     */
 
@@ -1371,12 +1735,15 @@ class AuthManager {
     /*
     ==========================================
     RESPONSE PARSER
-    Trata respostas JSON
     ==========================================
     */
 
 
-    async parseResponse(response){
+    async parseResponse(
+
+        response
+
+    ){
 
 
         try{
@@ -1403,9 +1770,7 @@ class AuthManager {
 
             return {
 
-
                 success:false,
-
 
                 error:
 
@@ -1430,7 +1795,6 @@ class AuthManager {
     /*
     ==========================================
     EVENT LISTENERS
-    Permite outras páginas reagirem
     ==========================================
     */
 
@@ -1501,7 +1865,7 @@ class AuthManager {
 
         this.listeners.forEach(
 
-            callback=>{
+            callback => {
 
 
                 try{
@@ -1550,7 +1914,6 @@ class AuthManager {
     /*
     ==========================================
     REQUIRE AUTH
-    Protege páginas do Workspace
     ==========================================
     */
 
@@ -1597,7 +1960,6 @@ class AuthManager {
     /*
     ==========================================
     REQUIRE PLAN
-    Verificação de plano
     ==========================================
     */
 
@@ -1607,12 +1969,6 @@ class AuthManager {
         allowedPlans=[]
 
     ){
-
-
-        const plan =
-
-        this.getPlan();
-
 
 
         if(
@@ -1635,7 +1991,7 @@ class AuthManager {
 
         return allowedPlans.includes(
 
-            plan
+            this.getPlan()
 
         );
 
@@ -1652,7 +2008,7 @@ class AuthManager {
 
     /*
     ==========================================
-    GET USER DISPLAY NAME
+    GET DISPLAY NAME
     ==========================================
     */
 
@@ -1797,13 +2153,14 @@ class AuthManager {
     }
 
 
+
+
+
+
+
+
+
 }
-
-
-
-
-
-
 
 
 
@@ -1817,12 +2174,6 @@ GLOBAL AUTH INSTANCE
 const authmanager =
 
 new AuthManager();
-
-
-
-
-
-
 
 
 
