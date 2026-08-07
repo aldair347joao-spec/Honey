@@ -215,40 +215,13 @@ API HEALTH
 */
 
 
-app.get(
-
-    "/",
-
-    (req,res)=>{
-
-
-        res.json({
-
-
-            system:
-
-            "Honey IA OS",
-
-
-
-            status:
-
-            "online",
-
-
-
-            version:
-
-            "6.0.0"
-
-
-
-        });
-
-
-    }
-
-);
+app.get("/api/health", (req, res) => {
+    res.json({
+        system: "Honey IA OS",
+        status: "online",
+        version: "6.0.0"
+    });
+});
 
 
 
