@@ -1,19 +1,25 @@
+/*
+==========================================
+HONEY IA OS
+DATABASE MODELS
+MongoDB User & AI Workspace System
+V3.0
+==========================================
+*/
+
+
 import mongoose from "mongoose";
 
 
-/*
-==========================================
-HONEY IA
-DATABASE MODELS V3
-Enterprise Authentication + Workspace
-==========================================
-*/
+
+
+
 
 
 /*
 ==========================================
 USER MODEL
-REAL AUTH SYSTEM
+AUTHENTICATION SYSTEM
 ==========================================
 */
 
@@ -21,17 +27,21 @@ REAL AUTH SYSTEM
 const UserSchema = new mongoose.Schema({
 
 
+
     firstName:{
 
 
         type:String,
 
+
         required:true,
+
 
         trim:true
 
 
     },
+
 
 
 
@@ -42,12 +52,17 @@ const UserSchema = new mongoose.Schema({
 
         type:String,
 
+
         required:true,
+
 
         trim:true
 
 
     },
+
+
+
 
 
 
@@ -58,16 +73,23 @@ const UserSchema = new mongoose.Schema({
 
         type:String,
 
+
         required:true,
+
 
         unique:true,
 
+
         lowercase:true,
+
 
         trim:true
 
 
     },
+
+
+
 
 
 
@@ -79,10 +101,13 @@ const UserSchema = new mongoose.Schema({
         type:String,
 
 
-        default:null
+        required:false
 
 
     },
+
+
+
 
 
 
@@ -103,6 +128,9 @@ const UserSchema = new mongoose.Schema({
 
 
 
+
+
+
     avatar:{
 
 
@@ -113,6 +141,9 @@ const UserSchema = new mongoose.Schema({
 
 
     },
+
+
+
 
 
 
@@ -133,6 +164,9 @@ const UserSchema = new mongoose.Schema({
 
 
 
+
+
+
     verificationCode:{
 
 
@@ -148,6 +182,9 @@ const UserSchema = new mongoose.Schema({
 
 
 
+
+
+
     verificationExpires:{
 
 
@@ -158,6 +195,9 @@ const UserSchema = new mongoose.Schema({
 
 
     },
+
+
+
 
 
 
@@ -189,16 +229,22 @@ const UserSchema = new mongoose.Schema({
 
 
 
-    sessionToken:{
 
 
-        type:String,
+
+    isActive:{
 
 
-        default:null
+        type:Boolean,
+
+
+        default:true
 
 
     },
+
+
+
 
 
 
@@ -219,93 +265,6 @@ const UserSchema = new mongoose.Schema({
 
 
 
-    createdAt:{
-
-
-        type:Date,
-
-
-        default:Date.now
-
-
-    }
-
-
-
-
-
-});
-
-
-
-
-
-
-
-
-
-export const User =
-
-mongoose.model(
-
-    "User",
-
-    UserSchema
-
-); /*
-==========================================
-CONVERSATION MODEL
-USER WORKSPACE HISTORY
-==========================================
-*/
-
-
-const ConversationSchema = new mongoose.Schema({
-
-
-    userId:{
-
-
-        type:mongoose.Schema.Types.ObjectId,
-
-        ref:"User",
-
-        required:true
-
-
-    },
-
-
-
-
-
-    title:{
-
-
-        type:String,
-
-
-        default:"Nova Conversa"
-
-
-    },
-
-
-
-
-
-    agentId:{
-
-
-        type:String,
-
-
-        default:"general"
-
-
-    },
-
-
 
 
 
@@ -319,6 +278,9 @@ const ConversationSchema = new mongoose.Schema({
 
 
     },
+
+
+
 
 
 
@@ -347,17 +309,162 @@ const ConversationSchema = new mongoose.Schema({
 
 
 
-export const Conversation =
 
-mongoose.model(
+// Atualiza data de alteração automaticamente
 
-    "Conversation",
+UserSchema.pre(
 
-    ConversationSchema
+"save",
 
-);
+function(next){
 
 
+
+    this.updatedAt =
+
+    Date.now();
+
+
+
+    next();
+
+
+
+}); 
+/*
+==========================================
+SESSION MODEL
+PERSISTENT LOGIN SYSTEM
+==========================================
+*/
+
+
+const SessionSchema = new mongoose.Schema({
+
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    token:{
+
+
+        type:String,
+
+
+        required:true,
+
+
+        unique:true
+
+
+    },
+
+
+
+
+
+
+
+    device:{
+
+
+        type:String,
+
+
+        default:"unknown"
+
+
+    },
+
+
+
+
+
+
+
+    browser:{
+
+
+        type:String,
+
+
+        default:"unknown"
+
+
+    },
+
+
+
+
+
+
+
+    ip:{
+
+
+        type:String,
+
+
+        default:null
+
+
+    },
+
+
+
+
+
+
+
+    expiresAt:{
+
+
+        type:Date,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
 
 
 
@@ -369,27 +476,13 @@ mongoose.model(
 
 /*
 ==========================================
-MESSAGE MODEL
-AI MEMORY BY CONVERSATION
+CONVERSATION MODEL
+AI CHAT MEMORY
 ==========================================
 */
 
 
-const MessageSchema = new mongoose.Schema({
-
-
-    conversationId:{
-
-
-        type:mongoose.Schema.Types.ObjectId,
-
-
-        ref:"Conversation"
-
-
-    },
-
-
+const ConversationSchema = new mongoose.Schema({
 
 
 
@@ -399,10 +492,32 @@ const MessageSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
 
 
-        ref:"User"
+        ref:"User",
+
+
+        required:true
 
 
     },
+
+
+
+
+
+
+
+    title:{
+
+
+        type:String,
+
+
+        default:"Nova Conversa"
+
+
+    },
+
+
 
 
 
@@ -418,6 +533,114 @@ const MessageSchema = new mongoose.Schema({
 
 
     },
+
+
+
+
+
+
+
+    workspace:{
+
+
+        type:String,
+
+
+        default:"main"
+
+
+    },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    },
+
+
+
+
+
+
+
+    updatedAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+MESSAGE MODEL
+AGENT CONTEXT MEMORY
+==========================================
+*/
+
+
+const MessageSchema = new mongoose.Schema({
+
+
+
+    conversationId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"Conversation",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    agentId:{
+
+
+        type:String,
+
+
+        default:"general"
+
+
+    },
+
+
 
 
 
@@ -440,10 +663,12 @@ const MessageSchema = new mongoose.Schema({
         ],
 
 
-        default:"user"
+        required:true
 
 
     },
+
+
 
 
 
@@ -455,10 +680,109 @@ const MessageSchema = new mongoose.Schema({
         type:String,
 
 
-        default:""
+        required:true
 
 
     },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+}); 
+/*
+==========================================
+MEMORY MODEL
+HONEY IA USER MEMORY
+==========================================
+*/
+
+
+const MemorySchema = new mongoose.Schema({
+
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    key:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    value:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    importance:{
+
+
+        type:Number,
+
+
+        default:1
+
+
+    },
+
+
 
 
 
@@ -480,6 +804,387 @@ const MessageSchema = new mongoose.Schema({
 });
 
 
+
+
+
+
+
+
+
+/*
+==========================================
+DOCUMENT MODEL
+USER FILE STORAGE
+==========================================
+*/
+
+
+const DocumentSchema = new mongoose.Schema({
+
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    name:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    type:{
+
+
+        type:String,
+
+
+        default:"unknown"
+
+
+    },
+
+
+
+
+
+
+
+    text:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+PROJECT MODEL
+HONEY IA WORKSPACE
+==========================================
+*/
+
+
+const ProjectSchema = new mongoose.Schema({
+
+
+
+    userId:{
+
+
+        type:mongoose.Schema.Types.ObjectId,
+
+
+        ref:"User",
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    name:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    description:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+
+
+    type:{
+
+
+        type:String,
+
+
+        default:"general"
+
+
+    },
+
+
+
+
+
+
+
+    status:{
+
+
+        type:String,
+
+
+        enum:[
+
+            "active",
+
+            "completed",
+
+            "archived"
+
+        ],
+
+
+        default:"active"
+
+
+    },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+PLUGIN MODEL
+SYSTEM EXTENSIONS
+==========================================
+*/
+
+
+const PluginSchema = new mongoose.Schema({
+
+
+
+    name:{
+
+
+        type:String,
+
+
+        required:true
+
+
+    },
+
+
+
+
+
+
+
+    description:{
+
+
+        type:String,
+
+
+        default:""
+
+
+    },
+
+
+
+
+
+
+
+    active:{
+
+
+        type:Boolean,
+
+
+        default:true
+
+
+    },
+
+
+
+
+
+
+
+    createdAt:{
+
+
+        type:Date,
+
+
+        default:Date.now
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+MODEL EXPORTS
+==========================================
+*/
+
+
+export const User =
+
+mongoose.model(
+
+    "User",
+
+    UserSchema
+
+);
+
+
+
+
+
+
+
+export const Session =
+
+mongoose.model(
+
+    "Session",
+
+    SessionSchema
+
+);
+
+
+
+
+
+
+
+export const Conversation =
+
+mongoose.model(
+
+    "Conversation",
+
+    ConversationSchema
+
+);
 
 
 
@@ -503,104 +1208,6 @@ mongoose.model(
 
 
 
-
-
-
-
-/*
-==========================================
-LONG TERM MEMORY MODEL
-HONEY IA USER MEMORY
-==========================================
-*/
-
-
-const MemorySchema = new mongoose.Schema({
-
-
-    userId:{
-
-
-        type:mongoose.Schema.Types.ObjectId,
-
-
-        ref:"User"
-
-
-    },
-
-
-
-
-
-    key:{
-
-
-        type:String,
-
-
-        required:true
-
-
-    },
-
-
-
-
-
-    value:{
-
-
-        type:String,
-
-
-        default:""
-
-
-    },
-
-
-
-
-
-    importance:{
-
-
-        type:Number,
-
-
-        default:1
-
-
-    },
-
-
-
-
-
-    createdAt:{
-
-
-        type:Date,
-
-
-        default:Date.now
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
 export const Memory =
 
 mongoose.model(
@@ -609,210 +1216,7 @@ mongoose.model(
 
     MemorySchema
 
-); /*
-==========================================
-PLUGIN MODEL
-EXTENSION SYSTEM
-==========================================
-*/
-
-
-const PluginSchema = new mongoose.Schema({
-
-
-    name:{
-
-
-        type:String,
-
-
-        required:true
-
-
-    },
-
-
-
-
-
-    description:{
-
-
-        type:String,
-
-
-        default:""
-
-
-    },
-
-
-
-
-
-    active:{
-
-
-        type:Boolean,
-
-
-        default:true
-
-
-    },
-
-
-
-
-
-    createdAt:{
-
-
-        type:Date,
-
-
-        default:Date.now
-
-
-    }
-
-
-
-});
-
-
-
-
-
-
-
-
-
-export const Plugin =
-
-mongoose.model(
-
-    "Plugin",
-
-    PluginSchema
-
 );
-
-
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-DOCUMENT MODEL
-USER FILE STORAGE
-==========================================
-*/
-
-
-const DocumentSchema = new mongoose.Schema({
-
-
-    userId:{
-
-
-        type:mongoose.Schema.Types.ObjectId,
-
-
-        ref:"User",
-
-
-        required:true
-
-
-    },
-
-
-
-
-
-    name:{
-
-
-        type:String,
-
-
-        required:true
-
-
-    },
-
-
-
-
-
-    type:{
-
-
-        type:String,
-
-
-        default:"unknown"
-
-
-    },
-
-
-
-
-
-    text:{
-
-
-        type:String,
-
-
-        default:""
-
-
-    },
-
-
-
-
-
-    size:{
-
-
-        type:Number,
-
-
-        default:0
-
-
-    },
-
-
-
-
-
-    createdAt:{
-
-
-        type:Date,
-
-
-        default:Date.now
-
-
-    }
-
-
-
-});
-
-
 
 
 
@@ -827,5 +1231,37 @@ mongoose.model(
     "Document",
 
     DocumentSchema
+
+);
+
+
+
+
+
+
+
+export const Project =
+
+mongoose.model(
+
+    "Project",
+
+    ProjectSchema
+
+);
+
+
+
+
+
+
+
+export const Plugin =
+
+mongoose.model(
+
+    "Plugin",
+
+    PluginSchema
 
 );
