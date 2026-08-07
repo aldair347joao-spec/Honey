@@ -2,8 +2,8 @@
 ==========================================
 HONEY IA OS
 AUTH ROUTES
-Professional Authentication API
-V2.0
+Authentication API Routes
+V3.0
 ==========================================
 */
 
@@ -23,9 +23,9 @@ import {
 
     googleLogin,
 
-    logoutUser,
+    getCurrentUser,
 
-    getCurrentUser
+    logoutUser
 
 } from "./authcontroller.js";
 
@@ -38,21 +38,31 @@ import {
 
 
 
-const router = express.Router();
+/*
+==========================================
+ROUTER
+==========================================
+*/
 
 
+const router =
 
-
-
-
+express.Router();
 
 
 
 /*
 ==========================================
-REGISTER
-Criar nova conta
+PUBLIC AUTH ROUTES
 ==========================================
+*/
+
+
+/*
+------------------------------------------
+REGISTER
+POST /api/auth/register
+------------------------------------------
 */
 
 
@@ -66,17 +76,11 @@ router.post(
 
 
 
-
-
-
-
-
-
 /*
-==========================================
+------------------------------------------
 VERIFY EMAIL
-Confirmar código enviado
-==========================================
+POST /api/auth/verify-email
+------------------------------------------
 */
 
 
@@ -90,17 +94,11 @@ router.post(
 
 
 
-
-
-
-
-
-
 /*
-==========================================
-RESEND VERIFICATION
-Reenviar código de confirmação
-==========================================
+------------------------------------------
+RESEND VERIFICATION CODE
+POST /api/auth/resend-verification
+------------------------------------------
 */
 
 
@@ -114,17 +112,11 @@ router.post(
 
 
 
-
-
-
-
-
-
 /*
-==========================================
+------------------------------------------
 LOGIN
-Email + palavra-passe
-==========================================
+POST /api/auth/login
+------------------------------------------
 */
 
 
@@ -138,17 +130,11 @@ router.post(
 
 
 
-
-
-
-
-
-
 /*
-==========================================
+------------------------------------------
 GOOGLE LOGIN
-Authentication with Google
-==========================================
+POST /api/auth/google
+------------------------------------------
 */
 
 
@@ -162,43 +148,18 @@ router.post(
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
-LOGOUT
-Encerrar sessão atual
+PROTECTED AUTH ROUTES
 ==========================================
 */
 
 
-router.post(
-
-    "/logout",
-
-    authMiddleware,
-
-    logoutUser
-
-);
-
-
-
-
-
-
-
-
-
 /*
-==========================================
+------------------------------------------
 CURRENT USER
-Restaurar sessão
-==========================================
+GET /api/auth/me
+------------------------------------------
 */
 
 
@@ -214,55 +175,29 @@ router.get(
 
 
 
-
-
-
-
-
-
 /*
-==========================================
-ROUTER HEALTH
-Authentication API status
-==========================================
+------------------------------------------
+LOGOUT
+POST /api/auth/logout
+------------------------------------------
 */
 
 
-router.get(
+router.post(
 
-    "/status",
+    "/logout",
 
-    (req, res) => {
+    authMiddleware,
 
-
-        res.json({
-
-            success:true,
-
-            system:"Honey IA OS",
-
-            service:"Authentication",
-
-            status:"online"
-
-        });
-
-
-    }
+    logoutUser
 
 );
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
-EXPORT ROUTER
+EXPORT
 ==========================================
 */
 
