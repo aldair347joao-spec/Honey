@@ -1,9 +1,10 @@
 /*
 ==========================================
 HONEY IA
-CORE ENGINE V8
+CORE ENGINE V8.1
 Workspace + 30 Agents Integration
 Enterprise Application Controller
+AUTH DELEGATED TO login.js
 ==========================================
 */
 
@@ -25,7 +26,6 @@ import logincontroller from "./login.js";
 import userprofile from "./userprofile.js";
 
 
-import authmanager from "./auth.js";
 
 
 
@@ -34,48 +34,6 @@ const SESSION_ID =
 crypto.randomUUID();
 
 
-/* =========================================
-   HONEY IA - APP PRINCIPAL & LOGIN BINDING
-========================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-    const loginPage = document.getElementById("loginPage");
-    const studioApp = document.getElementById("studioApp");
-    const loginForm = document.getElementById("loginForm");
-
-    // 1. Verifica se o utilizador já tem uma sessão ativa
-    if (authmanager.isAuthenticated()) {
-        if (loginPage) loginPage.style.display = "none";
-        if (studioApp) studioApp.style.display = "flex";
-        return;
-    }
-
-    // 2. Intercepta o envio do formulário de login presente no index.html
-    if (loginForm) {
-        loginForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            try {
-                // Tenta autenticar usando o authmanager
-                authmanager.login({ email, password });
-
-                // Oculta a página de login e revela o estúdio
-                if (loginPage) loginPage.style.display = "none";
-                if (studioApp) studioApp.style.display = "flex";
-
-                // Atualiza a página para carregar o workspace completo
-                location.reload();
-            } catch (err) {
-                alert(err.message || "Erro ao entrar. Verifique os seus dados.");
-            }
-        });
-    }
-});
-
-// ... (resto do seu código atual do app.js continua aqui em baixo)
 
 
 
@@ -83,9 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-// ==========================================================
-// EVENT BUS
-// ==========================================================
+/*
+==========================================================
+EVENT BUS
+GLOBAL APPLICATION EVENTS
+==========================================================
+*/
 
 
 class EventBus {
@@ -97,8 +58,9 @@ class EventBus {
 
         this.events = {};
 
-
     }
+
+
 
 
 
@@ -123,9 +85,7 @@ class EventBus {
         ){
 
 
-
             this.events[event] = [];
-
 
 
         }
@@ -185,14 +145,34 @@ class EventBus {
             callback=>{
 
 
-                callback(data);
+                try{
+
+
+                    callback(data);
+
+
+                }
+
+
+                catch(error){
+
+
+                    console.error(
+
+                        "Event error:",
+
+                        error
+
+                    );
+
+
+                }
 
 
 
             }
 
         );
-
 
 
     }
@@ -221,9 +201,12 @@ new EventBus();
 
 
 
-// ==========================================================
-// GLOBAL STORE
-// ==========================================================
+/*
+==========================================================
+GLOBAL STORE
+APPLICATION STATE
+==========================================================
+*/
 
 
 export const Store = {
@@ -336,9 +319,7 @@ export const Store = {
 
                 key,
 
-
                 value
-
 
 
             }
@@ -361,9 +342,11 @@ export const Store = {
 
 
 
-// ==========================================================
-// HONEY IA APPLICATION
-// ==========================================================
+/*
+==========================================================
+HONEY IA APPLICATION
+==========================================================
+*/
 
 
 class HoneyAIApp {
@@ -446,12 +429,6 @@ class HoneyAIApp {
 
 
 
-
-
-
-
-
-
         this.initAgents();
 
 
@@ -461,6 +438,332 @@ class HoneyAIApp {
 
 
     }/*
+==========================================================
+AUTH STATE
+CONTROLADO PELO login.js
+==========================================================
+*/
+
+
+initAuthState(){
+
+
+
+    const user =
+
+    authmanager.getUser();
+
+
+
+
+
+
+
+
+
+    if(user){
+
+
+
+        Store.setState(
+
+            "isAuthenticated",
+
+            true
+
+        );
+
+
+
+        this.updateUserInterface(
+
+            user
+
+        );
+
+
+
+    }
+
+    else{
+
+
+
+        Store.setState(
+
+            "isAuthenticated",
+
+            false
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// USER SESSION
+// ==========================================================
+
+
+initUserSession(){
+
+
+
+    const user =
+
+    authmanager.getUser();
+
+
+
+
+
+
+
+
+
+    if(!user)
+
+    return;
+
+
+
+
+
+
+
+
+
+    Store.setState(
+
+        "isAuthenticated",
+
+        true
+
+    );
+
+
+
+
+
+
+
+
+
+    this.updateUserInterface(
+
+        user
+
+    );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+updateUserInterface(user){
+
+
+
+    const userBox =
+
+    document.getElementById(
+
+        "userBox"
+
+    );
+
+
+
+
+
+
+
+
+
+    if(!userBox)
+
+    return;
+
+
+
+
+
+
+
+
+
+    userBox.innerHTML = `
+
+
+
+        <div class="avatar">
+
+            ${
+
+                user.name
+
+                ?
+
+                user.name
+
+                .charAt(0)
+
+                .toUpperCase()
+
+                :
+
+                "U"
+
+            }
+
+        </div>
+
+
+
+        <div>
+
+
+
+            <strong>
+
+                ${
+
+                    user.name ||
+
+                    "Utilizador"
+
+                }
+
+            </strong>
+
+
+
+            <small>
+
+                Plano:
+
+                ${
+
+                    user.plan ||
+
+                    "Gratuito"
+
+                }
+
+            </small>
+
+
+
+        </div>
+
+
+
+    `;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================================
+DASHBOARD INITIALIZATION
+==========================================================
+*/
+
+
+initDashboard(){
+
+
+
+    const dashboardContainer =
+
+    document.getElementById(
+
+        "dashboardContainer"
+
+    );
+
+
+
+
+
+
+
+
+
+    if(
+
+        dashboardContainer &&
+
+        dashboard &&
+
+        typeof dashboard.init ===
+
+        "function"
+
+    ){
+
+
+
+        dashboard.init(
+
+            "dashboardContainer"
+
+        );
+
+
+
+        console.log(
+
+            "📊 Dashboard carregado"
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================================
 AGENTS INITIALIZATION
 ==========================================================
@@ -486,13 +789,16 @@ initAgents(){
 
 
 
+
     if(
 
         container &&
 
         agentsui &&
 
-        typeof agentsui.init === "function"
+        typeof agentsui.init ===
+
+        "function"
 
     ){
 
@@ -508,7 +814,7 @@ initAgents(){
 
         console.log(
 
-            "🤖 Agents UI carregado"
+            "🤖 Agents UI conectado"
 
         );
 
@@ -542,6 +848,8 @@ initAgents(){
 
 
 
+
+
             if(
 
                 agent &&
@@ -559,6 +867,10 @@ initAgents(){
                     agent.id
 
                 );
+
+
+
+
 
 
 
@@ -625,7 +937,9 @@ initAgentStudio(){
 
         agentstudio &&
 
-        typeof agentstudio.init === "function"
+        typeof agentstudio.init ===
+
+        "function"
 
     ){
 
@@ -661,239 +975,15 @@ initAgentStudio(){
 
         agentstudio &&
 
-        typeof agentstudio.listenEvents === "function"
+        typeof agentstudio.listenEvents ===
+
+        "function"
 
     ){
 
 
 
         agentstudio.listenEvents();
-
-
-
-    }
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// USER SESSION
-// ==========================================================
-
-
-initUserSession(){
-
-
-
-    const user =
-
-    authmanager.getUser();
-
-
-
-
-
-
-
-
-
-    if(user){
-
-
-
-        Store.setState(
-
-            "isAuthenticated",
-
-            true
-
-        );
-
-
-
-
-
-
-
-        this.updateUserInterface(
-
-            user
-
-        );
-
-
-
-        return;
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    Store.setState(
-
-        "isAuthenticated",
-
-        false
-
-    );
-
-
-
-}
-
-
-
-
-
-
-
-
-
-updateUserInterface(user){
-
-
-
-    if(
-
-        this.userBox
-
-    ){
-
-
-
-        this.userBox.innerHTML = `
-
-
-
-        <div class="user-profile">
-
-
-
-            <strong>
-
-            ${
-
-                user.name ||
-
-                "Utilizador"
-
-            }
-
-
-
-            </strong>
-
-
-
-
-
-            <span>
-
-            Plano:
-
-            ${
-
-                user.plan ||
-
-                "Gratuito"
-
-            }
-
-
-
-            </span>
-
-
-
-        </div>
-
-
-
-        `;
-
-
-
-    }
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// DASHBOARD
-// ==========================================================
-
-
-initDashboard(){
-
-
-
-    const dashboardContainer =
-
-    document.getElementById(
-
-        "dashboardContainer"
-
-    );
-
-
-
-
-
-
-
-
-
-    if(
-
-        dashboardContainer &&
-
-        dashboard &&
-
-        typeof dashboard.init === "function"
-
-    ){
-
-
-
-        dashboard.init(
-
-            "dashboardContainer"
-
-        );
-
-
-
-        console.log(
-
-            "📊 Dashboard carregado"
-
-        );
 
 
 
@@ -956,14 +1046,6 @@ initDOMReferences(){
 
         "chatMessages"
 
-    )
-
-    ||
-
-    document.getElementById(
-
-        "chat-feed"
-
     );
 
 
@@ -979,14 +1061,6 @@ initDOMReferences(){
     document.getElementById(
 
         "chatInput"
-
-    )
-
-    ||
-
-    document.getElementById(
-
-        "prompt-textarea"
 
     );
 
@@ -1163,22 +1237,6 @@ initDOMReferences(){
 
 
 
-    this.navItems =
-
-    document.querySelectorAll(
-
-        "[data-target]"
-
-    );
-
-
-
-
-
-
-
-
-
     // ===============================
     // PREVIEW
     // ===============================
@@ -1217,50 +1275,52 @@ initDOMReferences(){
 
 
     // ===============================
-    // AUTH
+    // TOAST
     // ===============================
 
 
-// ==========================================================
-// AUTH STATE
-// ==========================================================
+    this.toastContainer =
+
+    document.getElementById(
+
+        "toastContainer"
+
+    );
 
 
-// ==========================================================
-// GLOBAL EVENTS
-// ==========================================================
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================================
+GLOBAL EVENTS
+LOGIN DELEGADO AO login.js
+==========================================================
+*/
 
 
 initEventListeners(){
 
 
 
-    // LOGIN
+    /*
+    LOGIN
 
+    O login.js agora controla:
+    - validação
+    - sessão
+    - autenticação
 
-    if(
-
-        this.loginForm
-
-    ){
-
-
-
-        logincontroller.init(
-
-            "loginForm"
-
-        );
-
-
-
-    }
-
-
-
-
-
-
+    O app.js apenas recebe o evento.
+    */
 
 
 
@@ -1275,6 +1335,8 @@ initEventListeners(){
             const user =
 
             event.detail;
+
+
 
 
 
@@ -1338,14 +1400,52 @@ initEventListeners(){
 
 
 
+    /*
+    LOGOUT EVENT
+    */
+
+
+
+    document.addEventListener(
+
+        "user-logout",
+
+        ()=>{
+
+
+
+            Store.setState(
+
+                "isAuthenticated",
+
+                false
+
+            );
+
+
+
+            location.reload();
+
+
+
+        }
+
+    );
+
+
+
+
+
+
+
+
+
+    // ===============================
     // CHAT SEND
+    // ===============================
 
 
-    if(
-
-        this.btnSend
-
-    ){
+    if(this.btnSend){
 
 
 
@@ -1375,11 +1475,7 @@ initEventListeners(){
 
 
 
-    if(
-
-        this.promptTextarea
-
-    ){
+    if(this.promptTextarea){
 
 
 
@@ -1421,281 +1517,272 @@ initEventListeners(){
 
 
 
-    }/*
+    }
+
+
+
+
+
+
+
+
+
+    // ===============================
+    // FILE ATTACH
+    // ===============================
+
+
+    if(
+
+        this.btnAttach &&
+
+        this.fileUploadInput
+
+    ){
+
+
+
+        this.btnAttach.addEventListener(
+
+            "click",
+
+            ()=>{
+
+
+                this.fileUploadInput.click();
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    if(this.fileUploadInput){
+
+
+
+        this.fileUploadInput.addEventListener(
+
+            "change",
+
+            event=>{
+
+
+                this.handleFileUpload(
+
+                    event
+
+                );
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    if(this.btnRemoveAttachment){
+
+
+
+        this.btnRemoveAttachment.addEventListener(
+
+            "click",
+
+            ()=>{
+
+
+                this.clearAttachment();
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    // ===============================
+    // VOICE
+    // ===============================
+
+
+    if(this.btnVoice){
+
+
+
+        this.btnVoice.addEventListener(
+
+            "click",
+
+            ()=>{
+
+
+                this.handleVoiceInput();
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    // ===============================
+    // MOBILE MENU
+    // ===============================
+
+
+    if(this.btnToggleMenu){
+
+
+
+        this.btnToggleMenu.addEventListener(
+
+            "click",
+
+            ()=>{
+
+
+
+                this.sidebar
+
+                ?.classList
+
+                .add(
+
+                    "open"
+
+                );
+
+
+
+
+
+
+
+                this.sidebarOverlay
+
+                ?.classList
+
+                .add(
+
+                    "active"
+
+                );
+
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    if(this.sidebarOverlay){
+
+
+
+        this.sidebarOverlay.addEventListener(
+
+            "click",
+
+            ()=>{
+
+
+
+                this.sidebar
+
+                ?.classList
+
+                .remove(
+
+                    "open"
+
+                );
+
+
+
+
+
+
+
+                this.sidebarOverlay
+
+                ?.classList
+
+                .remove(
+
+                    "active"
+
+                );
+
+
+
+            }
+
+        );
+
+
+
+    }
+
+
+
+}/*
 ==========================================================
-CHAT EVENTS CONTINUATION
+SEND PROMPT TO HONEY IA
 ==========================================================
 */
-
-
-        if(
-
-            this.btnAttach &&
-
-            this.fileUploadInput
-
-        ){
-
-
-
-            this.btnAttach.addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.fileUploadInput.click();
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        if(
-
-            this.fileUploadInput
-
-        ){
-
-
-
-            this.fileUploadInput.addEventListener(
-
-                "change",
-
-                event=>{
-
-
-                    this.handleFileUpload(event);
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        if(
-
-            this.btnRemoveAttachment
-
-        ){
-
-
-
-            this.btnRemoveAttachment.addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.clearAttachment();
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        if(
-
-            this.btnVoice
-
-        ){
-
-
-
-            this.btnVoice.addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-                    this.handleVoiceInput();
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        // MOBILE MENU
-
-
-        if(
-
-            this.btnToggleMenu
-
-        ){
-
-
-
-            this.btnToggleMenu.addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-
-                    this.sidebar
-
-                    ?.classList
-
-                    .add(
-
-                        "open"
-
-                    );
-
-
-
-                    this.sidebarOverlay
-
-                    ?.classList
-
-                    .add(
-
-                        "active"
-
-                    );
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        if(
-
-            this.sidebarOverlay
-
-        ){
-
-
-
-            this.sidebarOverlay.addEventListener(
-
-                "click",
-
-                ()=>{
-
-
-
-                    this.sidebar
-
-                    ?.classList
-
-                    .remove(
-
-                        "open"
-
-                    );
-
-
-
-                    this.sidebarOverlay
-
-                    ?.classList
-
-                    .remove(
-
-                        "active"
-
-                    );
-
-
-
-                }
-
-            );
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// SEND PROMPT TO HONEY IA
-// ==========================================================
 
 
 async handleSubmitPrompt(){
@@ -1792,11 +1879,7 @@ async handleSubmitPrompt(){
 
 
 
-    if(
-
-        this.promptTextarea
-
-    ){
+    if(this.promptTextarea){
 
 
 
@@ -1970,6 +2053,12 @@ async handleSubmitPrompt(){
 
 
 
+            payload.fileName =
+
+            fileName;
+
+
+
         }
 
 
@@ -1992,11 +2081,7 @@ async handleSubmitPrompt(){
 
                 method:
 
-
-
                 "POST",
-
-
 
 
 
@@ -2007,8 +2092,6 @@ async handleSubmitPrompt(){
 
 
                     "Content-Type":
-
-
 
                     "application/json"
 
@@ -2023,8 +2106,6 @@ async handleSubmitPrompt(){
 
 
                 body:
-
-
 
                 JSON.stringify(
 
@@ -2058,11 +2139,7 @@ async handleSubmitPrompt(){
 
 
 
-        if(
-
-            !response.ok
-
-        ){
+        if(!response.ok){
 
 
 
@@ -2070,7 +2147,7 @@ async handleSubmitPrompt(){
 
                 data.error ||
 
-                "Erro no servidor."
+                "Erro no servidor"
 
             );
 
@@ -2172,8 +2249,6 @@ async handleSubmitPrompt(){
 
             role:
 
-
-
             "user",
 
 
@@ -2181,8 +2256,6 @@ async handleSubmitPrompt(){
 
 
             content:
-
-
 
             text
 
@@ -2204,8 +2277,6 @@ async handleSubmitPrompt(){
 
             role:
 
-
-
             "assistant",
 
 
@@ -2213,8 +2284,6 @@ async handleSubmitPrompt(){
 
 
             content:
-
-
 
             answer
 
@@ -2308,6 +2377,8 @@ async handleSubmitPrompt(){
 
             ${error.message}`;
 
+
+
         }
 
 
@@ -2328,371 +2399,25 @@ async handleSubmitPrompt(){
 
 
 
-    }/*
+    }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
 ==========================================================
-LIVE MODE
+FILE MANAGEMENT
 ==========================================================
 */
-
-
-async startLiveMode(){
-
-
-
-    try{
-
-
-
-        const result =
-
-        await liveclient.start();
-
-
-
-
-
-
-
-
-
-        if(
-
-            result &&
-
-            result.success
-
-        ){
-
-
-
-            this.currentMode =
-
-            "live";
-
-
-
-
-
-
-
-            this.liveMode =
-
-            true;
-
-
-
-
-
-
-
-            EventBusInstance.emit(
-
-                "liveStarted",
-
-                result
-
-            );
-
-
-
-
-
-
-
-            this.showToast(
-
-                "Modo Live conectado.",
-
-                "success"
-
-            );
-
-
-
-        }
-
-
-
-    }
-
-    catch(error){
-
-
-
-        this.showToast(
-
-            error.message,
-
-            "error"
-
-        );
-
-
-
-    }
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// VOICE INPUT
-// ==========================================================
-
-
-handleVoiceInput(){
-
-
-
-    const SpeechRecognition =
-
-
-
-    window.SpeechRecognition ||
-
-
-
-    window.webkitSpeechRecognition;
-
-
-
-
-
-
-
-
-
-    if(!SpeechRecognition){
-
-
-
-        this.showToast(
-
-            "Reconhecimento de voz indisponível.",
-
-            "error"
-
-        );
-
-
-
-        return;
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    if(this.voiceActive){
-
-
-
-        this.voiceRecognition.stop();
-
-
-
-        this.voiceActive =
-
-        false;
-
-
-
-        return;
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-    const recognition =
-
-    new SpeechRecognition();
-
-
-
-
-
-
-
-
-
-    this.voiceRecognition =
-
-    recognition;
-
-
-
-
-
-
-
-
-
-    recognition.lang =
-
-    "pt-PT";
-
-
-
-
-
-
-
-
-
-    recognition.start();
-
-
-
-
-
-
-
-
-
-    this.voiceActive =
-
-    true;
-
-
-
-
-
-
-
-
-
-    recognition.onresult =
-
-    event=>{
-
-
-
-        const text =
-
-        event.results[0][0]
-
-        .transcript;
-
-
-
-
-
-
-
-
-
-        if(this.promptTextarea){
-
-
-
-            this.promptTextarea.value =
-
-            text;
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-        this.handleSubmitPrompt();
-
-
-
-    };
-
-
-
-
-
-
-
-
-
-    recognition.onerror =
-
-    ()=>{
-
-
-
-        this.voiceActive =
-
-        false;
-
-
-
-    };
-
-
-
-
-
-
-
-
-
-    recognition.onend =
-
-    ()=>{
-
-
-
-        this.voiceActive =
-
-        false;
-
-
-
-    };
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// FILE MANAGEMENT
-// ==========================================================
 
 
 handleFileUpload(event){
@@ -2911,11 +2636,11 @@ clearAttachment(){
 
 
 
-
-
-// ==========================================================
-// CHAT UI HELPERS
-// ==========================================================
+/*
+==========================================================
+CHAT UI HELPERS
+==========================================================
+*/
 
 
 appendUserMessage(
@@ -3072,7 +2797,13 @@ createAgentMessagePlaceholder(){
 
         <div>
 
-        🐝 <strong>Honey IA</strong>
+            🐝
+
+            <strong>
+
+            Honey IA
+
+            </strong>
 
         </div>
 
@@ -3080,7 +2811,7 @@ createAgentMessagePlaceholder(){
 
         <div class="message-content">
 
-        A processar...
+            A processar...
 
         </div>
 
@@ -3154,6 +2885,107 @@ scrollToBottom(){
 
 
 
+}/*
+==========================================================
+LIVE MODE
+==========================================================
+*/
+
+
+async startLiveMode(){
+
+
+
+    try{
+
+
+
+        const result =
+
+        await liveclient.start();
+
+
+
+
+
+
+
+
+
+        if(
+
+            result &&
+
+            result.success
+
+        ){
+
+
+
+            this.currentMode =
+
+            "live";
+
+
+
+            this.liveMode =
+
+            true;
+
+
+
+
+
+
+
+            EventBusInstance.emit(
+
+                "liveStarted",
+
+                result
+
+            );
+
+
+
+
+
+
+
+            this.showToast(
+
+                "Modo Live conectado.",
+
+                "success"
+
+            );
+
+
+
+        }
+
+
+
+    }
+
+    catch(error){
+
+
+
+        this.showToast(
+
+            error.message,
+
+            "error"
+
+        );
+
+
+
+    }
+
+
+
 }
 
 
@@ -3164,11 +2996,254 @@ scrollToBottom(){
 
 
 
+/*
+==========================================================
+VOICE INPUT
+==========================================================
+*/
 
 
-// ==========================================================
-// MARKDOWN ENGINE
-// ==========================================================
+handleVoiceInput(){
+
+
+
+    const SpeechRecognition =
+
+
+
+    window.SpeechRecognition ||
+
+
+
+    window.webkitSpeechRecognition;
+
+
+
+
+
+
+
+
+
+    if(!SpeechRecognition){
+
+
+
+        this.showToast(
+
+            "Reconhecimento de voz indisponível.",
+
+            "error"
+
+        );
+
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    if(this.voiceActive){
+
+
+
+        this.voiceRecognition.stop();
+
+
+        this.voiceActive =
+
+        false;
+
+
+        return;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+    const recognition =
+
+    new SpeechRecognition();
+
+
+
+
+
+
+
+
+
+    this.voiceRecognition =
+
+    recognition;
+
+
+
+
+
+
+
+
+
+    recognition.lang =
+
+    "pt-PT";
+
+
+
+
+
+
+
+
+
+    recognition.start();
+
+
+
+
+
+
+
+
+
+    this.voiceActive =
+
+    true;
+
+
+
+
+
+
+
+
+
+    recognition.onresult =
+
+    event=>{
+
+
+
+        const text =
+
+        event.results[0][0]
+
+        .transcript;
+
+
+
+
+
+
+
+
+
+        if(this.promptTextarea){
+
+
+
+            this.promptTextarea.value =
+
+            text;
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+        this.handleSubmitPrompt();
+
+
+
+    };
+
+
+
+
+
+
+
+
+
+    recognition.onerror =
+
+    ()=>{
+
+
+
+        this.voiceActive =
+
+        false;
+
+
+
+    };
+
+
+
+
+
+
+
+
+
+    recognition.onend =
+
+    ()=>{
+
+
+
+        this.voiceActive =
+
+        false;
+
+
+
+    };
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/*
+==========================================================
+MARKDOWN ENGINE
+==========================================================
+*/
 
 
 initMarkdownEngine(){
@@ -3209,11 +3284,11 @@ initMarkdownEngine(){
 
 
 
-
-
-// ==========================================================
-// HTML LIVE PREVIEW
-// ==========================================================
+/*
+==========================================================
+HTML LIVE PREVIEW
+==========================================================
+*/
 
 
 detectAndRenderPreview(text){
@@ -3258,7 +3333,7 @@ detectAndRenderPreview(text){
 
 
 
-        const doc =
+        const documentFrame =
 
 
 
@@ -3280,11 +3355,11 @@ detectAndRenderPreview(text){
 
 
 
-        doc.open();
+        documentFrame.open();
 
 
 
-        doc.write(
+        documentFrame.write(
 
             match[1]
 
@@ -3292,7 +3367,7 @@ detectAndRenderPreview(text){
 
 
 
-        doc.close();
+        documentFrame.close();
 
 
 
@@ -3330,11 +3405,11 @@ detectAndRenderPreview(text){
 
 
 
-
-
-// ==========================================================
-// TOAST SYSTEM
-// ==========================================================
+/*
+==========================================================
+TOAST SYSTEM
+==========================================================
+*/
 
 
 showToast(
@@ -3435,11 +3510,11 @@ showToast(
 
 
 
-
-
-// ==========================================================
-// MODAL ACTIONS
-// ==========================================================
+/*
+==========================================================
+MODALS AND UI ACTIONS
+==========================================================
+*/
 
 
 initModalsAndUiActions(){
@@ -3504,11 +3579,11 @@ initModalsAndUiActions(){
 
 
 
-
-
-// ==========================================================
-// APPLICATION START
-// ==========================================================
+/*
+==========================================================
+APPLICATION START
+==========================================================
+*/
 
 
 init(){
@@ -3541,7 +3616,7 @@ init(){
 
     console.log(
 
-        "🐝 Honey IA V8 iniciado",
+        "🐝 Honey IA V8.1 iniciado",
 
         SESSION_ID
 
@@ -3563,12 +3638,53 @@ init(){
 
 
 
-// ==========================================================
-// EXPORT INSTANCE
-// ==========================================================
+/*
+==========================================================
+CREATE APPLICATION INSTANCE
+==========================================================
+*/
 
 
-export default new HoneyAIApp();
+const honeyAI =
+
+new HoneyAIApp();
 
 
 
+
+
+
+
+
+
+/*
+==========================================================
+START AFTER DOM READY
+==========================================================
+*/
+
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    ()=>{
+
+
+        honeyAI.init();
+
+
+
+    }
+
+);
+
+
+
+
+
+
+
+
+
+export default honeyAI;
