@@ -13,6 +13,8 @@ import mongoose from "mongoose";
 import rateLimit from "express-rate-limit";
 import kernel from "./kernel.js";
 import orchestratorinstance from "./orchestrator.js";
+import authRoutes from "./auth.routes.js";
+import { authMiddleware } from "./auth.middleware.js";
 
 dotenv.config();
 
@@ -70,6 +72,20 @@ STATIC FRONTEND
 
 app.use(express.static(path.join(__dirname)));
 
+/*
+==========================================
+AUTHENTICATION API
+==========================================
+*/
+
+
+app.use(
+
+    "/api/auth",
+
+    authRoutes
+
+);
 
 /*
 ==========================================
@@ -841,7 +857,76 @@ app.get(
 
     }
 
-);/*
+);
+
+/*
+==========================================
+CURRENT USER SESSION
+==========================================
+*/
+
+
+app.get(
+
+"/api/auth/me",
+
+authMiddleware,
+
+async(req,res)=>{
+
+
+    try{
+
+
+        res.json({
+
+            success:true,
+
+            user:{
+
+                id:req.user._id,
+
+                nome:req.user.nome,
+
+                apelido:req.user.apelido,
+
+                email:req.user.email,
+
+                plano:req.user.plano,
+
+                avatar:req.user.avatar
+
+            }
+
+
+        });
+
+
+
+    }
+
+
+    catch(error){
+
+
+        res.status(500)
+
+        .json({
+
+            success:false,
+
+            error:error.message
+
+        });
+
+
+    }
+
+
+}
+
+);
+/*
 ==========================================
 FRONTEND FALLBACK
 SERVE HONEY IA APP
