@@ -1,16 +1,26 @@
 /*
 ==========================================
 HONEY IA OS
-SERVER CORE V7
+SERVER CORE V8.1
 Enterprise AI Backend
 Authentication + AI + Workspace
+MongoDB + JWT + Google Authentication
+Render Ready
 ==========================================
 */
 
 
-import express from "express";
+/*
+==========================================
+ENVIRONMENT
+==========================================
+*/
 
-import dotenv from "dotenv";
+
+import "dotenv/config";
+
+
+import express from "express";
 
 import path from "path";
 
@@ -26,23 +36,6 @@ import kernel from "./kernel.js";
 import orchestratorinstance from "./orchestrator.js";
 
 import authRoutes from "./auth.routes.js";
-
-
-
-/*
-==========================================
-ENVIRONMENT
-==========================================
-*/
-
-
-dotenv.config();
-
-
-
-
-
-
 
 
 
@@ -64,9 +57,95 @@ path.dirname(__filename);
 
 
 
+/*
+==========================================
+ENVIRONMENT VALIDATION
+==========================================
+*/
+
+
+const PORT =
+
+process.env.PORT ||
+
+3000;
+
+
+const NODE_ENV =
+
+process.env.NODE_ENV ||
+
+"development";
+
+
+const hasMongoDB =
+
+Boolean(
+
+    process.env.MONGODB_URI
+
+);
+
+
+const hasJWT =
+
+Boolean(
+
+    process.env.JWT_SECRET
+
+);
+
+
+const hasGoogle =
+
+Boolean(
+
+    process.env.GOOGLE_CLIENT_ID
+
+);
 
 
 
+console.log(
+
+    "🐝 Honey IA OS environment:",
+
+    NODE_ENV
+
+);
+
+
+if(!hasJWT){
+
+    console.warn(
+
+        "⚠️ JWT_SECRET não configurado."
+
+    );
+
+}
+
+
+if(!hasGoogle){
+
+    console.warn(
+
+        "⚠️ GOOGLE_CLIENT_ID não configurado. Login Google ficará indisponível."
+
+    );
+
+}
+
+
+if(!hasMongoDB){
+
+    console.warn(
+
+        "⚠️ MONGODB_URI não configurada."
+
+    );
+
+}
 
 
 
@@ -86,9 +165,21 @@ kernel.getApp();
 
 
 
+/*
+==========================================
+TRUST PROXY
+Render / Reverse Proxy
+==========================================
+*/
 
 
+app.set(
 
+    "trust proxy",
+
+    1
+
+);
 
 
 
@@ -124,12 +215,6 @@ app.use(
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
 STATIC FRONTEND
@@ -150,12 +235,6 @@ app.use(
     )
 
 );
-
-
-
-
-
-
 
 
 
@@ -180,7 +259,7 @@ async function connectDatabase(){
 
         console.warn(
 
-            "⚠️ MONGODB_URI não encontrada. A iniciar sem base de dados."
+            "⚠️ MONGODB_URI não encontrada."
 
         );
 
@@ -237,19 +316,9 @@ async function connectDatabase(){
 
 
 
-
-
-
-
-
+const databaseConnected =
 
 await connectDatabase();
-
-
-
-
-
-
 
 
 
@@ -299,12 +368,6 @@ rateLimit({
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
 AUTHENTICATION API
@@ -322,12 +385,6 @@ app.use(
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
 API HEALTH
@@ -342,7 +399,7 @@ app.get(
     (req,res)=>{
 
 
-        res.json({
+        return res.json({
 
             success:true,
 
@@ -350,15 +407,35 @@ app.get(
 
             status:"online",
 
-            version:"7.0.0",
+            version:"8.1.0",
+
+            environment:
+
+            NODE_ENV,
 
             database:
 
             mongoose.connection.readyState === 1
 
-            ? "connected"
+            ?
 
-            : "disconnected"
+            "connected"
+
+            :
+
+            "disconnected",
+
+            authentication:{
+
+                jwt:
+
+                hasJWT,
+
+                google:
+
+                hasGoogle
+
+            }
 
         });
 
@@ -366,12 +443,6 @@ app.get(
     }
 
 );
-
-
-
-
-
-
 
 
 
@@ -409,11 +480,19 @@ app.post(
 
                 mode
 
-            } = req.body;
+            } = req.body || {};
 
 
 
-            if(!prompt){
+            if(
+
+                !prompt ||
+
+                typeof prompt !== "string" ||
+
+                !prompt.trim()
+
+            ){
 
                 return res
 
@@ -441,7 +520,7 @@ app.post(
 
                 userPrompt:
 
-                prompt,
+                prompt.trim(),
 
 
                 agentId:
@@ -451,7 +530,15 @@ app.post(
 
                 history:
 
-                history || [],
+                Array.isArray(history)
+
+                ?
+
+                history
+
+                :
+
+                [],
 
 
                 workspaceContext:
@@ -461,7 +548,15 @@ app.post(
 
                 userMemory:
 
-                memory || [],
+                Array.isArray(memory)
+
+                ?
+
+                memory
+
+                :
+
+                [],
 
 
                 mode:
@@ -504,7 +599,9 @@ app.post(
 
                 error:
 
-                error.message
+                error.message ||
+
+                "Erro ao processar pedido."
 
             });
 
@@ -515,12 +612,6 @@ app.post(
     }
 
 );
-
-
-
-
-
-
 
 
 
@@ -556,12 +647,19 @@ app.post(
 
                 memory
 
-            } = req.body;
+            } = req.body || {};
 
 
 
-            if(!prompt){
+            if(
 
+                !prompt ||
+
+                typeof prompt !== "string" ||
+
+                !prompt.trim()
+
+            ){
 
                 return res
 
@@ -576,7 +674,6 @@ app.post(
                     "Prompt vazio."
 
                 });
-
 
             }
 
@@ -620,7 +717,7 @@ app.post(
 
                 userPrompt:
 
-                prompt,
+                prompt.trim(),
 
 
                 agentId:
@@ -630,7 +727,15 @@ app.post(
 
                 history:
 
-                history || [],
+                Array.isArray(history)
+
+                ?
+
+                history
+
+                :
+
+                [],
 
 
                 workspaceContext:
@@ -640,7 +745,15 @@ app.post(
 
                 userMemory:
 
-                memory || [],
+                Array.isArray(memory)
+
+                ?
+
+                memory
+
+                :
+
+                [],
 
 
                 mode:
@@ -652,9 +765,15 @@ app.post(
                 onChunk:(chunk)=>{
 
 
-                    if(res.writableEnded)
+                    if(
 
-                    return;
+                        res.writableEnded
+
+                    ){
+
+                        return;
+
+                    }
 
 
 
@@ -662,7 +781,9 @@ app.post(
 
                         `data: ${JSON.stringify({
 
-                            text:chunk
+                            text:
+
+                            chunk
 
                         })}\n\n`
 
@@ -676,9 +797,15 @@ app.post(
                 onComplete:(result)=>{
 
 
-                    if(res.writableEnded)
+                    if(
 
-                    return;
+                        res.writableEnded
+
+                    ){
+
+                        return;
+
+                    }
 
 
 
@@ -690,11 +817,15 @@ app.post(
 
                             agent:
 
-                            result.agent,
+                            result?.agent ||
+
+                            null,
 
                             latency:
 
-                            result.latency
+                            result?.latency ||
+
+                            null
 
                         })}\n\n`
 
@@ -711,9 +842,15 @@ app.post(
                 onError:(error)=>{
 
 
-                    if(res.writableEnded)
+                    if(
 
-                    return;
+                        res.writableEnded
+
+                    ){
+
+                        return;
+
+                    }
 
 
 
@@ -723,7 +860,9 @@ app.post(
 
                             error:
 
-                            error.message
+                            error?.message ||
+
+                            "Erro no modo Live."
 
                         })}\n\n`
 
@@ -754,8 +893,11 @@ app.post(
             );
 
 
-            if(!res.headersSent){
+            if(
 
+                !res.headersSent
+
+            ){
 
                 return res
 
@@ -767,7 +909,9 @@ app.post(
 
                     error:
 
-                    error.message
+                    error.message ||
+
+                    "Erro no modo Live."
 
                 });
 
@@ -775,7 +919,15 @@ app.post(
             }
 
 
-            res.end();
+            if(
+
+                !res.writableEnded
+
+            ){
+
+                res.end();
+
+            }
 
 
         }
@@ -784,12 +936,6 @@ app.post(
     }
 
 );
-
-
-
-
-
-
 
 
 
@@ -827,9 +973,11 @@ app.get(
 
             Object.values(
 
-                agents_registry
+                agents_registry || {}
 
-            ).map(agent=>({
+            )
+
+            .map(agent=>({
 
 
                 id:
@@ -903,7 +1051,9 @@ app.get(
 
                 error:
 
-                error.message
+                error.message ||
+
+                "Erro ao carregar agentes."
 
             });
 
@@ -914,12 +1064,6 @@ app.get(
     }
 
 );
-
-
-
-
-
-
 
 
 
@@ -955,6 +1099,15 @@ app.get(
         catch(error){
 
 
+            console.error(
+
+                "[SYSTEM STATUS ERROR]",
+
+                error
+
+            );
+
+
             return res
 
             .status(500)
@@ -965,7 +1118,9 @@ app.get(
 
                 error:
 
-                error.message
+                error.message ||
+
+                "Erro ao obter estado do sistema."
 
             });
 
@@ -979,28 +1134,58 @@ app.get(
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
 FRONTEND FALLBACK
-SERVE HONEY IA APP
+EXPRESS 5 COMPATIBLE
 ==========================================
 */
 
 
 app.get(
 
-    "*",
+    "/{*splat}",
 
     (req,res)=>{
 
 
-        res.sendFile(
+        /*
+        ----------------------------------
+        Não transformar pedidos de API
+        desconhecidos em index.html
+        ----------------------------------
+        */
+
+
+        if(
+
+            req.path.startsWith(
+
+                "/api/"
+
+            )
+
+        ){
+
+            return res
+
+            .status(404)
+
+            .json({
+
+                success:false,
+
+                error:
+
+                "Endpoint API não encontrado."
+
+            });
+
+        }
+
+
+
+        return res.sendFile(
 
             path.join(
 
@@ -1016,12 +1201,6 @@ app.get(
     }
 
 );
-
-
-
-
-
-
 
 
 
@@ -1047,7 +1226,11 @@ app.use(
 
 
 
-        if(res.headersSent){
+        if(
+
+            res.headersSent
+
+        ){
 
             return next(err);
 
@@ -1057,13 +1240,21 @@ app.use(
 
         return res
 
-        .status(500)
+        .status(
+
+            err.status ||
+
+            500
+
+        )
 
         .json({
 
             success:false,
 
             error:
+
+            err.message ||
 
             "Erro interno no servidor."
 
@@ -1076,12 +1267,6 @@ app.use(
 
 
 
-
-
-
-
-
-
 /*
 ==========================================
 SERVER START
@@ -1090,19 +1275,7 @@ RENDER COMPATIBILITY
 */
 
 
-const PORT =
-
-process.env.PORT ||
-
-3000;
-
-
-
-
-
-
-
-
+const server =
 
 app.listen(
 
@@ -1134,6 +1307,70 @@ app.listen(
 
         console.log(
 
+            `🌍 Environment: ${NODE_ENV}`
+
+        );
+
+
+        console.log(
+
+            `🍃 MongoDB: ${
+
+                databaseConnected
+
+                ?
+
+                "CONNECTED"
+
+                :
+
+                "DISCONNECTED"
+
+            }`
+
+        );
+
+
+        console.log(
+
+            `🔐 JWT: ${
+
+                hasJWT
+
+                ?
+
+                "CONFIGURED"
+
+                :
+
+                "MISSING"
+
+            }`
+
+        );
+
+
+        console.log(
+
+            `🔵 Google Auth: ${
+
+                hasGoogle
+
+                ?
+
+                "CONFIGURED"
+
+                :
+
+                "MISSING"
+
+            }`
+
+        );
+
+
+        console.log(
+
             "🤖 30 Agentes carregados"
 
         );
@@ -1155,18 +1392,95 @@ app.listen(
 
         console.log(
 
-            "🍃 MongoDB Authentication ativo"
-
-        );
-
-
-        console.log(
-
             "🐝 =================================="
 
         );
 
 
     }
+);
+
+
+
+/*
+==========================================
+GRACEFUL SHUTDOWN
+==========================================
+*/
+
+
+async function shutdown(signal){
+
+
+    console.log(
+
+        `\n🛑 ${signal} recebido. A encerrar Honey IA...`
+
+    );
+
+
+
+    try{
+
+
+        await mongoose.connection.close();
+
+
+
+        server.close(()=>{
+
+
+            console.log(
+
+                "✅ Servidor encerrado."
+
+            );
+
+
+            process.exit(0);
+
+
+        });
+
+
+    }
+
+
+    catch(error){
+
+
+        console.error(
+
+            "❌ Erro durante shutdown:",
+
+            error
+
+        );
+
+
+        process.exit(1);
+
+
+    }
+
+
+}
+
+
+
+process.on(
+
+    "SIGTERM",
+
+    ()=>shutdown("SIGTERM")
+
+);
+
+
+process.on(
+
+    "SIGINT",
+
+    ()=>shutdown("SIGINT")
 
 );
