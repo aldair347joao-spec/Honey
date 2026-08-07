@@ -2,8 +2,8 @@
 ==========================================
 HONEY IA OS
 AUTH MANAGER
-Professional Frontend Authentication
-JWT + MongoDB + Google
+Frontend Session Controller
+JWT + MongoDB + Google Authentication
 V4.0
 ==========================================
 */
@@ -12,15 +12,7 @@ V4.0
 class AuthManager {
 
 
-
     constructor(){
-
-
-        /*
-        ==================================
-        INTERNAL STATE
-        ==================================
-        */
 
 
         this.user = null;
@@ -35,10 +27,16 @@ class AuthManager {
         );
 
 
-        this.ready =
+        this.loading = true;
+
+
+        this.listeners = [];
+
+
+        this.loadStoredUser();
+
 
         this.loadSession();
-
 
 
     }
@@ -53,198 +51,66 @@ class AuthManager {
 
     /*
     ==========================================
-    API REQUEST HELPER
+    LOAD STORED USER
+    Recupera utilizador localmente
     ==========================================
     */
 
 
-    async request(
-
-        url,
-
-        options = {}
-
-    ){
-
-
-        const headers = {
-
-            ...(options.headers || {})
-
-        };
-
-
-
-        /*
-        --------------------------------------
-        JSON CONTENT TYPE
-        --------------------------------------
-        */
-
-
-        if(
-
-            options.body &&
-
-            typeof options.body !== "string"
-
-        ){
-
-            headers["Content-Type"] =
-
-                "application/json";
-
-
-
-            options.body =
-
-                JSON.stringify(
-
-                    options.body
-
-                );
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        AUTHORIZATION
-        --------------------------------------
-        */
-
-
-        if(this.token){
-
-            headers["Authorization"] =
-
-                `Bearer ${this.token}`;
-
-        }
-
-
-
-        const response =
-
-        await fetch(
-
-            url,
-
-            {
-
-                ...options,
-
-                headers
-
-            }
-
-        );
-
-
-
-        /*
-        --------------------------------------
-        SAFE JSON PARSING
-        --------------------------------------
-        */
-
-
-        let data = null;
-
+    loadStoredUser(){
 
 
         try{
 
 
-            data =
+            const storedUser =
 
-            await response.json();
+            localStorage.getItem(
 
-
-        }
-
-        catch(error){
-
-
-            data = {
-
-                success:false,
-
-                error:
-
-                "Resposta inválida do servidor."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        HTTP ERROR
-        --------------------------------------
-        */
-
-
-        if(
-
-            !response.ok ||
-
-            data.success === false
-
-        ){
-
-
-            const error =
-
-            new Error(
-
-                data.error ||
-
-                "Ocorreu um erro."
+                "honey_user"
 
             );
 
 
-
-            error.status =
-
-                response.status;
+            if(storedUser){
 
 
+                this.user =
 
-            /*
-            ----------------------------------
-            INVALID SESSION
-            ----------------------------------
-            */
+                JSON.parse(
 
+                    storedUser
 
-            if(
+                );
 
-                response.status === 401 &&
-
-                url !== "/api/auth/login" &&
-
-                url !== "/api/auth/google"
-
-            ){
-
-                this.clearSession();
 
             }
 
 
-
-            throw error;
-
         }
 
 
+        catch(error){
 
-        return data;
+
+            console.error(
+
+                "Erro ao recuperar utilizador local:",
+
+                error
+
+            );
+
+
+            localStorage.removeItem(
+
+                "honey_user"
+
+            );
+
+
+        }
+
 
     }
 
@@ -258,8 +124,8 @@ class AuthManager {
 
     /*
     ==========================================
-    LOAD SESSION
-    RESTORE USER SESSION
+    RESTORE SESSION
+    Valida JWT com o backend
     ==========================================
     */
 
@@ -269,9 +135,15 @@ class AuthManager {
 
         if(!this.token){
 
-            this.user = null;
+
+            this.loading = false;
+
+
+            this.notify();
+
 
             return null;
+
 
         }
 
@@ -280,15 +152,29 @@ class AuthManager {
         try{
 
 
-            const data =
+            const response =
 
-            await this.request(
+            await fetch(
 
                 "/api/auth/me",
 
                 {
 
-                    method:"GET"
+                    method:"GET",
+
+
+                    headers:{
+
+                        "Authorization":
+
+                        `Bearer ${this.token}`,
+
+                        "Accept":
+
+                        "application/json"
+
+                    }
+
 
                 }
 
@@ -296,24 +182,43 @@ class AuthManager {
 
 
 
-            if(data.success && data.user){
+            const data =
+
+            await this.parseResponse(
+
+                response
+
+            );
+
+
+
+            if(
+
+                response.ok &&
+
+                data.success &&
+
+                data.user
+
+            ){
 
 
                 this.user =
 
-                    this.normalizeUser(
-
-                        data.user
-
-                    );
-
+                data.user;
 
 
                 this.saveUser();
 
 
+                this.loading = false;
+
+
+                this.notify();
+
 
                 return this.user;
+
 
             }
 
@@ -322,48 +227,45 @@ class AuthManager {
             this.clearSession();
 
 
+            this.loading = false;
+
+
+            this.notify();
+
 
             return null;
 
 
         }
 
+
         catch(error){
 
 
-            /*
-            ----------------------------------
-            Do not destroy session on temporary
-            network failure.
-            ----------------------------------
-            */
-
-
-            if(
-
-                error.status === 401 ||
-
-                error.status === 403
-
-            ){
-
-                this.clearSession();
-
-            }
-
-
-
-            console.warn(
+            console.error(
 
                 "Erro ao recuperar sessão:",
 
-                error.message
+                error
 
             );
 
 
+            /*
+            Não apagamos imediatamente
+            o token quando existe uma falha
+            temporária de rede.
+            */
+
+
+            this.loading = false;
+
+
+            this.notify();
+
 
             return null;
+
 
         }
 
@@ -380,100 +282,550 @@ class AuthManager {
 
     /*
     ==========================================
-    NORMALIZE USER
-    Compatibility Layer
+    REGISTER
+    Criar nova conta
     ==========================================
     */
 
 
-    normalizeUser(user){
+    async register(data){
 
 
-        if(!user)
+        const response =
 
-            return null;
+        await fetch(
 
+            "/api/auth/register",
 
+            {
 
-        const normalized = {
-
-            ...user
-
-        };
+                method:"POST",
 
 
+                headers:{
 
-        /*
-        --------------------------------------
-        New field names
-        --------------------------------------
-        */
+                    "Content-Type":
 
+                    "application/json",
 
-        normalized.firstName =
+                    "Accept":
 
-            user.firstName ||
+                    "application/json"
 
-            user.nome ||
-
-            "";
+                },
 
 
+                body:
 
-        normalized.lastName =
+                JSON.stringify(data)
 
-            user.lastName ||
+            }
 
-            user.apelido ||
-
-            "";
+        );
 
 
 
-        normalized.plan =
+        const result =
 
-            user.plan ||
+        await this.parseResponse(
 
-            user.plano ||
+            response
 
-            "free";
-
-
-
-        normalized.avatar =
-
-            user.avatar ||
-
-            null;
+        );
 
 
 
-        /*
-        --------------------------------------
-        Legacy compatibility
-        --------------------------------------
-        */
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
 
 
-        normalized.nome =
+            throw new Error(
 
-            normalized.firstName;
+                result.error ||
 
+                "Não foi possível criar a conta."
 
-
-        normalized.apelido =
-
-            normalized.lastName;
+            );
 
 
-
-        normalized.plano =
-
-            normalized.plan;
+        }
 
 
 
-        return normalized;
+        return result;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    VERIFY EMAIL
+    Confirmar código de email
+    ==========================================
+    */
+
+
+    async verifyEmail(data){
+
+
+        const response =
+
+        await fetch(
+
+            "/api/auth/verify-email",
+
+            {
+
+                method:"POST",
+
+
+                headers:{
+
+                    "Content-Type":
+
+                    "application/json",
+
+                    "Accept":
+
+                    "application/json"
+
+                },
+
+
+                body:
+
+                JSON.stringify(data)
+
+            }
+
+        );
+
+
+
+        const result =
+
+        await this.parseResponse(
+
+            response
+
+        );
+
+
+
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
+
+
+            throw new Error(
+
+                result.error ||
+
+                "Não foi possível confirmar o email."
+
+            );
+
+
+        }
+
+
+
+        return result;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    RESEND VERIFICATION
+    Reenviar código
+    ==========================================
+    */
+
+
+    async resendVerification(email){
+
+
+        const response =
+
+        await fetch(
+
+            "/api/auth/resend-verification",
+
+            {
+
+                method:"POST",
+
+
+                headers:{
+
+                    "Content-Type":
+
+                    "application/json",
+
+                    "Accept":
+
+                    "application/json"
+
+                },
+
+
+                body:
+
+                JSON.stringify({
+
+                    email
+
+                })
+
+            }
+
+        );
+
+
+
+        const result =
+
+        await this.parseResponse(
+
+            response
+
+        );
+
+
+
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
+
+
+            throw new Error(
+
+                result.error ||
+
+                "Não foi possível reenviar o código."
+
+            );
+
+
+        }
+
+
+
+        return result;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    LOGIN
+    Email + palavra-passe
+    ==========================================
+    */
+
+
+    async login(data){
+
+
+        const response =
+
+        await fetch(
+
+            "/api/auth/login",
+
+            {
+
+                method:"POST",
+
+
+                headers:{
+
+                    "Content-Type":
+
+                    "application/json",
+
+                    "Accept":
+
+                    "application/json"
+
+                },
+
+
+                body:
+
+                JSON.stringify(data)
+
+            }
+
+        );
+
+
+
+        const result =
+
+        await this.parseResponse(
+
+            response
+
+        );
+
+
+
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
+
+
+            throw new Error(
+
+                result.error ||
+
+                "Não foi possível realizar o login."
+
+            );
+
+
+        }
+
+
+
+        this.setSession(
+
+            result.token,
+
+            result.user
+
+        );
+
+
+
+        return this.user;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GOOGLE LOGIN
+    Login através do Google
+    ==========================================
+    */
+
+
+    async googleLogin(credential){
+
+
+        if(!credential){
+
+
+            throw new Error(
+
+                "Credenciais do Google não encontradas."
+
+            );
+
+
+        }
+
+
+
+        const response =
+
+        await fetch(
+
+            "/api/auth/google",
+
+            {
+
+                method:"POST",
+
+
+                headers:{
+
+                    "Content-Type":
+
+                    "application/json",
+
+                    "Accept":
+
+                    "application/json"
+
+                },
+
+
+                body:
+
+                JSON.stringify({
+
+                    credential
+
+                })
+
+            }
+
+        );
+
+
+
+        const result =
+
+        await this.parseResponse(
+
+            response
+
+        );
+
+
+
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
+
+
+            throw new Error(
+
+                result.error ||
+
+                "Não foi possível entrar com o Google."
+
+            );
+
+
+        }
+
+
+
+        this.setSession(
+
+            result.token,
+
+            result.user
+
+        );
+
+
+
+        return this.user;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    SET SESSION
+    Guarda JWT + utilizador
+    ==========================================
+    */
+
+
+    setSession(token,user){
+
+
+        if(!token){
+
+
+            throw new Error(
+
+                "Token de autenticação inválido."
+
+            );
+
+
+        }
+
+
+
+        this.token = token;
+
+
+        this.user = user || null;
+
+
+
+        localStorage.setItem(
+
+            "honey_token",
+
+            token
+
+        );
+
+
+
+        if(this.user){
+
+
+            this.saveUser();
+
+
+        }
+
+
+
+        this.notify();
+
 
     }
 
@@ -495,9 +847,20 @@ class AuthManager {
     saveUser(){
 
 
-        if(!this.user)
+        if(!this.user){
+
+
+            localStorage.removeItem(
+
+                "honey_user"
+
+            );
+
 
             return;
+
+
+        }
 
 
 
@@ -513,322 +876,6 @@ class AuthManager {
 
         );
 
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    REGISTER
-    ==========================================
-    */
-
-
-    async register(data){
-
-
-        const result =
-
-        await this.request(
-
-            "/api/auth/register",
-
-            {
-
-                method:"POST",
-
-                body:data
-
-            }
-
-        );
-
-
-
-        return result;
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    VERIFY EMAIL
-    ==========================================
-    */
-
-
-    async verifyEmail(data){
-
-
-        const result =
-
-        await this.request(
-
-            "/api/auth/verify-email",
-
-            {
-
-                method:"POST",
-
-                body:data
-
-            }
-
-        );
-
-
-
-        return result;
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    RESEND VERIFICATION CODE
-    ==========================================
-    */
-
-
-    async resendVerificationCode(
-
-        email
-
-    ){
-
-
-        const result =
-
-        await this.request(
-
-            "/api/auth/resend-verification",
-
-            {
-
-                method:"POST",
-
-                body:{
-
-                    email
-
-                }
-
-            }
-
-        );
-
-
-
-        return result;
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    LOGIN
-    EMAIL + PASSWORD
-    ==========================================
-    */
-
-
-    async login(data){
-
-
-        const result =
-
-        await this.request(
-
-            "/api/auth/login",
-
-            {
-
-                method:"POST",
-
-                body:data
-
-            }
-
-        );
-
-
-
-        /*
-        --------------------------------------
-        STORE TOKEN
-        --------------------------------------
-        */
-
-
-        this.token =
-
-            result.token;
-
-
-
-        /*
-        --------------------------------------
-        STORE USER
-        --------------------------------------
-        */
-
-
-        this.user =
-
-            this.normalizeUser(
-
-                result.user
-
-            );
-
-
-
-        localStorage.setItem(
-
-            "honey_token",
-
-            this.token
-
-        );
-
-
-
-        this.saveUser();
-
-
-
-        return this.user;
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    GOOGLE LOGIN
-    ==========================================
-    */
-
-
-    async loginWithGoogle(
-
-        credential
-
-    ){
-
-
-        if(!credential){
-
-            throw new Error(
-
-                "Credencial Google não fornecida."
-
-            );
-
-        }
-
-
-
-        const result =
-
-        await this.request(
-
-            "/api/auth/google",
-
-            {
-
-                method:"POST",
-
-                body:{
-
-                    credential
-
-                }
-
-            }
-
-        );
-
-
-
-        /*
-        --------------------------------------
-        STORE TOKEN
-        --------------------------------------
-        */
-
-
-        this.token =
-
-            result.token;
-
-
-
-        /*
-        --------------------------------------
-        STORE USER
-        --------------------------------------
-        */
-
-
-        this.user =
-
-            this.normalizeUser(
-
-                result.user
-
-            );
-
-
-
-        localStorage.setItem(
-
-            "honey_token",
-
-            this.token
-
-        );
-
-
-
-        this.saveUser();
-
-
-
-        return this.user;
 
     }
 
@@ -900,11 +947,10 @@ class AuthManager {
 
             this.user?.plan ||
 
-            this.user?.plano ||
-
             "free"
 
         );
+
 
     }
 
@@ -918,7 +964,7 @@ class AuthManager {
 
     /*
     ==========================================
-    AUTHENTICATION STATUS
+    AUTHENTICATED
     ==========================================
     */
 
@@ -934,27 +980,6 @@ class AuthManager {
 
         );
 
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    SESSION READY
-    ==========================================
-    */
-
-
-    async waitUntilReady(){
-
-
-        return this.ready;
 
     }
 
@@ -968,100 +993,16 @@ class AuthManager {
 
     /*
     ==========================================
-    REFRESH SESSION
+    SESSION LOADING
     ==========================================
     */
 
 
-    async refreshSession(){
+    isLoading(){
 
 
-        if(!this.token){
+        return this.loading;
 
-            this.clearSession();
-
-            return null;
-
-        }
-
-
-
-        try{
-
-
-            const data =
-
-            await this.request(
-
-                "/api/auth/me",
-
-                {
-
-                    method:"GET"
-
-                }
-
-            );
-
-
-
-            if(
-
-                data.success &&
-
-                data.user
-
-            ){
-
-                this.user =
-
-                    this.normalizeUser(
-
-                        data.user
-
-                    );
-
-
-
-                this.saveUser();
-
-
-
-                return this.user;
-
-            }
-
-
-
-            this.clearSession();
-
-
-
-            return null;
-
-
-        }
-
-        catch(error){
-
-
-            if(
-
-                error.status === 401 ||
-
-                error.status === 403
-
-            ){
-
-                this.clearSession();
-
-            }
-
-
-
-            throw error;
-
-        }
 
     }
 
@@ -1076,7 +1017,7 @@ class AuthManager {
     /*
     ==========================================
     LOGOUT
-    SERVER + CLIENT
+    Encerrar sessão no backend
     ==========================================
     */
 
@@ -1098,33 +1039,42 @@ class AuthManager {
 
                         method:"POST",
 
+
                         headers:{
 
                             "Authorization":
 
-                            `Bearer ${this.token}`
+                            `Bearer ${this.token}`,
+
+                            "Accept":
+
+                            "application/json"
 
                         }
+
 
                     }
 
                 );
+
 
             }
 
 
         }
 
+
         catch(error){
 
 
             console.warn(
 
-                "Erro ao terminar sessão no servidor:",
+                "Não foi possível encerrar a sessão no servidor:",
 
                 error
 
             );
+
 
         }
 
@@ -1134,7 +1084,9 @@ class AuthManager {
 
             this.clearSession();
 
+
         }
+
 
     }
 
@@ -1149,6 +1101,7 @@ class AuthManager {
     /*
     ==========================================
     CLEAR SESSION
+    Limpa autenticação local
     ==========================================
     */
 
@@ -1177,6 +1130,11 @@ class AuthManager {
 
         );
 
+
+
+        this.notify();
+
+
     }
 
 
@@ -1189,17 +1147,435 @@ class AuthManager {
 
     /*
     ==========================================
-    CHECK AUTH
+    REFRESH USER
+    Atualiza dados do utilizador
     ==========================================
     */
 
 
-    requireAuth(){
+    async refreshUser(){
 
 
-        if(!this.isAuthenticated()){
+        if(!this.token){
+
+
+            return null;
+
+
+        }
+
+
+
+        try{
+
+
+            const response =
+
+            await fetch(
+
+                "/api/auth/me",
+
+                {
+
+                    method:"GET",
+
+
+                    headers:{
+
+                        "Authorization":
+
+                        `Bearer ${this.token}`,
+
+                        "Accept":
+
+                        "application/json"
+
+                    }
+
+
+                }
+
+            );
+
+
+
+            const data =
+
+            await this.parseResponse(
+
+                response
+
+            );
+
+
+
+            if(
+
+                response.ok &&
+
+                data.success &&
+
+                data.user
+
+            ){
+
+
+                this.user =
+
+                data.user;
+
+
+                this.saveUser();
+
+
+                this.notify();
+
+
+                return this.user;
+
+
+            }
+
+
+
+            this.clearSession();
+
+
+            return null;
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "Erro ao atualizar utilizador:",
+
+                error
+
+            );
+
+
+            return null;
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    AUTH HEADER
+    Header pronto para APIs protegidas
+    ==========================================
+    */
+
+
+    getAuthHeader(){
+
+
+        if(!this.token){
+
+
+            return {};
+
+
+        }
+
+
+
+        return {
+
+
+            "Authorization":
+
+            `Bearer ${this.token}`
+
+        };
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    AUTH FETCH
+    Fetch autenticado
+    ==========================================
+    */
+
+
+    async authFetch(
+
+        url,
+
+        options={}
+
+    ){
+
+
+        const headers = {
+
+            ...(options.headers || {}),
+
+            ...this.getAuthHeader()
+
+        };
+
+
+
+        return fetch(
+
+            url,
+
+            {
+
+                ...options,
+
+                headers
+
+            }
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    RESPONSE PARSER
+    Trata respostas JSON
+    ==========================================
+    */
+
+
+    async parseResponse(response){
+
+
+        try{
+
+
+            return await response.json();
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "Resposta inválida do servidor:",
+
+                error
+
+            );
+
+
+
+            return {
+
+
+                success:false,
+
+
+                error:
+
+                "Resposta inválida do servidor."
+
+            };
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    EVENT LISTENERS
+    Permite outras páginas reagirem
+    ==========================================
+    */
+
+
+    subscribe(callback){
+
+
+        if(
+
+            typeof callback !==
+
+            "function"
+
+        ){
+
+
+            return ()=>{};
+
+
+        }
+
+
+
+        this.listeners.push(
+
+            callback
+
+        );
+
+
+
+        return ()=>{
+
+
+            this.listeners =
+
+            this.listeners.filter(
+
+                listener =>
+
+                listener !== callback
+
+            );
+
+
+        };
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    NOTIFY
+    ==========================================
+    */
+
+
+    notify(){
+
+
+        this.listeners.forEach(
+
+            callback=>{
+
+
+                try{
+
+
+                    callback(
+
+                        this.user
+
+                    );
+
+
+                }
+
+
+                catch(error){
+
+
+                    console.error(
+
+                        "Auth listener error:",
+
+                        error
+
+                    );
+
+
+                }
+
+
+            }
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    REQUIRE AUTH
+    Protege páginas do Workspace
+    ==========================================
+    */
+
+
+    requireAuth(
+
+        redirect="/"
+
+    ){
+
+
+        if(
+
+            !this.isAuthenticated()
+
+        ){
+
+
+            window.location.href =
+
+            redirect;
+
 
             return false;
+
 
         }
 
@@ -1207,19 +1583,254 @@ class AuthManager {
 
         return true;
 
+
     }
 
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    REQUIRE PLAN
+    Verificação de plano
+    ==========================================
+    */
+
+
+    requirePlan(
+
+        allowedPlans=[]
+
+    ){
+
+
+        const plan =
+
+        this.getPlan();
+
+
+
+        if(
+
+            !Array.isArray(
+
+                allowedPlans
+
+            )
+
+        ){
+
+
+            return false;
+
+
+        }
+
+
+
+        return allowedPlans.includes(
+
+            plan
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET USER DISPLAY NAME
+    ==========================================
+    */
+
+
+    getDisplayName(){
+
+
+        if(!this.user){
+
+
+            return "Utilizador";
+
+
+        }
+
+
+
+        const firstName =
+
+        this.user.firstName ||
+
+        "";
+
+
+
+        const lastName =
+
+        this.user.lastName ||
+
+        "";
+
+
+
+        const fullName =
+
+        `${firstName} ${lastName}`
+
+        .trim();
+
+
+
+        return (
+
+            fullName ||
+
+            this.user.email ||
+
+            "Utilizador"
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET AVATAR
+    ==========================================
+    */
+
+
+    getAvatar(){
+
+
+        return (
+
+            this.user?.avatar ||
+
+            null
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET EMAIL
+    ==========================================
+    */
+
+
+    getEmail(){
+
+
+        return (
+
+            this.user?.email ||
+
+            ""
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET USER ID
+    ==========================================
+    */
+
+
+    getUserId(){
+
+
+        return (
+
+            this.user?.id ||
+
+            this.user?._id ||
+
+            null
+
+        );
+
+
+    }
 
 
 }
 
 
 
+
+
+
+
+
+
 /*
 ==========================================
-SINGLETON
+GLOBAL AUTH INSTANCE
 ==========================================
 */
 
 
-export default new AuthManager();
+const authmanager =
+
+new AuthManager();
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+EXPORT
+==========================================
+*/
+
+
+export default authmanager;
