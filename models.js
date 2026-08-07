@@ -3,7 +3,7 @@
 HONEY IA OS
 DATABASE MODELS
 MongoDB User & AI Workspace System
-V4.0
+V5.0
 ==========================================
 */
 
@@ -13,7 +13,7 @@ import mongoose from "mongoose";
 /*
 ==========================================
 USER MODEL
-AUTHENTICATION SYSTEM
+AUTHENTICATION + PROFILE + BILLING
 ==========================================
 */
 
@@ -31,7 +31,11 @@ const UserSchema = new mongoose.Schema({
 
         required: true,
 
-        trim: true
+        trim: true,
+
+        minlength: 1,
+
+        maxlength: 80
 
     },
 
@@ -42,7 +46,11 @@ const UserSchema = new mongoose.Schema({
 
         required: true,
 
-        trim: true
+        trim: true,
+
+        minlength: 1,
+
+        maxlength: 80
 
     },
 
@@ -74,8 +82,6 @@ const UserSchema = new mongoose.Schema({
 
         type: String,
 
-        required: false,
-
         default: null
 
     },
@@ -84,8 +90,6 @@ const UserSchema = new mongoose.Schema({
     /*
     --------------------------------------
     AUTH PROVIDER
-    local = Honey IA account
-    google = Google account
     --------------------------------------
     */
 
@@ -122,6 +126,8 @@ const UserSchema = new mongoose.Schema({
 
         sparse: true,
 
+        unique: true,
+
         index: true
 
     },
@@ -129,7 +135,7 @@ const UserSchema = new mongoose.Schema({
 
     /*
     --------------------------------------
-    PROFILE PHOTO
+    PROFILE
     --------------------------------------
     */
 
@@ -137,7 +143,9 @@ const UserSchema = new mongoose.Schema({
 
         type: String,
 
-        default: null
+        default: null,
+
+        trim: true
 
     },
 
@@ -152,7 +160,9 @@ const UserSchema = new mongoose.Schema({
 
         type: Boolean,
 
-        default: false
+        default: false,
+
+        index: true
 
     },
 
@@ -231,31 +241,11 @@ const UserSchema = new mongoose.Schema({
 
         default: null
 
-    },
-
-
-    /*
-    --------------------------------------
-    TIMESTAMPS
-    --------------------------------------
-    */
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
-
-    },
-
-
-    updatedAt: {
-
-        type: Date,
-
-        default: Date.now
-
     }
+
+}, {
+
+    timestamps: true
 
 });
 
@@ -288,26 +278,13 @@ UserSchema.index({
 });
 
 
-/*
-==========================================
-UPDATE TIMESTAMP
-==========================================
-*/
+UserSchema.index({
 
+    plan: 1,
 
-UserSchema.pre(
+    isActive: 1
 
-    "save",
-
-    function(next) {
-
-        this.updatedAt = new Date();
-
-        next();
-
-    }
-
-);
+});
 
 
 /*
@@ -318,6 +295,12 @@ PERSISTENT LOGIN SYSTEM
 */
 
 const SessionSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    USER
+    --------------------------------------
+    */
 
     userId: {
 
@@ -332,6 +315,12 @@ const SessionSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    JWT TOKEN
+    --------------------------------------
+    */
+
     token: {
 
         type: String,
@@ -345,11 +334,19 @@ const SessionSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    DEVICE INFORMATION
+    --------------------------------------
+    */
+
     device: {
 
         type: String,
 
-        default: "unknown"
+        default: "unknown",
+
+        maxlength: 500
 
     },
 
@@ -358,7 +355,9 @@ const SessionSchema = new mongoose.Schema({
 
         type: String,
 
-        default: "unknown"
+        default: "unknown",
+
+        maxlength: 500
 
     },
 
@@ -367,10 +366,18 @@ const SessionSchema = new mongoose.Schema({
 
         type: String,
 
-        default: null
+        default: null,
+
+        maxlength: 100
 
     },
 
+
+    /*
+    --------------------------------------
+    SESSION EXPIRATION
+    --------------------------------------
+    */
 
     expiresAt: {
 
@@ -380,16 +387,11 @@ const SessionSchema = new mongoose.Schema({
 
         index: true
 
-    },
-
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
-
     }
+
+}, {
+
+    timestamps: true
 
 });
 
@@ -411,6 +413,30 @@ SessionSchema.index({
 
 
 /*
+------------------------------------------
+Automatically remove expired sessions
+------------------------------------------
+*/
+
+
+SessionSchema.index(
+
+    {
+
+        expiresAt: 1
+
+    },
+
+    {
+
+        expireAfterSeconds: 0
+
+    }
+
+);
+
+
+/*
 ==========================================
 CONVERSATION MODEL
 AI CHAT MEMORY
@@ -418,6 +444,12 @@ AI CHAT MEMORY
 */
 
 const ConversationSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    OWNER
+    --------------------------------------
+    */
 
     userId: {
 
@@ -432,49 +464,98 @@ const ConversationSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    CONVERSATION TITLE
+    --------------------------------------
+    */
+
     title: {
 
         type: String,
 
-        default: "Nova Conversa"
+        default: "Nova Conversa",
+
+        trim: true,
+
+        maxlength: 200
 
     },
 
+
+    /*
+    --------------------------------------
+    ACTIVE AGENT
+    --------------------------------------
+    */
 
     agentId: {
 
         type: String,
 
-        default: "general"
+        default: "general",
+
+        trim: true,
+
+        index: true
 
     },
 
+
+    /*
+    --------------------------------------
+    WORKSPACE
+    --------------------------------------
+    */
 
     workspace: {
 
         type: String,
 
-        default: "main"
+        default: "main",
+
+        trim: true,
+
+        index: true
 
     },
 
 
-    createdAt: {
+    /*
+    --------------------------------------
+    ARCHIVE STATUS
+    --------------------------------------
+    */
 
-        type: Date,
+    archived: {
 
-        default: Date.now
+        type: Boolean,
 
-    },
+        default: false,
 
-
-    updatedAt: {
-
-        type: Date,
-
-        default: Date.now
+        index: true
 
     }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+/*
+==========================================
+CONVERSATION INDEX
+==========================================
+*/
+
+
+ConversationSchema.index({
+
+    userId: 1,
+
+    updatedAt: -1
 
 });
 
@@ -487,6 +568,12 @@ AGENT CONTEXT MEMORY
 */
 
 const MessageSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    CONVERSATION
+    --------------------------------------
+    */
 
     conversationId: {
 
@@ -501,14 +588,30 @@ const MessageSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    AGENT
+    --------------------------------------
+    */
+
     agentId: {
 
         type: String,
 
-        default: "general"
+        default: "general",
+
+        trim: true,
+
+        index: true
 
     },
 
+
+    /*
+    --------------------------------------
+    MESSAGE ROLE
+    --------------------------------------
+    */
 
     role: {
 
@@ -529,22 +632,39 @@ const MessageSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    MESSAGE CONTENT
+    --------------------------------------
+    */
+
     content: {
 
         type: String,
 
         required: true
 
-    },
-
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
-
     }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+/*
+==========================================
+MESSAGE INDEX
+==========================================
+*/
+
+
+MessageSchema.index({
+
+    conversationId: 1,
+
+    createdAt: 1
 
 });
 
@@ -557,6 +677,12 @@ HONEY IA USER MEMORY
 */
 
 const MemorySchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    OWNER
+    --------------------------------------
+    */
 
     userId: {
 
@@ -571,14 +697,30 @@ const MemorySchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    MEMORY KEY
+    --------------------------------------
+    */
+
     key: {
 
         type: String,
 
-        required: true
+        required: true,
+
+        trim: true,
+
+        maxlength: 150
 
     },
 
+
+    /*
+    --------------------------------------
+    MEMORY VALUE
+    --------------------------------------
+    */
 
     value: {
 
@@ -589,22 +731,27 @@ const MemorySchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    IMPORTANCE
+    --------------------------------------
+    */
+
     importance: {
 
         type: Number,
 
-        default: 1
+        default: 1,
 
-    },
+        min: 0,
 
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
+        max: 10
 
     }
+
+}, {
+
+    timestamps: true
 
 });
 
@@ -622,17 +769,27 @@ MemorySchema.index({
 
     key: 1
 
+}, {
+
+    unique: true
+
 });
 
 
 /*
 ==========================================
 DOCUMENT MODEL
-USER FILE STORAGE
+USER FILE STORAGE / AI ANALYSIS
 ==========================================
 */
 
 const DocumentSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    OWNER
+    --------------------------------------
+    */
 
     userId: {
 
@@ -647,23 +804,47 @@ const DocumentSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    FILE NAME
+    --------------------------------------
+    */
+
     name: {
 
         type: String,
 
-        required: true
+        required: true,
+
+        trim: true,
+
+        maxlength: 300
 
     },
 
+
+    /*
+    --------------------------------------
+    FILE TYPE
+    --------------------------------------
+    */
 
     type: {
 
         type: String,
 
-        default: "unknown"
+        default: "unknown",
+
+        trim: true
 
     },
 
+
+    /*
+    --------------------------------------
+    EXTRACTED TEXT
+    --------------------------------------
+    */
 
     text: {
 
@@ -674,13 +855,85 @@ const DocumentSchema = new mongoose.Schema({
     },
 
 
-    createdAt: {
+    /*
+    --------------------------------------
+    FILE SIZE
+    --------------------------------------
+    */
 
-        type: Date,
+    size: {
 
-        default: Date.now
+        type: Number,
+
+        default: 0,
+
+        min: 0
+
+    },
+
+
+    /*
+    --------------------------------------
+    STORAGE URL
+    --------------------------------------
+    */
+
+    url: {
+
+        type: String,
+
+        default: null
+
+    },
+
+
+    /*
+    --------------------------------------
+    PROCESSING STATUS
+    --------------------------------------
+    */
+
+    status: {
+
+        type: String,
+
+        enum: [
+
+            "pending",
+
+            "processing",
+
+            "completed",
+
+            "failed"
+
+        ],
+
+        default: "pending",
+
+        index: true
 
     }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+/*
+==========================================
+DOCUMENT INDEX
+==========================================
+*/
+
+
+DocumentSchema.index({
+
+    userId: 1,
+
+    createdAt: -1
 
 });
 
@@ -694,6 +947,12 @@ HONEY IA WORKSPACE
 
 const ProjectSchema = new mongoose.Schema({
 
+    /*
+    --------------------------------------
+    OWNER
+    --------------------------------------
+    */
+
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -707,14 +966,30 @@ const ProjectSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    PROJECT NAME
+    --------------------------------------
+    */
+
     name: {
 
         type: String,
 
-        required: true
+        required: true,
+
+        trim: true,
+
+        maxlength: 200
 
     },
 
+
+    /*
+    --------------------------------------
+    DESCRIPTION
+    --------------------------------------
+    */
 
     description: {
 
@@ -725,14 +1000,30 @@ const ProjectSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    PROJECT TYPE
+    --------------------------------------
+    */
+
     type: {
 
         type: String,
 
-        default: "general"
+        default: "general",
+
+        trim: true,
+
+        index: true
 
     },
 
+
+    /*
+    --------------------------------------
+    PROJECT STATUS
+    --------------------------------------
+    */
 
     status: {
 
@@ -748,18 +1039,31 @@ const ProjectSchema = new mongoose.Schema({
 
         ],
 
-        default: "active"
+        default: "active",
 
-    },
-
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
+        index: true
 
     }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+/*
+==========================================
+PROJECT INDEX
+==========================================
+*/
+
+
+ProjectSchema.index({
+
+    userId: 1,
+
+    updatedAt: -1
 
 });
 
@@ -773,14 +1077,30 @@ SYSTEM EXTENSIONS
 
 const PluginSchema = new mongoose.Schema({
 
+    /*
+    --------------------------------------
+    PLUGIN NAME
+    --------------------------------------
+    */
+
     name: {
 
         type: String,
 
-        required: true
+        required: true,
+
+        trim: true,
+
+        maxlength: 150
 
     },
 
+
+    /*
+    --------------------------------------
+    DESCRIPTION
+    --------------------------------------
+    */
 
     description: {
 
@@ -791,22 +1111,39 @@ const PluginSchema = new mongoose.Schema({
     },
 
 
+    /*
+    --------------------------------------
+    ACTIVE STATUS
+    --------------------------------------
+    */
+
     active: {
 
         type: Boolean,
 
-        default: true
+        default: true,
 
-    },
-
-
-    createdAt: {
-
-        type: Date,
-
-        default: Date.now
+        index: true
 
     }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+/*
+==========================================
+PLUGIN INDEX
+==========================================
+*/
+
+
+PluginSchema.index({
+
+    name: 1
 
 });
 
@@ -816,6 +1153,7 @@ const PluginSchema = new mongoose.Schema({
 MODEL EXPORTS
 ==========================================
 */
+
 
 export const User =
 
