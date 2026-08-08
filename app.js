@@ -1,13 +1,16 @@
 /*
 ==========================================
 HONEY IA
-CORE ENGINE V8.2
+CORE ENGINE V9.0
 Workspace + 30 Agents Integration
 Enterprise Application Controller
 
 AUTHENTICATION
 JWT + MongoDB + Google
 AUTH DELEGATED TO auth.js + login.js
+
+PREMIUM AUTH FLOW
+AUTH V6 COMPATIBLE
 ==========================================
 */
 
@@ -43,93 +46,6 @@ const SESSION_ID =
 
 
 
-
-
-/*
-==========================================================
-AUTH READY COMPATIBILITY
-==========================================================
-
-O novo login.js utiliza:
-
-authmanager.waitUntilReady()
-
-O auth.js atual já inicia loadSession()
-automaticamente, mas ainda não possui esse método.
-/*
-=========================================================
-Aqui criamos uma ponte de compatibilidade
-sem alterar a arquitetura do auth.js.
-==========================================================
-*/
-
-
-if(
-
-    typeof authmanager.waitUntilReady !==
-
-    "function"
-
-){
-
-
-    authmanager.waitUntilReady =
-
-        function(){
-
-
-            if(!this.loading){
-
-                return Promise.resolve(
-
-                    this.user
-
-                );
-
-            }
-
-
-
-            return new Promise(
-
-                resolve => {
-
-
-                    const unsubscribe =
-
-                        this.subscribe(
-
-                            user => {
-
-
-                                if(!this.loading){
-
-
-                                    unsubscribe();
-
-
-                                    resolve(user);
-
-
-                                }
-
-
-                            }
-
-                        );
-
-
-                }
-
-            );
-
-
-        };
-
-}
-
-
-
 /*
 ==========================================================
 EVENT BUS
@@ -144,6 +60,7 @@ class EventBus {
 
 
         this.events = {};
+
 
     }
 
@@ -167,6 +84,7 @@ class EventBus {
 
             this.events[event] = [];
 
+
         }
 
 
@@ -185,6 +103,7 @@ class EventBus {
                 callback
 
             );
+
 
         }
 
@@ -222,6 +141,7 @@ class EventBus {
 
             );
 
+
     }
 
 
@@ -253,7 +173,11 @@ class EventBus {
                 try{
 
 
-                    callback(data);
+                    callback(
+
+                        data
+
+                    );
 
 
                 }
@@ -278,7 +202,9 @@ class EventBus {
 
         );
 
+
     }
+
 
 }
 
@@ -294,8 +220,6 @@ GLOBAL EVENT BUS
 export const EventBusInstance =
 
     new EventBus();
-
-
 
 
 
@@ -365,7 +289,6 @@ export const Store = {
             null
 
 
-
     },
 
 
@@ -399,11 +322,11 @@ export const Store = {
 
         );
 
+
     }
 
+
 };
-
-
 
 
 
@@ -462,6 +385,12 @@ class HoneyAIApp {
 
 
 
+        this.authSubscription =
+
+            null;
+
+
+
         this.initDOMReferences();
 
 
@@ -473,8 +402,6 @@ class HoneyAIApp {
 
 
 
-
-
     /*
     ======================================================
     AUTHENTICATION BOOT
@@ -482,7 +409,7 @@ class HoneyAIApp {
     */
 
 
-        async startAuthentication(){
+    async startAuthentication(){
 
 
         if(
@@ -511,18 +438,51 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        Aguarda o auth.js terminar ou força 
-        timeout após 6 segundos para não prender
+        AUTH V6
         --------------------------------------
         */
 
-        const authPromise = authmanager.waitUntilReady();
-        
-        const timeoutPromise = new Promise(resolve => 
-            setTimeout(() => resolve("timeout"), 6000)
-        );
 
-        await Promise.race([authPromise, timeoutPromise]);
+        try{
+
+
+            await Promise.race([
+
+                authmanager.waitUntilReady(),
+
+                new Promise(
+
+                    resolve =>
+
+                        setTimeout(
+
+                            resolve,
+
+                            6000
+
+                        )
+
+                )
+
+            ]);
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "AUTH READY ERROR:",
+
+                error
+
+            );
+
+
+        }
 
 
 
@@ -534,7 +494,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        Utilizador autenticado
+        AUTHENTICATED
         --------------------------------------
         */
 
@@ -546,43 +506,17 @@ class HoneyAIApp {
         ){
 
 
-            Store.setState(
+            this.handleAuthenticatedUser(
 
-                "isAuthenticated",
+                user,
 
-                true
-
-            );
-
-
-
-            Store.setState(
-
-                "user",
-
-                user
+                false
 
             );
-
-
-
-            this.updateUserInterface(
-
-                user
-
-            );
-
-
-
-            this.showWorkspace();
-
-
-
-            this.initializeWorkspace();
-
 
 
             return;
+
 
         }
 
@@ -590,9 +524,132 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        Utilizador não autenticado
+        NOT AUTHENTICATED
         --------------------------------------
         */
+
+
+        this.handleUnauthenticatedUser();
+
+
+
+        try{
+
+
+            await logincontroller.init();
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "Login initialization error:",
+
+                error
+
+            );
+
+
+        }
+
+
+
+        this.hideLoader();
+
+
+    }
+
+
+
+    /*
+    ======================================================
+    AUTHENTICATED USER
+    ======================================================
+    */
+
+
+    handleAuthenticatedUser(
+
+        user,
+
+        showWelcome = false
+
+    ){
+
+
+        if(!user)
+
+        return;
+
+
+
+        Store.setState(
+
+            "isAuthenticated",
+
+            true
+
+        );
+
+
+
+        Store.setState(
+
+            "user",
+
+            user
+
+        );
+
+
+
+        this.updateUserInterface(
+
+            user
+
+        );
+
+
+
+        this.showWorkspace();
+
+
+
+        this.initializeWorkspace();
+
+
+
+        if(showWelcome){
+
+
+            this.showToast(
+
+                `Bem-vindo, ${this.getUserName(user)}!`,
+
+                "success"
+
+            );
+
+
+        }
+
+
+    }
+
+
+
+    /*
+    ======================================================
+    UNAUTHENTICATED USER
+    ======================================================
+    */
+
+
+    handleUnauthenticatedUser(){
 
 
         Store.setState(
@@ -618,26 +675,135 @@ class HoneyAIApp {
         this.hideWorkspace();
 
 
-
-        await logincontroller.init();
-
+    }
 
 
-        const loader = document.getElementById("appLoader");
 
-        if (loader) {
+    /*
+    ======================================================
+    AUTH EVENTS
+    ======================================================
+    */
 
-            loader.classList.add("hidden");
 
-            setTimeout(() => {
+    bindAuthEvents(){
 
-                loader.style.display = "none";
 
-            }, 300);
+        /*
+        --------------------------------------
+        AUTH MANAGER
+        --------------------------------------
+        */
 
-        }
+
+        this.authSubscription =
+
+            authmanager.subscribe(
+
+                user => {
+
+
+                    if(
+
+                        user &&
+
+                        authmanager.isAuthenticated()
+
+                    ){
+
+
+                        this.handleAuthenticatedUser(
+
+                            user,
+
+                            false
+
+                        );
+
+
+                        return;
+
+
+                    }
+
+
+
+                    this.handleUnauthenticatedUser();
+
+
+                }
+
+            );
+
+
+
+        /*
+        --------------------------------------
+        LOGIN EVENT
+        --------------------------------------
+        */
+
+
+        document.addEventListener(
+
+            "user-login",
+
+            event => {
+
+
+                const user =
+
+                    event.detail ||
+
+                    authmanager.getUser();
+
+
+
+                if(!user)
+
+                return;
+
+
+
+                this.handleAuthenticatedUser(
+
+                    user,
+
+                    true
+
+                );
+
+
+            }
+
+        );
+
+
+
+        /*
+        --------------------------------------
+        LOGOUT EVENT
+        --------------------------------------
+        */
+
+
+        document.addEventListener(
+
+            "user-logout",
+
+            async () => {
+
+
+                await this.logout();
+
+
+            }
+
+        );
+
 
     }
+
 
 
     /*
@@ -694,47 +860,10 @@ class HoneyAIApp {
 
 
 
-        const loader =
+        this.hideLoader();
 
-            document.getElementById(
-
-                "appLoader"
-
-            );
-
-
-
-        if(loader){
-
-
-            loader.classList.add(
-
-                "hidden"
-
-            );
-
-
-            setTimeout(
-
-                () => {
-
-
-                    loader.style.display =
-
-                        "none";
-
-
-                },
-
-                300
-
-            );
-
-        }
 
     }
-
-
 
 
 
@@ -769,6 +898,19 @@ class HoneyAIApp {
         }
 
 
+    }
+
+
+
+    /*
+    ======================================================
+    LOADER
+    ======================================================
+    */
+
+
+    hideLoader(){
+
 
         const loader =
 
@@ -780,26 +922,38 @@ class HoneyAIApp {
 
 
 
-        if(loader){
+        if(!loader)
+
+        return;
 
 
-            loader.classList.remove(
 
-                "hidden"
+        loader.classList.add(
 
-            );
+            "hidden"
 
-
-            loader.style.display =
-
-                "flex";
+        );
 
 
-        }
+
+        setTimeout(
+
+            () => {
+
+
+                loader.style.display =
+
+                    "none";
+
+
+            },
+
+            300
+
+        );
+
 
     }
-
-
 
 
 
@@ -867,225 +1021,8 @@ class HoneyAIApp {
 
         );
 
-    }
-
-
-
-
-
-    /*
-    ======================================================
-    AUTH EVENTS
-    ======================================================
-    */
-
-
-    bindAuthEvents(){
-
-
-        /*
-        --------------------------------------
-        Auth Manager subscription
-        --------------------------------------
-        */
-
-
-        authmanager.subscribe(
-
-            user => {
-
-
-                /*
-                ------------------------------
-                Sessão autenticada
-                ------------------------------
-                */
-
-
-                if(
-
-                    user &&
-
-                    authmanager.isAuthenticated()
-
-                ){
-
-
-                    Store.setState(
-
-                        "isAuthenticated",
-
-                        true
-
-                    );
-
-
-
-                    Store.setState(
-
-                        "user",
-
-                        user
-
-                    );
-
-
-
-                    this.updateUserInterface(
-
-                        user
-
-                    );
-
-
-
-                    this.showWorkspace();
-
-
-
-                    this.initializeWorkspace();
-
-
-
-                    return;
-
-                }
-
-
-
-                /*
-                ------------------------------
-                Sessão encerrada
-                ------------------------------
-                */
-
-
-                Store.setState(
-
-                    "isAuthenticated",
-
-                    false
-
-                );
-
-
-
-                Store.setState(
-
-                    "user",
-
-                    null
-
-                );
-
-
-
-                this.hideWorkspace();
-
-            }
-
-        );
-
-
-
-        /*
-        --------------------------------------
-        Login event
-        --------------------------------------
-        */
-
-
-        document.addEventListener(
-
-            "user-login",
-
-            event => {
-
-
-                const user =
-
-                    event.detail;
-
-
-
-                if(user){
-
-
-                    Store.setState(
-
-                        "isAuthenticated",
-
-                        true
-
-                    );
-
-
-
-                    Store.setState(
-
-                        "user",
-
-                        user
-
-                    );
-
-
-
-                    this.updateUserInterface(
-
-                        user
-
-                    );
-
-
-
-                    this.showWorkspace();
-
-
-
-                    this.initializeWorkspace();
-
-
-
-                    this.showToast(
-
-                        `Bem-vindo, ${this.getUserName(user)}!`,
-
-                        "success"
-
-                    );
-
-                }
-
-            }
-
-        );
-
-
-
-        /*
-        --------------------------------------
-        Logout event
-        --------------------------------------
-        */
-
-
-        document.addEventListener(
-
-            "user-logout",
-
-            async () => {
-
-
-                await this.logout();
-
-            }
-
-        );
 
     }
-
-
 
 
 
@@ -1137,9 +1074,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -1150,7 +1086,11 @@ class HoneyAIApp {
     */
 
 
-    updateUserInterface(user){
+    updateUserInterface(
+
+        user
+
+    ){
 
 
         if(!user)
@@ -1201,7 +1141,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        User Box
+        USER BOX
         --------------------------------------
         */
 
@@ -1223,11 +1163,51 @@ class HoneyAIApp {
 
 
 
+            const avatarMarkup =
+
+                (
+
+                    typeof avatar ===
+
+                    "string" &&
+
+                    (
+
+                        avatar.startsWith(
+
+                            "http"
+
+                        ) ||
+
+                        avatar.startsWith(
+
+                            "data:image"
+
+                        )
+
+                    )
+
+                )
+
+                ?
+
+                `<img src="${this.escapeHTML(avatar)}" alt="Avatar">`
+
+                :
+
+                this.escapeHTML(
+
+                    avatar
+
+                );
+
+
+
             userBox.innerHTML = `
 
                 <div class="avatar">
 
-                    ${this.escapeHTML(avatar)}
+                    ${avatarMarkup}
 
                 </div>
 
@@ -1249,13 +1229,14 @@ class HoneyAIApp {
 
             `;
 
+
         }
 
 
 
         /*
         --------------------------------------
-        Plan badge
+        PLAN BADGE
         --------------------------------------
         */
 
@@ -1279,11 +1260,11 @@ class HoneyAIApp {
 
             `;
 
+
         }
 
+
     }
-
-
 
 
 
@@ -1294,12 +1275,16 @@ class HoneyAIApp {
     */
 
 
-    getUserName(user){
+    getUserName(
+
+        user
+
+    ){
 
 
         if(!user)
 
-            return "Utilizador";
+        return "Utilizador";
 
 
 
@@ -1339,9 +1324,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -1352,7 +1336,11 @@ class HoneyAIApp {
     */
 
 
-    getPlanName(plan){
+    getPlanName(
+
+        plan
+
+    ){
 
 
         const plans = {
@@ -1374,6 +1362,7 @@ class HoneyAIApp {
 
                 "Business"
 
+
         };
 
 
@@ -1388,9 +1377,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -1401,7 +1389,11 @@ class HoneyAIApp {
     */
 
 
-    escapeHTML(value){
+    escapeHTML(
+
+        value
+
+    ){
 
 
         return String(
@@ -1450,9 +1442,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -1503,11 +1494,11 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
     }
-
-
 
 
 
@@ -1558,6 +1549,7 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
@@ -1602,15 +1594,16 @@ class HoneyAIApp {
 
                     );
 
+
                 }
+
 
             }
 
         );
 
+
     }
-
-
 
 
 
@@ -1661,6 +1654,7 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
@@ -1678,11 +1672,11 @@ class HoneyAIApp {
 
             agentstudio.listenEvents();
 
+
         }
 
+
     }
-
-
 
 
 
@@ -1884,9 +1878,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -1898,13 +1891,6 @@ class HoneyAIApp {
 
 
     initEventListeners(){
-
-
-        /*
-        --------------------------------------
-        CHAT SEND
-        --------------------------------------
-        */
 
 
         if(this.btnSend){
@@ -1919,6 +1905,7 @@ class HoneyAIApp {
                     this.handleSubmitPrompt()
 
             );
+
 
         }
 
@@ -1949,11 +1936,14 @@ class HoneyAIApp {
 
                         this.handleSubmitPrompt();
 
+
                     }
+
 
                 }
 
             );
+
 
         }
 
@@ -1961,7 +1951,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        FILE ATTACHMENT
+        FILE
         --------------------------------------
         */
 
@@ -1985,6 +1975,7 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
@@ -1998,9 +1989,14 @@ class HoneyAIApp {
 
                 event =>
 
-                    this.handleFileUpload(event)
+                    this.handleFileUpload(
+
+                        event
+
+                    )
 
             );
+
 
         }
 
@@ -2018,6 +2014,7 @@ class HoneyAIApp {
                     this.clearAttachment()
 
             );
+
 
         }
 
@@ -2043,13 +2040,14 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
 
         /*
         --------------------------------------
-        MOBILE MENU
+        MOBILE
         --------------------------------------
         */
 
@@ -2066,6 +2064,7 @@ class HoneyAIApp {
                     this.openSidebar()
 
             );
+
 
         }
 
@@ -2084,6 +2083,7 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
@@ -2101,13 +2101,14 @@ class HoneyAIApp {
 
             );
 
+
         }
 
 
 
         /*
         --------------------------------------
-        PREVIEW CLOSE
+        PREVIEW
         --------------------------------------
         */
 
@@ -2129,11 +2130,14 @@ class HoneyAIApp {
 
                             "none";
 
+
                     }
+
 
                 }
 
             );
+
 
         }
 
@@ -2141,7 +2145,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        SIDEBAR NAVIGATION
+        NAVIGATION
         --------------------------------------
         */
 
@@ -2152,7 +2156,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        LOGOUT / USER BOX
+        USER BOX
         --------------------------------------
         */
 
@@ -2183,9 +2187,11 @@ class HoneyAIApp {
 
                     );
 
+
                 }
 
             );
+
 
         }
 
@@ -2193,7 +2199,7 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        CHAT / LIVE MODE
+        MODES
         --------------------------------------
         */
 
@@ -2210,6 +2216,7 @@ class HoneyAIApp {
                     this.activateChatMode()
 
             );
+
 
         }
 
@@ -2228,11 +2235,11 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
     }
-
-
 
 
 
@@ -2280,7 +2287,7 @@ class HoneyAIApp {
 
                         if(!target)
 
-                            return;
+                        return;
 
 
 
@@ -2328,21 +2335,16 @@ class HoneyAIApp {
 
                         );
 
+
                     }
 
                 );
+
 
             }
 
         );
 
-
-
-        /*
-        --------------------------------------
-        Buttons using data-target
-        --------------------------------------
-        */
 
 
         document
@@ -2394,30 +2396,36 @@ class HoneyAIApp {
 
                                 );
 
+
                             }
+
 
                         }
 
                     );
 
+
                 }
 
             );
+
 
     }
 
 
 
-
-
     /*
     ======================================================
-    SHOW VIEW
+    SHOW WORKSPACE VIEW
     ======================================================
     */
 
 
-    showWorkspaceView(target){
+    showWorkspaceView(
+
+        target
+
+    ){
 
 
         const views =
@@ -2442,6 +2450,7 @@ class HoneyAIApp {
                         ? ""
 
                         : "none";
+
 
             }
 
@@ -2474,6 +2483,7 @@ class HoneyAIApp {
 
                 );
 
+
             }
 
         );
@@ -2498,9 +2508,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -2536,9 +2545,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -2567,9 +2575,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -2581,13 +2588,6 @@ class HoneyAIApp {
 
 
     async handleSubmitPrompt(){
-
-
-        /*
-        --------------------------------------
-        Security check
-        --------------------------------------
-        */
 
 
         if(
@@ -2607,11 +2607,32 @@ class HoneyAIApp {
 
 
 
-            await logincontroller.init();
+            try{
+
+
+                await logincontroller.init();
+
+
+            }
+
+            catch(error){
+
+
+                console.error(
+
+                    "Login initialization error:",
+
+                    error
+
+                );
+
+
+            }
 
 
 
             return;
+
 
         }
 
@@ -2678,6 +2699,7 @@ class HoneyAIApp {
 
                 "";
 
+
         }
 
 
@@ -2717,6 +2739,7 @@ class HoneyAIApp {
                     agentstudio.getAgent() ||
 
                     activeAgent;
+
 
             }
 
@@ -2762,6 +2785,7 @@ class HoneyAIApp {
 
                         Store.state.workspace
 
+
                 },
 
 
@@ -2769,6 +2793,7 @@ class HoneyAIApp {
                 mode:
 
                     this.currentMode
+
 
             };
 
@@ -2787,15 +2812,9 @@ class HoneyAIApp {
 
                     fileName;
 
+
             }
 
-
-
-            /*
-            --------------------------------------
-            AUTHENTICATED REQUEST
-            --------------------------------------
-            */
 
 
             const response =
@@ -2826,6 +2845,7 @@ class HoneyAIApp {
 
                                 "application/json"
 
+
                         },
 
 
@@ -2838,24 +2858,18 @@ class HoneyAIApp {
 
                             )
 
+
                     }
 
                 );
 
 
 
-            /*
-            --------------------------------------
-            Token expired
-            --------------------------------------
-            */
-
-
             if(
 
-                response.status ===
+                response.status === 401 ||
 
-                401
+                response.status === 403
 
             ){
 
@@ -2869,6 +2883,7 @@ class HoneyAIApp {
                     "A sua sessão expirou. Faça login novamente."
 
                 );
+
 
             }
 
@@ -2894,6 +2909,7 @@ class HoneyAIApp {
                     "Erro no servidor."
 
                 );
+
 
             }
 
@@ -2952,6 +2968,7 @@ class HoneyAIApp {
 
                 );
 
+
             }
 
 
@@ -2969,6 +2986,7 @@ class HoneyAIApp {
 
                     text
 
+
             });
 
 
@@ -2985,6 +3003,7 @@ class HoneyAIApp {
                 content:
 
                     answer
+
 
             });
 
@@ -3005,6 +3024,7 @@ class HoneyAIApp {
 
                     answer
 
+
                 }
 
             );
@@ -3022,8 +3042,8 @@ class HoneyAIApp {
             this.clearAttachment();
 
 
-
         }
+
 
         catch(error){
 
@@ -3053,6 +3073,7 @@ class HoneyAIApp {
 
                     )}`;
 
+
             }
 
 
@@ -3067,7 +3088,9 @@ class HoneyAIApp {
 
             );
 
+
         }
+
 
         finally{
 
@@ -3080,11 +3103,11 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
     }
-
-
 
 
 
@@ -3095,13 +3118,18 @@ class HoneyAIApp {
     */
 
 
-    async parseResponse(response){
+    async parseResponse(
+
+        response
+
+    ){
 
 
         try{
 
 
             return await response.json();
+
 
         }
 
@@ -3122,13 +3150,14 @@ class HoneyAIApp {
 
                     "Resposta inválida do servidor."
 
+
             };
+
 
         }
 
+
     }
-
-
 
 
 
@@ -3139,7 +3168,11 @@ class HoneyAIApp {
     */
 
 
-    handleFileUpload(event){
+    handleFileUpload(
+
+        event
+
+    ){
 
 
         const file =
@@ -3152,13 +3185,6 @@ class HoneyAIApp {
 
         return;
 
-
-
-        /*
-        --------------------------------------
-        Limite preventivo
-        --------------------------------------
-        */
 
 
         const maxSize =
@@ -3187,6 +3213,7 @@ class HoneyAIApp {
 
 
             return;
+
 
         }
 
@@ -3221,6 +3248,7 @@ class HoneyAIApp {
 
                 );
 
+
             };
 
 
@@ -3242,6 +3270,7 @@ class HoneyAIApp {
 
                 this.clearAttachment();
 
+
             };
 
 
@@ -3261,6 +3290,7 @@ class HoneyAIApp {
 
                 file.name;
 
+
         }
 
 
@@ -3275,9 +3305,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -3311,6 +3340,7 @@ class HoneyAIApp {
 
                 "";
 
+
         }
 
 
@@ -3321,6 +3351,7 @@ class HoneyAIApp {
             this.attachedFileName.textContent =
 
                 "";
+
 
         }
 
@@ -3336,9 +3367,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -3428,9 +3458,8 @@ class HoneyAIApp {
 
         this.scrollToBottom();
 
+
     }
-
-
 
 
 
@@ -3495,9 +3524,8 @@ class HoneyAIApp {
 
         return div;
 
+
     }
-
-
 
 
 
@@ -3511,11 +3539,11 @@ class HoneyAIApp {
 
                 this.chatFeed.scrollHeight;
 
+
         }
 
+
     }
-
-
 
 
 
@@ -3545,8 +3573,8 @@ class HoneyAIApp {
             );
 
 
-
             return;
+
 
         }
 
@@ -3604,9 +3632,12 @@ class HoneyAIApp {
 
                 );
 
+
             }
 
+
         }
+
 
         catch(error){
 
@@ -3621,11 +3652,11 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
     }
-
-
 
 
 
@@ -3661,9 +3692,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -3707,9 +3737,8 @@ class HoneyAIApp {
 
             );
 
+
     }
-
-
 
 
 
@@ -3743,8 +3772,8 @@ class HoneyAIApp {
             );
 
 
-
             return;
+
 
         }
 
@@ -3764,6 +3793,7 @@ class HoneyAIApp {
 
 
             return;
+
 
         }
 
@@ -3839,11 +3869,13 @@ class HoneyAIApp {
 
                         text;
 
+
                 }
 
 
 
                 this.handleSubmitPrompt();
+
 
             };
 
@@ -3878,6 +3910,7 @@ class HoneyAIApp {
 
                 );
 
+
             };
 
 
@@ -3891,11 +3924,11 @@ class HoneyAIApp {
 
                     false;
 
+
             };
 
+
     }
-
-
 
 
 
@@ -3925,13 +3958,14 @@ class HoneyAIApp {
 
                     true
 
+
             });
+
 
         }
 
+
     }
-
-
 
 
 
@@ -3942,7 +3976,11 @@ class HoneyAIApp {
     */
 
 
-    highlightCode(container){
+    highlightCode(
+
+        container
+
+    ){
 
 
         if(
@@ -3982,6 +4020,7 @@ class HoneyAIApp {
 
                     }
 
+
                     catch(error){
 
 
@@ -3993,15 +4032,16 @@ class HoneyAIApp {
 
                         );
 
+
                     }
+
 
                 }
 
             );
 
+
     }
-
-
 
 
 
@@ -4012,7 +4052,11 @@ class HoneyAIApp {
     */
 
 
-    detectAndRenderPreview(text){
+    detectAndRenderPreview(
+
+        text
+
+    ){
 
 
         if(!this.livePreviewIframe)
@@ -4089,6 +4133,7 @@ class HoneyAIApp {
 
                     "block";
 
+
             }
 
 
@@ -4105,11 +4150,11 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
     }
-
-
 
 
 
@@ -4195,9 +4240,8 @@ class HoneyAIApp {
 
         );
 
+
     }
-
-
 
 
 
@@ -4243,17 +4287,18 @@ class HoneyAIApp {
 
                             modal?.remove();
 
+
                         }
 
                     );
+
 
                 }
 
             );
 
+
     }
-
-
 
 
 
@@ -4272,7 +4317,9 @@ class HoneyAIApp {
 
             await authmanager.logout();
 
+
         }
+
 
         catch(error){
 
@@ -4284,6 +4331,7 @@ class HoneyAIApp {
                 error
 
             );
+
 
         }
 
@@ -4319,13 +4367,25 @@ class HoneyAIApp {
 
 
 
+        this.currentMode =
+
+            "chat";
+
+
+
+        this.liveMode =
+
+            false;
+
+
+
         this.hideWorkspace();
 
 
 
         /*
         --------------------------------------
-        Reinicia login
+        REINITIALIZE LOGIN
         --------------------------------------
         */
 
@@ -4335,7 +4395,9 @@ class HoneyAIApp {
 
             await logincontroller.init();
 
+
         }
+
 
         catch(error){
 
@@ -4348,11 +4410,15 @@ class HoneyAIApp {
 
             );
 
+
         }
 
+
+
+        this.hideLoader();
+
+
     }
-
-
 
 
 
@@ -4375,6 +4441,7 @@ class HoneyAIApp {
 
             return true;
 
+
         }
 
 
@@ -4389,9 +4456,8 @@ class HoneyAIApp {
 
         return false;
 
+
     }
-
-
 
 
 
@@ -4419,7 +4485,7 @@ class HoneyAIApp {
 
         console.log(
 
-            "🐝 Honey IA V8.2 iniciado",
+            "🐝 Honey IA V9.0 iniciado",
 
             SESSION_ID
 
@@ -4427,16 +4493,11 @@ class HoneyAIApp {
 
 
 
-        /*
-        --------------------------------------
-        Remove loader only after auth
-        --------------------------------------
-        */
-
-
         await this.startAuthentication();
 
+
     }
+
 
 }
 
@@ -4452,8 +4513,6 @@ CREATE APPLICATION
 const honeyAI =
 
     new HoneyAIApp();
-
-
 
 
 
@@ -4474,7 +4533,9 @@ const startHoneyAI =
 
             await honeyAI.init();
 
+
         }
+
 
         catch(error){
 
@@ -4497,7 +4558,9 @@ const startHoneyAI =
 
             );
 
+
         }
+
 
     };
 
@@ -4528,12 +4591,15 @@ if(
 
     );
 
+
 }
+
 
 else{
 
 
     startHoneyAI();
+
 
 }
 
