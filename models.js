@@ -3,7 +3,7 @@
 HONEY IA OS
 DATABASE MODELS
 MongoDB User & AI Workspace System
-V6.0
+V7.0
 Production Authentication Architecture
 ==========================================
 */
@@ -116,11 +116,6 @@ const UserSchema = new mongoose.Schema({
     /*
     --------------------------------------
     GOOGLE AUTHENTICATION
-    --------------------------------------
-
-    IMPORTANT:
-    Undefined is used instead of null so that
-    sparse unique indexing works correctly.
     --------------------------------------
     */
 
@@ -260,7 +255,6 @@ USER INDEXES
 ==========================================
 */
 
-
 UserSchema.index({
 
     email: 1
@@ -271,14 +265,6 @@ UserSchema.index({
 
 });
 
-
-/*
-------------------------------------------
-Google ID must be unique when present.
-Sparse prevents local users without Google
-from occupying the index.
-------------------------------------------
-*/
 
 UserSchema.index({
 
@@ -318,12 +304,6 @@ PERSISTENT LOGIN SYSTEM
 
 const SessionSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    USER
-    --------------------------------------
-    */
-
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -337,12 +317,6 @@ const SessionSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    JWT TOKEN
-    --------------------------------------
-    */
-
     token: {
 
         type: String,
@@ -355,12 +329,6 @@ const SessionSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    DEVICE INFORMATION
-    --------------------------------------
-    */
 
     device: {
 
@@ -395,12 +363,6 @@ const SessionSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    SESSION EXPIRATION
-    --------------------------------------
-    */
-
     expiresAt: {
 
         type: Date,
@@ -418,12 +380,6 @@ const SessionSchema = new mongoose.Schema({
 });
 
 
-/*
-==========================================
-SESSION INDEXES
-==========================================
-*/
-
 SessionSchema.index({
 
     userId: 1,
@@ -432,12 +388,6 @@ SessionSchema.index({
 
 });
 
-
-/*
-------------------------------------------
-Automatically remove expired sessions
-------------------------------------------
-*/
 
 SessionSchema.index(
 
@@ -459,7 +409,6 @@ SessionSchema.index(
 /*
 ==========================================
 CONVERSATION MODEL
-AI CHAT MEMORY
 ==========================================
 */
 
@@ -546,7 +495,6 @@ ConversationSchema.index({
 /*
 ==========================================
 MESSAGE MODEL
-AGENT CONTEXT MEMORY
 ==========================================
 */
 
@@ -624,7 +572,6 @@ MessageSchema.index({
 /*
 ==========================================
 MEMORY MODEL
-HONEY IA USER MEMORY
 ==========================================
 */
 
@@ -700,7 +647,6 @@ MemorySchema.index({
 /*
 ==========================================
 DOCUMENT MODEL
-USER FILE STORAGE / AI ANALYSIS
 ==========================================
 */
 
@@ -813,7 +759,6 @@ DocumentSchema.index({
 /*
 ==========================================
 PROJECT MODEL
-HONEY IA WORKSPACE
 ==========================================
 */
 
@@ -906,7 +851,6 @@ ProjectSchema.index({
 /*
 ==========================================
 PLUGIN MODEL
-SYSTEM EXTENSIONS
 ==========================================
 */
 
