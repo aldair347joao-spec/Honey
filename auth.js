@@ -4,8 +4,9 @@ HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
 JWT + MongoDB + Google Authentication
-V8.0
+V8.1
 Production Authentication Architecture
+Aligned with Login Controller V9.0
 ==========================================
 */
 
@@ -161,11 +162,13 @@ class AuthManager {
 
     async loadSession(){
 
+
         /*
         --------------------------------------
         SEM TOKEN
         --------------------------------------
         */
+
 
         if(!this.token){
 
@@ -185,6 +188,7 @@ class AuthManager {
         VALIDAR TOKEN NO BACKEND
         --------------------------------------
         */
+
 
         try{
 
@@ -230,6 +234,7 @@ class AuthManager {
             ----------------------------------
             */
 
+
             if(
 
                 response.ok &&
@@ -269,6 +274,7 @@ class AuthManager {
             ----------------------------------
             */
 
+
             if(
 
                 response.status === 401 ||
@@ -278,7 +284,6 @@ class AuthManager {
             ){
 
                 this.clearSession(false);
-
 
                 return null;
 
@@ -291,8 +296,8 @@ class AuthManager {
             ----------------------------------
             */
 
-            this.clearSession(false);
 
+            this.clearSession(false);
 
             return null;
 
@@ -314,13 +319,13 @@ class AuthManager {
             FAIL CLOSED
             ----------------------------------
 
-            Nunca considerar apenas o localStorage
-            como autenticação válida.
+            Nunca considerar somente o
+            localStorage como autenticação válida.
             ----------------------------------
             */
 
-            this.clearSession(false);
 
+            this.clearSession(false);
 
             return null;
 
@@ -460,7 +465,9 @@ class AuthManager {
 
             isActive:
 
-                user.isActive !== false,
+                user.isActive !== false &&
+
+                user.isActive !== "false",
 
 
             googleId:
@@ -532,9 +539,10 @@ class AuthManager {
 
         /*
         --------------------------------------
-        NORMALIZAR CAMPOS DO FORMULÁRIO
+        NORMALIZAR CAMPOS
         --------------------------------------
         */
+
 
         payload.firstName =
 
@@ -592,11 +600,31 @@ class AuthManager {
             );
 
 
+        if(
+
+            payload.confirmPassword !== undefined
+
+        ){
+
+            payload.confirmPassword =
+
+                String(
+
+                    payload.confirmPassword ||
+
+                    ""
+
+                );
+
+        }
+
+
         /*
         --------------------------------------
-        VALIDAÇÃO FRONTEND
+        VALIDAÇÃO
         --------------------------------------
         */
+
 
         if(
 
@@ -617,6 +645,13 @@ class AuthManager {
             );
 
         }
+
+
+        /*
+        --------------------------------------
+        REQUEST
+        --------------------------------------
+        */
 
 
         const response =
@@ -686,11 +721,11 @@ class AuthManager {
 
         /*
         --------------------------------------
-        NÃO CRIAR SESSÃO AUTOMATICAMENTE
+        NÃO CRIAR SESSÃO AUTOMÁTICA
         --------------------------------------
 
-        A conta deve confirmar o email antes
-        do primeiro login.
+        O utilizador precisa confirmar
+        o email antes do primeiro login.
         --------------------------------------
         */
 
@@ -752,6 +787,7 @@ class AuthManager {
         COMPATIBILIDADE
         --------------------------------------
         */
+
 
         if(
 
@@ -1098,10 +1134,19 @@ class AuthManager {
         --------------------------------------
         */
 
-        await this.refreshUser();
+
+        const verifiedUser =
+
+            await this.refreshUser();
 
 
-        if(!this.isAuthenticated()){
+        if(
+
+            !verifiedUser ||
+
+            !this.isAuthenticated()
+
+        ){
 
             throw new Error(
 
@@ -1237,10 +1282,19 @@ class AuthManager {
         --------------------------------------
         */
 
-        await this.refreshUser();
+
+        const verifiedUser =
+
+            await this.refreshUser();
 
 
-        if(!this.isAuthenticated()){
+        if(
+
+            !verifiedUser ||
+
+            !this.isAuthenticated()
+
+        ){
 
             throw new Error(
 
@@ -1308,9 +1362,25 @@ class AuthManager {
         }
 
 
-        this.token =
+        const cleanToken =
 
             token.trim();
+
+
+        if(!cleanToken){
+
+            throw new Error(
+
+                "Token de autenticação inválido."
+
+            );
+
+        }
+
+
+        this.token =
+
+            cleanToken;
 
 
         this.user =
@@ -1650,12 +1720,22 @@ class AuthManager {
                 this.saveUser();
 
 
+                this.loading = false;
+
+
                 this.notify();
 
 
                 return this.user;
 
             }
+
+
+            /*
+            ----------------------------------
+            SESSÃO INVÁLIDA
+            ----------------------------------
+            */
 
 
             if(
@@ -1671,6 +1751,13 @@ class AuthManager {
                 return null;
 
             }
+
+
+            /*
+            ----------------------------------
+            RESPOSTA INVÁLIDA
+            ----------------------------------
+            */
 
 
             this.clearSession();
@@ -1777,17 +1864,36 @@ class AuthManager {
         --------------------------------------
         */
 
-        if(
 
-            response.status === 401 ||
+        if(response.status === 401){
 
-            response.status === 403
+            this.clearSession();
 
-        ){
+            return response;
 
-            let shouldClear =
+        }
 
-                true;
+
+        /*
+        --------------------------------------
+        403
+        --------------------------------------
+
+        Um 403 pode significar:
+
+        - plano insuficiente
+        - permissão insuficiente
+        - sessão inválida
+
+        Portanto não devemos apagar
+        automaticamente a sessão em todo 403.
+        --------------------------------------
+        */
+
+
+        if(response.status === 403){
+
+            let shouldClear = false;
 
 
             try{
@@ -1817,42 +1923,81 @@ class AuthManager {
                         .toLowerCase();
 
 
-                /*
-                ----------------------------------
-                403 DE PLANO NÃO É NECESSARIAMENTE
-                UMA SESSÃO INVÁLIDA
-                ----------------------------------
-                */
+                const sessionError =
+
+                    errorMessage.includes(
+
+                        "sessão"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "session"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "token"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "unauthorized"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "não autorizado"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "autenticação"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "authentication"
+
+                    );
+
+
+                const planError =
+
+                    errorMessage.includes(
+
+                        "plano"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "plan"
+
+                    ) ||
+
+                    errorMessage.includes(
+
+                        "funcionalidade"
+
+                    );
+
 
                 if(
 
-                    response.status === 403 &&
+                    sessionError &&
 
-                    (
-
-                        errorMessage.includes(
-
-                            "plano"
-
-                        ) ||
-
-                        errorMessage.includes(
-
-                            "plan"
-
-                        ) ||
-
-                        errorMessage.includes(
-
-                            "funcionalidade"
-
-                        )
-
-                    )
+                    !planError
 
                 ){
 
-                    shouldClear = false;
+                    shouldClear = true;
 
                 }
 
@@ -2075,6 +2220,17 @@ class AuthManager {
         redirect = "/"
 
     ){
+
+        if(
+
+            this.loading
+
+        ){
+
+            return false;
+
+        }
+
 
         if(
 
