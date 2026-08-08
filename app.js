@@ -482,7 +482,7 @@ class HoneyAIApp {
     */
 
 
-    async startAuthentication(){
+        async startAuthentication(){
 
 
         if(
@@ -511,13 +511,18 @@ class HoneyAIApp {
 
         /*
         --------------------------------------
-        Aguarda o auth.js terminar a
-        validação do JWT.
+        Aguarda o auth.js terminar ou força 
+        timeout após 6 segundos para não prender
         --------------------------------------
         */
 
+        const authPromise = authmanager.waitUntilReady();
+        
+        const timeoutPromise = new Promise(resolve => 
+            setTimeout(() => resolve("timeout"), 6000)
+        );
 
-        await authmanager.waitUntilReady();
+        await Promise.race([authPromise, timeoutPromise]);
 
 
 
@@ -615,18 +620,24 @@ class HoneyAIApp {
 
 
         await logincontroller.init();
+
+
+
         const loader = document.getElementById("appLoader");
+
         if (loader) {
+
             loader.classList.add("hidden");
+
             setTimeout(() => {
+
                 loader.style.display = "none";
+
             }, 300);
+
         }
 
     }
-
-
-
 
 
     /*
