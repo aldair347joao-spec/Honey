@@ -3,9 +3,10 @@
 HONEY IA OS
 LOGIN CONTROLLER
 Professional Authentication UI
-V8.0
+V9.0
 Google Identity Services
 Secure Authentication Flow
+Standalone Authentication Page
 ==========================================
 */
 
@@ -38,6 +39,8 @@ class LoginController {
 
         this.googleScriptPromise = null;
 
+        this.cssPromise = null;
+
 
     }
 
@@ -59,24 +62,19 @@ class LoginController {
     async init(){
 
 
-        /*
-        --------------------------------------
-        PREVENT DUPLICATE INITIALIZATION
-        --------------------------------------
-        */
-
-
         if(this.initialized){
 
 
-            if(this.container){
+            if(authmanager.isAuthenticated()){
 
+                this.redirectToWorkspace();
 
-                this.showLoginInterface();
-
+                return;
 
             }
 
+
+            this.showLoginInterface();
 
             return;
 
@@ -86,6 +84,17 @@ class LoginController {
 
 
         this.initialized = true;
+
+
+
+        /*
+        --------------------------------------
+        LOAD LOGIN CSS
+        --------------------------------------
+        */
+
+
+        await this.loadLoginStyles();
 
 
 
@@ -110,7 +119,7 @@ class LoginController {
         if(authmanager.isAuthenticated()){
 
 
-            this.hideLoginInterface();
+            this.redirectToWorkspace();
 
             return;
 
@@ -121,7 +130,7 @@ class LoginController {
 
         /*
         --------------------------------------
-        CREATE LOGIN CONTAINER
+        CREATE CONTAINER
         --------------------------------------
         */
 
@@ -129,10 +138,20 @@ class LoginController {
         this.createContainer();
 
 
+
         this.showLoginInterface();
 
 
+
+        /*
+        --------------------------------------
+        RENDER INTERFACE
+        --------------------------------------
+        */
+
+
         this.render();
+
 
 
         this.attachEvents();
@@ -147,6 +166,138 @@ class LoginController {
 
 
         await this.setupGoogleLogin();
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    LOAD LOGIN STYLES
+    ==========================================
+    */
+
+
+    loadLoginStyles(){
+
+
+        if(this.cssPromise){
+
+
+            return this.cssPromise;
+
+
+        }
+
+
+
+        const existing =
+
+            document.querySelector(
+
+                'link[data-honey-login-css="true"]'
+
+            );
+
+
+
+        if(existing){
+
+
+            this.cssPromise =
+
+                Promise.resolve();
+
+
+
+            return this.cssPromise;
+
+
+        }
+
+
+
+        this.cssPromise =
+
+            new Promise(
+
+                resolve => {
+
+
+                    const link =
+
+                        document.createElement(
+
+                            "link"
+
+                        );
+
+
+
+                    link.rel = "stylesheet";
+
+
+
+                    link.href =
+
+                        "./login.css";
+
+
+
+                    link.dataset.honeyLoginCss =
+
+                        "true";
+
+
+
+                    link.onload = () => {
+
+
+                        resolve();
+
+
+                    };
+
+
+
+                    link.onerror = () => {
+
+
+                        console.warn(
+
+                            "HONEY IA: login.css não foi carregado."
+
+                        );
+
+
+                        resolve();
+
+
+                    };
+
+
+
+                    document.head.appendChild(
+
+                        link
+
+                    );
+
+
+                }
+
+            );
+
+
+
+        return this.cssPromise;
 
 
     }
@@ -202,7 +353,9 @@ class LoginController {
 
 
 
-        div.id = "loginApp";
+        div.id =
+
+            "loginApp";
 
 
 
@@ -257,7 +410,9 @@ class LoginController {
 
 
 
-        this.container.style.display = "flex";
+        this.container.style.display =
+
+            "flex";
 
 
 
@@ -268,31 +423,11 @@ class LoginController {
         );
 
 
+        document.body.classList.add(
 
-        const studio =
+            "honey-auth-page"
 
-            document.getElementById(
-
-                "studioApp"
-
-            );
-
-
-
-        if(studio){
-
-
-            studio.style.display = "none";
-
-
-            studio.classList.remove(
-
-                "auth-ready"
-
-            );
-
-
-        }
+        );
 
 
     }
@@ -325,37 +460,20 @@ class LoginController {
             );
 
 
-            this.container.style.display = "none";
+            this.container.style.display =
+
+                "none";
 
 
         }
 
 
 
-        const studio =
+        document.body.classList.remove(
 
-            document.getElementById(
+            "honey-auth-page"
 
-                "studioApp"
-
-            );
-
-
-
-        if(studio){
-
-
-            studio.style.display = "";
-
-
-            studio.classList.add(
-
-                "auth-ready"
-
-            );
-
-
-        }
+        );
 
 
     }
@@ -390,422 +508,623 @@ class LoginController {
 
         this.container.innerHTML = `
 
-        <div class="honey-auth-wrapper">
-
-            <div class="honey-auth-card">
+            <div class="honey-auth-shell">
 
 
-                <div class="auth-brand">
+                <div class="honey-auth-background">
 
-                    <div class="auth-logo">
+                    <div class="auth-glow auth-glow-one"></div>
 
-                        🐝
+                    <div class="auth-glow auth-glow-two"></div>
 
-                    </div>
-
-
-                    <h1>
-
-                        Honey IA
-
-                    </h1>
-
-
-                    <p>
-
-                        Enterprise AI Studio
-
-                    </p>
+                    <div class="auth-grid"></div>
 
                 </div>
 
 
 
-                <div
-                    id="authMessage"
-                    class="auth-message"
-                    role="alert"
-                    aria-live="polite"
-                ></div>
+                <main class="honey-auth-wrapper">
 
 
-
-                <!-- LOGIN -->
-
-                <div
-                    id="loginMode"
-                    class="auth-mode"
-                >
-
-
-                    <button
-                        id="googleLogin"
-                        type="button"
-                        class="google-btn"
-                        aria-label="Continuar com Google"
+                    <section
+                        class="honey-auth-card"
+                        aria-label="Autenticação Honey IA"
                     >
 
-                        <i class="fa-brands fa-google"></i>
+
+                        <div class="auth-brand">
+
+
+                            <div class="auth-logo-wrap">
+
+                                <div class="auth-logo">
+
+                                    <span>H</span>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <div class="auth-brand-copy">
+
+                                <h1>
+
+                                    Honey IA
+
+                                </h1>
+
+
+                                <p>
+
+                                    Enterprise AI Studio
+
+                                </p>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <div class="auth-heading">
+
+
+                            <span class="auth-eyebrow">
+
+                                WORKSPACE INTELIGENTE
+
+                            </span>
+
+
+
+                            <h2>
+
+                                Bem-vindo de volta.
+
+                            </h2>
+
+
+
+                            <p>
+
+                                Entre na sua conta para continuar
+                                no seu espaço de trabalho Honey IA.
+
+                            </p>
+
+
+                        </div>
+
+
+
+                        <div
+                            id="authMessage"
+                            class="auth-message"
+                            role="alert"
+                            aria-live="polite"
+                        ></div>
+
+
+
+                        <!-- LOGIN -->
+
+                        <div
+                            id="loginMode"
+                            class="auth-mode"
+                        >
+
+
+                            <button
+                                id="googleLogin"
+                                type="button"
+                                class="google-btn"
+                                aria-label="Continuar com Google"
+                            >
+
+                                <span class="google-icon">
+
+                                    G
+
+                                </span>
+
+
+                                <span class="google-btn-text">
+
+                                    Continuar com Google
+
+                                </span>
+
+
+                            </button>
+
+
+
+                            <div class="divider">
+
+
+                                <span></span>
+
+
+                                <strong>
+
+                                    ou
+
+                                </strong>
+
+
+                                <span></span>
+
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="loginEmail">
+
+                                    Email
+
+                                </label>
+
+
+                                <div class="auth-input-wrap">
+
+
+                                    <span
+                                        class="auth-input-icon"
+                                        aria-hidden="true"
+                                    >
+
+                                        @
+
+                                    </span>
+
+
+                                    <input
+                                        id="loginEmail"
+                                        type="email"
+                                        autocomplete="email"
+                                        placeholder="seu@email.com"
+                                        maxlength="254"
+                                    >
+
+
+                                </div>
+
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="loginPassword">
+
+                                    Palavra-passe
+
+                                </label>
+
+
+                                <div class="auth-input-wrap">
+
+
+                                    <span
+                                        class="auth-input-icon"
+                                        aria-hidden="true"
+                                    >
+
+                                        •
+
+                                    </span>
+
+
+                                    <input
+                                        id="loginPassword"
+                                        type="password"
+                                        autocomplete="current-password"
+                                        placeholder="A sua palavra-passe"
+                                    >
+
+
+                                </div>
+
+
+                            </div>
+
+
+
+                            <button
+                                id="loginButton"
+                                type="button"
+                                class="auth-button"
+                            >
+
+                                <span>
+
+                                    Entrar
+
+                                </span>
+
+                            </button>
+
+
+
+                            <button
+                                id="showRegister"
+                                type="button"
+                                class="auth-link"
+                            >
+
+                                Ainda não tenho conta
+                                <strong>Criar conta</strong>
+
+                            </button>
+
+
+                        </div>
+
+
+
+                        <!-- REGISTER -->
+
+                        <div
+                            id="registerMode"
+                            class="auth-mode"
+                            style="display:none;"
+                        >
+
+
+                            <div class="auth-mode-heading">
+
+
+                                <span class="auth-back-label">
+
+                                    NOVA CONTA
+
+                                </span>
+
+
+                                <h3>
+
+                                    Crie o seu espaço.
+
+                                </h3>
+
+
+                                <p>
+
+                                    Comece a trabalhar com o Honey IA
+                                    em poucos segundos.
+
+                                </p>
+
+
+                            </div>
+
+
+
+                            <div class="auth-name-grid">
+
+
+                                <div class="auth-field">
+
+
+                                    <label for="registerNome">
+
+                                        Primeiro nome
+
+                                    </label>
+
+
+                                    <input
+                                        id="registerNome"
+                                        type="text"
+                                        autocomplete="given-name"
+                                        placeholder="Primeiro nome"
+                                        maxlength="80"
+                                    >
+
+
+                                </div>
+
+
+
+                                <div class="auth-field">
+
+
+                                    <label for="registerApelido">
+
+                                        Apelido
+
+                                    </label>
+
+
+                                    <input
+                                        id="registerApelido"
+                                        type="text"
+                                        autocomplete="family-name"
+                                        placeholder="Apelido"
+                                        maxlength="80"
+                                    >
+
+
+                                </div>
+
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="registerEmail">
+
+                                    Email
+
+                                </label>
+
+
+                                <input
+                                    id="registerEmail"
+                                    type="email"
+                                    autocomplete="email"
+                                    placeholder="seu@email.com"
+                                    maxlength="254"
+                                >
+
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="registerPassword">
+
+                                    Palavra-passe
+
+                                </label>
+
+
+                                <input
+                                    id="registerPassword"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    placeholder="Criar palavra-passe"
+                                >
+
+
+                            </div>
+
+
+
+                            <div class="auth-password-hint">
+
+                                <span></span>
+
+                                Mínimo 8 caracteres, com maiúscula,
+                                minúscula, número e símbolo.
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="registerConfirm">
+
+                                    Confirmar palavra-passe
+
+                                </label>
+
+
+                                <input
+                                    id="registerConfirm"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    placeholder="Confirmar palavra-passe"
+                                >
+
+
+                            </div>
+
+
+
+                            <button
+                                id="registerButton"
+                                type="button"
+                                class="auth-button"
+                            >
+
+                                <span>
+
+                                    Criar conta
+
+                                </span>
+
+                            </button>
+
+
+
+                            <button
+                                id="backLogin"
+                                type="button"
+                                class="auth-link"
+                            >
+
+                                Já tenho conta
+                                <strong>Entrar</strong>
+
+                            </button>
+
+
+                        </div>
+
+
+
+                        <!-- VERIFY -->
+
+                        <div
+                            id="verifyMode"
+                            class="auth-mode"
+                            style="display:none;"
+                        >
+
+
+                            <div class="auth-verify-icon">
+
+                                <span>✉</span>
+
+                            </div>
+
+
+
+                            <div class="auth-mode-heading">
+
+
+                                <span class="auth-back-label">
+
+                                    CONFIRMAÇÃO
+
+                                </span>
+
+
+                                <h3>
+
+                                    Confirme o seu email.
+
+                                </h3>
+
+
+                                <p id="verifyDescription">
+
+                                    Enviámos um código de confirmação
+                                    para o seu email.
+
+                                </p>
+
+
+                            </div>
+
+
+
+                            <div class="auth-field">
+
+
+                                <label for="verifyCode">
+
+                                    Código de confirmação
+
+                                </label>
+
+
+                                <input
+                                    id="verifyCode"
+                                    type="text"
+                                    inputmode="numeric"
+                                    autocomplete="one-time-code"
+                                    maxlength="6"
+                                    placeholder="000000"
+                                >
+
+
+                            </div>
+
+
+
+                            <button
+                                id="verifyButton"
+                                type="button"
+                                class="auth-button"
+                            >
+
+                                <span>
+
+                                    Confirmar email
+
+                                </span>
+
+                            </button>
+
+
+
+                            <button
+                                id="resendCode"
+                                type="button"
+                                class="auth-link"
+                            >
+
+                                Reenviar código
+
+                            </button>
+
+
+
+                            <button
+                                id="backVerifyLogin"
+                                type="button"
+                                class="auth-link secondary"
+                            >
+
+                                Voltar ao login
+
+                            </button>
+
+
+                        </div>
+
+
+
+                        <footer class="auth-footer">
+
+
+                            <span class="auth-security-dot"></span>
+
+
+                            <span>
+
+                                Autenticação segura Honey IA
+
+                            </span>
+
+
+                        </footer>
+
+
+                    </section>
+
+
+                    <div class="auth-bottom-brand">
 
                         <span>
 
-                            Continuar com Google
+                            HONEY IA
 
                         </span>
 
-                    </button>
 
+                        <small>
 
+                            Intelligent workspace for modern teams
 
-                    <div class="divider">
-
-                        <span>
-
-                            ou
-
-                        </span>
+                        </small>
 
                     </div>
 
 
-
-                    <div class="auth-field">
-
-                        <label for="loginEmail">
-
-                            Email
-
-                        </label>
-
-
-                        <input
-                            id="loginEmail"
-                            type="email"
-                            autocomplete="email"
-                            placeholder="seu@email.com"
-                            maxlength="254"
-                        >
-
-                    </div>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="loginPassword">
-
-                            Palavra-passe
-
-                        </label>
-
-
-                        <input
-                            id="loginPassword"
-                            type="password"
-                            autocomplete="current-password"
-                            placeholder="A sua palavra-passe"
-                        >
-
-                    </div>
-
-
-
-                    <button
-                        id="loginButton"
-                        type="button"
-                        class="auth-button"
-                    >
-
-                        <span>
-
-                            Entrar
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        id="showRegister"
-                        type="button"
-                        class="auth-link"
-                    >
-
-                        Criar nova conta
-
-                    </button>
-
-
-                </div>
-
-
-
-                <!-- REGISTER -->
-
-                <div
-                    id="registerMode"
-                    class="auth-mode"
-                    style="display:none;"
-                >
-
-
-                    <div class="auth-field">
-
-                        <label for="registerNome">
-
-                            Primeiro nome
-
-                        </label>
-
-
-                        <input
-                            id="registerNome"
-                            type="text"
-                            autocomplete="given-name"
-                            placeholder="Primeiro nome"
-                            maxlength="80"
-                        >
-
-                    </div>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="registerApelido">
-
-                            Apelido
-
-                        </label>
-
-
-                        <input
-                            id="registerApelido"
-                            type="text"
-                            autocomplete="family-name"
-                            placeholder="Apelido"
-                            maxlength="80"
-                        >
-
-                    </div>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="registerEmail">
-
-                            Email
-
-                        </label>
-
-
-                        <input
-                            id="registerEmail"
-                            type="email"
-                            autocomplete="email"
-                            placeholder="seu@email.com"
-                            maxlength="254"
-                        >
-
-                    </div>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="registerPassword">
-
-                            Palavra-passe
-
-                        </label>
-
-
-                        <input
-                            id="registerPassword"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Criar palavra-passe"
-                        >
-
-                    </div>
-
-
-
-                    <div class="auth-password-hint">
-
-                        Mínimo 8 caracteres, incluindo
-                        maiúscula, minúscula, número e símbolo.
-
-                    </div>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="registerConfirm">
-
-                            Confirmar palavra-passe
-
-                        </label>
-
-
-                        <input
-                            id="registerConfirm"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Confirmar palavra-passe"
-                        >
-
-                    </div>
-
-
-
-                    <button
-                        id="registerButton"
-                        type="button"
-                        class="auth-button"
-                    >
-
-                        <span>
-
-                            Criar conta
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        id="backLogin"
-                        type="button"
-                        class="auth-link"
-                    >
-
-                        Já tenho conta
-
-                    </button>
-
-
-                </div>
-
-
-
-                <!-- VERIFY -->
-
-                <div
-                    id="verifyMode"
-                    class="auth-mode"
-                    style="display:none;"
-                >
-
-
-                    <div class="auth-verify-icon">
-
-                        ✉️
-
-                    </div>
-
-
-
-                    <h3>
-
-                        Confirmar Email
-
-                    </h3>
-
-
-
-                    <p id="verifyDescription">
-
-                        Enviámos um código de confirmação
-                        para o seu email.
-
-                    </p>
-
-
-
-                    <div class="auth-field">
-
-                        <label for="verifyCode">
-
-                            Código de confirmação
-
-                        </label>
-
-
-                        <input
-                            id="verifyCode"
-                            type="text"
-                            inputmode="numeric"
-                            autocomplete="one-time-code"
-                            maxlength="6"
-                            placeholder="000000"
-                        >
-
-                    </div>
-
-
-
-                    <button
-                        id="verifyButton"
-                        type="button"
-                        class="auth-button"
-                    >
-
-                        <span>
-
-                            Confirmar email
-
-                        </span>
-
-                    </button>
-
-
-
-                    <button
-                        id="resendCode"
-                        type="button"
-                        class="auth-link"
-                    >
-
-                        Reenviar código
-
-                    </button>
-
-
-
-                    <button
-                        id="backVerifyLogin"
-                        type="button"
-                        class="auth-link secondary"
-                    >
-
-                        Voltar ao login
-
-                    </button>
-
-
-                </div>
-
-
-
-                <div class="auth-footer">
-
-                    <span>
-
-                        Protegido pela Honey IA
-
-                    </span>
-
-                </div>
+                </main>
 
 
             </div>
-
-        </div>
 
         `;
 
@@ -1041,7 +1360,7 @@ class LoginController {
                     if(existing){
 
 
-                        const checkLoaded = () => {
+                        const check = () => {
 
 
                             if(
@@ -1072,7 +1391,26 @@ class LoginController {
 
                             }
 
+
                         };
+
+
+
+                        if(
+
+                            window.google &&
+
+                            window.google.accounts &&
+
+                            window.google.accounts.id
+
+                        ){
+
+                            check();
+
+                            return;
+
+                        }
 
 
 
@@ -1080,7 +1418,7 @@ class LoginController {
 
                             "load",
 
-                            checkLoaded,
+                            check,
 
                             { once:true }
 
@@ -1232,34 +1570,20 @@ class LoginController {
     async getGoogleClientId(){
 
 
-        if(
+        const frontendId =
 
-            window.HONEY_GOOGLE_CLIENT_ID
+            window.HONEY_GOOGLE_CLIENT_ID ||
 
-        ){
-
-
-            return String(
-
-                window.HONEY_GOOGLE_CLIENT_ID
-
-            ).trim();
-
-
-        }
+            window.GOOGLE_CLIENT_ID;
 
 
 
-        if(
-
-            window.GOOGLE_CLIENT_ID
-
-        ){
+        if(frontendId){
 
 
             return String(
 
-                window.GOOGLE_CLIENT_ID
+                frontendId
 
             ).trim();
 
@@ -1285,6 +1609,7 @@ class LoginController {
                             "application/json"
 
                     }
+
 
                 }
 
@@ -1392,7 +1717,6 @@ class LoginController {
 
 
             button.disabled = true;
-
 
             button.dataset.ready = "false";
 
@@ -1678,7 +2002,7 @@ class LoginController {
 
             true,
 
-            "Entrando..."
+            "A entrar..."
 
         );
 
@@ -1711,11 +2035,7 @@ class LoginController {
 
 
 
-            this.hideLoginInterface();
-
-
-
-            this.redirectToWorkspace(350);
+            this.redirectToWorkspace(500);
 
 
         }
@@ -1756,7 +2076,6 @@ class LoginController {
                 "login"
 
             );
-
 
 
             this.setLoading(
@@ -1935,11 +2254,7 @@ class LoginController {
 
 
 
-        if(
-
-            password.length < 8
-
-        ){
+        if(password.length < 8){
 
 
             this.showMessage(
@@ -2073,19 +2388,19 @@ class LoginController {
 
 
 
+            this.showMode("verify");
+
+
+
             this.showMessage(
 
                 result.message ||
 
-                "Conta criada. Verifique o seu email.",
+                "Conta criada. Verifique o código enviado para o seu email.",
 
                 "success"
 
             );
-
-
-
-            this.showMode("verify");
 
 
         }
@@ -2216,7 +2531,7 @@ class LoginController {
 
             !code ||
 
-            code.length !== 6
+            !/^\d{6}$/.test(code)
 
         ){
 
@@ -2310,6 +2625,17 @@ class LoginController {
 
 
                     }
+
+
+                    document
+
+                        .getElementById(
+
+                            "loginPassword"
+
+                        )
+
+                        ?.focus();
 
 
                 },
@@ -2629,11 +2955,19 @@ class LoginController {
                     ){
 
 
+                        const reason =
+
+                            notification
+
+                                .getNotDisplayedReason?.();
+
+
+
                         console.warn(
 
                             "Google prompt não apresentado:",
 
-                            notification.getNotDisplayedReason?.()
+                            reason
 
                         );
 
@@ -2652,6 +2986,32 @@ class LoginController {
                         console.warn(
 
                             "Google prompt ignorado."
+
+                        );
+
+
+                    }
+
+
+
+                    if(
+
+                        notification.isDismissedMoment?.()
+
+                    ){
+
+
+                        this.googleLoading = false;
+
+
+
+                        this.setLoading(
+
+                            "googleLogin",
+
+                            false,
+
+                            "Continuar com Google"
 
                         );
 
@@ -2801,11 +3161,7 @@ class LoginController {
 
 
 
-            this.hideLoginInterface();
-
-
-
-            this.redirectToWorkspace(350);
+            this.redirectToWorkspace(500);
 
 
         }
@@ -3294,7 +3650,7 @@ class LoginController {
 
     /*
     ==========================================
-    REDIRECT
+    REDIRECT TO HONEY IA
     ==========================================
     */
 
@@ -3324,54 +3680,58 @@ class LoginController {
 
 
 
-                this.hideLoginInterface();
+                /*
+                ----------------------------------
+                IMPORTANT:
+                Login is a standalone page.
+                ----------------------------------
+                */
+
+
+                const currentPath =
+
+                    window.location.pathname;
 
 
 
-                const studio =
+                const isIndex =
 
-                    document.getElementById(
+                    currentPath.endsWith(
 
-                        "studioApp"
+                        "/index.html"
 
-                    );
+                    ) ||
 
+                    currentPath ===
 
-
-                if(studio){
-
-
-                    studio.style.display = "";
-
-                    studio.classList.add(
-
-                        "auth-ready"
-
-                    );
-
-
-                }
+                        "/index.html";
 
 
 
-                const dashboard =
-
-                    document.getElementById(
-
-                        "dashboard"
-
-                    );
+                if(isIndex){
 
 
+                    this.hideLoginInterface();
 
-                if(dashboard){
 
-
-                    dashboard.style.display = "";
+                    return;
 
 
                 }
 
+
+
+                const workspaceUrl =
+
+                    "./index.html";
+
+
+
+                window.location.replace(
+
+                    workspaceUrl
+
+                );
 
 
             },
@@ -3654,6 +4014,52 @@ SINGLETON
 const logincontroller =
 
     new LoginController();
+
+
+
+
+
+
+
+
+
+/*
+==========================================
+AUTO INITIALIZATION
+==========================================
+*/
+
+
+if(
+
+    document.readyState ===
+
+    "loading"
+
+){
+
+
+    document.addEventListener(
+
+        "DOMContentLoaded",
+
+        () => logincontroller.init(),
+
+        { once:true }
+
+    );
+
+
+}
+
+
+else{
+
+
+    logincontroller.init();
+
+
+}
 
 
 
