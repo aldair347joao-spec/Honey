@@ -2,151 +2,445 @@
 ==========================================
 HONEY IA OS
 AUTH ROUTES
-Authentication API Routes
-V4.0
-Production Authentication Routes
+Authentication API
+V3.0
+Local + Google + Session Management
 ==========================================
 */
 
 import express from "express";
 
+import authService from "./auth.service.js";
 
 import {
 
-    registerUser,
+    authMiddleware,
 
-    verifyEmail,
-
-    resendVerificationCode,
-
-    loginUser,
-
-    googleLogin,
-
-    getCurrentUser,
-
-    logoutUser
-
-} from "./authcontroller.js";
-
-
-import {
-
-    authMiddleware
+    getAuthToken
 
 } from "./auth.middleware.js";
 
 
-/*
-==========================================
-ROUTER
-==========================================
-*/
 
 const router =
 
     express.Router();
 
 
+
 /*
 ==========================================
-PUBLIC AUTH ROUTES
+SAFE ERROR HANDLER
 ==========================================
 */
 
+function handleError(
+
+    res,
+
+    error
+
+){
+
+    console.error(
+
+        "AUTH ROUTE ERROR:",
+
+        error
+
+    );
+
+
+    return res
+
+        .status(
+
+            error.status ||
+
+            400
+
+        )
+
+        .json({
+
+            success: false,
+
+            error:
+
+                error.message ||
+
+                "Erro de autenticação."
+
+        });
+
+}
+
+
 
 /*
-------------------------------------------
+==========================================
 REGISTER
-POST /api/auth/register
-------------------------------------------
+==========================================
 */
 
 router.post(
 
     "/register",
 
-    registerUser
+    async(req,res)=>{
+
+        try{
+
+            const result =
+
+                await authService.register(
+
+                    req.body || {},
+
+                    req
+
+                );
+
+
+            return res
+
+                .status(201)
+
+                .json(result);
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
+
 /*
-------------------------------------------
+==========================================
 VERIFY EMAIL
-POST /api/auth/verify-email
-------------------------------------------
+==========================================
 */
 
 router.post(
 
     "/verify-email",
 
-    verifyEmail
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                email,
+
+                code,
+
+                codigo
+
+            } = req.body || {};
+
+
+            const result =
+
+                await authService.verifyEmail(
+
+                    email,
+
+                    code || codigo
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
-/*
-------------------------------------------
-RESEND VERIFICATION
-POST /api/auth/resend-verification
-------------------------------------------
-*/
-
-router.post(
-
-    "/resend-verification",
-
-    resendVerificationCode
-
-);
-
 
 /*
-------------------------------------------
+==========================================
 LOGIN
-POST /api/auth/login
-------------------------------------------
+==========================================
 */
 
 router.post(
 
     "/login",
 
-    loginUser
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                email,
+
+                password
+
+            } = req.body || {};
+
+
+            const result =
+
+                await authService.login(
+
+                    email,
+
+                    password,
+
+                    req
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
+
 /*
-------------------------------------------
+==========================================
 GOOGLE LOGIN
-POST /api/auth/google
-------------------------------------------
+==========================================
 */
 
 router.post(
 
     "/google",
 
-    googleLogin
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                credential
+
+            } = req.body || {};
+
+
+            if(!credential){
+
+                return res
+
+                    .status(400)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google não fornecida."
+
+                    });
+
+            }
+
+
+            /*
+            ----------------------------------
+            VERIFY GOOGLE TOKEN
+            ----------------------------------
+            */
+
+            const googleResponse =
+
+                await fetch(
+
+                    "https://oauth2.googleapis.com/tokeninfo?id_token=" +
+
+                    encodeURIComponent(
+
+                        credential
+
+                    )
+
+                );
+
+
+            if(
+
+                !googleResponse.ok
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google inválida."
+
+                    });
+
+            }
+
+
+            const googleProfile =
+
+                await googleResponse.json();
+
+
+            /*
+            ----------------------------------
+            AUDIENCE CHECK
+            ----------------------------------
+            */
+
+            const googleClientId =
+
+                process.env.GOOGLE_CLIENT_ID;
+
+
+            if(
+
+                !googleClientId
+
+            ){
+
+                return res
+
+                    .status(503)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Login Google não configurado no servidor."
+
+                    });
+
+            }
+
+
+            if(
+
+                googleProfile.aud !==
+
+                    googleClientId
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google não pertence a esta aplicação."
+
+                    });
+
+            }
+
+
+            const result =
+
+                await authService.googleLogin(
+
+                    googleProfile,
+
+                    req
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
-/*
-==========================================
-PROTECTED AUTH ROUTES
-==========================================
-*/
-
 
 /*
-------------------------------------------
+==========================================
 CURRENT USER
-GET /api/auth/me
-------------------------------------------
+==========================================
 */
 
 router.get(
@@ -155,33 +449,225 @@ router.get(
 
     authMiddleware,
 
-    getCurrentUser
+    async(req,res)=>{
+
+        try{
+
+            return res.json({
+
+                success: true,
+
+                user: {
+
+                    id:
+
+                        req.user._id,
+
+                    firstName:
+
+                        req.user.firstName,
+
+                    lastName:
+
+                        req.user.lastName,
+
+                    email:
+
+                        req.user.email,
+
+                    provider:
+
+                        req.user.provider,
+
+                    avatar:
+
+                        req.user.avatar,
+
+                    emailVerified:
+
+                        req.user.emailVerified,
+
+                    plan:
+
+                        req.user.plan,
+
+                    isActive:
+
+                        req.user.isActive
+
+                },
+
+                auth: {
+
+                    userId:
+
+                        req.auth.userId,
+
+                    provider:
+
+                        req.auth.provider,
+
+                    plan:
+
+                        req.auth.plan,
+
+                    expiresAt:
+
+                        req.auth.expiresAt
+
+                }
+
+            });
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
+
 /*
-------------------------------------------
+==========================================
 LOGOUT
-POST /api/auth/logout
-------------------------------------------
+==========================================
 */
 
 router.post(
 
     "/logout",
 
-    authMiddleware,
+    async(req,res)=>{
 
-    logoutUser
+        try{
+
+            const token =
+
+                getAuthToken(req);
+
+
+            const result =
+
+                await authService.logout(
+
+                    token
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
 
 );
 
 
+
 /*
 ==========================================
-EXPORT
+LOGOUT ALL
 ==========================================
 */
+
+router.post(
+
+    "/logout-all",
+
+    authMiddleware,
+
+    async(req,res)=>{
+
+        try{
+
+            const result =
+
+                await authService.logoutAll(
+
+                    req.user._id
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+HEALTH
+==========================================
+*/
+
+router.get(
+
+    "/health",
+
+    (req,res)=>{
+
+        return res.json({
+
+            success: true,
+
+            authentication: "online"
+
+        });
+
+    }
+
+);
+
+
 
 export default router;
