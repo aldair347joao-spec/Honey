@@ -6,8 +6,7 @@ Business Authentication Logic
 V3.0
 Production Authentication System
 Local + Google + JWT + MongoDB Session
-Email Verification
-Secure Session Management
+Email Verification + Resend
 ==========================================
 */
 
@@ -55,10 +54,13 @@ const JWT_CONFIG = {
 };
 
 
-const SESSION_DAYS = 30;
+const VERIFICATION_EXPIRATION_MS =
 
+    15 *
 
-const VERIFICATION_CODE_MINUTES = 15;
+    60 *
+
+    1000;
 
 
 
@@ -82,34 +84,6 @@ if(!JWT_SECRET){
 
 /*
 ==========================================
-AUTH ERROR
-==========================================
-*/
-
-class AuthError extends Error{
-
-    constructor(
-
-        message,
-
-        status = 400
-
-    ){
-
-        super(message);
-
-        this.name = "AuthError";
-
-        this.status = status;
-
-    }
-
-}
-
-
-
-/*
-==========================================
 NORMALIZE EMAIL
 ==========================================
 */
@@ -125,77 +99,6 @@ function normalizeEmail(email){
     .trim()
 
     .toLowerCase();
-
-}
-
-
-
-/*
-==========================================
-NORMALIZE NAME
-==========================================
-*/
-
-function normalizeName(
-
-    value,
-
-    fallback = ""
-
-){
-
-    return String(
-
-        value || ""
-
-    )
-
-    .trim()
-
-    .replace(
-
-        /\s+/g,
-
-        " "
-
-    ) || fallback;
-
-}
-
-
-
-/*
-==========================================
-PASSWORD VALIDATION
-==========================================
-*/
-
-function validatePassword(password){
-
-    if(
-
-        typeof password !== "string"
-
-    ){
-
-        return false;
-
-    }
-
-
-    return (
-
-        password.length >= 8 &&
-
-        /[a-z]/.test(password) &&
-
-        /[A-Z]/.test(password) &&
-
-        /[0-9]/.test(password) &&
-
-        /[^A-Za-z0-9]/.test(password)
-
-    );
 
 }
 
@@ -235,11 +138,9 @@ function createToken(user){
 
     if(!JWT_SECRET){
 
-        throw new AuthError(
+        throw new Error(
 
-            "JWT_SECRET não configurado.",
-
-            500
+            "JWT_SECRET não configurado."
 
         );
 
@@ -260,9 +161,7 @@ function createToken(user){
 
             provider:
 
-                user.provider ||
-
-                "local"
+                user.provider || "local"
 
         },
 
@@ -306,7 +205,7 @@ function getSessionExpiration(){
 
         Date.now() +
 
-        SESSION_DAYS *
+        30 *
 
         24 *
 
@@ -324,7 +223,7 @@ function getSessionExpiration(){
 
 /*
 ==========================================
-CREATE DATABASE SESSION
+CREATE SESSION
 ==========================================
 */
 
@@ -343,51 +242,56 @@ async function createSession(
         getSessionExpiration();
 
 
-    return Session.create({
+    const session =
 
-        userId:
+        await Session.create({
 
-            user._id,
+            userId:
 
-        token,
+                user._id,
 
-        device:
+            token,
 
-            request
+            device:
 
-                ?.headers
+                request
 
-                ?.["sec-ch-ua-platform"] ||
+                    ?.headers
 
-            request
+                    ?.["sec-ch-ua-platform"] ||
 
-                ?.headers
+                request
 
-                ?.["user-agent"] ||
+                    ?.headers
 
-            "unknown",
+                    ?.["user-agent"] ||
 
-        browser:
+                "unknown",
 
-            request
+            browser:
 
-                ?.headers
+                request
 
-                ?.["user-agent"] ||
+                    ?.headers
 
-            "unknown",
+                    ?.["user-agent"] ||
 
-        ip:
+                "unknown",
 
-            request
+            ip:
 
-                ?.ip ||
+                request
 
-            null,
+                    ?.ip ||
 
-        expiresAt
+                null,
 
-    });
+            expiresAt
+
+        });
+
+
+    return session;
 
 }
 
@@ -396,46 +300,24 @@ async function createSession(
 /*
 ==========================================
 PUBLIC USER
-Never expose sensitive authentication data
 ==========================================
 */
 
 function publicUser(user){
 
-    if(!user){
-
-        return null;
-
-    }
-
-
     return {
 
         id:
 
-            user._id.toString(),
+            user._id,
 
         firstName:
 
-            user.firstName || "",
+            user.firstName,
 
         lastName:
 
-            user.lastName || "",
-
-        name:
-
-            [
-
-                user.firstName,
-
-                user.lastName
-
-            ]
-
-                .filter(Boolean)
-
-                .join(" "),
+            user.lastName,
 
         email:
 
@@ -443,92 +325,25 @@ function publicUser(user){
 
         provider:
 
-            user.provider ||
-
-            "local",
+            user.provider,
 
         avatar:
 
-            user.avatar ||
-
-            null,
+            user.avatar,
 
         emailVerified:
 
-            user.emailVerified === true,
+            user.emailVerified,
 
         plan:
 
-            user.plan ||
-
-            "free",
+            user.plan,
 
         isActive:
 
-            user.isActive === true,
-
-        createdAt:
-
-            user.createdAt ||
-
-            null,
-
-        lastLogin:
-
-            user.lastLogin ||
-
-            null
+            user.isActive
 
     };
-
-}
-
-
-
-/*
-==========================================
-SEND VERIFICATION EMAIL
-==========================================
-*/
-
-async function sendVerificationEmail(
-
-    user,
-
-    code
-
-){
-
-    if(
-
-        !emailservice ||
-
-        typeof emailservice.sendVerificationCode !==
-
-            "function"
-
-    ){
-
-        throw new AuthError(
-
-            "Serviço de email não configurado.",
-
-            503
-
-        );
-
-    }
-
-
-    await emailservice.sendVerificationCode(
-
-        user.email,
-
-        code,
-
-        user.firstName
-
-    );
 
 }
 
@@ -540,8 +355,7 @@ AUTH SERVICE
 ==========================================
 */
 
-class AuthService{
-
+class AuthService {
 
 
     /*
@@ -560,24 +374,28 @@ class AuthService{
 
         const firstName =
 
-            normalizeName(
+            String(
 
                 data?.firstName ??
 
-                data?.nome
+                data?.nome ??
 
-            );
+                ""
+
+            ).trim();
 
 
         const lastName =
 
-            normalizeName(
+            String(
 
                 data?.lastName ??
 
-                data?.apelido
+                data?.apelido ??
 
-            );
+                ""
+
+            ).trim();
 
 
         const email =
@@ -600,28 +418,6 @@ class AuthService{
             );
 
 
-        const confirmPassword =
-
-            String(
-
-                data?.confirmPassword ??
-
-                data?.confirm_password ??
-
-                data?.passwordConfirmation ??
-
-                password
-
-            );
-
-
-
-        /*
-        ----------------------------------
-        REQUIRED FIELDS
-        ----------------------------------
-        */
-
         if(
 
             !firstName ||
@@ -634,23 +430,14 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Preencha todos os campos.",
-
-                400
+                "Preencha todos os campos."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        NAME LIMITS
-        ----------------------------------
-        */
 
         if(
 
@@ -660,23 +447,14 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Nome demasiado longo.",
-
-                400
+                "Nome demasiado longo."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        EMAIL
-        ----------------------------------
-        */
 
         if(
 
@@ -684,73 +462,38 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email inválido.",
-
-                400
+                "Email inválido."
 
             );
 
         }
 
 
+        const strongPassword =
 
-        /*
-        ----------------------------------
-        PASSWORD MATCH
-        ----------------------------------
-        */
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
 
         if(
 
-            password !==
+            !strongPassword.test(
 
-            confirmPassword
+                password
+
+            )
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "As palavras-passe não coincidem.",
-
-                400
+                "A palavra-passe deve ter mínimo 8 caracteres, maiúscula, minúscula, número e símbolo."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        PASSWORD STRENGTH
-        ----------------------------------
-        */
-
-        if(
-
-            !validatePassword(password)
-
-        ){
-
-            throw new AuthError(
-
-                "A palavra-passe deve ter mínimo 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo.",
-
-                400
-
-            );
-
-        }
-
-
-
-        /*
-        ----------------------------------
-        EXISTING USER
-        ----------------------------------
-        */
 
         const exists =
 
@@ -765,40 +508,31 @@ class AuthService{
 
             if(
 
-                exists.googleId &&
+                exists.provider ===
+
+                    "google" &&
 
                 !exists.password
 
             ){
 
-                throw new AuthError(
+                throw new Error(
 
-                    "Este email já está associado ao Google. Entre com a sua conta Google.",
-
-                    409
+                    "Este email já está associado ao Google. Entre com a sua conta Google."
 
                 );
 
             }
 
 
-            throw new AuthError(
+            throw new Error(
 
-                "Este email já está registado.",
-
-                409
+                "Este email já está registado."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        PASSWORD HASH
-        ----------------------------------
-        */
 
         const encryptedPassword =
 
@@ -811,13 +545,6 @@ class AuthService{
             );
 
 
-
-        /*
-        ----------------------------------
-        VERIFICATION
-        ----------------------------------
-        */
-
         const verificationCode =
 
             generateVerificationCode();
@@ -829,21 +556,10 @@ class AuthService{
 
                 Date.now() +
 
-                VERIFICATION_CODE_MINUTES *
-
-                60 *
-
-                1000
+                VERIFICATION_EXPIRATION_MS
 
             );
 
-
-
-        /*
-        ----------------------------------
-        CREATE USER
-        ----------------------------------
-        */
 
         const user =
 
@@ -882,7 +598,6 @@ class AuthService{
             });
 
 
-
         /*
         ----------------------------------
         SEND VERIFICATION EMAIL
@@ -891,11 +606,13 @@ class AuthService{
 
         try{
 
-            await sendVerificationEmail(
+            await emailservice.sendVerificationCode(
 
-                user,
+                user.email,
 
-                verificationCode
+                verificationCode,
+
+                user.firstName
 
             );
 
@@ -903,63 +620,38 @@ class AuthService{
 
         catch(error){
 
+            /*
+            ----------------------------------
+            ROLLBACK USER IF EMAIL FAILS
+            ----------------------------------
+            */
+
+            await User.deleteOne({
+
+                _id:
+
+                    user._id
+
+            });
+
+
             console.error(
 
-                "❌ AUTH REGISTER EMAIL ERROR:",
+                "AUTH EMAIL VERIFICATION ERROR:",
 
                 error
 
             );
 
 
-            /*
-            ----------------------------------
-            ROLLBACK USER
-            ----------------------------------
-            */
+            throw new Error(
 
-            try{
-
-                await User.deleteOne({
-
-                    _id:
-
-                        user._id
-
-                });
-
-            }
-
-            catch(deleteError){
-
-                console.error(
-
-                    "❌ AUTH ROLLBACK ERROR:",
-
-                    deleteError
-
-                );
-
-            }
-
-
-            throw new AuthError(
-
-                "Não foi possível enviar o email de confirmação. Tente novamente.",
-
-                503
+                "Não foi possível enviar o email de confirmação. Tente novamente."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        RESULT
-        ----------------------------------
-        */
 
         return {
 
@@ -967,11 +659,11 @@ class AuthService{
 
             message:
 
-                "Conta criada. Verifique o código enviado para o seu email.",
+                "Conta criada. Verifique o seu email.",
 
             userId:
 
-                user._id.toString(),
+                user._id,
 
             email:
 
@@ -1012,53 +704,24 @@ class AuthService{
 
                 code || ""
 
-            )
-
-            .trim();
-
+            ).trim();
 
 
         if(
 
-            !validator.isEmail(
+            !normalizedEmail ||
 
-                normalizedEmail
-
-            )
+            !verificationCode
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email inválido.",
-
-                400
+                "Email e código são obrigatórios."
 
             );
 
         }
-
-
-        if(
-
-            !/^\d{6}$/.test(
-
-                verificationCode
-
-            )
-
-        ){
-
-            throw new AuthError(
-
-                "Código inválido.",
-
-                400
-
-            );
-
-        }
-
 
 
         const user =
@@ -1074,16 +737,13 @@ class AuthService{
 
         if(!user){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Utilizador não encontrado.",
-
-                404
+                "Utilizador não encontrado."
 
             );
 
         }
-
 
 
         if(user.emailVerified){
@@ -1101,7 +761,6 @@ class AuthService{
         }
 
 
-
         if(
 
             user.verificationCode !==
@@ -1110,16 +769,13 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Código incorreto.",
-
-                400
+                "Código incorreto."
 
             );
 
         }
-
 
 
         if(
@@ -1132,23 +788,14 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Código expirado. Solicite um novo código.",
-
-                400
+                "Código expirado."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        VERIFY
-        ----------------------------------
-        */
 
         user.emailVerified = true;
 
@@ -1160,49 +807,42 @@ class AuthService{
         await user.save();
 
 
-
         /*
         ----------------------------------
         WELCOME EMAIL
         ----------------------------------
         */
 
-        if(
+        try{
 
-            emailservice &&
+            await emailservice.sendWelcomeEmail(
 
-            typeof emailservice.sendWelcomeEmail ===
+                user.email,
 
-                "function"
+                user.firstName
 
-        ){
-
-            try{
-
-                await emailservice.sendWelcomeEmail(
-
-                    user.email,
-
-                    user.firstName
-
-                );
-
-            }
-
-            catch(error){
-
-                console.error(
-
-                    "⚠️ WELCOME EMAIL ERROR:",
-
-                    error
-
-                );
-
-            }
+            );
 
         }
 
+        catch(error){
+
+            /*
+            ----------------------------------
+            O EMAIL DE BOAS-VINDAS NÃO
+            INVALIDA A CONFIRMAÇÃO.
+            ----------------------------------
+            */
+
+            console.error(
+
+                "AUTH WELCOME EMAIL ERROR:",
+
+                error
+
+            );
+
+        }
 
 
         return {
@@ -1236,6 +876,16 @@ class AuthService{
             normalizeEmail(email);
 
 
+        if(!normalizedEmail){
+
+            throw new Error(
+
+                "Email de confirmação não encontrado."
+
+            );
+
+        }
+
 
         if(
 
@@ -1247,16 +897,13 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email inválido.",
-
-                400
+                "Email inválido."
 
             );
 
         }
-
 
 
         const user =
@@ -1272,30 +919,35 @@ class AuthService{
 
         if(!user){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Utilizador não encontrado.",
-
-                404
+                "Utilizador não encontrado."
 
             );
 
         }
 
+
+        if(!user.isActive){
+
+            throw new Error(
+
+                "Esta conta está desativada."
+
+            );
+
+        }
 
 
         if(user.emailVerified){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Este email já está confirmado.",
-
-                400
+                "Este email já foi confirmado."
 
             );
 
         }
-
 
 
         /*
@@ -1304,40 +956,50 @@ class AuthService{
         ----------------------------------
         */
 
-        const code =
+        const verificationCode =
 
             generateVerificationCode();
 
 
-        const expires =
+        const verificationExpires =
 
             new Date(
 
                 Date.now() +
 
-                VERIFICATION_CODE_MINUTES *
-
-                60 *
-
-                1000
+                VERIFICATION_EXPIRATION_MS
 
             );
 
 
+        user.verificationCode =
+
+            verificationCode;
+
+
+        user.verificationExpires =
+
+            verificationExpires;
+
+
+        await user.save();
+
 
         /*
         ----------------------------------
-        SEND FIRST
+        SEND NEW CODE
         ----------------------------------
         */
 
         try{
 
-            await sendVerificationEmail(
+            await emailservice.sendVerificationCode(
 
-                user,
+                user.email,
 
-                code
+                verificationCode,
+
+                user.firstName
 
             );
 
@@ -1347,38 +1009,34 @@ class AuthService{
 
             console.error(
 
-                "❌ RESEND VERIFICATION EMAIL ERROR:",
+                "AUTH RESEND EMAIL ERROR:",
 
                 error
 
             );
 
 
-            throw new AuthError(
+            /*
+            ----------------------------------
+            NÃO DEIXAR O CÓDIGO NOVO ATIVO
+            SE O EMAIL NÃO FOI ENVIADO.
+            ----------------------------------
+            */
 
-                "Não foi possível enviar o novo código. Tente novamente.",
+            user.verificationCode = null;
 
-                503
+            user.verificationExpires = null;
+
+            await user.save();
+
+
+            throw new Error(
+
+                "Não foi possível enviar o novo código. Tente novamente."
 
             );
 
         }
-
-
-
-        /*
-        ----------------------------------
-        SAVE NEW CODE
-        ----------------------------------
-        */
-
-        user.verificationCode = code;
-
-        user.verificationExpires = expires;
-
-
-        await user.save();
-
 
 
         return {
@@ -1387,7 +1045,15 @@ class AuthService{
 
             message:
 
-                "Novo código enviado para o seu email."
+                "Novo código enviado para o seu email.",
+
+            email:
+
+                user.email,
+
+            expiresAt:
+
+                verificationExpires
 
         };
 
@@ -1416,31 +1082,21 @@ class AuthService{
             normalizeEmail(email);
 
 
-
         if(
 
-            !validator.isEmail(
-
-                normalizedEmail
-
-            ) ||
-
-            typeof password !== "string" ||
+            !normalizedEmail ||
 
             !password
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email ou palavra-passe inválidos.",
-
-                400
+                "Email e palavra-passe são obrigatórios."
 
             );
 
         }
-
 
 
         const user =
@@ -1456,84 +1112,60 @@ class AuthService{
 
         if(!user){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email ou palavra-passe incorretos.",
-
-                401
+                "Email ou palavra-passe incorretos."
 
             );
 
         }
-
 
 
         if(!user.isActive){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Esta conta está desativada.",
-
-                403
+                "Esta conta está desativada."
 
             );
 
         }
 
 
-
         /*
         ----------------------------------
-        GOOGLE-ONLY ACCOUNT
+        GOOGLE ACCOUNT
         ----------------------------------
         */
 
         if(
 
-            !user.password &&
+            user.provider ===
 
-            user.googleId
+                "google" &&
+
+            !user.password
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Esta conta utiliza o Google. Entre com a sua conta Google.",
-
-                400
+                "Esta conta utiliza o Google. Entre com a sua conta Google."
 
             );
 
         }
-
 
 
         if(!user.emailVerified){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Confirme o seu email antes de entrar.",
-
-                403
+                "Confirme o seu email primeiro."
 
             );
 
         }
-
-
-
-        if(!user.password){
-
-            throw new AuthError(
-
-                "Esta conta não possui palavra-passe local.",
-
-                400
-
-            );
-
-        }
-
 
 
         const valid =
@@ -1549,23 +1181,14 @@ class AuthService{
 
         if(!valid){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email ou palavra-passe incorretos.",
-
-                401
+                "Email ou palavra-passe incorretos."
 
             );
 
         }
 
-
-
-        /*
-        ----------------------------------
-        LOGIN SUCCESS
-        ----------------------------------
-        */
 
         user.lastLogin =
 
@@ -1573,7 +1196,6 @@ class AuthService{
 
 
         await user.save();
-
 
 
         const token =
@@ -1592,7 +1214,6 @@ class AuthService{
                 request
 
             );
-
 
 
         return {
@@ -1639,47 +1260,13 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Dados da conta Google inválidos.",
-
-                401
+                "Dados da conta Google inválidos."
 
             );
 
         }
-
-
-
-        /*
-        ----------------------------------
-        GOOGLE EMAIL VERIFIED
-        ----------------------------------
-        */
-
-        const emailVerified =
-
-            String(
-
-                googleProfile.email_verified
-
-            ).toLowerCase() ===
-
-            "true";
-
-
-        if(!emailVerified){
-
-            throw new AuthError(
-
-                "A conta Google não possui email verificado.",
-
-                401
-
-            );
-
-        }
-
 
 
         const email =
@@ -1697,26 +1284,30 @@ class AuthService{
 
         ){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Email Google inválido.",
-
-                401
+                "Email Google inválido."
 
             );
 
         }
 
 
+        if(
 
-        const googleId =
+            googleProfile.email_verified ===
 
-            String(
+                false
 
-                googleProfile.sub
+        ){
+
+            throw new Error(
+
+                "A conta Google não possui email verificado."
 
             );
 
+        }
 
 
         let user =
@@ -1727,7 +1318,9 @@ class AuthService{
 
                     {
 
-                        googleId
+                        googleId:
+
+                            googleProfile.sub
 
                     },
 
@@ -1740,7 +1333,6 @@ class AuthService{
                 ]
 
             });
-
 
 
         /*
@@ -1757,23 +1349,17 @@ class AuthService{
 
                     firstName:
 
-                        normalizeName(
+                        googleProfile.given_name ||
 
-                            googleProfile.given_name ||
+                        googleProfile.name ||
 
-                            googleProfile.name,
-
-                            "Utilizador"
-
-                        ),
+                        "Utilizador",
 
                     lastName:
 
-                        normalizeName(
+                        googleProfile.family_name ||
 
-                            googleProfile.family_name
-
-                        ),
+                        "",
 
                     email,
 
@@ -1785,7 +1371,9 @@ class AuthService{
 
                         "google",
 
-                    googleId,
+                    googleId:
+
+                        googleProfile.sub,
 
                     avatar:
 
@@ -1825,27 +1413,7 @@ class AuthService{
 
             /*
             ----------------------------------
-            ACCOUNT STATUS
-            ----------------------------------
-            */
-
-            if(!user.isActive){
-
-                throw new AuthError(
-
-                    "Esta conta está desativada.",
-
-                    403
-
-                );
-
-            }
-
-
-
-            /*
-            ----------------------------------
-            GOOGLE ID CONFLICT
+            LINK EXISTING ACCOUNT
             ----------------------------------
             */
 
@@ -1853,121 +1421,71 @@ class AuthService{
 
                 user.googleId &&
 
-                user.googleId !== googleId
+                user.googleId !==
+
+                    googleProfile.sub
 
             ){
 
-                throw new AuthError(
+                throw new Error(
 
-                    "Esta conta Google não corresponde ao utilizador.",
-
-                    409
+                    "Esta conta Google não corresponde ao utilizador."
 
                 );
 
             }
 
 
+            user.googleId =
 
-            /*
-            ----------------------------------
-            LINK GOOGLE
-            ----------------------------------
-            */
-
-            if(!user.googleId){
-
-                user.googleId = googleId;
-
-            }
+                googleProfile.sub;
 
 
+            user.provider =
 
-            /*
-            ----------------------------------
-            PROVIDER
-            ----------------------------------
-            */
+                "google";
 
-            if(!user.password){
-
-                user.provider = "google";
-
-            }
-
-
-
-            /*
-            ----------------------------------
-            VERIFIED EMAIL
-            ----------------------------------
-            */
 
             user.emailVerified = true;
 
 
+            user.avatar =
 
-            /*
-            ----------------------------------
-            PROFILE
-            ----------------------------------
-            */
+                googleProfile.picture ||
 
-            if(
-
-                googleProfile.picture
-
-            ){
-
-                user.avatar =
-
-                    googleProfile.picture;
-
-            }
+                user.avatar;
 
 
             if(
 
                 !user.firstName ||
 
-                user.firstName ===
-
-                    "Utilizador"
+                user.firstName === "Utilizador"
 
             ){
 
                 user.firstName =
 
-                    normalizeName(
+                    googleProfile.given_name ||
 
-                        googleProfile.given_name ||
+                    googleProfile.name ||
 
-                        googleProfile.name,
-
-                        user.firstName ||
-
-                        "Utilizador"
-
-                    );
+                    user.firstName;
 
             }
 
 
             if(
 
-                !user.lastName &&
-
-                googleProfile.family_name
+                !user.lastName
 
             ){
 
                 user.lastName =
 
-                    normalizeName(
+                    googleProfile.family_name ||
 
-                        googleProfile.family_name
-
-                    );
+                    "";
 
             }
 
@@ -1982,12 +1500,16 @@ class AuthService{
         }
 
 
+        if(!user.isActive){
 
-        /*
-        ----------------------------------
-        CREATE SESSION
-        ----------------------------------
-        */
+            throw new Error(
+
+                "Esta conta está desativada."
+
+            );
+
+        }
+
 
         const token =
 
@@ -2005,7 +1527,6 @@ class AuthService{
                 request
 
             );
-
 
 
         return {
@@ -2040,16 +1561,11 @@ class AuthService{
 
             return {
 
-                success: true,
-
-                message:
-
-                    "Sessão já encerrada."
+                success: true
 
             };
 
         }
-
 
 
         await Session.deleteOne({
@@ -2057,7 +1573,6 @@ class AuthService{
             token
 
         });
-
 
 
         return {
@@ -2084,16 +1599,13 @@ class AuthService{
 
         if(!userId){
 
-            throw new AuthError(
+            return {
 
-                "Utilizador não autenticado.",
+                success: false
 
-                401
-
-            );
+            };
 
         }
-
 
 
         await Session.deleteMany({
@@ -2101,7 +1613,6 @@ class AuthService{
             userId
 
         });
-
 
 
         return {
@@ -2163,16 +1674,13 @@ class AuthService{
 
         if(!user){
 
-            throw new AuthError(
+            throw new Error(
 
-                "Utilizador não encontrado.",
-
-                404
+                "Utilizador não encontrado."
 
             );
 
         }
-
 
 
         return {
@@ -2190,11 +1698,5 @@ class AuthService{
 }
 
 
-
-/*
-==========================================
-EXPORT
-==========================================
-*/
 
 export default new AuthService();
