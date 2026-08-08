@@ -3,8 +3,10 @@
 HONEY IA OS
 AUTH ROUTES
 Authentication API
-V3.0
+V4.0
 Local + Google + Session Management
+Email Verification
+Production Authentication
 ==========================================
 */
 
@@ -51,15 +53,22 @@ function handleError(
     );
 
 
-    return res
+    const status =
 
-        .status(
+        Number.isInteger(
 
-            error.status ||
-
-            400
+            error?.status
 
         )
+
+            ? error.status
+
+            : 500;
+
+
+    return res
+
+        .status(status)
 
         .json({
 
@@ -67,7 +76,7 @@ function handleError(
 
             error:
 
-                error.message ||
+                error?.message ||
 
                 "Erro de autenticação."
 
@@ -80,6 +89,7 @@ function handleError(
 /*
 ==========================================
 REGISTER
+POST /api/auth/register
 ==========================================
 */
 
@@ -131,6 +141,7 @@ router.post(
 /*
 ==========================================
 VERIFY EMAIL
+POST /api/auth/verify-email
 ==========================================
 */
 
@@ -192,7 +203,63 @@ router.post(
 
 /*
 ==========================================
+RESEND VERIFICATION
+POST /api/auth/resend-verification
+==========================================
+*/
+
+router.post(
+
+    "/resend-verification",
+
+    async(req,res)=>{
+
+        try{
+
+            const email =
+
+                req.body?.email;
+
+
+            const result =
+
+                await authService.resendVerificationCode(
+
+                    email
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
 LOGIN
+POST /api/auth/login
 ==========================================
 */
 
@@ -255,6 +322,7 @@ router.post(
 /*
 ==========================================
 GOOGLE LOGIN
+POST /api/auth/google
 ==========================================
 */
 
@@ -273,7 +341,13 @@ router.post(
             } = req.body || {};
 
 
-            if(!credential){
+            if(
+
+                !credential ||
+
+                typeof credential !== "string"
+
+            ){
 
                 return res
 
@@ -292,9 +366,10 @@ router.post(
             }
 
 
+
             /*
             ----------------------------------
-            VERIFY GOOGLE TOKEN
+            GOOGLE TOKEN VALIDATION
             ----------------------------------
             */
 
@@ -329,11 +404,12 @@ router.post(
 
                         error:
 
-                            "Credencial Google inválida."
+                            "Credencial Google inválida ou expirada."
 
                     });
 
             }
+
 
 
             const googleProfile =
@@ -341,9 +417,10 @@ router.post(
                 await googleResponse.json();
 
 
+
             /*
             ----------------------------------
-            AUDIENCE CHECK
+            CLIENT ID
             ----------------------------------
             */
 
@@ -352,11 +429,7 @@ router.post(
                 process.env.GOOGLE_CLIENT_ID;
 
 
-            if(
-
-                !googleClientId
-
-            ){
+            if(!googleClientId){
 
                 return res
 
@@ -375,11 +448,26 @@ router.post(
             }
 
 
+
+            /*
+            ----------------------------------
+            AUDIENCE
+            ----------------------------------
+            */
+
             if(
 
-                googleProfile.aud !==
+                String(
+
+                    googleProfile.aud
+
+                ) !==
+
+                String(
 
                     googleClientId
+
+                )
 
             ){
 
@@ -399,6 +487,107 @@ router.post(
 
             }
 
+
+
+            /*
+            ----------------------------------
+            ISSUER
+            ----------------------------------
+            */
+
+            const issuer =
+
+                String(
+
+                    googleProfile.iss ||
+
+                    ""
+
+                );
+
+
+            if(
+
+                issuer !==
+
+                    "accounts.google.com" &&
+
+                issuer !==
+
+                    "https://accounts.google.com"
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Emissor da credencial Google inválido."
+
+                    });
+
+            }
+
+
+
+            /*
+            ----------------------------------
+            EXPIRATION
+            ----------------------------------
+            */
+
+            const expiration =
+
+                Number(
+
+                    googleProfile.exp
+
+                );
+
+
+            if(
+
+                !Number.isFinite(expiration) ||
+
+                expiration <=
+
+                    Math.floor(
+
+                        Date.now() / 1000
+
+                    )
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google expirada."
+
+                    });
+
+            }
+
+
+
+            /*
+            ----------------------------------
+            AUTH SERVICE
+            ----------------------------------
+            */
 
             const result =
 
@@ -440,6 +629,7 @@ router.post(
 /*
 ==========================================
 CURRENT USER
+GET /api/auth/me
 ==========================================
 */
 
@@ -461,15 +651,29 @@ router.get(
 
                     id:
 
-                        req.user._id,
+                        req.user._id.toString(),
 
                     firstName:
 
-                        req.user.firstName,
+                        req.user.firstName || "",
 
                     lastName:
 
-                        req.user.lastName,
+                        req.user.lastName || "",
+
+                    name:
+
+                        [
+
+                            req.user.firstName,
+
+                            req.user.lastName
+
+                        ]
+
+                            .filter(Boolean)
+
+                            .join(" "),
 
                     email:
 
@@ -477,23 +681,29 @@ router.get(
 
                     provider:
 
-                        req.user.provider,
+                        req.user.provider ||
+
+                        "local",
 
                     avatar:
 
-                        req.user.avatar,
+                        req.user.avatar ||
+
+                        null,
 
                     emailVerified:
 
-                        req.user.emailVerified,
+                        req.user.emailVerified === true,
 
                     plan:
 
-                        req.user.plan,
+                        req.user.plan ||
+
+                        "free",
 
                     isActive:
 
-                        req.user.isActive
+                        req.user.isActive === true
 
                 },
 
@@ -542,6 +752,7 @@ router.get(
 /*
 ==========================================
 LOGOUT
+POST /api/auth/logout
 ==========================================
 */
 
@@ -596,6 +807,7 @@ router.post(
 /*
 ==========================================
 LOGOUT ALL
+POST /api/auth/logout-all
 ==========================================
 */
 
@@ -647,6 +859,7 @@ router.post(
 /*
 ==========================================
 HEALTH
+GET /api/auth/health
 ==========================================
 */
 
@@ -660,7 +873,9 @@ router.get(
 
             success: true,
 
-            authentication: "online"
+            authentication:
+
+                "online"
 
         });
 
@@ -669,5 +884,11 @@ router.get(
 );
 
 
+
+/*
+==========================================
+EXPORT
+==========================================
+*/
 
 export default router;
