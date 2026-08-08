@@ -3,7 +3,8 @@
 HONEY IA OS
 DATABASE MODELS
 MongoDB User & AI Workspace System
-V5.0
+V6.0
+Production Authentication Architecture
 ==========================================
 */
 
@@ -116,17 +117,20 @@ const UserSchema = new mongoose.Schema({
     --------------------------------------
     GOOGLE AUTHENTICATION
     --------------------------------------
+
+    IMPORTANT:
+    Undefined is used instead of null so that
+    sparse unique indexing works correctly.
+    --------------------------------------
     */
 
     googleId: {
 
         type: String,
 
-        default: null,
+        default: undefined,
 
-        sparse: true,
-
-        unique: true,
+        trim: true,
 
         index: true
 
@@ -261,12 +265,30 @@ UserSchema.index({
 
     email: 1
 
+}, {
+
+    unique: true
+
 });
 
+
+/*
+------------------------------------------
+Google ID must be unique when present.
+Sparse prevents local users without Google
+from occupying the index.
+------------------------------------------
+*/
 
 UserSchema.index({
 
     googleId: 1
+
+}, {
+
+    unique: true,
+
+    sparse: true
 
 });
 
@@ -402,7 +424,6 @@ SESSION INDEXES
 ==========================================
 */
 
-
 SessionSchema.index({
 
     userId: 1,
@@ -417,7 +438,6 @@ SessionSchema.index({
 Automatically remove expired sessions
 ------------------------------------------
 */
-
 
 SessionSchema.index(
 
@@ -445,12 +465,6 @@ AI CHAT MEMORY
 
 const ConversationSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    OWNER
-    --------------------------------------
-    */
-
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -463,12 +477,6 @@ const ConversationSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    CONVERSATION TITLE
-    --------------------------------------
-    */
 
     title: {
 
@@ -483,12 +491,6 @@ const ConversationSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    ACTIVE AGENT
-    --------------------------------------
-    */
-
     agentId: {
 
         type: String,
@@ -502,12 +504,6 @@ const ConversationSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    WORKSPACE
-    --------------------------------------
-    */
-
     workspace: {
 
         type: String,
@@ -520,12 +516,6 @@ const ConversationSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    ARCHIVE STATUS
-    --------------------------------------
-    */
 
     archived: {
 
@@ -542,13 +532,6 @@ const ConversationSchema = new mongoose.Schema({
     timestamps: true
 
 });
-
-
-/*
-==========================================
-CONVERSATION INDEX
-==========================================
-*/
 
 
 ConversationSchema.index({
@@ -569,12 +552,6 @@ AGENT CONTEXT MEMORY
 
 const MessageSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    CONVERSATION
-    --------------------------------------
-    */
-
     conversationId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -588,12 +565,6 @@ const MessageSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    AGENT
-    --------------------------------------
-    */
-
     agentId: {
 
         type: String,
@@ -606,12 +577,6 @@ const MessageSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    MESSAGE ROLE
-    --------------------------------------
-    */
 
     role: {
 
@@ -632,12 +597,6 @@ const MessageSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    MESSAGE CONTENT
-    --------------------------------------
-    */
-
     content: {
 
         type: String,
@@ -651,13 +610,6 @@ const MessageSchema = new mongoose.Schema({
     timestamps: true
 
 });
-
-
-/*
-==========================================
-MESSAGE INDEX
-==========================================
-*/
 
 
 MessageSchema.index({
@@ -678,12 +630,6 @@ HONEY IA USER MEMORY
 
 const MemorySchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    OWNER
-    --------------------------------------
-    */
-
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -696,12 +642,6 @@ const MemorySchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    MEMORY KEY
-    --------------------------------------
-    */
 
     key: {
 
@@ -716,12 +656,6 @@ const MemorySchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    MEMORY VALUE
-    --------------------------------------
-    */
-
     value: {
 
         type: String,
@@ -730,12 +664,6 @@ const MemorySchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    IMPORTANCE
-    --------------------------------------
-    */
 
     importance: {
 
@@ -754,13 +682,6 @@ const MemorySchema = new mongoose.Schema({
     timestamps: true
 
 });
-
-
-/*
-==========================================
-MEMORY INDEX
-==========================================
-*/
 
 
 MemorySchema.index({
@@ -785,12 +706,6 @@ USER FILE STORAGE / AI ANALYSIS
 
 const DocumentSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    OWNER
-    --------------------------------------
-    */
-
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -803,12 +718,6 @@ const DocumentSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    FILE NAME
-    --------------------------------------
-    */
 
     name: {
 
@@ -823,12 +732,6 @@ const DocumentSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    FILE TYPE
-    --------------------------------------
-    */
-
     type: {
 
         type: String,
@@ -840,12 +743,6 @@ const DocumentSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    EXTRACTED TEXT
-    --------------------------------------
-    */
-
     text: {
 
         type: String,
@@ -854,12 +751,6 @@ const DocumentSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    FILE SIZE
-    --------------------------------------
-    */
 
     size: {
 
@@ -872,12 +763,6 @@ const DocumentSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    STORAGE URL
-    --------------------------------------
-    */
-
     url: {
 
         type: String,
@@ -886,12 +771,6 @@ const DocumentSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    PROCESSING STATUS
-    --------------------------------------
-    */
 
     status: {
 
@@ -922,13 +801,6 @@ const DocumentSchema = new mongoose.Schema({
 });
 
 
-/*
-==========================================
-DOCUMENT INDEX
-==========================================
-*/
-
-
 DocumentSchema.index({
 
     userId: 1,
@@ -947,12 +819,6 @@ HONEY IA WORKSPACE
 
 const ProjectSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    OWNER
-    --------------------------------------
-    */
-
     userId: {
 
         type: mongoose.Schema.Types.ObjectId,
@@ -965,12 +831,6 @@ const ProjectSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    PROJECT NAME
-    --------------------------------------
-    */
 
     name: {
 
@@ -985,12 +845,6 @@ const ProjectSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    DESCRIPTION
-    --------------------------------------
-    */
-
     description: {
 
         type: String,
@@ -999,12 +853,6 @@ const ProjectSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    PROJECT TYPE
-    --------------------------------------
-    */
 
     type: {
 
@@ -1018,12 +866,6 @@ const ProjectSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    PROJECT STATUS
-    --------------------------------------
-    */
 
     status: {
 
@@ -1052,13 +894,6 @@ const ProjectSchema = new mongoose.Schema({
 });
 
 
-/*
-==========================================
-PROJECT INDEX
-==========================================
-*/
-
-
 ProjectSchema.index({
 
     userId: 1,
@@ -1077,12 +912,6 @@ SYSTEM EXTENSIONS
 
 const PluginSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    PLUGIN NAME
-    --------------------------------------
-    */
-
     name: {
 
         type: String,
@@ -1096,12 +925,6 @@ const PluginSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    DESCRIPTION
-    --------------------------------------
-    */
-
     description: {
 
         type: String,
@@ -1110,12 +933,6 @@ const PluginSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    ACTIVE STATUS
-    --------------------------------------
-    */
 
     active: {
 
@@ -1134,13 +951,6 @@ const PluginSchema = new mongoose.Schema({
 });
 
 
-/*
-==========================================
-PLUGIN INDEX
-==========================================
-*/
-
-
 PluginSchema.index({
 
     name: 1
@@ -1154,10 +964,7 @@ MODEL EXPORTS
 ==========================================
 */
 
-
-export const User =
-
-mongoose.model(
+export const User = mongoose.model(
 
     "User",
 
@@ -1166,9 +973,7 @@ mongoose.model(
 );
 
 
-export const Session =
-
-mongoose.model(
+export const Session = mongoose.model(
 
     "Session",
 
@@ -1177,9 +982,7 @@ mongoose.model(
 );
 
 
-export const Conversation =
-
-mongoose.model(
+export const Conversation = mongoose.model(
 
     "Conversation",
 
@@ -1188,9 +991,7 @@ mongoose.model(
 );
 
 
-export const Message =
-
-mongoose.model(
+export const Message = mongoose.model(
 
     "Message",
 
@@ -1199,9 +1000,7 @@ mongoose.model(
 );
 
 
-export const Memory =
-
-mongoose.model(
+export const Memory = mongoose.model(
 
     "Memory",
 
@@ -1210,9 +1009,7 @@ mongoose.model(
 );
 
 
-export const Document =
-
-mongoose.model(
+export const Document = mongoose.model(
 
     "Document",
 
@@ -1221,9 +1018,7 @@ mongoose.model(
 );
 
 
-export const Project =
-
-mongoose.model(
+export const Project = mongoose.model(
 
     "Project",
 
@@ -1232,9 +1027,7 @@ mongoose.model(
 );
 
 
-export const Plugin =
-
-mongoose.model(
+export const Plugin = mongoose.model(
 
     "Plugin",
 
