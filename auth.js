@@ -4,7 +4,9 @@ HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
 JWT + MongoDB + Google Authentication
-V5.1
+V6.0
+Stable Authentication Architecture
+Independent Google Authentication Flow
 ==========================================
 */
 
@@ -15,16 +17,23 @@ class AuthManager {
     constructor(){
 
 
+        /*
+        ==========================================
+        CORE STATE
+        ==========================================
+        */
+
+
         this.user = null;
 
 
         this.token =
 
-        localStorage.getItem(
+            localStorage.getItem(
 
-            "honey_token"
+                "honey_token"
 
-        );
+            );
 
 
         this.loading = true;
@@ -33,51 +42,20 @@ class AuthManager {
         this.listeners = [];
 
 
-        this.googleInitialized = false;
-
-
-        this.googleClientId =
-
-        window.HONEY_GOOGLE_CLIENT_ID ||
-
-        window.GOOGLE_CLIENT_ID ||
-
-        "";
-
-
 
         /*
-        ======================================
-        RESTORE LOCAL USER
-        ======================================
+        ==========================================
+        SESSION INITIALIZATION
+        ==========================================
         */
 
 
         this.loadStoredUser();
 
 
-
-        /*
-        ======================================
-        RESTORE BACKEND SESSION
-        ======================================
-        */
-
-
         this.sessionPromise =
 
-        this.loadSession();
-
-
-
-        /*
-        ======================================
-        INITIALIZE GOOGLE
-        ======================================
-        */
-
-
-        this.initializeGoogleWhenReady();
+            this.loadSession();
 
 
     }
@@ -105,11 +83,11 @@ class AuthManager {
 
             const storedUser =
 
-            localStorage.getItem(
+                localStorage.getItem(
 
-                "honey_user"
+                    "honey_user"
 
-            );
+                );
 
 
 
@@ -125,11 +103,11 @@ class AuthManager {
 
             const parsedUser =
 
-            JSON.parse(
+                JSON.parse(
 
-                storedUser
+                    storedUser
 
-            );
+                );
 
 
 
@@ -144,7 +122,11 @@ class AuthManager {
 
                 this.user =
 
-                parsedUser;
+                    this.normalizeUser(
+
+                        parsedUser
+
+                    );
 
 
             }
@@ -173,7 +155,7 @@ class AuthManager {
 
             console.error(
 
-                "Erro ao recuperar utilizador local:",
+                "AUTH STORED USER ERROR:",
 
                 error
 
@@ -213,7 +195,17 @@ class AuthManager {
     async loadSession(){
 
 
+        /*
+        --------------------------------------
+        No token
+        --------------------------------------
+        */
+
+
         if(!this.token){
+
+
+            this.user = null;
 
 
             this.loading = false;
@@ -234,46 +226,44 @@ class AuthManager {
 
             const response =
 
-            await fetch(
+                await fetch(
 
-                "/api/auth/me",
+                    "/api/auth/me",
 
-                {
+                    {
 
-                    method:"GET",
+                        method: "GET",
 
+                        headers: {
 
-                    headers:{
+                            ...this.getAuthHeader(),
 
-                        ...this.getAuthHeader(),
+                            "Accept":
 
-                        "Accept":
+                                "application/json"
 
-                        "application/json"
+                        }
 
                     }
 
-
-                }
-
-            );
+                );
 
 
 
             const data =
 
-            await this.parseResponse(
+                await this.parseResponse(
 
-                response
+                    response
 
-            );
+                );
 
 
 
             /*
-            ----------------------------------
+            --------------------------------------
             VALID SESSION
-            ----------------------------------
+            --------------------------------------
             */
 
 
@@ -290,11 +280,11 @@ class AuthManager {
 
                 this.user =
 
-                this.normalizeUser(
+                    this.normalizeUser(
 
-                    data.user
+                        data.user
 
-                );
+                    );
 
 
                 this.saveUser();
@@ -314,9 +304,9 @@ class AuthManager {
 
 
             /*
-            ----------------------------------
+            --------------------------------------
             INVALID SESSION
-            ----------------------------------
+            --------------------------------------
             */
 
 
@@ -336,8 +326,18 @@ class AuthManager {
                 );
 
 
+                return null;
+
+
             }
 
+
+
+            /*
+            --------------------------------------
+            SERVER ERROR WITHOUT INVALID SESSION
+            --------------------------------------
+            */
 
 
             this.loading = false;
@@ -346,7 +346,7 @@ class AuthManager {
             this.notify();
 
 
-            return null;
+            return this.user;
 
 
         }
@@ -357,18 +357,17 @@ class AuthManager {
 
             console.error(
 
-                "Erro ao recuperar sessão:",
+                "AUTH SESSION ERROR:",
 
                 error
 
             );
 
 
-
             /*
-            ----------------------------------
+            --------------------------------------
             Network failure
-            ----------------------------------
+            --------------------------------------
             */
 
 
@@ -482,63 +481,65 @@ class AuthManager {
 
             id:
 
-            user.id ||
+                user.id ||
 
-            user._id ||
+                user._id ||
 
-            null,
+                null,
 
 
             firstName:
 
-            user.firstName ||
+                user.firstName ||
 
-            "",
+                "",
 
 
             lastName:
 
-            user.lastName ||
+                user.lastName ||
 
-            "",
+                "",
 
 
             email:
 
-            user.email ||
+                user.email ||
 
-            "",
+                "",
 
 
             avatar:
 
-            user.avatar ||
+                user.avatar ||
 
-            null,
+                user.picture ||
+
+                null,
 
 
             plan:
 
-            user.plan ||
+                user.plan ||
 
-            "free",
+                "free",
 
 
             emailVerified:
 
-            user.emailVerified === true,
+                user.emailVerified === true,
 
 
             isActive:
 
-            user.isActive !== false,
+                user.isActive !== false,
 
 
             googleId:
 
-            user.googleId ||
+                user.googleId ||
 
-            null
+                null
 
 
         };
@@ -546,33 +547,33 @@ class AuthManager {
 
 
         /*
-        ----------------------------------
-        Compatibility with older UI
-        ----------------------------------
+        --------------------------------------
+        Compatibility name
+        --------------------------------------
         */
 
 
         normalized.name =
 
-        [
+            [
 
-            normalized.firstName,
+                normalized.firstName,
 
-            normalized.lastName
+                normalized.lastName
 
-        ]
+            ]
 
-        .filter(Boolean)
+            .filter(Boolean)
 
-        .join(" ")
+            .join(" ")
 
-        ||
+            ||
 
-        normalized.email
+            normalized.name ||
 
-        ||
+            normalized.email ||
 
-        "Utilizador";
+            "Utilizador";
 
 
 
@@ -601,49 +602,47 @@ class AuthManager {
 
         const response =
 
-        await fetch(
+            await fetch(
 
-            "/api/auth/register",
+                "/api/auth/register",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
+                    headers: {
 
-                headers:{
+                        "Content-Type":
 
-                    "Content-Type":
+                            "application/json",
 
-                    "application/json",
+                        "Accept":
 
-                    "Accept":
+                            "application/json"
 
-                    "application/json"
+                    },
 
-                },
+                    body:
 
+                        JSON.stringify(
 
-                body:
+                            data || {}
 
-                JSON.stringify(
+                        )
 
-                    data || {}
+                }
 
-                )
-
-            }
-
-        );
+            );
 
 
 
         const result =
 
-        await this.parseResponse(
+            await this.parseResponse(
 
-            response
+                response
 
-        );
+            );
 
 
 
@@ -694,49 +693,47 @@ class AuthManager {
 
         const response =
 
-        await fetch(
+            await fetch(
 
-            "/api/auth/verify-email",
+                "/api/auth/verify-email",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
+                    headers: {
 
-                headers:{
+                        "Content-Type":
 
-                    "Content-Type":
+                            "application/json",
 
-                    "application/json",
+                        "Accept":
 
-                    "Accept":
+                            "application/json"
 
-                    "application/json"
+                    },
 
-                },
+                    body:
 
+                        JSON.stringify(
 
-                body:
+                            data || {}
 
-                JSON.stringify(
+                        )
 
-                    data || {}
+                }
 
-                )
-
-            }
-
-        );
+            );
 
 
 
         const result =
 
-        await this.parseResponse(
+            await this.parseResponse(
 
-            response
+                response
 
-        );
+            );
 
 
 
@@ -785,61 +782,79 @@ class AuthManager {
     async resendVerification(email){
 
 
+        const cleanEmail =
+
+            String(
+
+                email || ""
+
+            )
+
+            .trim()
+
+            .toLowerCase();
+
+
+
+        if(!cleanEmail){
+
+
+            throw new Error(
+
+                "Email de confirmação não encontrado."
+
+            );
+
+
+        }
+
+
+
         const response =
 
-        await fetch(
+            await fetch(
 
-            "/api/auth/resend-verification",
+                "/api/auth/resend-verification",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
+                    headers: {
 
-                headers:{
+                        "Content-Type":
 
-                    "Content-Type":
+                            "application/json",
 
-                    "application/json",
+                        "Accept":
 
-                    "Accept":
+                            "application/json"
 
-                    "application/json"
+                    },
 
-                },
+                    body:
 
+                        JSON.stringify({
 
-                body:
+                            email:
 
-                JSON.stringify({
+                                cleanEmail
 
-                    email:
+                        })
 
-                    String(
+                }
 
-                        email || ""
-
-                    )
-
-                    .trim()
-
-                    .toLowerCase()
-
-                })
-
-            }
-
-        );
+            );
 
 
 
         const result =
 
-        await this.parseResponse(
+            await this.parseResponse(
 
-            response
+                response
 
-        );
+            );
 
 
 
@@ -891,49 +906,47 @@ class AuthManager {
 
         const response =
 
-        await fetch(
+            await fetch(
 
-            "/api/auth/login",
+                "/api/auth/login",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
+                    headers: {
 
-                headers:{
+                        "Content-Type":
 
-                    "Content-Type":
+                            "application/json",
 
-                    "application/json",
+                        "Accept":
 
-                    "Accept":
+                            "application/json"
 
-                    "application/json"
+                    },
 
-                },
+                    body:
 
+                        JSON.stringify(
 
-                body:
+                            data || {}
 
-                JSON.stringify(
+                        )
 
-                    data || {}
+                }
 
-                )
-
-            }
-
-        );
+            );
 
 
 
         const result =
 
-        await this.parseResponse(
+            await this.parseResponse(
 
-            response
+                response
 
-        );
+            );
 
 
 
@@ -1026,49 +1039,47 @@ class AuthManager {
 
         const response =
 
-        await fetch(
+            await fetch(
 
-            "/api/auth/google",
+                "/api/auth/google",
 
-            {
+                {
 
-                method:"POST",
+                    method: "POST",
 
+                    headers: {
 
-                headers:{
+                        "Content-Type":
 
-                    "Content-Type":
+                            "application/json",
 
-                    "application/json",
+                        "Accept":
 
-                    "Accept":
+                            "application/json"
 
-                    "application/json"
+                    },
 
-                },
+                    body:
 
+                        JSON.stringify({
 
-                body:
+                            credential
 
-                JSON.stringify({
+                        })
 
-                    credential
+                }
 
-                })
-
-            }
-
-        );
+            );
 
 
 
         const result =
 
-        await this.parseResponse(
+            await this.parseResponse(
 
-            response
+                response
 
-        );
+            );
 
 
 
@@ -1164,215 +1175,6 @@ class AuthManager {
 
     /*
     ==========================================
-    INITIALIZE GOOGLE
-    ==========================================
-    */
-
-
-    async initializeGoogleWhenReady(){
-
-
-        if(!this.googleClientId){
-
-
-            console.warn(
-
-                "GOOGLE_CLIENT_ID não disponível no frontend."
-
-            );
-
-
-            return false;
-
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        Wait for Google Identity Services
-        --------------------------------------
-        */
-
-
-        for(
-
-            let attempt = 0;
-
-            attempt < 100;
-
-            attempt++
-
-        ){
-
-
-            if(
-
-                typeof window.google !==
-
-                "undefined" &&
-
-                window.google.accounts &&
-
-                window.google.accounts.id
-
-            ){
-
-
-                break;
-
-
-            }
-
-
-
-            await new Promise(
-
-                resolve =>
-
-                setTimeout(
-
-                    resolve,
-
-                    100
-
-                )
-
-            );
-
-
-        }
-
-
-
-        if(
-
-            typeof window.google ===
-
-            "undefined" ||
-
-            !window.google.accounts ||
-
-            !window.google.accounts.id
-
-        ){
-
-
-            console.warn(
-
-                "Google Identity Services não foi carregado."
-
-            );
-
-
-            return false;
-
-
-        }
-
-
-
-        try{
-
-
-            const module =
-
-            await import(
-
-                "./login.js"
-
-            );
-
-
-
-            const logincontroller =
-
-            module.default;
-
-
-
-            if(
-
-                !logincontroller ||
-
-                typeof logincontroller
-
-                    .initializeGoogleLogin !==
-
-                "function"
-
-            ){
-
-
-                console.warn(
-
-                    "Login controller Google não disponível."
-
-                );
-
-
-                return false;
-
-
-            }
-
-
-
-            const initialized =
-
-            logincontroller
-
-                .initializeGoogleLogin(
-
-                    this.googleClientId
-
-                );
-
-
-
-            this.googleInitialized =
-
-                initialized === true;
-
-
-
-            return this.googleInitialized;
-
-
-        }
-
-
-        catch(error){
-
-
-            console.error(
-
-                "GOOGLE INITIALIZATION ERROR:",
-
-                error
-
-            );
-
-
-            return false;
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
     SET SESSION
     ==========================================
     */
@@ -1401,16 +1203,23 @@ class AuthManager {
 
 
 
-        this.token = token;
+        this.token =
+
+            String(
+
+                token
+
+            );
+
 
 
         this.user =
 
-        this.normalizeUser(
+            this.normalizeUser(
 
-            user
+                user
 
-        );
+            );
 
 
 
@@ -1418,7 +1227,7 @@ class AuthManager {
 
             "honey_token",
 
-            token
+            this.token
 
         );
 
@@ -1435,7 +1244,6 @@ class AuthManager {
 
 
         this.loading = false;
-
 
 
         this.notify();
@@ -1642,7 +1450,7 @@ class AuthManager {
 
         const currentToken =
 
-        this.token;
+            this.token;
 
 
 
@@ -1658,21 +1466,19 @@ class AuthManager {
 
                     {
 
-                        method:"POST",
+                        method: "POST",
 
-
-                        headers:{
+                        headers: {
 
                             "Authorization":
 
-                            `Bearer ${currentToken}`,
+                                `Bearer ${currentToken}`,
 
                             "Accept":
 
-                            "application/json"
+                                "application/json"
 
                         }
-
 
                     }
 
@@ -1690,7 +1496,7 @@ class AuthManager {
 
             console.warn(
 
-                "Não foi possível encerrar a sessão no servidor:",
+                "AUTH LOGOUT SERVER ERROR:",
 
                 error
 
@@ -1739,9 +1545,8 @@ class AuthManager {
         this.token = null;
 
 
-        this.googleInitialized =
+        this.loading = false;
 
-        false;
 
 
         localStorage.removeItem(
@@ -1756,10 +1561,6 @@ class AuthManager {
             "honey_user"
 
         );
-
-
-
-        this.loading = false;
 
 
 
@@ -1813,39 +1614,37 @@ class AuthManager {
 
             const response =
 
-            await fetch(
+                await fetch(
 
-                "/api/auth/me",
+                    "/api/auth/me",
 
-                {
+                    {
 
-                    method:"GET",
+                        method: "GET",
 
+                        headers: {
 
-                    headers:{
+                            ...this.getAuthHeader(),
 
-                        ...this.getAuthHeader(),
+                            "Accept":
 
-                        "Accept":
+                                "application/json"
 
-                        "application/json"
+                        }
 
                     }
 
-
-                }
-
-            );
+                );
 
 
 
             const data =
 
-            await this.parseResponse(
+                await this.parseResponse(
 
-                response
+                    response
 
-            );
+                );
 
 
 
@@ -1862,11 +1661,11 @@ class AuthManager {
 
                 this.user =
 
-                this.normalizeUser(
+                    this.normalizeUser(
 
-                    data.user
+                        data.user
 
-                );
+                    );
 
 
                 this.saveUser();
@@ -1894,11 +1693,14 @@ class AuthManager {
                 this.clearSession();
 
 
+                return null;
+
+
             }
 
 
 
-            return null;
+            return this.user;
 
 
         }
@@ -1909,7 +1711,7 @@ class AuthManager {
 
             console.error(
 
-                "Erro ao atualizar utilizador:",
+                "AUTH REFRESH USER ERROR:",
 
                 error
 
@@ -1957,7 +1759,7 @@ class AuthManager {
 
             "Authorization":
 
-            `Bearer ${this.token}`
+                `Bearer ${this.token}`
 
         };
 
@@ -1983,12 +1785,13 @@ class AuthManager {
 
         url,
 
-        options={}
+        options = {}
 
     ){
 
 
         const headers = {
+
 
             ...(options.headers || {}),
 
@@ -2000,25 +1803,25 @@ class AuthManager {
 
         const response =
 
-        await fetch(
+            await fetch(
 
-            url,
+                url,
 
-            {
+                {
 
-                ...options,
+                    ...options,
 
-                headers
+                    headers
 
-            }
+                }
 
-        );
+            );
 
 
 
         /*
         --------------------------------------
-        Automatic session invalidation
+        Protected session invalidation
         --------------------------------------
         */
 
@@ -2032,16 +1835,9 @@ class AuthManager {
         ){
 
 
-            /*
-            Do not immediately destroy the
-            session on every protected request
-            unless the server confirms it.
-            */
-
-
             const clone =
 
-            response.clone();
+                response.clone();
 
 
 
@@ -2050,31 +1846,43 @@ class AuthManager {
 
                 const data =
 
-                await clone.json();
+                    await clone.json();
 
 
 
-                if(
+                const errorMessage =
 
-                    data?.error &&
+                    String(
 
-                    (
+                        data?.error ||
 
-                        data.error
+                        data?.message ||
 
-                            .toLowerCase()
-
-                            .includes("sessão") ||
-
-                        data.error
-
-                            .toLowerCase()
-
-                            .includes("token")
+                        ""
 
                     )
 
-                ){
+                    .toLowerCase();
+
+
+
+                const sessionError =
+
+                    errorMessage.includes("sessão") ||
+
+                    errorMessage.includes("session") ||
+
+                    errorMessage.includes("token") ||
+
+                    errorMessage.includes("unauthorized") ||
+
+                    errorMessage.includes("não autorizado") ||
+
+                    errorMessage.includes("unauthorized");
+
+
+
+                if(sessionError){
 
 
                     this.clearSession();
@@ -2137,9 +1945,7 @@ class AuthManager {
 
             const contentType =
 
-            response.headers
-
-                .get(
+                response.headers.get(
 
                     "content-type"
 
@@ -2150,6 +1956,8 @@ class AuthManager {
             if(
 
                 !contentType
+
+                    .toLowerCase()
 
                     .includes(
 
@@ -2162,11 +1970,13 @@ class AuthManager {
 
                 return {
 
-                    success:false,
+
+                    success: false,
+
 
                     error:
 
-                    `Resposta inválida do servidor (${response.status}).`
+                        `Resposta inválida do servidor (${response.status}).`
 
                 };
 
@@ -2186,7 +1996,7 @@ class AuthManager {
 
             console.error(
 
-                "Resposta inválida do servidor:",
+                "AUTH RESPONSE PARSE ERROR:",
 
                 error
 
@@ -2196,11 +2006,13 @@ class AuthManager {
 
             return {
 
-                success:false,
+
+                success: false,
+
 
                 error:
 
-                "Resposta inválida do servidor."
+                    "Resposta inválida do servidor."
 
             };
 
@@ -2230,14 +2042,12 @@ class AuthManager {
 
         if(
 
-            typeof callback !==
-
-            "function"
+            typeof callback !== "function"
 
         ){
 
 
-            return ()=>{};
+            return () => {};
 
 
         }
@@ -2252,25 +2062,18 @@ class AuthManager {
 
 
 
-        /*
-        --------------------------------------
-        Return unsubscribe function
-        --------------------------------------
-        */
-
-
-        return ()=>{
+        return () => {
 
 
             this.listeners =
 
-            this.listeners.filter(
+                this.listeners.filter(
 
-                listener =>
+                    listener =>
 
-                listener !== callback
+                        listener !== callback
 
-            );
+                );
 
 
         };
@@ -2296,6 +2099,14 @@ class AuthManager {
     notify(){
 
 
+        if(!Array.isArray(this.listeners)){
+
+            return;
+
+        }
+
+
+
         this.listeners.forEach(
 
             callback => {
@@ -2319,7 +2130,7 @@ class AuthManager {
 
                     console.error(
 
-                        "Auth listener error:",
+                        "AUTH LISTENER ERROR:",
 
                         error
 
@@ -2353,7 +2164,7 @@ class AuthManager {
 
     requireAuth(
 
-        redirect="/"
+        redirect = "/"
 
     ){
 
@@ -2367,7 +2178,7 @@ class AuthManager {
 
             window.location.href =
 
-            redirect;
+                redirect;
 
 
             return false;
@@ -2399,7 +2210,7 @@ class AuthManager {
 
     requirePlan(
 
-        allowedPlans=[]
+        allowedPlans = []
 
     ){
 
@@ -2461,25 +2272,25 @@ class AuthManager {
 
         const firstName =
 
-        this.user.firstName ||
+            this.user.firstName ||
 
-        "";
+            "";
 
 
 
         const lastName =
 
-        this.user.lastName ||
+            this.user.lastName ||
 
-        "";
+            "";
 
 
 
         const fullName =
 
-        `${firstName} ${lastName}`
+            `${firstName} ${lastName}`
 
-        .trim();
+                .trim();
 
 
 
@@ -2588,8 +2399,13 @@ class AuthManager {
     }
 
 
-
 }
+
+
+
+
+
+
 
 
 
@@ -2602,7 +2418,13 @@ GLOBAL AUTH INSTANCE
 
 const authmanager =
 
-new AuthManager();
+    new AuthManager();
+
+
+
+
+
+
 
 
 
