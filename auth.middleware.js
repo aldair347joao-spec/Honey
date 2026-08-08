@@ -3,7 +3,7 @@
 HONEY IA OS
 AUTH MIDDLEWARE
 JWT + MONGODB SESSION VALIDATION
-V5.0
+V6.0
 Enterprise Authentication Layer
 Production Security
 ==========================================
@@ -20,6 +20,7 @@ import {
     Session
 
 } from "./models.js";
+
 
 
 /*
@@ -44,6 +45,7 @@ const AUTH_CONFIG = {
 };
 
 
+
 /*
 ==========================================
 SECURITY CHECK
@@ -61,9 +63,10 @@ if(!JWT_SECRET){
 }
 
 
+
 /*
 ==========================================
-SAFE ERROR RESPONSE
+SAFE ERROR
 ==========================================
 */
 
@@ -77,20 +80,25 @@ function sendAuthError(
 
 ){
 
-    return res.status(status).json({
+    return res
 
-        success: false,
+        .status(status)
 
-        error: message
+        .json({
 
-    });
+            success: false,
+
+            error: message
+
+        });
 
 }
 
 
+
 /*
 ==========================================
-EXTRACT BEARER TOKEN
+EXTRACT TOKEN
 ==========================================
 */
 
@@ -143,6 +151,7 @@ export function extractAuthToken(req){
 }
 
 
+
 /*
 ==========================================
 VALIDATE OBJECT ID
@@ -160,6 +169,7 @@ function isValidUserId(id){
     );
 
 }
+
 
 
 /*
@@ -210,10 +220,10 @@ function verifyToken(token){
 }
 
 
+
 /*
 ==========================================
 AUTH MIDDLEWARE
-REQUIRED AUTHENTICATION
 ==========================================
 */
 
@@ -421,31 +431,10 @@ export async function authMiddleware(
         }
 
 
-        if(
-
-            decoded.email &&
-
-            typeof decoded.email !== "string"
-
-        ){
-
-            return sendAuthError(
-
-                res,
-
-                401,
-
-                "Token inválido."
-
-            );
-
-        }
-
-
         /*
-        ==================================
-        DATABASE SESSION
-        ==================================
+        ----------------------------------
+        SESSION
+        ----------------------------------
         */
 
         const session =
@@ -477,16 +466,18 @@ export async function authMiddleware(
 
 
         /*
-        ==================================
+        ----------------------------------
         SESSION EXPIRATION
-        ==================================
+        ----------------------------------
         */
 
         if(
 
             !session.expiresAt ||
 
-            session.expiresAt <= new Date()
+            session.expiresAt <=
+
+                new Date()
 
         ){
 
@@ -513,9 +504,9 @@ export async function authMiddleware(
 
 
         /*
-        ==================================
-        FIND USER
-        ==================================
+        ----------------------------------
+        USER
+        ----------------------------------
         */
 
         const user =
@@ -552,9 +543,9 @@ export async function authMiddleware(
 
 
         /*
-        ==================================
-        VERIFY TOKEN EMAIL
-        ==================================
+        ----------------------------------
+        EMAIL CONSISTENCY
+        ----------------------------------
         */
 
         if(
@@ -566,13 +557,6 @@ export async function authMiddleware(
                 decoded.email
 
         ){
-
-            console.warn(
-
-                "⚠️ AUTH: Email do token não corresponde ao utilizador."
-
-            );
-
 
             await Session.deleteOne({
 
@@ -597,9 +581,9 @@ export async function authMiddleware(
 
 
         /*
-        ==================================
+        ----------------------------------
         ACCOUNT STATUS
-        ==================================
+        ----------------------------------
         */
 
         if(!user.isActive){
@@ -627,19 +611,13 @@ export async function authMiddleware(
 
 
         /*
-        ==================================
+        ----------------------------------
         ATTACH USER
-        ==================================
+        ----------------------------------
         */
 
         req.user = user;
 
-
-        /*
-        ==================================
-        ATTACH AUTH CONTEXT
-        ==================================
-        */
 
         req.auth = {
 
@@ -700,6 +678,7 @@ export async function authMiddleware(
     }
 
 }
+
 
 
 /*
@@ -770,9 +749,10 @@ export async function optionalAuth(
 }
 
 
+
 /*
 ==========================================
-GET AUTH TOKEN
+HELPERS
 ==========================================
 */
 
@@ -791,24 +771,12 @@ export function getAuthToken(req){
 }
 
 
-/*
-==========================================
-GET AUTH USER
-==========================================
-*/
-
 export function getAuthUser(req){
 
     return req.user || null;
 
 }
 
-
-/*
-==========================================
-GET AUTH USER ID
-==========================================
-*/
 
 export function getAuthUserId(req){
 
@@ -825,12 +793,6 @@ export function getAuthUserId(req){
 }
 
 
-/*
-==========================================
-GET AUTH PLAN
-==========================================
-*/
-
 export function getAuthPlan(req){
 
     return (
@@ -846,12 +808,6 @@ export function getAuthPlan(req){
 }
 
 
-/*
-==========================================
-CHECK AUTHENTICATION
-==========================================
-*/
-
 export function isAuthenticated(req){
 
     return Boolean(
@@ -864,12 +820,6 @@ export function isAuthenticated(req){
 
 }
 
-
-/*
-==========================================
-CHECK PLAN
-==========================================
-*/
 
 export function hasPlan(
 
@@ -901,6 +851,7 @@ export function hasPlan(
     );
 
 }
+
 
 
 /*
@@ -956,23 +907,27 @@ export function requirePlan(
 
         ){
 
-            return res.status(403).json({
+            return res
 
-                success: false,
+                .status(403)
 
-                error:
+                .json({
 
-                    "O seu plano atual não permite esta funcionalidade.",
+                    success: false,
 
-                plan:
+                    error:
 
-                    getAuthPlan(req),
+                        "O seu plano atual não permite esta funcionalidade.",
 
-                requiredPlans:
+                    plan:
 
-                    allowedPlans
+                        getAuthPlan(req),
 
-            });
+                    requiredPlans:
+
+                        allowedPlans
+
+                });
 
         }
 
@@ -984,9 +939,10 @@ export function requirePlan(
 }
 
 
+
 /*
 ==========================================
-CLEAN EXPIRED SESSION
+CLEAN SESSION
 ==========================================
 */
 
@@ -1043,6 +999,7 @@ export async function cleanupExpiredSession(
     }
 
 }
+
 
 
 /*
