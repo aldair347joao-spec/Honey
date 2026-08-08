@@ -3,11 +3,11 @@
 HONEY IA OS
 AUTH MIDDLEWARE
 JWT + MONGODB SESSION VALIDATION
-V4.0
+V5.0
 Enterprise Authentication Layer
+Production Security
 ==========================================
 */
-
 
 import jwt from "jsonwebtoken";
 
@@ -22,25 +22,15 @@ import {
 } from "./models.js";
 
 
-
 /*
 ==========================================
 CONFIGURATION
 ==========================================
 */
 
-
 const JWT_SECRET =
 
     process.env.JWT_SECRET;
-
-
-
-/*
-==========================================
-SESSION CONFIGURATION
-==========================================
-*/
 
 
 const AUTH_CONFIG = {
@@ -54,13 +44,11 @@ const AUTH_CONFIG = {
 };
 
 
-
 /*
 ==========================================
-SECURITY CONFIGURATION
+SECURITY CHECK
 ==========================================
 */
-
 
 if(!JWT_SECRET){
 
@@ -73,14 +61,11 @@ if(!JWT_SECRET){
 }
 
 
-
 /*
 ==========================================
-UTILITY
 SAFE ERROR RESPONSE
 ==========================================
 */
-
 
 function sendAuthError(
 
@@ -103,21 +88,17 @@ function sendAuthError(
 }
 
 
-
 /*
 ==========================================
 EXTRACT BEARER TOKEN
 ==========================================
 */
 
-
 export function extractAuthToken(req){
-
 
     const authorization =
 
         req.headers.authorization;
-
 
 
     if(
@@ -131,7 +112,6 @@ export function extractAuthToken(req){
         return null;
 
     }
-
 
 
     if(
@@ -149,7 +129,6 @@ export function extractAuthToken(req){
     }
 
 
-
     const token =
 
         authorization
@@ -159,19 +138,9 @@ export function extractAuthToken(req){
             .trim();
 
 
-
-    if(!token){
-
-        return null;
-
-    }
-
-
-
-    return token;
+    return token || null;
 
 }
-
 
 
 /*
@@ -180,9 +149,7 @@ VALIDATE OBJECT ID
 ==========================================
 */
 
-
 function isValidUserId(id){
-
 
     return (
 
@@ -195,16 +162,13 @@ function isValidUserId(id){
 }
 
 
-
 /*
 ==========================================
 VERIFY JWT
 ==========================================
 */
 
-
 function verifyToken(token){
-
 
     if(!JWT_SECRET){
 
@@ -215,7 +179,6 @@ function verifyToken(token){
         );
 
     }
-
 
 
     return jwt.verify(
@@ -230,7 +193,15 @@ function verifyToken(token){
 
                 AUTH_CONFIG.algorithm
 
-            ]
+            ],
+
+            issuer:
+
+                AUTH_CONFIG.issuer,
+
+            audience:
+
+                AUTH_CONFIG.audience
 
         }
 
@@ -239,14 +210,12 @@ function verifyToken(token){
 }
 
 
-
 /*
 ==========================================
 AUTH MIDDLEWARE
 REQUIRED AUTHENTICATION
 ==========================================
 */
-
 
 export async function authMiddleware(
 
@@ -258,26 +227,9 @@ export async function authMiddleware(
 
 ){
 
-
     try{
 
-
-        /*
-        ==================================
-        1. JWT SECRET
-        ==================================
-        */
-
-
         if(!JWT_SECRET){
-
-            console.error(
-
-                "❌ AUTH: JWT_SECRET não configurado."
-
-            );
-
-
 
             return sendAuthError(
 
@@ -292,22 +244,12 @@ export async function authMiddleware(
         }
 
 
-
-        /*
-        ==================================
-        2. EXTRACT TOKEN
-        ==================================
-        */
-
-
         const token =
 
             extractAuthToken(req);
 
 
-
         if(!token){
-
 
             return sendAuthError(
 
@@ -322,30 +264,18 @@ export async function authMiddleware(
         }
 
 
-
-        /*
-        ==================================
-        3. VERIFY JWT
-        ==================================
-        */
-
-
         let decoded;
 
 
-
         try{
-
 
             decoded =
 
                 verifyToken(token);
 
-
         }
 
         catch(error){
-
 
             if(
 
@@ -366,7 +296,6 @@ export async function authMiddleware(
                 );
 
             }
-
 
 
             if(
@@ -390,7 +319,6 @@ export async function authMiddleware(
             }
 
 
-
             if(
 
                 error.name ===
@@ -412,7 +340,6 @@ export async function authMiddleware(
             }
 
 
-
             console.error(
 
                 "JWT VERIFY ERROR:",
@@ -420,7 +347,6 @@ export async function authMiddleware(
                 error
 
             );
-
 
 
             return sendAuthError(
@@ -434,14 +360,6 @@ export async function authMiddleware(
             );
 
         }
-
-
-
-        /*
-        ==================================
-        4. VALIDATE JWT PAYLOAD
-        ==================================
-        */
 
 
         if(
@@ -465,7 +383,6 @@ export async function authMiddleware(
         }
 
 
-
         if(!decoded.id){
 
             return sendAuthError(
@@ -479,7 +396,6 @@ export async function authMiddleware(
             );
 
         }
-
 
 
         if(
@@ -505,14 +421,6 @@ export async function authMiddleware(
         }
 
 
-
-        /*
-        ==================================
-        5. OPTIONAL EMAIL VALIDATION
-        ==================================
-        */
-
-
         if(
 
             decoded.email &&
@@ -534,13 +442,11 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        6. FIND DATABASE SESSION
+        DATABASE SESSION
         ==================================
         */
-
 
         const session =
 
@@ -553,7 +459,6 @@ export async function authMiddleware(
                     decoded.id
 
             });
-
 
 
         if(!session){
@@ -571,13 +476,11 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        7. CHECK SESSION EXPIRATION
+        SESSION EXPIRATION
         ==================================
         */
-
 
         if(
 
@@ -587,7 +490,6 @@ export async function authMiddleware(
 
         ){
 
-
             await Session.deleteOne({
 
                 _id:
@@ -595,7 +497,6 @@ export async function authMiddleware(
                     session._id
 
             });
-
 
 
             return sendAuthError(
@@ -611,13 +512,11 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        8. FIND USER
+        FIND USER
         ==================================
         */
-
 
         const user =
 
@@ -628,16 +527,7 @@ export async function authMiddleware(
             );
 
 
-
         if(!user){
-
-
-            /*
-            ------------------------------
-            Remove orphan session
-            ------------------------------
-            */
-
 
             await Session.deleteOne({
 
@@ -646,7 +536,6 @@ export async function authMiddleware(
                     session._id
 
             });
-
 
 
             return sendAuthError(
@@ -662,19 +551,19 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        9. VERIFY TOKEN EMAIL
+        VERIFY TOKEN EMAIL
         ==================================
         */
-
 
         if(
 
             decoded.email &&
 
-            user.email !== decoded.email
+            user.email !==
+
+                decoded.email
 
         ){
 
@@ -685,7 +574,6 @@ export async function authMiddleware(
             );
 
 
-
             await Session.deleteOne({
 
                 _id:
@@ -693,7 +581,6 @@ export async function authMiddleware(
                     session._id
 
             });
-
 
 
             return sendAuthError(
@@ -709,16 +596,13 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        10. ACCOUNT STATUS
+        ACCOUNT STATUS
         ==================================
         */
 
-
         if(!user.isActive){
-
 
             await Session.deleteOne({
 
@@ -727,7 +611,6 @@ export async function authMiddleware(
                     session._id
 
             });
-
 
 
             return sendAuthError(
@@ -743,24 +626,20 @@ export async function authMiddleware(
         }
 
 
-
         /*
         ==================================
-        11. ATTACH USER
+        ATTACH USER
         ==================================
         */
-
 
         req.user = user;
 
 
-
         /*
         ==================================
-        12. ATTACH AUTH CONTEXT
+        ATTACH AUTH CONTEXT
         ==================================
         */
-
 
         req.auth = {
 
@@ -780,31 +659,24 @@ export async function authMiddleware(
 
             provider:
 
-                user.provider || "local",
+                user.provider ||
+
+                "local",
 
             plan:
 
-                user.plan || "free"
+                user.plan ||
+
+                "free"
 
         };
 
 
-
-        /*
-        ==================================
-        13. CONTINUE REQUEST
-        ==================================
-        */
-
-
         return next();
-
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -813,7 +685,6 @@ export async function authMiddleware(
             error
 
         );
-
 
 
         return sendAuthError(
@@ -831,14 +702,11 @@ export async function authMiddleware(
 }
 
 
-
 /*
 ==========================================
 OPTIONAL AUTH
-PUBLIC + AUTHENTICATED REQUESTS
 ==========================================
 */
-
 
 export async function optionalAuth(
 
@@ -850,21 +718,11 @@ export async function optionalAuth(
 
 ){
 
-
     try{
-
 
         const token =
 
             extractAuthToken(req);
-
-
-
-        /*
-        ----------------------------------
-        No token
-        ----------------------------------
-        */
 
 
         if(!token){
@@ -878,14 +736,6 @@ export async function optionalAuth(
         }
 
 
-
-        /*
-        ----------------------------------
-        Token supplied
-        ----------------------------------
-        */
-
-
         return authMiddleware(
 
             req,
@@ -896,12 +746,9 @@ export async function optionalAuth(
 
         );
 
-
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -912,12 +759,9 @@ export async function optionalAuth(
         );
 
 
-
         req.user = null;
 
         req.auth = null;
-
-
 
         return next();
 
@@ -926,16 +770,13 @@ export async function optionalAuth(
 }
 
 
-
 /*
 ==========================================
 GET AUTH TOKEN
 ==========================================
 */
 
-
 export function getAuthToken(req){
-
 
     return (
 
@@ -950,27 +791,17 @@ export function getAuthToken(req){
 }
 
 
-
 /*
 ==========================================
 GET AUTH USER
 ==========================================
 */
 
-
 export function getAuthUser(req){
 
-
-    return (
-
-        req.user ||
-
-        null
-
-    );
+    return req.user || null;
 
 }
-
 
 
 /*
@@ -979,9 +810,7 @@ GET AUTH USER ID
 ==========================================
 */
 
-
 export function getAuthUserId(req){
-
 
     return (
 
@@ -996,16 +825,13 @@ export function getAuthUserId(req){
 }
 
 
-
 /*
 ==========================================
 GET AUTH PLAN
 ==========================================
 */
 
-
 export function getAuthPlan(req){
-
 
     return (
 
@@ -1020,16 +846,13 @@ export function getAuthPlan(req){
 }
 
 
-
 /*
 ==========================================
 CHECK AUTHENTICATION
 ==========================================
 */
 
-
 export function isAuthenticated(req){
-
 
     return Boolean(
 
@@ -1042,13 +865,11 @@ export function isAuthenticated(req){
 }
 
 
-
 /*
 ==========================================
 CHECK PLAN
 ==========================================
 */
-
 
 export function hasPlan(
 
@@ -1058,29 +879,28 @@ export function hasPlan(
 
 ){
 
+    if(
 
-    if(!Array.isArray(allowedPlans)){
+        !Array.isArray(
+
+            allowedPlans
+
+        )
+
+    ){
 
         return false;
 
     }
 
 
-
-    const plan =
-
-        getAuthPlan(req);
-
-
-
     return allowedPlans.includes(
 
-        plan
+        getAuthPlan(req)
 
     );
 
 }
-
 
 
 /*
@@ -1089,13 +909,11 @@ PLAN MIDDLEWARE
 ==========================================
 */
 
-
 export function requirePlan(
 
     allowedPlans = []
 
 ){
-
 
     return function(
 
@@ -1106,7 +924,6 @@ export function requirePlan(
         next
 
     ){
-
 
         if(
 
@@ -1125,7 +942,6 @@ export function requirePlan(
             );
 
         }
-
 
 
         if(
@@ -1161,7 +977,6 @@ export function requirePlan(
         }
 
 
-
         return next();
 
     };
@@ -1169,14 +984,11 @@ export function requirePlan(
 }
 
 
-
 /*
 ==========================================
 CLEAN EXPIRED SESSION
-HELPER
 ==========================================
 */
-
 
 export async function cleanupExpiredSession(
 
@@ -1184,14 +996,11 @@ export async function cleanupExpiredSession(
 
 ){
 
-
     try{
-
 
         const token =
 
             getAuthToken(req);
-
 
 
         if(!token){
@@ -1199,7 +1008,6 @@ export async function cleanupExpiredSession(
             return false;
 
         }
-
 
 
         const result =
@@ -1211,19 +1019,15 @@ export async function cleanupExpiredSession(
             });
 
 
-
         return (
 
             result.deletedCount > 0
 
         );
 
-
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1234,7 +1038,6 @@ export async function cleanupExpiredSession(
         );
 
 
-
         return false;
 
     }
@@ -1242,13 +1045,11 @@ export async function cleanupExpiredSession(
 }
 
 
-
 /*
 ==========================================
-EXPORT CONTROLLER
+EXPORT
 ==========================================
 */
-
 
 export default {
 
