@@ -3,7 +3,7 @@
 HONEY IA OS
 AUTH ROUTES
 Authentication API
-V5.0
+V4.1
 Local + Google + Session Management
 Email Verification
 Google Configuration
@@ -89,7 +89,7 @@ function handleError(
 
 /*
 ==========================================
-GOOGLE CONFIG
+GOOGLE CONFIGURATION
 GET /api/auth/google-config
 ==========================================
 */
@@ -100,43 +100,83 @@ router.get(
 
     (req,res)=>{
 
-        const clientId =
-
-            String(
-
-                process.env.GOOGLE_CLIENT_ID ||
-
-                ""
-
-            ).trim();
+        try{
 
 
-        if(!clientId){
+            const clientId =
 
-            return res
+                String(
 
-                .status(503)
+                    process.env.GOOGLE_CLIENT_ID ||
 
-                .json({
+                    ""
 
-                    success: false,
+                ).trim();
 
-                    error:
 
-                        "Google Client ID não configurado."
 
-                });
+            /*
+            ----------------------------------
+            GOOGLE NÃO CONFIGURADO
+            ----------------------------------
+            */
+
+            if(!clientId){
+
+                return res
+
+                    .status(503)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Login Google não configurado no servidor."
+
+                    });
+
+            }
+
+
+
+            /*
+            ----------------------------------
+            PUBLIC GOOGLE CONFIG
+            ----------------------------------
+
+            O Client ID é público por natureza.
+            Nunca devolver aqui:
+
+            - GOOGLE_CLIENT_SECRET
+            - JWT_SECRET
+            - outras credenciais privadas
+            ----------------------------------
+            */
+
+            return res.json({
+
+                success: true,
+
+                clientId
+
+            });
+
 
         }
 
+        catch(error){
 
-        return res.json({
+            return handleError(
 
-            success: true,
+                res,
 
-            clientId
+                error
 
-        });
+            );
+
+        }
 
     }
 
@@ -424,6 +464,7 @@ router.post(
             }
 
 
+
             /*
             ----------------------------------
             GOOGLE TOKEN VALIDATION
@@ -468,9 +509,11 @@ router.post(
             }
 
 
+
             const googleProfile =
 
                 await googleResponse.json();
+
 
 
             /*
@@ -509,6 +552,7 @@ router.post(
             }
 
 
+
             /*
             ----------------------------------
             AUDIENCE
@@ -523,7 +567,11 @@ router.post(
 
                 ) !==
 
-                googleClientId
+                String(
+
+                    googleClientId
+
+                )
 
             ){
 
@@ -542,6 +590,7 @@ router.post(
                     });
 
             }
+
 
 
             /*
@@ -588,6 +637,7 @@ router.post(
                     });
 
             }
+
 
 
             /*
@@ -638,6 +688,7 @@ router.post(
                     });
 
             }
+
 
 
             /*
