@@ -3,7 +3,7 @@
 HONEY IA OS
 LOGIN CONTROLLER
 Professional Authentication UI
-V7.0
+V8.0
 Google Identity Services
 Secure Authentication Flow
 ==========================================
@@ -36,7 +36,16 @@ class LoginController {
 
         this.googleClientId = "";
 
+        this.googleScriptPromise = null;
+
+
     }
+
+
+
+
+
+
 
 
 
@@ -45,6 +54,7 @@ class LoginController {
     INITIALIZE
     ==========================================
     */
+
 
     async init(){
 
@@ -55,22 +65,24 @@ class LoginController {
         --------------------------------------
         */
 
+
         if(this.initialized){
 
-            /*
-            If login already exists,
-            make sure it is visible.
-            */
 
             if(this.container){
 
+
                 this.showLoginInterface();
+
 
             }
 
+
             return;
 
+
         }
+
 
 
         this.initialized = true;
@@ -83,6 +95,7 @@ class LoginController {
         --------------------------------------
         */
 
+
         await authmanager.waitUntilReady();
 
 
@@ -93,13 +106,14 @@ class LoginController {
         --------------------------------------
         */
 
+
         if(authmanager.isAuthenticated()){
+
 
             this.hideLoginInterface();
 
-            this.redirectToWorkspace();
-
             return;
+
 
         }
 
@@ -107,15 +121,19 @@ class LoginController {
 
         /*
         --------------------------------------
-        CREATE LOGIN
+        CREATE LOGIN CONTAINER
         --------------------------------------
         */
 
+
         this.createContainer();
+
 
         this.showLoginInterface();
 
+
         this.render();
+
 
         this.attachEvents();
 
@@ -127,9 +145,17 @@ class LoginController {
         --------------------------------------
         */
 
+
         await this.setupGoogleLogin();
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -138,6 +164,7 @@ class LoginController {
     CREATE CONTAINER
     ==========================================
     */
+
 
     createContainer(){
 
@@ -151,11 +178,15 @@ class LoginController {
             );
 
 
+
         if(existing){
+
 
             this.container = existing;
 
+
             return;
+
 
         }
 
@@ -170,7 +201,9 @@ class LoginController {
             );
 
 
+
         div.id = "loginApp";
+
 
 
         div.setAttribute(
@@ -182,6 +215,7 @@ class LoginController {
         );
 
 
+
         document.body.appendChild(
 
             div
@@ -189,9 +223,17 @@ class LoginController {
         );
 
 
+
         this.container = div;
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -201,17 +243,22 @@ class LoginController {
     ==========================================
     */
 
+
     showLoginInterface(){
 
 
         if(!this.container){
 
+
             return;
+
 
         }
 
 
+
         this.container.style.display = "flex";
+
 
 
         this.container.classList.add(
@@ -231,13 +278,30 @@ class LoginController {
             );
 
 
+
         if(studio){
+
 
             studio.style.display = "none";
 
+
+            studio.classList.remove(
+
+                "auth-ready"
+
+            );
+
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -247,10 +311,12 @@ class LoginController {
     ==========================================
     */
 
+
     hideLoginInterface(){
 
 
         if(this.container){
+
 
             this.container.classList.remove(
 
@@ -260,6 +326,7 @@ class LoginController {
 
 
             this.container.style.display = "none";
+
 
         }
 
@@ -274,9 +341,12 @@ class LoginController {
             );
 
 
+
         if(studio){
 
+
             studio.style.display = "";
+
 
             studio.classList.add(
 
@@ -284,9 +354,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -296,12 +374,15 @@ class LoginController {
     ==========================================
     */
 
+
     render(){
 
 
         if(!this.container){
 
+
             return;
+
 
         }
 
@@ -322,11 +403,13 @@ class LoginController {
 
                     </div>
 
+
                     <h1>
 
                         Honey IA
 
                     </h1>
+
 
                     <p>
 
@@ -394,6 +477,7 @@ class LoginController {
 
                         </label>
 
+
                         <input
                             id="loginEmail"
                             type="email"
@@ -413,6 +497,7 @@ class LoginController {
                             Palavra-passe
 
                         </label>
+
 
                         <input
                             id="loginPassword"
@@ -473,6 +558,7 @@ class LoginController {
 
                         </label>
 
+
                         <input
                             id="registerNome"
                             type="text"
@@ -492,6 +578,7 @@ class LoginController {
                             Apelido
 
                         </label>
+
 
                         <input
                             id="registerApelido"
@@ -513,6 +600,7 @@ class LoginController {
 
                         </label>
 
+
                         <input
                             id="registerEmail"
                             type="email"
@@ -532,6 +620,7 @@ class LoginController {
                             Palavra-passe
 
                         </label>
+
 
                         <input
                             id="registerPassword"
@@ -560,6 +649,7 @@ class LoginController {
                             Confirmar palavra-passe
 
                         </label>
+
 
                         <input
                             id="registerConfirm"
@@ -645,6 +735,7 @@ class LoginController {
 
                         </label>
 
+
                         <input
                             id="verifyCode"
                             type="text"
@@ -718,7 +809,14 @@ class LoginController {
 
         `;
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -727,6 +825,7 @@ class LoginController {
     ATTACH EVENTS
     ==========================================
     */
+
 
     attachEvents(){
 
@@ -739,12 +838,14 @@ class LoginController {
             );
 
 
+
         document
             .getElementById("googleLogin")
             ?.addEventListener(
                 "click",
                 () => this.googleLogin()
             );
+
 
 
         document
@@ -755,12 +856,14 @@ class LoginController {
             );
 
 
+
         document
             .getElementById("verifyButton")
             ?.addEventListener(
                 "click",
                 () => this.verifyEmail()
             );
+
 
 
         document
@@ -771,12 +874,14 @@ class LoginController {
             );
 
 
+
         document
             .getElementById("showRegister")
             ?.addEventListener(
                 "click",
                 () => this.showMode("register")
             );
+
 
 
         document
@@ -787,6 +892,7 @@ class LoginController {
             );
 
 
+
         document
             .getElementById("backVerifyLogin")
             ?.addEventListener(
@@ -795,28 +901,45 @@ class LoginController {
             );
 
 
+
         this.attachEnterKey(
+
             "loginEmail",
+
             () => this.login()
+
         );
 
 
+
         this.attachEnterKey(
+
             "loginPassword",
+
             () => this.login()
+
         );
 
 
+
         this.attachEnterKey(
+
             "registerConfirm",
+
             () => this.register()
+
         );
+
 
 
         this.attachEnterKey(
+
             "verifyCode",
+
             () => this.verifyEmail()
+
         );
+
 
 
         const verifyCode =
@@ -828,20 +951,35 @@ class LoginController {
             );
 
 
+
         verifyCode?.addEventListener(
+
             "input",
+
             event => {
+
 
                 event.target.value =
 
                     event.target.value
+
                         .replace(/\D/g, "")
+
                         .slice(0, 6);
 
+
             }
+
         );
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -851,152 +989,236 @@ class LoginController {
     ==========================================
     */
 
+
     loadGoogleScript(){
 
 
-        return new Promise(
-
-            (resolve, reject) => {
+        if(this.googleScriptPromise){
 
 
-                if(
+            return this.googleScriptPromise;
 
-                    window.google &&
 
-                    window.google.accounts &&
-
-                    window.google.accounts.id
-
-                ){
-
-                    resolve();
-
-                    return;
-
-                }
+        }
 
 
 
-                const existing =
+        if(
 
-                    document.querySelector(
+            window.google &&
 
-                        'script[data-honey-google="true"]'
+            window.google.accounts &&
 
-                    );
+            window.google.accounts.id
 
-
-                if(existing){
-
-
-                    existing.addEventListener(
-                        "load",
-                        () => resolve(),
-                        { once:true }
-                    );
+        ){
 
 
-                    existing.addEventListener(
-                        "error",
-                        () => reject(
-                            new Error(
-                                "Não foi possível carregar o Google Identity Services."
-                            )
-                        ),
-                        { once:true }
-                    );
+            return Promise.resolve();
 
 
-                    return;
-
-                }
+        }
 
 
 
-                const script =
+        this.googleScriptPromise =
 
-                    document.createElement(
+            new Promise(
 
-                        "script"
-
-                    );
+                (resolve, reject) => {
 
 
-                script.src =
+                    const existing =
 
-                    "https://accounts.google.com/gsi/client";
+                        document.querySelector(
 
+                            'script[data-honey-google="true"]'
 
-                script.async = true;
-
-                script.defer = true;
-
-
-                script.dataset.honeyGoogle =
-
-                    "true";
+                        );
 
 
-                script.onload = () => {
+
+                    if(existing){
 
 
-                    if(
+                        const checkLoaded = () => {
 
-                        window.google &&
 
-                        window.google.accounts &&
+                            if(
 
-                        window.google.accounts.id
+                                window.google &&
 
-                    ){
+                                window.google.accounts &&
 
-                        resolve();
+                                window.google.accounts.id
+
+                            ){
+
+                                resolve();
+
+                            }
+
+                            else{
+
+                                reject(
+
+                                    new Error(
+
+                                        "Google Identity Services não está disponível."
+
+                                    )
+
+                                );
+
+                            }
+
+                        };
+
+
+
+                        existing.addEventListener(
+
+                            "load",
+
+                            checkLoaded,
+
+                            { once:true }
+
+                        );
+
+
+
+                        existing.addEventListener(
+
+                            "error",
+
+                            () => reject(
+
+                                new Error(
+
+                                    "Não foi possível carregar o Google Identity Services."
+
+                                )
+
+                            ),
+
+                            { once:true }
+
+                        );
+
+
+                        return;
+
 
                     }
 
-                    else{
+
+
+                    const script =
+
+                        document.createElement(
+
+                            "script"
+
+                        );
+
+
+
+                    script.src =
+
+                        "https://accounts.google.com/gsi/client";
+
+
+
+                    script.async = true;
+
+                    script.defer = true;
+
+
+
+                    script.dataset.honeyGoogle =
+
+                        "true";
+
+
+
+                    script.onload = () => {
+
+
+                        if(
+
+                            window.google &&
+
+                            window.google.accounts &&
+
+                            window.google.accounts.id
+
+                        ){
+
+                            resolve();
+
+                        }
+
+                        else{
+
+                            reject(
+
+                                new Error(
+
+                                    "Google Identity Services não está disponível."
+
+                                )
+
+                            );
+
+                        }
+
+
+                    };
+
+
+
+                    script.onerror = () => {
+
 
                         reject(
 
                             new Error(
 
-                                "Google Identity Services não está disponível."
+                                "Não foi possível carregar o Google Identity Services."
 
                             )
 
                         );
 
-                    }
 
-                };
+                    };
 
 
-                script.onerror = () => {
 
-                    reject(
+                    document.head.appendChild(
 
-                        new Error(
-
-                            "Não foi possível carregar o Google Identity Services."
-
-                        )
+                        script
 
                     );
 
-                };
+
+                }
+
+            );
 
 
-                document.head.appendChild(
 
-                    script
+        return this.googleScriptPromise;
 
-                );
-
-            }
-
-        );
 
     }
+
+
+
+
+
+
 
 
 
@@ -1005,6 +1227,7 @@ class LoginController {
     GOOGLE CLIENT ID
     ==========================================
     */
+
 
     async getGoogleClientId(){
 
@@ -1015,7 +1238,31 @@ class LoginController {
 
         ){
 
-            return window.HONEY_GOOGLE_CLIENT_ID;
+
+            return String(
+
+                window.HONEY_GOOGLE_CLIENT_ID
+
+            ).trim();
+
+
+        }
+
+
+
+        if(
+
+            window.GOOGLE_CLIENT_ID
+
+        ){
+
+
+            return String(
+
+                window.GOOGLE_CLIENT_ID
+
+            ).trim();
+
 
         }
 
@@ -1044,6 +1291,7 @@ class LoginController {
             );
 
 
+
         const data =
 
             await this.parseResponse(
@@ -1051,6 +1299,7 @@ class LoginController {
                 response
 
             );
+
 
 
         if(
@@ -1063,9 +1312,16 @@ class LoginController {
 
         ){
 
-            return data.clientId;
+
+            return String(
+
+                data.clientId
+
+            ).trim();
+
 
         }
+
 
 
         throw new Error(
@@ -1076,7 +1332,14 @@ class LoginController {
 
         );
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1085,6 +1348,7 @@ class LoginController {
     GOOGLE SETUP
     ==========================================
     */
+
 
     async setupGoogleLogin(){
 
@@ -1098,9 +1362,27 @@ class LoginController {
             );
 
 
+
         if(!button){
 
+
             return false;
+
+
+        }
+
+
+
+        if(this.googleInitialized){
+
+
+            button.disabled = false;
+
+            button.dataset.ready = "true";
+
+
+            return true;
+
 
         }
 
@@ -1112,12 +1394,18 @@ class LoginController {
             button.disabled = true;
 
 
+            button.dataset.ready = "false";
+
+
+
             await this.loadGoogleScript();
+
 
 
             this.googleClientId =
 
                 await this.getGoogleClientId();
+
 
 
             const initialized =
@@ -1129,7 +1417,9 @@ class LoginController {
                 );
 
 
+
             if(!initialized){
+
 
                 throw new Error(
 
@@ -1137,10 +1427,13 @@ class LoginController {
 
                 );
 
+
             }
 
 
+
             this.googleInitialized = true;
+
 
 
             button.disabled = false;
@@ -1148,9 +1441,12 @@ class LoginController {
             button.dataset.ready = "true";
 
 
+
             return true;
 
+
         }
+
 
         catch(error){
 
@@ -1164,12 +1460,15 @@ class LoginController {
             );
 
 
+
             this.googleInitialized = false;
+
 
 
             button.disabled = false;
 
             button.dataset.ready = "false";
+
 
 
             this.showMessage(
@@ -1181,11 +1480,20 @@ class LoginController {
             );
 
 
+
             return false;
+
 
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1194,6 +1502,7 @@ class LoginController {
     ENTER KEY
     ==========================================
     */
+
 
     attachEnterKey(
 
@@ -1221,17 +1530,28 @@ class LoginController {
 
                     ){
 
+
                         event.preventDefault();
+
 
                         callback();
 
+
                     }
+
 
                 }
 
             );
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1240,6 +1560,7 @@ class LoginController {
     LOGIN
     ==========================================
     */
+
 
     async login(){
 
@@ -1250,7 +1571,9 @@ class LoginController {
 
         ){
 
+
             return;
+
 
         }
 
@@ -1260,42 +1583,86 @@ class LoginController {
 
             document
 
-                .getElementById("loginEmail")
+                .getElementById(
+
+                    "loginEmail"
+
+                )
 
                 ?.value
 
-                .trim();
+                .trim()
+
+                .toLowerCase();
+
 
 
         const password =
 
             document
 
-                .getElementById("loginPassword")
+                .getElementById(
+
+                    "loginPassword"
+
+                )
 
                 ?.value;
 
 
+
         if(!email){
 
+
             this.showMessage(
+
                 "Digite o seu email.",
+
                 "error"
+
             );
 
+
             return;
+
 
         }
 
 
-        if(!password){
+
+        if(!this.isValidEmail(email)){
+
 
             this.showMessage(
-                "Digite a sua palavra-passe.",
+
+                "Digite um email válido.",
+
                 "error"
+
             );
 
+
             return;
+
+
+        }
+
+
+
+        if(!password){
+
+
+            this.showMessage(
+
+                "Digite a sua palavra-passe.",
+
+                "error"
+
+            );
+
+
+            return;
+
 
         }
 
@@ -1304,11 +1671,17 @@ class LoginController {
         this.loadingActions.add("login");
 
 
+
         this.setLoading(
+
             "loginButton",
+
             true,
+
             "Entrando..."
+
         );
+
 
 
         this.clearMessage();
@@ -1327,8 +1700,6 @@ class LoginController {
             });
 
 
-            this.hideLoginInterface();
-
 
             this.showMessage(
 
@@ -1339,17 +1710,28 @@ class LoginController {
             );
 
 
-            this.redirectToWorkspace(400);
+
+            this.hideLoginInterface();
+
+
+
+            this.redirectToWorkspace(350);
+
 
         }
+
 
         catch(error){
 
 
             console.error(
+
                 "LOGIN ERROR:",
+
                 error
+
             );
+
 
 
             this.showMessage(
@@ -1362,7 +1744,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         finally{
 
@@ -1372,6 +1756,7 @@ class LoginController {
                 "login"
 
             );
+
 
 
             this.setLoading(
@@ -1384,9 +1769,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1395,6 +1788,7 @@ class LoginController {
     REGISTER
     ==========================================
     */
+
 
     async register(){
 
@@ -1405,7 +1799,9 @@ class LoginController {
 
         ){
 
+
             return;
+
 
         }
 
@@ -1414,39 +1810,79 @@ class LoginController {
         const firstName =
 
             document
-                .getElementById("registerNome")
+
+                .getElementById(
+
+                    "registerNome"
+
+                )
+
                 ?.value
+
                 .trim();
+
 
 
         const lastName =
 
             document
-                .getElementById("registerApelido")
+
+                .getElementById(
+
+                    "registerApelido"
+
+                )
+
                 ?.value
+
                 .trim();
+
 
 
         const email =
 
             document
-                .getElementById("registerEmail")
+
+                .getElementById(
+
+                    "registerEmail"
+
+                )
+
                 ?.value
-                .trim();
+
+                .trim()
+
+                .toLowerCase();
+
 
 
         const password =
 
             document
-                .getElementById("registerPassword")
+
+                .getElementById(
+
+                    "registerPassword"
+
+                )
+
                 ?.value;
+
 
 
         const confirmPassword =
 
             document
-                .getElementById("registerConfirm")
+
+                .getElementById(
+
+                    "registerConfirm"
+
+                )
+
                 ?.value;
+
 
 
         if(
@@ -1463,6 +1899,7 @@ class LoginController {
 
         ){
 
+
             this.showMessage(
 
                 "Preencha todos os campos.",
@@ -1471,12 +1908,87 @@ class LoginController {
 
             );
 
+
             return;
+
 
         }
 
 
+
+        if(!this.isValidEmail(email)){
+
+
+            this.showMessage(
+
+                "Digite um email válido.",
+
+                "error"
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
+        if(
+
+            password.length < 8
+
+        ){
+
+
+            this.showMessage(
+
+                "A palavra-passe deve ter pelo menos 8 caracteres.",
+
+                "error"
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
+        if(
+
+            !/[A-Z]/.test(password) ||
+
+            !/[a-z]/.test(password) ||
+
+            !/[0-9]/.test(password) ||
+
+            !/[^A-Za-z0-9]/.test(password)
+
+        ){
+
+
+            this.showMessage(
+
+                "A palavra-passe deve incluir maiúscula, minúscula, número e símbolo.",
+
+                "error"
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
         if(password !== confirmPassword){
+
 
             this.showMessage(
 
@@ -1486,13 +1998,16 @@ class LoginController {
 
             );
 
+
             return;
+
 
         }
 
 
 
         this.loadingActions.add("register");
+
 
 
         this.setLoading(
@@ -1504,6 +2019,7 @@ class LoginController {
             "A criar conta..."
 
         );
+
 
 
         this.clearMessage();
@@ -1530,7 +2046,31 @@ class LoginController {
                 });
 
 
+
             this.pendingEmail = email;
+
+
+
+            const description =
+
+                document.getElementById(
+
+                    "verifyDescription"
+
+                );
+
+
+
+            if(description){
+
+
+                description.textContent =
+
+                    `Enviámos um código de confirmação para ${email}.`;
+
+
+            }
+
 
 
             this.showMessage(
@@ -1544,17 +2084,24 @@ class LoginController {
             );
 
 
+
             this.showMode("verify");
 
+
         }
+
 
         catch(error){
 
 
             console.error(
+
                 "REGISTER ERROR:",
+
                 error
+
             );
+
 
 
             this.showMessage(
@@ -1567,7 +2114,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         finally{
 
@@ -1577,6 +2126,7 @@ class LoginController {
                 "register"
 
             );
+
 
 
             this.setLoading(
@@ -1589,9 +2139,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1600,6 +2158,7 @@ class LoginController {
     VERIFY EMAIL
     ==========================================
     */
+
 
     async verifyEmail(){
 
@@ -1610,7 +2169,9 @@ class LoginController {
 
         ){
 
+
             return;
+
 
         }
 
@@ -1619,12 +2180,21 @@ class LoginController {
         const code =
 
             document
-                .getElementById("verifyCode")
+
+                .getElementById(
+
+                    "verifyCode"
+
+                )
+
                 ?.value
+
                 .trim();
 
 
+
         if(!this.pendingEmail){
+
 
             this.showMessage(
 
@@ -1634,9 +2204,12 @@ class LoginController {
 
             );
 
+
             return;
 
+
         }
+
 
 
         if(
@@ -1647,6 +2220,7 @@ class LoginController {
 
         ){
 
+
             this.showMessage(
 
                 "Digite o código de 6 dígitos.",
@@ -1655,7 +2229,9 @@ class LoginController {
 
             );
 
+
             return;
+
 
         }
 
@@ -1664,12 +2240,17 @@ class LoginController {
         this.loadingActions.add("verify");
 
 
+
         this.setLoading(
 
             "verifyButton",
+
             true,
+
             "A confirmar..."
+
         );
+
 
 
         this.clearMessage();
@@ -1690,6 +2271,7 @@ class LoginController {
             });
 
 
+
             this.showMessage(
 
                 "Email confirmado com sucesso. Já pode entrar.",
@@ -1699,12 +2281,14 @@ class LoginController {
             );
 
 
+
             setTimeout(
 
                 () => {
 
 
                     this.showMode("login");
+
 
 
                     const emailInput =
@@ -1716,13 +2300,17 @@ class LoginController {
                         );
 
 
+
                     if(emailInput){
+
 
                         emailInput.value =
 
                             this.pendingEmail;
 
+
                     }
+
 
                 },
 
@@ -1730,7 +2318,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         catch(error){
 
@@ -1738,8 +2328,11 @@ class LoginController {
             console.error(
 
                 "VERIFY EMAIL ERROR:",
+
                 error
+
             );
+
 
 
             this.showMessage(
@@ -1752,7 +2345,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         finally{
 
@@ -1762,6 +2357,7 @@ class LoginController {
                 "verify"
 
             );
+
 
 
             this.setLoading(
@@ -1774,9 +2370,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1785,6 +2389,7 @@ class LoginController {
     RESEND VERIFICATION
     ==========================================
     */
+
 
     async resendVerificationCode(){
 
@@ -1795,13 +2400,16 @@ class LoginController {
 
         ){
 
+
             return;
+
 
         }
 
 
 
         if(!this.pendingEmail){
+
 
             this.showMessage(
 
@@ -1811,7 +2419,9 @@ class LoginController {
 
             );
 
+
             return;
+
 
         }
 
@@ -1820,29 +2430,32 @@ class LoginController {
         this.loadingActions.add("resend");
 
 
+
         this.setLoading(
 
             "resendCode",
+
             true,
+
             "A enviar..."
+
         );
+
+
+
+        this.clearMessage();
 
 
 
         try{
 
 
-            /*
-            IMPORTANTE:
-            auth.js possui resendVerification(),
-            não resendVerificationCode().
-            */
-
             await authmanager.resendVerification(
 
                 this.pendingEmail
 
             );
+
 
 
             this.showMessage(
@@ -1853,7 +2466,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         catch(error){
 
@@ -1861,8 +2476,11 @@ class LoginController {
             console.error(
 
                 "RESEND VERIFICATION ERROR:",
+
                 error
+
             );
+
 
 
             this.showMessage(
@@ -1875,7 +2493,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         finally{
 
@@ -1885,6 +2505,7 @@ class LoginController {
                 "resend"
 
             );
+
 
 
             this.setLoading(
@@ -1897,9 +2518,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -1909,12 +2538,15 @@ class LoginController {
     ==========================================
     */
 
+
     async googleLogin(){
 
 
         if(this.googleLoading){
 
+
             return;
+
 
         }
 
@@ -1932,6 +2564,7 @@ class LoginController {
 
         ){
 
+
             this.showMessage(
 
                 "O login Google ainda está a ser preparado.",
@@ -1941,16 +2574,21 @@ class LoginController {
             );
 
 
+
             const ready =
 
                 await this.setupGoogleLogin();
 
 
+
             if(!ready){
+
 
                 return;
 
+
             }
+
 
         }
 
@@ -1959,12 +2597,17 @@ class LoginController {
         this.googleLoading = true;
 
 
+
         this.setLoading(
 
             "googleLogin",
+
             true,
+
             "A conectar..."
+
         );
+
 
 
         this.clearMessage();
@@ -1985,16 +2628,18 @@ class LoginController {
 
                     ){
 
+
                         console.warn(
 
                             "Google prompt não apresentado:",
 
-                            notification
-                                .getNotDisplayedReason?.()
+                            notification.getNotDisplayedReason?.()
 
                         );
 
+
                     }
+
 
 
                     if(
@@ -2003,19 +2648,24 @@ class LoginController {
 
                     ){
 
+
                         console.warn(
 
                             "Google prompt ignorado."
 
                         );
 
+
                     }
+
 
                 }
 
             );
 
+
         }
+
 
         catch(error){
 
@@ -2023,19 +2673,27 @@ class LoginController {
             console.error(
 
                 "GOOGLE PROMPT ERROR:",
+
                 error
+
             );
+
 
 
             this.googleLoading = false;
 
 
+
             this.setLoading(
 
                 "googleLogin",
+
                 false,
+
                 "Continuar com Google"
+
             );
+
 
 
             this.showMessage(
@@ -2046,9 +2704,17 @@ class LoginController {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2057,6 +2723,7 @@ class LoginController {
     GOOGLE CREDENTIAL
     ==========================================
     */
+
 
     async handleGoogleCredential(
 
@@ -2071,12 +2738,17 @@ class LoginController {
             this.googleLoading = false;
 
 
+
             this.setLoading(
 
                 "googleLogin",
+
                 false,
+
                 "Continuar com Google"
+
             );
+
 
 
             this.showMessage(
@@ -2088,7 +2760,9 @@ class LoginController {
             );
 
 
+
             return;
+
 
         }
 
@@ -2097,8 +2771,11 @@ class LoginController {
         this.setLoading(
 
             "googleLogin",
+
             true,
+
             "A entrar..."
+
         );
 
 
@@ -2113,8 +2790,6 @@ class LoginController {
             );
 
 
-            this.hideLoginInterface();
-
 
             this.showMessage(
 
@@ -2125,9 +2800,16 @@ class LoginController {
             );
 
 
-            this.redirectToWorkspace(400);
+
+            this.hideLoginInterface();
+
+
+
+            this.redirectToWorkspace(350);
+
 
         }
+
 
         catch(error){
 
@@ -2135,8 +2817,11 @@ class LoginController {
             console.error(
 
                 "GOOGLE AUTH ERROR:",
+
                 error
+
             );
+
 
 
             this.showMessage(
@@ -2149,7 +2834,9 @@ class LoginController {
 
             );
 
+
         }
+
 
         finally{
 
@@ -2157,16 +2844,28 @@ class LoginController {
             this.googleLoading = false;
 
 
+
             this.setLoading(
 
                 "googleLogin",
+
                 false,
+
                 "Continuar com Google"
+
             );
+
 
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2176,16 +2875,20 @@ class LoginController {
     ==========================================
     */
 
+
     showMode(mode){
 
 
         const allowedModes = [
 
             "login",
+
             "register",
+
             "verify"
 
         ];
+
 
 
         if(
@@ -2194,9 +2897,12 @@ class LoginController {
 
         ){
 
+
             mode = "login";
 
+
         }
+
 
 
         this.mode = mode;
@@ -2205,20 +2911,33 @@ class LoginController {
 
         const modes = {
 
+
             login:
+
                 document.getElementById(
+
                     "loginMode"
+
                 ),
+
 
             register:
+
                 document.getElementById(
+
                     "registerMode"
+
                 ),
 
+
             verify:
+
                 document.getElementById(
+
                     "verifyMode"
+
                 )
+
 
         };
 
@@ -2231,6 +2950,7 @@ class LoginController {
 
                 if(element){
 
+
                     element.style.display =
 
                         name === mode
@@ -2239,7 +2959,9 @@ class LoginController {
 
                             : "none";
 
+
                 }
+
 
             }
 
@@ -2258,35 +2980,56 @@ class LoginController {
 
                 if(mode === "login"){
 
+
                     document
+
                         .getElementById(
+
                             "loginEmail"
+
                         )
+
                         ?.focus();
 
+
                 }
+
 
 
                 if(mode === "register"){
 
+
                     document
+
                         .getElementById(
+
                             "registerNome"
+
                         )
+
                         ?.focus();
 
+
                 }
+
 
 
                 if(mode === "verify"){
 
+
                     document
+
                         .getElementById(
+
                             "verifyCode"
+
                         )
+
                         ?.focus();
 
+
                 }
+
 
             },
 
@@ -2294,7 +3037,14 @@ class LoginController {
 
         );
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2304,9 +3054,11 @@ class LoginController {
     ==========================================
     */
 
+
     showMessage(
 
         message,
+
         type = "info"
 
     ){
@@ -2321,9 +3073,12 @@ class LoginController {
             );
 
 
+
         if(!element){
 
+
             return;
+
 
         }
 
@@ -2334,9 +3089,11 @@ class LoginController {
             message || "";
 
 
+
         element.className =
 
             `auth-message ${type}`;
+
 
 
         element.style.display =
@@ -2347,7 +3104,14 @@ class LoginController {
 
                 : "none";
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2356,6 +3120,7 @@ class LoginController {
     CLEAR MESSAGE
     ==========================================
     */
+
 
     clearMessage(){
 
@@ -2369,9 +3134,12 @@ class LoginController {
             );
 
 
+
         if(!element){
 
+
             return;
+
 
         }
 
@@ -2379,11 +3147,26 @@ class LoginController {
 
         element.textContent = "";
 
-        element.className = "auth-message";
 
-        element.style.display = "none";
+
+        element.className =
+
+            "auth-message";
+
+
+
+        element.style.display =
+
+            "none";
+
 
     }
+
+
+
+
+
+
 
 
 
@@ -2393,10 +3176,13 @@ class LoginController {
     ==========================================
     */
 
+
     setLoading(
 
         buttonId,
+
         loading,
+
         loadingText
 
     ){
@@ -2411,9 +3197,12 @@ class LoginController {
             );
 
 
+
         if(!button){
 
+
             return;
+
 
         }
 
@@ -2428,14 +3217,18 @@ class LoginController {
 
             ){
 
+
                 button.dataset.originalText =
 
                     button.textContent.trim();
 
+
             }
 
 
+
             button.disabled = true;
+
 
 
             button.classList.add(
@@ -2443,6 +3236,7 @@ class LoginController {
                 "loading"
 
             );
+
 
 
             button.innerHTML = `
@@ -2457,7 +3251,9 @@ class LoginController {
 
             `;
 
+
         }
+
 
         else{
 
@@ -2465,11 +3261,13 @@ class LoginController {
             button.disabled = false;
 
 
+
             button.classList.remove(
 
                 "loading"
 
             );
+
 
 
             button.textContent =
@@ -2480,9 +3278,17 @@ class LoginController {
 
                 "Continuar";
 
+
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2491,6 +3297,7 @@ class LoginController {
     REDIRECT
     ==========================================
     */
+
 
     redirectToWorkspace(
 
@@ -2504,59 +3311,68 @@ class LoginController {
             () => {
 
 
-                this.hideLoginInterface();
+                if(!authmanager.isAuthenticated()){
 
 
-                const currentPath =
-
-                    window.location.pathname;
-
-
-                /*
-                ----------------------------------
-                Already on application
-                ----------------------------------
-                */
-
-                if(
-
-                    currentPath === "/" ||
-
-                    currentPath === "/index.html"
-
-                ){
-
-                    const dashboard =
-
-                        document.getElementById(
-
-                            "dashboard"
-
-                        );
-
-
-                    if(dashboard){
-
-                        dashboard.style.display = "";
-
-                    }
+                    this.showLoginInterface();
 
 
                     return;
+
 
                 }
 
 
 
-                /*
-                ----------------------------------
-                Navigate to application
-                ----------------------------------
-                */
+                this.hideLoginInterface();
 
-                window.location.href =
 
-                    "/index.html";
+
+                const studio =
+
+                    document.getElementById(
+
+                        "studioApp"
+
+                    );
+
+
+
+                if(studio){
+
+
+                    studio.style.display = "";
+
+                    studio.classList.add(
+
+                        "auth-ready"
+
+                    );
+
+
+                }
+
+
+
+                const dashboard =
+
+                    document.getElementById(
+
+                        "dashboard"
+
+                    );
+
+
+
+                if(dashboard){
+
+
+                    dashboard.style.display = "";
+
+
+                }
+
+
 
             },
 
@@ -2564,7 +3380,41 @@ class LoginController {
 
         );
 
+
     }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    VALIDATE EMAIL
+    ==========================================
+    */
+
+
+    isValidEmail(email){
+
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+
+            email
+
+        );
+
+
+    }
+
+
+
+
+
+
 
 
 
@@ -2573,6 +3423,7 @@ class LoginController {
     PARSE RESPONSE
     ==========================================
     */
+
 
     async parseResponse(
 
@@ -2583,11 +3434,54 @@ class LoginController {
 
         try{
 
+
+            const contentType =
+
+                response.headers
+
+                    .get(
+
+                        "content-type"
+
+                    ) || "";
+
+
+
+            if(
+
+                !contentType.includes(
+
+                    "application/json"
+
+                )
+
+            ){
+
+
+                return {
+
+                    success:false,
+
+                    error:
+
+                        `Resposta inválida do servidor (${response.status}).`
+
+
+                };
+
+
+            }
+
+
+
             return await response.json();
+
 
         }
 
+
         catch(error){
+
 
             console.error(
 
@@ -2598,6 +3492,7 @@ class LoginController {
             );
 
 
+
             return {
 
                 success:false,
@@ -2606,11 +3501,20 @@ class LoginController {
 
                     "Resposta inválida do servidor."
 
+
             };
+
 
         }
 
+
     }
+
+
+
+
+
+
 
 
 
@@ -2619,6 +3523,7 @@ class LoginController {
     INITIALIZE GOOGLE
     ==========================================
     */
+
 
     initializeGoogleLogin(
 
@@ -2639,6 +3544,7 @@ class LoginController {
 
         ){
 
+
             console.warn(
 
                 "Google Identity Services não disponível."
@@ -2647,6 +3553,7 @@ class LoginController {
 
 
             return false;
+
 
         }
 
@@ -2661,9 +3568,12 @@ class LoginController {
 
                     clientId,
 
+
+
                 callback:
 
                     response => {
+
 
                         this.handleGoogleCredential(
 
@@ -2671,22 +3581,37 @@ class LoginController {
 
                         );
 
+
                     },
+
+
 
                 auto_select:
 
                     false,
 
+
+
                 cancel_on_tap_outside:
 
                     true
 
+
             });
+
+
+
+            this.googleClientId =
+
+                clientId;
+
 
 
             return true;
 
+
         }
+
 
         catch(error){
 
@@ -2694,17 +3619,28 @@ class LoginController {
             console.error(
 
                 "GOOGLE INITIALIZATION ERROR:",
+
                 error
+
             );
 
 
             return false;
 
+
         }
+
 
     }
 
+
 }
+
+
+
+
+
+
 
 
 
@@ -2714,9 +3650,16 @@ SINGLETON
 ==========================================
 */
 
+
 const logincontroller =
 
     new LoginController();
+
+
+
+
+
+
 
 
 
@@ -2725,5 +3668,6 @@ const logincontroller =
 EXPORT
 ==========================================
 */
+
 
 export default logincontroller;
