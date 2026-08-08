@@ -3,13 +3,14 @@
 HONEY IA OS
 AUTH ROUTES
 Authentication API
-V4.1
+V5.0
 Local + Google + Session Management
 Email Verification
 Google Configuration
 Production Authentication
 ==========================================
 */
+
 
 import express from "express";
 
@@ -84,103 +85,6 @@ function handleError(
         });
 
 }
-
-
-
-/*
-==========================================
-GOOGLE CONFIGURATION
-GET /api/auth/google-config
-==========================================
-*/
-
-router.get(
-
-    "/google-config",
-
-    (req,res)=>{
-
-        try{
-
-
-            const clientId =
-
-                String(
-
-                    process.env.GOOGLE_CLIENT_ID ||
-
-                    ""
-
-                ).trim();
-
-
-
-            /*
-            ----------------------------------
-            GOOGLE NÃO CONFIGURADO
-            ----------------------------------
-            */
-
-            if(!clientId){
-
-                return res
-
-                    .status(503)
-
-                    .json({
-
-                        success: false,
-
-                        error:
-
-                            "Login Google não configurado no servidor."
-
-                    });
-
-            }
-
-
-
-            /*
-            ----------------------------------
-            PUBLIC GOOGLE CONFIG
-            ----------------------------------
-
-            O Client ID é público por natureza.
-            Nunca devolver aqui:
-
-            - GOOGLE_CLIENT_SECRET
-            - JWT_SECRET
-            - outras credenciais privadas
-            ----------------------------------
-            */
-
-            return res.json({
-
-                success: true,
-
-                clientId
-
-            });
-
-
-        }
-
-        catch(error){
-
-            return handleError(
-
-                res,
-
-                error
-
-            );
-
-        }
-
-    }
-
-);
 
 
 
@@ -356,6 +260,101 @@ router.post(
 
 /*
 ==========================================
+GOOGLE CONFIG
+GET /api/auth/google-config
+
+Returns only the PUBLIC Google Client ID.
+
+IMPORTANT:
+GOOGLE_CLIENT_SECRET MUST NEVER
+BE SENT TO THE FRONTEND.
+==========================================
+*/
+
+router.get(
+
+    "/google-config",
+
+    (req,res)=>{
+
+        try{
+
+            const clientId =
+
+                String(
+
+                    process.env.GOOGLE_CLIENT_ID ||
+
+                    ""
+
+                ).trim();
+
+
+            /*
+            ----------------------------------
+            GOOGLE NOT CONFIGURED
+            ----------------------------------
+            */
+
+            if(!clientId){
+
+                return res
+
+                    .status(503)
+
+                    .json({
+
+                        success: false,
+
+                        configured: false,
+
+                        error:
+
+                            "Login Google não configurado no servidor."
+
+                    });
+
+            }
+
+
+            /*
+            ----------------------------------
+            PUBLIC CONFIGURATION
+            ----------------------------------
+            */
+
+            return res.json({
+
+                success: true,
+
+                configured: true,
+
+                clientId
+
+            });
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
 LOGIN
 POST /api/auth/login
 ==========================================
@@ -438,6 +437,12 @@ router.post(
 
             } = req.body || {};
 
+
+            /*
+            ----------------------------------
+            VALIDATE CREDENTIAL
+            ----------------------------------
+            */
 
             if(
 
@@ -567,11 +572,7 @@ router.post(
 
                 ) !==
 
-                String(
-
-                    googleClientId
-
-                )
+                googleClientId
 
             ){
 
