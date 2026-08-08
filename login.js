@@ -3,9 +3,11 @@
 HONEY IA OS
 LOGIN CONTROLLER
 Professional Authentication UI
-V9.0
+V10.0
 Google Identity Services
 Secure Authentication Flow
+Automatic Server Google Configuration
+Email Verification + Resend
 Independent Authentication Interface
 ==========================================
 */
@@ -33,6 +35,8 @@ class LoginController {
 
         this.googleLoading = false;
 
+        this.googleLoadingPromise = null;
+
         this.loadingActions = new Set();
 
         this.googleClientId = "";
@@ -40,6 +44,8 @@ class LoginController {
         this.googleScriptPromise = null;
 
         this.googleCredentialHandler = null;
+
+        this.googleConfigPromise = null;
 
 
     }
@@ -117,11 +123,9 @@ class LoginController {
 
         ){
 
-
             this.hideLoginInterface();
 
             return;
-
 
         }
 
@@ -148,10 +152,28 @@ class LoginController {
         --------------------------------------
         GOOGLE
         --------------------------------------
+        Automatically prepare Google
+        --------------------------------------
         */
 
 
-        await this.setupGoogleLogin();
+        this.setupGoogleLogin()
+
+            .catch(
+
+                error => {
+
+                    console.warn(
+
+                        "GOOGLE SETUP:",
+
+                        error
+
+                    );
+
+                }
+
+            );
 
 
     }
@@ -196,7 +218,9 @@ class LoginController {
                 );
 
 
-            container.id = "loginApp";
+            container.id =
+
+                "loginApp";
 
 
 
@@ -260,7 +284,9 @@ class LoginController {
 
 
 
-        this.container.style.display = "flex";
+        this.container.style.display =
+
+            "flex";
 
 
 
@@ -293,7 +319,10 @@ class LoginController {
         if(studio){
 
 
-            studio.style.display = "none";
+            studio.style.display =
+
+                "none";
+
 
             studio.classList.remove(
 
@@ -335,7 +364,9 @@ class LoginController {
             );
 
 
-            this.container.style.display = "none";
+            this.container.style.display =
+
+                "none";
 
 
         }
@@ -363,7 +394,10 @@ class LoginController {
         if(studio){
 
 
-            studio.style.display = "";
+            studio.style.display =
+
+                "";
+
 
             studio.classList.add(
 
@@ -494,7 +528,7 @@ class LoginController {
 
                             <span class="google-button-text">
 
-                                Continuar com Google
+                                Preparando Google...
 
                             </span>
 
@@ -1249,7 +1283,7 @@ class LoginController {
 
     /*
     ==========================================
-    GOOGLE SCRIPT
+    LOAD GOOGLE IDENTITY SERVICES
     ==========================================
     */
 
@@ -1503,7 +1537,7 @@ class LoginController {
 
     /*
     ==========================================
-    GET GOOGLE CLIENT ID
+    GET GOOGLE CLIENT ID FROM SERVER
     ==========================================
     */
 
@@ -1511,99 +1545,205 @@ class LoginController {
     async getGoogleClientId(){
 
 
-        if(
+        if(this.googleClientId){
 
-            window.HONEY_GOOGLE_CLIENT_ID
-
-        ){
-
-            return String(
-
-                window.HONEY_GOOGLE_CLIENT_ID
-
-            ).trim();
+            return this.googleClientId;
 
         }
 
 
 
-        if(
+        if(this.googleConfigPromise){
 
-            window.GOOGLE_CLIENT_ID
-
-        ){
-
-            return String(
-
-                window.GOOGLE_CLIENT_ID
-
-            ).trim();
+            return this.googleConfigPromise;
 
         }
 
 
 
-        const response =
+        this.googleConfigPromise =
 
-            await fetch(
+            (async()=>{
 
-                "/api/auth/google-config",
 
-                {
+                /*
+                ----------------------------------
+                OPTIONAL GLOBAL CONFIG
+                ----------------------------------
+                */
 
-                    method: "GET",
+                if(
 
-                    headers: {
+                    window.HONEY_GOOGLE_CLIENT_ID
 
-                        "Accept":
+                ){
 
-                            "application/json"
+                    const clientId =
+
+                        String(
+
+                            window.HONEY_GOOGLE_CLIENT_ID
+
+                        ).trim();
+
+
+                    if(clientId){
+
+                        return clientId;
 
                     }
 
                 }
 
-            );
+
+
+                if(
+
+                    window.GOOGLE_CLIENT_ID
+
+                ){
+
+                    const clientId =
+
+                        String(
+
+                            window.GOOGLE_CLIENT_ID
+
+                        ).trim();
+
+
+                    if(clientId){
+
+                        return clientId;
+
+                    }
+
+                }
 
 
 
-        const data =
+                /*
+                ----------------------------------
+                SERVER CONFIGURATION
+                ----------------------------------
+                */
 
-            await this.parseResponse(
+                const response =
 
-                response
+                    await fetch(
 
-            );
+                        "/api/auth/google-config",
+
+                        {
+
+                            method: "GET",
+
+                            headers: {
+
+                                "Accept":
+
+                                    "application/json"
+
+                            },
+
+                            cache: "no-store"
+
+                        }
+
+                    );
 
 
 
-        if(
+                const data =
 
-            response.ok &&
+                    await this.parseResponse(
 
-            data.success &&
+                        response
 
-            data.clientId
+                    );
 
-        ){
 
-            return String(
 
-                data.clientId
+                if(
 
-            ).trim();
+                    !response.ok ||
+
+                    !data?.success ||
+
+                    !data?.clientId
+
+                ){
+
+                    throw new Error(
+
+                        data?.error ||
+
+                        "Google Client ID não configurado."
+
+                    );
+
+                }
+
+
+
+                const clientId =
+
+                    String(
+
+                        data.clientId
+
+                    ).trim();
+
+
+
+                if(!clientId){
+
+                    throw new Error(
+
+                        "Google Client ID vazio."
+
+                    );
+
+                }
+
+
+
+                return clientId;
+
+
+            })();
+
+
+
+        try{
+
+
+            const clientId =
+
+                await this.googleConfigPromise;
+
+
+
+            this.googleClientId =
+
+                clientId;
+
+
+
+            return clientId;
+
 
         }
 
+        finally{
 
 
-        throw new Error(
+            this.googleConfigPromise =
 
-            data.error ||
+                null;
 
-            "Google Client ID não configurado."
 
-        );
+        }
 
 
     }
@@ -1618,7 +1758,7 @@ class LoginController {
 
     /*
     ==========================================
-    SETUP GOOGLE
+    SETUP GOOGLE LOGIN
     ==========================================
     */
 
@@ -1644,62 +1784,13 @@ class LoginController {
 
 
 
-        try{
+        if(
 
+            this.googleInitialized &&
 
-            button.disabled = true;
+            this.googleClientId
 
-            button.dataset.ready = "false";
-
-
-
-            await this.loadGoogleScript();
-
-
-
-            this.googleClientId =
-
-                await this.getGoogleClientId();
-
-
-
-            if(!this.googleClientId){
-
-                throw new Error(
-
-                    "Google Client ID vazio."
-
-                );
-
-            }
-
-
-
-            const initialized =
-
-                this.initializeGoogleLogin(
-
-                    this.googleClientId
-
-                );
-
-
-
-            if(!initialized){
-
-                throw new Error(
-
-                    "Não foi possível inicializar o Google."
-
-                );
-
-            }
-
-
-
-            this.googleInitialized = true;
-
-
+        ){
 
             button.disabled = false;
 
@@ -1707,38 +1798,225 @@ class LoginController {
 
 
 
+            const text =
+
+                button.querySelector(
+
+                    ".google-button-text"
+
+                );
+
+
+
+            if(text){
+
+                text.textContent =
+
+                    "Continuar com Google";
+
+            }
+
+
+
             return true;
 
+        }
+
+
+
+        if(this.googleLoadingPromise){
+
+            return this.googleLoadingPromise;
 
         }
 
-        catch(error){
 
 
-            console.error(
+        this.googleLoadingPromise =
 
-                "GOOGLE SETUP ERROR:",
-
-                error
-
-            );
+            (async()=>{
 
 
-
-            this.googleInitialized = false;
-
+                try{
 
 
-            button.disabled = false;
+                    button.disabled = true;
 
-            button.dataset.ready = "false";
+                    button.dataset.ready = "false";
 
 
 
-            return false;
+                    const text =
+
+                        button.querySelector(
+
+                            ".google-button-text"
+
+                        );
 
 
-        }
+
+                    if(text){
+
+                        text.textContent =
+
+                            "Preparando Google...";
+
+                    }
+
+
+
+                    /*
+                    ----------------------------------
+                    1. LOAD GOOGLE SCRIPT
+                    ----------------------------------
+                    */
+
+                    await this.loadGoogleScript();
+
+
+
+                    /*
+                    ----------------------------------
+                    2. GET CLIENT ID FROM SERVER
+                    ----------------------------------
+                    */
+
+                    const clientId =
+
+                        await this.getGoogleClientId();
+
+
+
+                    if(!clientId){
+
+                        throw new Error(
+
+                            "Google Client ID vazio."
+
+                        );
+
+                    }
+
+
+
+                    /*
+                    ----------------------------------
+                    3. INITIALIZE GIS
+                    ----------------------------------
+                    */
+
+                    const initialized =
+
+                        this.initializeGoogleLogin(
+
+                            clientId
+
+                        );
+
+
+
+                    if(!initialized){
+
+                        throw new Error(
+
+                            "Não foi possível inicializar o Google Identity Services."
+
+                        );
+
+                    }
+
+
+
+                    this.googleInitialized = true;
+
+
+
+                    button.disabled = false;
+
+                    button.dataset.ready = "true";
+
+
+
+                    if(text){
+
+                        text.textContent =
+
+                            "Continuar com Google";
+
+                    }
+
+
+
+                    return true;
+
+
+                }
+
+                catch(error){
+
+
+                    console.error(
+
+                        "GOOGLE SETUP ERROR:",
+
+                        error
+
+                    );
+
+
+
+                    this.googleInitialized = false;
+
+
+
+                    button.disabled = false;
+
+                    button.dataset.ready = "false";
+
+
+
+                    const text =
+
+                        button.querySelector(
+
+                            ".google-button-text"
+
+                        );
+
+
+
+                    if(text){
+
+                        text.textContent =
+
+                            "Continuar com Google";
+
+                    }
+
+
+
+                    return false;
+
+
+                }
+
+                finally{
+
+
+                    this.googleLoadingPromise =
+
+                        null;
+
+
+                }
+
+
+            })();
+
+
+
+        return this.googleLoadingPromise;
 
 
     }
@@ -1753,7 +2031,7 @@ class LoginController {
 
     /*
     ==========================================
-    INITIALIZE GOOGLE
+    INITIALIZE GOOGLE IDENTITY SERVICES
     ==========================================
     */
 
@@ -1786,17 +2064,11 @@ class LoginController {
         try{
 
 
-            if(this.googleInitialized){
-
-                return true;
-
-            }
-
-
-
             window.google.accounts.id.initialize({
 
-                client_id: clientId,
+                client_id:
+
+                    clientId,
 
                 callback:
 
@@ -1812,19 +2084,27 @@ class LoginController {
 
                     },
 
-                auto_select: false,
+                auto_select:
 
-                cancel_on_tap_outside: true
+                    false,
+
+                cancel_on_tap_outside:
+
+                    true
 
             });
 
 
 
-            this.googleClientId = clientId;
+            this.googleClientId =
+
+                clientId;
 
 
 
-            this.googleInitialized = true;
+            this.googleInitialized =
+
+                true;
 
 
 
@@ -1843,6 +2123,12 @@ class LoginController {
                 error
 
             );
+
+
+            this.googleInitialized =
+
+                false;
+
 
 
             return false;
@@ -2006,7 +2292,11 @@ class LoginController {
 
 
 
-            this.redirectToWorkspace(300);
+            this.redirectToWorkspace(
+
+                300
+
+            );
 
 
         }
@@ -2315,7 +2605,9 @@ class LoginController {
 
 
 
-            this.pendingEmail = email;
+            this.pendingEmail =
+
+                email;
 
 
 
@@ -2339,7 +2631,11 @@ class LoginController {
 
 
 
-            this.showMode("verify");
+            this.showMode(
+
+                "verify"
+
+            );
 
 
 
@@ -2543,7 +2839,11 @@ class LoginController {
                 () => {
 
 
-                    this.showMode("login");
+                    this.showMode(
+
+                        "login"
+
+                    );
 
 
 
@@ -2796,6 +3096,13 @@ class LoginController {
 
 
 
+        /*
+        --------------------------------------
+        ENSURE GOOGLE IS READY
+        --------------------------------------
+        */
+
+
         if(
 
             !this.googleInitialized ||
@@ -2869,7 +3176,7 @@ class LoginController {
 
             /*
             ----------------------------------
-            Use Google One Tap
+            GOOGLE IDENTITY SERVICES PROMPT
             ----------------------------------
             */
 
@@ -2881,7 +3188,9 @@ class LoginController {
 
                     if(
 
-                        notification.isNotDisplayed?.()
+                        notification
+
+                            ?.isNotDisplayed?.()
 
                     ){
 
@@ -2901,7 +3210,9 @@ class LoginController {
 
                     if(
 
-                        notification.isSkippedMoment?.()
+                        notification
+
+                            ?.isSkippedMoment?.()
 
                     ){
 
@@ -2917,11 +3228,15 @@ class LoginController {
 
                     if(
 
-                        notification.isDismissedMoment?.()
+                        notification
+
+                            ?.isDismissedMoment?.()
 
                     ){
 
-                        this.googleLoading = false;
+                        this.googleLoading =
+
+                            false;
 
 
 
@@ -2958,7 +3273,9 @@ class LoginController {
 
 
 
-            this.googleLoading = false;
+            this.googleLoading =
+
+                false;
 
 
 
@@ -3013,7 +3330,9 @@ class LoginController {
         if(!credential){
 
 
-            this.googleLoading = false;
+            this.googleLoading =
+
+                false;
 
 
 
@@ -3078,7 +3397,11 @@ class LoginController {
 
 
 
-            this.redirectToWorkspace(300);
+            this.redirectToWorkspace(
+
+                300
+
+            );
 
 
         }
@@ -3112,7 +3435,9 @@ class LoginController {
         finally{
 
 
-            this.googleLoading = false;
+            this.googleLoading =
+
+                false;
 
 
 
@@ -3174,7 +3499,9 @@ class LoginController {
 
 
 
-        this.mode = mode;
+        this.mode =
+
+            mode;
 
 
 
@@ -3400,9 +3727,13 @@ class LoginController {
 
         element.textContent = "";
 
-        element.className = "auth-message";
+        element.className =
 
-        element.style.display = "none";
+            "auth-message";
+
+        element.style.display =
+
+            "none";
 
 
     }
@@ -3468,7 +3799,9 @@ class LoginController {
 
 
 
-            button.disabled = true;
+            button.disabled =
+
+                true;
 
 
 
@@ -3498,7 +3831,9 @@ class LoginController {
         else{
 
 
-            button.disabled = false;
+            button.disabled =
+
+                false;
 
 
 
@@ -3572,7 +3907,7 @@ class LoginController {
 
                 /*
                 ----------------------------------
-                Reveal Honey IA workspace
+                REVEAL HONEY IA WORKSPACE
                 ----------------------------------
                 */
 
@@ -3621,7 +3956,7 @@ class LoginController {
 
                 /*
                 ----------------------------------
-                Dispatch authentication event
+                AUTHENTICATED EVENT
                 ----------------------------------
                 */
 
@@ -3737,7 +4072,7 @@ class LoginController {
 
                 return {
 
-                    success:false,
+                    success: false,
 
                     error:
 
@@ -3770,7 +4105,7 @@ class LoginController {
 
             return {
 
-                success:false,
+                success: false,
 
                 error:
 
