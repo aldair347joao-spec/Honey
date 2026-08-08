@@ -3,12 +3,12 @@
 HONEY IA OS
 AUTH CONTROLLER
 Professional Authentication Business Logic
-V3.0
+V4.0
 JWT + MongoDB + Google Authentication
 Email Verification + Secure Sessions
+Production Authentication
 ==========================================
 */
-
 
 import bcrypt from "bcrypt";
 
@@ -31,32 +31,35 @@ import {
 import emailservice from "./emailservice.js";
 
 
-
 /*
 ==========================================
 CONFIGURATION
 ==========================================
 */
 
-
 const JWT_SECRET =
 
-process.env.JWT_SECRET;
-
+    process.env.JWT_SECRET;
 
 
 const GOOGLE_CLIENT_ID =
 
-process.env.GOOGLE_CLIENT_ID;
-
+    process.env.GOOGLE_CLIENT_ID;
 
 
 const SESSION_DAYS = 30;
 
 
-
 const VERIFICATION_CODE_MINUTES = 15;
 
+
+const JWT_ALGORITHM = "HS256";
+
+
+const JWT_ISSUER = "honey-ia";
+
+
+const JWT_AUDIENCE = "honey-ia-client";
 
 
 /*
@@ -65,19 +68,17 @@ GOOGLE CLIENT
 ==========================================
 */
 
-
 const googleClient =
 
-GOOGLE_CLIENT_ID
+    GOOGLE_CLIENT_ID
 
-    ? new OAuth2Client(
+        ? new OAuth2Client(
 
-        GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_ID
 
-    )
+        )
 
-    : null;
-
+        : null;
 
 
 /*
@@ -86,29 +87,26 @@ SECURITY CHECKS
 ==========================================
 */
 
-
 if(!JWT_SECRET){
 
-    console.warn(
+    console.error(
 
-        "⚠️ JWT_SECRET não configurado."
+        "❌ HONEY IA AUTH: JWT_SECRET não configurado."
 
     );
 
 }
-
 
 
 if(!GOOGLE_CLIENT_ID){
 
     console.warn(
 
-        "⚠️ GOOGLE_CLIENT_ID não configurado."
+        "⚠️ HONEY IA AUTH: GOOGLE_CLIENT_ID não configurado."
 
     );
 
 }
-
 
 
 /*
@@ -117,19 +115,11 @@ PASSWORD VALIDATION
 ==========================================
 */
 
-
-function validatePassword(
-
-    password
-
-){
-
+function validatePassword(password){
 
     if(
 
-        typeof password !==
-
-        "string"
+        typeof password !== "string"
 
     ){
 
@@ -138,57 +128,31 @@ function validatePassword(
     }
 
 
-
-    if(
-
-        password.length < 8
-
-    ){
+    if(password.length < 8){
 
         return false;
 
     }
-
 
 
     const hasLowerCase =
 
-        /[a-z]/.test(
-
-            password
-
-        );
-
+        /[a-z]/.test(password);
 
 
     const hasUpperCase =
 
-        /[A-Z]/.test(
-
-            password
-
-        );
-
+        /[A-Z]/.test(password);
 
 
     const hasNumber =
 
-        /[0-9]/.test(
-
-            password
-
-        );
-
+        /[0-9]/.test(password);
 
 
     const hasSpecial =
 
-        /[^A-Za-z0-9]/.test(
-
-            password
-
-        );
-
+        /[^A-Za-z0-9]/.test(password);
 
 
     return (
@@ -206,16 +170,13 @@ function validatePassword(
 }
 
 
-
 /*
 ==========================================
 GENERATE VERIFICATION CODE
 ==========================================
 */
 
-
 function generateCode(){
-
 
     return crypto
 
@@ -232,20 +193,13 @@ function generateCode(){
 }
 
 
-
 /*
 ==========================================
 NORMALIZE EMAIL
 ==========================================
 */
 
-
-function normalizeEmail(
-
-    email
-
-){
-
+function normalizeEmail(email){
 
     return String(
 
@@ -260,13 +214,11 @@ function normalizeEmail(
 }
 
 
-
 /*
 ==========================================
 NORMALIZE NAME
 ==========================================
 */
-
 
 function normalizeName(
 
@@ -275,7 +227,6 @@ function normalizeName(
     fallback = ""
 
 ){
-
 
     const name =
 
@@ -296,11 +247,9 @@ function normalizeName(
             );
 
 
-
     return name || fallback;
 
 }
-
 
 
 /*
@@ -309,13 +258,7 @@ CREATE JWT
 ==========================================
 */
 
-
-function createToken(
-
-    user
-
-){
-
+function createToken(user){
 
     if(!JWT_SECRET){
 
@@ -326,7 +269,6 @@ function createToken(
         );
 
     }
-
 
 
     return jwt.sign(
@@ -347,9 +289,21 @@ function createToken(
 
         {
 
+            algorithm:
+
+                JWT_ALGORITHM,
+
             expiresIn:
 
-                `${SESSION_DAYS}d`
+                `${SESSION_DAYS}d`,
+
+            issuer:
+
+                JWT_ISSUER,
+
+            audience:
+
+                JWT_AUDIENCE
 
         }
 
@@ -358,13 +312,11 @@ function createToken(
 }
 
 
-
 /*
 ==========================================
 CREATE DATABASE SESSION
 ==========================================
 */
-
 
 async function createSession(
 
@@ -374,15 +326,9 @@ async function createSession(
 
 ){
 
-
     const token =
 
-        createToken(
-
-            user
-
-        );
-
+        createToken(user);
 
 
     const expiresAt =
@@ -404,13 +350,11 @@ async function createSession(
         );
 
 
-
     const userAgent =
 
         req.headers["user-agent"] ||
 
         "unknown";
-
 
 
     await Session.create({
@@ -438,7 +382,6 @@ async function createSession(
     });
 
 
-
     return {
 
         token,
@@ -450,7 +393,6 @@ async function createSession(
 }
 
 
-
 /*
 ==========================================
 SERIALIZE USER
@@ -458,13 +400,7 @@ Never expose password or verification data
 ==========================================
 */
 
-
-function serializeUser(
-
-    user
-
-){
-
+function serializeUser(user){
 
     if(!user){
 
@@ -473,12 +409,11 @@ function serializeUser(
     }
 
 
-
     return {
 
         id:
 
-            user._id,
+            user._id.toString(),
 
         firstName:
 
@@ -487,6 +422,20 @@ function serializeUser(
         lastName:
 
             user.lastName || "",
+
+        name:
+
+            [
+
+                user.firstName,
+
+                user.lastName
+
+            ]
+
+                .filter(Boolean)
+
+                .join(" "),
 
         email:
 
@@ -502,15 +451,19 @@ function serializeUser(
 
         emailVerified:
 
-            !!user.emailVerified,
+            user.emailVerified === true,
 
         isActive:
 
-            !!user.isActive,
+            user.isActive === true,
 
         googleId:
 
             user.googleId || null,
+
+        provider:
+
+            user.provider || "local",
 
         createdAt:
 
@@ -525,41 +478,30 @@ function serializeUser(
 }
 
 
-
 /*
 ==========================================
 GET AUTH TOKEN FROM REQUEST
 ==========================================
 */
 
-
-function getRequestToken(
-
-    req
-
-){
-
+function getRequestToken(req){
 
     const authorization =
 
         req.headers.authorization;
 
 
-
     if(
 
         !authorization ||
 
-        typeof authorization !==
-
-        "string"
+        typeof authorization !== "string"
 
     ){
 
         return null;
 
     }
-
 
 
     const match =
@@ -571,7 +513,6 @@ function getRequestToken(
         );
 
 
-
     if(!match){
 
         return null;
@@ -579,22 +520,16 @@ function getRequestToken(
     }
 
 
-
-    return match[1].trim() ||
-
-        null;
+    return match[1].trim() || null;
 
 }
-
 
 
 /*
 ==========================================
 REGISTER USER
-CREATE ACCOUNT
 ==========================================
 */
-
 
 export async function registerUser(
 
@@ -604,9 +539,7 @@ export async function registerUser(
 
 ){
 
-
     try{
-
 
         const {
 
@@ -621,14 +554,6 @@ export async function registerUser(
             confirmPassword
 
         } = req.body || {};
-
-
-
-        /*
-        ==============================
-        REQUIRED FIELDS
-        ==============================
-        */
 
 
         if(
@@ -647,7 +572,7 @@ export async function registerUser(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -658,42 +583,19 @@ export async function registerUser(
         }
 
 
-
-        /*
-        ==============================
-        NORMALIZE DATA
-        ==============================
-        */
-
-
         const normalizedFirstName =
 
-            normalizeName(
-
-                firstName
-
-            );
-
+            normalizeName(firstName);
 
 
         const normalizedLastName =
 
-            normalizeName(
-
-                lastName
-
-            );
-
+            normalizeName(lastName);
 
 
         const normalizedEmail =
 
-            normalizeEmail(
-
-                email
-
-            );
-
+            normalizeEmail(email);
 
 
         if(
@@ -706,7 +608,7 @@ export async function registerUser(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -715,14 +617,6 @@ export async function registerUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        EMAIL VALIDATION
-        ==============================
-        */
 
 
         if(
@@ -737,7 +631,7 @@ export async function registerUser(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -748,25 +642,11 @@ export async function registerUser(
         }
 
 
-
-        /*
-        ==============================
-        PASSWORD MATCH
-        ==============================
-        */
-
-
-        if(
-
-            password !==
-
-            confirmPassword
-
-        ){
+        if(password !== confirmPassword){
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -777,27 +657,15 @@ export async function registerUser(
         }
 
 
-
-        /*
-        ==============================
-        PASSWORD STRENGTH
-        ==============================
-        */
-
-
         if(
 
-            !validatePassword(
-
-                password
-
-            )
+            !validatePassword(password)
 
         ){
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -806,14 +674,6 @@ export async function registerUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        CHECK EXISTING USER
-        ==============================
-        */
 
 
         const existingUser =
@@ -827,16 +687,7 @@ export async function registerUser(
             });
 
 
-
         if(existingUser){
-
-
-            /*
-            --------------------------
-            GOOGLE ONLY ACCOUNT
-            --------------------------
-            */
-
 
             if(
 
@@ -848,7 +699,7 @@ export async function registerUser(
 
                 return res.status(409).json({
 
-                    success:false,
+                    success: false,
 
                     error:
 
@@ -859,10 +710,9 @@ export async function registerUser(
             }
 
 
-
             return res.status(409).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -871,14 +721,6 @@ export async function registerUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        HASH PASSWORD
-        ==============================
-        */
 
 
         const hashedPassword =
@@ -892,18 +734,9 @@ export async function registerUser(
             );
 
 
-
-        /*
-        ==============================
-        VERIFICATION CODE
-        ==============================
-        */
-
-
         const verificationCode =
 
             generateCode();
-
 
 
         const verificationExpires =
@@ -919,14 +752,6 @@ export async function registerUser(
                 1000
 
             );
-
-
-
-        /*
-        ==============================
-        CREATE USER
-        ==============================
-        */
 
 
         const user =
@@ -949,47 +774,44 @@ export async function registerUser(
 
                     hashedPassword,
 
-                emailVerified:false,
+                provider:
+
+                    "local",
+
+                emailVerified:
+
+                    false,
 
                 verificationCode,
 
                 verificationExpires,
 
-                plan:"free",
+                plan:
 
-                isActive:true
+                    "free",
+
+                isActive:
+
+                    true
 
             });
 
 
-
-        /*
-        ==============================
-        SEND VERIFICATION EMAIL
-        ==============================
-        */
-
-
         try{
 
+            await emailservice.sendVerificationCode(
 
-            await emailservice
+                user.email,
 
-                .sendVerificationCode(
+                verificationCode,
 
-                    user.email,
+                user.firstName
 
-                    verificationCode,
-
-                    user.firstName
-
-                );
-
+            );
 
         }
 
         catch(emailError){
-
 
             console.error(
 
@@ -998,14 +820,6 @@ export async function registerUser(
                 emailError
 
             );
-
-
-
-            /*
-            --------------------------------
-            Remove incomplete account
-            --------------------------------
-            */
 
 
             await User.deleteOne({
@@ -1017,10 +831,9 @@ export async function registerUser(
             });
 
 
-
             return res.status(503).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1031,17 +844,9 @@ export async function registerUser(
         }
 
 
-
-        /*
-        ==============================
-        RESPONSE
-        ==============================
-        */
-
-
         return res.status(201).json({
 
-            success:true,
+            success: true,
 
             message:
 
@@ -1049,15 +854,13 @@ export async function registerUser(
 
             userId:
 
-                user._id
+                user._id.toString()
 
         });
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1068,10 +871,9 @@ export async function registerUser(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -1084,14 +886,11 @@ export async function registerUser(
 }
 
 
-
 /*
 ==========================================
 VERIFY EMAIL
-CONFIRM ACCOUNT
 ==========================================
 */
-
 
 export async function verifyEmail(
 
@@ -1101,9 +900,7 @@ export async function verifyEmail(
 
 ){
 
-
     try{
-
 
         const {
 
@@ -1114,15 +911,9 @@ export async function verifyEmail(
         } = req.body || {};
 
 
-
         const normalizedEmail =
 
-            normalizeEmail(
-
-                email
-
-            );
-
+            normalizeEmail(email);
 
 
         const normalizedCode =
@@ -1132,14 +923,6 @@ export async function verifyEmail(
                 code || ""
 
             ).trim();
-
-
-
-        /*
-        ==============================
-        VALIDATION
-        ==============================
-        */
 
 
         if(
@@ -1154,7 +937,7 @@ export async function verifyEmail(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1163,7 +946,6 @@ export async function verifyEmail(
             });
 
         }
-
 
 
         if(
@@ -1178,7 +960,7 @@ export async function verifyEmail(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1187,14 +969,6 @@ export async function verifyEmail(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        FIND USER
-        ==============================
-        */
 
 
         const user =
@@ -1208,12 +982,11 @@ export async function verifyEmail(
             });
 
 
-
         if(!user){
 
             return res.status(404).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1224,19 +997,11 @@ export async function verifyEmail(
         }
 
 
-
-        /*
-        ==============================
-        ALREADY VERIFIED
-        ==============================
-        */
-
-
         if(user.emailVerified){
 
             return res.json({
 
-                success:true,
+                success: true,
 
                 message:
 
@@ -1245,14 +1010,6 @@ export async function verifyEmail(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        CODE VALIDATION
-        ==============================
-        */
 
 
         if(
@@ -1265,7 +1022,7 @@ export async function verifyEmail(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1274,14 +1031,6 @@ export async function verifyEmail(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        CODE EXPIRATION
-        ==============================
-        */
 
 
         if(
@@ -1296,7 +1045,7 @@ export async function verifyEmail(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1307,14 +1056,6 @@ export async function verifyEmail(
         }
 
 
-
-        /*
-        ==============================
-        VERIFY ACCOUNT
-        ==============================
-        */
-
-
         user.emailVerified = true;
 
         user.verificationCode = null;
@@ -1322,36 +1063,22 @@ export async function verifyEmail(
         user.verificationExpires = null;
 
 
-
         await user.save();
-
-
-
-        /*
-        ==============================
-        WELCOME EMAIL
-        ==============================
-        */
 
 
         try{
 
+            await emailservice.sendWelcomeEmail(
 
-            await emailservice
+                user.email,
 
-                .sendWelcomeEmail(
+                user.firstName
 
-                    user.email,
-
-                    user.firstName
-
-                );
-
+            );
 
         }
 
         catch(error){
-
 
             console.error(
 
@@ -1364,17 +1091,9 @@ export async function verifyEmail(
         }
 
 
-
-        /*
-        ==============================
-        RESPONSE
-        ==============================
-        */
-
-
         return res.json({
 
-            success:true,
+            success: true,
 
             message:
 
@@ -1382,11 +1101,9 @@ export async function verifyEmail(
 
         });
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1397,10 +1114,9 @@ export async function verifyEmail(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -1413,13 +1129,11 @@ export async function verifyEmail(
 }
 
 
-
 /*
 ==========================================
 RESEND VERIFICATION CODE
 ==========================================
 */
-
 
 export async function resendVerificationCode(
 
@@ -1429,9 +1143,7 @@ export async function resendVerificationCode(
 
 ){
 
-
     try{
-
 
         const email =
 
@@ -1442,27 +1154,15 @@ export async function resendVerificationCode(
             );
 
 
-
-        /*
-        ==============================
-        EMAIL VALIDATION
-        ==============================
-        */
-
-
         if(
 
-            !validator.isEmail(
-
-                email
-
-            )
+            !validator.isEmail(email)
 
         ){
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1471,14 +1171,6 @@ export async function resendVerificationCode(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        FIND USER
-        ==============================
-        */
 
 
         const user =
@@ -1490,12 +1182,11 @@ export async function resendVerificationCode(
             });
 
 
-
         if(!user){
 
             return res.status(404).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1506,19 +1197,11 @@ export async function resendVerificationCode(
         }
 
 
-
-        /*
-        ==============================
-        ALREADY VERIFIED
-        ==============================
-        */
-
-
         if(user.emailVerified){
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1529,24 +1212,12 @@ export async function resendVerificationCode(
         }
 
 
-
-        /*
-        ==============================
-        NEW CODE
-        ==============================
-        */
-
-
         const code =
 
             generateCode();
 
 
-
-        user.verificationCode =
-
-            code;
-
+        user.verificationCode = code;
 
 
         user.verificationExpires =
@@ -1564,38 +1235,24 @@ export async function resendVerificationCode(
             );
 
 
-
         await user.save();
-
-
-
-        /*
-        ==============================
-        SEND EMAIL
-        ==============================
-        */
 
 
         try{
 
+            await emailservice.sendVerificationCode(
 
-            await emailservice
+                user.email,
 
-                .sendVerificationCode(
+                code,
 
-                    user.email,
+                user.firstName
 
-                    code,
-
-                    user.firstName
-
-                );
-
+            );
 
         }
 
         catch(error){
-
 
             console.error(
 
@@ -1606,10 +1263,9 @@ export async function resendVerificationCode(
             );
 
 
-
             return res.status(503).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1620,10 +1276,9 @@ export async function resendVerificationCode(
         }
 
 
-
         return res.json({
 
-            success:true,
+            success: true,
 
             message:
 
@@ -1631,11 +1286,9 @@ export async function resendVerificationCode(
 
         });
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1646,10 +1299,9 @@ export async function resendVerificationCode(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -1662,14 +1314,12 @@ export async function resendVerificationCode(
 }
 
 
-
 /*
 ==========================================
 LOGIN USER
 EMAIL + PASSWORD
 ==========================================
 */
-
 
 export async function loginUser(
 
@@ -1679,9 +1329,7 @@ export async function loginUser(
 
 ){
 
-
     try{
-
 
         const {
 
@@ -1692,22 +1340,9 @@ export async function loginUser(
         } = req.body || {};
 
 
-
         const normalizedEmail =
 
-            normalizeEmail(
-
-                email
-
-            );
-
-
-
-        /*
-        ==============================
-        BASIC VALIDATION
-        ==============================
-        */
+            normalizeEmail(email);
 
 
         if(
@@ -1718,9 +1353,7 @@ export async function loginUser(
 
             ) ||
 
-            typeof password !==
-
-            "string" ||
+            typeof password !== "string" ||
 
             !password
 
@@ -1728,7 +1361,7 @@ export async function loginUser(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1737,14 +1370,6 @@ export async function loginUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        FIND USER
-        ==============================
-        */
 
 
         const user =
@@ -1758,19 +1383,11 @@ export async function loginUser(
             });
 
 
-
-        /*
-        ==============================
-        GENERIC CREDENTIAL ERROR
-        ==============================
-        */
-
-
         if(!user){
 
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1781,19 +1398,11 @@ export async function loginUser(
         }
 
 
-
-        /*
-        ==============================
-        ACCOUNT STATUS
-        ==============================
-        */
-
-
         if(!user.isActive){
 
             return res.status(403).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1802,14 +1411,6 @@ export async function loginUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        GOOGLE ONLY ACCOUNT
-        ==============================
-        */
 
 
         if(
@@ -1822,7 +1423,7 @@ export async function loginUser(
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1833,19 +1434,11 @@ export async function loginUser(
         }
 
 
-
-        /*
-        ==============================
-        EMAIL VERIFICATION
-        ==============================
-        */
-
-
         if(!user.emailVerified){
 
             return res.status(403).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1854,14 +1447,6 @@ export async function loginUser(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        PASSWORD
-        ==============================
-        */
 
 
         const passwordMatch =
@@ -1875,12 +1460,11 @@ export async function loginUser(
             );
 
 
-
         if(!passwordMatch){
 
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -1891,29 +1475,10 @@ export async function loginUser(
         }
 
 
-
-        /*
-        ==============================
-        UPDATE LAST LOGIN
-        ==============================
-        */
-
-
-        user.lastLogin =
-
-            new Date();
-
+        user.lastLogin = new Date();
 
 
         await user.save();
-
-
-
-        /*
-        ==============================
-        CREATE SESSION
-        ==============================
-        */
 
 
         const session =
@@ -1927,17 +1492,9 @@ export async function loginUser(
             );
 
 
-
-        /*
-        ==============================
-        RESPONSE
-        ==============================
-        */
-
-
         return res.json({
 
-            success:true,
+            success: true,
 
             token:
 
@@ -1949,19 +1506,13 @@ export async function loginUser(
 
             user:
 
-                serializeUser(
-
-                    user
-
-                )
+                serializeUser(user)
 
         });
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1972,10 +1523,9 @@ export async function loginUser(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -1988,14 +1538,12 @@ export async function loginUser(
 }
 
 
-
 /*
 ==========================================
 GOOGLE LOGIN
 GOOGLE ID TOKEN AUTHENTICATION
 ==========================================
 */
-
 
 export async function googleLogin(
 
@@ -2005,9 +1553,7 @@ export async function googleLogin(
 
 ){
 
-
     try{
-
 
         const {
 
@@ -2016,27 +1562,17 @@ export async function googleLogin(
         } = req.body || {};
 
 
-
-        /*
-        ==============================
-        VALIDATE CREDENTIAL
-        ==============================
-        */
-
-
         if(
 
             !credential ||
 
-            typeof credential !==
-
-            "string"
+            typeof credential !== "string"
 
         ){
 
             return res.status(400).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2045,14 +1581,6 @@ export async function googleLogin(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        GOOGLE CONFIG
-        ==============================
-        */
 
 
         if(
@@ -2070,10 +1598,9 @@ export async function googleLogin(
             );
 
 
-
             return res.status(500).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2084,42 +1611,28 @@ export async function googleLogin(
         }
 
 
-
-        /*
-        ==============================
-        VERIFY GOOGLE ID TOKEN
-        ==============================
-        */
-
-
         let ticket;
-
 
 
         try{
 
-
             ticket =
 
-                await googleClient
+                await googleClient.verifyIdToken({
 
-                    .verifyIdToken({
+                    idToken:
 
-                        idToken:
+                        credential,
 
-                            credential,
+                    audience:
 
-                        audience:
+                        GOOGLE_CLIENT_ID
 
-                            GOOGLE_CLIENT_ID
-
-                    });
-
+                });
 
         }
 
         catch(error){
-
 
             console.error(
 
@@ -2130,10 +1643,9 @@ export async function googleLogin(
             );
 
 
-
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2144,18 +1656,16 @@ export async function googleLogin(
         }
 
 
-
         const payload =
 
             ticket.getPayload();
-
 
 
         if(!payload){
 
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2164,14 +1674,6 @@ export async function googleLogin(
             });
 
         }
-
-
-
-        /*
-        ==============================
-        GOOGLE EMAIL
-        ==============================
-        */
 
 
         if(
@@ -2184,7 +1686,7 @@ export async function googleLogin(
 
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2195,18 +1697,9 @@ export async function googleLogin(
         }
 
 
-
-        /*
-        ==============================
-        GOOGLE DATA
-        ==============================
-        */
-
-
         const googleId =
 
-            payload.sub;
-
+            String(payload.sub || "");
 
 
         const email =
@@ -2217,6 +1710,20 @@ export async function googleLogin(
 
             );
 
+
+        if(!googleId || !email){
+
+            return res.status(401).json({
+
+                success: false,
+
+                error:
+
+                    "Dados Google incompletos."
+
+            });
+
+        }
 
 
         const firstName =
@@ -2230,7 +1737,6 @@ export async function googleLogin(
             );
 
 
-
         const lastName =
 
             normalizeName(
@@ -2242,20 +1748,11 @@ export async function googleLogin(
             );
 
 
-
         const avatar =
 
             payload.picture ||
 
             null;
-
-
-
-        /*
-        ==============================
-        FIND BY GOOGLE ID
-        ==============================
-        */
 
 
         let user =
@@ -2265,14 +1762,6 @@ export async function googleLogin(
                 googleId
 
             });
-
-
-
-        /*
-        ==============================
-        FIND BY EMAIL
-        ==============================
-        */
 
 
         if(!user){
@@ -2288,16 +1777,13 @@ export async function googleLogin(
         }
 
 
-
         /*
-        ==============================
-        CREATE NEW GOOGLE USER
-        ==============================
+        --------------------------------------
+        CREATE NEW GOOGLE ACCOUNT
+        --------------------------------------
         */
 
-
         if(!user){
-
 
             user =
 
@@ -2309,42 +1795,59 @@ export async function googleLogin(
 
                     email,
 
+                    provider:
+
+                        "google",
+
                     googleId,
 
                     avatar,
 
-                    password:null,
+                    password:
 
-                    emailVerified:true,
+                        null,
 
-                    verificationCode:null,
+                    emailVerified:
 
-                    verificationExpires:null,
+                        true,
 
-                    plan:"free",
+                    verificationCode:
 
-                    isActive:true
+                        null,
+
+                    verificationExpires:
+
+                        null,
+
+                    plan:
+
+                        "free",
+
+                    isActive:
+
+                        true,
+
+                    lastLogin:
+
+                        new Date()
 
                 });
-
 
         }
 
         else{
 
-
             /*
-            --------------------------------
+            ----------------------------------
             ACCOUNT STATUS
-            --------------------------------
+            ----------------------------------
             */
-
 
             if(!user.isActive){
 
                 return res.status(403).json({
 
-                    success:false,
+                    success: false,
 
                     error:
 
@@ -2355,27 +1858,23 @@ export async function googleLogin(
             }
 
 
-
             /*
-            --------------------------------
-            LINK GOOGLE
-            --------------------------------
+            ----------------------------------
+            GOOGLE ACCOUNT CONFLICT
+            ----------------------------------
             */
-
 
             if(
 
                 user.googleId &&
 
-                user.googleId !==
-
-                googleId
+                user.googleId !== googleId
 
             ){
 
                 return res.status(409).json({
 
-                    success:false,
+                    success: false,
 
                     error:
 
@@ -2386,89 +1885,74 @@ export async function googleLogin(
             }
 
 
+            /*
+            ----------------------------------
+            LINK GOOGLE
+            ----------------------------------
+            */
 
             if(!user.googleId){
 
-                user.googleId =
-
-                    googleId;
+                user.googleId = googleId;
 
             }
 
 
-
             /*
-            --------------------------------
-            UPDATE PROFILE
-            --------------------------------
+            ----------------------------------
+            PROVIDER
+            ----------------------------------
+
+            If a local account already has a
+            password, keep provider local.
+            This allows both login methods.
+            ----------------------------------
             */
 
+            if(!user.password){
 
-            if(
-
-                !user.avatar &&
-
-                avatar
-
-            ){
-
-                user.avatar =
-
-                    avatar;
+                user.provider = "google";
 
             }
-
-
-
-            if(
-
-                !user.firstName &&
-
-                firstName
-
-            ){
-
-                user.firstName =
-
-                    firstName;
-
-            }
-
-
-
-            if(
-
-                !user.lastName &&
-
-                lastName
-
-            ){
-
-                user.lastName =
-
-                    lastName;
-
-            }
-
 
 
             /*
-            --------------------------------
+            ----------------------------------
+            PROFILE UPDATE
+            ----------------------------------
+            */
+
+            if(!user.avatar && avatar){
+
+                user.avatar = avatar;
+
+            }
+
+
+            if(!user.firstName && firstName){
+
+                user.firstName = firstName;
+
+            }
+
+
+            if(!user.lastName && lastName){
+
+                user.lastName = lastName;
+
+            }
+
+
+            /*
+            ----------------------------------
             GOOGLE VERIFIED EMAIL
-            --------------------------------
+            ----------------------------------
             */
 
-
-            user.emailVerified =
-
-                true;
+            user.emailVerified = true;
 
 
-
-            user.lastLogin =
-
-                new Date();
-
+            user.lastLogin = new Date();
 
 
             await user.save();
@@ -2476,50 +1960,11 @@ export async function googleLogin(
         }
 
 
-
         /*
-        ==============================
-        LAST LOGIN
-        ==============================
-        */
-
-
-        if(
-
-            !user.lastLogin ||
-
-            user.lastLogin <
-
-            new Date(
-
-                Date.now() -
-
-                60 *
-
-                1000
-
-            )
-
-        ){
-
-            user.lastLogin =
-
-                new Date();
-
-
-
-            await user.save();
-
-        }
-
-
-
-        /*
-        ==============================
+        --------------------------------------
         CREATE SESSION
-        ==============================
+        --------------------------------------
         */
-
 
         const session =
 
@@ -2532,17 +1977,9 @@ export async function googleLogin(
             );
 
 
-
-        /*
-        ==============================
-        RESPONSE
-        ==============================
-        */
-
-
         return res.json({
 
-            success:true,
+            success: true,
 
             token:
 
@@ -2554,19 +1991,13 @@ export async function googleLogin(
 
             user:
 
-                serializeUser(
-
-                    user
-
-                )
+                serializeUser(user)
 
         });
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -2577,10 +2008,30 @@ export async function googleLogin(
         );
 
 
+        /*
+        --------------------------------------
+        Duplicate Google ID protection
+        --------------------------------------
+        */
+
+        if(error?.code === 11000){
+
+            return res.status(409).json({
+
+                success: false,
+
+                error:
+
+                    "Esta conta Google já está associada a um utilizador."
+
+            });
+
+        }
+
 
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -2593,14 +2044,12 @@ export async function googleLogin(
 }
 
 
-
 /*
 ==========================================
 GET CURRENT USER
 RESTORE SESSION
 ==========================================
 */
-
 
 export async function getCurrentUser(
 
@@ -2610,15 +2059,13 @@ export async function getCurrentUser(
 
 ){
 
-
     try{
-
 
         if(!req.user){
 
             return res.status(401).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2629,19 +2076,11 @@ export async function getCurrentUser(
         }
 
 
-
-        /*
-        ==============================
-        ACCOUNT STATUS
-        ==============================
-        */
-
-
         if(!req.user.isActive){
 
             return res.status(403).json({
 
-                success:false,
+                success: false,
 
                 error:
 
@@ -2652,10 +2091,9 @@ export async function getCurrentUser(
         }
 
 
-
         return res.json({
 
-            success:true,
+            success: true,
 
             user:
 
@@ -2667,11 +2105,9 @@ export async function getCurrentUser(
 
         });
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -2682,10 +2118,9 @@ export async function getCurrentUser(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -2698,14 +2133,12 @@ export async function getCurrentUser(
 }
 
 
-
 /*
 ==========================================
 LOGOUT USER
 REMOVE CURRENT SESSION
 ==========================================
 */
-
 
 export async function logoutUser(
 
@@ -2715,24 +2148,16 @@ export async function logoutUser(
 
 ){
 
-
     try{
-
 
         const token =
 
             req.auth?.token ||
 
-            getRequestToken(
-
-                req
-
-            );
-
+            getRequestToken(req);
 
 
         if(token){
-
 
             await Session.deleteOne({
 
@@ -2743,10 +2168,9 @@ export async function logoutUser(
         }
 
 
-
         return res.json({
 
-            success:true,
+            success: true,
 
             message:
 
@@ -2754,11 +2178,9 @@ export async function logoutUser(
 
         });
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -2769,10 +2191,9 @@ export async function logoutUser(
         );
 
 
-
         return res.status(500).json({
 
-            success:false,
+            success: false,
 
             error:
 
@@ -2785,13 +2206,11 @@ export async function logoutUser(
 }
 
 
-
 /*
 ==========================================
 EXPORT CONTROLLER
 ==========================================
 */
-
 
 export default {
 
