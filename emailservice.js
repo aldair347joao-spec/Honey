@@ -3,7 +3,9 @@
 HONEY IA OS
 EMAIL SERVICE
 Verification & Notification System
-V1.0
+V2.0
+Production Email Service
+SMTP + Render Safe Configuration
 ==========================================
 */
 
@@ -22,6 +24,9 @@ class EmailService {
         this.transporter = null;
 
 
+        this.configured = false;
+
+
         this.initialize();
 
 
@@ -34,25 +39,61 @@ class EmailService {
 
 
 
+    /*
+    ==========================================
+    INITIALIZE EMAIL SERVICE
+    ==========================================
+    */
+
+
     initialize(){
+
+
+        const {
+
+            EMAIL_HOST,
+
+            EMAIL_PORT,
+
+            EMAIL_SECURE,
+
+            EMAIL_USER,
+
+            EMAIL_PASSWORD
+
+        } = process.env;
+
+
+
+        /*
+        --------------------------------------
+        Validate configuration
+        --------------------------------------
+        */
 
 
         if(
 
-            !process.env.EMAIL_HOST ||
+            !EMAIL_HOST ||
 
-            !process.env.EMAIL_USER ||
+            !EMAIL_USER ||
 
-            !process.env.EMAIL_PASSWORD
+            !EMAIL_PASSWORD
 
         ){
 
 
             console.warn(
 
-            "⚠️ Serviço de email não configurado."
+                "⚠️ HONEY IA EMAIL: Serviço de email não configurado."
 
             );
+
+
+            this.transporter = null;
+
+
+            this.configured = false;
 
 
             return;
@@ -62,68 +103,100 @@ class EmailService {
 
 
 
+        /*
+        --------------------------------------
+        SMTP PORT
+        --------------------------------------
+        */
 
 
+        const port =
+
+            Number(
+
+                EMAIL_PORT || 587
+
+            );
+
+
+
+        /*
+        --------------------------------------
+        SMTP SECURITY
+        --------------------------------------
+        */
+
+
+        const secure =
+
+            String(
+
+                EMAIL_SECURE || ""
+
+            )
+
+                .toLowerCase() ===
+
+            "true";
+
+
+
+        /*
+        --------------------------------------
+        CREATE TRANSPORTER
+        --------------------------------------
+        */
 
 
         this.transporter =
 
-        nodemailer.createTransport({
+            nodemailer.createTransport({
+
+                host:
+
+                    EMAIL_HOST,
+
+                port,
+
+                secure,
+
+                auth: {
+
+                    user:
+
+                        EMAIL_USER,
+
+                    pass:
+
+                        EMAIL_PASSWORD
+
+                },
+
+                connectionTimeout:
+
+                    10000,
+
+                greetingTimeout:
+
+                    10000,
+
+                socketTimeout:
+
+                    15000
+
+            });
 
 
 
-            host:
-
-            process.env.EMAIL_HOST,
-
-
-
-            port:
-
-            Number(
-
-                process.env.EMAIL_PORT || 587
-
-            ),
-
-
-
-            secure:
-
-            process.env.EMAIL_SECURE === "true",
-
-
-
-            auth:{
-
-
-
-                user:
-
-                process.env.EMAIL_USER,
-
-
-
-                pass:
-
-                process.env.EMAIL_PASSWORD
-
-
-
-            }
-
-
-
-        });
+        this.configured = true;
 
 
 
         console.log(
 
-        "📧 Email Service carregado."
+            "📧 HONEY IA EMAIL: Serviço SMTP carregado."
 
         );
-
 
 
     }
@@ -134,6 +207,87 @@ class EmailService {
 
 
 
+
+    /*
+    ==========================================
+    VERIFY SMTP CONNECTION
+    ==========================================
+    */
+
+
+    async verify(){
+
+
+        if(
+
+            !this.transporter ||
+
+            !this.configured
+
+        ){
+
+
+            return false;
+
+
+        }
+
+
+
+        try{
+
+
+            await this.transporter.verify();
+
+
+
+            console.log(
+
+                "✅ HONEY IA EMAIL: Conexão SMTP verificada."
+
+            );
+
+
+
+            return true;
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "❌ HONEY IA EMAIL: Falha na conexão SMTP:",
+
+                error.message
+
+            );
+
+
+
+            return false;
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    SEND VERIFICATION CODE
+    ==========================================
+    */
 
 
     async sendVerificationCode(
@@ -142,19 +296,30 @@ class EmailService {
 
         code,
 
-        name="Utilizador"
+        name = "Utilizador"
 
     ){
 
 
+        /*
+        --------------------------------------
+        Validate transporter
+        --------------------------------------
+        */
 
-        if(!this.transporter){
 
+        if(
+
+            !this.transporter ||
+
+            !this.configured
+
+        ){
 
 
             throw new Error(
 
-            "Serviço de email indisponível."
+                "Serviço de email indisponível."
 
             );
 
@@ -163,111 +328,317 @@ class EmailService {
 
 
 
+        /*
+        --------------------------------------
+        Validate recipient
+        --------------------------------------
+        */
 
 
+        if(!email){
 
 
+            throw new Error(
 
-        await this.transporter.sendMail({
+                "Email do destinatário não fornecido."
 
+            );
 
 
-            from:
+        }
 
-            `"Honey IA" <${process.env.EMAIL_USER}>`,
 
 
+        /*
+        --------------------------------------
+        Validate code
+        --------------------------------------
+        */
 
-            to:
 
-            email,
+        if(!code){
 
 
+            throw new Error(
 
-            subject:
+                "Código de confirmação não fornecido."
 
-            "Código de confirmação Honey IA",
+            );
 
 
+        }
 
-            html:`
 
 
+        /*
+        --------------------------------------
+        Sanitize display name
+        --------------------------------------
+        */
 
-            <div style="
 
-            font-family:Arial;
+        const safeName =
 
-            background:#07080a;
+            String(
 
-            color:white;
+                name || "Utilizador"
 
-            padding:30px;
+            )
 
-            ">
+                .trim();
 
 
 
-            <h2>
+        /*
+        --------------------------------------
+        SEND EMAIL
+        --------------------------------------
+        */
 
-            🐝 Honey IA
 
-            </h2>
+        try{
 
 
+            await this.transporter.sendMail({
 
-            <p>
+                from:
 
-            Olá ${name},
+                    `"Honey IA" <${process.env.EMAIL_USER}>`,
 
-            </p>
+                to:
 
+                    email,
 
+                subject:
 
-            <p>
+                    "Código de confirmação Honey IA",
 
-            Use este código para confirmar a sua conta:
+                text:
 
-            </p>
+                    `Olá ${safeName}. O seu código de confirmação Honey IA é ${code}. Este código expira em breve.`,
 
+                html:
 
+                    `
 
-            <h1 style="
+                    <!DOCTYPE html>
 
-            letter-spacing:8px;
+                    <html lang="pt">
 
-            color:#f59e0b;
+                    <head>
 
-            ">
+                        <meta charset="UTF-8">
 
-            ${code}
+                        <meta
 
-            </h1>
+                            name="viewport"
 
+                            content="width=device-width, initial-scale=1.0"
 
+                        >
 
-            <p>
+                        <title>
 
-            Este código expira em breve.
+                            Código de confirmação Honey IA
 
-            </p>
+                        </title>
 
+                    </head>
 
 
-            </div>
+                    <body style="
 
+                        margin:0;
 
+                        padding:0;
 
-            `
+                        background:#07080a;
 
+                        font-family:Arial,Helvetica,sans-serif;
 
+                        color:#ffffff;
 
-        });
+                    ">
 
 
+                        <div style="
 
-        return true;
+                            max-width:600px;
 
+                            margin:0 auto;
+
+                            padding:40px 20px;
+
+                        ">
+
+
+                            <div style="
+
+                                background:#0f1117;
+
+                                border:1px solid rgba(255,255,255,.08);
+
+                                border-radius:20px;
+
+                                padding:32px;
+
+                            ">
+
+
+                                <h2 style="
+
+                                    margin:0 0 24px;
+
+                                    color:#f59e0b;
+
+                                ">
+
+                                    🐝 Honey IA
+
+                                </h2>
+
+
+                                <p style="
+
+                                    color:#ffffff;
+
+                                    font-size:16px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Olá ${safeName},
+
+                                </p>
+
+
+                                <p style="
+
+                                    color:#b8bdc7;
+
+                                    font-size:15px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Use o código abaixo para confirmar a sua conta Honey IA:
+
+                                </p>
+
+
+                                <div style="
+
+                                    margin:30px 0;
+
+                                    padding:24px;
+
+                                    background:#07080a;
+
+                                    border-radius:16px;
+
+                                    text-align:center;
+
+                                ">
+
+
+                                    <div style="
+
+                                        font-size:36px;
+
+                                        font-weight:700;
+
+                                        letter-spacing:10px;
+
+                                        color:#f59e0b;
+
+                                    ">
+
+                                        ${code}
+
+                                    </div>
+
+
+                                </div>
+
+
+                                <p style="
+
+                                    color:#8f96a3;
+
+                                    font-size:13px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Este código é temporário e expira em breve.
+
+                                </p>
+
+
+                                <p style="
+
+                                    color:#8f96a3;
+
+                                    font-size:13px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Se não foi você que tentou criar esta conta, pode ignorar este email.
+
+                                </p>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    </body>
+
+                    </html>
+
+                    `
+
+            });
+
+
+
+            console.log(
+
+                "📨 HONEY IA EMAIL: Código de confirmação enviado."
+
+            );
+
+
+
+            return true;
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "❌ HONEY IA EMAIL: Erro ao enviar código:",
+
+                error.message
+
+            );
+
+
+            throw error;
+
+
+        }
 
 
     }
@@ -278,97 +649,286 @@ class EmailService {
 
 
 
+
+    /*
+    ==========================================
+    SEND WELCOME EMAIL
+    ==========================================
+    */
 
 
     async sendWelcomeEmail(
 
         email,
 
-        name
+        name = "Utilizador"
 
     ){
 
 
-
-        if(!this.transporter)
-
-        return false;
-
-
-
+        /*
+        --------------------------------------
+        Service unavailable
+        --------------------------------------
+        */
 
 
+        if(
+
+            !this.transporter ||
+
+            !this.configured
+
+        ){
 
 
+            console.warn(
 
-        await this.transporter.sendMail({
+                "⚠️ HONEY IA EMAIL: Email de boas-vindas ignorado. Serviço indisponível."
 
-
-
-            from:
-
-            `"Honey IA" <${process.env.EMAIL_USER}>`,
+            );
 
 
-
-            to:
-
-            email,
+            return false;
 
 
-
-            subject:
-
-            "Bem-vindo à Honey IA",
+        }
 
 
 
-            html:`
+        /*
+        --------------------------------------
+        Validate recipient
+        --------------------------------------
+        */
+
+
+        if(!email){
+
+
+            return false;
+
+
+        }
 
 
 
-            <h2>
+        const safeName =
 
-            🐝 Bem-vindo ${name}
+            String(
 
-            </h2>
+                name || "Utilizador"
 
+            )
 
-
-            <p>
-
-            A sua conta Honey IA foi criada com sucesso.
-
-            </p>
+                .trim();
 
 
 
-            <p>
-
-            Explore o seu Workspace inteligente.
-
-            </p>
-
-
-
-            `
+        /*
+        --------------------------------------
+        SEND EMAIL
+        --------------------------------------
+        */
 
 
-
-        });
-
+        try{
 
 
-        return true;
+            await this.transporter.sendMail({
 
+                from:
+
+                    `"Honey IA" <${process.env.EMAIL_USER}>`,
+
+                to:
+
+                    email,
+
+                subject:
+
+                    "Bem-vindo à Honey IA",
+
+                text:
+
+                    `Bem-vindo ${safeName}. A sua conta Honey IA foi criada com sucesso.`,
+
+                html:
+
+                    `
+
+                    <!DOCTYPE html>
+
+                    <html lang="pt">
+
+                    <head>
+
+                        <meta charset="UTF-8">
+
+                        <meta
+
+                            name="viewport"
+
+                            content="width=device-width, initial-scale=1.0"
+
+                        >
+
+                        <title>
+
+                            Bem-vindo à Honey IA
+
+                        </title>
+
+                    </head>
+
+
+                    <body style="
+
+                        margin:0;
+
+                        padding:0;
+
+                        background:#07080a;
+
+                        font-family:Arial,Helvetica,sans-serif;
+
+                        color:#ffffff;
+
+                    ">
+
+
+                        <div style="
+
+                            max-width:600px;
+
+                            margin:0 auto;
+
+                            padding:40px 20px;
+
+                        ">
+
+
+                            <div style="
+
+                                background:#0f1117;
+
+                                border:1px solid rgba(255,255,255,.08);
+
+                                border-radius:20px;
+
+                                padding:32px;
+
+                            ">
+
+
+                                <h2 style="
+
+                                    margin:0 0 24px;
+
+                                    color:#f59e0b;
+
+                                ">
+
+                                    🐝 Bem-vindo à Honey IA
+
+                                </h2>
+
+
+                                <p style="
+
+                                    color:#ffffff;
+
+                                    font-size:16px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Olá ${safeName},
+
+                                </p>
+
+
+                                <p style="
+
+                                    color:#b8bdc7;
+
+                                    font-size:15px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    A sua conta Honey IA foi criada com sucesso.
+
+                                </p>
+
+
+                                <p style="
+
+                                    color:#b8bdc7;
+
+                                    font-size:15px;
+
+                                    line-height:1.6;
+
+                                ">
+
+                                    Agora pode entrar no seu Workspace e começar a utilizar os recursos da Honey IA.
+
+                                </p>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    </body>
+
+                    </html>
+
+                    `
+
+            });
+
+
+
+            console.log(
+
+                "📨 HONEY IA EMAIL: Email de boas-vindas enviado."
+
+            );
+
+
+
+            return true;
+
+
+        }
+
+
+        catch(error){
+
+
+            console.error(
+
+                "⚠️ HONEY IA EMAIL: Erro no email de boas-vindas:",
+
+                error.message
+
+            );
+
+
+
+            return false;
+
+
+        }
 
 
     }
-
-
-
-
-
 
 
 }
@@ -380,5 +940,29 @@ class EmailService {
 
 
 
+/*
+==========================================
+GLOBAL EMAIL SERVICE
+==========================================
+*/
 
-export default new EmailService();
+
+const emailservice =
+
+    new EmailService();
+
+
+
+
+
+
+
+
+/*
+==========================================
+EXPORT
+==========================================
+*/
+
+
+export default emailservice;
