@@ -3,10 +3,10 @@
 HONEY IA OS
 AUTH ROUTES
 Authentication API Routes
-V3.0
+V4.0
+Production Authentication Routes
 ==========================================
 */
-
 
 import express from "express";
 
@@ -37,18 +37,15 @@ import {
 } from "./auth.middleware.js";
 
 
-
 /*
 ==========================================
 ROUTER
 ==========================================
 */
 
-
 const router =
 
-express.Router();
-
+    express.Router();
 
 
 /*
@@ -65,7 +62,6 @@ POST /api/auth/register
 ------------------------------------------
 */
 
-
 router.post(
 
     "/register",
@@ -75,14 +71,12 @@ router.post(
 );
 
 
-
 /*
 ------------------------------------------
 VERIFY EMAIL
 POST /api/auth/verify-email
 ------------------------------------------
 */
-
 
 router.post(
 
@@ -93,14 +87,12 @@ router.post(
 );
 
 
-
 /*
 ------------------------------------------
-RESEND VERIFICATION CODE
+RESEND VERIFICATION
 POST /api/auth/resend-verification
 ------------------------------------------
 */
-
 
 router.post(
 
@@ -111,14 +103,12 @@ router.post(
 );
 
 
-
 /*
 ------------------------------------------
 LOGIN
 POST /api/auth/login
 ------------------------------------------
 */
-
 
 router.post(
 
@@ -129,14 +119,12 @@ router.post(
 );
 
 
-
 /*
 ------------------------------------------
 GOOGLE LOGIN
 POST /api/auth/google
 ------------------------------------------
 */
-
 
 router.post(
 
@@ -145,7 +133,6 @@ router.post(
     googleLogin
 
 );
-
 
 
 /*
@@ -162,7 +149,6 @@ GET /api/auth/me
 ------------------------------------------
 */
 
-
 router.get(
 
     "/me",
@@ -174,14 +160,12 @@ router.get(
 );
 
 
-
 /*
 ------------------------------------------
 LOGOUT
 POST /api/auth/logout
 ------------------------------------------
 */
-
 
 router.post(
 
@@ -194,12 +178,10 @@ router.post(
 );
 
 
-
 /*
 ==========================================
 EXPORT
 ==========================================
 */
-
 
 export default router;
