@@ -3,9 +3,11 @@
 HONEY IA OS
 AUTH SERVICE
 Business Authentication Logic
-V2.0
+V3.0
 Production Authentication System
 Local + Google + JWT + MongoDB Session
+Email Verification
+Secure Session Management
 ==========================================
 */
 
@@ -24,6 +26,8 @@ import {
     Session
 
 } from "./models.js";
+
+import emailservice from "./emailservice.js";
 
 
 
@@ -51,6 +55,12 @@ const JWT_CONFIG = {
 };
 
 
+const SESSION_DAYS = 30;
+
+
+const VERIFICATION_CODE_MINUTES = 15;
+
+
 
 /*
 ==========================================
@@ -65,6 +75,34 @@ if(!JWT_SECRET){
         "❌ AUTH SERVICE: JWT_SECRET não configurado."
 
     );
+
+}
+
+
+
+/*
+==========================================
+AUTH ERROR
+==========================================
+*/
+
+class AuthError extends Error{
+
+    constructor(
+
+        message,
+
+        status = 400
+
+    ){
+
+        super(message);
+
+        this.name = "AuthError";
+
+        this.status = status;
+
+    }
 
 }
 
@@ -87,6 +125,77 @@ function normalizeEmail(email){
     .trim()
 
     .toLowerCase();
+
+}
+
+
+
+/*
+==========================================
+NORMALIZE NAME
+==========================================
+*/
+
+function normalizeName(
+
+    value,
+
+    fallback = ""
+
+){
+
+    return String(
+
+        value || ""
+
+    )
+
+    .trim()
+
+    .replace(
+
+        /\s+/g,
+
+        " "
+
+    ) || fallback;
+
+}
+
+
+
+/*
+==========================================
+PASSWORD VALIDATION
+==========================================
+*/
+
+function validatePassword(password){
+
+    if(
+
+        typeof password !== "string"
+
+    ){
+
+        return false;
+
+    }
+
+
+    return (
+
+        password.length >= 8 &&
+
+        /[a-z]/.test(password) &&
+
+        /[A-Z]/.test(password) &&
+
+        /[0-9]/.test(password) &&
+
+        /[^A-Za-z0-9]/.test(password)
+
+    );
 
 }
 
@@ -126,9 +235,11 @@ function createToken(user){
 
     if(!JWT_SECRET){
 
-        throw new Error(
+        throw new AuthError(
 
-            "JWT_SECRET não configurado."
+            "JWT_SECRET não configurado.",
+
+            500
 
         );
 
@@ -149,7 +260,9 @@ function createToken(user){
 
             provider:
 
-                user.provider || "local"
+                user.provider ||
+
+                "local"
 
         },
 
@@ -183,7 +296,7 @@ function createToken(user){
 
 /*
 ==========================================
-GET JWT EXPIRATION
+GET SESSION EXPIRATION
 ==========================================
 */
 
@@ -193,7 +306,7 @@ function getSessionExpiration(){
 
         Date.now() +
 
-        30 *
+        SESSION_DAYS *
 
         24 *
 
@@ -211,7 +324,7 @@ function getSessionExpiration(){
 
 /*
 ==========================================
-CREATE SESSION
+CREATE DATABASE SESSION
 ==========================================
 */
 
@@ -230,56 +343,51 @@ async function createSession(
         getSessionExpiration();
 
 
-    const session =
+    return Session.create({
 
-        await Session.create({
+        userId:
 
-            userId:
+            user._id,
 
-                user._id,
+        token,
 
-            token,
+        device:
 
-            device:
+            request
 
-                request
+                ?.headers
 
-                    ?.headers
+                ?.["sec-ch-ua-platform"] ||
 
-                    ?.["sec-ch-ua-platform"] ||
+            request
 
-                request
+                ?.headers
 
-                    ?.headers
+                ?.["user-agent"] ||
 
-                    ?.["user-agent"] ||
+            "unknown",
 
-                "unknown",
+        browser:
 
-            browser:
+            request
 
-                request
+                ?.headers
 
-                    ?.headers
+                ?.["user-agent"] ||
 
-                    ?.["user-agent"] ||
+            "unknown",
 
-                "unknown",
+        ip:
 
-            ip:
+            request
 
-                request
+                ?.ip ||
 
-                    ?.ip ||
+            null,
 
-                null,
+        expiresAt
 
-            expiresAt
-
-        });
-
-
-    return session;
+    });
 
 }
 
@@ -288,24 +396,46 @@ async function createSession(
 /*
 ==========================================
 PUBLIC USER
+Never expose sensitive authentication data
 ==========================================
 */
 
 function publicUser(user){
 
+    if(!user){
+
+        return null;
+
+    }
+
+
     return {
 
         id:
 
-            user._id,
+            user._id.toString(),
 
         firstName:
 
-            user.firstName,
+            user.firstName || "",
 
         lastName:
 
-            user.lastName,
+            user.lastName || "",
+
+        name:
+
+            [
+
+                user.firstName,
+
+                user.lastName
+
+            ]
+
+                .filter(Boolean)
+
+                .join(" "),
 
         email:
 
@@ -313,25 +443,92 @@ function publicUser(user){
 
         provider:
 
-            user.provider,
+            user.provider ||
+
+            "local",
 
         avatar:
 
-            user.avatar,
+            user.avatar ||
+
+            null,
 
         emailVerified:
 
-            user.emailVerified,
+            user.emailVerified === true,
 
         plan:
 
-            user.plan,
+            user.plan ||
+
+            "free",
 
         isActive:
 
-            user.isActive
+            user.isActive === true,
+
+        createdAt:
+
+            user.createdAt ||
+
+            null,
+
+        lastLogin:
+
+            user.lastLogin ||
+
+            null
 
     };
+
+}
+
+
+
+/*
+==========================================
+SEND VERIFICATION EMAIL
+==========================================
+*/
+
+async function sendVerificationEmail(
+
+    user,
+
+    code
+
+){
+
+    if(
+
+        !emailservice ||
+
+        typeof emailservice.sendVerificationCode !==
+
+            "function"
+
+    ){
+
+        throw new AuthError(
+
+            "Serviço de email não configurado.",
+
+            503
+
+        );
+
+    }
+
+
+    await emailservice.sendVerificationCode(
+
+        user.email,
+
+        code,
+
+        user.firstName
+
+    );
 
 }
 
@@ -343,7 +540,8 @@ AUTH SERVICE
 ==========================================
 */
 
-class AuthService {
+class AuthService{
+
 
 
     /*
@@ -362,28 +560,24 @@ class AuthService {
 
         const firstName =
 
-            String(
+            normalizeName(
 
                 data?.firstName ??
 
-                data?.nome ??
+                data?.nome
 
-                ""
-
-            ).trim();
+            );
 
 
         const lastName =
 
-            String(
+            normalizeName(
 
                 data?.lastName ??
 
-                data?.apelido ??
+                data?.apelido
 
-                ""
-
-            ).trim();
+            );
 
 
         const email =
@@ -406,6 +600,28 @@ class AuthService {
             );
 
 
+        const confirmPassword =
+
+            String(
+
+                data?.confirmPassword ??
+
+                data?.confirm_password ??
+
+                data?.passwordConfirmation ??
+
+                password
+
+            );
+
+
+
+        /*
+        ----------------------------------
+        REQUIRED FIELDS
+        ----------------------------------
+        */
+
         if(
 
             !firstName ||
@@ -418,14 +634,23 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Preencha todos os campos."
+                "Preencha todos os campos.",
+
+                400
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        NAME LIMITS
+        ----------------------------------
+        */
 
         if(
 
@@ -435,14 +660,23 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Nome demasiado longo."
+                "Nome demasiado longo.",
+
+                400
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        EMAIL
+        ----------------------------------
+        */
 
         if(
 
@@ -450,38 +684,73 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email inválido."
+                "Email inválido.",
+
+                400
 
             );
 
         }
 
 
-        const strongPassword =
 
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
+        /*
+        ----------------------------------
+        PASSWORD MATCH
+        ----------------------------------
+        */
 
         if(
 
-            !strongPassword.test(
+            password !==
 
-                password
-
-            )
+            confirmPassword
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "A palavra-passe deve ter mínimo 8 caracteres, maiúscula, minúscula, número e símbolo."
+                "As palavras-passe não coincidem.",
+
+                400
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        PASSWORD STRENGTH
+        ----------------------------------
+        */
+
+        if(
+
+            !validatePassword(password)
+
+        ){
+
+            throw new AuthError(
+
+                "A palavra-passe deve ter mínimo 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo.",
+
+                400
+
+            );
+
+        }
+
+
+
+        /*
+        ----------------------------------
+        EXISTING USER
+        ----------------------------------
+        */
 
         const exists =
 
@@ -496,31 +765,40 @@ class AuthService {
 
             if(
 
-                exists.provider ===
-
-                    "google" &&
+                exists.googleId &&
 
                 !exists.password
 
             ){
 
-                throw new Error(
+                throw new AuthError(
 
-                    "Este email já está associado ao Google. Entre com a sua conta Google."
+                    "Este email já está associado ao Google. Entre com a sua conta Google.",
+
+                    409
 
                 );
 
             }
 
 
-            throw new Error(
+            throw new AuthError(
 
-                "Este email já está registado."
+                "Este email já está registado.",
+
+                409
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        PASSWORD HASH
+        ----------------------------------
+        */
 
         const encryptedPassword =
 
@@ -533,6 +811,13 @@ class AuthService {
             );
 
 
+
+        /*
+        ----------------------------------
+        VERIFICATION
+        ----------------------------------
+        */
+
         const verificationCode =
 
             generateVerificationCode();
@@ -544,7 +829,7 @@ class AuthService {
 
                 Date.now() +
 
-                15 *
+                VERIFICATION_CODE_MINUTES *
 
                 60 *
 
@@ -552,6 +837,13 @@ class AuthService {
 
             );
 
+
+
+        /*
+        ----------------------------------
+        CREATE USER
+        ----------------------------------
+        */
 
         const user =
 
@@ -590,20 +882,84 @@ class AuthService {
             });
 
 
+
         /*
         ----------------------------------
-        EMAIL SERVICE
+        SEND VERIFICATION EMAIL
         ----------------------------------
         */
 
-        console.log(
+        try{
 
-            "🐝 Honey IA verification code:",
+            await sendVerificationEmail(
 
-            verificationCode
+                user,
 
-        );
+                verificationCode
 
+            );
+
+        }
+
+        catch(error){
+
+            console.error(
+
+                "❌ AUTH REGISTER EMAIL ERROR:",
+
+                error
+
+            );
+
+
+            /*
+            ----------------------------------
+            ROLLBACK USER
+            ----------------------------------
+            */
+
+            try{
+
+                await User.deleteOne({
+
+                    _id:
+
+                        user._id
+
+                });
+
+            }
+
+            catch(deleteError){
+
+                console.error(
+
+                    "❌ AUTH ROLLBACK ERROR:",
+
+                    deleteError
+
+                );
+
+            }
+
+
+            throw new AuthError(
+
+                "Não foi possível enviar o email de confirmação. Tente novamente.",
+
+                503
+
+            );
+
+        }
+
+
+
+        /*
+        ----------------------------------
+        RESULT
+        ----------------------------------
+        */
 
         return {
 
@@ -611,11 +967,11 @@ class AuthService {
 
             message:
 
-                "Conta criada. Verifique o seu email.",
+                "Conta criada. Verifique o código enviado para o seu email.",
 
             userId:
 
-                user._id,
+                user._id.toString(),
 
             email:
 
@@ -656,24 +1012,53 @@ class AuthService {
 
                 code || ""
 
-            ).trim();
+            )
+
+            .trim();
+
 
 
         if(
 
-            !normalizedEmail ||
+            !validator.isEmail(
 
-            !verificationCode
+                normalizedEmail
+
+            )
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email e código são obrigatórios."
+                "Email inválido.",
+
+                400
 
             );
 
         }
+
+
+        if(
+
+            !/^\d{6}$/.test(
+
+                verificationCode
+
+            )
+
+        ){
+
+            throw new AuthError(
+
+                "Código inválido.",
+
+                400
+
+            );
+
+        }
+
 
 
         const user =
@@ -689,13 +1074,16 @@ class AuthService {
 
         if(!user){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Utilizador não encontrado."
+                "Utilizador não encontrado.",
+
+                404
 
             );
 
         }
+
 
 
         if(user.emailVerified){
@@ -713,6 +1101,7 @@ class AuthService {
         }
 
 
+
         if(
 
             user.verificationCode !==
@@ -721,13 +1110,16 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Código incorreto."
+                "Código incorreto.",
+
+                400
 
             );
 
         }
+
 
 
         if(
@@ -740,14 +1132,23 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Código expirado."
+                "Código expirado. Solicite um novo código.",
+
+                400
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        VERIFY
+        ----------------------------------
+        */
 
         user.emailVerified = true;
 
@@ -759,6 +1160,51 @@ class AuthService {
         await user.save();
 
 
+
+        /*
+        ----------------------------------
+        WELCOME EMAIL
+        ----------------------------------
+        */
+
+        if(
+
+            emailservice &&
+
+            typeof emailservice.sendWelcomeEmail ===
+
+                "function"
+
+        ){
+
+            try{
+
+                await emailservice.sendWelcomeEmail(
+
+                    user.email,
+
+                    user.firstName
+
+                );
+
+            }
+
+            catch(error){
+
+                console.error(
+
+                    "⚠️ WELCOME EMAIL ERROR:",
+
+                    error
+
+                );
+
+            }
+
+        }
+
+
+
         return {
 
             success: true,
@@ -766,6 +1212,182 @@ class AuthService {
             message:
 
                 "Email confirmado com sucesso."
+
+        };
+
+    }
+
+
+
+    /*
+    ======================================
+    RESEND VERIFICATION CODE
+    ======================================
+    */
+
+    async resendVerificationCode(
+
+        email
+
+    ){
+
+        const normalizedEmail =
+
+            normalizeEmail(email);
+
+
+
+        if(
+
+            !validator.isEmail(
+
+                normalizedEmail
+
+            )
+
+        ){
+
+            throw new AuthError(
+
+                "Email inválido.",
+
+                400
+
+            );
+
+        }
+
+
+
+        const user =
+
+            await User.findOne({
+
+                email:
+
+                    normalizedEmail
+
+            });
+
+
+        if(!user){
+
+            throw new AuthError(
+
+                "Utilizador não encontrado.",
+
+                404
+
+            );
+
+        }
+
+
+
+        if(user.emailVerified){
+
+            throw new AuthError(
+
+                "Este email já está confirmado.",
+
+                400
+
+            );
+
+        }
+
+
+
+        /*
+        ----------------------------------
+        NEW CODE
+        ----------------------------------
+        */
+
+        const code =
+
+            generateVerificationCode();
+
+
+        const expires =
+
+            new Date(
+
+                Date.now() +
+
+                VERIFICATION_CODE_MINUTES *
+
+                60 *
+
+                1000
+
+            );
+
+
+
+        /*
+        ----------------------------------
+        SEND FIRST
+        ----------------------------------
+        */
+
+        try{
+
+            await sendVerificationEmail(
+
+                user,
+
+                code
+
+            );
+
+        }
+
+        catch(error){
+
+            console.error(
+
+                "❌ RESEND VERIFICATION EMAIL ERROR:",
+
+                error
+
+            );
+
+
+            throw new AuthError(
+
+                "Não foi possível enviar o novo código. Tente novamente.",
+
+                503
+
+            );
+
+        }
+
+
+
+        /*
+        ----------------------------------
+        SAVE NEW CODE
+        ----------------------------------
+        */
+
+        user.verificationCode = code;
+
+        user.verificationExpires = expires;
+
+
+        await user.save();
+
+
+
+        return {
+
+            success: true,
+
+            message:
+
+                "Novo código enviado para o seu email."
 
         };
 
@@ -794,21 +1416,31 @@ class AuthService {
             normalizeEmail(email);
 
 
+
         if(
 
-            !normalizedEmail ||
+            !validator.isEmail(
+
+                normalizedEmail
+
+            ) ||
+
+            typeof password !== "string" ||
 
             !password
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email e palavra-passe são obrigatórios."
+                "Email ou palavra-passe inválidos.",
+
+                400
 
             );
 
         }
+
 
 
         const user =
@@ -824,60 +1456,84 @@ class AuthService {
 
         if(!user){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email ou palavra-passe incorretos."
+                "Email ou palavra-passe incorretos.",
+
+                401
 
             );
 
         }
+
 
 
         if(!user.isActive){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Esta conta está desativada."
+                "Esta conta está desativada.",
+
+                403
 
             );
 
         }
 
 
+
         /*
         ----------------------------------
-        GOOGLE ACCOUNT
+        GOOGLE-ONLY ACCOUNT
         ----------------------------------
         */
 
         if(
 
-            user.provider ===
+            !user.password &&
 
-                "google" &&
-
-            !user.password
+            user.googleId
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Esta conta utiliza o Google. Entre com a sua conta Google."
+                "Esta conta utiliza o Google. Entre com a sua conta Google.",
+
+                400
 
             );
 
         }
+
 
 
         if(!user.emailVerified){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Confirme o seu email primeiro."
+                "Confirme o seu email antes de entrar.",
+
+                403
 
             );
 
         }
+
+
+
+        if(!user.password){
+
+            throw new AuthError(
+
+                "Esta conta não possui palavra-passe local.",
+
+                400
+
+            );
+
+        }
+
 
 
         const valid =
@@ -893,14 +1549,23 @@ class AuthService {
 
         if(!valid){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email ou palavra-passe incorretos."
+                "Email ou palavra-passe incorretos.",
+
+                401
 
             );
 
         }
 
+
+
+        /*
+        ----------------------------------
+        LOGIN SUCCESS
+        ----------------------------------
+        */
 
         user.lastLogin =
 
@@ -908,6 +1573,7 @@ class AuthService {
 
 
         await user.save();
+
 
 
         const token =
@@ -926,6 +1592,7 @@ class AuthService {
                 request
 
             );
+
 
 
         return {
@@ -972,13 +1639,47 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Dados da conta Google inválidos."
+                "Dados da conta Google inválidos.",
+
+                401
 
             );
 
         }
+
+
+
+        /*
+        ----------------------------------
+        GOOGLE EMAIL VERIFIED
+        ----------------------------------
+        */
+
+        const emailVerified =
+
+            String(
+
+                googleProfile.email_verified
+
+            ).toLowerCase() ===
+
+            "true";
+
+
+        if(!emailVerified){
+
+            throw new AuthError(
+
+                "A conta Google não possui email verificado.",
+
+                401
+
+            );
+
+        }
+
 
 
         const email =
@@ -996,30 +1697,26 @@ class AuthService {
 
         ){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Email Google inválido."
+                "Email Google inválido.",
 
-            );
-
-        }
-
-
-        if(
-
-            googleProfile.email_verified ===
-
-                false
-
-        ){
-
-            throw new Error(
-
-                "A conta Google não possui email verificado."
+                401
 
             );
 
         }
+
+
+
+        const googleId =
+
+            String(
+
+                googleProfile.sub
+
+            );
+
 
 
         let user =
@@ -1030,9 +1727,7 @@ class AuthService {
 
                     {
 
-                        googleId:
-
-                            googleProfile.sub
+                        googleId
 
                     },
 
@@ -1045,6 +1740,7 @@ class AuthService {
                 ]
 
             });
+
 
 
         /*
@@ -1061,17 +1757,23 @@ class AuthService {
 
                     firstName:
 
-                        googleProfile.given_name ||
+                        normalizeName(
 
-                        googleProfile.name ||
+                            googleProfile.given_name ||
 
-                        "Utilizador",
+                            googleProfile.name,
+
+                            "Utilizador"
+
+                        ),
 
                     lastName:
 
-                        googleProfile.family_name ||
+                        normalizeName(
 
-                        "",
+                            googleProfile.family_name
+
+                        ),
 
                     email,
 
@@ -1083,9 +1785,7 @@ class AuthService {
 
                         "google",
 
-                    googleId:
-
-                        googleProfile.sub,
+                    googleId,
 
                     avatar:
 
@@ -1125,7 +1825,27 @@ class AuthService {
 
             /*
             ----------------------------------
-            LINK EXISTING ACCOUNT
+            ACCOUNT STATUS
+            ----------------------------------
+            */
+
+            if(!user.isActive){
+
+                throw new AuthError(
+
+                    "Esta conta está desativada.",
+
+                    403
+
+                );
+
+            }
+
+
+
+            /*
+            ----------------------------------
+            GOOGLE ID CONFLICT
             ----------------------------------
             */
 
@@ -1133,71 +1853,121 @@ class AuthService {
 
                 user.googleId &&
 
-                user.googleId !==
-
-                    googleProfile.sub
+                user.googleId !== googleId
 
             ){
 
-                throw new Error(
+                throw new AuthError(
 
-                    "Esta conta Google não corresponde ao utilizador."
+                    "Esta conta Google não corresponde ao utilizador.",
+
+                    409
 
                 );
 
             }
 
 
-            user.googleId =
 
-                googleProfile.sub;
+            /*
+            ----------------------------------
+            LINK GOOGLE
+            ----------------------------------
+            */
+
+            if(!user.googleId){
+
+                user.googleId = googleId;
+
+            }
 
 
-            user.provider =
 
-                "google";
+            /*
+            ----------------------------------
+            PROVIDER
+            ----------------------------------
+            */
 
+            if(!user.password){
+
+                user.provider = "google";
+
+            }
+
+
+
+            /*
+            ----------------------------------
+            VERIFIED EMAIL
+            ----------------------------------
+            */
 
             user.emailVerified = true;
 
 
-            user.avatar =
 
-                googleProfile.picture ||
-
-                user.avatar;
-
+            /*
+            ----------------------------------
+            PROFILE
+            ----------------------------------
+            */
 
             if(
 
-                !user.firstName ||
-
-                user.firstName === "Utilizador"
+                googleProfile.picture
 
             ){
 
-                user.firstName =
+                user.avatar =
 
-                    googleProfile.given_name ||
-
-                    googleProfile.name ||
-
-                    user.firstName;
+                    googleProfile.picture;
 
             }
 
 
             if(
 
-                !user.lastName
+                !user.firstName ||
+
+                user.firstName ===
+
+                    "Utilizador"
+
+            ){
+
+                user.firstName =
+
+                    normalizeName(
+
+                        googleProfile.given_name ||
+
+                        googleProfile.name,
+
+                        user.firstName ||
+
+                        "Utilizador"
+
+                    );
+
+            }
+
+
+            if(
+
+                !user.lastName &&
+
+                googleProfile.family_name
 
             ){
 
                 user.lastName =
 
-                    googleProfile.family_name ||
+                    normalizeName(
 
-                    "";
+                        googleProfile.family_name
+
+                    );
 
             }
 
@@ -1212,16 +1982,12 @@ class AuthService {
         }
 
 
-        if(!user.isActive){
 
-            throw new Error(
-
-                "Esta conta está desativada."
-
-            );
-
-        }
-
+        /*
+        ----------------------------------
+        CREATE SESSION
+        ----------------------------------
+        */
 
         const token =
 
@@ -1239,6 +2005,7 @@ class AuthService {
                 request
 
             );
+
 
 
         return {
@@ -1273,11 +2040,16 @@ class AuthService {
 
             return {
 
-                success: true
+                success: true,
+
+                message:
+
+                    "Sessão já encerrada."
 
             };
 
         }
+
 
 
         await Session.deleteOne({
@@ -1285,6 +2057,7 @@ class AuthService {
             token
 
         });
+
 
 
         return {
@@ -1311,13 +2084,16 @@ class AuthService {
 
         if(!userId){
 
-            return {
+            throw new AuthError(
 
-                success: false
+                "Utilizador não autenticado.",
 
-            };
+                401
+
+            );
 
         }
+
 
 
         await Session.deleteMany({
@@ -1325,6 +2101,7 @@ class AuthService {
             userId
 
         });
+
 
 
         return {
@@ -1386,13 +2163,16 @@ class AuthService {
 
         if(!user){
 
-            throw new Error(
+            throw new AuthError(
 
-                "Utilizador não encontrado."
+                "Utilizador não encontrado.",
+
+                404
 
             );
 
         }
+
 
 
         return {
@@ -1410,5 +2190,11 @@ class AuthService {
 }
 
 
+
+/*
+==========================================
+EXPORT
+==========================================
+*/
 
 export default new AuthService();
