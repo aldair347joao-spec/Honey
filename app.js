@@ -56,7 +56,8 @@ authmanager.waitUntilReady()
 
 O auth.js atual já inicia loadSession()
 automaticamente, mas ainda não possui esse método.
-
+/*
+=========================================================
 Aqui criamos uma ponte de compatibilidade
 sem alterar a arquitetura do auth.js.
 ==========================================================
@@ -614,8 +615,13 @@ class HoneyAIApp {
 
 
         await logincontroller.init();
-
-
+        const loader = document.getElementById("appLoader");
+        if (loader) {
+            loader.classList.add("hidden");
+            setTimeout(() => {
+                loader.style.display = "none";
+            }, 300);
+        }
 
     }
 
