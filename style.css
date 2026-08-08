@@ -1,35 +1,33 @@
 /*
-==========================================
+============================================================
 HONEY IA
-STYLE CSS V9.0
-Enterprise AI Workspace
-Premium Authentication + Studio UI
-Responsive System
-==========================================
+STYLE CSS V10
+Enterprise AI Workspace + Premium Authentication Experience
+============================================================
 */
 
 
 /*
-==========================================
+============================================================
 GLOBAL VARIABLES
-==========================================
+============================================================
 */
 
 :root{
 
-    --agent-bg:#07080a;
+    --agent-bg:#050608;
 
-    --agent-surface:#0f1117;
+    --agent-surface:#0c0f14;
 
-    --agent-surface-2:#11141c;
+    --agent-surface-2:#10141b;
 
-    --agent-card:#151923;
+    --agent-card:#151a23;
 
-    --agent-card-hover:#1a1f2b;
+    --agent-card-soft:#11151d;
 
-    --agent-border:rgba(255,255,255,.08);
+    --agent-border:rgba(255,255,255,.085);
 
-    --agent-border-strong:rgba(255,255,255,.14);
+    --agent-border-light:rgba(255,255,255,.13);
 
     --agent-gold:#f59e0b;
 
@@ -41,13 +39,13 @@ GLOBAL VARIABLES
 
     --agent-purple:#8b5cf6;
 
+    --agent-cyan:#22d3ee;
+
     --agent-green:#22c55e;
 
     --agent-red:#ef4444;
 
     --agent-text:#f8fafc;
-
-    --agent-text-soft:#e2e8f0;
 
     --agent-muted:#94a3b8;
 
@@ -55,40 +53,22 @@ GLOBAL VARIABLES
 
     --agent-radius:18px;
 
-    --agent-radius-lg:24px;
+    --agent-radius-lg:26px;
 
-    --agent-radius-xl:30px;
-
-    --transition:.3s ease;
-
-    --shadow:
-
-        0 20px 60px
-
-        rgba(0,0,0,.25);
-
-    --shadow-gold:
-
-        0 15px 45px
-
-        rgba(245,158,11,.12);
+    --transition:.3s cubic-bezier(.4,0,.2,1);
 
 }
 
 
 /*
-==========================================
+============================================================
 RESET
-==========================================
+============================================================
 */
 
 *{
 
     box-sizing:border-box;
-
-    margin:0;
-
-    padding:0;
 
 }
 
@@ -97,6 +77,8 @@ html{
 
     scroll-behavior:smooth;
 
+    width:100%;
+
     min-height:100%;
 
 }
@@ -104,41 +86,35 @@ html{
 
 body{
 
-    min-height:100vh;
-
     margin:0;
+
+    width:100%;
+
+    min-height:100vh;
 
     background:
 
-        radial-gradient(
+    radial-gradient(
+        circle at 15% 0%,
+        rgba(245,158,11,.075),
+        transparent 30%
+    ),
 
-            circle at top,
+    radial-gradient(
+        circle at 100% 100%,
+        rgba(79,140,255,.045),
+        transparent 35%
+    ),
 
-            rgba(245,158,11,.07),
-
-            transparent 35%
-
-        ),
-
-        var(--agent-bg);
+    var(--agent-bg);
 
     color:var(--agent-text);
 
     font-family:
 
-        "Plus Jakarta Sans",
-
-        "Inter",
-
-        system-ui,
-
-        -apple-system,
-
-        BlinkMacSystemFont,
-
-        "Segoe UI",
-
-        sans-serif;
+    "Plus Jakarta Sans",
+    "Inter",
+    sans-serif;
 
     -webkit-font-smoothing:antialiased;
 
@@ -159,7 +135,7 @@ select{
 
 button{
 
-    cursor:pointer;
+    border:0;
 
 }
 
@@ -167,8 +143,6 @@ button{
 img{
 
     max-width:100%;
-
-    display:block;
 
 }
 
@@ -180,21 +154,10 @@ a{
 }
 
 
-::selection{
-
-    background:
-
-        rgba(245,158,11,.28);
-
-    color:white;
-
-}
-
-
 /*
-==========================================
+============================================================
 APP LOADER
-==========================================
+============================================================
 */
 
 .app-loader{
@@ -203,7 +166,7 @@ APP LOADER
 
     inset:0;
 
-    z-index:9999;
+    z-index:99999;
 
     display:flex;
 
@@ -213,17 +176,20 @@ APP LOADER
 
     justify-content:center;
 
-    background:#07080a;
+    background:
 
-    opacity:1;
+    radial-gradient(
+        circle at center,
+        rgba(245,158,11,.08),
+        transparent 35%
+    ),
 
-    visibility:visible;
+    #050608;
 
     transition:
 
-        opacity .5s ease,
-
-        visibility .5s ease;
+    opacity .5s ease,
+    visibility .5s ease;
 
 }
 
@@ -249,8 +215,6 @@ APP LOADER
 
     justify-content:center;
 
-    gap:10px;
-
     text-align:center;
 
 }
@@ -260,36 +224,39 @@ APP LOADER
 
     display:block;
 
-    font-size:60px;
+    font-size:62px;
+
+    filter:
+
+    drop-shadow(
+        0 0 25px
+        rgba(245,158,11,.35)
+    );
 
     animation:
 
-        loaderBee 1.5s ease-in-out infinite;
+    honeyFloat 2s ease-in-out infinite;
 
 }
 
 
 .loader-logo h2{
 
-    margin:0;
+    margin:12px 0 0;
 
-    font-size:29px;
+    font-size:30px;
 
     font-weight:800;
 
-    letter-spacing:-.5px;
+    letter-spacing:-.8px;
 
     background:
 
-        linear-gradient(
-
-            90deg,
-
-            #ffffff,
-
-            var(--agent-gold)
-
-        );
+    linear-gradient(
+        90deg,
+        #fff,
+        var(--agent-gold-light)
+    );
 
     -webkit-background-clip:text;
 
@@ -302,7 +269,7 @@ APP LOADER
 
 .loader-bar{
 
-    width:200px;
+    width:220px;
 
     height:4px;
 
@@ -312,9 +279,7 @@ APP LOADER
 
     border-radius:999px;
 
-    background:
-
-        rgba(255,255,255,.08);
+    background:rgba(255,255,255,.08);
 
 }
 
@@ -325,7 +290,7 @@ APP LOADER
 
     display:block;
 
-    width:45%;
+    width:40%;
 
     height:100%;
 
@@ -333,36 +298,67 @@ APP LOADER
 
     background:
 
-        linear-gradient(
-
-            90deg,
-
-            var(--agent-gold),
-
-            var(--agent-purple)
-
-        );
+    linear-gradient(
+        90deg,
+        var(--agent-gold),
+        var(--agent-purple)
+    );
 
     animation:
 
-        loading 1.3s ease-in-out infinite;
+    loaderMove 1.5s ease-in-out infinite;
+
+}
+
+
+@keyframes loaderMove{
+
+    from{
+
+        transform:translateX(-140%);
+
+    }
+
+    to{
+
+        transform:translateX(330%);
+
+    }
+
+}
+
+
+@keyframes honeyFloat{
+
+    0%,
+    100%{
+
+        transform:translateY(0);
+
+    }
+
+    50%{
+
+        transform:translateY(-9px);
+
+    }
 
 }
 
 
 /*
-==========================================
-STUDIO APPLICATION
-==========================================
+============================================================
+STUDIO APP
+============================================================
 */
 
 .studio{
 
+    display:flex;
+
     width:100%;
 
     min-height:100vh;
-
-    display:flex;
 
     overflow:hidden;
 
@@ -370,9 +366,9 @@ STUDIO APPLICATION
 
 
 /*
-==========================================
+============================================================
 SIDEBAR OVERLAY
-==========================================
+============================================================
 */
 
 .sidebar-overlay{
@@ -383,9 +379,7 @@ SIDEBAR OVERLAY
 
     z-index:90;
 
-    background:
-
-        rgba(0,0,0,.68);
+    background:rgba(0,0,0,.68);
 
     opacity:0;
 
@@ -393,11 +387,9 @@ SIDEBAR OVERLAY
 
     pointer-events:none;
 
-    transition:
+    backdrop-filter:blur(3px);
 
-        opacity .3s ease,
-
-        visibility .3s ease;
+    transition:var(--transition);
 
 }
 
@@ -414,18 +406,18 @@ SIDEBAR OVERLAY
 
 
 /*
-==========================================
+============================================================
 SIDEBAR
-==========================================
+============================================================
 */
 
 .sidebar{
 
     width:280px;
 
-    min-width:280px;
-
     min-height:100vh;
+
+    flex-shrink:0;
 
     display:flex;
 
@@ -433,15 +425,17 @@ SIDEBAR
 
     background:
 
-        rgba(15,17,23,.94);
-
-    backdrop-filter:blur(24px);
-
-    -webkit-backdrop-filter:blur(24px);
+    linear-gradient(
+        180deg,
+        rgba(15,17,23,.98),
+        rgba(8,10,14,.98)
+    );
 
     border-right:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
+
+    backdrop-filter:blur(24px);
 
     z-index:100;
 
@@ -451,8 +445,6 @@ SIDEBAR
 .sidebar-header{
 
     height:90px;
-
-    min-height:90px;
 
     display:flex;
 
@@ -464,7 +456,7 @@ SIDEBAR
 
     border-bottom:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -477,8 +469,6 @@ SIDEBAR
 
     gap:12px;
 
-    min-width:0;
-
 }
 
 
@@ -487,8 +477,6 @@ SIDEBAR
     width:48px;
 
     height:48px;
-
-    min-width:48px;
 
     display:flex;
 
@@ -500,15 +488,22 @@ SIDEBAR
 
     background:
 
-        rgba(245,158,11,.12);
+    linear-gradient(
+        135deg,
+        rgba(245,158,11,.2),
+        rgba(139,92,246,.1)
+    );
 
     border:
 
-        1px solid
-
-        rgba(245,158,11,.12);
+    1px solid rgba(245,158,11,.18);
 
     font-size:25px;
+
+    box-shadow:
+
+    0 8px 30px
+    rgba(245,158,11,.08);
 
 }
 
@@ -517,20 +512,14 @@ SIDEBAR
 
     display:block;
 
-    color:white;
-
     font-size:18px;
 
-    font-weight:800;
+    letter-spacing:-.3px;
 
 }
 
 
 .logo small{
-
-    display:block;
-
-    margin-top:2px;
 
     color:var(--agent-muted);
 
@@ -548,11 +537,11 @@ SIDEBAR
 
     justify-content:center;
 
-    border:0;
-
-    background:none;
+    cursor:pointer;
 
     color:white;
+
+    background:transparent;
 
 }
 
@@ -569,8 +558,6 @@ SIDEBAR
 
     padding:20px;
 
-    overflow-y:auto;
-
 }
 
 
@@ -582,8 +569,6 @@ SIDEBAR
 
     gap:14px;
 
-    width:100%;
-
     padding:14px 16px;
 
     border-radius:14px;
@@ -592,24 +577,18 @@ SIDEBAR
 
     text-decoration:none;
 
-    transition:
-
-        background .25s ease,
-
-        color .25s ease,
-
-        transform .25s ease;
+    transition:var(--transition);
 
 }
 
 
 .nav-item:hover{
 
+    color:white;
+
     background:
 
-        rgba(255,255,255,.045);
-
-    color:white;
+    rgba(255,255,255,.045);
 
     transform:translateX(2px);
 
@@ -618,11 +597,19 @@ SIDEBAR
 
 .nav-item.active{
 
+    color:var(--agent-gold-light);
+
     background:
 
-        rgba(245,158,11,.12);
+    linear-gradient(
+        90deg,
+        rgba(245,158,11,.13),
+        rgba(245,158,11,.035)
+    );
 
-    color:var(--agent-gold);
+    border:
+
+    1px solid rgba(245,158,11,.08);
 
 }
 
@@ -633,7 +620,7 @@ SIDEBAR
 
     border-top:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -646,21 +633,17 @@ SIDEBAR
 
     gap:12px;
 
-    min-width:0;
-
     padding:14px;
 
     border-radius:16px;
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.035);
 
     border:
 
-        1px solid
-
-        rgba(255,255,255,.04);
+    1px solid rgba(255,255,255,.045);
 
 }
 
@@ -671,7 +654,7 @@ SIDEBAR
 
     height:42px;
 
-    min-width:42px;
+    flex-shrink:0;
 
     display:flex;
 
@@ -679,44 +662,29 @@ SIDEBAR
 
     justify-content:center;
 
+    overflow:hidden;
+
     border-radius:50%;
 
     background:
 
-        linear-gradient(
-
-            135deg,
-
-            var(--agent-gold),
-
-            var(--agent-purple)
-
-        );
+    linear-gradient(
+        135deg,
+        var(--agent-gold),
+        var(--agent-purple)
+    );
 
     color:#111;
 
     font-weight:800;
 
-    overflow:hidden;
-
-}
-
-
-.avatar img{
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
 }
 
 
 /*
-==========================================
+============================================================
 MAIN CONTENT
-==========================================
+============================================================
 */
 
 .main-content{
@@ -735,20 +703,20 @@ MAIN CONTENT
 
 
 /*
-==========================================
+============================================================
 TOP HEADER
-==========================================
+============================================================
 */
 
 .top-header{
+
+    height:90px;
 
     position:sticky;
 
     top:0;
 
     z-index:50;
-
-    height:90px;
 
     display:flex;
 
@@ -760,11 +728,13 @@ TOP HEADER
 
     background:
 
-        rgba(7,8,10,.76);
+    linear-gradient(
+        180deg,
+        rgba(7,8,10,.96),
+        rgba(7,8,10,.72)
+    );
 
-    backdrop-filter:blur(18px);
-
-    -webkit-backdrop-filter:blur(18px);
+    backdrop-filter:blur(20px);
 
 }
 
@@ -787,13 +757,29 @@ TOP HEADER
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.035);
 
     color:var(--agent-muted);
+
+    transition:var(--transition);
+
+}
+
+
+.header-search:focus-within{
+
+    border-color:
+
+    rgba(245,158,11,.4);
+
+    box-shadow:
+
+    0 0 0 4px
+    rgba(245,158,11,.055);
 
 }
 
@@ -802,11 +788,9 @@ TOP HEADER
 
     width:100%;
 
-    min-width:0;
-
     border:0;
 
-    outline:0;
+    outline:none;
 
     background:transparent;
 
@@ -830,7 +814,7 @@ TOP HEADER
 
     align-items:center;
 
-    gap:12px;
+    gap:15px;
 
 }
 
@@ -851,40 +835,34 @@ TOP HEADER
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.035);
 
     color:white;
 
-    transition:
+    cursor:pointer;
 
-        border-color .25s ease,
-
-        color .25s ease,
-
-        background .25s ease,
-
-        transform .25s ease;
+    transition:var(--transition);
 
 }
 
 
 .icon-button:hover{
 
+    color:var(--agent-gold-light);
+
     border-color:
 
-        rgba(245,158,11,.45);
-
-    color:var(--agent-gold);
+    rgba(245,158,11,.35);
 
     background:
 
-        rgba(245,158,11,.07);
+    rgba(245,158,11,.08);
 
-    transform:translateY(-1px);
+    transform:translateY(-2px);
 
 }
 
@@ -903,13 +881,11 @@ TOP HEADER
 
     background:
 
-        rgba(245,158,11,.10);
+    rgba(245,158,11,.09);
 
     border:
 
-        1px solid
-
-        rgba(245,158,11,.20);
+    1px solid rgba(245,158,11,.18);
 
 }
 
@@ -925,26 +901,22 @@ TOP HEADER
 
 .plan-badge strong{
 
-    color:var(--agent-gold);
-
-    font-size:13px;
+    color:var(--agent-gold-light);
 
 }
 
 
 /*
-==========================================
-WORKSPACE
-==========================================
+============================================================
+WORKSPACE VIEWS
+============================================================
 */
 
 .workspace-view{
 
-    width:100%;
-
     animation:
 
-        agentFade .35s ease;
+    agentFade .35s ease;
 
 }
 
@@ -955,6 +927,12 @@ WORKSPACE
 
 }
 
+
+/*
+============================================================
+SECTION HEADER
+============================================================
+*/
 
 .section-header{
 
@@ -977,30 +955,24 @@ WORKSPACE
 
     font-size:30px;
 
-    line-height:1.2;
-
     font-weight:800;
 
-    letter-spacing:-.5px;
+    letter-spacing:-.8px;
 
 }
 
 
 .section-header p{
 
-    margin:6px 0 0;
-
     color:var(--agent-muted);
-
-    line-height:1.6;
 
 }
 
 
 /*
-==========================================
+============================================================
 DASHBOARD HERO
-==========================================
+============================================================
 */
 
 .hero-dashboard{
@@ -1017,42 +989,82 @@ DASHBOARD HERO
 
     padding:50px;
 
+    overflow:hidden;
+
+    position:relative;
+
     border-radius:30px;
 
     background:
 
-        radial-gradient(
+    radial-gradient(
+        circle at 85% 20%,
+        rgba(245,158,11,.22),
+        transparent 30%
+    ),
 
-            circle at top right,
+    radial-gradient(
+        circle at 100% 100%,
+        rgba(139,92,246,.1),
+        transparent 35%
+    ),
 
-            rgba(245,158,11,.25),
-
-            transparent 35%
-
-        ),
-
-        linear-gradient(
-
-            145deg,
-
-            var(--agent-surface),
-
-            rgba(255,255,255,.025)
-
-        );
+    linear-gradient(
+        145deg,
+        var(--agent-surface),
+        rgba(255,255,255,.025)
+    );
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
-    box-shadow:var(--shadow);
+}
 
-    overflow:hidden;
+
+.hero-dashboard::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    opacity:.18;
+
+    background-image:
+
+    linear-gradient(
+        rgba(255,255,255,.035) 1px,
+        transparent 1px
+    ),
+
+    linear-gradient(
+        90deg,
+        rgba(255,255,255,.035) 1px,
+        transparent 1px
+    );
+
+    background-size:40px 40px;
+
+    mask-image:
+
+    linear-gradient(
+        to bottom right,
+        black,
+        transparent
+    );
 
 }
 
 
 .hero-content{
+
+    position:relative;
+
+    z-index:2;
 
     max-width:650px;
 
@@ -1065,27 +1077,25 @@ DASHBOARD HERO
 
     align-items:center;
 
-    padding:8px 16px;
+    gap:8px;
 
-    margin-bottom:20px;
+    padding:8px 16px;
 
     border-radius:999px;
 
     background:
 
-        rgba(245,158,11,.12);
+    rgba(245,158,11,.1);
 
     border:
 
-        1px solid
+    1px solid rgba(245,158,11,.15);
 
-        rgba(245,158,11,.12);
-
-    color:var(--agent-gold);
+    color:var(--agent-gold-light);
 
     font-size:13px;
 
-    font-weight:700;
+    margin-bottom:20px;
 
 }
 
@@ -1094,27 +1104,22 @@ DASHBOARD HERO
 
     margin:0;
 
-    font-size:
-
-        clamp(32px,5vw,58px);
+    font-size:clamp(32px,5vw,58px);
 
     line-height:1.08;
 
     font-weight:800;
 
-    letter-spacing:-1.5px;
+    letter-spacing:-2px;
 
     background:
 
-        linear-gradient(
-
-            90deg,
-
-            #ffffff,
-
-            var(--agent-gold)
-
-        );
+    linear-gradient(
+        90deg,
+        #fff 0%,
+        #fff 35%,
+        var(--agent-gold-light) 100%
+    );
 
     -webkit-background-clip:text;
 
@@ -1127,21 +1132,30 @@ DASHBOARD HERO
 
 .hero-content p{
 
-    margin:25px 0;
-
     color:var(--agent-muted);
 
     font-size:17px;
 
     line-height:1.7;
 
+    margin:25px 0;
+
+}
+
+
+.hero-actions{
+
+    display:flex;
+
+    gap:15px;
+
 }
 
 
 /*
-==========================================
+============================================================
 BUTTONS
-==========================================
+============================================================
 */
 
 .primary-button,
@@ -1153,19 +1167,11 @@ BUTTONS
 
     border-radius:14px;
 
+    cursor:pointer;
+
     font-weight:700;
 
-    font-size:14px;
-
-    transition:
-
-        transform .25s ease,
-
-        box-shadow .25s ease,
-
-        border-color .25s ease,
-
-        background .25s ease;
+    transition:var(--transition);
 
 }
 
@@ -1176,36 +1182,30 @@ BUTTONS
 
     background:
 
-        linear-gradient(
-
-            135deg,
-
-            var(--agent-gold),
-
-            var(--agent-gold-dark)
-
-        );
+    linear-gradient(
+        135deg,
+        var(--agent-gold-light),
+        var(--agent-gold-dark)
+    );
 
     color:#111;
 
     box-shadow:
 
-        0 10px 25px
-
-        rgba(245,158,11,.15);
+    0 10px 30px
+    rgba(245,158,11,.14);
 
 }
 
 
 .primary-button:hover{
 
-    transform:translateY(-2px);
+    transform:translateY(-3px);
 
     box-shadow:
 
-        0 15px 35px
-
-        rgba(245,158,11,.23);
+    0 15px 35px
+    rgba(245,158,11,.22);
 
 }
 
@@ -1214,11 +1214,11 @@ BUTTONS
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border-light);
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.04);
 
     color:white;
 
@@ -1227,57 +1227,36 @@ BUTTONS
 
 .secondary-button:hover{
 
-    transform:translateY(-2px);
+    transform:translateY(-3px);
 
     border-color:
 
-        rgba(255,255,255,.18);
+    rgba(245,158,11,.35);
 
     background:
 
-        rgba(255,255,255,.07);
-
-}
-
-
-.primary-button:disabled,
-.secondary-button:disabled{
-
-    opacity:.55;
-
-    cursor:not-allowed;
-
-    transform:none;
-
-}
-
-
-.hero-actions{
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:15px;
+    rgba(245,158,11,.06);
 
 }
 
 
 /*
-==========================================
+============================================================
 AI ORB
-==========================================
+============================================================
 */
 
 .hero-visual{
+
+    position:relative;
+
+    z-index:2;
 
     display:flex;
 
     align-items:center;
 
     justify-content:center;
-
-    flex-shrink:0;
 
 }
 
@@ -1294,25 +1273,66 @@ AI ORB
 
     justify-content:center;
 
+    position:relative;
+
     border-radius:50%;
 
     background:
 
-        radial-gradient(
-
-            circle,
-
-            rgba(245,158,11,.25),
-
-            rgba(139,92,246,.10),
-
-            transparent 70%
-
-        );
+    radial-gradient(
+        circle,
+        rgba(245,158,11,.25),
+        rgba(139,92,246,.1),
+        transparent 70%
+    );
 
     animation:
 
-        pulseOrb 4s ease-in-out infinite;
+    pulseOrb 4s ease-in-out infinite;
+
+}
+
+
+.ai-orb::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:18px;
+
+    border-radius:50%;
+
+    border:
+
+    1px solid rgba(245,158,11,.22);
+
+    box-shadow:
+
+    0 0 60px
+    rgba(245,158,11,.1);
+
+}
+
+
+.ai-orb::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:45px;
+
+    border-radius:50%;
+
+    border:
+
+    1px dashed
+    rgba(139,92,246,.28);
+
+    animation:
+
+    orbRotate 12s linear infinite;
 
 }
 
@@ -1323,6 +1343,10 @@ AI ORB
 
     height:110px;
 
+    position:relative;
+
+    z-index:2;
+
     display:flex;
 
     align-items:center;
@@ -1331,29 +1355,57 @@ AI ORB
 
     border-radius:50%;
 
+    font-size:55px;
+
     background:
 
-        var(--agent-card);
+    var(--agent-card);
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     box-shadow:
 
-        0 0 50px
+    0 20px 60px
+    rgba(0,0,0,.35);
 
-        rgba(245,158,11,.12);
+}
 
-    font-size:55px;
+
+@keyframes pulseOrb{
+
+    0%,
+    100%{
+
+        transform:scale(1);
+
+    }
+
+    50%{
+
+        transform:scale(1.05);
+
+    }
+
+}
+
+
+@keyframes orbRotate{
+
+    to{
+
+        transform:rotate(360deg);
+
+    }
 
 }
 
 
 /*
-==========================================
+============================================================
 PLANS
-==========================================
+============================================================
 */
 
 .plans-grid{
@@ -1362,7 +1414,7 @@ PLANS
 
     grid-template-columns:
 
-        repeat(auto-fit,minmax(280px,1fr));
+    repeat(auto-fit,minmax(280px,1fr));
 
     gap:25px;
 
@@ -1375,47 +1427,39 @@ PLANS
 
     padding:30px;
 
+    overflow:hidden;
+
     border-radius:22px;
 
     background:
 
-        linear-gradient(
-
-            145deg,
-
-            var(--agent-card),
-
-            rgba(255,255,255,.03)
-
-        );
+    linear-gradient(
+        145deg,
+        var(--agent-card),
+        rgba(255,255,255,.025)
+    );
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
-    transition:
-
-        transform .25s ease,
-
-        border-color .25s ease;
+    transition:var(--transition);
 
 }
 
 
 .plan-card:hover{
 
-    transform:translateY(-4px);
+    transform:translateY(-5px);
 
     border-color:
 
-        rgba(245,158,11,.25);
+    rgba(245,158,11,.2);
 
 }
 
 
 .plan-card h3{
-
-    margin:0 0 10px;
 
     font-size:24px;
 
@@ -1424,18 +1468,9 @@ PLANS
 
 .plan-card h4{
 
-    margin:0 0 20px;
-
     font-size:30px;
 
-    color:var(--agent-gold);
-
-}
-
-
-.plan-card ul{
-
-    padding-left:20px;
+    color:var(--agent-gold-light);
 
 }
 
@@ -1453,11 +1488,12 @@ PLANS
 
     border-color:
 
-        rgba(245,158,11,.65);
+    rgba(245,158,11,.6);
 
     box-shadow:
 
-        var(--shadow-gold);
+    0 20px 50px
+    rgba(245,158,11,.06);
 
 }
 
@@ -1480,24 +1516,20 @@ PLANS
 
     font-size:12px;
 
-    font-weight:800;
+    font-weight:700;
 
 }
 
 
 /*
-==========================================
+============================================================
 CHAT WORKSPACE
-==========================================
+============================================================
 */
 
 .chat-section{
 
-    height:
-
-        calc(100vh - 110px);
-
-    min-height:600px;
+    height:calc(100vh - 110px);
 
 }
 
@@ -1508,9 +1540,9 @@ CHAT WORKSPACE
 
     grid-template-columns:
 
-        minmax(400px,1fr)
+    minmax(400px,1fr)
 
-        420px;
+    420px;
 
     gap:25px;
 
@@ -1520,38 +1552,34 @@ CHAT WORKSPACE
 
 
 /*
-==========================================
+============================================================
 CHAT PANEL
-==========================================
+============================================================
 */
 
 .chat-panel{
-
-    min-width:0;
 
     display:flex;
 
     flex-direction:column;
 
-    background:
+    min-height:0;
 
-        linear-gradient(
-
-            145deg,
-
-            var(--agent-surface),
-
-            rgba(255,255,255,.02)
-
-        );
-
-    border:
-
-        1px solid var(--agent-border);
+    overflow:hidden;
 
     border-radius:24px;
 
-    overflow:hidden;
+    background:
+
+    linear-gradient(
+        145deg,
+        var(--agent-surface),
+        rgba(255,255,255,.02)
+    );
+
+    border:
+
+    1px solid var(--agent-border);
 
 }
 
@@ -1570,7 +1598,7 @@ CHAT PANEL
 
     border-bottom:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -1586,10 +1614,6 @@ CHAT PANEL
 
 .chat-header span{
 
-    display:block;
-
-    margin-top:4px;
-
     color:var(--agent-muted);
 
     font-size:13px;
@@ -1598,16 +1622,16 @@ CHAT PANEL
 
 
 /*
-==========================================
+============================================================
 MODE SWITCH
-==========================================
+============================================================
 */
 
 .mode-switch{
 
     display:flex;
 
-    gap:6px;
+    gap:8px;
 
     padding:5px;
 
@@ -1615,7 +1639,7 @@ MODE SWITCH
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.04);
 
 }
 
@@ -1634,18 +1658,7 @@ MODE SWITCH
 
     cursor:pointer;
 
-    transition:
-
-        background .2s ease,
-
-        color .2s ease;
-
-}
-
-
-.mode-button:hover{
-
-    color:white;
+    transition:var(--transition);
 
 }
 
@@ -1660,9 +1673,9 @@ MODE SWITCH
 
 
 /*
-==========================================
+============================================================
 CHAT MESSAGES
-==========================================
+============================================================
 */
 
 .chat-messages{
@@ -1680,7 +1693,7 @@ CHAT MESSAGES
 
 .welcome-message{
 
-    min-height:100%;
+    height:100%;
 
     display:flex;
 
@@ -1709,23 +1722,27 @@ CHAT MESSAGES
 
     justify-content:center;
 
-    margin-bottom:20px;
-
     border-radius:50%;
+
+    font-size:40px;
 
     background:
 
-        rgba(245,158,11,.12);
+    rgba(245,158,11,.12);
 
-    font-size:40px;
+    border:
+
+    1px solid rgba(245,158,11,.12);
+
+    margin-bottom:20px;
 
 }
 
 
 /*
-==========================================
+============================================================
 MESSAGE BUBBLES
-==========================================
+============================================================
 */
 
 .user-message,
@@ -1741,8 +1758,6 @@ MESSAGE BUBBLES
 
     line-height:1.6;
 
-    overflow-wrap:anywhere;
-
 }
 
 
@@ -1752,13 +1767,11 @@ MESSAGE BUBBLES
 
     background:
 
-        rgba(245,158,11,.15);
+    rgba(245,158,11,.12);
 
     border:
 
-        1px solid
-
-        rgba(245,158,11,.20);
+    1px solid rgba(245,158,11,.2);
 
 }
 
@@ -1767,11 +1780,11 @@ MESSAGE BUBBLES
 
     background:
 
-        rgba(255,255,255,.05);
+    rgba(255,255,255,.045);
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -1780,15 +1793,13 @@ MESSAGE BUBBLES
 
     margin-top:8px;
 
-    line-height:1.7;
-
 }
 
 
 /*
-==========================================
+============================================================
 ATTACHMENT BAR
-==========================================
+============================================================
 */
 
 .attachment-bar{
@@ -1799,7 +1810,7 @@ ATTACHMENT BAR
 
     justify-content:space-between;
 
-    gap:10px;
+    gap:12px;
 
     padding:10px 18px;
 
@@ -1809,13 +1820,11 @@ ATTACHMENT BAR
 
     background:
 
-        rgba(245,158,11,.10);
+    rgba(245,158,11,.08);
 
     border:
 
-        1px solid
-
-        rgba(245,158,11,.12);
+    1px solid rgba(245,158,11,.1);
 
 }
 
@@ -1841,9 +1850,9 @@ ATTACHMENT BAR
 
 
 /*
-==========================================
+============================================================
 CHAT INPUT
-==========================================
+============================================================
 */
 
 .chat-input-area{
@@ -1858,7 +1867,7 @@ CHAT INPUT
 
     border-top:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -1869,7 +1878,7 @@ CHAT INPUT
 
     height:45px;
 
-    min-width:45px;
+    flex-shrink:0;
 
     display:flex;
 
@@ -1881,21 +1890,17 @@ CHAT INPUT
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.04);
 
     color:white;
 
     cursor:pointer;
 
-    transition:
-
-        border-color .25s ease,
-
-        color .25s ease;
+    transition:var(--transition);
 
 }
 
@@ -1904,9 +1909,9 @@ CHAT INPUT
 
     border-color:
 
-        rgba(245,158,11,.45);
+    rgba(245,158,11,.3);
 
-    color:var(--agent-gold);
+    color:var(--agent-gold-light);
 
 }
 
@@ -1915,7 +1920,7 @@ CHAT INPUT
 
     flex:1;
 
-    width:100%;
+    resize:none;
 
     min-height:45px;
 
@@ -1923,32 +1928,19 @@ CHAT INPUT
 
     padding:13px 15px;
 
-    resize:none;
-
     border-radius:14px;
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     background:
 
-        rgba(255,255,255,.04);
+    rgba(255,255,255,.04);
 
     color:white;
 
     outline:none;
-
-    font-size:14px;
-
-    line-height:1.5;
-
-}
-
-
-.chat-input-area textarea::placeholder{
-
-    color:var(--agent-muted-2);
 
 }
 
@@ -1957,13 +1949,12 @@ CHAT INPUT
 
     border-color:
 
-        rgba(245,158,11,.65);
+    rgba(245,158,11,.45);
 
     box-shadow:
 
-        0 0 0 3px
-
-        rgba(245,158,11,.07);
+    0 0 0 4px
+    rgba(245,158,11,.045);
 
 }
 
@@ -1974,39 +1965,25 @@ CHAT INPUT
 
     height:50px;
 
-    min-width:50px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    border:0;
+    flex-shrink:0;
 
     border-radius:15px;
 
+    border:0;
+
     background:
 
-        linear-gradient(
-
-            135deg,
-
-            var(--agent-gold),
-
-            var(--agent-gold-dark)
-
-        );
+    linear-gradient(
+        135deg,
+        var(--agent-gold-light),
+        var(--agent-gold-dark)
+    );
 
     color:#111;
 
     cursor:pointer;
 
-    transition:
-
-        transform .25s ease,
-
-        box-shadow .25s ease;
+    transition:var(--transition);
 
 }
 
@@ -2017,43 +1994,40 @@ CHAT INPUT
 
     box-shadow:
 
-        0 10px 25px
-
-        rgba(245,158,11,.18);
+    0 10px 25px
+    rgba(245,158,11,.18);
 
 }
 
 
 /*
-==========================================
+============================================================
 LIVE PREVIEW
-==========================================
+============================================================
 */
 
 .preview-pane{
 
-    min-width:0;
-
     display:none;
 
-    background:
+    min-height:0;
 
-        var(--agent-surface);
-
-    border:
-
-        1px solid var(--agent-border);
+    overflow:hidden;
 
     border-radius:24px;
 
-    overflow:hidden;
+    background:
+
+    var(--agent-surface);
+
+    border:
+
+    1px solid var(--agent-border);
 
 }
 
 
 .preview-header{
-
-    height:60px;
 
     display:flex;
 
@@ -2065,7 +2039,7 @@ LIVE PREVIEW
 
     border-bottom:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
@@ -2094,9 +2068,7 @@ LIVE PREVIEW
 
     width:100%;
 
-    height:
-
-        calc(100% - 60px);
+    height:calc(100% - 60px);
 
     border:0;
 
@@ -2106,9 +2078,9 @@ LIVE PREVIEW
 
 
 /*
-==========================================
+============================================================
 EMPTY STATES
-==========================================
+============================================================
 */
 
 .empty-state{
@@ -2123,26 +2095,22 @@ EMPTY STATES
 
     justify-content:center;
 
-    padding:30px;
-
     text-align:center;
+
+    border-radius:24px;
 
     background:
 
-        rgba(255,255,255,.03);
+    rgba(255,255,255,.025);
 
     border:
 
-        1px solid var(--agent-border);
-
-    border-radius:24px;
+    1px solid var(--agent-border);
 
 }
 
 
 .empty-icon{
-
-    margin-bottom:15px;
 
     font-size:50px;
 
@@ -2152,9 +2120,9 @@ EMPTY STATES
 
 
 /*
-==========================================
+============================================================
 TERMS CARD
-==========================================
+============================================================
 */
 
 .terms-card{
@@ -2163,22 +2131,18 @@ TERMS CARD
 
     border-radius:22px;
 
-    background:
-
-        var(--agent-card);
+    background:var(--agent-card);
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
 }
 
 
 .terms-card h3{
 
-    margin-bottom:15px;
-
-    color:var(--agent-gold);
+    color:var(--agent-gold-light);
 
 }
 
@@ -2193,9 +2157,9 @@ TERMS CARD
 
 
 /*
-==========================================
-TOAST SYSTEM
-==========================================
+============================================================
+TOAST
+============================================================
 */
 
 .toast-container{
@@ -2206,7 +2170,7 @@ TOAST SYSTEM
 
     bottom:25px;
 
-    z-index:9998;
+    z-index:99999;
 
     display:flex;
 
@@ -2214,14 +2178,12 @@ TOAST SYSTEM
 
     gap:12px;
 
-    width:
-
-        min(380px,calc(100vw - 30px));
-
 }
 
 
 .toast{
+
+    max-width:360px;
 
     padding:15px 20px;
 
@@ -2229,79 +2191,66 @@ TOAST SYSTEM
 
     background:
 
-        var(--agent-card);
+    var(--agent-card);
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid var(--agent-border);
 
     color:white;
 
     box-shadow:
 
-        0 15px 40px
-
-        rgba(0,0,0,.25);
+    0 20px 50px
+    rgba(0,0,0,.3);
 
     animation:
 
-        agentFade .3s ease;
+    agentFade .3s ease;
 
 }
 
 
 /*
-==========================================
-LOGIN PAGE
-CONTROLLED BY login.js V9
-NO login.css REQUIRED
-==========================================
+============================================================
+============================================================
+PREMIUM HONEY IA LOGIN EXPERIENCE
+============================================================
+============================================================
 */
 
 .login-page{
 
     position:relative;
 
+    width:100%;
+
     min-height:100vh;
 
-    width:100%;
+    min-height:100svh;
 
     display:flex;
 
-    align-items:center;
+    align-items:stretch;
 
     justify-content:center;
 
-    padding:30px 20px;
-
     overflow:hidden;
+
+    isolation:isolate;
 
     background:
 
-        radial-gradient(
-
-            circle at top left,
-
-            rgba(245,158,11,.14),
-
-            transparent 35%
-
-        ),
-
-        radial-gradient(
-
-            circle at bottom right,
-
-            rgba(139,92,246,.10),
-
-            transparent 35%
-
-        ),
-
-        var(--agent-bg);
+    #050608;
 
 }
 
+
+/*
+------------------------------------------------------------
+LOGIN ATMOSPHERE
+------------------------------------------------------------
+*/
 
 .login-background{
 
@@ -2309,21 +2258,31 @@ NO login.css REQUIRED
 
     inset:0;
 
-    pointer-events:none;
+    z-index:-5;
 
     overflow:hidden;
 
     background:
 
-        radial-gradient(
+    radial-gradient(
+        circle at 15% 20%,
+        rgba(245,158,11,.16),
+        transparent 30%
+    ),
 
-            circle at center,
+    radial-gradient(
+        circle at 85% 75%,
+        rgba(139,92,246,.12),
+        transparent 34%
+    ),
 
-            rgba(245,158,11,.08),
+    radial-gradient(
+        circle at 55% 0%,
+        rgba(79,140,255,.08),
+        transparent 28%
+    ),
 
-            transparent 45%
-
-        );
+    #050608;
 
 }
 
@@ -2334,21 +2293,34 @@ NO login.css REQUIRED
 
     position:absolute;
 
-    width:500px;
+    inset:0;
 
-    height:500px;
+    opacity:.5;
 
-    left:-180px;
+    background-image:
 
-    top:-180px;
+    linear-gradient(
+        rgba(255,255,255,.025) 1px,
+        transparent 1px
+    ),
 
-    border-radius:50%;
+    linear-gradient(
+        90deg,
+        rgba(255,255,255,.025) 1px,
+        transparent 1px
+    );
 
-    background:
+    background-size:
 
-        rgba(245,158,11,.07);
+    54px 54px;
 
-    filter:blur(80px);
+    mask-image:
+
+    radial-gradient(
+        circle at center,
+        black 0%,
+        transparent 78%
+    );
 
 }
 
@@ -2359,69 +2331,274 @@ NO login.css REQUIRED
 
     position:absolute;
 
-    width:450px;
+    width:650px;
 
-    height:450px;
+    height:650px;
 
-    right:-180px;
+    left:-260px;
 
-    bottom:-180px;
+    top:-280px;
 
     border-radius:50%;
 
     background:
 
-        rgba(139,92,246,.07);
+    radial-gradient(
+        circle,
+        rgba(245,158,11,.13),
+        transparent 68%
+    );
 
-    filter:blur(80px);
+    filter:blur(10px);
+
+    animation:
+
+    loginGlow 8s ease-in-out infinite alternate;
 
 }
 
 
+@keyframes loginGlow{
+
+    from{
+
+        transform:translate(0,0) scale(1);
+
+    }
+
+    to{
+
+        transform:translate(100px,70px) scale(1.15);
+
+    }
+
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN MAIN LAYOUT
+------------------------------------------------------------
+*/
+
+.login-page::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    z-index:-4;
+
+    pointer-events:none;
+
+    background:
+
+    linear-gradient(
+        115deg,
+        rgba(245,158,11,.025),
+        transparent 40%,
+        rgba(139,92,246,.025)
+    );
+
+}
+
+
+.login-page::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:500px;
+
+    height:500px;
+
+    right:-250px;
+
+    bottom:-250px;
+
+    z-index:-3;
+
+    border-radius:50%;
+
+    background:
+
+    radial-gradient(
+        circle,
+        rgba(79,140,255,.08),
+        transparent 70%
+    );
+
+    filter:blur(20px);
+
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN CARD
+------------------------------------------------------------
+*/
+
 .login-card{
+
+    width:min(1180px,94vw);
+
+    min-height:min(720px,88vh);
+
+    margin:auto;
+
+    padding:0;
+
+    position:relative;
+
+    display:grid;
+
+    grid-template-columns:
+
+    minmax(0,1.15fr)
+
+    minmax(400px,.85fr);
+
+    overflow:hidden;
+
+    border-radius:34px;
+
+    background:
+
+    linear-gradient(
+        135deg,
+        rgba(18,21,28,.96),
+        rgba(8,10,14,.97)
+    );
+
+    border:
+
+    1px solid rgba(255,255,255,.095);
+
+    box-shadow:
+
+    0 40px 100px
+    rgba(0,0,0,.55),
+
+    0 0 80px
+    rgba(245,158,11,.045);
+
+    backdrop-filter:blur(28px);
+
+    animation:
+
+    loginCardEnter .8s
+    cubic-bezier(.2,.8,.2,1);
+
+}
+
+
+@keyframes loginCardEnter{
+
+    from{
+
+        opacity:0;
+
+        transform:
+        translateY(25px)
+        scale(.985);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:
+        translateY(0)
+        scale(1);
+
+    }
+
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN CARD DECORATION
+------------------------------------------------------------
+*/
+
+.login-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+    background:
+
+    linear-gradient(
+        120deg,
+        rgba(245,158,11,.075),
+        transparent 27%,
+        transparent 70%,
+        rgba(139,92,246,.045)
+    );
+
+}
+
+
+.login-card::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:12%;
+
+    width:76%;
+
+    height:1px;
+
+    background:
+
+    linear-gradient(
+        90deg,
+        transparent,
+        rgba(245,158,11,.6),
+        transparent
+    );
+
+    opacity:.65;
+
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN BRAND / PRESENTATION SIDE
+------------------------------------------------------------
+*/
+
+.login-card > .brand{
 
     position:relative;
 
     z-index:2;
 
-    width:
-
-        min(440px,100%);
-
-    padding:40px;
-
-    border-radius:28px;
-
-    background:
-
-        linear-gradient(
-
-            145deg,
-
-            rgba(15,17,23,.94),
-
-            rgba(15,17,23,.82)
-
-        );
-
-    backdrop-filter:blur(24px);
-
-    -webkit-backdrop-filter:blur(24px);
-
-    border:
-
-        1px solid var(--agent-border-strong);
-
-    box-shadow:
-
-        0 30px 90px
-
-        rgba(0,0,0,.40);
-
 }
 
 
-.brand{
+/*
+This allows the login.js to work whether it places
+the brand directly inside the card or inside a panel.
+*/
+
+.login-card .brand{
 
     display:flex;
 
@@ -2429,7 +2606,12 @@ NO login.css REQUIRED
 
     gap:15px;
 
-    margin-bottom:32px;
+}
+
+
+.brand{
+
+    margin-bottom:35px;
 
 }
 
@@ -2440,7 +2622,7 @@ NO login.css REQUIRED
 
     height:60px;
 
-    min-width:60px;
+    flex-shrink:0;
 
     display:flex;
 
@@ -2450,17 +2632,24 @@ NO login.css REQUIRED
 
     border-radius:18px;
 
+    font-size:32px;
+
     background:
 
-        rgba(245,158,11,.13);
+    linear-gradient(
+        135deg,
+        rgba(245,158,11,.18),
+        rgba(245,158,11,.05)
+    );
 
     border:
 
-        1px solid
+    1px solid rgba(245,158,11,.2);
 
-        rgba(245,158,11,.16);
+    box-shadow:
 
-    font-size:32px;
+    0 10px 35px
+    rgba(245,158,11,.08);
 
 }
 
@@ -2471,11 +2660,9 @@ NO login.css REQUIRED
 
     color:white;
 
-    font-size:26px;
+    font-size:25px;
 
-    font-weight:800;
-
-    letter-spacing:-.5px;
+    letter-spacing:-.7px;
 
 }
 
@@ -2486,20 +2673,31 @@ NO login.css REQUIRED
 
     color:var(--agent-muted);
 
-    font-size:13px;
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN LEFT PANEL
+------------------------------------------------------------
+*/
+
+.login-card::marker{
+
+    display:none;
 
 }
 
 
 /*
-==========================================
+------------------------------------------------------------
 LOGIN FORM
-==========================================
+------------------------------------------------------------
 */
 
 .input-group{
 
-    margin-bottom:18px;
+    margin-bottom:20px;
 
 }
 
@@ -2510,7 +2708,7 @@ LOGIN FORM
 
     margin-bottom:8px;
 
-    color:var(--agent-text-soft);
+    color:#e5e7eb;
 
     font-size:13px;
 
@@ -2523,40 +2721,32 @@ LOGIN FORM
 
     width:100%;
 
-    min-height:50px;
+    min-height:52px;
 
-    padding:14px 15px;
+    padding:14px 16px;
 
-    border-radius:14px;
+    border-radius:15px;
 
     border:
 
-        1px solid var(--agent-border);
-
-    outline:none;
+    1px solid rgba(255,255,255,.09);
 
     background:
 
-        rgba(255,255,255,.045);
+    rgba(255,255,255,.045);
 
     color:white;
 
-    font-size:14px;
+    outline:none;
 
-    transition:
-
-        border-color .25s ease,
-
-        box-shadow .25s ease,
-
-        background .25s ease;
+    transition:var(--transition);
 
 }
 
 
 .input-group input::placeholder{
 
-    color:var(--agent-muted-2);
+    color:#64748b;
 
 }
 
@@ -2565,7 +2755,7 @@ LOGIN FORM
 
     border-color:
 
-        rgba(255,255,255,.14);
+    rgba(255,255,255,.15);
 
 }
 
@@ -2574,17 +2764,19 @@ LOGIN FORM
 
     border-color:
 
-        rgba(245,158,11,.65);
+    rgba(245,158,11,.55);
 
     background:
 
-        rgba(255,255,255,.055);
+    rgba(245,158,11,.035);
 
     box-shadow:
 
-        0 0 0 3px
+    0 0 0 4px
+    rgba(245,158,11,.055),
 
-        rgba(245,158,11,.07);
+    0 8px 25px
+    rgba(0,0,0,.12);
 
 }
 
@@ -2593,144 +2785,88 @@ LOGIN FORM
 
     width:100%;
 
+    min-height:54px;
+
     margin-top:5px;
+
+    font-size:15px;
+
+    border-radius:15px;
 
 }
 
 
-/*
-==========================================
-LOGIN FOOTER
-==========================================
-*/
+.login-card .primary-button:active{
+
+    transform:translateY(0);
+
+}
+
 
 .login-footer{
-
-    margin-top:25px;
 
     text-align:center;
 
     color:var(--agent-muted);
 
-    font-size:13px;
+    margin-top:25px;
 
-    line-height:1.6;
+    font-size:13px;
 
 }
 
 
-.login-footer a{
+/*
+------------------------------------------------------------
+COMMON LOGIN ELEMENTS
+------------------------------------------------------------
+*/
 
-    color:var(--agent-gold);
+.login-card a{
+
+    color:var(--agent-gold-light);
 
     text-decoration:none;
 
-}
-
-
-.login-footer a:hover{
-
-    text-decoration:underline;
+    transition:var(--transition);
 
 }
 
 
-/*
-==========================================
-AUTH / ERROR STATES
-COMPATIBILITY WITH login.js V9
-==========================================
-*/
+.login-card a:hover{
 
-.auth-error,
-.login-error,
-.form-error{
-
-    width:100%;
-
-    margin-bottom:16px;
-
-    padding:12px 14px;
-
-    border-radius:12px;
-
-    background:
-
-        rgba(239,68,68,.10);
-
-    border:
-
-        1px solid
-
-        rgba(239,68,68,.22);
-
-    color:#fca5a5;
-
-    font-size:13px;
-
-    line-height:1.5;
+    color:#fff;
 
 }
 
 
-.auth-success,
-.login-success,
-.form-success{
+.login-card button{
 
-    width:100%;
-
-    margin-bottom:16px;
-
-    padding:12px 14px;
-
-    border-radius:12px;
-
-    background:
-
-        rgba(34,197,94,.10);
-
-    border:
-
-        1px solid
-
-        rgba(34,197,94,.22);
-
-    color:#86efac;
-
-    font-size:13px;
-
-    line-height:1.5;
-
-}
-
-
-.hidden{
-
-    display:none !important;
+    transition:var(--transition);
 
 }
 
 
 /*
-==========================================
+------------------------------------------------------------
 GOOGLE LOGIN
-==========================================
+------------------------------------------------------------
 */
+
+.google-login,
+.google-button,
+#google-login,
+#google-login-button,
+#googleButton{
+
+    width:100%;
+
+    min-height:52px;
+
+}
+
 
 .google-login{
-
-    width:100%;
-
-    margin-top:15px;
-
-}
-
-
-.google-button{
-
-    width:100%;
-
-    min-height:48px;
 
     display:flex;
 
@@ -2740,42 +2876,32 @@ GOOGLE LOGIN
 
     gap:10px;
 
-    padding:12px 18px;
-
-    border-radius:14px;
+    border-radius:15px;
 
     border:
 
-        1px solid var(--agent-border);
+    1px solid rgba(255,255,255,.1);
 
     background:
 
-        rgba(255,255,255,.045);
+    rgba(255,255,255,.045);
 
     color:white;
 
-    font-weight:700;
-
-    transition:
-
-        background .25s ease,
-
-        border-color .25s ease,
-
-        transform .25s ease;
+    cursor:pointer;
 
 }
 
 
-.google-button:hover{
+.google-login:hover{
 
     background:
 
-        rgba(255,255,255,.08);
+    rgba(255,255,255,.075);
 
     border-color:
 
-        rgba(255,255,255,.16);
+    rgba(255,255,255,.18);
 
     transform:translateY(-1px);
 
@@ -2783,20 +2909,20 @@ GOOGLE LOGIN
 
 
 /*
-==========================================
-AUTH DIVIDER
-==========================================
+------------------------------------------------------------
+LOGIN DIVIDER
+------------------------------------------------------------
 */
 
-.auth-divider{
+.login-divider{
 
     display:flex;
 
     align-items:center;
 
-    gap:12px;
+    gap:15px;
 
-    margin:22px 0;
+    margin:24px 0;
 
     color:var(--agent-muted-2);
 
@@ -2805,8 +2931,8 @@ AUTH DIVIDER
 }
 
 
-.auth-divider::before,
-.auth-divider::after{
+.login-divider::before,
+.login-divider::after{
 
     content:"";
 
@@ -2816,17 +2942,200 @@ AUTH DIVIDER
 
     background:
 
-        var(--agent-border);
+    var(--agent-border);
 
 }
 
 
 /*
-==========================================
-MOBILE SIDEBAR CONTROL
-COMPATIBLE WITH app.js
-==========================================
+------------------------------------------------------------
+LOGIN STATUS / ERRORS
+------------------------------------------------------------
 */
+
+.login-error,
+.auth-error,
+.error-message{
+
+    padding:12px 14px;
+
+    margin-bottom:16px;
+
+    border-radius:12px;
+
+    background:
+
+    rgba(239,68,68,.08);
+
+    border:
+
+    1px solid rgba(239,68,68,.2);
+
+    color:#fca5a5;
+
+    font-size:13px;
+
+}
+
+
+.login-success,
+.auth-success,
+.success-message{
+
+    padding:12px 14px;
+
+    margin-bottom:16px;
+
+    border-radius:12px;
+
+    background:
+
+    rgba(34,197,94,.08);
+
+    border:
+
+    1px solid rgba(34,197,94,.18);
+
+    color:#86efac;
+
+    font-size:13px;
+
+}
+
+
+/*
+------------------------------------------------------------
+LOGIN RESPONSIVE STRUCTURE
+------------------------------------------------------------
+*/
+
+@media(min-width:901px){
+
+    /*
+    The login card is deliberately large.
+    This prevents the authentication UI from
+    appearing as a tiny floating box.
+    */
+
+    .login-card{
+
+        grid-template-columns:
+
+        minmax(0,1.08fr)
+
+        minmax(390px,.92fr);
+
+    }
+
+}
+
+
+@media(max-width:900px){
+
+    .login-page{
+
+        padding:30px 18px;
+
+        align-items:center;
+
+    }
+
+
+    .login-card{
+
+        width:min(620px,100%);
+
+        min-height:auto;
+
+        display:block;
+
+        border-radius:28px;
+
+    }
+
+
+    .login-card::before{
+
+        background:
+
+        radial-gradient(
+            circle at top right,
+            rgba(245,158,11,.08),
+            transparent 40%
+        );
+
+    }
+
+}
+
+
+@media(max-width:600px){
+
+    .login-page{
+
+        padding:15px;
+
+        align-items:center;
+
+    }
+
+
+    .login-card{
+
+        width:100%;
+
+        border-radius:24px;
+
+    }
+
+
+    .brand{
+
+        margin-bottom:25px;
+
+    }
+
+
+    .brand-icon{
+
+        width:52px;
+
+        height:52px;
+
+        font-size:27px;
+
+    }
+
+
+    .brand h1{
+
+        font-size:21px;
+
+    }
+
+
+    .login-footer{
+
+        margin-bottom:5px;
+
+    }
+
+}
+
+
+/*
+============================================================
+SIDEBAR MOBILE CONTROL
+============================================================
+*/
+
+.mobile-menu,
+.mobile-close{
+
+    display:none;
+
+}
+
 
 @media(max-width:900px){
 
@@ -2834,21 +3143,23 @@ COMPATIBLE WITH app.js
 
         position:fixed;
 
-        left:-320px;
-
         top:0;
 
         bottom:0;
 
+        left:-320px;
+
+        z-index:100;
+
         transition:
 
-            left .35s ease;
+        left .35s
+        cubic-bezier(.4,0,.2,1);
 
         box-shadow:
 
-            20px 0 60px
-
-            rgba(0,0,0,.30);
+        20px 0 50px
+        rgba(0,0,0,.25);
 
     }
 
@@ -2868,19 +3179,23 @@ COMPATIBLE WITH app.js
 
         height:42px;
 
-        min-width:42px;
+        align-items:center;
+
+        justify-content:center;
 
         border-radius:12px;
 
         border:
 
-            1px solid var(--agent-border);
+        1px solid var(--agent-border);
 
         background:
 
-            rgba(255,255,255,.04);
+        rgba(255,255,255,.04);
 
         color:white;
+
+        cursor:pointer;
 
     }
 
@@ -2893,16 +3208,24 @@ COMPATIBLE WITH app.js
 
         height:35px;
 
-        border-radius:10px;
+        align-items:center;
+
+        justify-content:center;
+
+        border:0;
+
+        background:none;
 
         color:white;
+
+        cursor:pointer;
 
     }
 
 
-    .main-content{
+    .sidebar-overlay{
 
-        width:100%;
+        display:block;
 
     }
 
@@ -2910,16 +3233,12 @@ COMPATIBLE WITH app.js
 
 
 /*
-==========================================
-MARKDOWN RESPONSE
-==========================================
+============================================================
+MARKDOWN RESPONSE STYLE
+============================================================
 */
 
 .message-content pre{
-
-    max-width:100%;
-
-    margin:14px 0;
 
     padding:15px;
 
@@ -2931,9 +3250,7 @@ MARKDOWN RESPONSE
 
     border:
 
-        1px solid
-
-        rgba(255,255,255,.06);
+    1px solid rgba(255,255,255,.05);
 
 }
 
@@ -2942,9 +3259,8 @@ MARKDOWN RESPONSE
 
     font-family:
 
-        "JetBrains Mono",
-
-        monospace;
+    "JetBrains Mono",
+    monospace;
 
     font-size:13px;
 
@@ -2955,49 +3271,15 @@ MARKDOWN RESPONSE
 .message-content h2,
 .message-content h3{
 
-    margin:
-
-        18px 0 10px;
-
-    color:var(--agent-gold);
-
-}
-
-
-.message-content p{
-
-    margin:
-
-        8px 0;
-
-}
-
-
-.message-content ul,
-.message-content ol{
-
-    margin:
-
-        10px 0;
-
-    padding-left:22px;
-
-}
-
-
-.message-content li{
-
-    margin:
-
-        6px 0;
+    color:var(--agent-gold-light);
 
 }
 
 
 /*
-==========================================
+============================================================
 GLOBAL SCROLLBAR
-==========================================
+============================================================
 */
 
 ::-webkit-scrollbar{
@@ -3020,7 +3302,7 @@ GLOBAL SCROLLBAR
 
     background:
 
-        rgba(245,158,11,.30);
+    rgba(245,158,11,.25);
 
     border-radius:20px;
 
@@ -3031,15 +3313,15 @@ GLOBAL SCROLLBAR
 
     background:
 
-        rgba(245,158,11,.50);
+    rgba(245,158,11,.45);
 
 }
 
 
 /*
-==========================================
-ANIMATIONS
-==========================================
+============================================================
+FINAL ANIMATIONS
+============================================================
 */
 
 @keyframes agentFade{
@@ -3048,7 +3330,7 @@ ANIMATIONS
 
         opacity:0;
 
-        transform:translateY(8px);
+        transform:translateY(5px);
 
     }
 
@@ -3063,53 +3345,86 @@ ANIMATIONS
 }
 
 
-@keyframes loaderBee{
+/*
+============================================================
+SYSTEM SAFETY
+DO NOT INTERFERE WITH JS MODULES
+============================================================
+*/
 
-    0%,
-    100%{
+#studioApp{
 
-        transform:translateY(0);
+    width:100%;
 
-    }
-
-    50%{
-
-        transform:translateY(-10px);
-
-    }
+    min-height:100vh;
 
 }
 
 
-@keyframes loading{
+button{
 
-    from{
-
-        transform:translateX(-130%);
-
-    }
-
-    to{
-
-        transform:translateX(300%);
-
-    }
+    font-family:inherit;
 
 }
 
 
-@keyframes pulseOrb{
+input,
+textarea{
 
-    0%,
-    100%{
+    font-family:inherit;
 
-        transform:scale(1);
+}
+
+
+/*
+============================================================
+ACCESSIBILITY
+============================================================
+*/
+
+:focus-visible{
+
+    outline:
+
+    2px solid
+    rgba(245,158,11,.65);
+
+    outline-offset:3px;
+
+}
+
+
+::selection{
+
+    background:
+
+    rgba(245,158,11,.25);
+
+    color:white;
+
+}
+
+
+/*
+============================================================
+LARGE DISPLAY OPTIMIZATION
+============================================================
+*/
+
+@media(min-width:1400px){
+
+    .login-card{
+
+        width:min(1240px,92vw);
+
+        min-height:740px;
 
     }
 
-    50%{
 
-        transform:scale(1.05);
+    .login-page{
+
+        padding:40px;
 
     }
 
@@ -3117,9 +3432,9 @@ ANIMATIONS
 
 
 /*
-==========================================
+============================================================
 TABLET
-==========================================
+============================================================
 */
 
 @media(max-width:1024px){
@@ -3129,15 +3444,6 @@ TABLET
         flex-direction:column;
 
         text-align:center;
-
-        padding:40px;
-
-    }
-
-
-    .hero-content{
-
-        max-width:750px;
 
     }
 
@@ -3153,24 +3459,6 @@ TABLET
 
         grid-template-columns:1fr;
 
-        height:auto;
-
-    }
-
-
-    .chat-section{
-
-        height:auto;
-
-        min-height:0;
-
-    }
-
-
-    .chat-panel{
-
-        min-height:650px;
-
     }
 
 
@@ -3184,9 +3472,9 @@ TABLET
 
 
 /*
-==========================================
-MOBILE
-==========================================
+============================================================
+MOBILE WORKSPACE
+============================================================
 */
 
 @media(max-width:768px){
@@ -3195,7 +3483,7 @@ MOBILE
 
         padding:
 
-            0 15px 30px;
+        0 15px 30px;
 
     }
 
@@ -3214,27 +3502,11 @@ MOBILE
     }
 
 
-    .header-actions{
-
-        margin-left:auto;
-
-    }
-
-
-    .plan-badge{
-
-        display:none;
-
-    }
-
-
     .hero-dashboard{
-
-        min-height:auto;
 
         padding:30px 20px;
 
-        border-radius:24px;
+        min-height:auto;
 
     }
 
@@ -3248,18 +3520,9 @@ MOBILE
     }
 
 
-    .hero-content p{
-
-        font-size:15px;
-
-    }
-
-
     .hero-actions{
 
         flex-direction:column;
-
-        width:100%;
 
     }
 
@@ -3267,31 +3530,6 @@ MOBILE
     .hero-actions button{
 
         width:100%;
-
-    }
-
-
-    .hero-visual{
-
-        transform:scale(.82);
-
-        margin-top:-10px;
-
-    }
-
-
-    .section-header{
-
-        flex-direction:column;
-
-        align-items:flex-start;
-
-    }
-
-
-    .section-header h2{
-
-        font-size:26px;
 
     }
 
@@ -3307,54 +3545,12 @@ MOBILE
 
         min-height:650px;
 
-        border-radius:20px;
-
-    }
-
-
-    .chat-header{
-
-        padding:18px;
-
-        flex-wrap:wrap;
-
-    }
-
-
-    .mode-switch{
-
-        width:100%;
-
-    }
-
-
-    .mode-button{
-
-        flex:1;
-
-    }
-
-
-    .chat-messages{
-
-        padding:18px;
-
-    }
-
-
-    .user-message,
-    .agent-message{
-
-        max-width:92%;
-
     }
 
 
     .chat-input-area{
 
         flex-wrap:wrap;
-
-        padding:15px;
 
     }
 
@@ -3368,65 +3564,72 @@ MOBILE
     }
 
 
-    .send-button{
+    .section-header{
 
-        margin-left:auto;
+        align-items:flex-start;
+
+        flex-direction:column;
 
     }
 
 
+    .plans-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+
+/*
+============================================================
+VERY SMALL DEVICES
+============================================================
+*/
+
+@media(max-width:380px){
+
     .login-page{
 
-        padding:20px 15px;
+        padding:10px;
 
     }
 
 
     .login-card{
 
-        padding:28px 22px;
+        border-radius:20px;
 
-        border-radius:24px;
+    }
+
+
+    .input-group input{
+
+        min-height:49px;
+
+    }
+
+
+    .login-card .primary-button{
+
+        min-height:50px;
 
     }
 
 
     .brand{
 
-        margin-bottom:26px;
+        gap:11px;
 
     }
 
 
     .brand-icon{
 
-        width:52px;
+        width:48px;
 
-        height:52px;
-
-        min-width:52px;
-
-        font-size:28px;
-
-    }
-
-
-    .brand h1{
-
-        font-size:23px;
-
-    }
-
-
-    .toast-container{
-
-        right:15px;
-
-        bottom:15px;
-
-        width:
-
-            calc(100vw - 30px);
+        height:48px;
 
     }
 
@@ -3434,144 +3637,25 @@ MOBILE
 
 
 /*
-==========================================
-SMALL MOBILE
-==========================================
+============================================================
+REDUCED MOTION
+============================================================
 */
 
-@media(max-width:420px){
+@media(prefers-reduced-motion:reduce){
 
-    .main-content{
+    *,
+    *::before,
+    *::after{
 
-        padding-left:10px;
+        animation-duration:.01ms !important;
 
-        padding-right:10px;
+        animation-iteration-count:1 !important;
 
-    }
+        scroll-behavior:auto !important;
 
-
-    .top-header{
-
-        height:68px;
-
-    }
-
-
-    .hero-dashboard{
-
-        padding:25px 16px;
-
-    }
-
-
-    .hero-content h1{
-
-        font-size:30px;
-
-    }
-
-
-    .ai-orb{
-
-        width:210px;
-
-        height:210px;
-
-    }
-
-
-    .orb-center{
-
-        width:90px;
-
-        height:90px;
-
-        font-size:42px;
-
-    }
-
-
-    .chat-panel{
-
-        min-height:620px;
-
-    }
-
-
-    .login-card{
-
-        padding:24px 18px;
-
-    }
-
-
-    .login-page{
-
-        align-items:flex-start;
-
-        padding-top:30px;
-
-        padding-bottom:30px;
+        transition-duration:.01ms !important;
 
     }
 
 }
-
-
-/*
-==========================================
-ACCESSIBILITY
-==========================================
-*/
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible{
-
-    outline:
-
-        2px solid
-
-        rgba(245,158,11,.75);
-
-    outline-offset:3px;
-
-}
-
-
-/*
-==========================================
-SYSTEM SAFETY
-DO NOT INTERFERE WITH JS MODULES
-==========================================
-*/
-
-#studioApp{
-
-    width:100%;
-
-    min-height:100vh;
-
-}
-
-
-#studioApp.hidden{
-
-    display:none !important;
-
-}
-
-
-.login-page.hidden{
-
-    display:none !important;
-
-}
-
-
-/*
-==========================================
-END HONEY IA STYLE CSS V9.0
-==========================================
-*/
