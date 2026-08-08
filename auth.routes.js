@@ -1,1702 +1,951 @@
 /*
 ==========================================
 HONEY IA OS
-AUTH SERVICE
-Business Authentication Logic
-V3.0
-Production Authentication System
-Local + Google + JWT + MongoDB Session
-Email Verification + Resend
+AUTH ROUTES
+Authentication API
+V5.0
+Local + Google + Session Management
+Email Verification
+Google Configuration
+Production Authentication
 ==========================================
 */
 
-import bcrypt from "bcrypt";
+import express from "express";
 
-import jwt from "jsonwebtoken";
-
-import validator from "validator";
-
-import crypto from "crypto";
+import authService from "./auth.service.js";
 
 import {
 
-    User,
+    authMiddleware,
 
-    Session
+    getAuthToken
 
-} from "./models.js";
-
-import emailservice from "./emailservice.js";
+} from "./auth.middleware.js";
 
 
 
-/*
-==========================================
-CONFIGURATION
-==========================================
-*/
+const router =
 
-const JWT_SECRET =
-
-    process.env.JWT_SECRET;
-
-
-const JWT_CONFIG = {
-
-    algorithm: "HS256",
-
-    issuer: "honey-ia",
-
-    audience: "honey-ia-client",
-
-    expiresIn: "30d"
-
-};
-
-
-const VERIFICATION_EXPIRATION_MS =
-
-    15 *
-
-    60 *
-
-    1000;
+    express.Router();
 
 
 
 /*
 ==========================================
-SECURITY
+SAFE ERROR HANDLER
 ==========================================
 */
 
-if(!JWT_SECRET){
+function handleError(
 
-    console.error(
+    res,
 
-        "❌ AUTH SERVICE: JWT_SECRET não configurado."
-
-    );
-
-}
-
-
-
-/*
-==========================================
-NORMALIZE EMAIL
-==========================================
-*/
-
-function normalizeEmail(email){
-
-    return String(
-
-        email || ""
-
-    )
-
-    .trim()
-
-    .toLowerCase();
-
-}
-
-
-
-/*
-==========================================
-GENERATE VERIFICATION CODE
-==========================================
-*/
-
-function generateVerificationCode(){
-
-    return crypto
-
-        .randomInt(
-
-            100000,
-
-            1000000
-
-        )
-
-        .toString();
-
-}
-
-
-
-/*
-==========================================
-CREATE JWT
-==========================================
-*/
-
-function createToken(user){
-
-    if(!JWT_SECRET){
-
-        throw new Error(
-
-            "JWT_SECRET não configurado."
-
-        );
-
-    }
-
-
-    return jwt.sign(
-
-        {
-
-            id:
-
-                user._id.toString(),
-
-            email:
-
-                user.email,
-
-            provider:
-
-                user.provider || "local"
-
-        },
-
-        JWT_SECRET,
-
-        {
-
-            algorithm:
-
-                JWT_CONFIG.algorithm,
-
-            issuer:
-
-                JWT_CONFIG.issuer,
-
-            audience:
-
-                JWT_CONFIG.audience,
-
-            expiresIn:
-
-                JWT_CONFIG.expiresIn
-
-        }
-
-    );
-
-}
-
-
-
-/*
-==========================================
-GET SESSION EXPIRATION
-==========================================
-*/
-
-function getSessionExpiration(){
-
-    return new Date(
-
-        Date.now() +
-
-        30 *
-
-        24 *
-
-        60 *
-
-        60 *
-
-        1000
-
-    );
-
-}
-
-
-
-/*
-==========================================
-CREATE SESSION
-==========================================
-*/
-
-async function createSession(
-
-    user,
-
-    token,
-
-    request = null
+    error
 
 ){
 
-    const expiresAt =
+    console.error(
 
-        getSessionExpiration();
+        "AUTH ROUTE ERROR:",
+
+        error
+
+    );
 
 
-    const session =
+    const status =
 
-        await Session.create({
+        Number.isInteger(
 
-            userId:
+            error?.status
 
-                user._id,
+        )
 
-            token,
+            ? error.status
 
-            device:
+            : 500;
 
-                request
 
-                    ?.headers
+    return res
 
-                    ?.["sec-ch-ua-platform"] ||
+        .status(status)
 
-                request
+        .json({
 
-                    ?.headers
+            success: false,
 
-                    ?.["user-agent"] ||
+            error:
 
-                "unknown",
+                error?.message ||
 
-            browser:
-
-                request
-
-                    ?.headers
-
-                    ?.["user-agent"] ||
-
-                "unknown",
-
-            ip:
-
-                request
-
-                    ?.ip ||
-
-                null,
-
-            expiresAt
+                "Erro de autenticação."
 
         });
 
-
-    return session;
-
 }
 
 
 
 /*
 ==========================================
-PUBLIC USER
+GOOGLE CONFIG
+GET /api/auth/google-config
 ==========================================
 */
 
-function publicUser(user){
+router.get(
 
-    return {
+    "/google-config",
 
-        id:
+    (req,res)=>{
 
-            user._id,
-
-        firstName:
-
-            user.firstName,
-
-        lastName:
-
-            user.lastName,
-
-        email:
-
-            user.email,
-
-        provider:
-
-            user.provider,
-
-        avatar:
-
-            user.avatar,
-
-        emailVerified:
-
-            user.emailVerified,
-
-        plan:
-
-            user.plan,
-
-        isActive:
-
-            user.isActive
-
-    };
-
-}
-
-
-
-/*
-==========================================
-AUTH SERVICE
-==========================================
-*/
-
-class AuthService {
-
-
-    /*
-    ======================================
-    REGISTER
-    ======================================
-    */
-
-    async register(
-
-        data,
-
-        request = null
-
-    ){
-
-        const firstName =
+        const clientId =
 
             String(
 
-                data?.firstName ??
-
-                data?.nome ??
+                process.env.GOOGLE_CLIENT_ID ||
 
                 ""
 
             ).trim();
 
 
-        const lastName =
+        if(!clientId){
 
-            String(
+            return res
 
-                data?.lastName ??
+                .status(503)
 
-                data?.apelido ??
+                .json({
 
-                ""
+                    success: false,
 
-            ).trim();
+                    error:
 
-
-        const email =
-
-            normalizeEmail(
-
-                data?.email
-
-            );
-
-
-        const password =
-
-            String(
-
-                data?.password ??
-
-                ""
-
-            );
-
-
-        if(
-
-            !firstName ||
-
-            !lastName ||
-
-            !email ||
-
-            !password
-
-        ){
-
-            throw new Error(
-
-                "Preencha todos os campos."
-
-            );
-
-        }
-
-
-        if(
-
-            firstName.length > 80 ||
-
-            lastName.length > 80
-
-        ){
-
-            throw new Error(
-
-                "Nome demasiado longo."
-
-            );
-
-        }
-
-
-        if(
-
-            !validator.isEmail(email)
-
-        ){
-
-            throw new Error(
-
-                "Email inválido."
-
-            );
-
-        }
-
-
-        const strongPassword =
-
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-
-        if(
-
-            !strongPassword.test(
-
-                password
-
-            )
-
-        ){
-
-            throw new Error(
-
-                "A palavra-passe deve ter mínimo 8 caracteres, maiúscula, minúscula, número e símbolo."
-
-            );
-
-        }
-
-
-        const exists =
-
-            await User.findOne({
-
-                email
-
-            });
-
-
-        if(exists){
-
-            if(
-
-                exists.provider ===
-
-                    "google" &&
-
-                !exists.password
-
-            ){
-
-                throw new Error(
-
-                    "Este email já está associado ao Google. Entre com a sua conta Google."
-
-                );
-
-            }
-
-
-            throw new Error(
-
-                "Este email já está registado."
-
-            );
-
-        }
-
-
-        const encryptedPassword =
-
-            await bcrypt.hash(
-
-                password,
-
-                12
-
-            );
-
-
-        const verificationCode =
-
-            generateVerificationCode();
-
-
-        const verificationExpires =
-
-            new Date(
-
-                Date.now() +
-
-                VERIFICATION_EXPIRATION_MS
-
-            );
-
-
-        const user =
-
-            await User.create({
-
-                firstName,
-
-                lastName,
-
-                email,
-
-                password:
-
-                    encryptedPassword,
-
-                provider:
-
-                    "local",
-
-                emailVerified:
-
-                    false,
-
-                verificationCode,
-
-                verificationExpires,
-
-                plan:
-
-                    "free",
-
-                isActive:
-
-                    true
-
-            });
-
-
-        /*
-        ----------------------------------
-        SEND VERIFICATION EMAIL
-        ----------------------------------
-        */
-
-        try{
-
-            await emailservice.sendVerificationCode(
-
-                user.email,
-
-                verificationCode,
-
-                user.firstName
-
-            );
-
-        }
-
-        catch(error){
-
-            /*
-            ----------------------------------
-            ROLLBACK USER IF EMAIL FAILS
-            ----------------------------------
-            */
-
-            await User.deleteOne({
-
-                _id:
-
-                    user._id
-
-            });
-
-
-            console.error(
-
-                "AUTH EMAIL VERIFICATION ERROR:",
-
-                error
-
-            );
-
-
-            throw new Error(
-
-                "Não foi possível enviar o email de confirmação. Tente novamente."
-
-            );
-
-        }
-
-
-        return {
-
-            success: true,
-
-            message:
-
-                "Conta criada. Verifique o seu email.",
-
-            userId:
-
-                user._id,
-
-            email:
-
-                user.email,
-
-            requiresVerification:
-
-                true
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    VERIFY EMAIL
-    ======================================
-    */
-
-    async verifyEmail(
-
-        email,
-
-        code
-
-    ){
-
-        const normalizedEmail =
-
-            normalizeEmail(email);
-
-
-        const verificationCode =
-
-            String(
-
-                code || ""
-
-            ).trim();
-
-
-        if(
-
-            !normalizedEmail ||
-
-            !verificationCode
-
-        ){
-
-            throw new Error(
-
-                "Email e código são obrigatórios."
-
-            );
-
-        }
-
-
-        const user =
-
-            await User.findOne({
-
-                email:
-
-                    normalizedEmail
-
-            });
-
-
-        if(!user){
-
-            throw new Error(
-
-                "Utilizador não encontrado."
-
-            );
-
-        }
-
-
-        if(user.emailVerified){
-
-            return {
-
-                success: true,
-
-                message:
-
-                    "Email já confirmado."
-
-            };
-
-        }
-
-
-        if(
-
-            user.verificationCode !==
-
-                verificationCode
-
-        ){
-
-            throw new Error(
-
-                "Código incorreto."
-
-            );
-
-        }
-
-
-        if(
-
-            !user.verificationExpires ||
-
-            user.verificationExpires <=
-
-                new Date()
-
-        ){
-
-            throw new Error(
-
-                "Código expirado."
-
-            );
-
-        }
-
-
-        user.emailVerified = true;
-
-        user.verificationCode = null;
-
-        user.verificationExpires = null;
-
-
-        await user.save();
-
-
-        /*
-        ----------------------------------
-        WELCOME EMAIL
-        ----------------------------------
-        */
-
-        try{
-
-            await emailservice.sendWelcomeEmail(
-
-                user.email,
-
-                user.firstName
-
-            );
-
-        }
-
-        catch(error){
-
-            /*
-            ----------------------------------
-            O EMAIL DE BOAS-VINDAS NÃO
-            INVALIDA A CONFIRMAÇÃO.
-            ----------------------------------
-            */
-
-            console.error(
-
-                "AUTH WELCOME EMAIL ERROR:",
-
-                error
-
-            );
-
-        }
-
-
-        return {
-
-            success: true,
-
-            message:
-
-                "Email confirmado com sucesso."
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    RESEND VERIFICATION CODE
-    ======================================
-    */
-
-    async resendVerificationCode(
-
-        email
-
-    ){
-
-        const normalizedEmail =
-
-            normalizeEmail(email);
-
-
-        if(!normalizedEmail){
-
-            throw new Error(
-
-                "Email de confirmação não encontrado."
-
-            );
-
-        }
-
-
-        if(
-
-            !validator.isEmail(
-
-                normalizedEmail
-
-            )
-
-        ){
-
-            throw new Error(
-
-                "Email inválido."
-
-            );
-
-        }
-
-
-        const user =
-
-            await User.findOne({
-
-                email:
-
-                    normalizedEmail
-
-            });
-
-
-        if(!user){
-
-            throw new Error(
-
-                "Utilizador não encontrado."
-
-            );
-
-        }
-
-
-        if(!user.isActive){
-
-            throw new Error(
-
-                "Esta conta está desativada."
-
-            );
-
-        }
-
-
-        if(user.emailVerified){
-
-            throw new Error(
-
-                "Este email já foi confirmado."
-
-            );
-
-        }
-
-
-        /*
-        ----------------------------------
-        NEW CODE
-        ----------------------------------
-        */
-
-        const verificationCode =
-
-            generateVerificationCode();
-
-
-        const verificationExpires =
-
-            new Date(
-
-                Date.now() +
-
-                VERIFICATION_EXPIRATION_MS
-
-            );
-
-
-        user.verificationCode =
-
-            verificationCode;
-
-
-        user.verificationExpires =
-
-            verificationExpires;
-
-
-        await user.save();
-
-
-        /*
-        ----------------------------------
-        SEND NEW CODE
-        ----------------------------------
-        */
-
-        try{
-
-            await emailservice.sendVerificationCode(
-
-                user.email,
-
-                verificationCode,
-
-                user.firstName
-
-            );
-
-        }
-
-        catch(error){
-
-            console.error(
-
-                "AUTH RESEND EMAIL ERROR:",
-
-                error
-
-            );
-
-
-            /*
-            ----------------------------------
-            NÃO DEIXAR O CÓDIGO NOVO ATIVO
-            SE O EMAIL NÃO FOI ENVIADO.
-            ----------------------------------
-            */
-
-            user.verificationCode = null;
-
-            user.verificationExpires = null;
-
-            await user.save();
-
-
-            throw new Error(
-
-                "Não foi possível enviar o novo código. Tente novamente."
-
-            );
-
-        }
-
-
-        return {
-
-            success: true,
-
-            message:
-
-                "Novo código enviado para o seu email.",
-
-            email:
-
-                user.email,
-
-            expiresAt:
-
-                verificationExpires
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    LOGIN
-    ======================================
-    */
-
-    async login(
-
-        email,
-
-        password,
-
-        request = null
-
-    ){
-
-        const normalizedEmail =
-
-            normalizeEmail(email);
-
-
-        if(
-
-            !normalizedEmail ||
-
-            !password
-
-        ){
-
-            throw new Error(
-
-                "Email e palavra-passe são obrigatórios."
-
-            );
-
-        }
-
-
-        const user =
-
-            await User.findOne({
-
-                email:
-
-                    normalizedEmail
-
-            });
-
-
-        if(!user){
-
-            throw new Error(
-
-                "Email ou palavra-passe incorretos."
-
-            );
-
-        }
-
-
-        if(!user.isActive){
-
-            throw new Error(
-
-                "Esta conta está desativada."
-
-            );
-
-        }
-
-
-        /*
-        ----------------------------------
-        GOOGLE ACCOUNT
-        ----------------------------------
-        */
-
-        if(
-
-            user.provider ===
-
-                "google" &&
-
-            !user.password
-
-        ){
-
-            throw new Error(
-
-                "Esta conta utiliza o Google. Entre com a sua conta Google."
-
-            );
-
-        }
-
-
-        if(!user.emailVerified){
-
-            throw new Error(
-
-                "Confirme o seu email primeiro."
-
-            );
-
-        }
-
-
-        const valid =
-
-            await bcrypt.compare(
-
-                password,
-
-                user.password
-
-            );
-
-
-        if(!valid){
-
-            throw new Error(
-
-                "Email ou palavra-passe incorretos."
-
-            );
-
-        }
-
-
-        user.lastLogin =
-
-            new Date();
-
-
-        await user.save();
-
-
-        const token =
-
-            createToken(user);
-
-
-        const session =
-
-            await createSession(
-
-                user,
-
-                token,
-
-                request
-
-            );
-
-
-        return {
-
-            success: true,
-
-            token,
-
-            expiresAt:
-
-                session.expiresAt,
-
-            user:
-
-                publicUser(user)
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    GOOGLE LOGIN
-    ======================================
-    */
-
-    async googleLogin(
-
-        googleProfile,
-
-        request = null
-
-    ){
-
-        if(
-
-            !googleProfile ||
-
-            !googleProfile.sub ||
-
-            !googleProfile.email
-
-        ){
-
-            throw new Error(
-
-                "Dados da conta Google inválidos."
-
-            );
-
-        }
-
-
-        const email =
-
-            normalizeEmail(
-
-                googleProfile.email
-
-            );
-
-
-        if(
-
-            !validator.isEmail(email)
-
-        ){
-
-            throw new Error(
-
-                "Email Google inválido."
-
-            );
-
-        }
-
-
-        if(
-
-            googleProfile.email_verified ===
-
-                false
-
-        ){
-
-            throw new Error(
-
-                "A conta Google não possui email verificado."
-
-            );
-
-        }
-
-
-        let user =
-
-            await User.findOne({
-
-                $or: [
-
-                    {
-
-                        googleId:
-
-                            googleProfile.sub
-
-                    },
-
-                    {
-
-                        email
-
-                    }
-
-                ]
-
-            });
-
-
-        /*
-        ----------------------------------
-        CREATE GOOGLE USER
-        ----------------------------------
-        */
-
-        if(!user){
-
-            user =
-
-                await User.create({
-
-                    firstName:
-
-                        googleProfile.given_name ||
-
-                        googleProfile.name ||
-
-                        "Utilizador",
-
-                    lastName:
-
-                        googleProfile.family_name ||
-
-                        "",
-
-                    email,
-
-                    password:
-
-                        null,
-
-                    provider:
-
-                        "google",
-
-                    googleId:
-
-                        googleProfile.sub,
-
-                    avatar:
-
-                        googleProfile.picture ||
-
-                        null,
-
-                    emailVerified:
-
-                        true,
-
-                    verificationCode:
-
-                        null,
-
-                    verificationExpires:
-
-                        null,
-
-                    plan:
-
-                        "free",
-
-                    isActive:
-
-                        true,
-
-                    lastLogin:
-
-                        new Date()
+                        "Google Client ID não configurado."
 
                 });
 
         }
 
-        else{
+
+        return res.json({
+
+            success: true,
+
+            clientId
+
+        });
+
+    }
+
+);
+
+
+
+/*
+==========================================
+REGISTER
+POST /api/auth/register
+==========================================
+*/
+
+router.post(
+
+    "/register",
+
+    async(req,res)=>{
+
+        try{
+
+            const result =
+
+                await authService.register(
+
+                    req.body || {},
+
+                    req
+
+                );
+
+
+            return res
+
+                .status(201)
+
+                .json(result);
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+VERIFY EMAIL
+POST /api/auth/verify-email
+==========================================
+*/
+
+router.post(
+
+    "/verify-email",
+
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                email,
+
+                code,
+
+                codigo
+
+            } = req.body || {};
+
+
+            const result =
+
+                await authService.verifyEmail(
+
+                    email,
+
+                    code || codigo
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+RESEND VERIFICATION
+POST /api/auth/resend-verification
+==========================================
+*/
+
+router.post(
+
+    "/resend-verification",
+
+    async(req,res)=>{
+
+        try{
+
+            const email =
+
+                req.body?.email;
+
+
+            const result =
+
+                await authService.resendVerificationCode(
+
+                    email
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+LOGIN
+POST /api/auth/login
+==========================================
+*/
+
+router.post(
+
+    "/login",
+
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                email,
+
+                password
+
+            } = req.body || {};
+
+
+            const result =
+
+                await authService.login(
+
+                    email,
+
+                    password,
+
+                    req
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+GOOGLE LOGIN
+POST /api/auth/google
+==========================================
+*/
+
+router.post(
+
+    "/google",
+
+    async(req,res)=>{
+
+        try{
+
+            const {
+
+                credential
+
+            } = req.body || {};
+
+
+            if(
+
+                !credential ||
+
+                typeof credential !== "string"
+
+            ){
+
+                return res
+
+                    .status(400)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google não fornecida."
+
+                    });
+
+            }
+
 
             /*
             ----------------------------------
-            LINK EXISTING ACCOUNT
+            GOOGLE TOKEN VALIDATION
+            ----------------------------------
+            */
+
+            const googleResponse =
+
+                await fetch(
+
+                    "https://oauth2.googleapis.com/tokeninfo?id_token=" +
+
+                    encodeURIComponent(
+
+                        credential
+
+                    )
+
+                );
+
+
+            if(
+
+                !googleResponse.ok
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google inválida ou expirada."
+
+                    });
+
+            }
+
+
+            const googleProfile =
+
+                await googleResponse.json();
+
+
+            /*
+            ----------------------------------
+            CLIENT ID
+            ----------------------------------
+            */
+
+            const googleClientId =
+
+                String(
+
+                    process.env.GOOGLE_CLIENT_ID ||
+
+                    ""
+
+                ).trim();
+
+
+            if(!googleClientId){
+
+                return res
+
+                    .status(503)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Login Google não configurado no servidor."
+
+                    });
+
+            }
+
+
+            /*
+            ----------------------------------
+            AUDIENCE
             ----------------------------------
             */
 
             if(
 
-                user.googleId &&
+                String(
 
-                user.googleId !==
+                    googleProfile.aud
 
-                    googleProfile.sub
+                ) !==
+
+                googleClientId
 
             ){
 
-                throw new Error(
+                return res
 
-                    "Esta conta Google não corresponde ao utilizador."
+                    .status(401)
 
-                );
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google não pertence a esta aplicação."
+
+                    });
 
             }
 
 
-            user.googleId =
+            /*
+            ----------------------------------
+            ISSUER
+            ----------------------------------
+            */
 
-                googleProfile.sub;
+            const issuer =
 
+                String(
 
-            user.provider =
+                    googleProfile.iss ||
 
-                "google";
-
-
-            user.emailVerified = true;
-
-
-            user.avatar =
-
-                googleProfile.picture ||
-
-                user.avatar;
-
-
-            if(
-
-                !user.firstName ||
-
-                user.firstName === "Utilizador"
-
-            ){
-
-                user.firstName =
-
-                    googleProfile.given_name ||
-
-                    googleProfile.name ||
-
-                    user.firstName;
-
-            }
-
-
-            if(
-
-                !user.lastName
-
-            ){
-
-                user.lastName =
-
-                    googleProfile.family_name ||
-
-                    "";
-
-            }
-
-
-            user.lastLogin =
-
-                new Date();
-
-
-            await user.save();
-
-        }
-
-
-        if(!user.isActive){
-
-            throw new Error(
-
-                "Esta conta está desativada."
-
-            );
-
-        }
-
-
-        const token =
-
-            createToken(user);
-
-
-        const session =
-
-            await createSession(
-
-                user,
-
-                token,
-
-                request
-
-            );
-
-
-        return {
-
-            success: true,
-
-            token,
-
-            expiresAt:
-
-                session.expiresAt,
-
-            user:
-
-                publicUser(user)
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    LOGOUT
-    ======================================
-    */
-
-    async logout(token){
-
-        if(!token){
-
-            return {
-
-                success: true
-
-            };
-
-        }
-
-
-        await Session.deleteOne({
-
-            token
-
-        });
-
-
-        return {
-
-            success: true,
-
-            message:
-
-                "Sessão encerrada."
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    LOGOUT ALL
-    ======================================
-    */
-
-    async logoutAll(userId){
-
-        if(!userId){
-
-            return {
-
-                success: false
-
-            };
-
-        }
-
-
-        await Session.deleteMany({
-
-            userId
-
-        });
-
-
-        return {
-
-            success: true,
-
-            message:
-
-                "Todas as sessões foram encerradas."
-
-        };
-
-    }
-
-
-
-    /*
-    ======================================
-    GET USER
-    ======================================
-    */
-
-    async getUser(id){
-
-        return User
-
-            .findById(id)
-
-            .select(
-
-                "-password -verificationCode -verificationExpires"
-
-            );
-
-    }
-
-
-
-    /*
-    ======================================
-    GET PROFILE
-    ======================================
-    */
-
-    async getProfile(id){
-
-        const user =
-
-            await User
-
-                .findById(id)
-
-                .select(
-
-                    "-password -verificationCode -verificationExpires"
+                    ""
 
                 );
 
 
-        if(!user){
+            if(
 
-            throw new Error(
+                issuer !==
 
-                "Utilizador não encontrado."
+                    "accounts.google.com" &&
+
+                issuer !==
+
+                    "https://accounts.google.com"
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Emissor da credencial Google inválido."
+
+                    });
+
+            }
+
+
+            /*
+            ----------------------------------
+            EXPIRATION
+            ----------------------------------
+            */
+
+            const expiration =
+
+                Number(
+
+                    googleProfile.exp
+
+                );
+
+
+            if(
+
+                !Number.isFinite(
+
+                    expiration
+
+                ) ||
+
+                expiration <=
+
+                    Math.floor(
+
+                        Date.now() / 1000
+
+                    )
+
+            ){
+
+                return res
+
+                    .status(401)
+
+                    .json({
+
+                        success: false,
+
+                        error:
+
+                            "Credencial Google expirada."
+
+                    });
+
+            }
+
+
+            /*
+            ----------------------------------
+            AUTH SERVICE
+            ----------------------------------
+            */
+
+            const result =
+
+                await authService.googleLogin(
+
+                    googleProfile,
+
+                    req
+
+                );
+
+
+            return res.json(
+
+                result
 
             );
 
         }
 
+        catch(error){
 
-        return {
+            return handleError(
 
-            success: true,
+                res,
 
-            user:
+                error
 
-                publicUser(user)
+            );
 
-        };
+        }
 
     }
 
-}
+);
 
 
 
-export default new AuthService();
+/*
+==========================================
+CURRENT USER
+GET /api/auth/me
+==========================================
+*/
+
+router.get(
+
+    "/me",
+
+    authMiddleware,
+
+    async(req,res)=>{
+
+        try{
+
+            return res.json({
+
+                success: true,
+
+                user: {
+
+                    id:
+
+                        req.user._id.toString(),
+
+                    firstName:
+
+                        req.user.firstName || "",
+
+                    lastName:
+
+                        req.user.lastName || "",
+
+                    name:
+
+                        [
+
+                            req.user.firstName,
+
+                            req.user.lastName
+
+                        ]
+
+                            .filter(Boolean)
+
+                            .join(" "),
+
+                    email:
+
+                        req.user.email,
+
+                    provider:
+
+                        req.user.provider ||
+
+                        "local",
+
+                    avatar:
+
+                        req.user.avatar ||
+
+                        null,
+
+                    emailVerified:
+
+                        req.user.emailVerified === true,
+
+                    plan:
+
+                        req.user.plan ||
+
+                        "free",
+
+                    isActive:
+
+                        req.user.isActive === true
+
+                },
+
+                auth: {
+
+                    userId:
+
+                        req.auth.userId,
+
+                    provider:
+
+                        req.auth.provider,
+
+                    plan:
+
+                        req.auth.plan,
+
+                    expiresAt:
+
+                        req.auth.expiresAt
+
+                }
+
+            });
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+LOGOUT
+POST /api/auth/logout
+==========================================
+*/
+
+router.post(
+
+    "/logout",
+
+    async(req,res)=>{
+
+        try{
+
+            const token =
+
+                getAuthToken(req);
+
+
+            const result =
+
+                await authService.logout(
+
+                    token
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+LOGOUT ALL
+POST /api/auth/logout-all
+==========================================
+*/
+
+router.post(
+
+    "/logout-all",
+
+    authMiddleware,
+
+    async(req,res)=>{
+
+        try{
+
+            const result =
+
+                await authService.logoutAll(
+
+                    req.user._id
+
+                );
+
+
+            return res.json(
+
+                result
+
+            );
+
+        }
+
+        catch(error){
+
+            return handleError(
+
+                res,
+
+                error
+
+            );
+
+        }
+
+    }
+
+);
+
+
+
+/*
+==========================================
+HEALTH
+GET /api/auth/health
+==========================================
+*/
+
+router.get(
+
+    "/health",
+
+    (req,res)=>{
+
+        return res.json({
+
+            success: true,
+
+            authentication:
+
+                "online"
+
+        });
+
+    }
+
+);
+
+
+
+/*
+==========================================
+EXPORT
+==========================================
+*/
+
+export default router;
