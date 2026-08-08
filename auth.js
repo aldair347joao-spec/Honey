@@ -4,8 +4,8 @@ HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
 JWT + MongoDB + Google Authentication
-V7.0
-Production Session Architecture
+V8.0
+Production Authentication Architecture
 ==========================================
 */
 
@@ -161,28 +161,30 @@ class AuthManager {
 
     async loadSession(){
 
+        /*
+        --------------------------------------
+        SEM TOKEN
+        --------------------------------------
+        */
+
         if(!this.token){
 
             this.user = null;
 
-
-            localStorage.removeItem(
-
-                "honey_user"
-
-            );
-
-
             this.loading = false;
 
-
             this.notify();
-
 
             return null;
 
         }
 
+
+        /*
+        --------------------------------------
+        VALIDAR TOKEN NO BACKEND
+        --------------------------------------
+        */
 
         try{
 
@@ -204,7 +206,9 @@ class AuthManager {
 
                                 "application/json"
 
-                        }
+                        },
+
+                        credentials: "same-origin"
 
                     }
 
@@ -219,6 +223,12 @@ class AuthManager {
 
                 );
 
+
+            /*
+            ----------------------------------
+            SESSÃO VÁLIDA
+            ----------------------------------
+            */
 
             if(
 
@@ -253,6 +263,12 @@ class AuthManager {
             }
 
 
+            /*
+            ----------------------------------
+            TOKEN INVÁLIDO / EXPIRADO
+            ----------------------------------
+            */
+
             if(
 
                 response.status === 401 ||
@@ -270,23 +286,15 @@ class AuthManager {
 
 
             /*
-            --------------------------------------
-            Server unavailable / unexpected error
-            --------------------------------------
-
-            Keep the stored identity available,
-            but authentication remains controlled
-            by token + backend validation.
-            --------------------------------------
+            ----------------------------------
+            RESPOSTA INESPERADA
+            ----------------------------------
             */
 
-            this.loading = false;
+            this.clearSession(false);
 
 
-            this.notify();
-
-
-            return this.user;
+            return null;
 
         }
 
@@ -301,13 +309,20 @@ class AuthManager {
             );
 
 
-            this.loading = false;
+            /*
+            ----------------------------------
+            FAIL CLOSED
+            ----------------------------------
+
+            Nunca considerar apenas o localStorage
+            como autenticação válida.
+            ----------------------------------
+            */
+
+            this.clearSession(false);
 
 
-            this.notify();
-
-
-            return this.user;
+            return null;
 
         }
 
@@ -389,6 +404,8 @@ class AuthManager {
 
                 user.firstName ||
 
+                user.nome ||
+
                 "",
 
 
@@ -396,14 +413,24 @@ class AuthManager {
 
                 user.lastName ||
 
+                user.apelido ||
+
                 "",
 
 
             email:
 
-                user.email ||
+                String(
 
-                "",
+                    user.email ||
+
+                    ""
+
+                )
+
+                    .trim()
+
+                    .toLowerCase(),
 
 
             avatar:
@@ -419,12 +446,16 @@ class AuthManager {
 
                 user.plan ||
 
+                user.plano ||
+
                 "free",
 
 
             emailVerified:
 
-                user.emailVerified === true,
+                user.emailVerified === true ||
+
+                user.emailVerificado === true,
 
 
             isActive:
@@ -464,7 +495,11 @@ class AuthManager {
 
                 ||
 
-                normalized.name
+                user.name
+
+                ||
+
+                user.nomeCompleto
 
                 ||
 
@@ -487,6 +522,102 @@ class AuthManager {
     */
 
     async register(data){
+
+        const payload = {
+
+            ...(data || {})
+
+        };
+
+
+        /*
+        --------------------------------------
+        NORMALIZAR CAMPOS DO FORMULÁRIO
+        --------------------------------------
+        */
+
+        payload.firstName =
+
+            String(
+
+                payload.firstName ||
+
+                payload.nome ||
+
+                ""
+
+            )
+
+                .trim();
+
+
+        payload.lastName =
+
+            String(
+
+                payload.lastName ||
+
+                payload.apelido ||
+
+                ""
+
+            )
+
+                .trim();
+
+
+        payload.email =
+
+            String(
+
+                payload.email ||
+
+                ""
+
+            )
+
+                .trim()
+
+                .toLowerCase();
+
+
+        payload.password =
+
+            String(
+
+                payload.password ||
+
+                ""
+
+            );
+
+
+        /*
+        --------------------------------------
+        VALIDAÇÃO FRONTEND
+        --------------------------------------
+        */
+
+        if(
+
+            !payload.firstName ||
+
+            !payload.lastName ||
+
+            !payload.email ||
+
+            !payload.password
+
+        ){
+
+            throw new Error(
+
+                "Preencha todos os campos."
+
+            );
+
+        }
+
 
         const response =
 
@@ -514,9 +645,11 @@ class AuthManager {
 
                         JSON.stringify(
 
-                            data || {}
+                            payload
 
-                        )
+                        ),
+
+                    credentials: "same-origin"
 
                 }
 
@@ -551,6 +684,17 @@ class AuthManager {
         }
 
 
+        /*
+        --------------------------------------
+        NÃO CRIAR SESSÃO AUTOMATICAMENTE
+        --------------------------------------
+
+        A conta deve confirmar o email antes
+        do primeiro login.
+        --------------------------------------
+        */
+
+
         return result;
 
     }
@@ -563,6 +707,72 @@ class AuthManager {
     */
 
     async verifyEmail(data){
+
+        const payload = {
+
+            ...(data || {})
+
+        };
+
+
+        if(payload.email){
+
+            payload.email =
+
+                String(
+
+                    payload.email
+
+                )
+
+                    .trim()
+
+                    .toLowerCase();
+
+        }
+
+
+        if(payload.code){
+
+            payload.code =
+
+                String(
+
+                    payload.code
+
+                )
+
+                    .trim();
+
+        }
+
+
+        /*
+        --------------------------------------
+        COMPATIBILIDADE
+        --------------------------------------
+        */
+
+        if(
+
+            !payload.code &&
+
+            payload.codigo
+
+        ){
+
+            payload.code =
+
+                String(
+
+                    payload.codigo
+
+                )
+
+                    .trim();
+
+        }
+
 
         const response =
 
@@ -590,9 +800,11 @@ class AuthManager {
 
                         JSON.stringify(
 
-                            data || {}
+                            payload
 
-                        )
+                        ),
+
+                    credentials: "same-origin"
 
                 }
 
@@ -694,7 +906,9 @@ class AuthManager {
 
                                 cleanEmail
 
-                        })
+                        }),
+
+                    credentials: "same-origin"
 
                 }
 
@@ -743,6 +957,56 @@ class AuthManager {
 
     async login(data){
 
+        const payload = {
+
+            ...(data || {})
+
+        };
+
+
+        payload.email =
+
+            String(
+
+                payload.email ||
+
+                ""
+
+            )
+
+                .trim()
+
+                .toLowerCase();
+
+
+        payload.password =
+
+            String(
+
+                payload.password ||
+
+                ""
+
+            );
+
+
+        if(
+
+            !payload.email ||
+
+            !payload.password
+
+        ){
+
+            throw new Error(
+
+                "Introduza o email e a palavra-passe."
+
+            );
+
+        }
+
+
         const response =
 
             await fetch(
@@ -769,9 +1033,11 @@ class AuthManager {
 
                         JSON.stringify(
 
-                            data || {}
+                            payload
 
-                        )
+                        ),
+
+                    credentials: "same-origin"
 
                 }
 
@@ -826,6 +1092,26 @@ class AuthManager {
         );
 
 
+        /*
+        --------------------------------------
+        CONFIRMAR SESSÃO NO BACKEND
+        --------------------------------------
+        */
+
+        await this.refreshUser();
+
+
+        if(!this.isAuthenticated()){
+
+            throw new Error(
+
+                "A sessão não pôde ser confirmada."
+
+            );
+
+        }
+
+
         return this.user;
 
     }
@@ -843,7 +1129,13 @@ class AuthManager {
 
     ){
 
-        if(!credential){
+        if(
+
+            !credential ||
+
+            typeof credential !== "string"
+
+        ){
 
             throw new Error(
 
@@ -882,7 +1174,9 @@ class AuthManager {
 
                             credential
 
-                        })
+                        }),
+
+                    credentials: "same-origin"
 
                 }
 
@@ -937,6 +1231,26 @@ class AuthManager {
         );
 
 
+        /*
+        --------------------------------------
+        CONFIRMAR SESSÃO GOOGLE
+        --------------------------------------
+        */
+
+        await this.refreshUser();
+
+
+        if(!this.isAuthenticated()){
+
+            throw new Error(
+
+                "A sessão Google não pôde ser confirmada."
+
+            );
+
+        }
+
+
         return this.user;
 
     }
@@ -977,7 +1291,13 @@ class AuthManager {
 
     ){
 
-        if(!token){
+        if(
+
+            !token ||
+
+            typeof token !== "string"
+
+        ){
 
             throw new Error(
 
@@ -990,12 +1310,16 @@ class AuthManager {
 
         this.token =
 
-            String(token);
+            token.trim();
 
 
         this.user =
 
-            this.normalizeUser(user);
+            this.normalizeUser(
+
+                user
+
+            );
 
 
         localStorage.setItem(
@@ -1113,9 +1437,9 @@ class AuthManager {
 
         return (
 
-            !!this.token &&
+            Boolean(this.token) &&
 
-            !!this.user &&
+            Boolean(this.user) &&
 
             this.user.isActive !== false
 
@@ -1172,7 +1496,9 @@ class AuthManager {
 
                                 "application/json"
 
-                        }
+                        },
+
+                        credentials: "same-origin"
 
                     }
 
@@ -1284,7 +1610,9 @@ class AuthManager {
 
                                 "application/json"
 
-                        }
+                        },
+
+                        credentials: "same-origin"
 
                     }
 
@@ -1345,7 +1673,9 @@ class AuthManager {
             }
 
 
-            return this.user;
+            this.clearSession();
+
+            return null;
 
         }
 
@@ -1360,7 +1690,9 @@ class AuthManager {
             );
 
 
-            return this.user;
+            this.clearSession();
+
+            return null;
 
         }
 
@@ -1426,12 +1758,24 @@ class AuthManager {
 
                     ...options,
 
-                    headers
+                    headers,
+
+                    credentials:
+
+                        options.credentials ||
+
+                        "same-origin"
 
                 }
 
             );
 
+
+        /*
+        --------------------------------------
+        SESSÃO INVALIDADA PELO BACKEND
+        --------------------------------------
+        */
 
         if(
 
@@ -1441,12 +1785,17 @@ class AuthManager {
 
         ){
 
-            const clone =
+            let shouldClear =
 
-                response.clone();
+                true;
 
 
             try{
+
+                const clone =
+
+                    response.clone();
+
 
                 const data =
 
@@ -1468,48 +1817,42 @@ class AuthManager {
                         .toLowerCase();
 
 
-                const sessionError =
+                /*
+                ----------------------------------
+                403 DE PLANO NÃO É NECESSARIAMENTE
+                UMA SESSÃO INVÁLIDA
+                ----------------------------------
+                */
 
-                    errorMessage.includes(
+                if(
 
-                        "sessão"
+                    response.status === 403 &&
 
-                    ) ||
+                    (
 
-                    errorMessage.includes(
+                        errorMessage.includes(
 
-                        "session"
+                            "plano"
 
-                    ) ||
+                        ) ||
 
-                    errorMessage.includes(
+                        errorMessage.includes(
 
-                        "token"
+                            "plan"
 
-                    ) ||
+                        ) ||
 
-                    errorMessage.includes(
+                        errorMessage.includes(
 
-                        "unauthorized"
+                            "funcionalidade"
 
-                    ) ||
+                        )
 
-                    errorMessage.includes(
+                    )
 
-                        "não autorizado"
+                ){
 
-                    ) ||
-
-                    errorMessage.includes(
-
-                        "autenticação"
-
-                    );
-
-
-                if(sessionError){
-
-                    this.clearSession();
+                    shouldClear = false;
 
                 }
 
@@ -1524,6 +1867,13 @@ class AuthManager {
                     error
 
                 );
+
+            }
+
+
+            if(shouldClear){
+
+                this.clearSession();
 
             }
 
