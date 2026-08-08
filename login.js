@@ -6,7 +6,7 @@ Professional Authentication UI
 V9.0
 Google Identity Services
 Secure Authentication Flow
-Standalone Authentication Page
+Independent Authentication Interface
 ==========================================
 */
 
@@ -39,7 +39,7 @@ class LoginController {
 
         this.googleScriptPromise = null;
 
-        this.cssPromise = null;
+        this.googleCredentialHandler = null;
 
 
     }
@@ -65,16 +65,22 @@ class LoginController {
         if(this.initialized){
 
 
-            if(authmanager.isAuthenticated()){
+            if(
 
-                this.redirectToWorkspace();
+                authmanager.isAuthenticated()
 
-                return;
+            ){
+
+                this.hideLoginInterface();
 
             }
 
+            else if(this.container){
 
-            this.showLoginInterface();
+                this.showLoginInterface();
+
+            }
+
 
             return;
 
@@ -84,17 +90,6 @@ class LoginController {
 
 
         this.initialized = true;
-
-
-
-        /*
-        --------------------------------------
-        LOAD LOGIN CSS
-        --------------------------------------
-        */
-
-
-        await this.loadLoginStyles();
 
 
 
@@ -116,10 +111,14 @@ class LoginController {
         */
 
 
-        if(authmanager.isAuthenticated()){
+        if(
+
+            authmanager.isAuthenticated()
+
+        ){
 
 
-            this.redirectToWorkspace();
+            this.hideLoginInterface();
 
             return;
 
@@ -130,29 +129,16 @@ class LoginController {
 
         /*
         --------------------------------------
-        CREATE CONTAINER
+        CREATE INTERFACE
         --------------------------------------
         */
 
 
         this.createContainer();
 
-
-
         this.showLoginInterface();
 
-
-
-        /*
-        --------------------------------------
-        RENDER INTERFACE
-        --------------------------------------
-        */
-
-
         this.render();
-
-
 
         this.attachEvents();
 
@@ -180,138 +166,6 @@ class LoginController {
 
     /*
     ==========================================
-    LOAD LOGIN STYLES
-    ==========================================
-    */
-
-
-    loadLoginStyles(){
-
-
-        if(this.cssPromise){
-
-
-            return this.cssPromise;
-
-
-        }
-
-
-
-        const existing =
-
-            document.querySelector(
-
-                'link[data-honey-login-css="true"]'
-
-            );
-
-
-
-        if(existing){
-
-
-            this.cssPromise =
-
-                Promise.resolve();
-
-
-
-            return this.cssPromise;
-
-
-        }
-
-
-
-        this.cssPromise =
-
-            new Promise(
-
-                resolve => {
-
-
-                    const link =
-
-                        document.createElement(
-
-                            "link"
-
-                        );
-
-
-
-                    link.rel = "stylesheet";
-
-
-
-                    link.href =
-
-                        "./login.css";
-
-
-
-                    link.dataset.honeyLoginCss =
-
-                        "true";
-
-
-
-                    link.onload = () => {
-
-
-                        resolve();
-
-
-                    };
-
-
-
-                    link.onerror = () => {
-
-
-                        console.warn(
-
-                            "HONEY IA: login.css não foi carregado."
-
-                        );
-
-
-                        resolve();
-
-
-                    };
-
-
-
-                    document.head.appendChild(
-
-                        link
-
-                    );
-
-
-                }
-
-            );
-
-
-
-        return this.cssPromise;
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
     CREATE CONTAINER
     ==========================================
     */
@@ -320,7 +174,7 @@ class LoginController {
     createContainer(){
 
 
-        const existing =
+        let container =
 
             document.getElementById(
 
@@ -330,54 +184,44 @@ class LoginController {
 
 
 
-        if(existing){
+        if(!container){
 
 
-            this.container = existing;
+            container =
+
+                document.createElement(
+
+                    "div"
+
+                );
 
 
-            return;
+            container.id = "loginApp";
+
+
+
+            container.setAttribute(
+
+                "aria-label",
+
+                "Autenticação Honey IA"
+
+            );
+
+
+
+            document.body.appendChild(
+
+                container
+
+            );
 
 
         }
 
 
 
-        const div =
-
-            document.createElement(
-
-                "div"
-
-            );
-
-
-
-        div.id =
-
-            "loginApp";
-
-
-
-        div.setAttribute(
-
-            "aria-label",
-
-            "Autenticação Honey IA"
-
-        );
-
-
-
-        document.body.appendChild(
-
-            div
-
-        );
-
-
-
-        this.container = div;
+        this.container = container;
 
 
     }
@@ -402,17 +246,21 @@ class LoginController {
 
         if(!this.container){
 
-
-            return;
-
+            this.createContainer();
 
         }
 
 
 
-        this.container.style.display =
+        if(!this.container){
 
-            "flex";
+            return;
+
+        }
+
+
+
+        this.container.style.display = "flex";
 
 
 
@@ -423,11 +271,38 @@ class LoginController {
         );
 
 
+
         document.body.classList.add(
 
-            "honey-auth-page"
+            "honey-auth-active"
 
         );
+
+
+
+        const studio =
+
+            document.getElementById(
+
+                "studioApp"
+
+            );
+
+
+
+        if(studio){
+
+
+            studio.style.display = "none";
+
+            studio.classList.remove(
+
+                "auth-ready"
+
+            );
+
+
+        }
 
 
     }
@@ -460,9 +335,7 @@ class LoginController {
             );
 
 
-            this.container.style.display =
-
-                "none";
+            this.container.style.display = "none";
 
 
         }
@@ -471,9 +344,35 @@ class LoginController {
 
         document.body.classList.remove(
 
-            "honey-auth-page"
+            "honey-auth-active"
 
         );
+
+
+
+        const studio =
+
+            document.getElementById(
+
+                "studioApp"
+
+            );
+
+
+
+        if(studio){
+
+
+            studio.style.display = "";
+
+            studio.classList.add(
+
+                "auth-ready"
+
+            );
+
+
+        }
 
 
     }
@@ -498,9 +397,7 @@ class LoginController {
 
         if(!this.container){
 
-
             return;
-
 
         }
 
@@ -508,319 +405,234 @@ class LoginController {
 
         this.container.innerHTML = `
 
-            <div class="honey-auth-shell">
+            <div class="honey-auth-wrapper">
 
 
                 <div class="honey-auth-background">
 
-                    <div class="auth-glow auth-glow-one"></div>
 
-                    <div class="auth-glow auth-glow-two"></div>
+                    <div class="auth-orb auth-orb-one"></div>
+
+                    <div class="auth-orb auth-orb-two"></div>
 
                     <div class="auth-grid"></div>
+
 
                 </div>
 
 
 
-                <main class="honey-auth-wrapper">
+                <div class="honey-auth-card">
 
 
-                    <section
-                        class="honey-auth-card"
-                        aria-label="Autenticação Honey IA"
-                    >
+                    <div class="auth-brand">
 
 
-                        <div class="auth-brand">
+                        <div class="auth-logo">
 
-
-                            <div class="auth-logo-wrap">
-
-                                <div class="auth-logo">
-
-                                    <span>H</span>
-
-                                </div>
-
-                            </div>
-
-
-
-                            <div class="auth-brand-copy">
-
-                                <h1>
-
-                                    Honey IA
-
-                                </h1>
-
-
-                                <p>
-
-                                    Enterprise AI Studio
-
-                                </p>
-
-                            </div>
-
+                            <span>H</span>
 
                         </div>
 
+
+                        <div class="auth-brand-text">
+
+                            <h1>Honey IA</h1>
+
+                            <p>Enterprise AI Studio</p>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div
+                        id="authMessage"
+                        class="auth-message"
+                        role="alert"
+                        aria-live="polite"
+                    ></div>
+
+
+
+                    <!-- LOGIN -->
+
+                    <div
+                        id="loginMode"
+                        class="auth-mode"
+                    >
 
 
                         <div class="auth-heading">
 
+                            <h2>Bem-vindo de volta</h2>
 
-                            <span class="auth-eyebrow">
+                            <p>
+                                Entre na sua área de trabalho
+                                inteligente.
+                            </p>
 
-                                WORKSPACE INTELIGENTE
+                        </div>
+
+
+
+                        <button
+                            id="googleLogin"
+                            type="button"
+                            class="google-btn"
+                            aria-label="Continuar com Google"
+                            disabled
+                        >
+
+                            <span class="google-icon">
+
+                                <i class="fa-brands fa-google"></i>
 
                             </span>
 
+                            <span class="google-button-text">
+
+                                Continuar com Google
+
+                            </span>
+
+                        </button>
 
 
-                            <h2>
 
-                                Bem-vindo de volta.
+                        <div class="divider">
 
-                            </h2>
+                            <span>ou continuar com email</span>
+
+                        </div>
 
 
+
+                        <div class="auth-field">
+
+
+                            <label for="loginEmail">
+
+                                Email
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-regular fa-envelope"></i>
+
+                                <input
+                                    id="loginEmail"
+                                    type="email"
+                                    autocomplete="email"
+                                    placeholder="seu@email.com"
+                                    maxlength="254"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <div class="auth-field">
+
+
+                            <label for="loginPassword">
+
+                                Palavra-passe
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-solid fa-lock"></i>
+
+                                <input
+                                    id="loginPassword"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    placeholder="A sua palavra-passe"
+                                >
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <button
+                            id="loginButton"
+                            type="button"
+                            class="auth-button"
+                        >
+
+                            <span>Entrar</span>
+
+                        </button>
+
+
+
+                        <button
+                            id="showRegister"
+                            type="button"
+                            class="auth-link"
+                        >
+
+                            Ainda não tem uma conta?
+                            <strong>Criar conta</strong>
+
+                        </button>
+
+
+                    </div>
+
+
+
+                    <!-- REGISTER -->
+
+                    <div
+                        id="registerMode"
+                        class="auth-mode"
+                        style="display:none;"
+                    >
+
+
+                        <div class="auth-heading">
+
+                            <h2>Criar conta</h2>
 
                             <p>
-
-                                Entre na sua conta para continuar
-                                no seu espaço de trabalho Honey IA.
-
+                                Comece a trabalhar com a
+                                inteligência da Honey IA.
                             </p>
 
-
                         </div>
 
 
 
-                        <div
-                            id="authMessage"
-                            class="auth-message"
-                            role="alert"
-                            aria-live="polite"
-                        ></div>
-
-
-
-                        <!-- LOGIN -->
-
-                        <div
-                            id="loginMode"
-                            class="auth-mode"
-                        >
-
-
-                            <button
-                                id="googleLogin"
-                                type="button"
-                                class="google-btn"
-                                aria-label="Continuar com Google"
-                            >
-
-                                <span class="google-icon">
-
-                                    G
-
-                                </span>
-
-
-                                <span class="google-btn-text">
-
-                                    Continuar com Google
-
-                                </span>
-
-
-                            </button>
-
-
-
-                            <div class="divider">
-
-
-                                <span></span>
-
-
-                                <strong>
-
-                                    ou
-
-                                </strong>
-
-
-                                <span></span>
-
-
-                            </div>
-
+                        <div class="auth-row">
 
 
                             <div class="auth-field">
 
 
-                                <label for="loginEmail">
+                                <label for="registerNome">
 
-                                    Email
-
-                                </label>
-
-
-                                <div class="auth-input-wrap">
-
-
-                                    <span
-                                        class="auth-input-icon"
-                                        aria-hidden="true"
-                                    >
-
-                                        @
-
-                                    </span>
-
-
-                                    <input
-                                        id="loginEmail"
-                                        type="email"
-                                        autocomplete="email"
-                                        placeholder="seu@email.com"
-                                        maxlength="254"
-                                    >
-
-
-                                </div>
-
-
-                            </div>
-
-
-
-                            <div class="auth-field">
-
-
-                                <label for="loginPassword">
-
-                                    Palavra-passe
+                                    Primeiro nome
 
                                 </label>
 
 
-                                <div class="auth-input-wrap">
+                                <div class="auth-input-wrapper">
 
-
-                                    <span
-                                        class="auth-input-icon"
-                                        aria-hidden="true"
-                                    >
-
-                                        •
-
-                                    </span>
-
-
-                                    <input
-                                        id="loginPassword"
-                                        type="password"
-                                        autocomplete="current-password"
-                                        placeholder="A sua palavra-passe"
-                                    >
-
-
-                                </div>
-
-
-                            </div>
-
-
-
-                            <button
-                                id="loginButton"
-                                type="button"
-                                class="auth-button"
-                            >
-
-                                <span>
-
-                                    Entrar
-
-                                </span>
-
-                            </button>
-
-
-
-                            <button
-                                id="showRegister"
-                                type="button"
-                                class="auth-link"
-                            >
-
-                                Ainda não tenho conta
-                                <strong>Criar conta</strong>
-
-                            </button>
-
-
-                        </div>
-
-
-
-                        <!-- REGISTER -->
-
-                        <div
-                            id="registerMode"
-                            class="auth-mode"
-                            style="display:none;"
-                        >
-
-
-                            <div class="auth-mode-heading">
-
-
-                                <span class="auth-back-label">
-
-                                    NOVA CONTA
-
-                                </span>
-
-
-                                <h3>
-
-                                    Crie o seu espaço.
-
-                                </h3>
-
-
-                                <p>
-
-                                    Comece a trabalhar com o Honey IA
-                                    em poucos segundos.
-
-                                </p>
-
-
-                            </div>
-
-
-
-                            <div class="auth-name-grid">
-
-
-                                <div class="auth-field">
-
-
-                                    <label for="registerNome">
-
-                                        Primeiro nome
-
-                                    </label>
-
+                                    <i class="fa-regular fa-user"></i>
 
                                     <input
                                         id="registerNome"
@@ -830,20 +642,26 @@ class LoginController {
                                         maxlength="80"
                                     >
 
-
                                 </div>
 
 
+                            </div>
 
-                                <div class="auth-field">
 
 
-                                    <label for="registerApelido">
+                            <div class="auth-field">
 
-                                        Apelido
 
-                                    </label>
+                                <label for="registerApelido">
 
+                                    Apelido
+
+                                </label>
+
+
+                                <div class="auth-input-wrapper">
+
+                                    <i class="fa-regular fa-user"></i>
 
                                     <input
                                         id="registerApelido"
@@ -853,23 +671,29 @@ class LoginController {
                                         maxlength="80"
                                     >
 
-
                                 </div>
 
 
                             </div>
 
 
+                        </div>
 
-                            <div class="auth-field">
 
 
-                                <label for="registerEmail">
+                        <div class="auth-field">
 
-                                    Email
 
-                                </label>
+                            <label for="registerEmail">
 
+                                Email
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-regular fa-envelope"></i>
 
                                 <input
                                     id="registerEmail"
@@ -879,20 +703,26 @@ class LoginController {
                                     maxlength="254"
                                 >
 
-
                             </div>
 
 
+                        </div>
 
-                            <div class="auth-field">
 
 
-                                <label for="registerPassword">
+                        <div class="auth-field">
 
-                                    Palavra-passe
 
-                                </label>
+                            <label for="registerPassword">
 
+                                Palavra-passe
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-solid fa-lock"></i>
 
                                 <input
                                     id="registerPassword"
@@ -901,31 +731,39 @@ class LoginController {
                                     placeholder="Criar palavra-passe"
                                 >
 
-
                             </div>
 
 
-
-                            <div class="auth-password-hint">
-
-                                <span></span>
-
-                                Mínimo 8 caracteres, com maiúscula,
-                                minúscula, número e símbolo.
-
-                            </div>
+                        </div>
 
 
 
-                            <div class="auth-field">
+                        <div class="auth-password-hint">
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                            <span>
+                                Mínimo 8 caracteres, incluindo
+                                maiúscula, minúscula, número e símbolo.
+                            </span>
+
+                        </div>
 
 
-                                <label for="registerConfirm">
 
-                                    Confirmar palavra-passe
+                        <div class="auth-field">
 
-                                </label>
 
+                            <label for="registerConfirm">
+
+                                Confirmar palavra-passe
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-solid fa-lock"></i>
 
                                 <input
                                     id="registerConfirm"
@@ -934,98 +772,86 @@ class LoginController {
                                     placeholder="Confirmar palavra-passe"
                                 >
 
-
                             </div>
-
-
-
-                            <button
-                                id="registerButton"
-                                type="button"
-                                class="auth-button"
-                            >
-
-                                <span>
-
-                                    Criar conta
-
-                                </span>
-
-                            </button>
-
-
-
-                            <button
-                                id="backLogin"
-                                type="button"
-                                class="auth-link"
-                            >
-
-                                Já tenho conta
-                                <strong>Entrar</strong>
-
-                            </button>
 
 
                         </div>
 
 
 
-                        <!-- VERIFY -->
-
-                        <div
-                            id="verifyMode"
-                            class="auth-mode"
-                            style="display:none;"
+                        <button
+                            id="registerButton"
+                            type="button"
+                            class="auth-button"
                         >
 
+                            <span>Criar conta</span>
 
-                            <div class="auth-verify-icon">
-
-                                <span>✉</span>
-
-                            </div>
+                        </button>
 
 
 
-                            <div class="auth-mode-heading">
+                        <button
+                            id="backLogin"
+                            type="button"
+                            class="auth-link"
+                        >
+
+                            Já tenho uma conta?
+                            <strong>Entrar</strong>
+
+                        </button>
 
 
-                                <span class="auth-back-label">
-
-                                    CONFIRMAÇÃO
-
-                                </span>
-
-
-                                <h3>
-
-                                    Confirme o seu email.
-
-                                </h3>
-
-
-                                <p id="verifyDescription">
-
-                                    Enviámos um código de confirmação
-                                    para o seu email.
-
-                                </p>
-
-
-                            </div>
+                    </div>
 
 
 
-                            <div class="auth-field">
+                    <!-- VERIFY -->
+
+                    <div
+                        id="verifyMode"
+                        class="auth-mode"
+                        style="display:none;"
+                    >
 
 
-                                <label for="verifyCode">
+                        <div class="auth-verify-icon">
 
-                                    Código de confirmação
+                            <i class="fa-regular fa-envelope"></i>
 
-                                </label>
+                        </div>
 
+
+
+                        <div class="auth-heading">
+
+                            <h2>Confirmar email</h2>
+
+                            <p id="verifyDescription">
+
+                                Enviámos um código de confirmação
+                                para o seu email.
+
+                            </p>
+
+                        </div>
+
+
+
+                        <div class="auth-field">
+
+
+                            <label for="verifyCode">
+
+                                Código de confirmação
+
+                            </label>
+
+
+                            <div class="auth-input-wrapper">
+
+                                <i class="fa-solid fa-shield-halved"></i>
 
                                 <input
                                     id="verifyCode"
@@ -1036,92 +862,74 @@ class LoginController {
                                     placeholder="000000"
                                 >
 
-
                             </div>
-
-
-
-                            <button
-                                id="verifyButton"
-                                type="button"
-                                class="auth-button"
-                            >
-
-                                <span>
-
-                                    Confirmar email
-
-                                </span>
-
-                            </button>
-
-
-
-                            <button
-                                id="resendCode"
-                                type="button"
-                                class="auth-link"
-                            >
-
-                                Reenviar código
-
-                            </button>
-
-
-
-                            <button
-                                id="backVerifyLogin"
-                                type="button"
-                                class="auth-link secondary"
-                            >
-
-                                Voltar ao login
-
-                            </button>
 
 
                         </div>
 
 
 
-                        <footer class="auth-footer">
+                        <button
+                            id="verifyButton"
+                            type="button"
+                            class="auth-button"
+                        >
+
+                            <span>Confirmar email</span>
+
+                        </button>
 
 
-                            <span class="auth-security-dot"></span>
+
+                        <button
+                            id="resendCode"
+                            type="button"
+                            class="auth-link"
+                        >
+
+                            Reenviar código
+
+                        </button>
 
 
-                            <span>
 
-                                Autenticação segura Honey IA
+                        <button
+                            id="backVerifyLogin"
+                            type="button"
+                            class="auth-link secondary"
+                        >
 
-                            </span>
+                            Voltar ao login
 
+                        </button>
 
-                        </footer>
-
-
-                    </section>
-
-
-                    <div class="auth-bottom-brand">
-
-                        <span>
-
-                            HONEY IA
-
-                        </span>
-
-
-                        <small>
-
-                            Intelligent workspace for modern teams
-
-                        </small>
 
                     </div>
 
 
-                </main>
+
+                    <div class="auth-footer">
+
+
+                        <div class="auth-footer-line"></div>
+
+
+                        <span>
+
+                            <i class="fa-solid fa-shield-halved"></i>
+
+                            Protegido pela Honey IA
+
+                        </span>
+
+
+                        <div class="auth-footer-line"></div>
+
+
+                    </div>
+
+
+                </div>
 
 
             </div>
@@ -1150,73 +958,113 @@ class LoginController {
 
 
         document
+
             .getElementById("loginButton")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.login()
+
             );
 
 
 
         document
+
             .getElementById("googleLogin")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.googleLogin()
+
             );
 
 
 
         document
+
             .getElementById("registerButton")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.register()
+
             );
 
 
 
         document
+
             .getElementById("verifyButton")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.verifyEmail()
+
             );
 
 
 
         document
+
             .getElementById("resendCode")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.resendVerificationCode()
+
             );
 
 
 
         document
+
             .getElementById("showRegister")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.showMode("register")
+
             );
 
 
 
         document
+
             .getElementById("backLogin")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.showMode("login")
+
             );
 
 
 
         document
+
             .getElementById("backVerifyLogin")
+
             ?.addEventListener(
+
                 "click",
+
                 () => this.showMode("login")
+
             );
 
 
@@ -1236,6 +1084,46 @@ class LoginController {
             "loginPassword",
 
             () => this.login()
+
+        );
+
+
+
+        this.attachEnterKey(
+
+            "registerNome",
+
+            () => this.register()
+
+        );
+
+
+
+        this.attachEnterKey(
+
+            "registerApelido",
+
+            () => this.register()
+
+        );
+
+
+
+        this.attachEnterKey(
+
+            "registerEmail",
+
+            () => this.register()
+
+        );
+
+
+
+        this.attachEnterKey(
+
+            "registerPassword",
+
+            () => this.register()
 
         );
 
@@ -1304,22 +1192,69 @@ class LoginController {
 
     /*
     ==========================================
+    ENTER KEY
+    ==========================================
+    */
+
+
+    attachEnterKey(
+
+        id,
+
+        callback
+
+    ){
+
+
+        document
+
+            .getElementById(id)
+
+            ?.addEventListener(
+
+                "keydown",
+
+                event => {
+
+
+                    if(
+
+                        event.key === "Enter"
+
+                    ){
+
+
+                        event.preventDefault();
+
+                        callback();
+
+
+                    }
+
+
+                }
+
+            );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
     GOOGLE SCRIPT
     ==========================================
     */
 
 
     loadGoogleScript(){
-
-
-        if(this.googleScriptPromise){
-
-
-            return this.googleScriptPromise;
-
-
-        }
-
 
 
         if(
@@ -1332,9 +1267,15 @@ class LoginController {
 
         ){
 
-
             return Promise.resolve();
 
+        }
+
+
+
+        if(this.googleScriptPromise){
+
+            return this.googleScriptPromise;
 
         }
 
@@ -1360,7 +1301,7 @@ class LoginController {
                     if(existing){
 
 
-                        const check = () => {
+                        const checkGoogle = () => {
 
 
                             if(
@@ -1406,7 +1347,7 @@ class LoginController {
 
                         ){
 
-                            check();
+                            checkGoogle();
 
                             return;
 
@@ -1418,9 +1359,9 @@ class LoginController {
 
                             "load",
 
-                            check,
+                            checkGoogle,
 
-                            { once:true }
+                            {once:true}
 
                         );
 
@@ -1440,7 +1381,7 @@ class LoginController {
 
                             ),
 
-                            { once:true }
+                            {once:true}
 
                         );
 
@@ -1562,7 +1503,7 @@ class LoginController {
 
     /*
     ==========================================
-    GOOGLE CLIENT ID
+    GET GOOGLE CLIENT ID
     ==========================================
     */
 
@@ -1570,23 +1511,33 @@ class LoginController {
     async getGoogleClientId(){
 
 
-        const frontendId =
+        if(
 
-            window.HONEY_GOOGLE_CLIENT_ID ||
+            window.HONEY_GOOGLE_CLIENT_ID
 
-            window.GOOGLE_CLIENT_ID;
-
-
-
-        if(frontendId){
-
+        ){
 
             return String(
 
-                frontendId
+                window.HONEY_GOOGLE_CLIENT_ID
 
             ).trim();
 
+        }
+
+
+
+        if(
+
+            window.GOOGLE_CLIENT_ID
+
+        ){
+
+            return String(
+
+                window.GOOGLE_CLIENT_ID
+
+            ).trim();
 
         }
 
@@ -1600,16 +1551,15 @@ class LoginController {
 
                 {
 
-                    method:"GET",
+                    method: "GET",
 
-                    headers:{
+                    headers: {
 
                         "Accept":
 
                             "application/json"
 
                     }
-
 
                 }
 
@@ -1637,13 +1587,11 @@ class LoginController {
 
         ){
 
-
             return String(
 
                 data.clientId
 
             ).trim();
-
 
         }
 
@@ -1670,7 +1618,7 @@ class LoginController {
 
     /*
     ==========================================
-    GOOGLE SETUP
+    SETUP GOOGLE
     ==========================================
     */
 
@@ -1690,24 +1638,7 @@ class LoginController {
 
         if(!button){
 
-
             return false;
-
-
-        }
-
-
-
-        if(this.googleInitialized){
-
-
-            button.disabled = false;
-
-            button.dataset.ready = "true";
-
-
-            return true;
-
 
         }
 
@@ -1732,6 +1663,18 @@ class LoginController {
 
 
 
+            if(!this.googleClientId){
+
+                throw new Error(
+
+                    "Google Client ID vazio."
+
+                );
+
+            }
+
+
+
             const initialized =
 
                 this.initializeGoogleLogin(
@@ -1744,13 +1687,11 @@ class LoginController {
 
             if(!initialized){
 
-
                 throw new Error(
 
                     "Não foi possível inicializar o Google."
 
                 );
-
 
             }
 
@@ -1770,7 +1711,6 @@ class LoginController {
 
 
         }
-
 
         catch(error){
 
@@ -1795,16 +1735,6 @@ class LoginController {
 
 
 
-            this.showMessage(
-
-                "Login Google indisponível no momento.",
-
-                "error"
-
-            );
-
-
-
             return false;
 
 
@@ -1823,50 +1753,102 @@ class LoginController {
 
     /*
     ==========================================
-    ENTER KEY
+    INITIALIZE GOOGLE
     ==========================================
     */
 
 
-    attachEnterKey(
+    initializeGoogleLogin(
 
-        id,
-
-        callback
+        clientId
 
     ){
 
 
-        document
+        if(
 
-            .getElementById(id)
+            !clientId ||
 
-            ?.addEventListener(
+            !window.google ||
 
-                "keydown",
+            !window.google.accounts ||
 
-                event => {
+            !window.google.accounts.id
 
+        ){
 
-                    if(
+            return false;
 
-                        event.key === "Enter"
-
-                    ){
-
-
-                        event.preventDefault();
+        }
 
 
-                        callback();
+
+        try{
 
 
-                    }
+            if(this.googleInitialized){
+
+                return true;
+
+            }
 
 
-                }
+
+            window.google.accounts.id.initialize({
+
+                client_id: clientId,
+
+                callback:
+
+                    response => {
+
+
+                        this.handleGoogleCredential(
+
+                            response?.credential
+
+                        );
+
+
+                    },
+
+                auto_select: false,
+
+                cancel_on_tap_outside: true
+
+            });
+
+
+
+            this.googleClientId = clientId;
+
+
+
+            this.googleInitialized = true;
+
+
+
+            return true;
+
+
+        }
+
+        catch(error){
+
+
+            console.error(
+
+                "GOOGLE INITIALIZATION ERROR:",
+
+                error
 
             );
+
+
+            return false;
+
+
+        }
 
 
     }
@@ -1895,9 +1877,7 @@ class LoginController {
 
         ){
 
-
             return;
-
 
         }
 
@@ -1937,7 +1917,6 @@ class LoginController {
 
         if(!email){
 
-
             this.showMessage(
 
                 "Digite o seu email.",
@@ -1946,16 +1925,13 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
 
 
         if(!this.isValidEmail(email)){
-
 
             this.showMessage(
 
@@ -1965,16 +1941,13 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
 
 
         if(!password){
-
 
             this.showMessage(
 
@@ -1984,9 +1957,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2002,7 +1973,7 @@ class LoginController {
 
             true,
 
-            "A entrar..."
+            "Entrando..."
 
         );
 
@@ -2035,11 +2006,10 @@ class LoginController {
 
 
 
-            this.redirectToWorkspace(500);
+            this.redirectToWorkspace(300);
 
 
         }
-
 
         catch(error){
 
@@ -2067,7 +2037,6 @@ class LoginController {
 
         }
 
-
         finally{
 
 
@@ -2076,6 +2045,7 @@ class LoginController {
                 "login"
 
             );
+
 
 
             this.setLoading(
@@ -2118,9 +2088,7 @@ class LoginController {
 
         ){
 
-
             return;
-
 
         }
 
@@ -2218,7 +2186,6 @@ class LoginController {
 
         ){
 
-
             this.showMessage(
 
                 "Preencha todos os campos.",
@@ -2227,16 +2194,13 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
 
 
         if(!this.isValidEmail(email)){
-
 
             this.showMessage(
 
@@ -2246,16 +2210,13 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
 
 
         if(password.length < 8){
-
 
             this.showMessage(
 
@@ -2265,9 +2226,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2285,7 +2244,6 @@ class LoginController {
 
         ){
 
-
             this.showMessage(
 
                 "A palavra-passe deve incluir maiúscula, minúscula, número e símbolo.",
@@ -2294,16 +2252,13 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
 
 
         if(password !== confirmPassword){
-
 
             this.showMessage(
 
@@ -2313,9 +2268,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2378,11 +2331,9 @@ class LoginController {
 
             if(description){
 
-
                 description.textContent =
 
                     `Enviámos um código de confirmação para ${email}.`;
-
 
             }
 
@@ -2396,7 +2347,7 @@ class LoginController {
 
                 result.message ||
 
-                "Conta criada. Verifique o código enviado para o seu email.",
+                "Conta criada. Verifique o seu email.",
 
                 "success"
 
@@ -2404,7 +2355,6 @@ class LoginController {
 
 
         }
-
 
         catch(error){
 
@@ -2431,7 +2381,6 @@ class LoginController {
 
 
         }
-
 
         finally{
 
@@ -2484,9 +2433,7 @@ class LoginController {
 
         ){
 
-
             return;
-
 
         }
 
@@ -2510,7 +2457,6 @@ class LoginController {
 
         if(!this.pendingEmail){
 
-
             this.showMessage(
 
                 "Email de confirmação não encontrado.",
@@ -2519,9 +2465,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2535,7 +2479,6 @@ class LoginController {
 
         ){
 
-
             this.showMessage(
 
                 "Digite o código de 6 dígitos.",
@@ -2544,9 +2487,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2618,24 +2559,12 @@ class LoginController {
 
                     if(emailInput){
 
-
                         emailInput.value =
 
                             this.pendingEmail;
 
-
                     }
 
-
-                    document
-
-                        .getElementById(
-
-                            "loginPassword"
-
-                        )
-
-                        ?.focus();
 
 
                 },
@@ -2646,7 +2575,6 @@ class LoginController {
 
 
         }
-
 
         catch(error){
 
@@ -2673,7 +2601,6 @@ class LoginController {
 
 
         }
-
 
         finally{
 
@@ -2726,16 +2653,13 @@ class LoginController {
 
         ){
 
-
             return;
-
 
         }
 
 
 
         if(!this.pendingEmail){
-
 
             this.showMessage(
 
@@ -2745,9 +2669,7 @@ class LoginController {
 
             );
 
-
             return;
-
 
         }
 
@@ -2795,7 +2717,6 @@ class LoginController {
 
         }
 
-
         catch(error){
 
 
@@ -2821,7 +2742,6 @@ class LoginController {
 
 
         }
-
 
         finally{
 
@@ -2870,9 +2790,7 @@ class LoginController {
 
         if(this.googleLoading){
 
-
             return;
-
 
         }
 
@@ -2893,9 +2811,9 @@ class LoginController {
 
             this.showMessage(
 
-                "O login Google ainda está a ser preparado.",
+                "A preparar o login Google...",
 
-                "error"
+                "info"
 
             );
 
@@ -2909,9 +2827,15 @@ class LoginController {
 
             if(!ready){
 
+                this.showMessage(
+
+                    "O login Google não está disponível neste momento.",
+
+                    "error"
+
+                );
 
                 return;
-
 
             }
 
@@ -2943,6 +2867,13 @@ class LoginController {
         try{
 
 
+            /*
+            ----------------------------------
+            Use Google One Tap
+            ----------------------------------
+            */
+
+
             window.google.accounts.id.prompt(
 
                 notification => {
@@ -2954,23 +2885,15 @@ class LoginController {
 
                     ){
 
-
-                        const reason =
-
-                            notification
-
-                                .getNotDisplayedReason?.();
-
-
-
                         console.warn(
 
                             "Google prompt não apresentado:",
 
-                            reason
+                            notification
+
+                                .getNotDisplayedReason?.()
 
                         );
-
 
                     }
 
@@ -2982,13 +2905,11 @@ class LoginController {
 
                     ){
 
-
                         console.warn(
 
                             "Google prompt ignorado."
 
                         );
-
 
                     }
 
@@ -2999,7 +2920,6 @@ class LoginController {
                         notification.isDismissedMoment?.()
 
                     ){
-
 
                         this.googleLoading = false;
 
@@ -3015,7 +2935,6 @@ class LoginController {
 
                         );
 
-
                     }
 
 
@@ -3025,7 +2944,6 @@ class LoginController {
 
 
         }
-
 
         catch(error){
 
@@ -3123,7 +3041,6 @@ class LoginController {
 
             return;
 
-
         }
 
 
@@ -3161,11 +3078,10 @@ class LoginController {
 
 
 
-            this.redirectToWorkspace(500);
+            this.redirectToWorkspace(300);
 
 
         }
-
 
         catch(error){
 
@@ -3192,7 +3108,6 @@ class LoginController {
 
 
         }
-
 
         finally{
 
@@ -3253,9 +3168,7 @@ class LoginController {
 
         ){
 
-
             mode = "login";
-
 
         }
 
@@ -3266,7 +3179,6 @@ class LoginController {
 
 
         const modes = {
-
 
             login:
 
@@ -3294,7 +3206,6 @@ class LoginController {
 
                 )
 
-
         };
 
 
@@ -3306,7 +3217,6 @@ class LoginController {
 
                 if(element){
 
-
                     element.style.display =
 
                         name === mode
@@ -3314,7 +3224,6 @@ class LoginController {
                             ? "block"
 
                             : "none";
-
 
                 }
 
@@ -3329,13 +3238,12 @@ class LoginController {
 
 
 
-        setTimeout(
+        requestAnimationFrame(
 
             () => {
 
 
                 if(mode === "login"){
-
 
                     document
 
@@ -3347,13 +3255,11 @@ class LoginController {
 
                         ?.focus();
 
-
                 }
 
 
 
                 if(mode === "register"){
-
 
                     document
 
@@ -3365,13 +3271,11 @@ class LoginController {
 
                         ?.focus();
 
-
                 }
 
 
 
                 if(mode === "verify"){
-
 
                     document
 
@@ -3383,13 +3287,10 @@ class LoginController {
 
                         ?.focus();
 
-
                 }
 
 
-            },
-
-            50
+            }
 
         );
 
@@ -3432,9 +3333,7 @@ class LoginController {
 
         if(!element){
 
-
             return;
-
 
         }
 
@@ -3493,9 +3392,7 @@ class LoginController {
 
         if(!element){
 
-
             return;
-
 
         }
 
@@ -3503,17 +3400,9 @@ class LoginController {
 
         element.textContent = "";
 
+        element.className = "auth-message";
 
-
-        element.className =
-
-            "auth-message";
-
-
-
-        element.style.display =
-
-            "none";
+        element.style.display = "none";
 
 
     }
@@ -3556,9 +3445,7 @@ class LoginController {
 
         if(!button){
 
-
             return;
-
 
         }
 
@@ -3573,11 +3460,9 @@ class LoginController {
 
             ){
 
-
                 button.dataset.originalText =
 
                     button.textContent.trim();
-
 
             }
 
@@ -3609,7 +3494,6 @@ class LoginController {
 
 
         }
-
 
         else{
 
@@ -3650,7 +3534,7 @@ class LoginController {
 
     /*
     ==========================================
-    REDIRECT TO HONEY IA
+    REDIRECT TO WORKSPACE
     ==========================================
     */
 
@@ -3667,14 +3551,69 @@ class LoginController {
             () => {
 
 
-                if(!authmanager.isAuthenticated()){
+                if(
+
+                    !authmanager.isAuthenticated()
+
+                ){
 
 
                     this.showLoginInterface();
 
-
                     return;
 
+                }
+
+
+
+                this.hideLoginInterface();
+
+
+
+                /*
+                ----------------------------------
+                Reveal Honey IA workspace
+                ----------------------------------
+                */
+
+
+                const studio =
+
+                    document.getElementById(
+
+                        "studioApp"
+
+                    );
+
+
+
+                if(studio){
+
+                    studio.style.display = "";
+
+                    studio.classList.add(
+
+                        "auth-ready"
+
+                    );
+
+                }
+
+
+
+                const dashboard =
+
+                    document.getElementById(
+
+                        "dashboard"
+
+                    );
+
+
+
+                if(dashboard){
+
+                    dashboard.style.display = "";
 
                 }
 
@@ -3682,54 +3621,34 @@ class LoginController {
 
                 /*
                 ----------------------------------
-                IMPORTANT:
-                Login is a standalone page.
+                Dispatch authentication event
                 ----------------------------------
                 */
 
 
-                const currentPath =
+                document.dispatchEvent(
 
-                    window.location.pathname;
+                    new CustomEvent(
 
+                        "honey:authenticated",
 
+                        {
 
-                const isIndex =
+                            detail: {
 
-                    currentPath.endsWith(
+                                user:
 
-                        "/index.html"
+                                    authmanager.getUser(),
 
-                    ) ||
+                                plan:
 
-                    currentPath ===
+                                    authmanager.getPlan()
 
-                        "/index.html";
+                            }
 
+                        }
 
-
-                if(isIndex){
-
-
-                    this.hideLoginInterface();
-
-
-                    return;
-
-
-                }
-
-
-
-                const workspaceUrl =
-
-                    "./index.html";
-
-
-
-                window.location.replace(
-
-                    workspaceUrl
+                    )
 
                 );
 
@@ -3797,13 +3716,11 @@ class LoginController {
 
             const contentType =
 
-                response.headers
+                response.headers.get(
 
-                    .get(
+                    "content-type"
 
-                        "content-type"
-
-                    ) || "";
+                ) || "";
 
 
 
@@ -3826,7 +3743,6 @@ class LoginController {
 
                         `Resposta inválida do servidor (${response.status}).`
 
-
                 };
 
 
@@ -3838,7 +3754,6 @@ class LoginController {
 
 
         }
-
 
         catch(error){
 
@@ -3861,131 +3776,7 @@ class LoginController {
 
                     "Resposta inválida do servidor."
 
-
             };
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    INITIALIZE GOOGLE
-    ==========================================
-    */
-
-
-    initializeGoogleLogin(
-
-        clientId
-
-    ){
-
-
-        if(
-
-            !clientId ||
-
-            !window.google ||
-
-            !window.google.accounts ||
-
-            !window.google.accounts.id
-
-        ){
-
-
-            console.warn(
-
-                "Google Identity Services não disponível."
-
-            );
-
-
-            return false;
-
-
-        }
-
-
-
-        try{
-
-
-            window.google.accounts.id.initialize({
-
-                client_id:
-
-                    clientId,
-
-
-
-                callback:
-
-                    response => {
-
-
-                        this.handleGoogleCredential(
-
-                            response?.credential
-
-                        );
-
-
-                    },
-
-
-
-                auto_select:
-
-                    false,
-
-
-
-                cancel_on_tap_outside:
-
-                    true
-
-
-            });
-
-
-
-            this.googleClientId =
-
-                clientId;
-
-
-
-            return true;
-
-
-        }
-
-
-        catch(error){
-
-
-            console.error(
-
-                "GOOGLE INITIALIZATION ERROR:",
-
-                error
-
-            );
-
-
-            return false;
 
 
         }
@@ -4014,52 +3805,6 @@ SINGLETON
 const logincontroller =
 
     new LoginController();
-
-
-
-
-
-
-
-
-
-/*
-==========================================
-AUTO INITIALIZATION
-==========================================
-*/
-
-
-if(
-
-    document.readyState ===
-
-    "loading"
-
-){
-
-
-    document.addEventListener(
-
-        "DOMContentLoaded",
-
-        () => logincontroller.init(),
-
-        { once:true }
-
-    );
-
-
-}
-
-
-else{
-
-
-    logincontroller.init();
-
-
-}
 
 
 
