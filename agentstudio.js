@@ -1,16 +1,16 @@
 /*
 ==========================================
 HONEY IA
-AGENT STUDIO ENGINE V8
-Specialist Workspace Controller
+AGENT STUDIO ENGINE V9
+Real Specialist Workspace
 30 Agents Integration
+Chat + Preview + Artifacts
+Code + Files + Downloads
 ==========================================
 */
 
 
 import Agents from "./agents.js";
-
-
 
 
 
@@ -22,1882 +22,2824 @@ class AgentStudio {
 
 
 
-constructor(){
+    constructor(){
 
 
+        this.activeAgent = "general";
 
-    this.activeAgent =
 
-    "general";
+        this.mode = "chat";
 
 
+        this.container = null;
 
-    this.mode =
 
-    "chat";
+        this.history = [];
 
 
+        this.workspace = {
 
-    this.container =
 
-    null;
+            artifacts: [],
 
 
+            activeArtifact: null,
 
-    this.history =
 
-    [];
+            processing: false
 
 
+        };
 
-    this.workspace =
 
-    {};
+        this.requestController = null;
 
 
+    }
 
-}
 
 
 
 
+    // ==========================================================
+    // INITIALIZE
+    // ==========================================================
 
 
+    init(containerId){
 
 
+        this.container =
+            document.getElementById(containerId);
 
-// ==========================================================
-// INITIALIZE
-// ==========================================================
 
+        if(!this.container){
 
-init(containerId){
 
+            console.warn(
+                "[Agent Studio] Container não encontrado:",
+                containerId
+            );
 
 
-this.container =
-
-document.getElementById(
-
-    containerId
-
-);
-
-
-
-
-
-
-
-
-
-if(!this.container){
-
-
-
-console.warn(
-
-"[Agent Studio] Container não encontrado:",
-
-containerId
-
-);
-
-
-
-return;
-
-
-
-}
-
-
-
-
-
-
-
-
-this.render();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// OPEN AGENT
-// ==========================================================
-
-
-open(agent){
-
-
-
-if(!agent)
-
-return;
-
-
-
-
-
-
-
-
-this.activeAgent =
-
-agent.id;
-
-
-
-
-
-
-
-
-if(
-
-typeof Agents.setActive ===
-
-"function"
-
-){
-
-
-
-Agents.setActive(
-
-agent.id
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-this.history =
-
-
-
-typeof Agents.getConversation ===
-
-"function"
-
-
-
-?
-
-
-
-
-
-Agents.getConversation(
-
-agent.id
-
-)
-
-
-
-
-
-:
-
-
-
-
-[];
-
-
-
-
-
-
-
-
-
-document.dispatchEvent(
-
-
-
-new CustomEvent(
-
-"agent-opened",
-
-{
-
-
-detail:agent
-
-
-}
-
-
-
-)
-
-
-
-);
-
-
-
-
-
-
-
-
-this.render();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// GET CURRENT AGENT ID
-// ==========================================================
-
-
-getAgent(){
-
-
-
-return this.activeAgent;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// GET PROFILE
-// ==========================================================
-
-
-getAgentProfile(){
-
-
-
-const agent =
-
-Agents.get(
-
-this.activeAgent
-
-);
-
-
-
-
-
-
-
-
-if(!agent)
-
-return null;
-
-
-
-
-
-
-
-
-return {
-
-
-
-id:
-
-agent.id,
-
-
-
-
-
-name:
-
-agent.name,
-
-
-
-
-
-category:
-
-agent.category || "",
-
-
-
-
-
-level:
-
-agent.level || "Professional",
-
-
-
-
-
-tools:
-
-agent.tools || [],
-
-
-
-
-
-description:
-
-agent.description || ""
-
-
-
-};
-
-
-
-}// ==========================================================
-// MODE CONTROL
-// ==========================================================
-
-
-setMode(mode){
-
-
-
-if(
-
-mode !== "chat"
-
-&&
-
-mode !== "live"
-
-)
-
-return;
-
-
-
-
-
-
-
-
-this.mode =
-
-mode;
-
-
-
-
-
-
-
-
-this.updateModeUI();
-
-
-
-}
-
-
-
-
-
-
-
-
-
-getMode(){
-
-
-
-return this.mode;
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ==========================================================
-// RENDER STUDIO
-// ==========================================================
-
-
-render(){
-
-
-
-if(!this.container)
-
-return;
-
-
-
-
-
-
-
-
-
-const agent =
-
-Agents.get(
-
-this.activeAgent
-
-);
-
-
-
-
-
-
-
-
-
-if(!agent)
-
-return;
-
-
-
-
-
-
-
-
-
-this.container.innerHTML = `
-
-
-
-<div class="agent-studio-panel">
-
-
-
-
-
-    <div class="studio-agent-header">
-
-
-
-        <div class="studio-agent-icon">
-
-
-            ${
-
-            agent.emoji ||
-
-            "🤖"
-
-            }
-
-
-        </div>
-
-
-
-
-
-
-
-        <div class="studio-agent-info">
-
-
-
-            <h2>
-
-
-            ${agent.name}
-
-
-            </h2>
-
-
-
-
-
-
-            <p>
-
-
-            ${
-
-            agent.description ||
-
-            "Especialista Honey IA"
-
-            }
-
-
-            </p>
-
-
-
-
-
-
-
-            <span class="agent-level">
-
-
-            ${
-
-            agent.level ||
-
-            "Professional"
-
-            }
-
-
-            </span>
-
-
-
-        </div>
-
-
-
-    </div>
-
-
-
-
-
-
-
-
-
-    <div class="studio-tools">
-
-
-
-        <h3>
-
-        Ferramentas
-
-        </h3>
-
-
-
-
-
-
-
-        <div class="tools-list">
-
-
-
-        ${
-
-
-
-        (agent.tools || [])
-
-        .map(tool=>`
-
-
-
-            <span class="tool-item">
-
-            ${tool}
-
-            </span>
-
-
-
-        `)
-
-        .join("")
-
+            return;
 
 
         }
 
 
-
-        </div>
-
+        this.listenEvents();
 
 
-    </div>
+        this.render();
 
 
-
+    }
 
 
 
 
 
-
-    <div class="studio-mode">
-
-
-
-        <button
-
-        class="mode-btn
-
-        ${this.mode === "chat" ? "active" : ""}"
-
-        data-mode="chat"
-
-        >
+    // ==========================================================
+    // OPEN AGENT
+    // ==========================================================
 
 
-        💬 Chat
+    open(agent){
 
 
-        </button>
+        if(!agent) return;
 
 
+        this.activeAgent =
+            agent.id || "general";
 
 
+        if(typeof Agents.setActive === "function"){
 
 
+            Agents.setActive(
+                this.activeAgent
+            );
 
-
-        <button
-
-        class="mode-btn
-
-        ${this.mode === "live" ? "active" : ""}"
-
-        data-mode="live"
-
-        >
-
-
-        ⚡ Live
-
-
-        </button>
-
-
-
-    </div>
-
-
-
-
-
-
-
-
-
-    <div class="studio-chat-area">
-
-
-
-        <div
-
-        id="studioHistory"
-
-        class="studio-history">
-
-
-
-        ${
-
-        this.renderHistory()
 
         }
 
 
+        this.history =
+            typeof Agents.getConversation === "function"
+                ? Agents.getConversation(this.activeAgent)
+                : [];
 
-        </div>
 
+        this.workspace.artifacts = [];
 
 
+        this.workspace.activeArtifact = null;
 
 
+        document.dispatchEvent(
+            new CustomEvent(
+                "agent-opened",
+                {
+                    detail: agent
+                }
+            )
+        );
 
 
+        this.render();
 
 
-        <div class="studio-input-area">
+    }
 
 
 
-            <textarea
 
-            id="studioInput"
 
-            placeholder="Fale com este especialista..."
+    // ==========================================================
+    // GET CURRENT AGENT
+    // ==========================================================
 
-            ></textarea>
 
+    getAgent(){
 
 
+        return this.activeAgent;
 
 
+    }
 
 
 
-            <button
 
-            id="studioSend"
 
-            >
+    // ==========================================================
+    // GET PROFILE
+    // ==========================================================
 
 
-            Enviar
+    getAgentProfile(){
 
 
-            </button>
+        const agent =
+            Agents.get(this.activeAgent);
 
 
+        if(!agent) return null;
 
-        </div>
 
+        return {
 
 
-    </div>
+            id:
+                agent.id,
 
 
+            name:
+                agent.name,
 
-</div>
 
+            category:
+                agent.category || "",
 
 
-`;
+            level:
+                agent.level || "Professional",
 
 
+            tools:
+                agent.tools || [],
 
 
+            description:
+                agent.description || "",
 
 
+            capabilities:
+                agent.capabilities || [],
 
 
+            outputTypes:
+                agent.outputTypes || []
 
-this.bindEvents();
 
+        };
 
 
-}
+    }
 
 
 
 
 
+    // ==========================================================
+    // MODE
+    // ==========================================================
 
 
+    setMode(mode){
 
 
-// ==========================================================
-// HISTORY RENDER
-// ==========================================================
+        if(
+            mode !== "chat" &&
+            mode !== "live"
+        ){
+            return;
+        }
 
 
-renderHistory(){
+        this.mode = mode;
 
 
+        this.updateModeUI();
 
-if(
 
-!this.history ||
+    }
 
-this.history.length === 0
 
-){
 
 
 
-return `
+    getMode(){
 
 
+        return this.mode;
 
-<div class="empty-history">
 
+    }
 
-Inicie uma conversa com este especialista.
 
 
-</div>
 
 
+    // ==========================================================
+    // RENDER
+    // ==========================================================
 
-`;
 
+    render(){
 
 
-}
+        if(!this.container) return;
 
 
+        const agent =
+            Agents.get(this.activeAgent);
 
 
+        if(!agent) return;
 
 
+        this.container.innerHTML = `
 
+            <div class="agent-studio-panel">
 
+                <div class="studio-agent-header">
 
-return this.history
+                    <div class="studio-agent-icon">
 
-.map(message=>`
+                        ${
+                            agent.emoji ||
+                            "🤖"
+                        }
 
+                    </div>
 
 
-<div class="history-message ${message.role}">
+                    <div class="studio-agent-info">
 
+                        <h2>
+                            ${
+                                this.escapeHTML(
+                                    agent.name ||
+                                    "Especialista Honey IA"
+                                )
+                            }
+                        </h2>
 
-${message.content}
 
+                        <p>
+                            ${
+                                this.escapeHTML(
+                                    agent.description ||
+                                    "Especialista Honey IA"
+                                )
+                            }
+                        </p>
 
-</div>
 
+                        <span class="agent-level">
+                            ${
+                                this.escapeHTML(
+                                    agent.level ||
+                                    "Professional"
+                                )
+                            }
+                        </span>
 
+                    </div>
 
-`)
+                </div>
 
-.join("");
 
+                <div class="studio-tools">
 
+                    <h3>
+                        Capacidades
+                    </h3>
 
-}// ==========================================================
-// EVENT BINDING
-// ==========================================================
 
+                    <div class="tools-list">
 
-bindEvents(){
+                        ${
+                            (agent.tools || [])
+                                .map(
+                                    tool => `
+                                        <span class="tool-item">
+                                            ${this.escapeHTML(tool)}
+                                        </span>
+                                    `
+                                )
+                                .join("")
+                        }
 
+                    </div>
 
+                </div>
 
-if(!this.container)
 
-return;
+                <div class="studio-mode">
 
+                    <button
+                        class="mode-btn ${
+                            this.mode === "chat"
+                                ? "active"
+                                : ""
+                        }"
+                        data-mode="chat"
+                        type="button"
+                    >
+                        💬 Chat
+                    </button>
 
 
+                    <button
+                        class="mode-btn ${
+                            this.mode === "live"
+                                ? "active"
+                                : ""
+                        }"
+                        data-mode="live"
+                        type="button"
+                    >
+                        ⚡ Live
+                    </button>
 
+                </div>
 
 
+                <div class="studio-workspace">
 
+                    <div class="studio-chat-area">
 
+                        <div
+                            id="studioHistory"
+                            class="studio-history"
+                        >
 
+                            ${
+                                this.renderHistory()
+                            }
 
-// MODE BUTTONS
+                        </div>
 
 
-const modeButtons =
+                        <div
+                            id="studioProcessing"
+                            class="studio-processing"
+                            hidden
+                        >
 
-this.container.querySelectorAll(
+                            <span></span>
+                            <span></span>
+                            <span></span>
 
-"[data-mode]"
+                            <strong>
+                                ${
+                                    this.escapeHTML(
+                                        agent.name ||
+                                        "Especialista"
+                                    )
+                                } está a trabalhar...
+                            </strong>
 
-);
+                        </div>
 
 
+                        <div class="studio-input-area">
 
+                            <textarea
+                                id="studioInput"
+                                placeholder="Diga ao especialista o que precisa..."
+                                rows="1"
+                            ></textarea>
 
 
+                            <button
+                                id="studioSend"
+                                type="button"
+                            >
+                                Enviar
+                            </button>
 
+                        </div>
 
+                    </div>
 
-modeButtons.forEach(button=>{
 
+                    <aside
+                        class="studio-preview-panel"
+                        id="studioPreviewPanel"
+                    >
 
+                        ${
+                            this.renderPreview()
+                        }
 
-button.addEventListener(
+                    </aside>
 
-"click",
+                </div>
 
-()=>{
+            </div>
 
+        `;
 
 
-this.setMode(
+        this.bindEvents();
 
-button.dataset.mode
 
-);
+    }
 
 
 
-}
 
-);
 
+    // ==========================================================
+    // HISTORY
+    // ==========================================================
 
 
-});
+    renderHistory(){
 
 
+        if(
+            !this.history ||
+            this.history.length === 0
+        ){
 
 
+            return `
 
+                <div class="empty-history">
 
+                    <div>
+                        ✨
+                    </div>
 
+                    <strong>
+                        Studio pronto
+                    </strong>
 
+                    <span>
+                        Dê uma tarefa ao especialista
+                        e veja o resultado aparecer
+                        no Preview.
+                    </span>
 
+                </div>
 
-// SEND BUTTON
+            `;
 
 
-const sendButton =
+        }
 
-this.container.querySelector(
 
-"#studioSend"
+        return this.history
+            .map(
+                message => `
 
-);
+                    <div class="history-message ${message.role}">
 
+                        <div class="history-message-content">
 
+                            ${
+                                message.role === "assistant"
+                                    ? this.renderAssistantContent(
+                                        message.content
+                                    )
+                                    : this.escapeHTML(
+                                        message.content
+                                    )
+                            }
 
+                        </div>
 
+                    </div>
 
+                `
+            )
+            .join("");
 
 
+    }
 
 
-if(sendButton){
 
 
 
-sendButton.addEventListener(
+    // ==========================================================
+    // ASSISTANT CONTENT
+    // ==========================================================
 
-"click",
 
-()=>{
+    renderAssistantContent(content){
 
 
+        if(!content) return "";
 
-this.sendMessage();
 
+        if(window.marked){
 
 
-}
+            try{
 
-);
 
+                return window.marked.parse(
+                    content
+                );
 
 
-}
+            }catch(error){
 
 
+                console.warn(
+                    "[Agent Studio] Markdown:",
+                    error
+                );
 
 
+            }
 
 
+        }
 
 
+        return this.escapeHTML(
+            content
+        )
+        .replace(
+            /\n/g,
+            "<br>"
+        );
 
 
-// ENTER SEND
+    }
 
 
-const input =
 
-this.container.querySelector(
 
-"#studioInput"
 
-);
+    // ==========================================================
+    // PREVIEW
+    // ==========================================================
 
 
+    renderPreview(){
 
 
+        const artifacts =
+            this.workspace.artifacts || [];
 
 
+        if(!artifacts.length){
 
 
-if(input){
+            return `
 
+                <div class="studio-preview-empty">
 
+                    <div class="preview-empty-icon">
+                        <i class="fa-solid fa-display"></i>
+                    </div>
 
-input.addEventListener(
+                    <h3>
+                        Preview
+                    </h3>
 
-"keydown",
+                    <p>
+                        Os resultados produzidos
+                        pelo especialista aparecerão
+                        aqui.
+                    </p>
 
-(event)=>{
+                </div>
 
+            `;
 
 
-if(
+        }
 
-event.key === "Enter"
 
-&&
+        const active =
+            this.workspace.activeArtifact ||
+            artifacts[artifacts.length - 1];
 
-!event.shiftKey
 
-){
+        return `
 
+            <div class="studio-preview">
 
+                <div class="preview-header">
 
-event.preventDefault();
+                    <div>
 
+                        <span>
+                            RESULTADO
+                        </span>
 
+                        <strong>
+                            ${
+                                this.escapeHTML(
+                                    active.name ||
+                                    "Resultado"
+                                )
+                            }
+                        </strong>
 
-this.sendMessage();
+                    </div>
 
 
+                    <div class="preview-actions">
 
-}
+                        <button
+                            type="button"
+                            data-preview-action="download"
+                            title="Baixar"
+                        >
+                            <i class="fa-solid fa-download"></i>
+                        </button>
 
 
+                        <button
+                            type="button"
+                            data-preview-action="open"
+                            title="Abrir"
+                        >
+                            <i class="fa-solid fa-up-right-from-square"></i>
+                        </button>
 
-}
+                    </div>
 
-);
+                </div>
 
 
+                <div class="preview-tabs">
 
-}
+                    ${
+                        artifacts
+                            .map(
+                                (artifact, index) => `
 
+                                    <button
+                                        type="button"
+                                        class="${
+                                            artifact.id === active.id
+                                                ? "active"
+                                                : ""
+                                        }"
+                                        data-artifact-index="${index}"
+                                    >
 
+                                        ${
+                                            this.escapeHTML(
+                                                artifact.name ||
+                                                `Resultado ${index + 1}`
+                                            )
+                                        }
 
-}
+                                    </button>
 
+                                `
+                            )
+                            .join("")
+                    }
 
+                </div>
 
 
+                <div class="preview-content">
 
+                    ${
+                        this.renderArtifact(
+                            active
+                        )
+                    }
 
+                </div>
 
+            </div>
 
+        `;
 
-// ==========================================================
-// SEND MESSAGE
-// ==========================================================
 
+    }
 
-async sendMessage(){
 
 
 
-const input =
 
-this.container.querySelector(
+    // ==========================================================
+    // ARTIFACT RENDER
+    // ==========================================================
 
-"#studioInput"
 
-);
+    renderArtifact(artifact){
 
 
+        if(!artifact){
 
 
+            return `
+                <div class="preview-empty">
+                    Nenhum resultado selecionado.
+                </div>
+            `;
 
 
+        }
 
 
+        const type =
+            String(
+                artifact.type ||
+                artifact.mime ||
+                ""
+            ).toLowerCase();
 
-if(!input)
 
-return;
+        const content =
+            artifact.content || "";
 
 
+        /*
+        ======================================================
+        IMAGE
+        ======================================================
+        */
 
 
+        if(
+            type.includes("image") ||
+            artifact.kind === "image"
+        ){
 
 
+            const src =
+                artifact.url ||
+                artifact.src ||
+                content;
 
 
+            return `
 
-const text =
+                <div class="artifact-image">
 
-input.value.trim();
+                    <img
+                        src="${this.escapeAttribute(src)}"
+                        alt="${this.escapeAttribute(
+                            artifact.name || "Imagem gerada"
+                        )}"
+                    />
 
+                </div>
 
+            `;
 
 
+        }
 
 
+        /*
+        ======================================================
+        HTML / WEBSITE / APP PREVIEW
+        ======================================================
+        */
 
 
-if(!text)
+        if(
+            type.includes("html") ||
+            artifact.kind === "website" ||
+            artifact.kind === "html"
+        ){
 
-return;
 
+            return `
 
+                <iframe
+                    class="artifact-iframe"
+                    sandbox="allow-scripts allow-forms allow-modals"
+                    srcdoc="${this.escapeAttribute(
+                        content
+                    )}"
+                    title="Preview do resultado"
+                ></iframe>
 
+            `;
 
 
+        }
 
 
+        /*
+        ======================================================
+        VIDEO
+        ======================================================
+        */
 
 
-input.value = "";
+        if(
+            type.includes("video") ||
+            artifact.kind === "video"
+        ){
 
 
+            const src =
+                artifact.url ||
+                artifact.src;
 
 
+            return `
 
+                <div class="artifact-video">
 
+                    <video
+                        controls
+                        playsinline
+                        src="${this.escapeAttribute(src)}"
+                    ></video>
 
+                </div>
 
-this.saveConversation(
+            `;
 
-"user",
 
-text
+        }
 
-);
 
+        /*
+        ======================================================
+        PDF
+        ======================================================
+        */
 
 
+        if(
+            type.includes("pdf") ||
+            artifact.kind === "pdf"
+        ){
 
 
+            const src =
+                artifact.url ||
+                artifact.src ||
+                content;
 
 
+            return `
 
-this.render();
+                <iframe
+                    class="artifact-document"
+                    src="${this.escapeAttribute(src)}"
+                    title="Preview PDF"
+                ></iframe>
 
+            `;
 
 
+        }
 
 
+        /*
+        ======================================================
+        CODE
+        ======================================================
+        */
 
 
+        if(
+            artifact.kind === "code" ||
+            type.includes("javascript") ||
+            type.includes("python") ||
+            type.includes("css") ||
+            type.includes("json") ||
+            type.includes("xml") ||
+            type.includes("text")
+        ){
 
 
-try{
+            const language =
+                artifact.language ||
+                this.detectLanguage(
+                    artifact.name || "",
+                    type
+                );
 
 
+            return `
 
-const response =
+                <div class="artifact-code">
 
-await fetch(
+                    <div class="artifact-code-header">
 
-`${window.location.origin}/gerar-gratis`,
+                        <span>
+                            ${this.escapeHTML(language)}
+                        </span>
 
-{
+                        <button
+                            type="button"
+                            data-copy-artifact
+                        >
+                            <i class="fa-regular fa-copy"></i>
+                            Copiar
+                        </button>
 
+                    </div>
 
-method:"POST",
 
+                    <pre><code class="language-${this.escapeAttribute(language)}">${
+                        this.escapeHTML(content)
+                    }</code></pre>
 
+                </div>
 
-headers:{
+            `;
 
 
-"Content-Type":
+        }
 
-"application/json"
 
+        /*
+        ======================================================
+        GENERIC FILE / TEXT
+        ======================================================
+        */
 
-},
 
+        return `
 
+            <div class="artifact-text">
 
+                ${
+                    this.renderAssistantContent(
+                        content ||
+                        artifact.description ||
+                        "Resultado produzido."
+                    )
+                }
 
+            </div>
 
+        `;
 
-body:JSON.stringify({
 
+    }
 
 
-prompt:
 
-text,
 
 
+    // ==========================================================
+    // BIND EVENTS
+    // ==========================================================
 
 
+    bindEvents(){
 
-agentId:
 
-this.activeAgent,
+        if(!this.container) return;
 
 
+        /*
+        MODE
+        */
 
 
+        this.container
+            .querySelectorAll("[data-mode]")
+            .forEach(
+                button => {
 
-history:
 
-this.history,
+                    button.addEventListener(
+                        "click",
+                        () => {
 
 
+                            this.setMode(
+                                button.dataset.mode
+                            );
 
 
+                        }
+                    );
 
-mode:
 
-this.mode
+                }
+            );
 
 
+        /*
+        SEND
+        */
 
-})
 
+        const sendButton =
+            this.container.querySelector(
+                "#studioSend"
+            );
 
 
-}
+        sendButton?.addEventListener(
+            "click",
+            () => this.sendMessage()
+        );
 
-);
 
+        /*
+        INPUT
+        */
 
 
+        const input =
+            this.container.querySelector(
+                "#studioInput"
+            );
 
 
+        input?.addEventListener(
+            "keydown",
+            event => {
 
 
+                if(
+                    event.key === "Enter" &&
+                    !event.shiftKey
+                ){
 
-const data =
 
-await response.json();
+                    event.preventDefault();
 
 
+                    this.sendMessage();
 
 
+                }
 
 
+            }
+        );
 
 
-const answer =
+        /*
+        PREVIEW TABS
+        */
 
-data.response ||
 
-data.resposta ||
+        this.container
+            .querySelectorAll(
+                "[data-artifact-index]"
+            )
+            .forEach(
+                button => {
 
-"Sem resposta.";
 
+                    button.addEventListener(
+                        "click",
+                        () => {
 
 
+                            const index =
+                                Number(
+                                    button.dataset.artifactIndex
+                                );
 
 
+                            this.selectArtifact(
+                                index
+                            );
 
 
+                        }
+                    );
 
-this.saveConversation(
 
-"assistant",
+                }
+            );
 
-answer
 
-);
+        /*
+        DOWNLOAD
+        */
 
 
+        this.container
+            .querySelector(
+                '[data-preview-action="download"]'
+            )
+            ?.addEventListener(
+                "click",
+                () => this.downloadActiveArtifact()
+            );
 
 
+        /*
+        OPEN
+        */
 
 
+        this.container
+            .querySelector(
+                '[data-preview-action="open"]'
+            )
+            ?.addEventListener(
+                "click",
+                () => this.openActiveArtifact()
+            );
 
 
-this.render();
+        /*
+        COPY
+        */
 
 
+        this.container
+            .querySelector(
+                "[data-copy-artifact]"
+            )
+            ?.addEventListener(
+                "click",
+                () => this.copyActiveArtifact()
+            );
 
-}
 
-catch(error){
+        this.highlightCode();
 
 
+    }
 
-this.saveConversation(
 
 
 
-"assistant",
 
+    // ==========================================================
+    // SEND MESSAGE
+    // ==========================================================
 
 
-"Erro ao comunicar com Honey IA."
+    async sendMessage(){
 
 
+        if(
+            !this.container ||
+            this.workspace.processing
+        ){
+            return;
+        }
 
-);
 
+        const input =
+            this.container.querySelector(
+                "#studioInput"
+            );
 
 
-this.render();
+        if(!input) return;
 
 
+        const text =
+            input.value.trim();
 
-}
 
+        if(!text) return;
 
 
-}
+        input.value = "";
 
 
+        this.saveConversation(
+            "user",
+            text
+        );
 
 
+        this.workspace.processing = true;
 
 
+        this.render();
 
 
+        try{
 
-// ==========================================================
-// SAVE CONVERSATION
-// ==========================================================
 
+            if(this.requestController){
 
-saveConversation(
 
-role,
+                this.requestController.abort();
 
-content
 
-){
+            }
 
 
+            this.requestController =
+                new AbortController();
 
-if(
 
-typeof Agents.addConversation ===
+            const response =
+                await fetch(
+                    `${window.location.origin}/gerar-gratis`,
+                    {
+                        method: "POST",
 
-"function"
+                        headers: {
+                            "Content-Type":
+                                "application/json",
 
-){
+                            ...(this.getToken()
+                                ? {
+                                    "Authorization":
+                                        "Bearer " +
+                                        this.getToken()
+                                }
+                                : {})
+                        },
 
+                        body: JSON.stringify({
 
+                            prompt: text,
 
-Agents.addConversation(
+                            agentId:
+                                this.activeAgent,
 
+                            agent:
+                                this.getAgentProfile(),
 
+                            history:
+                                this.history,
 
-this.activeAgent,
+                            mode:
+                                this.mode
 
+                        }),
 
+                        signal:
+                            this.requestController.signal
+                    }
+                );
 
-role,
 
+            let data = null;
 
 
-content
+            try{
 
 
+                data =
+                    await response.json();
 
-);
 
+            }catch(error){
 
 
-}
+                data = null;
 
 
+            }
 
 
+            if(!response.ok){
 
 
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    `Erro ${response.status}`
+                );
 
 
+            }
 
-this.history.push({
 
+            const result =
+                this.normalizeResponse(
+                    data
+                );
 
 
-role,
+            if(result.answer){
 
 
+                this.saveConversation(
+                    "assistant",
+                    result.answer
+                );
 
-content
 
+            }
 
 
-});
+            if(result.artifacts.length){
 
 
+                result.artifacts.forEach(
+                    artifact => {
 
-}// ==========================================================
-// UPDATE MODE UI
-// ==========================================================
+                        this.addArtifact(
+                            artifact
+                        );
 
+                    }
+                );
 
-updateModeUI(){
 
+            }
 
 
-if(!this.container)
+            this.workspace.processing = false;
 
-return;
 
+            this.render();
 
 
+            this.highlightCode();
 
 
+        }catch(error){
 
 
+            this.workspace.processing = false;
 
-const buttons =
 
-this.container.querySelectorAll(
+            if(error?.name === "AbortError"){
 
-"[data-mode]"
 
-);
+                return;
 
 
+            }
 
 
+            console.error(
+                "[Agent Studio]",
+                error
+            );
 
 
+            this.saveConversation(
+                "assistant",
+                "Não foi possível concluir esta tarefa. Verifique a ligação ao servidor e tente novamente."
+            );
 
 
-buttons.forEach(button=>{
+            this.render();
 
 
+        }
 
-if(
 
-button.dataset.mode ===
+    }
 
-this.mode
 
-){
 
 
 
-button.classList.add(
+    // ==========================================================
+    // NORMALIZE API RESPONSE
+    // ==========================================================
 
-"active"
 
-);
+    normalizeResponse(data){
 
 
+        let answer =
+            data?.response ||
+            data?.resposta ||
+            data?.reply ||
+            data?.message ||
+            data?.data?.response ||
+            data?.data?.reply ||
+            "";
 
-}
 
-else{
+        const artifacts = [];
 
 
+        /*
+        ======================================================
+        DIRECT ARTIFACT
+        ======================================================
+        */
 
-button.classList.remove(
 
-"active"
+        if(data?.artifact){
 
-);
 
+            artifacts.push(
+                this.normalizeArtifact(
+                    data.artifact
+                )
+            );
 
 
-}
+        }
 
 
+        /*
+        ======================================================
+        OUTPUT
+        ======================================================
+        */
 
-});
 
+        if(data?.output){
 
 
-}
+            if(
+                typeof data.output === "object" &&
+                !Array.isArray(data.output)
+            ){
 
 
+                artifacts.push(
+                    this.normalizeArtifact(
+                        data.output
+                    )
+                );
 
 
+            }
 
 
+        }
 
 
+        /*
+        ======================================================
+        FILES
+        ======================================================
+        */
 
-// ==========================================================
-// CLEAR HISTORY
-// ==========================================================
 
+        const files =
+            data?.files ||
+            data?.artifacts ||
+            data?.outputs ||
+            data?.data?.files ||
+            [];
 
-clearHistory(){
 
+        if(Array.isArray(files)){
 
 
-const agent =
+            files.forEach(
+                file => {
 
-Agents.get(
 
-this.activeAgent
+                    artifacts.push(
+                        this.normalizeArtifact(
+                            file
+                        )
+                    );
 
-);
 
+                }
+            );
 
 
+        }
 
 
+        /*
+        ======================================================
+        SINGLE GENERATED RESULT
+        ======================================================
+        */
 
 
+        if(
+            data?.content &&
+            (
+                data?.type ||
+                data?.mime ||
+                data?.filename ||
+                data?.fileName
+            )
+        ){
 
-if(agent){
 
+            artifacts.push(
+                this.normalizeArtifact({
+                    content: data.content,
+                    type: data.type,
+                    mime: data.mime,
+                    filename:
+                        data.filename ||
+                        data.fileName,
+                    url: data.url
+                })
+            );
 
 
-agent.conversations = [];
+        }
 
 
+        /*
+        ======================================================
+        RAW CODE RESULT
+        ======================================================
+        */
 
-}
 
+        if(
+            !artifacts.length &&
+            data?.code
+        ){
 
 
+            artifacts.push(
+                this.normalizeArtifact({
+                    content: data.code,
+                    type:
+                        data.language ||
+                        "text/plain",
+                    name:
+                        data.filename ||
+                        "resultado.txt",
+                    kind: "code",
+                    language:
+                        data.language
+                })
+            );
 
 
+        }
 
 
+        return {
 
-this.history = [];
 
+            answer:
+                typeof answer === "string"
+                    ? answer
+                    : "",
 
 
+            artifacts:
+                artifacts.filter(Boolean)
 
 
+        };
 
 
+    }
 
-this.render();
 
 
 
-}
 
+    // ==========================================================
+    // NORMALIZE ARTIFACT
+    // ==========================================================
 
 
+    normalizeArtifact(raw){
 
 
+        if(!raw) return null;
 
 
+        if(typeof raw === "string"){
 
 
-// ==========================================================
-// WORKSPACE STATE
-// ==========================================================
+            return {
 
 
-getWorkspaceState(){
+                id:
+                    this.createId(),
 
 
+                name:
+                    "Resultado.txt",
 
-return {
 
+                type:
+                    "text/plain",
 
 
-agent:
+                kind:
+                    "text",
 
-this.activeAgent,
 
+                content:
+                    raw
 
 
+            };
 
 
-mode:
+        }
 
-this.mode,
 
+        const mime =
+            raw.mime ||
+            raw.type ||
+            raw.contentType ||
+            "text/plain";
 
 
+        const name =
+            raw.name ||
+            raw.filename ||
+            raw.fileName ||
+            this.defaultFileName(
+                mime,
+                raw.language
+            );
 
 
-history:
+        let kind =
+            raw.kind ||
+            this.kindFromMime(
+                mime,
+                name
+            );
 
-this.history,
 
+        return {
 
 
+            id:
+                raw.id ||
+                this.createId(),
 
 
-profile:
+            name,
 
-this.getAgentProfile()
 
+            type:
+                mime,
 
 
-};
+            mime,
 
 
+            kind,
 
-}
 
+            language:
+                raw.language ||
+                this.detectLanguage(
+                    name,
+                    mime
+                ),
 
 
+            content:
+                raw.content ||
+                raw.text ||
+                raw.code ||
+                "",
 
 
+            url:
+                raw.url ||
+                raw.downloadUrl ||
+                raw.download_url ||
+                raw.src ||
+                "",
 
 
+            description:
+                raw.description ||
+                "",
 
 
-// ==========================================================
-// RESET STUDIO
-// ==========================================================
+            size:
+                raw.size ||
+                null
 
 
-reset(){
+        };
 
 
+    }
 
-this.activeAgent =
 
-"general";
 
 
 
+    // ==========================================================
+    // ARTIFACT MANAGEMENT
+    // ==========================================================
 
 
-this.mode =
+    addArtifact(artifact){
 
-"chat";
 
+        if(!artifact) return;
 
 
+        this.workspace.artifacts.push(
+            artifact
+        );
 
 
-this.history = [];
+        this.workspace.activeArtifact =
+            artifact;
 
 
+    }
 
 
 
 
 
+    selectArtifact(index){
 
-if(this.container){
 
+        const artifact =
+            this.workspace.artifacts[index];
 
 
-this.render();
+        if(!artifact) return;
 
 
+        this.workspace.activeArtifact =
+            artifact;
 
-}
 
+        this.render();
 
 
-}
+        this.highlightCode();
 
 
+    }
 
 
 
 
 
+    getActiveArtifact(){
 
 
-// ==========================================================
-// EVENT LISTENERS
-// ==========================================================
+        return (
+            this.workspace.activeArtifact ||
+            this.workspace.artifacts[
+                this.workspace.artifacts.length - 1
+            ] ||
+            null
+        );
 
 
-listenEvents(){
+    }
 
 
 
-document.addEventListener(
 
-"agent-selected",
 
-(event)=>{
+    // ==========================================================
+    // DOWNLOAD ARTIFACT
+    // ==========================================================
 
 
+    async downloadActiveArtifact(){
 
-const agent =
 
-event.detail;
+        const artifact =
+            this.getActiveArtifact();
 
 
+        if(!artifact) return;
 
 
+        try{
 
 
+            if(artifact.url){
 
 
-if(agent){
+                const link =
+                    document.createElement("a");
 
 
+                link.href =
+                    artifact.url;
 
-this.open(
 
-agent
+                link.download =
+                    artifact.name ||
+                    "honey-ia-result";
 
-);
 
+                link.target =
+                    "_blank";
 
 
-}
+                document.body.appendChild(
+                    link
+                );
 
 
+                link.click();
 
-}
 
-);
+                link.remove();
 
 
+                return;
 
-}
 
+            }
 
 
+            if(!artifact.content){
 
 
+                console.warn(
+                    "[Agent Studio] Resultado sem conteúdo."
+                );
 
 
+                return;
 
 
-// ==========================================================
-// EXPORT PROFILE
-// ==========================================================
+            }
 
 
-exportProfile(){
+            const blob =
+                new Blob(
+                    [artifact.content],
+                    {
+                        type:
+                            artifact.mime ||
+                            artifact.type ||
+                            "text/plain"
+                    }
+                );
 
 
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
 
-const profile =
 
-this.getAgentProfile();
+            const link =
+                document.createElement("a");
 
 
+            link.href = url;
 
 
+            link.download =
+                artifact.name ||
+                "honey-ia-result.txt";
 
 
+            document.body.appendChild(
+                link
+            );
 
 
-if(!profile)
+            link.click();
 
-return null;
 
+            link.remove();
 
 
+            setTimeout(
+                () => {
+                    URL.revokeObjectURL(
+                        url
+                    );
+                },
+                1000
+            );
 
 
+        }catch(error){
 
 
+            console.error(
+                "[Agent Studio] Download:",
+                error
+            );
 
-return JSON.stringify(
 
-profile,
+        }
 
-null,
 
-2
+    }
 
-);
 
 
 
-}// ==========================================================
-// DESTROY
-// ==========================================================
 
+    // ==========================================================
+    // OPEN ARTIFACT
+    // ==========================================================
 
-destroy(){
 
+    openActiveArtifact(){
 
 
-if(this.container){
+        const artifact =
+            this.getActiveArtifact();
 
 
+        if(!artifact) return;
 
-    this.container.innerHTML = "";
 
+        if(artifact.url){
 
 
-}
+            window.open(
+                artifact.url,
+                "_blank",
+                "noopener,noreferrer"
+            );
 
 
+            return;
 
 
+        }
 
 
+        if(
+            artifact.kind === "website" ||
+            artifact.kind === "html"
+        ){
 
 
-this.container = null;
+            const blob =
+                new Blob(
+                    [artifact.content],
+                    {
+                        type:
+                            "text/html"
+                    }
+                );
 
 
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
 
-this.history = [];
 
+            window.open(
+                url,
+                "_blank",
+                "noopener,noreferrer"
+            );
 
 
-this.workspace = {};
+            return;
 
 
+        }
 
-}
 
+        this.downloadActiveArtifact();
 
 
+    }
 
 
 
 
 
+    // ==========================================================
+    // COPY ARTIFACT
+    // ==========================================================
 
-// ==========================================================
-// AUTO INIT
-// ==========================================================
 
+    async copyActiveArtifact(){
 
-autoInit(){
 
+        const artifact =
+            this.getActiveArtifact();
 
 
-const studio =
+        if(!artifact?.content) return;
 
-document.getElementById(
 
-"agentStudioContainer"
+        try{
 
-);
 
+            await navigator.clipboard.writeText(
+                artifact.content
+            );
 
 
+        }catch(error){
 
 
+            console.warn(
+                "[Agent Studio] Clipboard:",
+                error
+            );
 
 
+        }
 
-if(studio){
 
+    }
 
 
-this.init(
 
-"agentStudioContainer"
 
-);
 
+    // ==========================================================
+    // CODE HIGHLIGHT
+    // ==========================================================
 
 
-}
+    highlightCode(){
 
 
+        if(!window.hljs) return;
 
-}
 
+        this.container
+            ?.querySelectorAll(
+                "pre code"
+            )
+            .forEach(
+                block => {
 
 
+                    try{
 
 
+                        window.hljs.highlightElement(
+                            block
+                        );
 
 
+                    }catch(error){
 
 
-// ==========================================================
-// SINGLE INSTANCE
-// ==========================================================
+                        console.warn(
+                            "[Agent Studio] Highlight:",
+                            error
+                        );
+
+
+                    }
+
+
+                }
+            );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // SAVE CONVERSATION
+    // ==========================================================
+
+
+    saveConversation(
+        role,
+        content
+    ){
+
+
+        if(
+            typeof Agents.addConversation ===
+            "function"
+        ){
+
+
+            Agents.addConversation(
+                this.activeAgent,
+                role,
+                content
+            );
+
+
+        }
+
+
+        this.history.push({
+
+            role,
+
+            content
+
+        });
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // UPDATE MODE UI
+    // ==========================================================
+
+
+    updateModeUI(){
+
+
+        if(!this.container) return;
+
+
+        this.container
+            .querySelectorAll(
+                "[data-mode]"
+            )
+            .forEach(
+                button => {
+
+
+                    button.classList.toggle(
+                        "active",
+                        button.dataset.mode ===
+                        this.mode
+                    );
+
+
+                }
+            );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // CLEAR HISTORY
+    // ==========================================================
+
+
+    clearHistory(){
+
+
+        const agent =
+            Agents.get(
+                this.activeAgent
+            );
+
+
+        if(agent){
+
+
+            agent.conversations = [];
+
+
+        }
+
+
+        this.history = [];
+
+
+        this.workspace.artifacts = [];
+
+
+        this.workspace.activeArtifact = null;
+
+
+        this.render();
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // WORKSPACE STATE
+    // ==========================================================
+
+
+    getWorkspaceState(){
+
+
+        return {
+
+
+            agent:
+                this.activeAgent,
+
+
+            mode:
+                this.mode,
+
+
+            history:
+                this.history,
+
+
+            artifacts:
+                this.workspace.artifacts,
+
+
+            activeArtifact:
+                this.workspace.activeArtifact,
+
+
+            processing:
+                this.workspace.processing,
+
+
+            profile:
+                this.getAgentProfile()
+
+
+        };
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // EXPORT PROFILE
+    // ==========================================================
+
+
+    exportProfile(){
+
+
+        const profile =
+            this.getAgentProfile();
+
+
+        if(!profile) return null;
+
+
+        return JSON.stringify(
+            profile,
+            null,
+            2
+        );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // TOKEN
+    // ==========================================================
+
+
+    getToken(){
+
+
+        return (
+            localStorage.getItem(
+                "honey_token"
+            ) ||
+            localStorage.getItem(
+                "token"
+            ) ||
+            ""
+        );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // LANGUAGE
+    // ==========================================================
+
+
+    detectLanguage(
+        filename = "",
+        mime = ""
+    ){
+
+
+        const name =
+            filename.toLowerCase();
+
+
+        if(
+            mime.includes("javascript") ||
+            name.endsWith(".js")
+        ){
+            return "javascript";
+        }
+
+
+        if(
+            mime.includes("python") ||
+            name.endsWith(".py")
+        ){
+            return "python";
+        }
+
+
+        if(
+            mime.includes("html") ||
+            name.endsWith(".html") ||
+            name.endsWith(".htm")
+        ){
+            return "html";
+        }
+
+
+        if(
+            mime.includes("css") ||
+            name.endsWith(".css")
+        ){
+            return "css";
+        }
+
+
+        if(
+            mime.includes("json") ||
+            name.endsWith(".json")
+        ){
+            return "json";
+        }
+
+
+        if(
+            mime.includes("xml") ||
+            name.endsWith(".xml")
+        ){
+            return "xml";
+        }
+
+
+        if(
+            name.endsWith(".sql")
+        ){
+            return "sql";
+        }
+
+
+        if(
+            name.endsWith(".java")
+        ){
+            return "java";
+        }
+
+
+        if(
+            name.endsWith(".cpp") ||
+            name.endsWith(".cc")
+        ){
+            return "cpp";
+        }
+
+
+        if(
+            name.endsWith(".ts")
+        ){
+            return "typescript";
+        }
+
+
+        return "text";
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // ARTIFACT KIND
+    // ==========================================================
+
+
+    kindFromMime(
+        mime,
+        filename
+    ){
+
+
+        const type =
+            String(
+                mime || ""
+            ).toLowerCase();
+
+
+        const name =
+            String(
+                filename || ""
+            ).toLowerCase();
+
+
+        if(type.includes("image"))
+            return "image";
+
+
+        if(type.includes("video"))
+            return "video";
+
+
+        if(type.includes("pdf"))
+            return "pdf";
+
+
+        if(
+            type.includes("html") ||
+            name.endsWith(".html")
+        ){
+            return "website";
+        }
+
+
+        if(
+            type.includes("javascript") ||
+            type.includes("python") ||
+            type.includes("css") ||
+            type.includes("json") ||
+            type.includes("xml") ||
+            name.endsWith(".js") ||
+            name.endsWith(".py") ||
+            name.endsWith(".css") ||
+            name.endsWith(".json")
+        ){
+            return "code";
+        }
+
+
+        return "text";
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // DEFAULT FILE NAME
+    // ==========================================================
+
+
+    defaultFileName(
+        mime,
+        language
+    ){
+
+
+        if(
+            String(mime).includes("html")
+        ){
+            return "honey-ia-site.html";
+        }
+
+
+        if(
+            String(mime).includes("javascript")
+        ){
+            return "honey-ia-app.js";
+        }
+
+
+        if(
+            String(mime).includes("python")
+        ){
+            return "honey-ia-app.py";
+        }
+
+
+        if(
+            String(mime).includes("css")
+        ){
+            return "honey-ia-style.css";
+        }
+
+
+        if(
+            String(mime).includes("json")
+        ){
+            return "honey-ia-data.json";
+        }
+
+
+        if(
+            String(mime).includes("pdf")
+        ){
+            return "honey-ia-document.pdf";
+        }
+
+
+        if(
+            String(mime).includes("csv")
+        ){
+            return "honey-ia-data.csv";
+        }
+
+
+        return (
+            "honey-ia-result." +
+            (
+                language ||
+                "txt"
+            )
+        );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // RESET
+    // ==========================================================
+
+
+    reset(){
+
+
+        if(this.requestController){
+
+
+            this.requestController.abort();
+
+
+        }
+
+
+        this.activeAgent =
+            "general";
+
+
+        this.mode =
+            "chat";
+
+
+        this.history =
+            [];
+
+
+        this.workspace = {
+
+
+            artifacts: [],
+
+
+            activeArtifact: null,
+
+
+            processing: false
+
+
+        };
+
+
+        if(this.container){
+
+
+            this.render();
+
+
+        }
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // EVENT LISTENERS
+    // ==========================================================
+
+
+    listenEvents(){
+
+
+        if(this._eventsReady)
+            return;
+
+
+        this._eventsReady = true;
+
+
+        document.addEventListener(
+            "agent-selected",
+            event => {
+
+
+                const agent =
+                    event.detail;
+
+
+                if(agent){
+
+
+                    this.open(
+                        agent
+                    );
+
+
+                }
+
+
+            }
+        );
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // AUTO INIT
+    // ==========================================================
+
+
+    autoInit(){
+
+
+        const studio =
+            document.getElementById(
+                "agentStudioContainer"
+            );
+
+
+        if(studio){
+
+
+            this.init(
+                "agentStudioContainer"
+            );
+
+
+        }
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // DESTROY
+    // ==========================================================
+
+
+    destroy(){
+
+
+        if(this.requestController){
+
+
+            this.requestController.abort();
+
+
+        }
+
+
+        if(this.container){
+
+
+            this.container.innerHTML =
+                "";
+
+
+        }
+
+
+        this.container =
+            null;
+
+
+        this.history =
+            [];
+
+
+        this.workspace =
+            {};
+
+
+        this._eventsReady =
+            false;
+
+
+    }
+
+
+
+
+
+    // ==========================================================
+    // SECURITY HELPERS
+    // ==========================================================
+
+
+    escapeHTML(value){
+
+
+        return String(
+            value ?? ""
+        )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+
+    }
+
+
+
+
+
+    escapeAttribute(value){
+
+
+        return this.escapeHTML(
+            value
+        )
+        .replace(
+            /`/g,
+            "&#096;"
+        );
+
+
+    }
+
+
+
+
+
+    createId(){
+
+
+        return (
+            "artifact_" +
+            Date.now() +
+            "_" +
+            Math.random()
+                .toString(36)
+                .slice(2,9)
+        );
+
+
+    }
 
 
 }
@@ -1907,11 +2849,7 @@ this.init(
 
 
 const agentstudio =
-
-new AgentStudio();
-
-
-
+    new AgentStudio();
 
 
 export default agentstudio;
