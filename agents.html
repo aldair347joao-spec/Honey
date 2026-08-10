@@ -1,2132 +1,2247 @@
-<!DOCTYPE html><html lang="pt-PT"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Honey IA — AI Workforce Studio</title><meta
-name="description"
-content="Honey IA — Workforce de agentes de inteligência artificial especializados."
+<!DOCTYPE html>
+<html lang="pt-PT">
 
-«»
+<head>
 
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="agents.css"><link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-><link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-></head><body><div class="honey-workspace"><!-- =====================================================
-BACKGROUND SYSTEM
-===================================================== --><div class="workspace-grid"></div><div class="workspace-glow glow-gold"></div><div class="workspace-glow glow-blue"></div><!-- =====================================================
-SIDEBAR OVERLAY
-===================================================== --><div
-    class="sidebar-overlay"
-    id="sidebarOverlay"
-></div><!-- =====================================================
-MAIN SIDEBAR
-===================================================== --><aside
-    class="honey-sidebar"
-    id="sidebar"
-><!-- BRAND -->
+    <meta charset="UTF-8">
 
-<div class="sidebar-brand">
-
-    <div class="brand-icon">
-        <i class="fa-solid fa-hexagon-nodes"></i>
-    </div>
-
-    <div class="brand-text">
-
-        <strong>Honey IA</strong>
-
-        <span>AI Workspace</span>
-
-    </div>
-
-</div>
-
-
-<!-- NAVIGATION -->
-
-<nav class="sidebar-menu">
-
-
-    <div class="menu-title">
-        WORKSPACE
-    </div>
-
-
-    <a
-        href="index.html"
-        class="menu-link"
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-house"></i>
-        </div>
-
-        <span>Início</span>
-
-    </a>
-
-
-    <a
-        href="agents.html"
-        class="menu-link active"
+    <meta
+        name="description"
+        content="Honey IA AI Workforce Studio — especialistas digitais de inteligência artificial."
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-robot"></i>
-        </div>
-
-        <span>Agentes IA</span>
-
-    </a>
-
-
-    <a
-        href="projects.html"
-        class="menu-link"
+    <meta
+        name="theme-color"
+        content="#07080a"
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-folder-open"></i>
-        </div>
-
-        <span>Projetos</span>
-
-    </a>
+    <title>Honey IA — AI Workforce Studio</title>
 
 
-    <a
-        href="history.html"
-        class="menu-link"
+    <!-- =========================================
+         HONEY IA AGENTS CSS
+         INDEPENDENTE DO STYLE.CSS
+    ========================================== -->
+
+    <link
+        rel="stylesheet"
+        href="agents.css"
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-        </div>
 
-        <span>Histórico</span>
+    <!-- =========================================
+         FONT AWESOME
+    ========================================== -->
 
-    </a>
-
-
-    <div class="menu-divider"></div>
-
-
-    <div class="menu-title">
-        CONTA
-    </div>
-
-
-    <a
-        href="plans.html"
-        class="menu-link"
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-crown"></i>
-        </div>
 
-        <span>Plano</span>
+    <!-- =========================================
+         GOOGLE FONTS
+    ========================================== -->
 
-    </a>
-
-
-    <a
-        href="terms.html"
-        class="menu-link"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
     >
 
-        <div class="menu-icon">
-            <i class="fa-solid fa-file-lines"></i>
-        </div>
-
-        <span>Termos</span>
-
-    </a>
-
-</nav>
+</head>
 
 
-<!-- PREMIUM CARD -->
-
-<div class="sidebar-premium-card">
-
-    <div class="premium-icon">
-        <i class="fa-solid fa-bolt"></i>
-    </div>
-
-    <div>
-
-        <strong>Honey Premium</strong>
-
-        <p>30 agentes desbloqueados</p>
-
-    </div>
-
-</div>
+<body>
 
 
-<!-- SIDEBAR BOTTOM -->
+<!-- =====================================================
+     HONEY IA WORKSPACE
+====================================================== -->
 
-<div class="sidebar-bottom">
-
-    <a
-        href="login.html"
-        class="login-link"
-    >
-        Entrar
-    </a>
-
-    <a
-        href="register.html"
-        class="register-button"
-    >
-        Criar conta
-    </a>
-
-</div>
-
-</aside><!-- =====================================================
-MAIN WORKSPACE
-===================================================== --><main class="workspace-main"><!-- =================================================
-HEADER
-================================================= -->
-
-<header class="workspace-header">
-
-
-    <button
-        class="menu-toggle"
-        id="menuToggle"
-        type="button"
-        aria-label="Abrir menu"
-        aria-controls="sidebar"
-        aria-expanded="false"
-    >
-
-        <span></span>
-        <span></span>
-        <span></span>
-
-    </button>
-
-
-    <div class="mobile-brand">
-
-        <div class="mobile-brand-icon">
-            <i class="fa-solid fa-hexagon-nodes"></i>
-        </div>
-
-        <strong>Honey IA</strong>
-
-    </div>
-
-
-    <div class="workspace-search">
-
-        <i class="fa-solid fa-magnifying-glass"></i>
-
-        <input
-            id="agentSearch"
-            type="search"
-            placeholder="Pesquisar agentes, especialistas ou áreas..."
-            autocomplete="off"
-        >
-
-    </div>
-
-
-    <div class="header-tools">
-
-
-        <button
-            class="notification-button"
-            type="button"
-            aria-label="Notificações"
-        >
-
-            <i class="fa-regular fa-bell"></i>
-
-        </button>
-
-
-        <div class="user-profile">
-
-            <div class="user-avatar">
-                JD
-            </div>
-
-            <div class="user-data">
-
-                <strong>Utilizador</strong>
-
-                <span>Premium</span>
-
-            </div>
-
-        </div>
-
-
-    </div>
-
-
-</header>
-
-
-<!-- =================================================
-PAGE CONTENT
-================================================= -->
-
-<div class="agents-page">
+<div class="honey-workspace">
 
 
     <!-- =================================================
-    HERO
-    ================================================= -->
+         BACKGROUND
+    ================================================== -->
 
-    <section class="agents-hero">
+    <div class="workspace-grid"></div>
 
+    <div class="workspace-glow glow-gold"></div>
 
-        <div class="agents-hero-content">
-
-
-            <span class="workspace-status">
-
-                <span></span>
-
-                AI Workforce Online
-
-            </span>
+    <div class="workspace-glow glow-blue"></div>
 
 
-            <h1>
-                Os seus especialistas digitais.
-            </h1>
+    <!-- =================================================
+         SIDEBAR OVERLAY
+    ================================================== -->
+
+    <div
+        class="sidebar-overlay"
+        id="sidebarOverlay"
+    ></div>
 
 
-            <p>
-                Escolha agentes de inteligência artificial
-                preparados para diferentes áreas do seu trabalho,
-                negócio ou projetos.
-            </p>
+    <!-- =================================================
+         SIDEBAR
+    ================================================== -->
+
+    <aside
+        class="honey-sidebar"
+        id="sidebar"
+    >
 
 
-            <div class="agents-actions">
+        <!-- BRAND -->
+
+        <div class="sidebar-brand">
+
+            <div class="brand-icon">
+                <i class="fa-solid fa-hexagon-nodes"></i>
+            </div>
+
+            <div class="brand-text">
+
+                <strong>Honey IA</strong>
+
+                <span>AI Workspace</span>
+
+            </div>
+
+        </div>
 
 
-                <a
-                    href="#agentsGrid"
-                    class="primary-action"
-                >
+        <!-- NAVIGATION -->
 
+        <nav class="sidebar-menu">
+
+
+            <div class="menu-title">
+                WORKSPACE
+            </div>
+
+
+            <a
+                href="index.html"
+                class="menu-link"
+            >
+
+                <div class="menu-icon">
+                    <i class="fa-solid fa-house"></i>
+                </div>
+
+                <span>Início</span>
+
+            </a>
+
+
+            <a
+                href="agents.html"
+                class="menu-link active"
+            >
+
+                <div class="menu-icon">
                     <i class="fa-solid fa-robot"></i>
+                </div>
 
-                    Explorar agentes
+                <span>Agentes IA</span>
 
-                </a>
+            </a>
 
 
-                <a
-                    href="plans.html"
-                    class="secondary-action"
-                >
+            <a
+                href="projects.html"
+                class="menu-link"
+            >
 
+                <div class="menu-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+
+                <span>Projetos</span>
+
+            </a>
+
+
+            <a
+                href="history.html"
+                class="menu-link"
+            >
+
+                <div class="menu-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+
+                <span>Histórico</span>
+
+            </a>
+
+
+            <div class="menu-divider"></div>
+
+
+            <div class="menu-title">
+                CONTA
+            </div>
+
+
+            <a
+                href="plans.html"
+                class="menu-link"
+            >
+
+                <div class="menu-icon">
                     <i class="fa-solid fa-crown"></i>
-
-                    Desbloquear todos
-
-                </a>
-
-
-            </div>
-
-
-        </div>
-
-
-        <div class="agents-visual">
-
-
-            <div class="workforce-card">
-
-
-                <div class="workforce-top">
-
-
-                    <div class="workforce-logo">
-
-                        <i class="fa-solid fa-users-gear"></i>
-
-                    </div>
-
-
-                    <div class="online-status">
-
-                        <span></span>
-
-                        Online
-
-                    </div>
-
-
                 </div>
 
+                <span>Plano</span>
 
-                <h3>
-                    Honey Workforce
-                </h3>
-
-
-                <p>
-                    30 agentes especializados
-                    trabalhando para si.
-                </p>
+            </a>
 
 
-                <div class="mini-workforce">
-
-
-                    <div>
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-
-                    <div>
-                        <i class="fa-solid fa-code"></i>
-                    </div>
-
-                    <div>
-                        <i class="fa-solid fa-bullhorn"></i>
-                    </div>
-
-                    <div>
-                        <i class="fa-solid fa-scale-balanced"></i>
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </section>
-
-
-    <!-- =================================================
-    FILTERS
-    ================================================= -->
-
-    <section class="agents-filters">
-
-
-        <div class="filter-title">
-
-            <span>
-                Categorias
-            </span>
-
-            <h2>
-                Encontre o especialista certo.
-            </h2>
-
-        </div>
-
-
-        <div class="filter-buttons">
-
-
-            <button
-                type="button"
-                class="filter-active"
-                data-category="todos"
-            >
-                Todos
-            </button>
-
-
-            <button
-                type="button"
-                data-category="negócios"
-            >
-                <i class="fa-solid fa-building"></i>
-                Negócios
-            </button>
-
-
-            <button
-                type="button"
-                data-category="tecnologia"
-            >
-                <i class="fa-solid fa-code"></i>
-                Tecnologia
-            </button>
-
-
-            <button
-                type="button"
-                data-category="criatividade"
-            >
-                <i class="fa-solid fa-pen-nib"></i>
-                Criatividade
-            </button>
-
-
-            <button
-                type="button"
-                data-category="dados"
-            >
-                <i class="fa-solid fa-chart-column"></i>
-                Dados
-            </button>
-
-
-            <button
-                type="button"
-                data-category="educação"
-            >
-                <i class="fa-solid fa-graduation-cap"></i>
-                Educação
-            </button>
-
-
-        </div>
-
-
-    </section>
-
-
-    <!-- =================================================
-    AGENTS
-    ================================================= -->
-
-    <section
-        class="agents-grid-section"
-        id="agentsGrid"
-    >
-
-
-        <div class="section-heading">
-
-            <span>
-                AI Workforce
-            </span>
-
-            <h2>
-                Agentes especializados
-            </h2>
-
-            <p>
-                Cada agente possui uma área de conhecimento
-                preparada para tarefas específicas.
-            </p>
-
-        </div>
-
-
-        <div class="agents-grid">
-
-
-            <!-- FINANCE -->
-
-            <article
-                class="agent-card"
-                data-category="negócios dados"
+            <a
+                href="terms.html"
+                class="menu-link"
             >
 
-                <div class="agent-card-header">
-
-                    <div class="agent-icon finance">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
+                <div class="menu-icon">
+                    <i class="fa-solid fa-file-lines"></i>
                 </div>
 
-                <h3>Finance AI</h3>
+                <span>Termos</span>
 
-                <p>
-                    Analisa finanças, relatórios, custos,
-                    investimentos e ajuda em decisões empresariais.
-                </p>
+            </a>
 
-                <div class="agent-skills">
-                    <span>Excel</span>
-                    <span>Dados</span>
-                    <span>Relatórios</span>
-                </div>
 
-                <a href="agents/finance.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
+        </nav>
 
-            </article>
 
+        <!-- PREMIUM CARD -->
 
-            <!-- MARKETING -->
+        <div class="sidebar-premium-card">
 
-            <article
-                class="agent-card"
-                data-category="negócios criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon marketing">
-                        <i class="fa-solid fa-bullhorn"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Marketing AI</h3>
-
-                <p>
-                    Cria estratégias, campanhas, conteúdos e planos
-                    de crescimento para marcas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Social Media</span>
-                    <span>Publicidade</span>
-                    <span>Estratégia</span>
-                </div>
-
-                <a href="agents/marketing.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- DEVELOPER -->
-
-            <article
-                class="agent-card"
-                data-category="tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon developer">
-                        <i class="fa-solid fa-code"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Developer AI</h3>
-
-                <p>
-                    Desenvolve códigos, aplicações, websites e
-                    soluções digitais inteligentes.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Código</span>
-                    <span>Apps</span>
-                    <span>Web</span>
-                </div>
-
-                <a href="agents/developer.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- CREATIVE -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon creative">
-                        <i class="fa-solid fa-palette"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Creative AI</h3>
-
-                <p>
-                    Cria conceitos visuais, identidades, ideias
-                    criativas e materiais de design.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Design</span>
-                    <span>Imagem</span>
-                    <span>Branding</span>
-                </div>
-
-                <a href="agents/creative.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- LEGAL -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon legal">
-                        <i class="fa-solid fa-scale-balanced"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Legal AI</h3>
-
-                <p>
-                    Ajuda na análise de contratos, documentos
-                    e informações jurídicas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Contratos</span>
-                    <span>Documentos</span>
-                    <span>Análise</span>
-                </div>
-
-                <a href="agents/legal.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- BUSINESS -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon business">
-                        <i class="fa-solid fa-building"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Business AI</h3>
-
-                <p>
-                    Analisa negócios, cria estratégias empresariais
-                    e ajuda no crescimento da empresa.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Estratégia</span>
-                    <span>Empresas</span>
-                    <span>Gestão</span>
-                </div>
-
-                <a href="agents/business.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- SALES -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon sales">
-                        <i class="fa-solid fa-handshake"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Sales AI</h3>
-
-                <p>
-                    Cria estratégias de vendas, propostas comerciais
-                    e análise de clientes.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Vendas</span>
-                    <span>Clientes</span>
-                    <span>CRM</span>
-                </div>
-
-                <a href="agents/sales.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- HR -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon hr">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>HR AI</h3>
-
-                <p>
-                    Ajuda em recrutamento, organização de equipas
-                    e gestão de talentos.
-                </p>
-
-                <div class="agent-skills">
-                    <span>RH</span>
-                    <span>Equipa</span>
-                    <span>Gestão</span>
-                </div>
-
-                <a href="agents/hr.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- ARCHITECT -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon architect">
-                        <i class="fa-solid fa-house"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Architect AI</h3>
-
-                <p>
-                    Cria ideias de projetos, plantas, conceitos
-                    e soluções para arquitetura.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Projetos</span>
-                    <span>3D</span>
-                    <span>Design</span>
-                </div>
-
-                <a href="agents/architect.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- EDUCATION -->
-
-            <article
-                class="agent-card"
-                data-category="educação"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon education">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Education AI</h3>
-
-                <p>
-                    Cria materiais de estudo, planos de aulas
-                    e explica conteúdos educativos.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Aulas</span>
-                    <span>Estudo</span>
-                    <span>Pesquisa</span>
-                </div>
-
-                <a href="agents/education.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- RESEARCH -->
-
-            <article
-                class="agent-card"
-                data-category="dados educação"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon research">
-                        <i class="fa-solid fa-microscope"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Research AI</h3>
-
-                <p>
-                    Pesquisa informações, organiza conhecimento
-                    e cria análises detalhadas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Pesquisa</span>
-                    <span>Dados</span>
-                    <span>Relatórios</span>
-                </div>
-
-                <a href="agents/research.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- MEDICAL -->
-
-            <article
-                class="agent-card"
-                data-category="educação dados"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon medical">
-                        <i class="fa-solid fa-heart-pulse"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Medical AI</h3>
-
-                <p>
-                    Organiza informações de saúde, pesquisa conteúdos
-                    médicos e auxilia profissionais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Saúde</span>
-                    <span>Pesquisa</span>
-                    <span>Análise</span>
-                </div>
-
-                <a href="agents/medical.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- CONTENT -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon content">
-                        <i class="fa-solid fa-pen"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Content AI</h3>
-
-                <p>
-                    Cria artigos, textos profissionais, descrições
-                    e conteúdos digitais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Texto</span>
-                    <span>Blog</span>
-                    <span>Copywriting</span>
-                </div>
-
-                <a href="agents/content.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- VIDEO -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon video">
-                        <i class="fa-solid fa-video"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Video AI</h3>
-
-                <p>
-                    Ajuda a criar roteiros, ideias de vídeos
-                    e conteúdos audiovisuais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Vídeo</span>
-                    <span>Roteiro</span>
-                    <span>Criatividade</span>
-                </div>
-
-                <a href="agents/video.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- TRANSLATOR -->
-
-            <article
-                class="agent-card"
-                data-category="educação"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon translator">
-                        <i class="fa-solid fa-language"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Translator AI</h3>
-
-                <p>
-                    Traduz textos, documentos e ajuda na comunicação
-                    em vários idiomas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Idiomas</span>
-                    <span>Tradução</span>
-                    <span>Comunicação</span>
-                </div>
-
-                <a href="agents/translator.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- DATA -->
-
-            <article
-                class="agent-card"
-                data-category="dados tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon data">
-                        <i class="fa-solid fa-database"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Data Analyst AI</h3>
-
-                <p>
-                    Transforma dados em informações úteis, gráficos
-                    e relatórios inteligentes.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Dados</span>
-                    <span>Gráficos</span>
-                    <span>Excel</span>
-                </div>
-
-                <a href="agents/data.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- SECURITY -->
-
-            <article
-                class="agent-card"
-                data-category="tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon security">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Cyber Security AI</h3>
-
-                <p>
-                    Ajuda a compreender segurança digital, boas
-                    práticas e proteção de sistemas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Segurança</span>
-                    <span>Sistemas</span>
-                    <span>Proteção</span>
-                </div>
-
-                <a href="agents/security.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- REAL ESTATE -->
-
-            <article
-                class="agent-card"
-                data-category="negócios dados"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon realestate">
-                        <i class="fa-solid fa-city"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Real Estate AI</h3>
-
-                <p>
-                    Ajuda com imóveis, análises de mercado,
-                    descrições e estratégias imobiliárias.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Imóveis</span>
-                    <span>Mercado</span>
-                    <span>Análise</span>
-                </div>
-
-                <a href="agents/realestate.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- ADVISOR -->
-
-            <article
-                class="agent-card"
-                data-category="negócios dados"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon advisor">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Finance Advisor AI</h3>
-
-                <p>
-                    Analisa oportunidades financeiras, organização
-                    de gastos e planeamento.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Investimento</span>
-                    <span>Planeamento</span>
-                    <span>Finanças</span>
-                </div>
-
-                <a href="agents/advisor.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- STARTUP -->
-
-            <article
-                class="agent-card"
-                data-category="negócios criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon startup">
-                        <i class="fa-solid fa-rocket"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Startup AI</h3>
-
-                <p>
-                    Ajuda empreendedores a criar ideias, modelos
-                    de negócio e estratégias.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Ideias</span>
-                    <span>Negócios</span>
-                    <span>Planeamento</span>
-                </div>
-
-                <a href="agents/startup.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- SOCIAL -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon social">
-                        <i class="fa-solid fa-hashtag"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Social Media AI</h3>
-
-                <p>
-                    Cria calendários de conteúdo, publicações
-                    e estratégias para redes sociais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Redes</span>
-                    <span>Conteúdo</span>
-                    <span>Marketing</span>
-                </div>
-
-                <a href="agents/social.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- ECOMMERCE -->
-
-            <article
-                class="agent-card"
-                data-category="negócios tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon ecommerce">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>E-commerce AI</h3>
-
-                <p>
-                    Ajuda lojas online com produtos, vendas,
-                    descrições e estratégias digitais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Lojas</span>
-                    <span>Produtos</span>
-                    <span>Vendas</span>
-                </div>
-
-                <a href="agents/ecommerce.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- PROJECT MANAGER -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon manager">
-                        <i class="fa-solid fa-list-check"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Project Manager AI</h3>
-
-                <p>
-                    Organiza tarefas, cronogramas e acompanha
-                    projetos profissionais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Gestão</span>
-                    <span>Tarefas</span>
-                    <span>Planeamento</span>
-                </div>
-
-                <a href="agents/project-manager.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- PERSONAL ASSISTANT -->
-
-            <article
-                class="agent-card"
-                data-category="negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon assistant">
-                        <i class="fa-solid fa-user-gear"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Personal Assistant AI</h3>
-
-                <p>
-                    Organiza tarefas, agendas, lembretes e ajuda
-                    na produtividade diária.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Organização</span>
-                    <span>Agenda</span>
-                    <span>Produtividade</span>
-                </div>
-
-                <a href="agents/assistant.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- DOCUMENT -->
-
-            <article
-                class="agent-card"
-                data-category="dados tecnologia"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon document">
-                        <i class="fa-solid fa-file-circle-check"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Document AI</h3>
-
-                <p>
-                    Analisa, organiza, resume e transforma
-                    documentos profissionais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>PDF</span>
-                    <span>Análise</span>
-                    <span>Relatórios</span>
-                </div>
-
-                <a href="agents/document.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- PRESENTATION -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon presentation">
-                        <i class="fa-solid fa-display"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Presentation AI</h3>
-
-                <p>
-                    Cria apresentações profissionais, slides
-                    e materiais empresariais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Slides</span>
-                    <span>Design</span>
-                    <span>Pitch</span>
-                </div>
-
-                <a href="agents/presentation.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- BRAND -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade negócios"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon brand">
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Brand AI</h3>
-
-                <p>
-                    Cria identidade de marca, posicionamento
-                    e conceitos visuais.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Marca</span>
-                    <span>Logo</span>
-                    <span>Identidade</span>
-                </div>
-
-                <a href="agents/brand.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- TRAVEL -->
-
-            <article
-                class="agent-card"
-                data-category="criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon travel">
-                        <i class="fa-solid fa-plane"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Travel AI</h3>
-
-                <p>
-                    Planeia viagens, roteiros, destinos e
-                    experiências personalizadas.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Viagens</span>
-                    <span>Roteiros</span>
-                    <span>Planeamento</span>
-                </div>
-
-                <a href="agents/travel.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-            <!-- INNOVATION -->
-
-            <article
-                class="agent-card"
-                data-category="negócios criatividade"
-            >
-
-                <div class="agent-card-header">
-
-                    <div class="agent-icon innovation">
-                        <i class="fa-solid fa-lightbulb"></i>
-                    </div>
-
-                    <div class="agent-online">
-                        <span></span>
-                        Online
-                    </div>
-
-                </div>
-
-                <h3>Innovation AI</h3>
-
-                <p>
-                    Gera ideias, soluções criativas e novas
-                    oportunidades de negócio.
-                </p>
-
-                <div class="agent-skills">
-                    <span>Ideação</span>
-                    <span>Criatividade</span>
-                    <span>Futuro</span>
-                </div>
-
-                <a href="agents/innovation.html">
-                    Abrir Studio
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-
-            </article>
-
-
-        </div>
-
-
-        <!-- EMPTY SEARCH -->
-
-        <div
-            class="no-agents"
-            id="noAgents"
-        >
-
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <h3>
-                Nenhum agente encontrado
-            </h3>
-
-            <p>
-                Tente pesquisar por outro nome,
-                área ou especialidade.
-            </p>
-
-        </div>
-
-
-    </section>
-
-
-    <!-- =================================================
-    STATS
-    ================================================= -->
-
-    <section class="workforce-stats">
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                <i class="fa-solid fa-robot"></i>
-            </div>
-
-            <div>
-
-                <strong>30+</strong>
-
-                <span>
-                    Agentes especializados
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                <i class="fa-solid fa-layer-group"></i>
-            </div>
-
-            <div>
-
-                <strong>15+</strong>
-
-                <span>
-                    Áreas profissionais
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
+            <div class="premium-icon">
                 <i class="fa-solid fa-bolt"></i>
             </div>
 
             <div>
 
-                <strong>24/7</strong>
+                <strong>Honey Premium</strong>
 
-                <span>
-                    Disponibilidade
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
-            <div class="stat-icon">
-                <i class="fa-solid fa-globe"></i>
-            </div>
-
-            <div>
-
-                <strong>∞</strong>
-
-                <span>
-                    Possibilidades
-                </span>
+                <p>
+                    30 agentes desbloqueados
+                </p>
 
             </div>
 
         </div>
 
 
-    </section>
+        <!-- SIDEBAR BOTTOM -->
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="login.html"
+                class="login-link"
+            >
+                Entrar
+            </a>
+
+            <a
+                href="register.html"
+                class="register-button"
+            >
+                Criar conta
+            </a>
+
+        </div>
+
+
+    </aside>
 
 
     <!-- =================================================
-    WORKFLOW
-    ================================================= -->
+         MAIN WORKSPACE
+    ================================================== -->
 
-    <section class="agents-workflow">
-
-
-        <div class="section-heading">
-
-            <span>
-                Processo inteligente
-            </span>
-
-            <h2>
-                Como usar um agente IA?
-            </h2>
-
-            <p>
-                Escolha um especialista, envie a sua tarefa
-                e receba resultados personalizados.
-            </p>
-
-        </div>
+    <main class="workspace-main">
 
 
-        <div class="workflow-grid">
+        <!-- =================================================
+             TOP HEADER
+        ================================================== -->
+
+        <header class="workspace-header">
 
 
-            <div class="workflow-card">
+            <!-- MOBILE MENU -->
 
-                <div class="workflow-number">
-                    01
+            <button
+                type="button"
+                class="menu-toggle"
+                id="menuToggle"
+                aria-label="Abrir menu"
+                aria-controls="sidebar"
+                aria-expanded="false"
+            >
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </button>
+
+
+            <!-- MOBILE BRAND -->
+
+            <div class="mobile-brand">
+
+                <div class="mobile-brand-icon">
+                    <i class="fa-solid fa-hexagon-nodes"></i>
                 </div>
 
-                <div class="workflow-icon">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </div>
-
-                <h3>
-                    Escolha um agente
-                </h3>
-
-                <p>
-                    Selecione o especialista ideal para o seu objetivo.
-                </p>
+                <strong>Honey IA</strong>
 
             </div>
 
 
-            <div class="workflow-card">
+            <!-- SEARCH -->
 
-                <div class="workflow-number">
-                    02
-                </div>
+            <div class="workspace-search">
 
-                <div class="workflow-icon">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </div>
+                <i class="fa-solid fa-magnifying-glass"></i>
 
-                <h3>
-                    Envie a tarefa
-                </h3>
-
-                <p>
-                    Explique o que precisa e adicione documentos
-                    ou informações.
-                </p>
-
-            </div>
-
-
-            <div class="workflow-card">
-
-                <div class="workflow-number">
-                    03
-                </div>
-
-                <div class="workflow-icon">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                </div>
-
-                <h3>
-                    Receba resultados
-                </h3>
-
-                <p>
-                    O agente cria soluções adaptadas
-                    às suas necessidades.
-                </p>
-
-            </div>
-
-
-        </div>
-
-
-    </section>
-
-
-    <!-- =================================================
-    CUSTOM AGENT CTA
-    ================================================= -->
-
-    <section class="agent-cta">
-
-
-        <div class="agent-cta-box">
-
-
-            <div class="cta-agent-icon">
-                <i class="fa-solid fa-users-gear"></i>
-            </div>
-
-
-            <h2>
-                Precisa de um agente personalizado?
-            </h2>
-
-
-            <p>
-                Empresas podem criar agentes próprios treinados
-                para processos específicos.
-            </p>
-
-
-            <div class="cta-buttons">
-
-
-                <a
-                    href="plans.html"
-                    class="cta-primary"
+                <input
+                    type="search"
+                    id="agentSearch"
+                    placeholder="Pesquisar agentes, especialistas ou áreas..."
+                    autocomplete="off"
                 >
-                    Criar agente empresarial
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
+
+            </div>
 
 
-                <a
-                    href="contact.html"
-                    class="cta-secondary"
+            <!-- HEADER TOOLS -->
+
+            <div class="header-tools">
+
+
+                <button
+                    type="button"
+                    class="notification-button"
+                    aria-label="Notificações"
                 >
-                    Falar com a equipa
-                </a>
+
+                    <i class="fa-regular fa-bell"></i>
+
+                </button>
+
+
+                <div class="user-profile">
+
+                    <div class="user-avatar">
+                        JD
+                    </div>
+
+                    <div class="user-data">
+
+                        <strong>
+                            Utilizador
+                        </strong>
+
+                        <span>
+                            Premium
+                        </span>
+
+                    </div>
+
+                </div>
 
 
             </div>
 
 
+        </header>
+
+
+        <!-- =================================================
+             PAGE CONTENT
+        ================================================== -->
+
+        <div class="agents-page">
+
+
+            <!-- =================================================
+                 HERO
+            ================================================== -->
+
+            <section class="agents-hero">
+
+
+                <div class="agents-hero-content">
+
+
+                    <span class="workspace-status">
+
+                        <span></span>
+
+                        AI Workforce Online
+
+                    </span>
+
+
+                    <h1>
+                        Os seus especialistas digitais.
+                    </h1>
+
+
+                    <p>
+                        Escolha agentes de inteligência artificial
+                        preparados para diferentes áreas do seu trabalho,
+                        negócio ou projetos.
+                    </p>
+
+
+                    <div class="agents-actions">
+
+                        <a
+                            href="#agentsGrid"
+                            class="primary-action"
+                        >
+
+                            <i class="fa-solid fa-robot"></i>
+
+                            Explorar agentes
+
+                        </a>
+
+
+                        <a
+                            href="plans.html"
+                            class="secondary-action"
+                        >
+
+                            <i class="fa-solid fa-crown"></i>
+
+                            Desbloquear todos
+
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="agents-visual">
+
+
+                    <div class="workforce-card">
+
+
+                        <div class="workforce-top">
+
+                            <div class="workforce-logo">
+
+                                <i class="fa-solid fa-users-gear"></i>
+
+                            </div>
+
+
+                            <div class="online-status">
+
+                                <span></span>
+
+                                Online
+
+                            </div>
+
+                        </div>
+
+
+                        <h3>
+                            Honey Workforce
+                        </h3>
+
+
+                        <p>
+                            30 agentes especializados trabalhando
+                            para si.
+                        </p>
+
+
+                        <div class="mini-workforce">
+
+                            <div>
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+
+                            <div>
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+
+                            <div>
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+
+                            <div>
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 FILTERS
+            ================================================== -->
+
+            <section class="agents-filters">
+
+
+                <div class="filter-title">
+
+                    <span>
+                        Categorias
+                    </span>
+
+                    <h2>
+                        Encontre o especialista certo.
+                    </h2>
+
+                </div>
+
+
+                <div class="filter-buttons">
+
+
+                    <button
+                        type="button"
+                        class="filter-active"
+                        data-filter="all"
+                    >
+                        Todos
+                    </button>
+
+
+                    <button
+                        type="button"
+                        data-filter="negocios"
+                    >
+                        <i class="fa-solid fa-building"></i>
+                        Negócios
+                    </button>
+
+
+                    <button
+                        type="button"
+                        data-filter="tecnologia"
+                    >
+                        <i class="fa-solid fa-code"></i>
+                        Tecnologia
+                    </button>
+
+
+                    <button
+                        type="button"
+                        data-filter="criatividade"
+                    >
+                        <i class="fa-solid fa-pen-nib"></i>
+                        Criatividade
+                    </button>
+
+
+                    <button
+                        type="button"
+                        data-filter="dados"
+                    >
+                        <i class="fa-solid fa-chart-column"></i>
+                        Dados
+                    </button>
+
+
+                    <button
+                        type="button"
+                        data-filter="educacao"
+                    >
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        Educação
+                    </button>
+
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 AGENTS
+            ================================================== -->
+
+            <section
+                class="agents-grid-section"
+                id="agentsGrid"
+            >
+
+
+                <div class="section-heading">
+
+                    <span>
+                        AI Workforce
+                    </span>
+
+                    <h2>
+                        Agentes especializados
+                    </h2>
+
+                    <p>
+                        Cada agente possui uma área de conhecimento
+                        preparada para tarefas específicas.
+                    </p>
+
+                </div>
+
+
+                <div class="agents-grid">
+
+
+                    <!-- FINANCE -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios dados"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon finance">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Finance AI</h3>
+
+                        <p>
+                            Analisa finanças, relatórios, custos,
+                            investimentos e ajuda em decisões empresariais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Excel</span>
+                            <span>Dados</span>
+                            <span>Relatórios</span>
+                        </div>
+
+                        <a href="agents/finance.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- MARKETING -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon marketing">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Marketing AI</h3>
+
+                        <p>
+                            Cria estratégias, campanhas, conteúdos e planos
+                            de crescimento para marcas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Social Media</span>
+                            <span>Publicidade</span>
+                            <span>Estratégia</span>
+                        </div>
+
+                        <a href="agents/marketing.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- DEVELOPER -->
+
+                    <article
+                        class="agent-card"
+                        data-category="tecnologia"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon developer">
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Developer AI</h3>
+
+                        <p>
+                            Desenvolve códigos, aplicações, websites e
+                            soluções digitais inteligentes.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Código</span>
+                            <span>Apps</span>
+                            <span>Web</span>
+                        </div>
+
+                        <a href="agents/developer.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- CREATIVE -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon creative">
+                                <i class="fa-solid fa-palette"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Creative AI</h3>
+
+                        <p>
+                            Cria conceitos visuais, identidades, ideias
+                            criativas e materiais de design.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Design</span>
+                            <span>Imagem</span>
+                            <span>Branding</span>
+                        </div>
+
+                        <a href="agents/creative.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- LEGAL -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon legal">
+                                <i class="fa-solid fa-scale-balanced"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Legal AI</h3>
+
+                        <p>
+                            Ajuda na análise de contratos, documentos
+                            e informações jurídicas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Contratos</span>
+                            <span>Documentos</span>
+                            <span>Análise</span>
+                        </div>
+
+                        <a href="agents/legal.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- BUSINESS -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon business">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Business AI</h3>
+
+                        <p>
+                            Analisa negócios, cria estratégias empresariais
+                            e ajuda no crescimento da empresa.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Estratégia</span>
+                            <span>Empresas</span>
+                            <span>Gestão</span>
+                        </div>
+
+                        <a href="agents/business.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- SALES -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon sales">
+                                <i class="fa-solid fa-handshake"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Sales AI</h3>
+
+                        <p>
+                            Cria estratégias de vendas, propostas comerciais
+                            e análise de clientes.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Vendas</span>
+                            <span>Clientes</span>
+                            <span>CRM</span>
+                        </div>
+
+                        <a href="agents/sales.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- HR -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon hr">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>HR AI</h3>
+
+                        <p>
+                            Ajuda em recrutamento, organização de equipas
+                            e gestão de talentos.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>RH</span>
+                            <span>Equipa</span>
+                            <span>Gestão</span>
+                        </div>
+
+                        <a href="agents/hr.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- ARCHITECT -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade tecnologia"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon architect">
+                                <i class="fa-solid fa-house"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Architect AI</h3>
+
+                        <p>
+                            Cria ideias de projetos, plantas, conceitos
+                            e soluções para arquitetura.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Projetos</span>
+                            <span>3D</span>
+                            <span>Design</span>
+                        </div>
+
+                        <a href="agents/architect.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- EDUCATION -->
+
+                    <article
+                        class="agent-card"
+                        data-category="educacao"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon education">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Education AI</h3>
+
+                        <p>
+                            Cria materiais de estudo, planos de aulas
+                            e explica conteúdos educativos.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Aulas</span>
+                            <span>Estudo</span>
+                            <span>Pesquisa</span>
+                        </div>
+
+                        <a href="agents/education.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- RESEARCH -->
+
+                    <article
+                        class="agent-card"
+                        data-category="dados educacao"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon research">
+                                <i class="fa-solid fa-microscope"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Research AI</h3>
+
+                        <p>
+                            Pesquisa informações, organiza conhecimento
+                            e cria análises detalhadas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Pesquisa</span>
+                            <span>Dados</span>
+                            <span>Relatórios</span>
+                        </div>
+
+                        <a href="agents/research.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- MEDICAL -->
+
+                    <article
+                        class="agent-card"
+                        data-category="dados"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon medical">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Medical AI</h3>
+
+                        <p>
+                            Organiza informações de saúde, pesquisa conteúdos
+                            médicos e auxilia profissionais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Saúde</span>
+                            <span>Pesquisa</span>
+                            <span>Análise</span>
+                        </div>
+
+                        <a href="agents/medical.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- CONTENT -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon content">
+                                <i class="fa-solid fa-pen"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Content AI</h3>
+
+                        <p>
+                            Cria artigos, textos profissionais, descrições
+                            e conteúdos digitais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Texto</span>
+                            <span>Blog</span>
+                            <span>Copywriting</span>
+                        </div>
+
+                        <a href="agents/content.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- VIDEO -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon video">
+                                <i class="fa-solid fa-video"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Video AI</h3>
+
+                        <p>
+                            Ajuda a criar roteiros, ideias de vídeos
+                            e conteúdos audiovisuais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Vídeo</span>
+                            <span>Roteiro</span>
+                            <span>Criatividade</span>
+                        </div>
+
+                        <a href="agents/video.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- TRANSLATOR -->
+
+                    <article
+                        class="agent-card"
+                        data-category="educacao"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon translator">
+                                <i class="fa-solid fa-language"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Translator AI</h3>
+
+                        <p>
+                            Traduz textos, documentos e ajuda na comunicação
+                            em vários idiomas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Idiomas</span>
+                            <span>Tradução</span>
+                            <span>Comunicação</span>
+                        </div>
+
+                        <a href="agents/translator.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- DATA -->
+
+                    <article
+                        class="agent-card"
+                        data-category="dados tecnologia"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon data">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Data Analyst AI</h3>
+
+                        <p>
+                            Transforma dados em informações úteis, gráficos
+                            e relatórios inteligentes.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Dados</span>
+                            <span>Gráficos</span>
+                            <span>Excel</span>
+                        </div>
+
+                        <a href="agents/data.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- SECURITY -->
+
+                    <article
+                        class="agent-card"
+                        data-category="tecnologia"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon security">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Cyber Security AI</h3>
+
+                        <p>
+                            Ajuda a compreender segurança digital, boas
+                            práticas e proteção de sistemas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Segurança</span>
+                            <span>Sistemas</span>
+                            <span>Proteção</span>
+                        </div>
+
+                        <a href="agents/security.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- REAL ESTATE -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios dados"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon realestate">
+                                <i class="fa-solid fa-city"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Real Estate AI</h3>
+
+                        <p>
+                            Ajuda com imóveis, análises de mercado, descrições
+                            e estratégias imobiliárias.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Imóveis</span>
+                            <span>Mercado</span>
+                            <span>Análise</span>
+                        </div>
+
+                        <a href="agents/realestate.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- FINANCE ADVISOR -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios dados"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon advisor">
+                                <i class="fa-solid fa-coins"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Finance Advisor AI</h3>
+
+                        <p>
+                            Analisa oportunidades financeiras, organização
+                            de gastos e planeamento.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Investimento</span>
+                            <span>Planeamento</span>
+                            <span>Finanças</span>
+                        </div>
+
+                        <a href="agents/advisor.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- STARTUP -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon startup">
+                                <i class="fa-solid fa-rocket"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Startup AI</h3>
+
+                        <p>
+                            Ajuda empreendedores a criar ideias, modelos
+                            de negócio e estratégias.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Ideias</span>
+                            <span>Negócios</span>
+                            <span>Planeamento</span>
+                        </div>
+
+                        <a href="agents/startup.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- SOCIAL MEDIA -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon social">
+                                <i class="fa-solid fa-hashtag"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Social Media AI</h3>
+
+                        <p>
+                            Cria calendários de conteúdo, publicações
+                            e estratégias para redes sociais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Redes</span>
+                            <span>Conteúdo</span>
+                            <span>Marketing</span>
+                        </div>
+
+                        <a href="agents/social.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- ECOMMERCE -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios tecnologia"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon ecommerce">
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>E-commerce AI</h3>
+
+                        <p>
+                            Ajuda lojas online com produtos, vendas,
+                            descrições e estratégias digitais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Lojas</span>
+                            <span>Produtos</span>
+                            <span>Vendas</span>
+                        </div>
+
+                        <a href="agents/ecommerce.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- PROJECT MANAGER -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon manager">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Project Manager AI</h3>
+
+                        <p>
+                            Organiza tarefas, cronogramas e acompanha
+                            projetos profissionais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Gestão</span>
+                            <span>Tarefas</span>
+                            <span>Planeamento</span>
+                        </div>
+
+                        <a href="agents/project-manager.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- PERSONAL ASSISTANT -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon assistant">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Personal Assistant AI</h3>
+
+                        <p>
+                            Organiza tarefas, agendas, lembretes e ajuda
+                            na produtividade diária.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Organização</span>
+                            <span>Agenda</span>
+                            <span>Produtividade</span>
+                        </div>
+
+                        <a href="agents/assistant.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- DOCUMENT -->
+
+                    <article
+                        class="agent-card"
+                        data-category="dados negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon document">
+                                <i class="fa-solid fa-file-circle-check"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Document AI</h3>
+
+                        <p>
+                            Analisa, organiza, resume e transforma
+                            documentos profissionais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>PDF</span>
+                            <span>Análise</span>
+                            <span>Relatórios</span>
+                        </div>
+
+                        <a href="agents/document.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- PRESENTATION -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon presentation">
+                                <i class="fa-solid fa-display"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Presentation AI</h3>
+
+                        <p>
+                            Cria apresentações profissionais, slides
+                            e materiais empresariais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Slides</span>
+                            <span>Design</span>
+                            <span>Pitch</span>
+                        </div>
+
+                        <a href="agents/presentation.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- BRAND -->
+
+                    <article
+                        class="agent-card"
+                        data-category="criatividade negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon brand">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Brand AI</h3>
+
+                        <p>
+                            Cria identidade de marca, posicionamento
+                            e conceitos visuais.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Marca</span>
+                            <span>Logo</span>
+                            <span>Identidade</span>
+                        </div>
+
+                        <a href="agents/brand.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- TRAVEL -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon travel">
+                                <i class="fa-solid fa-plane"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Travel AI</h3>
+
+                        <p>
+                            Planeia viagens, roteiros, destinos
+                            e experiências personalizadas.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Viagens</span>
+                            <span>Roteiros</span>
+                            <span>Planeamento</span>
+                        </div>
+
+                        <a href="agents/travel.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                    <!-- INNOVATION -->
+
+                    <article
+                        class="agent-card"
+                        data-category="negocios criatividade"
+                    >
+
+                        <div class="agent-card-header">
+
+                            <div class="agent-icon innovation">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </div>
+
+                            <div class="agent-online">
+                                <span></span>
+                                Online
+                            </div>
+
+                        </div>
+
+                        <h3>Innovation AI</h3>
+
+                        <p>
+                            Gera ideias, soluções criativas e novas
+                            oportunidades de negócio.
+                        </p>
+
+                        <div class="agent-skills">
+                            <span>Ideação</span>
+                            <span>Criatividade</span>
+                            <span>Futuro</span>
+                        </div>
+
+                        <a href="agents/innovation.html">
+                            Abrir Studio
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+
+                    </article>
+
+
+                </div>
+
+
+                <!-- EMPTY SEARCH -->
+
+                <div
+                    class="no-agents"
+                    id="noAgents"
+                >
+
+                    <i class="fa-solid fa-robot"></i>
+
+                    <h3>
+                        Nenhum agente encontrado
+                    </h3>
+
+                    <p>
+                        Tente pesquisar por outro nome,
+                        especialidade ou área.
+                    </p>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 STATS
+            ================================================== -->
+
+            <section class="workforce-stats">
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>30+</strong>
+
+                        <span>
+                            Agentes especializados
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>15+</strong>
+
+                        <span>
+                            Áreas profissionais
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>24/7</strong>
+
+                        <span>
+                            Disponibilidade
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>∞</strong>
+
+                        <span>
+                            Possibilidades
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 WORKFLOW
+            ================================================== -->
+
+            <section class="agents-workflow">
+
+
+                <div class="section-heading">
+
+                    <span>
+                        Processo inteligente
+                    </span>
+
+                    <h2>
+                        Como usar um agente IA?
+                    </h2>
+
+                    <p>
+                        Escolha um especialista, envie a sua tarefa
+                        e receba resultados personalizados.
+                    </p>
+
+                </div>
+
+
+                <div class="workflow-grid">
+
+
+                    <div class="workflow-card">
+
+                        <div class="workflow-number">
+                            01
+                        </div>
+
+                        <div class="workflow-icon">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+
+                        <h3>
+                            Escolha um agente
+                        </h3>
+
+                        <p>
+                            Selecione o especialista ideal
+                            para o seu objetivo.
+                        </p>
+
+                    </div>
+
+
+                    <div class="workflow-card">
+
+                        <div class="workflow-number">
+                            02
+                        </div>
+
+                        <div class="workflow-icon">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </div>
+
+                        <h3>
+                            Envie a tarefa
+                        </h3>
+
+                        <p>
+                            Explique o que precisa e adicione
+                            documentos ou informações.
+                        </p>
+
+                    </div>
+
+
+                    <div class="workflow-card">
+
+                        <div class="workflow-number">
+                            03
+                        </div>
+
+                        <div class="workflow-icon">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+
+                        <h3>
+                            Receba resultados
+                        </h3>
+
+                        <p>
+                            O agente cria soluções adaptadas
+                            às suas necessidades.
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 CUSTOM AGENT CTA
+            ================================================== -->
+
+            <section class="agent-cta">
+
+
+                <div class="agent-cta-box">
+
+
+                    <div class="cta-agent-icon">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+
+
+                    <h2>
+                        Precisa de um agente personalizado?
+                    </h2>
+
+
+                    <p>
+                        Empresas podem criar agentes próprios
+                        treinados para processos específicos.
+                    </p>
+
+
+                    <div class="cta-buttons">
+
+
+                        <a
+                            href="plans.html"
+                            class="cta-primary"
+                        >
+
+                            Criar agente empresarial
+
+                            <i class="fa-solid fa-arrow-right"></i>
+
+                        </a>
+
+
+                        <a
+                            href="contact.html"
+                            class="cta-secondary"
+                        >
+                            Falar com a equipa
+                        </a>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
         </div>
 
 
-    </section>
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <footer class="honey-footer">
+
+
+            <div class="footer-content">
+
+
+                <div class="footer-brand">
+
+
+                    <div class="footer-logo">
+
+                        <i class="fa-solid fa-hexagon-nodes"></i>
+
+                        <strong>
+                            Honey IA
+                        </strong>
+
+                    </div>
+
+
+                    <p>
+                        A plataforma de inteligência artificial
+                        com especialistas digitais para pessoas,
+                        profissionais e empresas.
+                    </p>
+
+
+                </div>
+
+
+                <div class="footer-links">
+
+
+                    <div>
+
+                        <h4>Produto</h4>
+
+                        <a href="index.html">
+                            Início
+                        </a>
+
+                        <a href="agents.html">
+                            Agentes IA
+                        </a>
+
+                        <a href="projects.html">
+                            Projetos
+                        </a>
+
+                        <a href="plans.html">
+                            Planos
+                        </a>
+
+                    </div>
+
+
+                    <div>
+
+                        <h4>Empresa</h4>
+
+                        <a href="terms.html">
+                            Termos de Uso
+                        </a>
+
+                        <a href="privacy.html">
+                            Privacidade
+                        </a>
+
+                        <a href="contact.html">
+                            Contacto
+                        </a>
+
+                    </div>
+
+
+                    <div>
+
+                        <h4>Recursos</h4>
+
+                        <a href="#">
+                            Central de Ajuda
+                        </a>
+
+                        <a href="agents.html">
+                            Workforce IA
+                        </a>
+
+                        <a href="#">
+                            Comunidade
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <div class="footer-bottom">
+
+
+                <span>
+                    © 2026 Honey IA. Todos os direitos reservados.
+                </span>
+
+
+                <div class="footer-social">
+
+                    <a
+                        href="#"
+                        aria-label="LinkedIn"
+                    >
+                        <i class="fa-brands fa-linkedin"></i>
+                    </a>
+
+                    <a
+                        href="#"
+                        aria-label="X"
+                    >
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </a>
+
+                    <a
+                        href="#"
+                        aria-label="Instagram"
+                    >
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+
+                </div>
+
+
+            </div>
+
+
+        </footer>
+
+
+    </main>
 
 
 </div>
 
 
-<!-- =================================================
-FOOTER
-================================================= -->
+<!-- =====================================================
+     AGENTS PAGE JAVASCRIPT
+====================================================== -->
 
-<footer class="honey-footer">
-
-
-    <div class="footer-content">
-
-
-        <div class="footer-brand">
-
-
-            <div class="footer-logo">
-
-                <i class="fa-solid fa-hexagon-nodes"></i>
-
-                <strong>
-                    Honey IA
-                </strong>
-
-            </div>
-
-
-            <p>
-                A plataforma de inteligência artificial
-                com especialistas digitais para pessoas,
-                profissionais e empresas.
-            </p>
-
-
-        </div>
-
-
-        <div class="footer-links">
-
-
-            <div>
-
-                <h4>Produto</h4>
-
-                <a href="index.html">
-                    Início
-                </a>
-
-                <a href="agents.html">
-                    Agentes IA
-                </a>
-
-                <a href="projects.html">
-                    Projetos
-                </a>
-
-                <a href="plans.html">
-                    Planos
-                </a>
-
-            </div>
-
-
-            <div>
-
-                <h4>Empresa</h4>
-
-                <a href="terms.html">
-                    Termos de Uso
-                </a>
-
-                <a href="privacy.html">
-                    Privacidade
-                </a>
-
-                <a href="contact.html">
-                    Contacto
-                </a>
-
-            </div>
-
-
-            <div>
-
-                <h4>Recursos</h4>
-
-                <a href="#">
-                    Central de Ajuda
-                </a>
-
-                <a href="agents.html">
-                    Workforce IA
-                </a>
-
-                <a href="#">
-                    Comunidade
-                </a>
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-
-    <div class="footer-bottom">
-
-
-        <span>
-            © 2026 Honey IA. Todos os direitos reservados.
-        </span>
-
-
-        <div class="footer-social">
-
-            <a href="#" aria-label="LinkedIn">
-                <i class="fa-brands fa-linkedin"></i>
-            </a>
-
-            <a href="#" aria-label="X">
-                <i class="fa-brands fa-x-twitter"></i>
-            </a>
-
-            <a href="#" aria-label="Instagram">
-                <i class="fa-brands fa-instagram"></i>
-            </a>
-
-        </div>
-
-
-    </div>
-
-
-</footer>
-
-</main></div><!-- =====================================================
-PAGE JAVASCRIPT
-===================================================== --><script>
+<script>
 
 
 /* =====================================================
-SIDEBAR
+   SIDEBAR
 ===================================================== */
 
 const sidebar =
@@ -2146,18 +2261,14 @@ function openSidebar(){
     sidebar.classList.add("open");
 
     if(sidebarOverlay){
-
         sidebarOverlay.classList.add("active");
-
     }
 
     if(menuToggle){
-
         menuToggle.setAttribute(
             "aria-expanded",
             "true"
         );
-
     }
 
     document.body.classList.add(
@@ -2174,18 +2285,14 @@ function closeSidebar(){
     sidebar.classList.remove("open");
 
     if(sidebarOverlay){
-
         sidebarOverlay.classList.remove("active");
-
     }
 
     if(menuToggle){
-
         menuToggle.setAttribute(
             "aria-expanded",
             "false"
         );
-
     }
 
     document.body.classList.remove(
@@ -2199,7 +2306,7 @@ if(menuToggle){
 
     menuToggle.addEventListener(
         "click",
-        () => {
+        function(){
 
             if(
                 sidebar &&
@@ -2230,33 +2337,33 @@ if(sidebarOverlay){
 }
 
 
-document
-    .querySelectorAll(".sidebar-menu .menu-link")
-    .forEach(link => {
+document.querySelectorAll(
+    ".menu-link"
+).forEach(function(link){
 
-        link.addEventListener(
-            "click",
-            () => {
+    link.addEventListener(
+        "click",
+        function(){
 
-                if(
-                    window.innerWidth <= 900
-                ){
+            if(
+                window.innerWidth <= 1000
+            ){
 
-                    closeSidebar();
-
-                }
+                closeSidebar();
 
             }
-        );
 
-    });
+        }
+    );
+
+});
 
 
-window.addEventListener(
-    "resize",
-    () => {
+document.addEventListener(
+    "keydown",
+    function(event){
 
-        if(window.innerWidth > 900){
+        if(event.key === "Escape"){
 
             closeSidebar();
 
@@ -2267,7 +2374,7 @@ window.addEventListener(
 
 
 /* =====================================================
-SEARCH
+   SEARCH
 ===================================================== */
 
 const searchInput =
@@ -2280,26 +2387,23 @@ const noAgents =
     document.getElementById("noAgents");
 
 
-function filterAgents(){
+function filterAgents(searchValue){
 
-    const query =
-        searchInput
-            ? searchInput.value
-                .trim()
-                .toLowerCase()
-            : "";
+    const value =
+        searchValue
+            .trim()
+            .toLowerCase();
 
     let visibleCount = 0;
 
 
-    agentCards.forEach(card => {
+    agentCards.forEach(function(card){
 
-        const content =
+        const text =
             card.innerText.toLowerCase();
 
         const matches =
-            content.includes(query);
-
+            text.includes(value);
 
         if(matches){
 
@@ -2318,10 +2422,15 @@ function filterAgents(){
 
     if(noAgents){
 
-        noAgents.style.display =
-            visibleCount === 0
-                ? "block"
-                : "none";
+        if(visibleCount === 0){
+
+            noAgents.style.display = "block";
+
+        }else{
+
+            noAgents.style.display = "none";
+
+        }
 
     }
 
@@ -2332,14 +2441,20 @@ if(searchInput){
 
     searchInput.addEventListener(
         "input",
-        filterAgents
+        function(){
+
+            filterAgents(
+                searchInput.value
+            );
+
+        }
     );
 
 }
 
 
 /* =====================================================
-CATEGORY FILTERS
+   CATEGORY FILTERS
 ===================================================== */
 
 const filterButtons =
@@ -2348,20 +2463,21 @@ const filterButtons =
     );
 
 
-filterButtons.forEach(button => {
+filterButtons.forEach(function(button){
 
     button.addEventListener(
         "click",
-        () => {
+        function(){
 
+            filterButtons.forEach(
+                function(item){
 
-            filterButtons.forEach(btn => {
+                    item.classList.remove(
+                        "filter-active"
+                    );
 
-                btn.classList.remove(
-                    "filter-active"
-                );
-
-            });
+                }
+            );
 
 
             button.classList.add(
@@ -2369,50 +2485,40 @@ filterButtons.forEach(button => {
             );
 
 
-            const category =
-                button.dataset.category;
+            const filter =
+                button.dataset.filter;
 
 
             let visibleCount = 0;
 
 
-            agentCards.forEach(card => {
+            agentCards.forEach(
+                function(card){
+
+                    const categories =
+                        (
+                            card.dataset.category ||
+                            ""
+                        ).split(" ");
 
 
-                if(category === "todos"){
+                    if(
+                        filter === "all" ||
+                        categories.includes(filter)
+                    ){
 
-                    card.style.display = "";
+                        card.style.display = "";
 
-                    visibleCount++;
+                        visibleCount++;
 
-                    return;
+                    }else{
 
-                }
+                        card.style.display = "none";
 
-
-                const categories =
-                    card.dataset.category || "";
-
-
-                if(
-                    categories
-                        .toLowerCase()
-                        .includes(
-                            category.toLowerCase()
-                        )
-                ){
-
-                    card.style.display = "";
-
-                    visibleCount++;
-
-                }else{
-
-                    card.style.display = "none";
+                    }
 
                 }
-
-            });
+            );
 
 
             if(noAgents){
@@ -2438,64 +2544,7 @@ filterButtons.forEach(button => {
 
 
 /* =====================================================
-SMOOTH SCROLL
-===================================================== */
-
-document
-    .querySelectorAll(
-        'a[href^="#"]'
-    )
-    .forEach(link => {
-
-
-        link.addEventListener(
-            "click",
-            event => {
-
-
-                const selector =
-                    link.getAttribute("href");
-
-
-                if(
-                    !selector ||
-                    selector === "#"
-                ){
-
-                    return;
-
-                }
-
-
-                const target =
-                    document.querySelector(
-                        selector
-                    );
-
-
-                if(target){
-
-                    event.preventDefault();
-
-
-                    target.scrollIntoView({
-
-                        behavior: "smooth",
-
-                        block: "start"
-
-                    });
-
-                }
-
-            }
-        );
-
-    });
-
-
-/* =====================================================
-CARD REVEAL
+   CARD REVEAL
 ===================================================== */
 
 const animatedCards =
@@ -2505,15 +2554,16 @@ const animatedCards =
 
 
 if(
-    "IntersectionObserver" in window
+    "IntersectionObserver"
+    in window
 ){
 
     const observer =
         new IntersectionObserver(
-            entries => {
+            function(entries){
 
                 entries.forEach(
-                    entry => {
+                    function(entry){
 
                         if(
                             entry.isIntersecting
@@ -2534,13 +2584,13 @@ if(
 
             },
             {
-                threshold: .12
+                threshold: 0.12
             }
         );
 
 
     animatedCards.forEach(
-        card => {
+        function(card){
 
             observer.observe(card);
 
@@ -2550,7 +2600,7 @@ if(
 }else{
 
     animatedCards.forEach(
-        card => {
+        function(card){
 
             card.classList.add(
                 "visible"
@@ -2563,35 +2613,88 @@ if(
 
 
 /* =====================================================
-ACTIVE MENU
+   SMOOTH ANCHOR SCROLL
 ===================================================== */
 
-document
-    .querySelectorAll(
-        ".sidebar-menu .menu-link"
-    )
-    .forEach(link => {
+document.querySelectorAll(
+    'a[href^="#"]'
+).forEach(function(link){
 
-        link.classList.remove(
-            "active"
-        );
+    link.addEventListener(
+        "click",
+        function(event){
 
-    });
+            const targetId =
+                link.getAttribute("href");
 
 
-const agentsMenu =
-    document.querySelector(
-        '.sidebar-menu .menu-link[href="agents.html"]'
+            if(
+                !targetId ||
+                targetId === "#"
+            ){
+
+                return;
+
+            }
+
+
+            const target =
+                document.querySelector(
+                    targetId
+                );
+
+
+            if(target){
+
+                event.preventDefault();
+
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+        }
     );
 
-
-if(agentsMenu){
-
-    agentsMenu.classList.add(
-        "active"
-    );
-
-}
+});
 
 
-</script></body></html>
+/* =====================================================
+   ACTIVE SIDEBAR
+===================================================== */
+
+const currentPage =
+    window.location.pathname
+        .split("/")
+        .pop()
+        .toLowerCase();
+
+
+document.querySelectorAll(
+    ".menu-link"
+).forEach(function(link){
+
+    const href =
+        link.getAttribute("href");
+
+
+    if(
+        href &&
+        href.toLowerCase() === currentPage
+    ){
+
+        link.classList.add("active");
+
+    }
+
+});
+
+
+</script>
+
+
+</body>
+</html>
