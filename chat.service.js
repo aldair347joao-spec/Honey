@@ -3,10 +3,16 @@
 HONEY IA OS
 CHAT SERVICE
 Conversation + AI Orchestration
-V2.0
-Persistent Enterprise Chat Engine
-Tool + Artifact Integration
-Agent Production Support
+V3.0
+Production Chat Engine
+Persistent Conversations
+Multi-Agent Orchestration
+Tool Calling
+Artifacts
+Live Processing
+Workspace Context
+User Memory
+Production Hardened
 ==========================================
 */
 
@@ -34,9 +40,19 @@ const DEFAULT_MODE =
     "chat";
 
 
+const DEFAULT_WORKSPACE =
+
+    "main";
+
+
 const DEFAULT_HISTORY_LIMIT =
 
     20;
+
+
+const MAX_MEMORY_ITEMS =
+
+    50;
 
 
 
@@ -66,10 +82,11 @@ function normalizeAgentId(
     }
 
 
-
     return agentId
 
         .trim()
+
+        .toLowerCase()
 
         .slice(
 
@@ -81,6 +98,13 @@ function normalizeAgentId(
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE MODE
+==========================================================
+*/
 
 
 function normalizeMode(
@@ -102,21 +126,34 @@ function normalizeMode(
     }
 
 
+    const normalized =
 
-    return mode
+        mode
 
-        .trim()
+            .trim()
 
-        .slice(
+            .toLowerCase()
 
-            0,
+            .slice(
 
-            50
+                0,
 
-        );
+                50
+
+            );
+
+
+    return normalized || DEFAULT_MODE;
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE PROMPT
+==========================================================
+*/
 
 
 function normalizePrompt(
@@ -136,11 +173,17 @@ function normalizePrompt(
     }
 
 
-
     return prompt.trim();
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE HISTORY LIMIT
+==========================================================
+*/
 
 
 function normalizeHistoryLimit(
@@ -151,8 +194,11 @@ function normalizeHistoryLimit(
 
     const value =
 
-        Number(limit);
+        Number(
 
+            limit
+
+        );
 
 
     if(
@@ -168,7 +214,6 @@ function normalizeHistoryLimit(
     }
 
 
-
     return Math.min(
 
         Math.floor(value),
@@ -179,6 +224,13 @@ function normalizeHistoryLimit(
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE WORKSPACE CONTEXT
+==========================================================
+*/
 
 
 function normalizeWorkspaceContext(
@@ -197,20 +249,68 @@ function normalizeWorkspaceContext(
 
     ){
 
-        return {};
+        return {
+
+            workspace:
+
+                DEFAULT_WORKSPACE
+
+        };
 
     }
 
 
-
-    return {
+    const context = {
 
         ...workspaceContext
 
     };
 
+
+    if(
+
+        typeof context.workspace !== "string" ||
+
+        !context.workspace.trim()
+
+    ){
+
+        context.workspace =
+
+            DEFAULT_WORKSPACE;
+
+    }
+
+    else{
+
+        context.workspace =
+
+            context.workspace
+
+                .trim()
+
+                .slice(
+
+                    0,
+
+                    100
+
+                );
+
+    }
+
+
+    return context;
+
 }
 
+
+
+/*
+==========================================================
+NORMALIZE MEMORY
+==========================================================
+*/
 
 
 function normalizeMemory(
@@ -230,14 +330,33 @@ function normalizeMemory(
     }
 
 
+    return memory
 
-    return memory.slice(
+        .filter(
 
-        0,
+            item =>
 
-        50
+                typeof item === "string" ||
 
-    );
+                (
+
+                    item &&
+
+                    typeof item === "object" &&
+
+                    !Array.isArray(item)
+
+                )
+
+        )
+
+        .slice(
+
+            0,
+
+            MAX_MEMORY_ITEMS
+
+        );
 
 }
 
@@ -267,7 +386,6 @@ function normalizeArtifacts(
     }
 
 
-
     return artifacts
 
         .filter(
@@ -282,69 +400,18 @@ function normalizeArtifacts(
 
         .map(
 
-            artifact => ({
+            artifact => {
 
-                id:
-
-                    artifact.id ||
-
-                    null,
-
-
-
-                name:
-
-                    artifact.name ||
-
-                    "honey-ia-result",
-
-
-
-                type:
-
-                    artifact.type ||
-
-                    "text/plain",
-
-
-
-                mime:
-
-                    artifact.mime ||
-
-                    artifact.type ||
-
-                    "text/plain",
-
-
-
-                kind:
-
-                    artifact.kind ||
-
-                    "artifact",
-
-
-
-                language:
-
-                    artifact.language ||
-
-                    null,
-
-
-
-                content:
+                const content =
 
                     typeof artifact.content === "string"
 
                         ? artifact.content
 
-                        : "",
+                        : "";
 
 
-
-                size:
+                const size =
 
                     Number.isFinite(
 
@@ -354,17 +421,65 @@ function normalizeArtifacts(
 
                         ? artifact.size
 
-                        : (
+                        : content.length;
 
-                            typeof artifact.content === "string"
 
-                                ? artifact.content.length
+                return {
 
-                                : 0
+                    id:
 
-                        )
+                        artifact.id ||
 
-            })
+                        null,
+
+
+                    name:
+
+                        artifact.name ||
+
+                        "honey-ia-result",
+
+
+                    type:
+
+                        artifact.type ||
+
+                        artifact.mime ||
+
+                        "text/plain",
+
+
+                    mime:
+
+                        artifact.mime ||
+
+                        artifact.type ||
+
+                        "text/plain",
+
+
+                    kind:
+
+                        artifact.kind ||
+
+                        "artifact",
+
+
+                    language:
+
+                        artifact.language ||
+
+                        null,
+
+
+                    content,
+
+
+                    size
+
+                };
+
+            }
 
         );
 
@@ -396,7 +511,6 @@ function normalizeTools(
     }
 
 
-
     return tools
 
         .filter(
@@ -417,8 +531,9 @@ function normalizeTools(
 
                     tool.id ||
 
-                    null,
+                    tool.toolCallId ||
 
+                    null,
 
 
                 name:
@@ -430,7 +545,6 @@ function normalizeTools(
                     null,
 
 
-
                 type:
 
                     tool.type ||
@@ -438,13 +552,24 @@ function normalizeTools(
                     "tool",
 
 
-
                 status:
 
                     tool.status ||
 
-                    "completed",
+                    (
 
+                        tool.success === false
+
+                            ? "failed"
+
+                            : "completed"
+
+                    ),
+
+
+                success:
+
+                    tool.success !== false,
 
 
                 description:
@@ -452,7 +577,6 @@ function normalizeTools(
                     tool.description ||
 
                     "",
-
 
 
                 input:
@@ -464,12 +588,18 @@ function normalizeTools(
                     null,
 
 
-
                 output:
 
                     tool.output ||
 
                     tool.result ||
+
+                    null,
+
+
+                error:
+
+                    tool.error ||
 
                     null
 
@@ -483,7 +613,7 @@ function normalizeTools(
 
 /*
 ==========================================================
-BUILD AI RESULT
+NORMALIZE AI RESULT
 ==========================================================
 */
 
@@ -509,8 +639,12 @@ function normalizeAIResult(
         "";
 
 
-
     return {
+
+        success:
+
+            result?.success !== false,
+
 
         response:
 
@@ -518,16 +652,32 @@ function normalizeAIResult(
 
                 ? response
 
-                : String(response || ""),
+                : String(
 
+                    response || ""
+
+                ),
 
 
         agent:
 
             result?.agent ||
 
-            fallbackAgentId,
+            {
 
+                id:
+
+                    fallbackAgentId,
+
+                name:
+
+                    "Honey IA",
+
+                emoji:
+
+                    "🤖"
+
+            },
 
 
         artifacts:
@@ -537,7 +687,6 @@ function normalizeAIResult(
                 result?.artifacts
 
             ),
-
 
 
         tools:
@@ -553,13 +702,11 @@ function normalizeAIResult(
             ),
 
 
-
         routing:
 
             result?.routing ||
 
             null,
-
 
 
         usage:
@@ -569,10 +716,16 @@ function normalizeAIResult(
             null,
 
 
-
         latency:
 
             result?.latency ||
+
+            null,
+
+
+        error:
+
+            result?.error ||
 
             null
 
@@ -595,11 +748,54 @@ function validateUserId(
 
 ){
 
-    if(!userId){
+    if(
+
+        userId === undefined ||
+
+        userId === null ||
+
+        String(userId).trim() === ""
+
+    ){
 
         throw new Error(
 
             "Utilizador não autenticado."
+
+        );
+
+    }
+
+}
+
+
+
+/*
+==========================================================
+VALIDATE CONVERSATION
+==========================================================
+*/
+
+
+function validateConversationId(
+
+    conversationId
+
+){
+
+    if(
+
+        conversationId === undefined ||
+
+        conversationId === null ||
+
+        String(conversationId).trim() === ""
+
+    ){
+
+        throw new Error(
+
+            "conversationId é obrigatório."
 
         );
 
@@ -631,13 +827,11 @@ export async function getOrCreateConversation(
     );
 
 
-
     const conversationId =
 
         options.conversationId ||
 
         null;
-
 
 
     const agentId =
@@ -649,16 +843,39 @@ export async function getOrCreateConversation(
         );
 
 
+    const workspaceContext =
+
+        normalizeWorkspaceContext(
+
+            options.workspaceContext ||
+
+            {
+
+                workspace:
+
+                    options.workspace ||
+
+                    DEFAULT_WORKSPACE
+
+            }
+
+        );
+
 
     const workspace =
 
-        typeof options.workspace === "string" &&
+        workspaceContext.workspace ||
 
-        options.workspace.trim()
+        DEFAULT_WORKSPACE;
 
-            ?
 
-            options.workspace
+    const title =
+
+        typeof options.title === "string" &&
+
+        options.title.trim()
+
+            ? options.title
 
                 .trim()
 
@@ -666,14 +883,11 @@ export async function getOrCreateConversation(
 
                     0,
 
-                    100
+                    200
 
                 )
 
-            :
-
-            "main";
-
+            : "Nova Conversa";
 
 
     const conversation =
@@ -690,16 +904,11 @@ export async function getOrCreateConversation(
 
                 workspace,
 
-                title:
-
-                    options.title ||
-
-                    "Nova Conversa"
+                title
 
             }
 
         );
-
 
 
     if(!conversation){
@@ -711,7 +920,6 @@ export async function getOrCreateConversation(
         );
 
     }
-
 
 
     return conversation;
@@ -744,17 +952,11 @@ export async function getConversationHistory(
     );
 
 
+    validateConversationId(
 
-    if(!conversationId){
+        conversationId
 
-        throw new Error(
-
-            "conversationId é obrigatório."
-
-        );
-
-    }
-
+    );
 
 
     const history =
@@ -780,7 +982,6 @@ export async function getConversationHistory(
         );
 
 
-
     if(!history){
 
         throw new Error(
@@ -790,7 +991,6 @@ export async function getConversationHistory(
         );
 
     }
-
 
 
     return history;
@@ -821,7 +1021,6 @@ export async function listConversations(
     );
 
 
-
     return chat.getConversations(
 
         userId,
@@ -832,10 +1031,11 @@ export async function listConversations(
 
                 normalizeHistoryLimit(
 
-                    options.limit || 50
+                    options.limit ||
+
+                    50
 
                 ),
-
 
 
             includeArchived:
@@ -843,10 +1043,17 @@ export async function listConversations(
                 options.includeArchived === true,
 
 
-
             agentId:
 
-                options.agentId || null
+                options.agentId
+
+                    ? normalizeAgentId(
+
+                        options.agentId
+
+                    )
+
+                    : null
 
         }
 
@@ -882,6 +1089,12 @@ export async function saveUserMessage(
     );
 
 
+    validateConversationId(
+
+        conversationId
+
+    );
+
 
     const prompt =
 
@@ -890,7 +1103,6 @@ export async function saveUserMessage(
             content
 
         );
-
 
 
     if(!prompt){
@@ -902,7 +1114,6 @@ export async function saveUserMessage(
         );
 
     }
-
 
 
     const message =
@@ -926,7 +1137,6 @@ export async function saveUserMessage(
         );
 
 
-
     if(!message){
 
         throw new Error(
@@ -936,7 +1146,6 @@ export async function saveUserMessage(
         );
 
     }
-
 
 
     return message;
@@ -971,6 +1180,12 @@ export async function saveAssistantMessage(
     );
 
 
+    validateConversationId(
+
+        conversationId
+
+    );
+
 
     const response =
 
@@ -981,13 +1196,11 @@ export async function saveAssistantMessage(
         );
 
 
-
     if(!response){
 
         return null;
 
     }
-
 
 
     const message =
@@ -1011,7 +1224,6 @@ export async function saveAssistantMessage(
         );
 
 
-
     if(!message){
 
         throw new Error(
@@ -1023,7 +1235,6 @@ export async function saveAssistantMessage(
     }
 
 
-
     return message;
 
 }
@@ -1032,7 +1243,7 @@ export async function saveAssistantMessage(
 
 /*
 ==========================================================
-BUILD ORCHESTRATOR HISTORY
+BUILD AI HISTORY
 ==========================================================
 */
 
@@ -1054,13 +1265,11 @@ export async function getAIHistory(
     );
 
 
-
     if(!conversationId){
 
         return [];
 
     }
-
 
 
     return chat.buildAIHistory(
@@ -1076,6 +1285,56 @@ export async function getAIHistory(
         )
 
     );
+
+}
+
+
+
+/*
+==========================================================
+BUILD WORKSPACE CONTEXT
+==========================================================
+*/
+
+
+function buildContext(
+
+    workspaceContext,
+
+    userId,
+
+    conversationId
+
+){
+
+    const context =
+
+        normalizeWorkspaceContext(
+
+            workspaceContext
+
+        );
+
+
+    context.userId =
+
+        String(
+
+            userId
+
+        );
+
+
+    context.conversationId =
+
+        String(
+
+            conversationId
+
+        );
+
+
+    return context;
 
 }
 
@@ -1115,7 +1374,6 @@ export async function processChat(
     } = options;
 
 
-
     /*
     ------------------------------------------------------
     AUTHENTICATION
@@ -1128,7 +1386,6 @@ export async function processChat(
         userId
 
     );
-
 
 
     /*
@@ -1147,7 +1404,6 @@ export async function processChat(
         );
 
 
-
     if(!normalizedPrompt){
 
         throw new Error(
@@ -1157,7 +1413,6 @@ export async function processChat(
         );
 
     }
-
 
 
     /*
@@ -1176,7 +1431,6 @@ export async function processChat(
         );
 
 
-
     /*
     ------------------------------------------------------
     MODE
@@ -1192,6 +1446,21 @@ export async function processChat(
 
         );
 
+
+    /*
+    ------------------------------------------------------
+    WORKSPACE
+    ------------------------------------------------------
+    */
+
+
+    const normalizedContext =
+
+        normalizeWorkspaceContext(
+
+            workspaceContext
+
+        );
 
 
     /*
@@ -1215,22 +1484,22 @@ export async function processChat(
 
                     normalizedAgentId,
 
-                workspace:
+                workspaceContext:
 
-                    workspaceContext?.workspace ||
-
-                    "main"
+                    normalizedContext
 
             }
 
         );
 
 
-
     const activeConversationId =
 
-        conversation._id.toString();
+        String(
 
+            conversation._id
+
+        );
 
 
     /*
@@ -1251,7 +1520,6 @@ export async function processChat(
             historyLimit
 
         );
-
 
 
     /*
@@ -1276,34 +1544,24 @@ export async function processChat(
         );
 
 
-
     /*
     ------------------------------------------------------
-    ORCHESTRATOR CONTEXT
+    BUILD FINAL CONTEXT
     ------------------------------------------------------
     */
 
 
-    const normalizedContext =
+    const finalContext =
 
-        normalizeWorkspaceContext(
+        buildContext(
 
-            workspaceContext
+            normalizedContext,
+
+            userId,
+
+            activeConversationId
 
         );
-
-
-
-    normalizedContext.conversationId =
-
-        activeConversationId;
-
-
-
-    normalizedContext.userId =
-
-        userId.toString();
-
 
 
     /*
@@ -1316,52 +1574,44 @@ export async function processChat(
     let result;
 
 
-
     try{
 
         result =
 
-            await orchestratorinstance
+            await orchestratorinstance.processRequest({
 
-                .processRequest({
+                userPrompt:
 
-                    userPrompt:
-
-                        normalizedPrompt,
+                    normalizedPrompt,
 
 
+                agentId:
 
-                    agentId:
-
-                        normalizedAgentId,
-
+                    normalizedAgentId,
 
 
-                    history,
+                history,
 
 
+                workspaceContext:
 
-                    workspaceContext:
-
-                        normalizedContext,
-
+                    finalContext,
 
 
-                    userMemory:
+                userMemory:
 
-                        normalizeMemory(
+                    normalizeMemory(
 
-                            memory
+                        memory
 
-                        ),
+                    ),
 
 
+                mode:
 
-                    mode:
+                    normalizedMode
 
-                        normalizedMode
-
-                });
+            });
 
     }
 
@@ -1376,16 +1626,14 @@ export async function processChat(
         );
 
 
-
         throw error;
 
     }
 
 
-
     /*
     ------------------------------------------------------
-    NORMALIZE AI RESULT
+    NORMALIZE RESULT
     ------------------------------------------------------
     */
 
@@ -1401,27 +1649,46 @@ export async function processChat(
         );
 
 
+    /*
+    ------------------------------------------------------
+    ORCHESTRATOR FAILURE
+    ------------------------------------------------------
+    */
 
-    const answer =
+    if(
 
-        aiResult.response;
+        aiResult.success === false
 
+    ){
+
+        throw new Error(
+
+            aiResult.error ||
+
+            "A Honey IA não conseguiu processar o pedido."
+
+        );
+
+    }
 
 
     /*
     ------------------------------------------------------
-    AI RESPONSE VALIDATION
+    RESPONSE
     ------------------------------------------------------
     */
 
 
-    if(
+    const answer =
 
-        !answer ||
+        normalizePrompt(
 
-        !answer.trim()
+            aiResult.response
 
-    ){
+        );
+
+
+    if(!answer){
 
         throw new Error(
 
@@ -1430,7 +1697,6 @@ export async function processChat(
         );
 
     }
-
 
 
     /*
@@ -1455,7 +1721,6 @@ export async function processChat(
         );
 
 
-
     /*
     ------------------------------------------------------
     FINAL RESULT
@@ -1465,35 +1730,45 @@ export async function processChat(
 
     return {
 
-        success:true,
+        success:
+
+            true,
 
 
-
-        conversation:{
+        conversation: {
 
             id:
 
                 activeConversationId,
 
+
             title:
 
                 conversation.title,
 
+
             agentId:
 
-                conversation.agentId,
+                conversation.agentId ||
+
+
+                normalizedAgentId,
+
 
             workspace:
 
-                conversation.workspace
+                conversation.workspace ||
+
+                finalContext.workspace ||
+
+                DEFAULT_WORKSPACE
 
         },
 
 
+        message: {
 
-        message:{
-
-            user:{
+            user: {
 
                 id:
 
@@ -1501,13 +1776,16 @@ export async function processChat(
 
                     null,
 
+
                 role:
 
                     "user",
 
+
                 content:
 
                     normalizedPrompt,
+
 
                 createdAt:
 
@@ -1518,8 +1796,7 @@ export async function processChat(
             },
 
 
-
-            assistant:{
+            assistant: {
 
                 id:
 
@@ -1527,13 +1804,16 @@ export async function processChat(
 
                     null,
 
+
                 role:
 
                     "assistant",
 
+
                 content:
 
                     answer,
+
 
                 createdAt:
 
@@ -1546,71 +1826,34 @@ export async function processChat(
         },
 
 
-
         response:
 
             answer,
 
-
-
-        /*
-        ----------------------------------------------
-        AGENT
-        ----------------------------------------------
-        */
 
         agent:
 
             aiResult.agent,
 
 
-
-        /*
-        ----------------------------------------------
-        ROUTING
-        ----------------------------------------------
-        */
-
         routing:
 
             aiResult.routing,
 
-
-
-        /*
-        ----------------------------------------------
-        TOOLS
-        ----------------------------------------------
-        */
 
         tools:
 
             aiResult.tools,
 
 
-
-        /*
-        ----------------------------------------------
-        ARTIFACTS
-        ----------------------------------------------
-        */
-
         artifacts:
 
             aiResult.artifacts,
 
 
-
-        /*
-        ----------------------------------------------
-        TELEMETRY
-        ----------------------------------------------
-        */
-
         latency:
 
             aiResult.latency,
-
 
 
         usage:
@@ -1661,8 +1904,13 @@ export async function processLiveChat(
     } = options;
 
 
-
     try{
+
+        /*
+        --------------------------------------------------
+        AUTHENTICATION
+        --------------------------------------------------
+        */
 
 
         validateUserId(
@@ -1672,6 +1920,12 @@ export async function processLiveChat(
         );
 
 
+        /*
+        --------------------------------------------------
+        PROMPT
+        --------------------------------------------------
+        */
+
 
         const normalizedPrompt =
 
@@ -1680,7 +1934,6 @@ export async function processLiveChat(
                 prompt
 
             );
-
 
 
         if(!normalizedPrompt){
@@ -1694,6 +1947,12 @@ export async function processLiveChat(
         }
 
 
+        /*
+        --------------------------------------------------
+        AGENT
+        --------------------------------------------------
+        */
+
 
         const normalizedAgentId =
 
@@ -1703,6 +1962,21 @@ export async function processLiveChat(
 
             );
 
+
+        /*
+        --------------------------------------------------
+        WORKSPACE
+        --------------------------------------------------
+        */
+
+
+        const normalizedContext =
+
+            normalizeWorkspaceContext(
+
+                workspaceContext
+
+            );
 
 
         /*
@@ -1726,22 +2000,22 @@ export async function processLiveChat(
 
                         normalizedAgentId,
 
-                    workspace:
+                    workspaceContext:
 
-                        workspaceContext?.workspace ||
-
-                        "main"
+                        normalizedContext
 
                 }
 
             );
 
 
-
         const activeConversationId =
 
-            conversation._id.toString();
+            String(
 
+                conversation._id
+
+            );
 
 
         /*
@@ -1764,7 +2038,6 @@ export async function processLiveChat(
             );
 
 
-
         /*
         --------------------------------------------------
         SAVE USER MESSAGE
@@ -1784,48 +2057,40 @@ export async function processLiveChat(
 
                 normalizedAgentId
 
-        );
-
+            );
 
 
         /*
         --------------------------------------------------
-        CONTEXT
+        FINAL CONTEXT
         --------------------------------------------------
         */
 
 
-        const normalizedContext =
+        const finalContext =
 
-            normalizeWorkspaceContext(
+            buildContext(
 
-                workspaceContext
+                normalizedContext,
+
+                userId,
+
+                activeConversationId
 
             );
 
 
-
-        normalizedContext.conversationId =
-
-            activeConversationId;
-
-
-
-        normalizedContext.userId =
-
-            userId.toString();
-
-
-
         /*
         --------------------------------------------------
-        STREAM STATE
+        RESPONSE STATE
         --------------------------------------------------
         */
 
 
         let fullResponse = "";
 
+
+        let completed = false;
 
 
         /*
@@ -1835,14 +2100,13 @@ export async function processLiveChat(
         */
 
 
-        await orchestratorinstance
+        const result =
 
-            .processStream({
+            await orchestratorinstance.processStream({
 
                 userPrompt:
 
                     normalizedPrompt,
-
 
 
                 agentId:
@@ -1850,15 +2114,12 @@ export async function processLiveChat(
                     normalizedAgentId,
 
 
-
                 history,
-
 
 
                 workspaceContext:
 
-                    normalizedContext,
-
+                    finalContext,
 
 
                 userMemory:
@@ -1870,110 +2131,125 @@ export async function processLiveChat(
                     ),
 
 
-
                 mode:
 
                     "live",
 
 
+                onChunk:
 
-                onChunk:(chunk)=>{
+                    (chunk) => {
 
+                        if(
 
-                    if(
+                            typeof chunk ===
 
-                        typeof chunk ===
+                            "string"
 
-                        "string"
+                        ){
 
-                    ){
+                            fullResponse +=
 
-                        fullResponse +=
+                                chunk;
 
-                            chunk;
-
-                    }
-
-
-
-                    if(
-
-                        typeof onChunk ===
-
-                        "function"
-
-                    ){
-
-                        onChunk(
-
-                            chunk
-
-                        );
-
-                    }
-
-
-                },
-
-
-
-                onComplete:async(result)=>{
-
-
-                    try{
-
-
-                        const aiResult =
-
-                            normalizeAIResult(
-
-                                {
-
-                                    ...result,
-
-                                    response:
-
-                                        fullResponse ||
-
-                                        result?.response ||
-
-                                        result?.resposta ||
-
-                                        result?.answer ||
-
-                                        result?.content ||
-
-                                        ""
-
-                                },
-
-                                normalizedAgentId
-
-                            );
-
-
-
-                        const answer =
-
-                            aiResult.response;
-
-
-
-                        let assistantMessage =
-
-                            null;
-
+                        }
 
 
                         if(
 
-                            answer &&
+                            typeof onChunk ===
 
-                            answer.trim()
+                            "function"
 
                         ){
 
-                            assistantMessage =
+                            onChunk(
+
+                                chunk
+
+                            );
+
+                        }
+
+                    },
+
+
+                onComplete:
+
+                    async (orchestratorResult) => {
+
+                        try{
+
+                            const aiResult =
+
+                                normalizeAIResult(
+
+                                    {
+
+                                        ...orchestratorResult,
+
+                                        response:
+
+                                            fullResponse ||
+
+                                            orchestratorResult?.response ||
+
+                                            ""
+
+                                    },
+
+                                    normalizedAgentId
+
+                                );
+
+
+                            if(
+
+                                aiResult.success ===
+
+                                false
+
+                            ){
+
+                                throw new Error(
+
+                                    aiResult.error ||
+
+                                    "A Honey IA não conseguiu concluir a resposta."
+
+                                );
+
+                            }
+
+
+                            const answer =
+
+                                normalizePrompt(
+
+                                    aiResult.response
+
+                                );
+
+
+                            if(!answer){
+
+                                throw new Error(
+
+                                    "A Honey IA não devolveu uma resposta válida."
+
+                                );
+
+                            }
+
+
+                            /*
+                            ----------------------------------
+                            SAVE ASSISTANT
+                            ----------------------------------
+                            */
+
+
+                            const assistantMessage =
 
                                 await saveAssistantMessage(
 
@@ -1987,64 +2263,162 @@ export async function processLiveChat(
 
                                 );
 
+
+                            completed = true;
+
+
+                            /*
+                            ----------------------------------
+                            CALLBACK
+                            ----------------------------------
+                            */
+
+
+                            if(
+
+                                typeof onComplete ===
+
+                                "function"
+
+                            ){
+
+                                await onComplete({
+
+                                    success:
+
+                                        true,
+
+
+                                    conversationId:
+
+                                        activeConversationId,
+
+
+                                    conversation: {
+
+                                        id:
+
+                                            activeConversationId,
+
+
+                                        title:
+
+                                            conversation.title,
+
+
+                                        agentId:
+
+                                            conversation.agentId ||
+
+                                            normalizedAgentId,
+
+
+                                        workspace:
+
+                                            conversation.workspace ||
+
+                                            finalContext.workspace ||
+
+                                            DEFAULT_WORKSPACE
+
+                                    },
+
+
+                                    userMessage,
+
+
+                                    assistantMessage,
+
+
+                                    response:
+
+                                        answer,
+
+
+                                    agent:
+
+                                        aiResult.agent,
+
+
+                                    routing:
+
+                                        aiResult.routing,
+
+
+                                    tools:
+
+                                        aiResult.tools,
+
+
+                                    artifacts:
+
+                                        aiResult.artifacts,
+
+
+                                    latency:
+
+                                        aiResult.latency,
+
+
+                                    usage:
+
+                                        aiResult.usage
+
+                                });
+
+                            }
+
                         }
 
+                        catch(error){
+
+                            console.error(
+
+                                "LIVE SAVE ERROR:",
+
+                                error
+
+                            );
 
 
-                        if(
+                            if(
 
-                            typeof onComplete ===
+                                typeof onError ===
 
-                            "function"
+                                "function"
 
-                        ){
+                            ){
 
-                            await onComplete({
+                                await onError(
 
-                                success:true,
+                                    error
 
+                                );
 
+                            }
 
-                                ...aiResult,
+                            else{
 
+                                throw error;
 
-
-                                response:
-
-                                    answer,
-
-
-
-                                conversationId:
-
-                                    activeConversationId,
-
-
-
-                                userMessage,
-
-
-
-                                assistantMessage
-
-                            });
+                            }
 
                         }
 
+                    },
 
-                    }
 
-                    catch(error){
+                onError:
 
+                    async (error) => {
 
                         console.error(
 
-                            "LIVE SAVE ERROR:",
+                            "LIVE ORCHESTRATOR ERROR:",
 
                             error
 
                         );
-
 
 
                         if(
@@ -2055,7 +2429,7 @@ export async function processLiveChat(
 
                         ){
 
-                            onError(
+                            await onError(
 
                                 error
 
@@ -2063,53 +2437,66 @@ export async function processLiveChat(
 
                         }
 
-
                     }
-
-
-                },
-
-
-
-                onError:(error)=>{
-
-
-                    console.error(
-
-                        "LIVE ORCHESTRATOR ERROR:",
-
-                        error
-
-                    );
-
-
-
-                    if(
-
-                        typeof onError ===
-
-                        "function"
-
-                    ){
-
-                        onError(
-
-                            error
-
-                        );
-
-                    }
-
-
-                }
 
             });
 
 
+        /*
+        --------------------------------------------------
+        FALLBACK COMPLETION
+        --------------------------------------------------
+        */
+
+
+        if(
+
+            !completed &&
+
+            result?.success === false
+
+        ){
+
+            const error =
+
+                new Error(
+
+                    result.error ||
+
+                    "A Honey IA não conseguiu processar o pedido."
+
+                );
+
+
+            if(
+
+                typeof onError ===
+
+                "function"
+
+            ){
+
+                await onError(
+
+                    error
+
+                );
+
+                return;
+
+            }
+
+
+            throw error;
+
+        }
+
+
+        return result;
+
     }
 
     catch(error){
-
 
         console.error(
 
@@ -2120,7 +2507,6 @@ export async function processLiveChat(
         );
 
 
-
         if(
 
             typeof onError ===
@@ -2129,16 +2515,16 @@ export async function processLiveChat(
 
         ){
 
-            onError(
+            await onError(
 
                 error
 
             );
 
+
             return;
 
         }
-
 
 
         throw error;
@@ -2151,7 +2537,7 @@ export async function processLiveChat(
 
 /*
 ==========================================================
-ARCHIVE
+ARCHIVE CONVERSATION
 ==========================================================
 */
 
@@ -2171,6 +2557,12 @@ export async function archiveConversation(
     );
 
 
+    validateConversationId(
+
+        conversationId
+
+    );
+
 
     return chat.archiveConversation(
 
@@ -2186,7 +2578,7 @@ export async function archiveConversation(
 
 /*
 ==========================================================
-RESTORE
+RESTORE CONVERSATION
 ==========================================================
 */
 
@@ -2206,6 +2598,12 @@ export async function restoreConversation(
     );
 
 
+    validateConversationId(
+
+        conversationId
+
+    );
+
 
     return chat.restoreConversation(
 
@@ -2221,7 +2619,7 @@ export async function restoreConversation(
 
 /*
 ==========================================================
-DELETE
+DELETE CONVERSATION
 ==========================================================
 */
 
@@ -2240,6 +2638,12 @@ export async function deleteConversation(
 
     );
 
+
+    validateConversationId(
+
+        conversationId
+
+    );
 
 
     return chat.deleteConversation(
@@ -2277,6 +2681,31 @@ export async function updateConversation(
 
     );
 
+
+    validateConversationId(
+
+        conversationId
+
+    );
+
+
+    if(
+
+        !updates ||
+
+        typeof updates !== "object" ||
+
+        Array.isArray(updates)
+
+    ){
+
+        throw new Error(
+
+            "Dados de atualização inválidos."
+
+        );
+
+    }
 
 
     return chat.updateConversation(
