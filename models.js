@@ -2,13 +2,16 @@
 ==========================================
 HONEY IA OS
 DATABASE MODELS
-MongoDB User & AI Workspace System
-V7.0
-Production Authentication Architecture
+MongoDB Enterprise AI Workspace System
+V10.0
+Authentication + Agents + Tools + Artifacts
+Production Architecture
 ==========================================
 */
 
+
 import mongoose from "mongoose";
+
 
 
 /*
@@ -18,13 +21,8 @@ AUTHENTICATION + PROFILE + BILLING
 ==========================================
 */
 
-const UserSchema = new mongoose.Schema({
 
-    /*
-    --------------------------------------
-    BASIC PROFILE
-    --------------------------------------
-    */
+const UserSchema = new mongoose.Schema({
 
     firstName: {
 
@@ -73,12 +71,6 @@ const UserSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    LOCAL AUTHENTICATION
-    --------------------------------------
-    */
-
     password: {
 
         type: String,
@@ -87,12 +79,6 @@ const UserSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    AUTH PROVIDER
-    --------------------------------------
-    */
 
     provider: {
 
@@ -113,12 +99,6 @@ const UserSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    GOOGLE AUTHENTICATION
-    --------------------------------------
-    */
-
     googleId: {
 
         type: String,
@@ -132,12 +112,6 @@ const UserSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    PROFILE
-    --------------------------------------
-    */
-
     avatar: {
 
         type: String,
@@ -148,12 +122,6 @@ const UserSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    EMAIL VERIFICATION
-    --------------------------------------
-    */
 
     emailVerified: {
 
@@ -184,12 +152,6 @@ const UserSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    HONEY IA PLAN
-    --------------------------------------
-    */
-
     plan: {
 
         type: String,
@@ -211,12 +173,6 @@ const UserSchema = new mongoose.Schema({
     },
 
 
-    /*
-    --------------------------------------
-    ACCOUNT STATUS
-    --------------------------------------
-    */
-
     isActive: {
 
         type: Boolean,
@@ -227,12 +183,6 @@ const UserSchema = new mongoose.Schema({
 
     },
 
-
-    /*
-    --------------------------------------
-    LOGIN INFORMATION
-    --------------------------------------
-    */
 
     lastLogin: {
 
@@ -248,12 +198,6 @@ const UserSchema = new mongoose.Schema({
 
 });
 
-
-/*
-==========================================
-USER INDEXES
-==========================================
-*/
 
 UserSchema.index({
 
@@ -295,12 +239,14 @@ UserSchema.index({
 });
 
 
+
 /*
 ==========================================
 SESSION MODEL
 PERSISTENT LOGIN SYSTEM
 ==========================================
 */
+
 
 const SessionSchema = new mongoose.Schema({
 
@@ -406,11 +352,13 @@ SessionSchema.index(
 );
 
 
+
 /*
 ==========================================
 CONVERSATION MODEL
 ==========================================
 */
+
 
 const ConversationSchema = new mongoose.Schema({
 
@@ -466,6 +414,19 @@ const ConversationSchema = new mongoose.Schema({
     },
 
 
+    projectId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Project",
+
+        default: null,
+
+        index: true
+
+    },
+
+
     archived: {
 
         type: Boolean,
@@ -492,11 +453,24 @@ ConversationSchema.index({
 });
 
 
+ConversationSchema.index({
+
+    userId: 1,
+
+    agentId: 1,
+
+    updatedAt: -1
+
+});
+
+
+
 /*
 ==========================================
 MESSAGE MODEL
 ==========================================
 */
+
 
 const MessageSchema = new mongoose.Schema({
 
@@ -505,6 +479,19 @@ const MessageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
 
         ref: "Conversation",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    userId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "User",
 
         required: true,
 
@@ -536,7 +523,9 @@ const MessageSchema = new mongoose.Schema({
 
             "assistant",
 
-            "system"
+            "system",
+
+            "tool"
 
         ],
 
@@ -550,6 +539,30 @@ const MessageSchema = new mongoose.Schema({
         type: String,
 
         required: true
+
+    },
+
+
+    toolCallId: {
+
+        type: String,
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    toolId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Tool",
+
+        default: null,
+
+        index: true
 
     }
 
@@ -569,11 +582,23 @@ MessageSchema.index({
 });
 
 
+MessageSchema.index({
+
+    userId: 1,
+
+    createdAt: -1
+
+});
+
+
+
 /*
 ==========================================
 MEMORY MODEL
+USER LONG-TERM MEMORY
 ==========================================
 */
+
 
 const MemorySchema = new mongoose.Schema({
 
@@ -622,6 +647,27 @@ const MemorySchema = new mongoose.Schema({
 
         max: 10
 
+    },
+
+
+    source: {
+
+        type: String,
+
+        enum: [
+
+            "user",
+
+            "conversation",
+
+            "agent",
+
+            "system"
+
+        ],
+
+        default: "system"
+
     }
 
 }, {
@@ -644,11 +690,13 @@ MemorySchema.index({
 });
 
 
+
 /*
 ==========================================
 DOCUMENT MODEL
 ==========================================
 */
+
 
 const DocumentSchema = new mongoose.Schema({
 
@@ -738,6 +786,15 @@ const DocumentSchema = new mongoose.Schema({
 
         index: true
 
+    },
+
+
+    metadata: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
     }
 
 }, {
@@ -756,11 +813,13 @@ DocumentSchema.index({
 });
 
 
+
 /*
 ==========================================
 PROJECT MODEL
 ==========================================
 */
+
 
 const ProjectSchema = new mongoose.Schema({
 
@@ -848,11 +907,1176 @@ ProjectSchema.index({
 });
 
 
+
+/*
+==========================================
+AGENT MODEL
+AI AGENT REGISTRY
+==========================================
+*/
+
+
+const AgentSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    IDENTITY
+    --------------------------------------
+    */
+
+    agentId: {
+
+        type: String,
+
+        required: true,
+
+        unique: true,
+
+        trim: true,
+
+        maxlength: 150,
+
+        index: true
+
+    },
+
+
+    name: {
+
+        type: String,
+
+        required: true,
+
+        trim: true,
+
+        maxlength: 150
+
+    },
+
+
+    description: {
+
+        type: String,
+
+        default: "",
+
+        maxlength: 1000
+
+    },
+
+
+    /*
+    --------------------------------------
+    CATEGORY
+    --------------------------------------
+    */
+
+    category: {
+
+        type: String,
+
+        default: "general",
+
+        trim: true,
+
+        maxlength: 100,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    SYSTEM PROMPT
+    --------------------------------------
+    */
+
+    systemPrompt: {
+
+        type: String,
+
+        default: ""
+
+    },
+
+
+    /*
+    --------------------------------------
+    MODEL CONFIGURATION
+    --------------------------------------
+    */
+
+    model: {
+
+        type: String,
+
+        default: null,
+
+        trim: true
+
+    },
+
+
+    temperature: {
+
+        type: Number,
+
+        default: 0.7,
+
+        min: 0,
+
+        max: 2
+
+    },
+
+
+    maxTokens: {
+
+        type: Number,
+
+        default: 4096,
+
+        min: 1,
+
+        max: 100000
+
+    },
+
+
+    /*
+    --------------------------------------
+    TOOL ACCESS
+    --------------------------------------
+    */
+
+    tools: [{
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Tool"
+
+    }],
+
+
+    /*
+    --------------------------------------
+    OWNERSHIP
+    --------------------------------------
+    */
+
+    ownerId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "User",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    scope: {
+
+        type: String,
+
+        enum: [
+
+            "system",
+
+            "user",
+
+            "workspace"
+
+        ],
+
+        default: "system",
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    STATUS
+    --------------------------------------
+    */
+
+    active: {
+
+        type: Boolean,
+
+        default: true,
+
+        index: true
+
+    },
+
+
+    version: {
+
+        type: String,
+
+        default: "1.0.0"
+
+    },
+
+
+    metadata: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
+    }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+AgentSchema.index({
+
+    ownerId: 1,
+
+    active: 1
+
+});
+
+
+AgentSchema.index({
+
+    category: 1,
+
+    active: 1
+
+});
+
+
+
+/*
+==========================================
+TOOL MODEL
+AI TOOL REGISTRY
+==========================================
+*/
+
+
+const ToolSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    IDENTITY
+    --------------------------------------
+    */
+
+    toolId: {
+
+        type: String,
+
+        required: true,
+
+        unique: true,
+
+        trim: true,
+
+        maxlength: 150,
+
+        index: true
+
+    },
+
+
+    name: {
+
+        type: String,
+
+        required: true,
+
+        trim: true,
+
+        maxlength: 150
+
+    },
+
+
+    description: {
+
+        type: String,
+
+        required: true,
+
+        maxlength: 2000
+
+    },
+
+
+    /*
+    --------------------------------------
+    TOOL CATEGORY
+    --------------------------------------
+    */
+
+    category: {
+
+        type: String,
+
+        default: "general",
+
+        trim: true,
+
+        maxlength: 100,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    EXECUTION TYPE
+    --------------------------------------
+    */
+
+    type: {
+
+        type: String,
+
+        enum: [
+
+            "internal",
+
+            "api",
+
+            "code",
+
+            "http",
+
+            "generator",
+
+            "system"
+
+        ],
+
+        default: "internal",
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    INPUT SCHEMA
+    --------------------------------------
+    */
+
+    inputSchema: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {
+
+            type: "object",
+
+            properties: {}
+
+        }
+
+    },
+
+
+    /*
+    --------------------------------------
+    OUTPUT SCHEMA
+    --------------------------------------
+    */
+
+    outputSchema: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {
+
+            type: "object"
+
+        }
+
+    },
+
+
+    /*
+    --------------------------------------
+    EXECUTOR
+    --------------------------------------
+    */
+
+    executor: {
+
+        type: String,
+
+        default: null,
+
+        trim: true,
+
+        maxlength: 200
+
+    },
+
+
+    /*
+    --------------------------------------
+    PERMISSIONS
+    --------------------------------------
+    */
+
+    requiresAuth: {
+
+        type: Boolean,
+
+        default: true
+
+    },
+
+
+    requiresConfirmation: {
+
+        type: Boolean,
+
+        default: false
+
+    },
+
+
+    /*
+    --------------------------------------
+    OWNERSHIP
+    --------------------------------------
+    */
+
+    ownerId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "User",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    scope: {
+
+        type: String,
+
+        enum: [
+
+            "system",
+
+            "user",
+
+            "workspace"
+
+        ],
+
+        default: "system",
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    STATUS
+    --------------------------------------
+    */
+
+    active: {
+
+        type: Boolean,
+
+        default: true,
+
+        index: true
+
+    },
+
+
+    version: {
+
+        type: String,
+
+        default: "1.0.0"
+
+    },
+
+
+    metadata: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
+    }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+ToolSchema.index({
+
+    category: 1,
+
+    active: 1
+
+});
+
+
+ToolSchema.index({
+
+    ownerId: 1,
+
+    active: 1
+
+});
+
+
+ToolSchema.index({
+
+    type: 1,
+
+    active: 1
+
+});
+
+
+
+/*
+==========================================
+AGENT TOOL PERMISSION MODEL
+EXPLICIT AGENT ↔ TOOL ACCESS
+==========================================
+*/
+
+
+const AgentToolSchema = new mongoose.Schema({
+
+    agentId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Agent",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    toolId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Tool",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    enabled: {
+
+        type: Boolean,
+
+        default: true,
+
+        index: true
+
+    },
+
+
+    priority: {
+
+        type: Number,
+
+        default: 0,
+
+        index: true
+
+    },
+
+
+    configuration: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
+    }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+AgentToolSchema.index({
+
+    agentId: 1,
+
+    toolId: 1
+
+}, {
+
+    unique: true
+
+});
+
+
+
+/*
+==========================================
+TOOL EXECUTION MODEL
+AUDIT + EXECUTION HISTORY
+==========================================
+*/
+
+
+const ToolExecutionSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    OWNERSHIP
+    --------------------------------------
+    */
+
+    userId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "User",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    conversationId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Conversation",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    messageId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Message",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    AGENT + TOOL
+    --------------------------------------
+    */
+
+    agentId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Agent",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    toolId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Tool",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    toolCallId: {
+
+        type: String,
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    EXECUTION
+    --------------------------------------
+    */
+
+    status: {
+
+        type: String,
+
+        enum: [
+
+            "pending",
+
+            "running",
+
+            "completed",
+
+            "failed",
+
+            "cancelled"
+
+        ],
+
+        default: "pending",
+
+        index: true
+
+    },
+
+
+    input: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
+    },
+
+
+    output: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: null
+
+    },
+
+
+    error: {
+
+        type: String,
+
+        default: null
+
+    },
+
+
+    startedAt: {
+
+        type: Date,
+
+        default: null
+
+    },
+
+
+    completedAt: {
+
+        type: Date,
+
+        default: null
+
+    },
+
+
+    durationMs: {
+
+        type: Number,
+
+        default: null,
+
+        min: 0
+
+    }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+ToolExecutionSchema.index({
+
+    userId: 1,
+
+    createdAt: -1
+
+});
+
+
+ToolExecutionSchema.index({
+
+    conversationId: 1,
+
+    createdAt: -1
+
+});
+
+
+ToolExecutionSchema.index({
+
+    toolId: 1,
+
+    status: 1,
+
+    createdAt: -1
+
+});
+
+
+
+/*
+==========================================
+ARTIFACT MODEL
+AI GENERATED OUTPUTS
+==========================================
+*/
+
+
+const ArtifactSchema = new mongoose.Schema({
+
+    /*
+    --------------------------------------
+    OWNERSHIP
+    --------------------------------------
+    */
+
+    userId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "User",
+
+        required: true,
+
+        index: true
+
+    },
+
+
+    projectId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Project",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    conversationId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Conversation",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    messageId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Message",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    PRODUCER
+    --------------------------------------
+    */
+
+    agentId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Agent",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    toolId: {
+
+        type: mongoose.Schema.Types.ObjectId,
+
+        ref: "Tool",
+
+        default: null,
+
+        index: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    ARTIFACT IDENTITY
+    --------------------------------------
+    */
+
+    name: {
+
+        type: String,
+
+        required: true,
+
+        trim: true,
+
+        maxlength: 300
+
+    },
+
+
+    type: {
+
+        type: String,
+
+        enum: [
+
+            "text",
+
+            "code",
+
+            "html",
+
+            "css",
+
+            "javascript",
+
+            "json",
+
+            "csv",
+
+            "xlsx",
+
+            "pdf",
+
+            "image",
+
+            "video",
+
+            "audio",
+
+            "document",
+
+            "archive",
+
+            "other"
+
+        ],
+
+        default: "other",
+
+        index: true
+
+    },
+
+
+    mimeType: {
+
+        type: String,
+
+        default: "application/octet-stream",
+
+        trim: true
+
+    },
+
+
+    /*
+    --------------------------------------
+    CONTENT
+    --------------------------------------
+    */
+
+    content: {
+
+        type: String,
+
+        default: null
+
+    },
+
+
+    url: {
+
+        type: String,
+
+        default: null
+
+    },
+
+
+    size: {
+
+        type: Number,
+
+        default: 0,
+
+        min: 0
+
+    },
+
+
+    /*
+    --------------------------------------
+    STATUS
+    --------------------------------------
+    */
+
+    status: {
+
+        type: String,
+
+        enum: [
+
+            "pending",
+
+            "processing",
+
+            "completed",
+
+            "failed"
+
+        ],
+
+        default: "completed",
+
+        index: true
+
+    },
+
+
+    error: {
+
+        type: String,
+
+        default: null
+
+    },
+
+
+    metadata: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
+    }
+
+}, {
+
+    timestamps: true
+
+});
+
+
+ArtifactSchema.index({
+
+    userId: 1,
+
+    createdAt: -1
+
+});
+
+
+ArtifactSchema.index({
+
+    projectId: 1,
+
+    createdAt: -1
+
+});
+
+
+ArtifactSchema.index({
+
+    conversationId: 1,
+
+    createdAt: -1
+
+});
+
+
+ArtifactSchema.index({
+
+    agentId: 1,
+
+    createdAt: -1
+
+});
+
+
+
 /*
 ==========================================
 PLUGIN MODEL
+EXTERNAL / SYSTEM INTEGRATIONS
 ==========================================
 */
+
 
 const PluginSchema = new mongoose.Schema({
 
@@ -886,6 +2110,24 @@ const PluginSchema = new mongoose.Schema({
 
         index: true
 
+    },
+
+
+    version: {
+
+        type: String,
+
+        default: "1.0.0"
+
+    },
+
+
+    configuration: {
+
+        type: mongoose.Schema.Types.Mixed,
+
+        default: {}
+
     }
 
 }, {
@@ -902,11 +2144,13 @@ PluginSchema.index({
 });
 
 
+
 /*
 ==========================================
 MODEL EXPORTS
 ==========================================
 */
+
 
 export const User = mongoose.model(
 
@@ -967,6 +2211,51 @@ export const Project = mongoose.model(
     "Project",
 
     ProjectSchema
+
+);
+
+
+export const Agent = mongoose.model(
+
+    "Agent",
+
+    AgentSchema
+
+);
+
+
+export const Tool = mongoose.model(
+
+    "Tool",
+
+    ToolSchema
+
+);
+
+
+export const AgentTool = mongoose.model(
+
+    "AgentTool",
+
+    AgentToolSchema
+
+);
+
+
+export const ToolExecution = mongoose.model(
+
+    "ToolExecution",
+
+    ToolExecutionSchema
+
+);
+
+
+export const Artifact = mongoose.model(
+
+    "Artifact",
+
+    ArtifactSchema
 
 );
 
