@@ -3,9 +3,11 @@
 HONEY IA OS
 CHAT CONTROLLER
 HTTP Chat API
-V1.0
-Persistent Conversation System
+V2.0
+Production Conversation System
 JWT Authentication Compatible
+Live Chat / SSE
+MongoDB
 ==========================================
 */
 
@@ -26,13 +28,6 @@ function getAuthenticatedUserId(
     req
 
 ){
-
-    /*
-    ------------------------------------------------------
-    Compatibilidade com diferentes formatos usados
-    pelo middleware de autenticação.
-    ------------------------------------------------------
-    */
 
     const user =
 
@@ -68,6 +63,13 @@ function getAuthenticatedUserId(
 
 
 
+/*
+==========================================================
+SEND ERROR
+==========================================================
+*/
+
+
 function sendError(
 
     res,
@@ -88,9 +90,7 @@ function sendError(
 
             success:false,
 
-            error:
-
-                message,
+            error:message,
 
             ...extra
 
@@ -98,6 +98,13 @@ function sendError(
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE CONVERSATION ID
+==========================================================
+*/
 
 
 function normalizeConversationId(
@@ -128,6 +135,13 @@ function normalizeConversationId(
 
 }
 
+
+
+/*
+==========================================================
+NORMALIZE AGENT
+==========================================================
+*/
 
 
 function normalizeAgentId(
@@ -166,6 +180,13 @@ function normalizeAgentId(
 
 
 
+/*
+==========================================================
+NORMALIZE LIMIT
+==========================================================
+*/
+
+
 function normalizeLimit(
 
     value,
@@ -199,6 +220,78 @@ function normalizeLimit(
         Math.floor(number),
 
         100
+
+    );
+
+}
+
+
+
+/*
+==========================================================
+NORMALIZE BODY OBJECT
+==========================================================
+*/
+
+
+function normalizeObject(
+
+    value
+
+){
+
+    if(
+
+        !value ||
+
+        typeof value !== "object" ||
+
+        Array.isArray(value)
+
+    ){
+
+        return {};
+
+    }
+
+
+
+    return value;
+
+}
+
+
+
+/*
+==========================================================
+NORMALIZE MEMORY
+==========================================================
+*/
+
+
+function normalizeMemory(
+
+    value
+
+){
+
+    if(
+
+        !Array.isArray(value)
+
+    ){
+
+        return [];
+
+    }
+
+
+
+    return value.slice(
+
+        0,
+
+        50
 
     );
 
@@ -251,15 +344,13 @@ export async function createConversation(
 
 
 
-        const {
+        const body =
 
-            title,
+            normalizeObject(
 
-            agentId,
+                req.body
 
-            workspace
-
-        } = req.body || {};
+            );
 
 
 
@@ -271,21 +362,49 @@ export async function createConversation(
 
                 {
 
+                    conversationId:null,
+
+
+
                     agentId:
 
                         normalizeAgentId(
 
-                            agentId
+                            body.agentId
 
                         ),
 
-                    title,
 
-                    workspace
+
+                    workspace:
+
+                        body.workspace,
+
+
+
+                    title:
+
+                        body.title
 
                 }
 
             );
+
+
+
+        if(!conversation){
+
+            return sendError(
+
+                res,
+
+                500,
+
+                "Não foi possível criar a conversa."
+
+            );
+
+        }
 
 
 
@@ -323,12 +442,11 @@ export async function createConversation(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível criar a conversa."
 
         );
-
 
     }
 
@@ -403,15 +521,25 @@ export async function listConversations(
 
                     includeArchived:
 
-                        req.query?.archived === "true",
+                        req.query?.archived ===
+
+                        "true",
 
 
 
                     agentId:
 
-                        req.query?.agentId ||
+                        typeof req.query?.agentId ===
 
-                        null
+                        "string"
+
+                            ?
+
+                            req.query.agentId
+
+                            :
+
+                            null
 
                 }
 
@@ -453,12 +581,11 @@ export async function listConversations(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível carregar as conversas."
 
         );
-
 
     }
 
@@ -468,7 +595,7 @@ export async function listConversations(
 
 /*
 ==========================================================
-GET CONVERSATION
+GET SINGLE CONVERSATION
 GET /api/chat/conversations/:conversationId
 ==========================================================
 */
@@ -563,6 +690,22 @@ export async function getConversation(
 
 
 
+        if(!result){
+
+            return sendError(
+
+                res,
+
+                404,
+
+                "Conversa não encontrada."
+
+            );
+
+        }
+
+
+
         return res.json({
 
             success:true,
@@ -585,7 +728,7 @@ export async function getConversation(
 
         console.error(
 
-            "[CHAT GET ERROR]",
+            "[CHAT GET CONVERSATION ERROR]",
 
             error
 
@@ -593,9 +736,17 @@ export async function getConversation(
 
 
 
+        const message =
+
+            error?.message ||
+
+            "Não foi possível carregar a conversa.";
+
+
+
         const status =
 
-            error.message ===
+            message ===
 
                 "Conversa não encontrada."
 
@@ -615,12 +766,184 @@ export async function getConversation(
 
             status,
 
-            error.message ||
-
-                "Não foi possível carregar a conversa."
+            message
 
         );
 
+    }
+
+}
+
+
+
+/*
+==========================================================
+GET CONVERSATION MESSAGES
+GET /api/chat/conversations/:conversationId/messages
+==========================================================
+*/
+
+
+export async function getMessages(
+
+    req,
+
+    res
+
+){
+
+    try{
+
+
+        const userId =
+
+            getAuthenticatedUserId(
+
+                req
+
+            );
+
+
+
+        if(!userId){
+
+            return sendError(
+
+                res,
+
+                401,
+
+                "Utilizador não autenticado."
+
+            );
+
+        }
+
+
+
+        const conversationId =
+
+            normalizeConversationId(
+
+                req.params?.conversationId
+
+            );
+
+
+
+        if(!conversationId){
+
+            return sendError(
+
+                res,
+
+                400,
+
+                "conversationId é obrigatório."
+
+            );
+
+        }
+
+
+
+        const history =
+
+            await chatservice.getConversationHistory(
+
+                userId,
+
+                conversationId,
+
+                {
+
+                    limit:
+
+                        normalizeLimit(
+
+                            req.query?.limit,
+
+                            100
+
+                        )
+
+                }
+
+            );
+
+
+
+        if(!history){
+
+            return sendError(
+
+                res,
+
+                404,
+
+                "Conversa não encontrada."
+
+            );
+
+        }
+
+
+
+        return res.json({
+
+            success:true,
+
+            conversationId,
+
+            total:
+
+                Array.isArray(
+
+                    history.messages
+
+                )
+
+                    ?
+
+                    history.messages.length
+
+                    :
+
+                    0,
+
+            messages:
+
+                history.messages || []
+
+        });
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "[CHAT GET MESSAGES ERROR]",
+
+            error
+
+        );
+
+
+
+        return sendError(
+
+            res,
+
+            500,
+
+            error?.message ||
+
+                "Não foi possível carregar as mensagens."
+
+        );
 
     }
 
@@ -675,7 +998,11 @@ export async function sendMessage(
 
         const body =
 
-            req.body || {};
+            normalizeObject(
+
+                req.body
+
+            );
 
 
 
@@ -743,31 +1070,39 @@ export async function sendMessage(
 
                 workspaceContext:
 
-                    body.workspaceContext || {},
+                    normalizeObject(
+
+                        body.workspaceContext
+
+                    ),
 
 
 
                 memory:
 
-                    Array.isArray(
+                    normalizeMemory(
 
                         body.memory
 
-                    )
-
-                        ?
-
-                        body.memory
-
-                        :
-
-                        [],
+                    ),
 
 
 
                 mode:
 
-                    body.mode || "chat",
+                    typeof body.mode ===
+
+                    "string" &&
+
+                    body.mode.trim()
+
+                        ?
+
+                        body.mode.trim()
+
+                        :
+
+                        "chat",
 
 
 
@@ -782,6 +1117,46 @@ export async function sendMessage(
                     )
 
             });
+
+
+
+        if(
+
+            !result ||
+
+            result.success === false
+
+        ){
+
+            return sendError(
+
+                res,
+
+                500,
+
+                result?.error ||
+
+                    "Não foi possível processar a mensagem.",
+
+                result?.conversation
+
+                    ?
+
+                    {
+
+                        conversation:
+
+                            result.conversation
+
+                    }
+
+                    :
+
+                    {}
+
+            );
+
+        }
 
 
 
@@ -809,7 +1184,7 @@ export async function sendMessage(
 
         const message =
 
-            error.message ||
+            error?.message ||
 
             "Não foi possível processar a mensagem.";
 
@@ -833,7 +1208,7 @@ export async function sendMessage(
 
 
 
-        if(
+        else if(
 
             message ===
 
@@ -847,7 +1222,7 @@ export async function sendMessage(
 
 
 
-        if(
+        else if(
 
             message ===
 
@@ -871,7 +1246,6 @@ export async function sendMessage(
 
         );
 
-
     }
 
 }
@@ -880,8 +1254,9 @@ export async function sendMessage(
 
 /*
 ==========================================================
-LIVE MESSAGE
+LIVE CHAT
 POST /api/chat/live
+Server-Sent Events
 ==========================================================
 */
 
@@ -922,7 +1297,11 @@ export async function sendLiveMessage(
 
     const body =
 
-        req.body || {};
+        normalizeObject(
+
+            req.body
+
+        );
 
 
 
@@ -963,11 +1342,15 @@ export async function sendLiveMessage(
     */
 
 
+    res.status(200);
+
+
+
     res.setHeader(
 
         "Content-Type",
 
-        "text/event-stream"
+        "text/event-stream; charset=utf-8"
 
     );
 
@@ -977,7 +1360,7 @@ export async function sendLiveMessage(
 
         "Cache-Control",
 
-        "no-cache"
+        "no-cache, no-transform"
 
     );
 
@@ -993,13 +1376,28 @@ export async function sendLiveMessage(
 
 
 
+    res.setHeader(
+
+        "X-Accel-Buffering",
+
+        "no"
+
+    );
+
+
+
     res.flushHeaders?.();
 
 
 
-    let streamClosed =
+    /*
+    ------------------------------------------------------
+    STREAM STATE
+    ------------------------------------------------------
+    */
 
-        false;
+
+    let streamClosed = false;
 
 
 
@@ -1021,6 +1419,91 @@ export async function sendLiveMessage(
 
     );
 
+
+
+    /*
+    ------------------------------------------------------
+    SSE WRITER
+    ------------------------------------------------------
+    */
+
+
+    const sendEvent =
+
+        (payload)=>{
+
+
+            if(
+
+                streamClosed ||
+
+                res.writableEnded ||
+
+                res.destroyed
+
+            ){
+
+                return false;
+
+            }
+
+
+
+            try{
+
+
+                res.write(
+
+                    `data: ${JSON.stringify(
+
+                        payload
+
+                    )}\n\n`
+
+                );
+
+
+
+                return true;
+
+
+            }
+
+            catch(error){
+
+
+                streamClosed = true;
+
+
+
+                return false;
+
+            }
+
+        };
+
+
+
+    /*
+    ------------------------------------------------------
+    INITIAL EVENT
+    ------------------------------------------------------
+    */
+
+
+    sendEvent({
+
+        connected:true
+
+    });
+
+
+
+    /*
+    ------------------------------------------------------
+    PROCESS STREAM
+    ------------------------------------------------------
+    */
 
 
     try{
@@ -1058,25 +1541,21 @@ export async function sendLiveMessage(
 
             workspaceContext:
 
-                body.workspaceContext || {},
+                normalizeObject(
+
+                    body.workspaceContext
+
+                ),
 
 
 
             memory:
 
-                Array.isArray(
+                normalizeMemory(
 
                     body.memory
 
-                )
-
-                    ?
-
-                    body.memory
-
-                    :
-
-                    [],
+                ),
 
 
 
@@ -1097,9 +1576,9 @@ export async function sendLiveMessage(
 
                 if(
 
-                    streamClosed ||
+                    typeof chunk !==
 
-                    res.writableEnded
+                    "string"
 
                 ){
 
@@ -1109,17 +1588,13 @@ export async function sendLiveMessage(
 
 
 
-                res.write(
+                sendEvent({
 
-                    `data: ${JSON.stringify({
+                    text:
 
-                        text:
+                        chunk
 
-                            chunk
-
-                    })}\n\n`
-
-                );
+                });
 
 
             },
@@ -1143,37 +1618,63 @@ export async function sendLiveMessage(
 
 
 
-                res.write(
+                sendEvent({
 
-                    `data: ${JSON.stringify({
-
-                        done:true,
-
-                        conversationId:
-
-                            result?.conversationId ||
-
-                            null,
-
-                        agent:
-
-                            result?.agent ||
-
-                            null,
-
-                        latency:
-
-                            result?.latency ||
-
-                            null
-
-                    })}\n\n`
-
-                );
+                    done:true,
 
 
 
-                res.end();
+                    conversationId:
+
+                        result?.conversationId ||
+
+                        null,
+
+
+
+                    agent:
+
+                        result?.agent ||
+
+                        null,
+
+
+
+                    response:
+
+                        result?.response ||
+
+                        "",
+
+
+
+                    latency:
+
+                        result?.latency ||
+
+                        null,
+
+
+
+                    usage:
+
+                        result?.usage ||
+
+                        null
+
+                });
+
+
+
+                if(
+
+                    !res.writableEnded
+
+                ){
+
+                    res.end();
+
+                }
 
 
             },
@@ -1197,23 +1698,27 @@ export async function sendLiveMessage(
 
 
 
-                res.write(
+                sendEvent({
 
-                    `data: ${JSON.stringify({
+                    error:
 
-                        error:
+                        error?.message ||
 
-                            error?.message ||
+                        "Erro no modo Live."
 
-                            "Erro no modo Live."
-
-                    })}\n\n`
-
-                );
+                });
 
 
 
-                res.end();
+                if(
+
+                    !res.writableEnded
+
+                ){
+
+                    res.end();
+
+                }
 
 
             }
@@ -1250,24 +1755,27 @@ export async function sendLiveMessage(
 
 
 
-        res.write(
+        sendEvent({
 
-            `data: ${JSON.stringify({
+            error:
 
-                error:
+                error?.message ||
 
-                    error.message ||
+                "Erro no modo Live."
 
-                    "Erro no modo Live."
-
-            })}\n\n`
-
-        );
+        });
 
 
 
-        res.end();
+        if(
 
+            !res.writableEnded
+
+        ){
+
+            res.end();
+
+        }
 
     }
 
@@ -1348,7 +1856,11 @@ export async function updateConversation(
 
         const updates =
 
-            req.body || {};
+            normalizeObject(
+
+                req.body
+
+            );
 
 
 
@@ -1412,12 +1924,11 @@ export async function updateConversation(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível atualizar a conversa."
 
         );
-
 
     }
 
@@ -1428,7 +1939,7 @@ export async function updateConversation(
 /*
 ==========================================================
 ARCHIVE CONVERSATION
-PATCH /api/chat/conversations/:conversationId/archive
+POST /api/chat/conversations/:conversationId/archive
 ==========================================================
 */
 
@@ -1554,12 +2065,11 @@ export async function archiveConversation(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível arquivar a conversa."
 
         );
-
 
     }
 
@@ -1570,7 +2080,7 @@ export async function archiveConversation(
 /*
 ==========================================================
 RESTORE CONVERSATION
-PATCH /api/chat/conversations/:conversationId/restore
+POST /api/chat/conversations/:conversationId/restore
 ==========================================================
 */
 
@@ -1696,12 +2206,11 @@ export async function restoreConversation(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível restaurar a conversa."
 
         );
-
 
     }
 
@@ -1840,12 +2349,11 @@ export async function deleteConversation(
 
             500,
 
-            error.message ||
+            error?.message ||
 
                 "Não foi possível eliminar a conversa."
 
         );
-
 
     }
 
@@ -1855,7 +2363,7 @@ export async function deleteConversation(
 
 /*
 ==========================================================
-EXPORTS
+DEFAULT EXPORT
 ==========================================================
 */
 
@@ -1867,6 +2375,8 @@ export default {
     listConversations,
 
     getConversation,
+
+    getMessages,
 
     sendMessage,
 
