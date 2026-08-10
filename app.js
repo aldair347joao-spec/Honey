@@ -1,7 +1,7 @@
 /*
 ==========================================
 HONEY IA
-CORE ENGINE V9.0
+CORE ENGINE V10.0
 Workspace + 30 Agents Integration
 Enterprise Application Controller
 
@@ -11,6 +11,13 @@ AUTH DELEGATED TO auth.js + login.js
 
 PREMIUM AUTH FLOW
 AUTH V6 COMPATIBLE
+
+NAVIGATION ENGINE
+Responsive Sidebar
+Dynamic Workspace Navigation
+Dashboard Actions
+Agent Navigation
+Project Navigation
 ==========================================
 */
 
@@ -280,7 +287,7 @@ export const Store = {
 
         workspace:
 
-            "main",
+            "dashboard",
 
 
 
@@ -385,6 +392,12 @@ class HoneyAIApp {
 
 
 
+        this.navigationInitialized =
+
+            false;
+
+
+
         this.authSubscription =
 
             null;
@@ -436,13 +449,6 @@ class HoneyAIApp {
 
 
 
-        /*
-        --------------------------------------
-        AUTH V6
-        --------------------------------------
-        */
-
-
         try{
 
 
@@ -492,13 +498,6 @@ class HoneyAIApp {
 
 
 
-        /*
-        --------------------------------------
-        AUTHENTICATED
-        --------------------------------------
-        */
-
-
         if(
 
             authmanager.isAuthenticated()
@@ -520,13 +519,6 @@ class HoneyAIApp {
 
         }
 
-
-
-        /*
-        --------------------------------------
-        NOT AUTHENTICATED
-        --------------------------------------
-        */
 
 
         this.handleUnauthenticatedUser();
@@ -689,13 +681,6 @@ class HoneyAIApp {
     bindAuthEvents(){
 
 
-        /*
-        --------------------------------------
-        AUTH MANAGER
-        --------------------------------------
-        */
-
-
         this.authSubscription =
 
             authmanager.subscribe(
@@ -737,13 +722,6 @@ class HoneyAIApp {
 
 
 
-        /*
-        --------------------------------------
-        LOGIN EVENT
-        --------------------------------------
-        */
-
-
         document.addEventListener(
 
             "user-login",
@@ -778,13 +756,6 @@ class HoneyAIApp {
 
         );
 
-
-
-        /*
-        --------------------------------------
-        LOGOUT EVENT
-        --------------------------------------
-        */
 
 
         document.addEventListener(
@@ -842,6 +813,13 @@ class HoneyAIApp {
             studioApp.style.display =
 
                 "flex";
+
+
+            studioApp.classList.add(
+
+                "auth-ready"
+
+            );
 
 
         }
@@ -936,19 +914,31 @@ class HoneyAIApp {
 
 
 
+        loader.classList.add(
+
+            "is-hidden"
+
+        );
+
+
+
         setTimeout(
 
             () => {
 
 
-                loader.style.display =
+                if(loader){
 
-                    "none";
+                    loader.style.display =
+
+                        "none";
+
+                }
 
 
             },
 
-            300
+            450
 
         );
 
@@ -991,33 +981,173 @@ class HoneyAIApp {
 
 
 
+        /*
+        --------------------------------------------------
+        ATUALIZAR REFERÊNCIAS DOM
+        --------------------------------------------------
+        */
+
+
+        this.initDOMReferences();
+
+
+
+        /*
+        --------------------------------------------------
+        DASHBOARD
+        --------------------------------------------------
+        */
+
+
         this.initDashboard();
 
+
+
+        /*
+        --------------------------------------------------
+        EVENTOS PRINCIPAIS
+        --------------------------------------------------
+        */
 
 
         this.initEventListeners();
 
 
 
+        /*
+        --------------------------------------------------
+        MARKDOWN
+        --------------------------------------------------
+        */
+
+
         this.initMarkdownEngine();
 
+
+
+        /*
+        --------------------------------------------------
+        MODALS / UI
+        --------------------------------------------------
+        */
 
 
         this.initModalsAndUiActions();
 
 
 
+        /*
+        --------------------------------------------------
+        AGENTS
+        --------------------------------------------------
+        */
+
+
         this.initAgents();
 
+
+
+        /*
+        --------------------------------------------------
+        AGENT STUDIO
+        --------------------------------------------------
+        */
 
 
         this.initAgentStudio();
 
 
 
+        /*
+        --------------------------------------------------
+        RESTAURAR WORKSPACE
+        --------------------------------------------------
+        */
+
+
+        this.initializeInitialWorkspace();
+
+
+
         console.log(
 
             "🚀 Honey IA Workspace carregado."
+
+        );
+
+
+    }
+
+
+
+    /*
+    ======================================================
+    INITIAL WORKSPACE
+    ======================================================
+    */
+
+
+    initializeInitialWorkspace(){
+
+
+        const hash =
+
+            window.location.hash
+
+                .replace(
+
+                    "#",
+
+                    ""
+
+                )
+
+                .trim();
+
+
+
+        const validView =
+
+            document.getElementById(
+
+                hash
+
+            );
+
+
+
+        if(
+
+            hash &&
+
+            validView &&
+
+            validView.classList.contains(
+
+                "workspace-view"
+
+            )
+
+        ){
+
+
+            this.showWorkspaceView(
+
+                hash
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
+        this.showWorkspaceView(
+
+            "dashboard"
 
         );
 
@@ -1139,13 +1269,6 @@ class HoneyAIApp {
 
 
 
-        /*
-        --------------------------------------
-        USER BOX
-        --------------------------------------
-        */
-
-
         if(userBox){
 
 
@@ -1232,13 +1355,6 @@ class HoneyAIApp {
 
         }
 
-
-
-        /*
-        --------------------------------------
-        PLAN BADGE
-        --------------------------------------
-        */
 
 
         if(planBadge){
@@ -1480,19 +1596,40 @@ class HoneyAIApp {
         ){
 
 
-            dashboard.init(
-
-                "dashboardContainer"
-
-            );
+            try{
 
 
+                dashboard.init(
 
-            console.log(
+                    "dashboardContainer"
 
-                "📊 Dashboard carregado"
+                );
 
-            );
+
+
+                console.log(
+
+                    "📊 Dashboard carregado"
+
+                );
+
+
+            }
+
+
+            catch(error){
+
+
+                console.error(
+
+                    "Dashboard initialization error:",
+
+                    error
+
+                );
+
+
+            }
 
 
         }
@@ -1535,19 +1672,40 @@ class HoneyAIApp {
         ){
 
 
-            agentsui.init(
-
-                "agentsContainer"
-
-            );
+            try{
 
 
+                agentsui.init(
 
-            console.log(
+                    "agentsContainer"
 
-                "🤖 Agents UI conectado"
+                );
 
-            );
+
+
+                console.log(
+
+                    "🤖 Agents UI conectado"
+
+                );
+
+
+            }
+
+
+            catch(error){
+
+
+                console.error(
+
+                    "Agents UI initialization error:",
+
+                    error
+
+                );
+
+
+            }
 
 
         }
@@ -1640,19 +1798,40 @@ class HoneyAIApp {
         ){
 
 
-            agentstudio.init(
-
-                "agentStudioContainer"
-
-            );
+            try{
 
 
+                agentstudio.init(
 
-            console.log(
+                    "agentStudioContainer"
 
-                "⚡ Agent Studio conectado"
+                );
 
-            );
+
+
+                console.log(
+
+                    "⚡ Agent Studio conectado"
+
+                );
+
+
+            }
+
+
+            catch(error){
+
+
+                console.error(
+
+                    "Agent Studio initialization error:",
+
+                    error
+
+                );
+
+
+            }
 
 
         }
@@ -1670,7 +1849,28 @@ class HoneyAIApp {
         ){
 
 
-            agentstudio.listenEvents();
+            try{
+
+
+                agentstudio.listenEvents();
+
+
+            }
+
+
+            catch(error){
+
+
+                console.error(
+
+                    "Agent Studio event error:",
+
+                    error
+
+                );
+
+
+            }
 
 
         }
@@ -1893,6 +2093,13 @@ class HoneyAIApp {
     initEventListeners(){
 
 
+        /*
+        --------------------------------------------------
+        CHAT SEND
+        --------------------------------------------------
+        */
+
+
         if(this.btnSend){
 
 
@@ -1950,9 +2157,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         FILE
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2021,9 +2228,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         VOICE
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2046,9 +2253,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
-        MOBILE
-        --------------------------------------
+        --------------------------------------------------
+        MOBILE SIDEBAR
+        --------------------------------------------------
         */
 
 
@@ -2059,9 +2266,19 @@ class HoneyAIApp {
 
                 "click",
 
-                () =>
+                event => {
 
-                    this.openSidebar()
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+
+                    this.openSidebar();
+
+
+                }
 
             );
 
@@ -2077,9 +2294,19 @@ class HoneyAIApp {
 
                 "click",
 
-                () =>
+                event => {
 
-                    this.closeSidebar()
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+
+                    this.closeSidebar();
+
+
+                }
 
             );
 
@@ -2095,9 +2322,17 @@ class HoneyAIApp {
 
                 "click",
 
-                () =>
+                event => {
 
-                    this.closeSidebar()
+
+                    event.preventDefault();
+
+
+
+                    this.closeSidebar();
+
+
+                }
 
             );
 
@@ -2107,9 +2342,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         PREVIEW
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2144,9 +2379,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         NAVIGATION
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2155,9 +2390,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         USER BOX
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2198,9 +2433,9 @@ class HoneyAIApp {
 
 
         /*
-        --------------------------------------
+        --------------------------------------------------
         MODES
-        --------------------------------------
+        --------------------------------------------------
         */
 
 
@@ -2245,7 +2480,7 @@ class HoneyAIApp {
 
     /*
     ======================================================
-    NAVIGATION
+    NAVIGATION ENGINE
     ======================================================
     */
 
@@ -2253,90 +2488,305 @@ class HoneyAIApp {
     initNavigation(){
 
 
-        const navItems =
+        if(
 
-            document.querySelectorAll(
+            this.navigationInitialized
 
-                ".nav-item"
+        )
 
-            );
-
-
-
-        navItems.forEach(
-
-            item => {
-
-
-                item.addEventListener(
-
-                    "click",
-
-                    event => {
-
-
-                        event.preventDefault();
+        return;
 
 
 
-                        const target =
+        this.navigationInitialized =
 
-                            item.dataset.target;
-
-
-
-                        if(!target)
-
-                        return;
+            true;
 
 
 
-                        this.showWorkspaceView(
+        /*
+        --------------------------------------------------
+        EVENT DELEGATION
+        --------------------------------------------------
 
-                            target
+        Em vez de ligar eventos apenas aos elementos
+        existentes no momento da inicialização, usamos
+        um único listener no documento.
 
-                        );
-
-
-
-                        navItems.forEach(
-
-                            nav =>
-
-                                nav.classList.remove(
-
-                                    "active"
-
-                                )
-
-                        );
+        Isso permite que Dashboard, Agents ou outros
+        módulos criem novos elementos data-target
+        posteriormente sem perder a navegação.
+        --------------------------------------------------
+        */
 
 
+        document.addEventListener(
 
-                        item.classList.add(
+            "click",
 
-                            "active"
-
-                        );
-
+            event => {
 
 
-                        this.closeSidebar();
+                const targetElement =
+
+                    event.target.closest(
+
+                        "[data-target]"
+
+                    );
 
 
 
-                        history.replaceState(
+                if(!targetElement)
 
-                            null,
-
-                            "",
-
-                            `#${target}`
-
-                        );
+                return;
 
 
-                    }
+
+                /*
+                ------------------------------------------
+                IGNORAR ELEMENTOS FORA DO STUDIO
+                ------------------------------------------
+                */
+
+
+                const studioApp =
+
+                    document.getElementById(
+
+                        "studioApp"
+
+                    );
+
+
+
+                if(
+
+                    studioApp &&
+
+                    !studioApp.contains(
+
+                        targetElement
+
+                    )
+
+                )
+
+                return;
+
+
+
+                /*
+                ------------------------------------------
+                TARGET
+                ------------------------------------------
+                */
+
+
+                const target =
+
+                    targetElement.dataset.target;
+
+
+
+                if(!target)
+
+                return;
+
+
+
+                const targetView =
+
+                    document.getElementById(
+
+                        target
+
+                    );
+
+
+
+                if(
+
+                    !targetView ||
+
+                    !targetView.classList.contains(
+
+                        "workspace-view"
+
+                    )
+
+                ){
+
+                    return;
+
+                }
+
+
+
+                /*
+                ------------------------------------------
+                EVITAR NAVEGAÇÃO DUPLICADA
+                ------------------------------------------
+                */
+
+
+                event.preventDefault();
+
+
+
+                /*
+                ------------------------------------------
+                MOSTRAR VIEW
+                ------------------------------------------
+                */
+
+
+                this.showWorkspaceView(
+
+                    target
+
+                );
+
+
+
+                /*
+                ------------------------------------------
+                FECHAR SIDEBAR
+                ------------------------------------------
+                */
+
+
+                this.closeSidebar();
+
+
+
+                /*
+                ------------------------------------------
+                HASH
+                ------------------------------------------
+                */
+
+
+                try{
+
+
+                    history.replaceState(
+
+                        null,
+
+                        "",
+
+                        `#${target}`
+
+                    );
+
+
+                }
+
+
+                catch(error){
+
+
+                    console.warn(
+
+                        "Navigation history error:",
+
+                        error
+
+                    );
+
+
+                }
+
+
+            }
+
+        );
+
+
+
+        /*
+        --------------------------------------------------
+        CRIAR PROJETO
+        --------------------------------------------------
+        */
+
+
+        document.addEventListener(
+
+            "click",
+
+            event => {
+
+
+                const button =
+
+                    event.target.closest(
+
+                        "#btnCreateProject"
+
+                    );
+
+
+
+                if(!button)
+
+                return;
+
+
+
+                event.preventDefault();
+
+
+
+                this.showWorkspaceView(
+
+                    "projects"
+
+                );
+
+
+
+                this.closeSidebar();
+
+
+
+                try{
+
+
+                    history.replaceState(
+
+                        null,
+
+                        "",
+
+                        "#projects"
+
+                    );
+
+
+                }
+
+
+                catch(error){
+
+
+                    console.warn(
+
+                        "Project navigation history error:",
+
+                        error
+
+                    );
+
+
+                }
+
+
+
+                EventBusInstance.emit(
+
+                    "createProjectRequested"
 
                 );
 
@@ -2346,68 +2796,36 @@ class HoneyAIApp {
         );
 
 
-
-        document
-
-            .querySelectorAll(
-
-                "[data-target]"
-
-            )
-
-            .forEach(
-
-                button => {
+        /*
+        --------------------------------------------------
+        ESC
+        --------------------------------------------------
+        */
 
 
-                    if(
+        document.addEventListener(
 
-                        button.classList.contains(
+            "keydown",
 
-                            "nav-item"
-
-                        )
-
-                    )
-
-                    return;
+            event => {
 
 
+                if(
 
-                    button.addEventListener(
+                    event.key === "Escape"
 
-                        "click",
-
-                        () => {
-
-
-                            const target =
-
-                                button.dataset.target;
+                ){
 
 
-
-                            if(target){
-
-
-                                this.showWorkspaceView(
-
-                                    target
-
-                                );
-
-
-                            }
-
-
-                        }
-
-                    );
+                    this.closeSidebar();
 
 
                 }
 
-            );
+
+            }
+
+        );
 
 
     }
@@ -2428,6 +2846,49 @@ class HoneyAIApp {
     ){
 
 
+        if(!target)
+
+        return;
+
+
+
+        const targetView =
+
+            document.getElementById(
+
+                target
+
+            );
+
+
+
+        if(
+
+            !targetView ||
+
+            !targetView.classList.contains(
+
+                "workspace-view"
+
+            )
+
+        ){
+
+
+            console.warn(
+
+                `Workspace view não encontrada: ${target}`
+
+            );
+
+
+            return;
+
+
+        }
+
+
+
         const views =
 
             document.querySelectorAll(
@@ -2443,13 +2904,32 @@ class HoneyAIApp {
             view => {
 
 
+                const isTarget =
+
+                    view.id === target;
+
+
+
                 view.style.display =
 
-                    view.id === target
+                    isTarget
 
                         ? ""
 
                         : "none";
+
+
+                view.setAttribute(
+
+                    "aria-hidden",
+
+                    isTarget
+
+                        ? "false"
+
+                        : "true"
+
+                );
 
 
             }
@@ -2462,7 +2942,7 @@ class HoneyAIApp {
 
             document.querySelectorAll(
 
-                ".nav-item"
+                ".nav-item[data-target]"
 
             );
 
@@ -2509,6 +2989,13 @@ class HoneyAIApp {
         );
 
 
+        console.log(
+
+            `📍 Workspace: ${target}`
+
+        );
+
+
     }
 
 
@@ -2523,27 +3010,61 @@ class HoneyAIApp {
     openSidebar(){
 
 
-        this.sidebar
+        this.initDOMReferences();
 
-            ?.classList
 
-            .add(
+
+        if(this.sidebar){
+
+
+            this.sidebar.classList.add(
 
                 "open"
 
             );
 
 
+            this.sidebar.setAttribute(
 
-        this.sidebarOverlay
+                "aria-hidden",
 
-            ?.classList
+                "false"
 
-            .add(
+            );
+
+
+        }
+
+
+
+        if(this.sidebarOverlay){
+
+
+            this.sidebarOverlay.classList.add(
 
                 "active"
 
             );
+
+
+            this.sidebarOverlay.setAttribute(
+
+                "aria-hidden",
+
+                "false"
+
+            );
+
+
+        }
+
+
+
+        document.body.classList.add(
+
+            "sidebar-open"
+
+        );
 
 
     }
@@ -2553,27 +3074,61 @@ class HoneyAIApp {
     closeSidebar(){
 
 
-        this.sidebar
+        this.initDOMReferences();
 
-            ?.classList
 
-            .remove(
+
+        if(this.sidebar){
+
+
+            this.sidebar.classList.remove(
 
                 "open"
 
             );
 
 
+            this.sidebar.setAttribute(
 
-        this.sidebarOverlay
+                "aria-hidden",
 
-            ?.classList
+                "true"
 
-            .remove(
+            );
+
+
+        }
+
+
+
+        if(this.sidebarOverlay){
+
+
+            this.sidebarOverlay.classList.remove(
 
                 "active"
 
             );
+
+
+            this.sidebarOverlay.setAttribute(
+
+                "aria-hidden",
+
+                "true"
+
+            );
+
+
+        }
+
+
+
+        document.body.classList.remove(
+
+            "sidebar-open"
+
+        );
 
 
     }
@@ -4174,6 +4729,22 @@ class HoneyAIApp {
     ){
 
 
+        if(!this.toastContainer){
+
+
+            this.toastContainer =
+
+                document.getElementById(
+
+                    "toastContainer"
+
+                );
+
+
+        }
+
+
+
         if(!this.toastContainer)
 
         return;
@@ -4367,6 +4938,12 @@ class HoneyAIApp {
 
 
 
+        this.navigationInitialized =
+
+            false;
+
+
+
         this.currentMode =
 
             "chat";
@@ -4381,13 +4958,6 @@ class HoneyAIApp {
 
         this.hideWorkspace();
 
-
-
-        /*
-        --------------------------------------
-        REINITIALIZE LOGIN
-        --------------------------------------
-        */
 
 
         try{
@@ -4485,7 +5055,7 @@ class HoneyAIApp {
 
         console.log(
 
-            "🐝 Honey IA V9.0 iniciado",
+            "🐝 Honey IA V10.0 iniciado",
 
             SESSION_ID
 
