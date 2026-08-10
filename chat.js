@@ -1,10 +1,12 @@
 /*
 ==========================================
 HONEY IA OS
-CHAT DATA SERVICE
-Conversation + Message Management
-V2.0
+CHAT SERVICE
+Conversation + Message + AI Orchestration
+V3.0
 MongoDB Persistent Chat System
+Orchestrator Integration
+Groq Backend Integration
 ==========================================
 */
 
@@ -16,6 +18,9 @@ import {
     Message
 
 } from "./models.js";
+
+
+import orchestrator from "./orchestrator.js";
 
 
 
@@ -114,6 +119,36 @@ function normalizeLimit(limit){
 
 
 
+function normalizeContent(content){
+
+    if(
+
+        typeof content !== "string"
+
+    ){
+
+        return "";
+
+    }
+
+
+
+    return content
+
+        .trim()
+
+        .slice(
+
+            0,
+
+            50000
+
+        );
+
+}
+
+
+
 /*
 ==========================================
 CREATE CONVERSATION
@@ -176,7 +211,13 @@ export async function createConversation(
 
                     .trim()
 
-                    .slice(0,100)
+                    .slice(
+
+                        0,
+
+                        100
+
+                    )
 
                 :
 
@@ -513,7 +554,13 @@ export async function updateConversation(
 
                     .trim()
 
-                    .slice(0,100);
+                    .slice(
+
+                        0,
+
+                        100
+
+                    );
 
         }
 
@@ -929,9 +976,9 @@ export async function saveMessage(
 
         if(
 
-            conversation.agentId === "general" &&
+            normalizedAgentId !==
 
-            normalizedAgentId !== "general"
+            conversation.agentId
 
         ){
 
@@ -945,8 +992,7 @@ export async function saveMessage(
 
         /*
         --------------------------------------
-        Criar título automaticamente a partir
-        da primeira mensagem do utilizador.
+        Criar título automático
         --------------------------------------
         */
 
@@ -1165,7 +1211,6 @@ export async function getMessages(
 
         return [];
 
-
     }
 
 }
@@ -1175,7 +1220,6 @@ export async function getMessages(
 /*
 ==========================================
 GET RECENT MESSAGES
-COMPATIBILITY HELPER
 ==========================================
 */
 
@@ -1298,8 +1342,17 @@ export async function getChatHistory(
 /*
 ==========================================
 BUILD AI HISTORY
+==========================================
+
 Converte mensagens MongoDB para o formato
 esperado pelo Orchestrator.
+
+IMPORTANTE:
+
+O systemPrompt NÃO é colocado aqui.
+
+Cada agente possui o seu próprio systemPrompt
+e o Orchestrator é responsável por aplicá-lo.
 ==========================================
 */
 
@@ -1335,21 +1388,41 @@ export async function buildAIHistory(
 
 
 
-        return messages.map(
+        return messages
 
-            message => ({
+            .filter(
 
-                role:
+                message =>
 
-                    message.role,
+                    [
 
-                content:
+                        "user",
 
-                    message.content
+                        "assistant"
 
-            })
+                    ].includes(
 
-        );
+                        message.role
+
+                    )
+
+            )
+
+            .map(
+
+                message => ({
+
+                    role:
+
+                        message.role,
+
+                    content:
+
+                        message.content
+
+                })
+
+            );
 
 
     }
@@ -1368,6 +1441,605 @@ export async function buildAIHistory(
 
 
         return [];
+
+    }
+
+}
+
+
+
+/*
+==========================================
+SEND MESSAGE TO AI
+==========================================
+
+FLUXO:
+
+User
+ ↓
+MongoDB
+ ↓
+Orchestrator
+ ↓
+Agent Router
+ ↓
+Agent
+ ↓
+System Prompt
+ ↓
+Groq
+ ↓
+Response
+ ↓
+MongoDB
+ ↓
+Application
+==========================================
+*/
+
+
+export async function sendMessage(
+
+    userId,
+
+    conversationId,
+
+    content,
+
+    options = {}
+
+){
+
+    try{
+
+
+        /*
+        --------------------------------------
+        VALIDAR UTILIZADOR
+        --------------------------------------
+        */
+
+        if(!userId){
+
+            return {
+
+                success:false,
+
+                error:"Utilizador não autenticado."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        VALIDAR MENSAGEM
+        --------------------------------------
+        */
+
+        const userContent =
+
+            normalizeContent(
+
+                content
+
+            );
+
+
+
+        if(!userContent){
+
+            return {
+
+                success:false,
+
+                error:"A mensagem não pode estar vazia."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        OBTER / CRIAR CONVERSA
+        --------------------------------------
+        */
+
+        let conversation =
+
+            await getOrCreateConversation(
+
+                userId,
+
+                conversationId,
+
+                {
+
+                    agentId:
+
+                        options.agentId ||
+
+                        "general",
+
+                    workspace:
+
+                        options.workspace ||
+
+                        "main",
+
+                    title:
+
+                        options.title ||
+
+                        "Nova Conversa"
+
+                }
+
+            );
+
+
+
+        if(!conversation){
+
+            return {
+
+                success:false,
+
+                error:"Não foi possível criar ou carregar a conversa."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        AGENTE ATUAL
+        --------------------------------------
+        */
+
+        const requestedAgentId =
+
+            normalizeAgentId(
+
+                options.agentId ||
+
+                conversation.agentId ||
+
+                "general"
+
+            );
+
+
+
+        /*
+        --------------------------------------
+        ATUALIZAR AGENTE DA CONVERSA
+        --------------------------------------
+        */
+
+        if(
+
+            conversation.agentId !==
+
+            requestedAgentId
+
+        ){
+
+            conversation =
+
+                await updateConversation(
+
+                    userId,
+
+                    conversation._id,
+
+                    {
+
+                        agentId:
+
+                            requestedAgentId
+
+                    }
+
+                );
+
+
+
+            if(!conversation){
+
+                return {
+
+                    success:false,
+
+                    error:
+
+                        "Não foi possível atualizar o agente da conversa."
+
+                };
+
+            }
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        SALVAR MENSAGEM DO UTILIZADOR
+        --------------------------------------
+        */
+
+        const userMessage =
+
+            await saveMessage(
+
+                userId,
+
+                conversation._id,
+
+                "user",
+
+                userContent,
+
+                requestedAgentId
+
+            );
+
+
+
+        if(!userMessage){
+
+            return {
+
+                success:false,
+
+                error:
+
+                    "Não foi possível guardar a mensagem."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        CONSTRUIR HISTÓRICO
+        --------------------------------------
+        */
+
+        const history =
+
+            await buildAIHistory(
+
+                userId,
+
+                conversation._id,
+
+                options.historyLimit || 20
+
+            );
+
+
+
+        /*
+        --------------------------------------
+        CONTEXTO DO WORKSPACE
+        --------------------------------------
+        */
+
+        const workspaceContext =
+
+            options.workspaceContext &&
+
+            typeof options.workspaceContext === "object"
+
+                ?
+
+                options.workspaceContext
+
+                :
+
+                null;
+
+
+
+        /*
+        --------------------------------------
+        MEMÓRIA DO UTILIZADOR
+        --------------------------------------
+        */
+
+        const userMemory =
+
+            options.userMemory &&
+
+            typeof options.userMemory === "object"
+
+                ?
+
+                options.userMemory
+
+                :
+
+                null;
+
+
+
+        /*
+        --------------------------------------
+        MODO
+        --------------------------------------
+        */
+
+        const mode =
+
+            typeof options.mode === "string" &&
+
+            options.mode.trim()
+
+                ?
+
+                options.mode.trim()
+
+                :
+
+                "chat";
+
+
+
+        /*
+        --------------------------------------
+        ORCHESTRATOR
+        --------------------------------------
+        */
+
+        const result =
+
+            await orchestrator.processRequest({
+
+                userPrompt:
+
+                    userContent,
+
+                agentId:
+
+                    requestedAgentId,
+
+                history,
+
+                workspaceContext,
+
+                userMemory,
+
+                mode
+
+            });
+
+
+
+        /*
+        --------------------------------------
+        VALIDAR RESPOSTA
+        --------------------------------------
+        */
+
+        if(
+
+            !result ||
+
+            result.success === false
+
+        ){
+
+            console.error(
+
+                "Falha no Orchestrator:",
+
+                result
+
+            );
+
+
+
+            return {
+
+                success:false,
+
+                conversation,
+
+                error:
+
+                    result?.error ||
+
+                    "Não foi possível obter resposta da IA."
+
+            };
+
+        }
+
+
+
+        const aiResponse =
+
+            typeof result.response === "string"
+
+                ?
+
+                result.response.trim()
+
+                :
+
+                "";
+
+
+
+        if(!aiResponse){
+
+            return {
+
+                success:false,
+
+                conversation,
+
+                error:
+
+                    "O agente não retornou uma resposta válida."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        GUARDAR RESPOSTA DO AGENTE
+        --------------------------------------
+        */
+
+        const assistantMessage =
+
+            await saveMessage(
+
+                userId,
+
+                conversation._id,
+
+                "assistant",
+
+                aiResponse,
+
+                requestedAgentId
+
+            );
+
+
+
+        if(!assistantMessage){
+
+            return {
+
+                success:false,
+
+                conversation,
+
+                response:aiResponse,
+
+                error:
+
+                    "A resposta foi gerada, mas não foi possível guardá-la."
+
+            };
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        RESULTADO FINAL
+        --------------------------------------
+        */
+
+        return {
+
+            success:true,
+
+            conversation,
+
+            userMessage,
+
+            assistantMessage,
+
+            agent:
+
+                result.agent ||
+
+                null,
+
+            routing:
+
+                result.routing ||
+
+                null,
+
+            response:
+
+                aiResponse,
+
+            artifacts:
+
+                result.artifacts ||
+
+                [],
+
+            usage:
+
+                result.usage ||
+
+                null,
+
+            latency:
+
+                result.latency ||
+
+                null
+
+        };
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "=========================================="
+
+        );
+
+        console.error(
+
+            "HONEY IA CHAT ERROR"
+
+        );
+
+        console.error(
+
+            error
+
+        );
+
+        console.error(
+
+            "=========================================="
+
+
+
+        );
+
+
+
+        return {
+
+            success:false,
+
+            error:
+
+                error?.message ||
+
+                "Erro interno ao processar a mensagem."
+
+        };
 
     }
 
@@ -1453,7 +2125,6 @@ export async function getOrCreateConversation(
 
         return null;
 
-
     }
 
 }
@@ -1493,6 +2164,8 @@ export default {
 
     buildAIHistory,
 
-    getOrCreateConversation
+    getOrCreateConversation,
+
+    sendMessage
 
 };
