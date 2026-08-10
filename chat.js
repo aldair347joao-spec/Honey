@@ -1,12 +1,11 @@
 /*
 ==========================================
 HONEY IA OS
-CHAT SERVICE
-Conversation + Message + AI Orchestration
-V3.0
+CHAT PERSISTENCE ENGINE
+Conversation + Message Storage
+V4.0
 MongoDB Persistent Chat System
-Orchestrator Integration
-Groq Backend Integration
+Enterprise Conversation Layer
 ==========================================
 */
 
@@ -20,40 +19,124 @@ import {
 } from "./models.js";
 
 
-import orchestrator from "./orchestrator.js";
+
+/*
+==========================================================
+CONFIGURATION
+==========================================================
+*/
+
+
+const DEFAULT_AGENT =
+
+    "general";
+
+
+const DEFAULT_WORKSPACE =
+
+    "main";
+
+
+const DEFAULT_TITLE =
+
+    "Nova Conversa";
+
+
+const DEFAULT_LIMIT =
+
+    20;
+
+
+const MAX_CONTENT_LENGTH =
+
+    50000;
 
 
 
 /*
-==========================================
+==========================================================
 HELPERS
-==========================================
+==========================================================
 */
 
 
-function normalizeAgentId(agentId){
+function normalizeAgentId(
 
-    return (
+    agentId
 
-        typeof agentId === "string" &&
+){
 
-        agentId.trim()
+    if(
 
-    )
+        typeof agentId !== "string" ||
 
-        ?
+        !agentId.trim()
 
-        agentId.trim()
+    ){
 
-        :
+        return DEFAULT_AGENT;
 
-        "general";
+    }
+
+
+
+    return agentId
+
+        .trim()
+
+        .slice(
+
+            0,
+
+            150
+
+        );
 
 }
 
 
 
-function normalizeTitle(title){
+function normalizeWorkspace(
+
+    workspace
+
+){
+
+    if(
+
+        typeof workspace !== "string" ||
+
+        !workspace.trim()
+
+    ){
+
+        return DEFAULT_WORKSPACE;
+
+    }
+
+
+
+    return workspace
+
+        .trim()
+
+        .slice(
+
+            0,
+
+            100
+
+        );
+
+}
+
+
+
+function normalizeTitle(
+
+    title
+
+){
 
     if(
 
@@ -63,7 +146,7 @@ function normalizeTitle(title){
 
     ){
 
-        return "Nova Conversa";
+        return DEFAULT_TITLE;
 
     }
 
@@ -85,7 +168,11 @@ function normalizeTitle(title){
 
 
 
-function normalizeLimit(limit){
+function normalizeLimit(
+
+    limit
+
+){
 
     const value =
 
@@ -101,7 +188,7 @@ function normalizeLimit(limit){
 
     ){
 
-        return 20;
+        return DEFAULT_LIMIT;
 
     }
 
@@ -119,7 +206,11 @@ function normalizeLimit(limit){
 
 
 
-function normalizeContent(content){
+function normalizeContent(
+
+    content
+
+){
 
     if(
 
@@ -141,7 +232,7 @@ function normalizeContent(content){
 
             0,
 
-            50000
+            MAX_CONTENT_LENGTH
 
         );
 
@@ -149,10 +240,90 @@ function normalizeContent(content){
 
 
 
+function normalizeConversationId(
+
+    conversationId
+
+){
+
+    if(
+
+        conversationId === null ||
+
+        conversationId === undefined
+
+    ){
+
+        return null;
+
+    }
+
+
+
+    if(
+
+        typeof conversationId !== "string"
+
+    ){
+
+        return String(
+
+            conversationId
+
+        );
+
+    }
+
+
+
+    const value =
+
+        conversationId.trim();
+
+
+
+    return value || null;
+
+}
+
+
+
+function normalizeRole(
+
+    role
+
+){
+
+    if(
+
+        [
+
+            "user",
+
+            "assistant",
+
+            "system"
+
+        ].includes(role)
+
+    ){
+
+        return role;
+
+    }
+
+
+
+    return null;
+
+}
+
+
+
 /*
-==========================================
+==========================================================
 CREATE CONVERSATION
-==========================================
+==========================================================
 */
 
 
@@ -179,63 +350,35 @@ export async function createConversation(
 
 
 
-        const agentId =
-
-            normalizeAgentId(
-
-                options.agentId
-
-            );
-
-
-
-        const title =
-
-            normalizeTitle(
-
-                options.title
-
-            );
-
-
-
-        const workspace =
-
-            typeof options.workspace === "string" &&
-
-            options.workspace.trim()
-
-                ?
-
-                options.workspace
-
-                    .trim()
-
-                    .slice(
-
-                        0,
-
-                        100
-
-                    )
-
-                :
-
-                "main";
-
-
-
         const conversation =
 
             new Conversation({
 
                 userId,
 
-                title,
+                title:
 
-                agentId,
+                    normalizeTitle(
 
-                workspace,
+                        options.title
+
+                    ),
+
+                agentId:
+
+                    normalizeAgentId(
+
+                        options.agentId
+
+                    ),
+
+                workspace:
+
+                    normalizeWorkspace(
+
+                        options.workspace
+
+                    ),
 
                 archived:false
 
@@ -257,7 +400,7 @@ export async function createConversation(
 
         console.error(
 
-            "Erro ao criar conversa:",
+            "[CHAT CREATE ERROR]",
 
             error
 
@@ -267,7 +410,6 @@ export async function createConversation(
 
         return null;
 
-
     }
 
 }
@@ -275,9 +417,9 @@ export async function createConversation(
 
 
 /*
-==========================================
+==========================================================
 GET CONVERSATION
-==========================================
+==========================================================
 */
 
 
@@ -312,7 +454,11 @@ export async function getConversation(
 
                 _id:
 
-                    conversationId,
+                    normalizeConversationId(
+
+                        conversationId
+
+                    ),
 
                 userId
 
@@ -330,7 +476,7 @@ export async function getConversation(
 
         console.error(
 
-            "Erro ao procurar conversa:",
+            "[CHAT GET CONVERSATION ERROR]",
 
             error
 
@@ -340,6 +486,137 @@ export async function getConversation(
 
         return null;
 
+    }
+
+}
+
+
+
+/*
+==========================================================
+GET OR CREATE CONVERSATION
+==========================================================
+*/
+
+
+export async function getOrCreateConversation(
+
+    userId,
+
+    conversationId = null,
+
+    options = {}
+
+){
+
+    try{
+
+
+        if(!userId){
+
+            return null;
+
+        }
+
+
+
+        const normalizedConversationId =
+
+            normalizeConversationId(
+
+                conversationId
+
+            );
+
+
+
+        /*
+        --------------------------------------------------
+        EXISTING CONVERSATION
+        --------------------------------------------------
+        */
+
+
+        if(normalizedConversationId){
+
+            const existing =
+
+                await getConversation(
+
+                    userId,
+
+                    normalizedConversationId
+
+                );
+
+
+
+            if(existing){
+
+                return existing;
+
+            }
+
+        }
+
+
+
+        /*
+        --------------------------------------------------
+        CREATE NEW
+        --------------------------------------------------
+        */
+
+
+        return await createConversation(
+
+            userId,
+
+            {
+
+                title:
+
+                    options.title ||
+
+                    DEFAULT_TITLE,
+
+
+
+                agentId:
+
+                    options.agentId ||
+
+                    DEFAULT_AGENT,
+
+
+
+                workspace:
+
+                    options.workspace ||
+
+                    DEFAULT_WORKSPACE
+
+            }
+
+        );
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+
+            "[CHAT GET/CREATE ERROR]",
+
+            error
+
+        );
+
+
+
+        return null;
 
     }
 
@@ -348,9 +625,9 @@ export async function getConversation(
 
 
 /*
-==========================================
+==========================================================
 LIST CONVERSATIONS
-==========================================
+==========================================================
 */
 
 
@@ -373,22 +650,6 @@ export async function getConversations(
 
 
 
-        const includeArchived =
-
-            options.includeArchived === true;
-
-
-
-        const limit =
-
-            normalizeLimit(
-
-                options.limit || 50
-
-            );
-
-
-
         const query = {
 
             userId
@@ -397,7 +658,11 @@ export async function getConversations(
 
 
 
-        if(!includeArchived){
+        if(
+
+            options.includeArchived !== true
+
+        ){
 
             query.archived = false;
 
@@ -407,9 +672,9 @@ export async function getConversations(
 
         if(
 
-            options.agentId &&
+            typeof options.agentId === "string" &&
 
-            typeof options.agentId === "string"
+            options.agentId.trim()
 
         ){
 
@@ -437,7 +702,15 @@ export async function getConversations(
 
                 })
 
-                .limit(limit);
+                .limit(
+
+                    normalizeLimit(
+
+                        options.limit || 50
+
+                    )
+
+                );
 
 
 
@@ -451,7 +724,7 @@ export async function getConversations(
 
         console.error(
 
-            "Erro ao procurar conversas:",
+            "[CHAT LIST ERROR]",
 
             error
 
@@ -461,7 +734,6 @@ export async function getConversations(
 
         return [];
 
-
     }
 
 }
@@ -469,9 +741,9 @@ export async function getConversations(
 
 
 /*
-==========================================
+==========================================================
 UPDATE CONVERSATION
-==========================================
+==========================================================
 */
 
 
@@ -550,17 +822,11 @@ export async function updateConversation(
 
             allowedUpdates.workspace =
 
-                updates.workspace
+                normalizeWorkspace(
 
-                    .trim()
+                    updates.workspace
 
-                    .slice(
-
-                        0,
-
-                        100
-
-                    );
+                );
 
         }
 
@@ -580,6 +846,13 @@ export async function updateConversation(
 
 
 
+        /*
+        --------------------------------------------------
+        NOTHING TO UPDATE
+        --------------------------------------------------
+        */
+
+
         if(
 
             !Object.keys(
@@ -590,7 +863,7 @@ export async function updateConversation(
 
         ){
 
-            return await getConversation(
+            return getConversation(
 
                 userId,
 
@@ -600,6 +873,13 @@ export async function updateConversation(
 
         }
 
+
+
+        /*
+        --------------------------------------------------
+        UPDATE
+        --------------------------------------------------
+        */
 
 
         const conversation =
@@ -646,7 +926,7 @@ export async function updateConversation(
 
         console.error(
 
-            "Erro ao atualizar conversa:",
+            "[CHAT UPDATE ERROR]",
 
             error
 
@@ -656,7 +936,6 @@ export async function updateConversation(
 
         return null;
 
-
     }
 
 }
@@ -664,9 +943,9 @@ export async function updateConversation(
 
 
 /*
-==========================================
-ARCHIVE CONVERSATION
-==========================================
+==========================================================
+ARCHIVE
+==========================================================
 */
 
 
@@ -697,9 +976,9 @@ export async function archiveConversation(
 
 
 /*
-==========================================
-RESTORE CONVERSATION
-==========================================
+==========================================================
+RESTORE
+==========================================================
 */
 
 
@@ -730,9 +1009,9 @@ export async function restoreConversation(
 
 
 /*
-==========================================
+==========================================================
 DELETE CONVERSATION
-==========================================
+==========================================================
 */
 
 
@@ -813,7 +1092,7 @@ export async function deleteConversation(
 
         console.error(
 
-            "Erro ao eliminar conversa:",
+            "[CHAT DELETE ERROR]",
 
             error
 
@@ -823,7 +1102,6 @@ export async function deleteConversation(
 
         return false;
 
-
     }
 
 }
@@ -831,9 +1109,9 @@ export async function deleteConversation(
 
 
 /*
-==========================================
+==========================================================
 SAVE MESSAGE
-==========================================
+==========================================================
 */
 
 
@@ -847,7 +1125,7 @@ export async function saveMessage(
 
     content,
 
-    agentId = "general"
+    agentId = DEFAULT_AGENT
 
 ){
 
@@ -858,13 +1136,7 @@ export async function saveMessage(
 
             !userId ||
 
-            !conversationId ||
-
-            !role ||
-
-            typeof content !== "string" ||
-
-            !content.trim()
+            !conversationId
 
         ){
 
@@ -874,19 +1146,17 @@ export async function saveMessage(
 
 
 
-        if(
+        const normalizedRole =
 
-            ![
+            normalizeRole(
 
-                "user",
+                role
 
-                "assistant",
+            );
 
-                "system"
 
-            ].includes(role)
 
-        ){
+        if(!normalizedRole){
 
             throw new Error(
 
@@ -896,6 +1166,31 @@ export async function saveMessage(
 
         }
 
+
+
+        const normalizedContent =
+
+            normalizeContent(
+
+                content
+
+            );
+
+
+
+        if(!normalizedContent){
+
+            return null;
+
+        }
+
+
+
+        /*
+        --------------------------------------------------
+        VERIFY CONVERSATION OWNERSHIP
+        --------------------------------------------------
+        */
 
 
         const conversation =
@@ -924,6 +1219,13 @@ export async function saveMessage(
 
 
 
+        /*
+        --------------------------------------------------
+        AGENT
+        --------------------------------------------------
+        */
+
+
         const normalizedAgentId =
 
             normalizeAgentId(
@@ -934,6 +1236,13 @@ export async function saveMessage(
 
             );
 
+
+
+        /*
+        --------------------------------------------------
+        MESSAGE
+        --------------------------------------------------
+        */
 
 
         const message =
@@ -948,11 +1257,13 @@ export async function saveMessage(
 
                     normalizedAgentId,
 
-                role,
+                role:
+
+                    normalizedRole,
 
                 content:
 
-                    content.trim()
+                    normalizedContent
 
             });
 
@@ -963,10 +1274,11 @@ export async function saveMessage(
 
 
         /*
-        --------------------------------------
-        Atualizar conversa
-        --------------------------------------
+        --------------------------------------------------
+        UPDATE CONVERSATION
+        --------------------------------------------------
         */
+
 
         conversation.updatedAt =
 
@@ -991,14 +1303,15 @@ export async function saveMessage(
 
 
         /*
-        --------------------------------------
-        Criar título automático
-        --------------------------------------
+        --------------------------------------------------
+        AUTOMATIC TITLE
+        --------------------------------------------------
         */
+
 
         if(
 
-            role === "user" &&
+            normalizedRole === "user" &&
 
             (
 
@@ -1006,7 +1319,7 @@ export async function saveMessage(
 
                 conversation.title ===
 
-                    "Nova Conversa"
+                    DEFAULT_TITLE
 
             )
 
@@ -1014,9 +1327,7 @@ export async function saveMessage(
 
             const generatedTitle =
 
-                content
-
-                    .trim()
+                normalizedContent
 
                     .replace(
 
@@ -1062,7 +1373,7 @@ export async function saveMessage(
 
         console.error(
 
-            "Erro ao salvar mensagem:",
+            "[CHAT SAVE MESSAGE ERROR]",
 
             error
 
@@ -1072,7 +1383,6 @@ export async function saveMessage(
 
         return null;
 
-
     }
 
 }
@@ -1080,9 +1390,9 @@ export async function saveMessage(
 
 
 /*
-==========================================
+==========================================================
 GET MESSAGES
-==========================================
+==========================================================
 */
 
 
@@ -1135,16 +1445,6 @@ export async function getMessages(
 
 
 
-        const limit =
-
-            normalizeLimit(
-
-                options.limit || 100
-
-            );
-
-
-
         const query = {
 
             conversationId:
@@ -1157,9 +1457,9 @@ export async function getMessages(
 
         if(
 
-            options.agentId &&
+            typeof options.agentId === "string" &&
 
-            typeof options.agentId === "string"
+            options.agentId.trim()
 
         ){
 
@@ -1187,7 +1487,15 @@ export async function getMessages(
 
                 })
 
-                .limit(limit);
+                .limit(
+
+                    normalizeLimit(
+
+                        options.limit || 100
+
+                    )
+
+                );
 
 
 
@@ -1201,7 +1509,7 @@ export async function getMessages(
 
         console.error(
 
-            "Erro ao procurar mensagens:",
+            "[CHAT GET MESSAGES ERROR]",
 
             error
 
@@ -1218,9 +1526,9 @@ export async function getMessages(
 
 
 /*
-==========================================
+==========================================================
 GET RECENT MESSAGES
-==========================================
+==========================================================
 */
 
 
@@ -1230,7 +1538,7 @@ export async function getRecentMessages(
 
     conversationId,
 
-    limit = 20
+    limit = DEFAULT_LIMIT
 
 ){
 
@@ -1253,9 +1561,9 @@ export async function getRecentMessages(
 
 
 /*
-==========================================
+==========================================================
 GET CHAT HISTORY
-==========================================
+==========================================================
 */
 
 
@@ -1322,7 +1630,7 @@ export async function getChatHistory(
 
         console.error(
 
-            "Erro ao carregar histórico do chat:",
+            "[CHAT HISTORY ERROR]",
 
             error
 
@@ -1332,7 +1640,6 @@ export async function getChatHistory(
 
         return null;
 
-
     }
 
 }
@@ -1340,20 +1647,9 @@ export async function getChatHistory(
 
 
 /*
-==========================================
+==========================================================
 BUILD AI HISTORY
-==========================================
-
-Converte mensagens MongoDB para o formato
-esperado pelo Orchestrator.
-
-IMPORTANTE:
-
-O systemPrompt NÃO é colocado aqui.
-
-Cada agente possui o seu próprio systemPrompt
-e o Orchestrator é responsável por aplicá-lo.
-==========================================
+==========================================================
 */
 
 
@@ -1363,7 +1659,7 @@ export async function buildAIHistory(
 
     conversationId,
 
-    limit = 20
+    limit = DEFAULT_LIMIT
 
 ){
 
@@ -1432,7 +1728,7 @@ export async function buildAIHistory(
 
         console.error(
 
-            "Erro ao construir histórico da IA:",
+            "[CHAT AI HISTORY ERROR]",
 
             error
 
@@ -1449,692 +1745,9 @@ export async function buildAIHistory(
 
 
 /*
-==========================================
-SEND MESSAGE TO AI
-==========================================
-
-FLUXO:
-
-User
- ↓
-MongoDB
- ↓
-Orchestrator
- ↓
-Agent Router
- ↓
-Agent
- ↓
-System Prompt
- ↓
-Groq
- ↓
-Response
- ↓
-MongoDB
- ↓
-Application
-==========================================
-*/
-
-
-export async function sendMessage(
-
-    userId,
-
-    conversationId,
-
-    content,
-
-    options = {}
-
-){
-
-    try{
-
-
-        /*
-        --------------------------------------
-        VALIDAR UTILIZADOR
-        --------------------------------------
-        */
-
-        if(!userId){
-
-            return {
-
-                success:false,
-
-                error:"Utilizador não autenticado."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        VALIDAR MENSAGEM
-        --------------------------------------
-        */
-
-        const userContent =
-
-            normalizeContent(
-
-                content
-
-            );
-
-
-
-        if(!userContent){
-
-            return {
-
-                success:false,
-
-                error:"A mensagem não pode estar vazia."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        OBTER / CRIAR CONVERSA
-        --------------------------------------
-        */
-
-        let conversation =
-
-            await getOrCreateConversation(
-
-                userId,
-
-                conversationId,
-
-                {
-
-                    agentId:
-
-                        options.agentId ||
-
-                        "general",
-
-                    workspace:
-
-                        options.workspace ||
-
-                        "main",
-
-                    title:
-
-                        options.title ||
-
-                        "Nova Conversa"
-
-                }
-
-            );
-
-
-
-        if(!conversation){
-
-            return {
-
-                success:false,
-
-                error:"Não foi possível criar ou carregar a conversa."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        AGENTE ATUAL
-        --------------------------------------
-        */
-
-        const requestedAgentId =
-
-            normalizeAgentId(
-
-                options.agentId ||
-
-                conversation.agentId ||
-
-                "general"
-
-            );
-
-
-
-        /*
-        --------------------------------------
-        ATUALIZAR AGENTE DA CONVERSA
-        --------------------------------------
-        */
-
-        if(
-
-            conversation.agentId !==
-
-            requestedAgentId
-
-        ){
-
-            conversation =
-
-                await updateConversation(
-
-                    userId,
-
-                    conversation._id,
-
-                    {
-
-                        agentId:
-
-                            requestedAgentId
-
-                    }
-
-                );
-
-
-
-            if(!conversation){
-
-                return {
-
-                    success:false,
-
-                    error:
-
-                        "Não foi possível atualizar o agente da conversa."
-
-                };
-
-            }
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        SALVAR MENSAGEM DO UTILIZADOR
-        --------------------------------------
-        */
-
-        const userMessage =
-
-            await saveMessage(
-
-                userId,
-
-                conversation._id,
-
-                "user",
-
-                userContent,
-
-                requestedAgentId
-
-            );
-
-
-
-        if(!userMessage){
-
-            return {
-
-                success:false,
-
-                error:
-
-                    "Não foi possível guardar a mensagem."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        CONSTRUIR HISTÓRICO
-        --------------------------------------
-        */
-
-        const history =
-
-            await buildAIHistory(
-
-                userId,
-
-                conversation._id,
-
-                options.historyLimit || 20
-
-            );
-
-
-
-        /*
-        --------------------------------------
-        CONTEXTO DO WORKSPACE
-        --------------------------------------
-        */
-
-        const workspaceContext =
-
-            options.workspaceContext &&
-
-            typeof options.workspaceContext === "object"
-
-                ?
-
-                options.workspaceContext
-
-                :
-
-                null;
-
-
-
-        /*
-        --------------------------------------
-        MEMÓRIA DO UTILIZADOR
-        --------------------------------------
-        */
-
-        const userMemory =
-
-            options.userMemory &&
-
-            typeof options.userMemory === "object"
-
-                ?
-
-                options.userMemory
-
-                :
-
-                null;
-
-
-
-        /*
-        --------------------------------------
-        MODO
-        --------------------------------------
-        */
-
-        const mode =
-
-            typeof options.mode === "string" &&
-
-            options.mode.trim()
-
-                ?
-
-                options.mode.trim()
-
-                :
-
-                "chat";
-
-
-
-        /*
-        --------------------------------------
-        ORCHESTRATOR
-        --------------------------------------
-        */
-
-        const result =
-
-            await orchestrator.processRequest({
-
-                userPrompt:
-
-                    userContent,
-
-                agentId:
-
-                    requestedAgentId,
-
-                history,
-
-                workspaceContext,
-
-                userMemory,
-
-                mode
-
-            });
-
-
-
-        /*
-        --------------------------------------
-        VALIDAR RESPOSTA
-        --------------------------------------
-        */
-
-        if(
-
-            !result ||
-
-            result.success === false
-
-        ){
-
-            console.error(
-
-                "Falha no Orchestrator:",
-
-                result
-
-            );
-
-
-
-            return {
-
-                success:false,
-
-                conversation,
-
-                error:
-
-                    result?.error ||
-
-                    "Não foi possível obter resposta da IA."
-
-            };
-
-        }
-
-
-
-        const aiResponse =
-
-            typeof result.response === "string"
-
-                ?
-
-                result.response.trim()
-
-                :
-
-                "";
-
-
-
-        if(!aiResponse){
-
-            return {
-
-                success:false,
-
-                conversation,
-
-                error:
-
-                    "O agente não retornou uma resposta válida."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        GUARDAR RESPOSTA DO AGENTE
-        --------------------------------------
-        */
-
-        const assistantMessage =
-
-            await saveMessage(
-
-                userId,
-
-                conversation._id,
-
-                "assistant",
-
-                aiResponse,
-
-                requestedAgentId
-
-            );
-
-
-
-        if(!assistantMessage){
-
-            return {
-
-                success:false,
-
-                conversation,
-
-                response:aiResponse,
-
-                error:
-
-                    "A resposta foi gerada, mas não foi possível guardá-la."
-
-            };
-
-        }
-
-
-
-        /*
-        --------------------------------------
-        RESULTADO FINAL
-        --------------------------------------
-        */
-
-        return {
-
-            success:true,
-
-            conversation,
-
-            userMessage,
-
-            assistantMessage,
-
-            agent:
-
-                result.agent ||
-
-                null,
-
-            routing:
-
-                result.routing ||
-
-                null,
-
-            response:
-
-                aiResponse,
-
-            artifacts:
-
-                result.artifacts ||
-
-                [],
-
-            usage:
-
-                result.usage ||
-
-                null,
-
-            latency:
-
-                result.latency ||
-
-                null
-
-        };
-
-
-    }
-
-    catch(error){
-
-
-        console.error(
-
-            "=========================================="
-
-        );
-
-        console.error(
-
-            "HONEY IA CHAT ERROR"
-
-        );
-
-        console.error(
-
-            error
-
-        );
-
-        console.error(
-
-            "=========================================="
-
-
-
-        );
-
-
-
-        return {
-
-            success:false,
-
-            error:
-
-                error?.message ||
-
-                "Erro interno ao processar a mensagem."
-
-        };
-
-    }
-
-}
-
-
-
-/*
-==========================================
-CREATE OR GET CONVERSATION
-==========================================
-*/
-
-
-export async function getOrCreateConversation(
-
-    userId,
-
-    conversationId = null,
-
-    options = {}
-
-){
-
-    try{
-
-
-        if(!userId){
-
-            return null;
-
-        }
-
-
-
-        if(conversationId){
-
-            const existing =
-
-                await getConversation(
-
-                    userId,
-
-                    conversationId
-
-                );
-
-
-
-            if(existing){
-
-                return existing;
-
-            }
-
-        }
-
-
-
-        return await createConversation(
-
-            userId,
-
-            options
-
-        );
-
-
-    }
-
-    catch(error){
-
-
-        console.error(
-
-            "Erro ao obter/criar conversa:",
-
-            error
-
-        );
-
-
-
-        return null;
-
-    }
-
-}
-
-
-
-/*
-==========================================
-EXPORT DEFAULT
-==========================================
+==========================================================
+DEFAULT EXPORT
+==========================================================
 */
 
 
@@ -2145,6 +1758,8 @@ export default {
     getConversation,
 
     getConversations,
+
+    getOrCreateConversation,
 
     updateConversation,
 
@@ -2162,10 +1777,6 @@ export default {
 
     getChatHistory,
 
-    buildAIHistory,
-
-    getOrCreateConversation,
-
-    sendMessage
+    buildAIHistory
 
 };
