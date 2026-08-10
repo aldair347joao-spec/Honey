@@ -1,8 +1,9 @@
 /*
 ==========================================
 HONEY IA
-AGENT ENGINE V6.0
+AGENT ENGINE V7.0
 Enterprise Agent Registry
+Real Capability System
 30 Specialist Agents Integration
 ==========================================
 */
@@ -47,8 +48,6 @@ import strategistagent from "./agents/strategistagent.js";
 import hragent from "./agents/hragent.js";
 
 
-
-
 // ==========================================================
 // AGENT ENGINE
 // ==========================================================
@@ -57,22 +56,16 @@ import hragent from "./agents/hragent.js";
 class AgentEngine {
 
 
-
 constructor(){
-
 
 
     this.agents = new Map();
 
 
-
     this.activeAgent = "general";
 
 
-
     this.categories = [
-
-
 
         "Todos",
 
@@ -88,24 +81,19 @@ constructor(){
 
         "Comunicação",
 
-        "Produtividade"
+        "Produtividade",
 
+        "Dados",
 
+        "Finanças"
 
     ];
-
-
 
 
     this.loadAgents();
 
 
-
 }
-
-
-
-
 
 
 // ==========================================================
@@ -116,103 +104,56 @@ constructor(){
 loadAgents(){
 
 
+    const agents = [
 
-const agents = [
+        // CORE
 
-
-
-// CORE
-
-generalagent,
-
-developeragent,
-
-designeragent,
-
-marketingagent,
-
-financeagent,
-
-healthcareagent,
-
-educationagent,
-
-legalagent,
-
-architectagent,
-
-excelagent,
-
-salesagent,
-
-videoagent,
-
-imageagent,
-
-securityagent,
+        generalagent,
+        developeragent,
+        designeragent,
+        marketingagent,
+        financeagent,
+        healthcareagent,
+        educationagent,
+        legalagent,
+        architectagent,
+        excelagent,
+        salesagent,
+        videoagent,
+        imageagent,
+        securityagent,
 
 
+        // ENTERPRISE
+
+        writeragent,
+        documentagent,
+        bankingagent,
+        entrepreneuragent,
+        interiordesignagent,
+        ecommerceagent,
+        socialmediaagent,
+        researchagent,
+        automationagent,
+        analyticsagent,
+        customeragent,
+        translationagent,
+        businessagent,
+        accountingagent,
+        strategistagent,
+        hragent
+
+    ];
 
 
+    agents.forEach(agent => {
 
-// ENTERPRISE
+        this.register(agent);
 
-writeragent,
-
-documentagent,
-
-bankingagent,
-
-entrepreneuragent,
-
-interiordesignagent,
-
-ecommerceagent,
-
-socialmediaagent,
-
-researchagent,
-
-automationagent,
-
-analyticsagent,
-
-customeragent,
-
-translationagent,
-
-businessagent,
-
-accountingagent,
-
-strategistagent,
-
-hragent
-
-
-
-];
-
-
-
-
-
-
-agents.forEach(agent=>{
-
-
-    this.register(agent);
-
-
-});
-
+    });
 
 
 }
-
-
-
-
 
 
 // ==========================================================
@@ -223,160 +164,212 @@ agents.forEach(agent=>{
 register(agent){
 
 
+    if(
+        !agent ||
+        !agent.id
+    ){
 
-if(
-    !agent ||
-    !agent.id
-){
+        console.warn(
+            "[Honey IA] Agente inválido:",
+            agent
+        );
+
+        return;
+
+    }
 
 
-    console.warn(
+    const profile = {
 
-        "[Honey IA] Agente inválido:",
+        // ------------------------------------------
+        // SYSTEM
+        // ------------------------------------------
 
-        agent
+        status: "online",
+
+        conversations: [],
+
+        memory: [],
+
+
+        // ------------------------------------------
+        // BASIC PROFILE
+        // ------------------------------------------
+
+        category:
+            agent.category ||
+            "Tecnologia",
+
+        level:
+            agent.level ||
+            "Professional",
+
+        featured:
+            agent.featured ||
+            false,
+
+        users:
+            agent.users ||
+            0,
+
+
+        // ------------------------------------------
+        // TOOLS
+        // ------------------------------------------
+
+        tools:
+            agent.tools ||
+            [],
+
+
+        // ------------------------------------------
+        // CAPABILITIES
+        // ------------------------------------------
+
+        capabilities:
+            agent.capabilities ||
+            [],
+
+
+        // ------------------------------------------
+        // SUPPORTED LANGUAGES
+        // ------------------------------------------
+
+        languages:
+            agent.languages ||
+            [],
+
+
+        // ------------------------------------------
+        // OUTPUT TYPES
+        // ------------------------------------------
+
+        outputs:
+            agent.outputs ||
+            [],
+
+
+        // ------------------------------------------
+        // PREVIEW TYPES
+        // ------------------------------------------
+
+        previewTypes:
+            agent.previewTypes ||
+            [],
+
+
+        // ------------------------------------------
+        // FILE TYPES
+        // ------------------------------------------
+
+        fileTypes:
+            agent.fileTypes ||
+            [],
+
+
+        // ------------------------------------------
+        // EXECUTION FEATURES
+        // ------------------------------------------
+
+        features: {
+
+            chat:
+                agent.features?.chat !== false,
+
+            preview:
+                agent.features?.preview !== false,
+
+            download:
+                agent.features?.download !== false,
+
+            attachments:
+                agent.features?.attachments !== false,
+
+            export:
+                agent.features?.export !== false,
+
+            live:
+                agent.features?.live !== false,
+
+            codeExecution:
+                agent.features?.codeExecution ||
+                false,
+
+            imageGeneration:
+                agent.features?.imageGeneration ||
+                false,
+
+            fileGeneration:
+                agent.features?.fileGeneration ||
+                false
+
+        },
+
+
+        // ------------------------------------------
+        // SPECIALIZED INSTRUCTIONS
+        // ------------------------------------------
+
+        instructions:
+            agent.instructions ||
+            "",
+
+
+        // ------------------------------------------
+        // ORIGINAL AGENT DATA
+        // ------------------------------------------
+
+        ...agent
+
+    };
+
+
+    this.agents.set(
+
+        agent.id,
+
+        profile
 
     );
 
 
-    return;
-
+    console.log(
+        `🐝 Honey Agent carregado: ${agent.name}`
+    );
 
 }
 
 
-
-
-const profile = {
-
-
-
-    status:"online",
-
-
-
-    conversations:[],
-
-
-
-    memory:[],
-
-
-
-    tools:[],
-
-
-
-    category:
-
-    agent.category ||
-
-    "Tecnologia",
-
-
-
-
-    level:
-
-    agent.level ||
-
-    "Professional",
-
-
-
-
-    featured:
-
-    agent.featured ||
-
-    false,
-
-
-
-
-    users:
-
-    agent.users ||
-
-    0,
-
-
-
-
-    ...agent
-
-
-
-};
-
-
-
-
-
-
-
-this.agents.set(
-
-
-    agent.id,
-
-
-    profile
-
-
-);
-
-
-
-
-
-
-
-console.log(
-
-`🐝 Honey Agent carregado: ${agent.name}`
-
-);
-
-
-
-}/*
-==========================================
-GET AGENTS
-==========================================
-*/
+// ==========================================================
+// GET AGENT
+// ==========================================================
 
 
 get(id){
 
-
     return this.agents.get(id);
-
 
 }
 
 
-
-
-
+// ==========================================================
+// GET BY ID
+// ==========================================================
 
 
 getById(id){
 
-
     return this.get(id);
-
 
 }
 
 
-
-
-
+// ==========================================================
+// GET ALL
+// ==========================================================
 
 
 getAll(){
-
 
     return [
 
@@ -384,29 +377,19 @@ getAll(){
 
     ];
 
-
 }
 
 
-
-
-
+// ==========================================================
+// GET CATEGORIES
+// ==========================================================
 
 
 getCategories(){
 
-
     return this.categories;
 
-
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -414,80 +397,56 @@ getCategories(){
 // ==========================================================
 
 
-search(query=""){
+search(query = ""){
 
 
+    const text =
 
-const text =
+        query
 
+        .toLowerCase()
 
-query
-
-.toLowerCase()
-
-.trim();
+        .trim();
 
 
+    if(!text){
+
+        return this.getAll();
+
+    }
 
 
+    return this.getAll()
+
+        .filter(agent => {
 
 
-if(!text){
+            const content = `
+
+                ${agent.name || ""}
+
+                ${agent.description || ""}
+
+                ${agent.category || ""}
+
+                ${agent.level || ""}
+
+                ${(agent.tools || []).join(" ")}
+
+                ${(agent.capabilities || []).join(" ")}
+
+                ${(agent.languages || []).join(" ")}
+
+                ${(agent.outputs || []).join(" ")}
+
+            `.toLowerCase();
 
 
-    return this.getAll();
+            return content.includes(text);
 
-
-}
-
-
-
-
-
-
-
-return this.getAll()
-
-.filter(agent=>{
-
-
-
-const content = `
-
-${agent.name}
-
-${agent.description}
-
-${agent.category}
-
-${agent.level}
-
-`
-
-.toLowerCase();
-
-
-
-
-
-
-
-return content.includes(text);
-
-
-
-});
-
-
+        });
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -498,57 +457,29 @@ return content.includes(text);
 filterByCategory(category){
 
 
+    if(
+        !category ||
+        category === "Todos"
+    ){
 
-if(
+        return this.getAll();
 
-
-!category
-
-||
-
-category === "Todos"
-
-
-){
+    }
 
 
-    return this.getAll();
+    return this.getAll()
 
+        .filter(agent => {
 
-}
+            return (
 
+                agent.category === category
 
+            );
 
-
-
-
-
-return this.getAll()
-
-.filter(agent=>{
-
-
-
-return (
-
-agent.category === category
-
-);
-
-
-
-});
-
-
+        });
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -559,29 +490,212 @@ agent.category === category
 getFeatured(){
 
 
+    return this.getAll()
 
-return this.getAll()
+        .filter(agent => {
 
-.filter(agent=>{
+            return agent.featured === true;
 
-
-
-return agent.featured === true;
-
-
-
-});
-
-
+        });
 
 }
 
 
+// ==========================================================
+// GET CAPABILITIES
+// ==========================================================
 
 
+getCapabilities(id){
 
 
+    const agent = this.get(id);
 
+
+    if(!agent){
+
+        return [];
+
+    }
+
+
+    return agent.capabilities || [];
+
+}
+
+
+// ==========================================================
+// GET OUTPUTS
+// ==========================================================
+
+
+getOutputs(id){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return [];
+
+    }
+
+
+    return agent.outputs || [];
+
+}
+
+
+// ==========================================================
+// GET PREVIEW TYPES
+// ==========================================================
+
+
+getPreviewTypes(id){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return [];
+
+    }
+
+
+    return agent.previewTypes || [];
+
+}
+
+
+// ==========================================================
+// GET FILE TYPES
+// ==========================================================
+
+
+getFileTypes(id){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return [];
+
+    }
+
+
+    return agent.fileTypes || [];
+
+}
+
+
+// ==========================================================
+// GET TOOLS
+// ==========================================================
+
+
+getTools(id){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return [];
+
+    }
+
+
+    return agent.tools || [];
+
+}
+
+
+// ==========================================================
+// CHECK CAPABILITY
+// ==========================================================
+
+
+hasCapability(
+
+    id,
+
+    capability
+
+){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return false;
+
+    }
+
+
+    return (
+
+        agent.capabilities || []
+
+    )
+
+    .some(item =>
+
+        item.toLowerCase() ===
+
+        String(capability).toLowerCase()
+
+    );
+
+}
+
+
+// ==========================================================
+// CHECK OUTPUT
+// ==========================================================
+
+
+canProduce(
+
+    id,
+
+    output
+
+){
+
+
+    const agent = this.get(id);
+
+
+    if(!agent){
+
+        return false;
+
+    }
+
+
+    return (
+
+        agent.outputs || []
+
+    )
+
+    .some(item =>
+
+        item.toLowerCase() ===
+
+        String(output).toLowerCase()
+
+    );
+
+}
 
 
 // ==========================================================
@@ -592,316 +706,216 @@ return agent.featured === true;
 setActive(id){
 
 
+    if(
 
-if(
+        this.agents.has(id)
 
-this.agents.has(id)
+    ){
 
-){
-
-
-
-this.activeAgent = id;
+        this.activeAgent = id;
 
 
+        return this.agents.get(id);
 
-return this.agents.get(id);
-
-
-
-}
+    }
 
 
+    return this.agents.get(
 
+        "general"
 
-
-
-
-
-return this.agents.get(
-
-"general"
-
-);
-
-
+    );
 
 }
 
 
-
-
-
-
+// ==========================================================
+// GET ACTIVE
+// ==========================================================
 
 
 getActive(){
 
+    return this.agents.get(
 
+        this.activeAgent
 
-return this.agents.get(
-
-this.activeAgent
-
-);
-
-
+    );
 
 }
 
 
-
-
-
-
+// ==========================================================
+// GET ACTIVE ID
+// ==========================================================
 
 
 getActiveId(){
 
-
-
-return this.activeAgent;
-
-
-
-}/*
-==========================================
-AGENT MEMORY SYSTEM
-==========================================
-*/
-
-
-addConversation(
-
-id,
-
-role,
-
-content
-
-){
-
-
-
-const agent =
-
-this.get(id);
-
-
-
-
-
-if(!agent)
-
-return;
-
-
-
-
-
-
-
-agent.conversations.push({
-
-
-
-    role,
-
-
-    content,
-
-
-
-    date:
-
-    new Date()
-
-
-
-});
-
-
+    return this.activeAgent;
 
 }
 
 
+// ==========================================================
+// AGENT MEMORY SYSTEM
+// ==========================================================
 
 
+addConversation(
+
+    id,
+
+    role,
+
+    content
+
+){
 
 
+    const agent =
 
+        this.get(id);
+
+
+    if(!agent){
+
+        return;
+
+    }
+
+
+    agent.conversations.push({
+
+        role,
+
+        content,
+
+        date:
+
+            new Date()
+
+    });
+
+}
+
+
+// ==========================================================
+// GET CONVERSATION
+// ==========================================================
 
 
 getConversation(id){
 
 
+    const agent =
 
-const agent =
-
-this.get(id);
-
+        this.get(id);
 
 
+    if(!agent){
+
+        return [];
+
+    }
 
 
-if(!agent)
-
-return [];
-
-
-
-
-
-
-
-
-return agent.conversations;
-
-
+    return agent.conversations;
 
 }
 
 
-
-
-
-
-
+// ==========================================================
+// CLEAR CONVERSATION
+// ==========================================================
 
 
 clearConversation(id){
 
 
+    const agent =
 
-const agent =
-
-this.get(id);
-
+        this.get(id);
 
 
+    if(!agent){
+
+        return;
+
+    }
 
 
-if(!agent)
-
-return;
-
-
-
-
-
-
-
-agent.conversations = [];
-
-
+    agent.conversations = [];
 
 }
 
 
-
-
-
-
-
+// ==========================================================
+// SAVE MEMORY
+// ==========================================================
 
 
 saveMemory(
 
-id,
+    id,
 
-key,
+    key,
 
-value
+    value
 
 ){
 
 
+    const agent =
 
-const agent =
-
-this.get(id);
-
+        this.get(id);
 
 
+    if(!agent){
+
+        return;
+
+    }
 
 
-if(!agent)
+    agent.memory.push({
 
-return;
+        key,
 
+        value,
 
+        createdAt:
 
+            new Date()
 
-
-
-
-agent.memory.push({
-
-
-
-    key,
-
-
-
-    value,
-
-
-
-    createdAt:
-
-    new Date()
-
-
-
-});
-
-
+    });
 
 }
 
 
-
-
-
-
-
+// ==========================================================
+// GET MEMORY
+// ==========================================================
 
 
 getMemory(id){
 
 
+    const agent =
 
-const agent =
-
-this.get(id);
-
+        this.get(id);
 
 
+    if(!agent){
+
+        return [];
+
+    }
 
 
-if(!agent)
-
-return [];
-
-
-
-
-
-
-
-
-return agent.memory;
-
-
+    return agent.memory;
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -909,61 +923,36 @@ return agent.memory;
 // ==========================================================
 
 
-recommend(prompt=""){
+recommend(prompt = ""){
 
 
+    const primary =
 
-const primary =
-
-this.detect(prompt);
-
+        this.detect(prompt);
 
 
+    const alternatives =
+
+        this.getAll()
+
+        .filter(agent =>
+
+            agent.id !== primary.id
+
+        )
+
+        .slice(0, 3);
 
 
+    return {
 
+        primary,
 
+        alternatives
 
-return {
-
-
-
-    primary,
-
-
-
-    alternatives:
-
-
-
-    this.getAll()
-
-    .filter(agent=>
-
-
-
-        agent.id !== primary.id
-
-
-
-    )
-
-    .slice(0,3)
-
-
-
-};
-
-
+    };
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -971,697 +960,1022 @@ return {
 // ==========================================================
 
 
-detect(prompt=""){
+detect(prompt = ""){
 
 
+    const text =
 
-const text =
+        String(prompt)
 
-prompt
-
-.toLowerCase();
-
+        .toLowerCase();
 
 
+    // ------------------------------------------
+    // DEVELOPMENT
+    // ------------------------------------------
+
+    if(
+
+        text.includes("código") ||
+
+        text.includes("codigo") ||
+
+        text.includes("javascript") ||
+
+        text.includes("typescript") ||
+
+        text.includes("python") ||
+
+        text.includes("java") ||
+
+        text.includes("php") ||
+
+        text.includes("c++") ||
+
+        text.includes("c#") ||
+
+        text.includes("react") ||
+
+        text.includes("node") ||
+
+        text.includes("api") ||
+
+        text.includes("software") ||
+
+        text.includes("app") ||
+
+        text.includes("aplicação") ||
+
+        text.includes("aplicativo") ||
+
+        text.includes("website") ||
+
+        text.includes("site") ||
+
+        text.includes("frontend") ||
+
+        text.includes("backend")
+
+    ){
+
+        return this.get(
+
+            "developer"
+
+        );
+
+    }
 
 
+    // ------------------------------------------
+    // DESIGN
+    // ------------------------------------------
+
+    if(
+
+        text.includes("design") ||
+
+        text.includes("logo") ||
+
+        text.includes("marca") ||
+
+        text.includes("identidade visual") ||
+
+        text.includes("ui") ||
+
+        text.includes("ux") ||
+
+        text.includes("interface")
+
+    ){
+
+        return this.get(
+
+            "designer"
+
+        );
+
+    }
 
 
+    // ------------------------------------------
+    // MARKETING
+    // ------------------------------------------
+
+    if(
+
+        text.includes("marketing") ||
+
+        text.includes("publicidade") ||
+
+        text.includes("campanha") ||
+
+        text.includes("instagram") ||
+
+        text.includes("anúncio") ||
+
+        text.includes("anuncio") ||
+
+        text.includes("branding")
+
+    ){
+
+        return this.get(
+
+            "marketing"
+
+        );
+
+    }
 
 
-// DESENVOLVIMENTO
+    // ------------------------------------------
+    // FINANCE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("financeiro") ||
+
+        text.includes("finanças") ||
+
+        text.includes("financas") ||
+
+        text.includes("investimento") ||
+
+        text.includes("orçamento") ||
+
+        text.includes("orcamento")
+
+    ){
+
+        return this.get(
+
+            "finance"
+
+        );
+
+    }
 
 
-if(
+    // ------------------------------------------
+    // BUSINESS
+    // ------------------------------------------
+
+    if(
+
+        text.includes("empresa") ||
+
+        text.includes("negócio") ||
+
+        text.includes("negocio") ||
+
+        text.includes("gestão") ||
+
+        text.includes("gestao") ||
+
+        text.includes("empresarial")
+
+    ){
+
+        return this.get(
+
+            "business"
+
+        );
+
+    }
 
 
-text.includes("código") ||
+    // ------------------------------------------
+    // ACCOUNTING
+    // ------------------------------------------
 
-text.includes("codigo") ||
+    if(
 
-text.includes("javascript") ||
+        text.includes("contabilidade") ||
 
-text.includes("python") ||
+        text.includes("contabil") ||
 
-text.includes("api") ||
+        text.includes("imposto") ||
 
-text.includes("software") ||
+        text.includes("balanço") ||
 
-text.includes("app") ||
+        text.includes("balanco") ||
 
-text.includes("website")
+        text.includes("contas")
+
+    ){
+
+        return this.get(
+
+            "accounting"
+
+        );
+
+    }
 
 
-){
+    // ------------------------------------------
+    // AUTOMATION
+    // ------------------------------------------
+
+    if(
+
+        text.includes("automatizar") ||
+
+        text.includes("automação") ||
+
+        text.includes("automacao") ||
+
+        text.includes("workflow") ||
+
+        text.includes("processo automático")
+
+    ){
+
+        return this.get(
+
+            "automation"
+
+        );
+
+    }
 
 
+    // ------------------------------------------
+    // DOCUMENTS
+    // ------------------------------------------
 
-return this.get(
+    if(
 
-"developer"
+        text.includes("documento") ||
 
-);
+        text.includes("pdf") ||
+
+        text.includes("relatório") ||
+
+        text.includes("relatorio") ||
+
+        text.includes("docx") ||
+
+        text.includes("arquivo")
+
+    ){
+
+        return this.get(
+
+            "document"
+
+        );
+
+    }
 
 
+    // ------------------------------------------
+    // TRANSLATION
+    // ------------------------------------------
+
+    if(
+
+        text.includes("traduzir") ||
+
+        text.includes("tradução") ||
+
+        text.includes("traducao") ||
+
+        text.includes("idioma") ||
+
+        text.includes("inglês") ||
+
+        text.includes("ingles") ||
+
+        text.includes("francês") ||
+
+        text.includes("frances")
+
+    ){
+
+        return this.get(
+
+            "translation"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // DATA
+    // ------------------------------------------
+
+    if(
+
+        text.includes("dados") ||
+
+        text.includes("dashboard") ||
+
+        text.includes("análise de dados") ||
+
+        text.includes("analise de dados") ||
+
+        text.includes("gráfico") ||
+
+        text.includes("grafico") ||
+
+        text.includes("estatística") ||
+
+        text.includes("estatistica")
+
+    ){
+
+        return this.get(
+
+            "analytics"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // EDUCATION
+    // ------------------------------------------
+
+    if(
+
+        text.includes("aula") ||
+
+        text.includes("curso") ||
+
+        text.includes("estudar") ||
+
+        text.includes("escola") ||
+
+        text.includes("professor") ||
+
+        text.includes("aprendizagem")
+
+    ){
+
+        return this.get(
+
+            "education"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // HEALTHCARE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("saúde") ||
+
+        text.includes("saude") ||
+
+        text.includes("medicina") ||
+
+        text.includes("hospital") ||
+
+        text.includes("médico") ||
+
+        text.includes("medico")
+
+    ){
+
+        return this.get(
+
+            "healthcare"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // LEGAL
+    // ------------------------------------------
+
+    if(
+
+        text.includes("contrato") ||
+
+        text.includes("advogado") ||
+
+        text.includes("lei") ||
+
+        text.includes("jurídico") ||
+
+        text.includes("juridico") ||
+
+        text.includes("legal")
+
+    ){
+
+        return this.get(
+
+            "legal"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // ARCHITECTURE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("casa") ||
+
+        text.includes("planta") ||
+
+        text.includes("arquitetura") ||
+
+        text.includes("construção") ||
+
+        text.includes("construcao") ||
+
+        text.includes("3d") ||
+
+        text.includes("interior")
+
+    ){
+
+        return this.get(
+
+            "architect"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // EXCEL
+    // ------------------------------------------
+
+    if(
+
+        text.includes("excel") ||
+
+        text.includes("planilha") ||
+
+        text.includes("tabela") ||
+
+        text.includes("xlsx") ||
+
+        text.includes("spreadsheet")
+
+    ){
+
+        return this.get(
+
+            "excel"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // VIDEO
+    // ------------------------------------------
+
+    if(
+
+        text.includes("vídeo") ||
+
+        text.includes("video") ||
+
+        text.includes("animação") ||
+
+        text.includes("animacao") ||
+
+        text.includes("filme") ||
+
+        text.includes("reels")
+
+    ){
+
+        return this.get(
+
+            "video"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // IMAGE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("imagem") ||
+
+        text.includes("foto") ||
+
+        text.includes("ilustração") ||
+
+        text.includes("ilustracao") ||
+
+        text.includes("poster") ||
+
+        text.includes("flyer") ||
+
+        text.includes("banner")
+
+    ){
+
+        return this.get(
+
+            "image"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // WRITING
+    // ------------------------------------------
+
+    if(
+
+        text.includes("texto") ||
+
+        text.includes("artigo") ||
+
+        text.includes("livro") ||
+
+        text.includes("escrever") ||
+
+        text.includes("redação") ||
+
+        text.includes("redacao") ||
+
+        text.includes("copywriting")
+
+    ){
+
+        return this.get(
+
+            "writer"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // BANKING
+    // ------------------------------------------
+
+    if(
+
+        text.includes("banco") ||
+
+        text.includes("bancário") ||
+
+        text.includes("bancario") ||
+
+        text.includes("crédito") ||
+
+        text.includes("credito") ||
+
+        text.includes("empréstimo") ||
+
+        text.includes("emprestimo")
+
+    ){
+
+        return this.get(
+
+            "banking"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // ENTREPRENEURSHIP
+    // ------------------------------------------
+
+    if(
+
+        text.includes("empreendedor") ||
+
+        text.includes("startup") ||
+
+        text.includes("modelo de negócio") ||
+
+        text.includes("modelo de negocio")
+
+    ){
+
+        return this.get(
+
+            "entrepreneur"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // E-COMMERCE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("ecommerce") ||
+
+        text.includes("e-commerce") ||
+
+        text.includes("loja online") ||
+
+        text.includes("loja virtual") ||
+
+        text.includes("produto online")
+
+    ){
+
+        return this.get(
+
+            "ecommerce"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // SOCIAL MEDIA
+    // ------------------------------------------
+
+    if(
+
+        text.includes("redes sociais") ||
+
+        text.includes("social media") ||
+
+        text.includes("facebook") ||
+
+        text.includes("tiktok") ||
+
+        text.includes("linkedin")
+
+    ){
+
+        return this.get(
+
+            "socialmedia"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // RESEARCH
+    // ------------------------------------------
+
+    if(
+
+        text.includes("pesquisa") ||
+
+        text.includes("investigar") ||
+
+        text.includes("estudo") ||
+
+        text.includes("fontes") ||
+
+        text.includes("referências")
+
+    ){
+
+        return this.get(
+
+            "research"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // CUSTOMER SERVICE
+    // ------------------------------------------
+
+    if(
+
+        text.includes("cliente") ||
+
+        text.includes("atendimento") ||
+
+        text.includes("suporte") ||
+
+        text.includes("customer service")
+
+    ){
+
+        return this.get(
+
+            "customer"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // HUMAN RESOURCES
+    // ------------------------------------------
+
+    if(
+
+        text.includes("recursos humanos") ||
+
+        text.includes("rh") ||
+
+        text.includes("recrutamento") ||
+
+        text.includes("funcionário") ||
+
+        text.includes("funcionario") ||
+
+        text.includes("talentos")
+
+    ){
+
+        return this.get(
+
+            "hr"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // STRATEGY
+    // ------------------------------------------
+
+    if(
+
+        text.includes("estratégia") ||
+
+        text.includes("estrategia") ||
+
+        text.includes("planeamento estratégico") ||
+
+        text.includes("planejamento estratégico")
+
+    ){
+
+        return this.get(
+
+            "strategist"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // SECURITY
+    // ------------------------------------------
+
+    if(
+
+        text.includes("segurança") ||
+
+        text.includes("seguranca") ||
+
+        text.includes("cibersegurança") ||
+
+        text.includes("ciberseguranca") ||
+
+        text.includes("cybersecurity") ||
+
+        text.includes("hacker")
+
+    ){
+
+        return this.get(
+
+            "security"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // SALES
+    // ------------------------------------------
+
+    if(
+
+        text.includes("vendas") ||
+
+        text.includes("vender") ||
+
+        text.includes("cliente potencial") ||
+
+        text.includes("lead") ||
+
+        text.includes("crm")
+
+    ){
+
+        return this.get(
+
+            "sales"
+
+        );
+
+    }
+
+
+    // ------------------------------------------
+    // GENERAL
+    // ------------------------------------------
+
+    return this.get(
+
+        "general"
+
+    );
 
 }
 
 
+// ==========================================================
+// FIND AGENT FOR CAPABILITY
+// ==========================================================
 
 
+findByCapability(
 
-
-
-
-
-// DESIGN
-
-
-if(
-
-
-text.includes("design") ||
-
-text.includes("logo") ||
-
-text.includes("marca") ||
-
-text.includes("ui") ||
-
-text.includes("ux")
-
+    capability
 
 ){
 
 
+    const text =
 
-return this.get(
+        String(capability)
 
-"designer"
-
-);
-
+        .toLowerCase();
 
 
-}
+    return this.getAll()
 
+        .filter(agent =>
 
+            (agent.capabilities || [])
 
+            .some(item =>
 
+                item
 
+                .toLowerCase()
 
+                .includes(text)
 
+            )
 
-
-// MARKETING
-
-
-if(
-
-
-text.includes("marketing") ||
-
-text.includes("publicidade") ||
-
-text.includes("campanha") ||
-
-text.includes("instagram")
-
-
-){
-
-
-
-return this.get(
-
-"marketing"
-
-);
-
-
+        );
 
 }
 
 
+// ==========================================================
+// FIND AGENT FOR OUTPUT
+// ==========================================================
 
 
+findByOutput(output){
 
 
+    const text =
+
+        String(output)
+
+        .toLowerCase();
 
 
+    return this.getAll()
 
-// FINANÇAS
+        .filter(agent =>
 
+            (agent.outputs || [])
 
-if(
+            .some(item =>
 
+                item
 
-text.includes("financeiro") ||
+                .toLowerCase()
 
-text.includes("finanças") ||
+                .includes(text)
 
-text.includes("investimento") ||
+            )
 
-text.includes("orçamento")
-
-
-){
-
-
-
-return this.get(
-
-"finance"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// NEGÓCIOS
-
-
-if(
-
-
-text.includes("empresa") ||
-
-text.includes("negócio") ||
-
-text.includes("negocio") ||
-
-text.includes("gestão")
-
-
-){
-
-
-
-return this.get(
-
-"business"
-
-);
-
-
+        );
 
 }
 
 
+// ==========================================================
+// GET AGENT PROFILE
+// ==========================================================
 
 
+getProfile(id){
 
 
+    const agent =
+
+        this.get(id);
 
 
+    if(!agent){
 
-// CONTABILIDADE
+        return null;
 
-
-if(
-
-
-text.includes("contabilidade") ||
-
-text.includes("imposto") ||
-
-text.includes("balanço")
+    }
 
 
-){
+    return {
 
+        id:
 
+            agent.id,
 
-return this.get(
+        name:
 
-"accounting"
+            agent.name,
 
-);
+        emoji:
 
+            agent.emoji || "🤖",
 
+        description:
+
+            agent.description || "",
+
+        category:
+
+            agent.category || "",
+
+        level:
+
+            agent.level || "Professional",
+
+        tools:
+
+            agent.tools || [],
+
+        capabilities:
+
+            agent.capabilities || [],
+
+        languages:
+
+            agent.languages || [],
+
+        outputs:
+
+            agent.outputs || [],
+
+        previewTypes:
+
+            agent.previewTypes || [],
+
+        fileTypes:
+
+            agent.fileTypes || [],
+
+        features:
+
+            agent.features || {},
+
+        status:
+
+            agent.status || "online"
+
+    };
 
 }
-
-
-
-
-
-
-
-
-
-// AUTOMAÇÃO
-
-
-if(
-
-
-text.includes("automatizar") ||
-
-text.includes("automação") ||
-
-text.includes("workflow")
-
-
-){
-
-
-
-return this.get(
-
-"automation"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// DOCUMENTOS
-
-
-if(
-
-
-text.includes("documento") ||
-
-text.includes("pdf") ||
-
-text.includes("relatório") ||
-
-text.includes("relatorio")
-
-
-){
-
-
-
-return this.get(
-
-"document"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// TRADUÇÃO
-
-
-if(
-
-
-text.includes("traduzir") ||
-
-text.includes("tradução") ||
-
-text.includes("idioma") ||
-
-text.includes("inglês")
-
-
-){
-
-
-
-return this.get(
-
-"translation"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// DADOS
-
-
-if(
-
-
-text.includes("dados") ||
-
-text.includes("dashboard") ||
-
-text.includes("análise") ||
-
-text.includes("analise")
-
-
-){
-
-
-
-return this.get(
-
-"analytics"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// EDUCAÇÃO
-
-
-if(
-
-
-text.includes("aula") ||
-
-text.includes("curso") ||
-
-text.includes("estudar") ||
-
-text.includes("escola")
-
-
-){
-
-
-
-return this.get(
-
-"education"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// SAÚDE
-
-
-if(
-
-
-text.includes("saúde") ||
-
-text.includes("medicina") ||
-
-text.includes("hospital")
-
-
-){
-
-
-
-return this.get(
-
-"healthcare"
-
-);
-
-
-
-}/*
-==========================================
-CONTINUAÇÃO DETECT ENGINE
-==========================================
-*/
-
-
-// JURÍDICO
-
-
-if(
-
-
-text.includes("contrato") ||
-
-text.includes("advogado") ||
-
-text.includes("lei") ||
-
-text.includes("jurídico")
-
-
-){
-
-
-
-return this.get(
-
-"legal"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ARQUITETURA
-
-
-if(
-
-
-text.includes("casa") ||
-
-text.includes("planta") ||
-
-text.includes("arquitetura") ||
-
-text.includes("construção")
-
-
-){
-
-
-
-return this.get(
-
-"architect"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// EXCEL
-
-
-if(
-
-
-text.includes("excel") ||
-
-text.includes("planilha") ||
-
-text.includes("tabela")
-
-
-){
-
-
-
-return this.get(
-
-"excel"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// VÍDEO
-
-
-if(
-
-
-text.includes("vídeo") ||
-
-text.includes("video") ||
-
-text.includes("animação")
-
-
-){
-
-
-
-return this.get(
-
-"video"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// IMAGEM
-
-
-if(
-
-
-text.includes("imagem") ||
-
-text.includes("foto") ||
-
-text.includes("ilustração")
-
-
-){
-
-
-
-return this.get(
-
-"image"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-// ESCRITA
-
-
-if(
-
-
-text.includes("texto") ||
-
-text.includes("artigo") ||
-
-text.includes("livro") ||
-
-text.includes("escrever")
-
-
-){
-
-
-
-return this.get(
-
-"writer"
-
-);
-
-
-
-}
-
-
-
-
-
-
-
-
-
-return this.get(
-
-"general"
-
-);
-
-
-
-}
-
-
-
 
 
 // ==========================================================
@@ -1672,41 +1986,27 @@ return this.get(
 getState(){
 
 
+    return {
 
-return {
+        activeAgent:
 
+            this.activeAgent,
 
+        totalAgents:
 
-    activeAgent:
+            this.agents.size,
 
-    this.activeAgent,
+        categories:
 
+            this.categories,
 
+        agents:
 
-    totalAgents:
+            this.getAll()
 
-    this.agents.size,
-
-
-
-    agents:
-
-    this.getAll()
-
-
-
-};
-
-
+    };
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -1717,37 +2017,22 @@ return {
 reset(){
 
 
+    this.activeAgent =
 
-this.activeAgent =
-
-"general";
-
+        "general";
 
 
-this.agents.forEach(agent=>{
+    this.agents.forEach(agent => {
 
 
+        agent.conversations = [];
 
-    agent.conversations = [];
-
-
-
-    agent.memory = [];
+        agent.memory = [];
 
 
-
-});
-
-
+    });
 
 }
-
-
-
-
-
-
-
 
 
 // ==========================================================
@@ -1758,13 +2043,14 @@ this.agents.forEach(agent=>{
 }
 
 
+// ==========================================================
+// SINGLE INSTANCE
+// ==========================================================
 
 
+const Agents =
 
-const Agents = new AgentEngine();
-
-
-
+    new AgentEngine();
 
 
 export default Agents;
