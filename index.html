@@ -1,1154 +1,964 @@
-<!DOCTYPE html>
-<html lang="pt-PT">
+<!DOCTYPE html><html lang="pt-PT"><head><meta charset="UTF-8"><meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
 
-<head>
+«»
 
-<meta charset="UTF-8">
+<title>Honey IA Studio</title><meta
+name="description"
+content="Honey IA - Plataforma inteligente empresarial com agentes de inteligência artificial."
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>Honey IA Studio</title>
+«»
 
 <meta
-    name="description"
-    content="Honey IA - Plataforma inteligente empresarial com agentes de inteligência artificial."
->
+name="theme-color"
+content="#07080a"
 
-<meta
-    name="theme-color"
-    content="#07080a"
->
-
+«»
 
 <!-- ======================================================
      FONTS
-====================================================== -->
-
-<link
+====================================================== --><link
     rel="preconnect"
     href="https://fonts.googleapis.com"
->
-
-<link
+><link
     rel="preconnect"
     href="https://fonts.gstatic.com"
     crossorigin
->
-
-<link
+><link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
->
-
-
-<!-- ======================================================
+><!-- ======================================================
      ICONS
-====================================================== -->
-
-<link
+====================================================== --><link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
->
-
-
-<!-- ======================================================
+><!-- ======================================================
      MARKDOWN / CODE HIGHLIGHT
-====================================================== -->
-
-<link
+====================================================== --><link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
->
-
-
-<!-- ======================================================
+><!-- ======================================================
      STYLE
-====================================================== -->
-
-<link
+====================================================== --><link
     rel="stylesheet"
     href="style.css"
->
-<link
+><link
     rel="stylesheet"
     href="agents.css"
->
-
-</head>
-
-
-<body>
-
-
-<!-- ======================================================
+></head><body><!-- ======================================================
      APP LOADER
-====================================================== -->
-
-<div
+====================================================== --><div
     id="appLoader"
     class="app-loader"
     aria-live="polite"
     aria-label="A carregar Honey IA"
->
+><div class="loader-logo">
 
+    <span>🐝</span>
 
-    <div class="loader-logo">
-
-        <span>🐝</span>
-
-        <h2>
-            Honey IA
-        </h2>
-
-    </div>
-
-
-    <div class="loader-bar"></div>
-
+    <h2>
+        Honey IA
+    </h2>
 
 </div>
 
 
+<div class="loader-bar"></div>
 
-<!-- ======================================================
+</div><!-- ======================================================
      STUDIO APP
-====================================================== -->
-
-<div
+====================================================== --><div
     id="studioApp"
     class="studio"
     style="display:none;"
->
-
-
-<!-- ======================================================
+><!-- ======================================================
      SIDEBAR OVERLAY
-====================================================== -->
-
-<div
+====================================================== --><div
     id="sidebarOverlay"
     class="sidebar-overlay"
-></div>
-
-
-
-<!-- ======================================================
+></div><!-- ======================================================
      SIDEBAR
-====================================================== -->
-
-<aside
+====================================================== --><aside
     id="sidebar"
     class="sidebar"
->
+><div class="sidebar-header">
 
 
-    <div class="sidebar-header">
+    <div class="logo">
 
 
-        <div class="logo">
-
-
-            <div class="logo-mark">
-                🐝
-            </div>
-
-
-            <div>
-
-                <strong>
-                    Honey IA
-                </strong>
-
-                <small>
-                    Studio
-                </small>
-
-            </div>
-
+        <div class="logo-mark">
+            🐝
         </div>
 
 
-        <button
-            id="btnCloseSidebar"
-            class="mobile-close"
-            type="button"
-            aria-label="Fechar menu"
-        >
+        <div>
 
-            <i class="fa-solid fa-xmark"></i>
+            <strong>
+                Honey IA
+            </strong>
 
-        </button>
-
-
-    </div>
-
-
-
-    <nav
-        id="sidebarNav"
-        class="sidebar-nav"
-    >
-
-
-        <a
-            href="#dashboard"
-            data-target="dashboard"
-            class="nav-item active"
-        >
-
-            <i class="fa-solid fa-house"></i>
-
-            <span>
-                Dashboard
-            </span>
-
-        </a>
-
-
-        <a
-            href="#agents"
-            data-target="agents"
-            class="nav-item"
-        >
-
-            <i class="fa-solid fa-robot"></i>
-
-            <span>
-                Agentes IA
-            </span>
-
-        </a>
-
-
-        <a
-            href="#projects"
-            data-target="projects"
-            class="nav-item"
-        >
-
-            <i class="fa-solid fa-folder-open"></i>
-
-            <span>
-                Projetos
-            </span>
-
-        </a>
-
-
-        <a
-            href="#history"
-            data-target="history"
-            class="nav-item"
-        >
-
-            <i class="fa-solid fa-clock-rotate-left"></i>
-
-            <span>
-                Histórico
-            </span>
-
-        </a>
-
-
-        <a
-            href="#plans"
-            data-target="plans"
-            class="nav-item"
-        >
-
-            <i class="fa-solid fa-crown"></i>
-
-            <span>
-                Planos
-            </span>
-
-        </a>
-
-
-        <a
-            href="#terms"
-            data-target="terms"
-            class="nav-item"
-        >
-
-            <i class="fa-solid fa-file-contract"></i>
-
-            <span>
-                Termos de Uso
-            </span>
-
-        </a>
-
-
-    </nav>
-
-
-
-    <div class="sidebar-bottom">
-
-
-        <div
-            id="userBox"
-            class="user-box"
-        >
-
-            <div class="avatar">
-                U
-            </div>
-
-
-            <div>
-
-                <strong>
-                    Utilizador
-                </strong>
-
-                <small>
-                    Plano Gratuito
-                </small>
-
-            </div>
+            <small>
+                Studio
+            </small>
 
         </div>
 
-
     </div>
-
-
-</aside>
-
-
-
-<!-- ======================================================
-     MAIN CONTENT
-====================================================== -->
-
-<main class="main-content">
-
-
-<!-- ======================================================
-     TOP HEADER
-====================================================== -->
-
-<header class="top-header">
 
 
     <button
-        id="btnMobileMenu"
-        class="mobile-menu"
+        id="btnCloseSidebar"
+        class="mobile-close"
         type="button"
-        aria-label="Abrir menu"
+        aria-label="Fechar menu"
     >
 
-        <i class="fa-solid fa-bars"></i>
+        <i class="fa-solid fa-xmark"></i>
 
     </button>
 
 
-    <div class="header-search">
+</div>
 
 
-        <i class="fa-solid fa-magnifying-glass"></i>
+
+<nav
+    id="sidebarNav"
+    class="sidebar-nav"
+>
 
 
-        <input
-            id="globalSearch"
-            type="search"
-            placeholder="Pesquisar no Studio..."
-        >
+    <a
+        href="#dashboard"
+        data-target="dashboard"
+        class="nav-item active"
+    >
+
+        <i class="fa-solid fa-house"></i>
+
+        <span>
+            Dashboard
+        </span>
+
+    </a>
 
 
-    </div>
+    <a
+        href="agents.html"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-robot"></i>
+
+        <span>
+            Agentes IA
+        </span>
+
+    </a>
 
 
-    <div class="header-actions">
+    <a
+        href="#projects"
+        data-target="projects"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-folder-open"></i>
+
+        <span>
+            Projetos
+        </span>
+
+    </a>
 
 
-        <button
-            id="btnNotifications"
-            class="icon-button"
-            type="button"
-            aria-label="Notificações"
-        >
+    <a
+        href="#history"
+        data-target="history"
+        class="nav-item"
+    >
 
-            <i class="fa-solid fa-bell"></i>
+        <i class="fa-solid fa-clock-rotate-left"></i>
 
-        </button>
+        <span>
+            Histórico
+        </span>
+
+    </a>
 
 
-        <div
-            id="planBadge"
-            class="plan-badge"
-        >
+    <a
+        href="#plans"
+        data-target="plans"
+        class="nav-item"
+    >
 
-            <span>
-                Plano
-            </span>
+        <i class="fa-solid fa-crown"></i>
+
+        <span>
+            Planos
+        </span>
+
+    </a>
+
+
+    <a
+        href="#terms"
+        data-target="terms"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-file-contract"></i>
+
+        <span>
+            Termos de Uso
+        </span>
+
+    </a>
+
+
+</nav>
+
+
+
+<div class="sidebar-bottom">
+
+
+    <div
+        id="userBox"
+        class="user-box"
+    >
+
+        <div class="avatar">
+            U
+        </div>
+
+
+        <div>
 
             <strong>
-                Gratuito
+                Utilizador
             </strong>
 
-        </div>
+            <small>
+                Plano Gratuito
+            </small>
 
+        </div>
 
     </div>
 
 
-</header>
+</div>
 
-
-
-<!-- ======================================================
-     DASHBOARD
-====================================================== -->
-
-<section
-    id="dashboard"
-    class="workspace-view dashboard-section"
+</aside><!-- ======================================================
+     MAIN CONTENT
+====================================================== --><main class="main-content"><!-- ======================================================
+     TOP HEADER
+====================================================== --><header class="top-header"><button
+    id="btnMobileMenu"
+    class="mobile-menu"
+    type="button"
+    aria-label="Abrir menu"
 >
 
+    <i class="fa-solid fa-bars"></i>
 
-    <div id="dashboardContainer">
+</button>
 
 
-        <div class="hero-dashboard">
+<div class="header-search">
 
 
-            <div class="hero-content">
+    <i class="fa-solid fa-magnifying-glass"></i>
 
 
-                <span class="hero-tag">
-                    🐝 Honey IA Studio
-                </span>
-
-
-                <h1>
-                    Transforme ideias em soluções com Inteligência Artificial
-                </h1>
-
-
-                <p>
-                    Crie projetos, analise documentos, desenvolva aplicações,
-                    gere conteúdos e trabalhe com agentes especializados.
-                </p>
-
-
-                <div class="hero-actions">
-
-
-                    <button
-                        id="btnCreateProject"
-                        class="primary-button"
-                        type="button"
-                    >
-
-                        <i class="fa-solid fa-sparkles"></i>
-
-                        Criar Projeto
-
-                    </button>
-
-
-                    <button
-                        id="btnExploreAgents"
-                        class="secondary-button"
-                        data-target="agents"
-                        type="button"
-                    >
-
-                        Explorar Agentes
-
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div class="hero-visual">
-
-
-                <div class="ai-orb">
-
-                    <div class="orb-center">
-                        🐝
-                    </div>
-
-                </div>
-
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     AGENTS
-====================================================== -->
-
-<section
-    id="agents"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-
-        <div>
-
-            <h2>
-                Agentes IA
-            </h2>
-
-            <p>
-                Especialistas inteligentes para cada área.
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div
-        id="agentsContainer"
-        class="agents-grid"
-    ></div>
-
-
-    <div
-        id="agentStudioContainer"
-        class="agent-studio-container"
-    ></div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     PROJECTS
-====================================================== -->
-
-<section
-    id="projects"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-
-        <div>
-
-            <h2>
-                Projetos
-            </h2>
-
-            <p>
-                Organize suas criações dentro do Workspace.
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div
-        id="projectsContainer"
-        class="empty-state"
+    <input
+        id="globalSearch"
+        type="search"
+        placeholder="Pesquisar no Studio..."
     >
-
-
-        <div class="empty-icon">
-
-            <i class="fa-solid fa-folder-plus"></i>
-
-        </div>
-
-
-        <h3>
-            Nenhum projeto criado
-        </h3>
-
-
-        <p>
-            Comece criando um novo projeto com a Honey IA.
-        </p>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     HISTORY
-====================================================== -->
-
-<section
-    id="history"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-        <h2>
-            Histórico
-        </h2>
-
-        <p>
-            Veja as conversas e trabalhos realizados.
-        </p>
-
-    </div>
-
-
-    <div
-        id="historyContainer"
-        class="history-container"
-    ></div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     PLANS
-====================================================== -->
-
-<section
-    id="plans"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-        <h2>
-            Planos Honey IA
-        </h2>
-
-        <p>
-            Escolha o nível ideal para suas necessidades.
-        </p>
-
-    </div>
-
-
-    <div class="plans-grid">
-
-
-        <div class="plan-card">
-
-            <h3>
-                Gratuito
-            </h3>
-
-            <h4>
-                0 Kz
-            </h4>
-
-            <ul>
-
-                <li>
-                    Chat IA
-                </li>
-
-                <li>
-                    Análise básica
-                </li>
-
-                <li>
-                    1 projeto
-                </li>
-
-            </ul>
-
-            <button
-                class="secondary-button"
-                type="button"
-            >
-                Atual
-            </button>
-
-        </div>
-
-
-
-        <div class="plan-card featured">
-
-            <span class="featured-label">
-                Popular
-            </span>
-
-            <h3>
-                Individual
-            </h3>
-
-            <h4>
-                15.000 Kz/mês
-            </h4>
-
-            <ul>
-
-                <li>
-                    Agentes avançados
-                </li>
-
-                <li>
-                    Exportação
-                </li>
-
-                <li>
-                    Projetos ilimitados
-                </li>
-
-            </ul>
-
-            <button
-                class="primary-button"
-                type="button"
-            >
-                Escolher Plano
-            </button>
-
-        </div>
-
-
-
-        <div class="plan-card">
-
-            <h3>
-                Business
-            </h3>
-
-            <h4>
-                400.000 Kz/mês
-            </h4>
-
-            <ul>
-
-                <li>
-                    Equipe empresarial
-                </li>
-
-                <li>
-                    Agentes personalizados
-                </li>
-
-                <li>
-                    Workspace completo
-                </li>
-
-            </ul>
-
-            <button
-                class="secondary-button"
-                type="button"
-            >
-                Contactar
-            </button>
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     TERMS
-====================================================== -->
-
-<section
-    id="terms"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-        <h2>
-            Termos de Uso
-        </h2>
-
-        <p>
-            Informações sobre utilização da plataforma Honey IA.
-        </p>
-
-    </div>
-
-
-    <div
-        id="termsContainer"
-        class="terms-card"
-    >
-
-
-        <h3>
-            Utilização responsável
-        </h3>
-
-
-        <p>
-            A Honey IA é uma plataforma de inteligência artificial criada
-            para auxiliar utilizadores, empreendedores e empresas na criação,
-            análise e desenvolvimento de soluções digitais.
-        </p>
-
-
-        <h3>
-            Privacidade
-        </h3>
-
-
-        <p>
-            Os dados enviados para processamento devem respeitar as normas
-            de segurança e privacidade aplicáveis.
-        </p>
-
-
-        <h3>
-            Responsabilidade
-        </h3>
-
-
-        <p>
-            As respostas geradas pela inteligência artificial devem ser revistas
-            antes de serem utilizadas em decisões importantes.
-        </p>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     CHAT
-====================================================== -->
-
-<section
-    id="chat"
-    class="workspace-view chat-section"
-    style="display:none;"
->
-
-
-    <div
-        id="chatLayout"
-        class="chat-layout"
-    >
-
-
-        <div class="chat-panel">
-
-
-            <div class="chat-header">
-
-
-                <div>
-
-                    <h2>
-                        Honey IA
-                    </h2>
-
-                    <span>
-                        Assistente inteligente
-                    </span>
-
-                </div>
-
-
-                <div class="mode-switch">
-
-
-                    <button
-                        id="btnChatMode"
-                        class="mode-button active"
-                        type="button"
-                    >
-
-                        <i class="fa-solid fa-comment"></i>
-
-                        Chat
-
-                    </button>
-
-
-                    <button
-                        id="btnLiveMode"
-                        class="mode-button"
-                        type="button"
-                    >
-
-                        <i class="fa-solid fa-microphone"></i>
-
-                        Live
-
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div
-                id="chatMessages"
-                class="chat-messages"
-            >
-
-
-                <div class="welcome-message">
-
-
-                    <div class="welcome-icon">
-                        🐝
-                    </div>
-
-
-                    <h3>
-                        Olá, sou a Honey IA
-                    </h3>
-
-
-                    <p>
-                        Como posso ajudar hoje?
-                    </p>
-
-
-                </div>
-
-
-            </div>
-
-
-            <div
-                id="attachment-bar"
-                class="attachment-bar hidden"
-            >
-
-
-                <span
-                    id="attached-file-name"
-                ></span>
-
-
-                <button
-                    id="btn-remove-attachment"
-                    type="button"
-                    aria-label="Remover ficheiro"
-                >
-
-                    <i class="fa-solid fa-xmark"></i>
-
-                </button>
-
-
-            </div>
-
-
-            <div class="chat-input-area">
-
-
-                <button
-                    id="btnAttach"
-                    class="input-action"
-                    type="button"
-                    aria-label="Anexar ficheiro"
-                >
-
-                    <i class="fa-solid fa-paperclip"></i>
-
-                </button>
-
-
-                <input
-                    type="file"
-                    id="fileInput"
-                    hidden
-                >
-
-
-                <textarea
-                    id="chatInput"
-                    placeholder="Digite uma mensagem para a Honey IA..."
-                    rows="1"
-                ></textarea>
-
-
-                <button
-                    id="btnVoice"
-                    class="input-action"
-                    type="button"
-                    aria-label="Entrada de voz"
-                >
-
-                    <i class="fa-solid fa-microphone"></i>
-
-                </button>
-
-
-                <button
-                    id="btnSend"
-                    class="send-button"
-                    type="button"
-                    aria-label="Enviar mensagem"
-                >
-
-                    <i class="fa-solid fa-paper-plane"></i>
-
-                </button>
-
-
-            </div>
-
-
-        </div>
-
-
-        <div
-            id="preview-pane"
-            class="preview-pane"
-        >
-
-
-            <div class="preview-header">
-
-                <h3>
-                    Preview
-                </h3>
-
-
-                <button
-                    id="btn-close-preview"
-                    type="button"
-                    aria-label="Fechar preview"
-                >
-
-                    <i class="fa-solid fa-xmark"></i>
-
-                </button>
-
-
-            </div>
-
-
-            <iframe
-                id="live-preview-iframe"
-                title="Live Preview"
-            ></iframe>
-
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- ======================================================
-     GLOBAL TOASTS
-====================================================== -->
-
-<div
-    id="toastContainer"
-    class="toast-container"
-></div>
-
-
-</main>
 
 
 </div>
 
 
+<div class="header-actions">
 
-<!-- ======================================================
+
+    <button
+        id="btnNotifications"
+        class="icon-button"
+        type="button"
+        aria-label="Notificações"
+    >
+
+        <i class="fa-solid fa-bell"></i>
+
+    </button>
+
+
+    <div
+        id="planBadge"
+        class="plan-badge"
+    >
+
+        <span>
+            Plano
+        </span>
+
+        <strong>
+            Gratuito
+        </strong>
+
+    </div>
+
+
+</div>
+
+</header><!-- ======================================================
+     DASHBOARD
+====================================================== --><section
+    id="dashboard"
+    class="workspace-view dashboard-section"
+><div id="dashboardContainer">
+
+
+    <div class="hero-dashboard">
+
+
+        <div class="hero-content">
+
+
+            <span class="hero-tag">
+                🐝 Honey IA Studio
+            </span>
+
+
+            <h1>
+                Transforme ideias em soluções com Inteligência Artificial
+            </h1>
+
+
+            <p>
+                Crie projetos, analise documentos, desenvolva aplicações,
+                gere conteúdos e trabalhe com agentes especializados.
+            </p>
+
+
+            <div class="hero-actions">
+
+
+                <button
+                    id="btnCreateProject"
+                    class="primary-button"
+                    type="button"
+                >
+
+                    <i class="fa-solid fa-sparkles"></i>
+
+                    Criar Projeto
+
+                </button>
+
+
+                <!-- ==================================================
+                     EXPLORAR AGENTES
+                     Abre diretamente agents.html
+                =================================================== -->
+
+                <a
+                    id="btnExploreAgents"
+                    class="secondary-button"
+                    href="agents.html"
+                >
+
+                    Explorar Agentes
+
+                </a>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div class="hero-visual">
+
+
+            <div class="ai-orb">
+
+                <div class="orb-center">
+                    🐝
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+</section><!-- ======================================================
+     AGENTS
+====================================================== --><section
+    id="agents"
+    class="workspace-view app-section"
+    style="display:none;"
+><div class="section-header">
+
+
+    <div>
+
+        <h2>
+            Agentes IA
+        </h2>
+
+        <p>
+            Especialistas inteligentes para cada área.
+        </p>
+
+    </div>
+
+
+</div>
+
+
+<div
+    id="agentsContainer"
+    class="agents-grid"
+></div>
+
+
+<div
+    id="agentStudioContainer"
+    class="agent-studio-container"
+></div>
+
+</section><!-- ======================================================
+     PROJECTS
+====================================================== --><section
+    id="projects"
+    class="workspace-view app-section"
+    style="display:none;"
+><div class="section-header">
+
+
+    <div>
+
+        <h2>
+            Projetos
+        </h2>
+
+        <p>
+            Organize suas criações dentro do Workspace.
+        </p>
+
+    </div>
+
+
+</div>
+
+
+<div
+    id="projectsContainer"
+    class="empty-state"
+>
+
+
+    <div class="empty-icon">
+
+        <i class="fa-solid fa-folder-plus"></i>
+
+    </div>
+
+
+    <h3>
+        Nenhum projeto criado
+    </h3>
+
+
+    <p>
+        Comece criando um novo projeto com a Honey IA.
+    </p>
+
+
+</div>
+
+</section><!-- ======================================================
+     HISTORY
+====================================================== --><section
+    id="history"
+    class="workspace-view app-section"
+    style="display:none;"
+><div class="section-header">
+
+    <h2>
+        Histórico
+    </h2>
+
+    <p>
+        Veja as conversas e trabalhos realizados.
+    </p>
+
+</div>
+
+
+<div
+    id="historyContainer"
+    class="history-container"
+></div>
+
+</section><!-- ======================================================
+     PLANS
+====================================================== --><section
+    id="plans"
+    class="workspace-view app-section"
+    style="display:none;"
+><div class="section-header">
+
+    <h2>
+        Planos Honey IA
+    </h2>
+
+    <p>
+        Escolha o nível ideal para suas necessidades.
+    </p>
+
+</div>
+
+
+<div class="plans-grid">
+
+
+    <div class="plan-card">
+
+        <h3>
+            Gratuito
+        </h3>
+
+        <h4>
+            0 Kz
+        </h4>
+
+        <ul>
+
+            <li>
+                Chat IA
+            </li>
+
+            <li>
+                Análise básica
+            </li>
+
+            <li>
+                1 projeto
+            </li>
+
+        </ul>
+
+        <button
+            class="secondary-button"
+            type="button"
+        >
+            Atual
+        </button>
+
+    </div>
+
+
+
+    <div class="plan-card featured">
+
+        <span class="featured-label">
+            Popular
+        </span>
+
+        <h3>
+            Individual
+        </h3>
+
+        <h4>
+            15.000 Kz/mês
+        </h4>
+
+        <ul>
+
+            <li>
+                Agentes avançados
+            </li>
+
+            <li>
+                Exportação
+            </li>
+
+            <li>
+                Projetos ilimitados
+            </li>
+
+        </ul>
+
+        <button
+            class="primary-button"
+            type="button"
+        >
+            Escolher Plano
+        </button>
+
+    </div>
+
+
+
+    <div class="plan-card">
+
+        <h3>
+            Business
+        </h3>
+
+        <h4>
+            400.000 Kz/mês
+        </h4>
+
+        <ul>
+
+            <li>
+                Equipe empresarial
+            </li>
+
+            <li>
+                Agentes personalizados
+            </li>
+
+            <li>
+                Workspace completo
+            </li>
+
+        </ul>
+
+        <button
+            class="secondary-button"
+            type="button"
+        >
+            Contactar
+        </button>
+
+    </div>
+
+
+</div>
+
+</section><!-- ======================================================
+     TERMS
+====================================================== --><section
+    id="terms"
+    class="workspace-view app-section"
+    style="display:none;"
+><div class="section-header">
+
+    <h2>
+        Termos de Uso
+    </h2>
+
+    <p>
+        Informações sobre utilização da plataforma Honey IA.
+    </p>
+
+</div>
+
+
+<div
+    id="termsContainer"
+    class="terms-card"
+>
+
+
+    <h3>
+        Utilização responsável
+    </h3>
+
+
+    <p>
+        A Honey IA é uma plataforma de inteligência artificial criada
+        para auxiliar utilizadores, empreendedores e empresas na criação,
+        análise e desenvolvimento de soluções digitais.
+    </p>
+
+
+    <h3>
+        Privacidade
+    </h3>
+
+
+    <p>
+        Os dados enviados para processamento devem respeitar as normas
+        de segurança e privacidade aplicáveis.
+    </p>
+
+
+    <h3>
+        Responsabilidade
+    </h3>
+
+
+    <p>
+        As respostas geradas pela inteligência artificial devem ser revistas
+        antes de serem utilizadas em decisões importantes.
+    </p>
+
+
+</div>
+
+</section><!-- ======================================================
+     CHAT
+====================================================== --><section
+    id="chat"
+    class="workspace-view chat-section"
+    style="display:none;"
+><div
+    id="chatLayout"
+    class="chat-layout"
+>
+
+
+    <div class="chat-panel">
+
+
+        <div class="chat-header">
+
+
+            <div>
+
+                <h2>
+                    Honey IA
+                </h2>
+
+                <span>
+                    Assistente inteligente
+                </span>
+
+            </div>
+
+
+            <div class="mode-switch">
+
+
+                <button
+                    id="btnChatMode"
+                    class="mode-button active"
+                    type="button"
+                >
+
+                    <i class="fa-solid fa-comment"></i>
+
+                    Chat
+
+                </button>
+
+
+                <button
+                    id="btnLiveMode"
+                    class="mode-button"
+                    type="button"
+                >
+
+                    <i class="fa-solid fa-microphone"></i>
+
+                    Live
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div
+            id="chatMessages"
+            class="chat-messages"
+        >
+
+
+            <div class="welcome-message">
+
+
+                <div class="welcome-icon">
+                    🐝
+                </div>
+
+
+                <h3>
+                    Olá, sou a Honey IA
+                </h3>
+
+
+                <p>
+                    Como posso ajudar hoje?
+                </p>
+
+
+            </div>
+
+
+        </div>
+
+
+        <div
+            id="attachment-bar"
+            class="attachment-bar hidden"
+        >
+
+
+            <span
+                id="attached-file-name"
+            ></span>
+
+
+            <button
+                id="btn-remove-attachment"
+                type="button"
+                aria-label="Remover ficheiro"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+
+        </div>
+
+
+        <div class="chat-input-area">
+
+
+            <button
+                id="btnAttach"
+                class="input-action"
+                type="button"
+                aria-label="Anexar ficheiro"
+            >
+
+                <i class="fa-solid fa-paperclip"></i>
+
+            </button>
+
+
+            <input
+                type="file"
+                id="fileInput"
+                hidden
+            >
+
+
+            <textarea
+                id="chatInput"
+                placeholder="Digite uma mensagem para a Honey IA..."
+                rows="1"
+            ></textarea>
+
+
+            <button
+                id="btnVoice"
+                class="input-action"
+                type="button"
+                aria-label="Entrada de voz"
+            >
+
+                <i class="fa-solid fa-microphone"></i>
+
+            </button>
+
+
+            <button
+                id="btnSend"
+                class="send-button"
+                type="button"
+                aria-label="Enviar mensagem"
+            >
+
+                <i class="fa-solid fa-paper-plane"></i>
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+    <div
+        id="preview-pane"
+        class="preview-pane"
+    >
+
+
+        <div class="preview-header">
+
+            <h3>
+                Preview
+            </h3>
+
+
+            <button
+                id="btn-close-preview"
+                type="button"
+                aria-label="Fechar preview"
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+
+        </div>
+
+
+        <iframe
+            id="live-preview-iframe"
+            title="Live Preview"
+        ></iframe>
+
+
+    </div>
+
+
+</div>
+
+</section><!-- ======================================================
+     GLOBAL TOASTS
+====================================================== --><div
+    id="toastContainer"
+    class="toast-container"
+></div></main></div><!-- ======================================================
      JAVASCRIPT LIBRARIES
-====================================================== -->
-
-<script
+====================================================== --><script
     src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"
-></script>
-
-
-<script
+></script><script
     src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
-></script>
-
-
-
-<!-- ======================================================
+></script><!-- ======================================================
      HONEY IA MODULES
-====================================================== -->
-
-<script
+====================================================== --><script
     type="module"
     src="agents.js"
-></script>
-
-
-<script
+></script><script
     type="module"
     src="agents-ui.js"
-></script>
-
-
-<script
+></script><script
     type="module"
     src="agentstudio.js"
-></script>
-
-
-<script
+></script><script
     type="module"
     src="dashboard.js"
-></script>
-
-
-<script
+></script><script
     type="module"
     src="app.js"
-></script>
-
-
-</body>
-
-</html>
+></script></body></html>
