@@ -1,17 +1,18 @@
 /*
 ==========================================
 HONEY IA OS
-ORCHESTRATOR ENGINE V7.0
+ORCHESTRATOR ENGINE V8.0
 FULL MULTI-AGENT + TOOL ENGINE
 30 SPECIALIST AGENTS
 Agent Routing
 Prompt Factory
 Groq AI
 Real Tool Calling
-Tool Execution Loop
+Multi-Round Tool Execution
 Artifacts
 Live Streaming
 Enterprise Workspace Integration
+Production Hardened
 ==========================================
 */
 
@@ -128,16 +129,25 @@ const agents_registry = {
 // AGENT NORMALIZATION
 // ==========================================
 
-Object.entries(agents_registry).forEach(
+Object.entries(
+    agents_registry
+).forEach(
     ([key, agent]) => {
 
-        if(!agent) return;
+        if(!agent){
+
+            return;
+
+        }
+
 
         if(!agent.id){
 
-            agent.id = key;
+            agent.id =
+                key;
 
         }
+
 
         if(!agent.name){
 
@@ -146,11 +156,13 @@ Object.entries(agents_registry).forEach(
 
         }
 
+
         if(!Array.isArray(agent.tools)){
 
             agent.tools = [];
 
         }
+
 
         if(!Array.isArray(agent.capabilities)){
 
@@ -158,11 +170,13 @@ Object.entries(agents_registry).forEach(
 
         }
 
+
         if(!Array.isArray(agent.outputTypes)){
 
             agent.outputTypes = [];
 
         }
+
 
         if(!agent.category){
 
@@ -171,12 +185,14 @@ Object.entries(agents_registry).forEach(
 
         }
 
+
         if(!agent.level){
 
             agent.level =
                 "Professional";
 
         }
+
 
         if(!agent.description){
 
@@ -202,7 +218,9 @@ export class agentrouter {
 
         const normalizedforcedid =
             forcedagentid
-                ? String(forcedagentid)
+                ? String(
+                    forcedagentid
+                )
                     .toLowerCase()
                     .trim()
                 : null;
@@ -214,7 +232,9 @@ export class agentrouter {
 
         if(
             normalizedforcedid &&
-            agents_registry[normalizedforcedid]
+            agents_registry[
+                normalizedforcedid
+            ]
         ){
 
             return {
@@ -224,7 +244,8 @@ export class agentrouter {
                         normalizedforcedid
                     ],
 
-                score: 1,
+                score:
+                    1,
 
                 reason:
                     "forced_by_user"
@@ -248,7 +269,8 @@ export class agentrouter {
                 agent:
                     generalagent,
 
-                score: 1,
+                score:
+                    1,
 
                 reason:
                     "default_general"
@@ -267,7 +289,9 @@ export class agentrouter {
         let selected =
             generalagent;
 
-        let bestScore = 0;
+
+        let bestScore =
+            0;
 
 
         // ----------------------------------
@@ -281,9 +305,15 @@ export class agentrouter {
             )
         ){
 
-            if(!agent) continue;
+            if(!agent){
 
-            let score = 0;
+                continue;
+
+            }
+
+
+            let score =
+                0;
 
 
             // ------------------------------
@@ -298,11 +328,17 @@ export class agentrouter {
                 try{
 
                     const result =
-                        agent.canHandle(text);
+                        agent.canHandle(
+                            text
+                        );
 
-                    if(result === true){
 
-                        score += 0.8;
+                    if(
+                        result === true
+                    ){
+
+                        score +=
+                            0.8;
 
                     }
 
@@ -311,10 +347,11 @@ export class agentrouter {
                         "number"
                     ){
 
-                        score += Math.max(
-                            0,
-                            result
-                        );
+                        score +=
+                            Math.max(
+                                0,
+                                result
+                            );
 
                     }
 
@@ -337,7 +374,9 @@ export class agentrouter {
             // ------------------------------
 
             if(
-                Array.isArray(agent.keywords) &&
+                Array.isArray(
+                    agent.keywords
+                ) &&
                 agent.keywords.length
             ){
 
@@ -354,10 +393,24 @@ export class agentrouter {
 
                             }
 
-                            return text.includes(
+
+                            const normalizedKeyword =
                                 keyword
                                     .toLowerCase()
-                                    .trim()
+                                    .trim();
+
+
+                            if(
+                                !normalizedKeyword
+                            ){
+
+                                return false;
+
+                            }
+
+
+                            return text.includes(
+                                normalizedKeyword
                             );
 
                         }
@@ -366,10 +419,12 @@ export class agentrouter {
 
                 if(matches.length){
 
-                    score += Math.min(
-                        0.6,
-                        matches.length * 0.2
-                    );
+                    score +=
+                        Math.min(
+                            0.6,
+                            matches.length *
+                            0.2
+                        );
 
                 }
 
@@ -383,12 +438,14 @@ export class agentrouter {
             if(
                 agent.name &&
                 text.includes(
-                    String(agent.name)
-                        .toLowerCase()
+                    String(
+                        agent.name
+                    ).toLowerCase()
                 )
             ){
 
-                score += 0.15;
+                score +=
+                    0.15;
 
             }
 
@@ -400,12 +457,14 @@ export class agentrouter {
             if(
                 agent.category &&
                 text.includes(
-                    String(agent.category)
-                        .toLowerCase()
+                    String(
+                        agent.category
+                    ).toLowerCase()
                 )
             ){
 
-                score += 0.1;
+                score +=
+                    0.1;
 
             }
 
@@ -417,7 +476,9 @@ export class agentrouter {
             if(agent.description){
 
                 const descriptionWords =
-                    String(agent.description)
+                    String(
+                        agent.description
+                    )
                         .toLowerCase()
                         .split(/\s+/)
                         .filter(
@@ -429,17 +490,22 @@ export class agentrouter {
                 const descriptionMatches =
                     descriptionWords.filter(
                         word =>
-                            text.includes(word)
+                            text.includes(
+                                word
+                            )
                     );
 
 
-                if(descriptionMatches.length){
+                if(
+                    descriptionMatches.length
+                ){
 
-                    score += Math.min(
-                        0.2,
-                        descriptionMatches.length *
-                        0.04
-                    );
+                    score +=
+                        Math.min(
+                            0.2,
+                            descriptionMatches.length *
+                            0.04
+                        );
 
                 }
 
@@ -450,11 +516,16 @@ export class agentrouter {
             // BEST AGENT
             // ------------------------------
 
-            if(score > bestScore){
+            if(
+                score >
+                bestScore
+            ){
 
-                bestScore = score;
+                bestScore =
+                    score;
 
-                selected = agent;
+                selected =
+                    agent;
 
             }
 
@@ -465,14 +536,17 @@ export class agentrouter {
         // LOW CONFIDENCE
         // ----------------------------------
 
-        if(bestScore < 0.3){
+        if(
+            bestScore < 0.3
+        ){
 
             return {
 
                 agent:
                     generalagent,
 
-                score: 0,
+                score:
+                    0,
 
                 reason:
                     "low_confidence"
@@ -489,7 +563,9 @@ export class agentrouter {
 
             score:
                 Number(
-                    bestScore.toFixed(2)
+                    bestScore.toFixed(
+                        2
+                    )
                 ),
 
             reason:
@@ -508,7 +584,9 @@ export class agentrouter {
 
 export class promptfactory {
 
-    static extractsystemprompt(agent){
+    static extractsystemprompt(
+        agent
+    ){
 
         if(!agent){
 
@@ -598,7 +676,10 @@ profissional, segura e útil.
         if(
             workspaceContext &&
             typeof workspaceContext === "object" &&
-            Object.keys(workspaceContext).length
+            !Array.isArray(workspaceContext) &&
+            Object.keys(
+                workspaceContext
+            ).length
         ){
 
             finalPrompt += `
@@ -606,7 +687,9 @@ profissional, segura e útil.
 === CONTEXTO DO WORKSPACE ===
 `;
 
-            if(workspaceContext.projectName){
+            if(
+                workspaceContext.projectName
+            ){
 
                 finalPrompt += `
 Projeto:
@@ -615,7 +698,10 @@ ${workspaceContext.projectName}
 
             }
 
-            if(workspaceContext.activeFile){
+
+            if(
+                workspaceContext.activeFile
+            ){
 
                 finalPrompt += `
 Ficheiro ativo:
@@ -624,7 +710,10 @@ ${workspaceContext.activeFile}
 
             }
 
-            if(workspaceContext.language){
+
+            if(
+                workspaceContext.language
+            ){
 
                 finalPrompt += `
 Tecnologia:
@@ -633,7 +722,10 @@ ${workspaceContext.language}
 
             }
 
-            if(workspaceContext.content){
+
+            if(
+                workspaceContext.content
+            ){
 
                 finalPrompt += `
 Conteúdo relevante:
@@ -656,9 +748,15 @@ ${workspaceContext.content}
 `;
 
             userMemory
-                .slice(0, 20)
+                .slice(
+                    0,
+                    20
+                )
                 .forEach(
-                    (memory, index) => {
+                    (
+                        memory,
+                        index
+                    ) => {
 
                         const value =
                             typeof memory === "string"
@@ -691,7 +789,9 @@ ${index + 1}. ${value}
         mode = "chat"
     ){
 
-        if(mode === "live"){
+        if(
+            mode === "live"
+        ){
 
             return prompt + `
 
@@ -734,7 +834,9 @@ ${index + 1}. ${value}
     ){
 
         const outputTypes =
-            Array.isArray(agent?.outputTypes)
+            Array.isArray(
+                agent?.outputTypes
+            )
                 ? agent.outputTypes
                 : [];
 
@@ -828,7 +930,9 @@ Quando uma ferramenta estiver disponível:
 
 
         const formattedHistory =
-            Array.isArray(history)
+            Array.isArray(
+                history
+            )
                 ? history
                     .filter(
                         item =>
@@ -856,18 +960,27 @@ Quando uma ferramenta estiver disponível:
         return [
 
             {
-                role: "system",
-                content: systemPrompt
+
+                role:
+                    "system",
+
+                content:
+                    systemPrompt
+
             },
 
             ...formattedHistory,
 
             {
-                role: "user",
+
+                role:
+                    "user",
+
                 content:
                     String(
                         userPrompt || ""
                     )
+
             }
 
         ];
@@ -884,10 +997,48 @@ Quando uma ferramenta estiver disponível:
 export class toolorchestrator {
 
     // ======================================
+    // NORMALIZE TOOL IDS
+    // ======================================
+
+    static normalizeAgentTools(
+        agent
+    ){
+
+        if(
+            !agent ||
+            !Array.isArray(
+                agent.tools
+            )
+        ){
+
+            return [];
+
+        }
+
+
+        return agent.tools
+            .map(
+                tool =>
+                    String(
+                        tool
+                    )
+                        .toLowerCase()
+                        .trim()
+            )
+            .filter(
+                Boolean
+            );
+
+    }
+
+
+    // ======================================
     // TOOL DEFINITIONS
     // ======================================
 
-    static getavailabletools(agent){
+    static getavailabletools(
+        agent
+    ){
 
         if(!agent){
 
@@ -897,15 +1048,9 @@ export class toolorchestrator {
 
 
         const normalizedTools =
-            Array.isArray(agent.tools)
-                ? agent.tools
-                    .map(
-                        tool =>
-                            String(tool)
-                                .toLowerCase()
-                                .trim()
-                    )
-                : [];
+            this.normalizeAgentTools(
+                agent
+            );
 
 
         const tools = [];
@@ -916,7 +1061,9 @@ export class toolorchestrator {
         // ----------------------------------
 
         if(
-            normalizedTools.includes("web")
+            normalizedTools.includes(
+                "web"
+            )
         ){
 
             tools.push({
@@ -969,7 +1116,9 @@ export class toolorchestrator {
         // ----------------------------------
 
         if(
-            normalizedTools.includes("analytics")
+            normalizedTools.includes(
+                "analytics"
+            )
         ){
 
             tools.push({
@@ -1022,9 +1171,15 @@ export class toolorchestrator {
         // ----------------------------------
 
         if(
-            normalizedTools.includes("document") ||
-            normalizedTools.includes("writer") ||
-            normalizedTools.includes("file")
+            normalizedTools.includes(
+                "document"
+            ) ||
+            normalizedTools.includes(
+                "writer"
+            ) ||
+            normalizedTools.includes(
+                "file"
+            )
         ){
 
             tools.push({
@@ -1089,9 +1244,15 @@ export class toolorchestrator {
         // ----------------------------------
 
         if(
-            normalizedTools.includes("json") ||
-            normalizedTools.includes("developer") ||
-            normalizedTools.includes("automation")
+            normalizedTools.includes(
+                "json"
+            ) ||
+            normalizedTools.includes(
+                "developer"
+            ) ||
+            normalizedTools.includes(
+                "automation"
+            )
         ){
 
             tools.push({
@@ -1149,10 +1310,18 @@ export class toolorchestrator {
         // ----------------------------------
 
         if(
-            normalizedTools.includes("calculator") ||
-            normalizedTools.includes("analytics") ||
-            normalizedTools.includes("finance") ||
-            normalizedTools.includes("accounting")
+            normalizedTools.includes(
+                "calculator"
+            ) ||
+            normalizedTools.includes(
+                "analytics"
+            ) ||
+            normalizedTools.includes(
+                "finance"
+            ) ||
+            normalizedTools.includes(
+                "accounting"
+            )
         ){
 
             tools.push({
@@ -1216,7 +1385,10 @@ export class toolorchestrator {
         toolName
     ){
 
-        if(!agent){
+        if(
+            !agent ||
+            !toolName
+        ){
 
             return false;
 
@@ -1224,72 +1396,69 @@ export class toolorchestrator {
 
 
         const tools =
-            Array.isArray(agent.tools)
-                ? agent.tools.map(
-                    tool =>
-                        String(tool)
-                            .toLowerCase()
-                            .trim()
-                )
-                : [];
+            this.normalizeAgentTools(
+                agent
+            );
 
 
-        const mapping = {
+        const permissions = {
 
-            web:
-                "web_search",
+            web_search: [
+                "web"
+            ],
 
-            analytics:
-                "get_analytics",
+            get_analytics: [
+                "analytics"
+            ],
 
-            document:
-                "create_text_artifact",
+            create_text_artifact: [
+                "document",
+                "writer",
+                "file"
+            ],
 
-            writer:
-                "create_text_artifact",
+            create_json_artifact: [
+                "json",
+                "developer",
+                "automation"
+            ],
 
-            file:
-                "create_text_artifact",
-
-            json:
-                "create_json_artifact",
-
-            developer:
-                "create_json_artifact",
-
-            automation:
-                "create_json_artifact",
-
-            calculator:
-                "calculate",
-
-            finance:
-                "calculate",
-
-            accounting:
-                "calculate"
+            calculate: [
+                "calculator",
+                "analytics",
+                "finance",
+                "accounting"
+            ]
 
         };
 
 
-        const requiredTool =
-            mapping[toolName];
+        const allowedTools =
+            permissions[
+                String(
+                    toolName
+                )
+                    .toLowerCase()
+                    .trim()
+            ];
 
 
-        if(!requiredTool){
+        if(
+            !Array.isArray(
+                allowedTools
+            )
+        ){
 
             return false;
 
         }
 
 
-        return tools.includes(
-            Object.keys(mapping)
-                .find(
-                    key =>
-                        mapping[key] ===
-                        requiredTool
-                ) || ""
+        return allowedTools.some(
+            permission =>
+                tools.includes(
+                    permission
+                )
         );
 
     }
@@ -1304,11 +1473,15 @@ export class toolorchestrator {
     ){
 
         const normalizedQuery =
-            String(query || "")
+            String(
+                query || ""
+            )
                 .trim();
 
 
-        if(!normalizedQuery){
+        if(
+            !normalizedQuery
+        ){
 
             throw new Error(
                 "Consulta de pesquisa vazia."
@@ -1324,22 +1497,6 @@ export class toolorchestrator {
         const endpoint =
             process.env.WEB_SEARCH_API_URL;
 
-
-        /*
-        --------------------------------------------------
-        CONFIGURAÇÃO REAL DE PESQUISA
-        --------------------------------------------------
-
-        A Honey IA não inventa resultados.
-
-        O backend pode ser ligado a qualquer provedor
-        compatível através de:
-
-        WEB_SEARCH_API_URL
-        WEB_SEARCH_API_KEY
-
-        --------------------------------------------------
-        */
 
         if(
             !endpoint ||
@@ -1365,69 +1522,116 @@ export class toolorchestrator {
         }
 
 
-        const response =
-            await fetch(
+        const controller =
+            new AbortController();
 
-                endpoint,
 
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            `Bearer ${apiKey}`
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            query:
-                                normalizedQuery
-
-                        })
-
-                }
-
+        const timeout =
+            setTimeout(
+                () =>
+                    controller.abort(),
+                30000
             );
 
 
-        if(!response.ok){
+        try{
 
-            throw new Error(
-                `Pesquisa web falhou com HTTP ${response.status}.`
-            );
+            const response =
+                await fetch(
+
+                    endpoint,
+
+                    {
+
+                        method:
+                            "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json",
+
+                            "Authorization":
+                                `Bearer ${apiKey}`
+
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                query:
+                                    normalizedQuery
+
+                            }),
+
+                        signal:
+                            controller.signal
+
+                    }
+
+                );
+
+
+            if(
+                !response.ok
+            ){
+
+                throw new Error(
+                    `Pesquisa web falhou com HTTP ${response.status}.`
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            return {
+
+                success:
+                    true,
+
+                available:
+                    true,
+
+                query:
+                    normalizedQuery,
+
+                results:
+                    data?.results ||
+                    data?.data ||
+                    data
+
+            };
 
         }
 
+        catch(error){
 
-        const data =
-            await response.json();
+            if(
+                error?.name ===
+                "AbortError"
+            ){
+
+                throw new Error(
+                    "A pesquisa web excedeu o tempo limite."
+                );
+
+            }
 
 
-        return {
+            throw error;
 
-            success:
-                true,
+        }
 
-            available:
-                true,
+        finally{
 
-            query:
-                normalizedQuery,
+            clearTimeout(
+                timeout
+            );
 
-            results:
-                data?.results ||
-                data?.data ||
-                data
-
-        };
+        }
 
     }
 
@@ -1442,11 +1646,15 @@ export class toolorchestrator {
     ){
 
         const normalizedMetric =
-            String(metric || "")
+            String(
+                metric || ""
+            )
                 .trim();
 
 
-        if(!normalizedMetric){
+        if(
+            !normalizedMetric
+        ){
 
             throw new Error(
                 "Métrica não especificada."
@@ -1542,17 +1750,23 @@ export class toolorchestrator {
                 args?.filename ||
                 "honey-ia-result.txt"
             )
-            .trim()
-            .slice(0, 200);
+                .trim()
+                .slice(
+                    0,
+                    200
+                );
 
 
         const content =
             String(
-                args?.content || ""
+                args?.content ||
+                ""
             );
 
 
-        if(!content.trim()){
+        if(
+            !content.trim()
+        ){
 
             throw new Error(
                 "O conteúdo do artifact está vazio."
@@ -1612,14 +1826,18 @@ export class toolorchestrator {
                 args?.filename ||
                 "honey-ia-result.json"
             )
-            .trim()
-            .slice(0, 200);
+                .trim()
+                .slice(
+                    0,
+                    200
+                );
 
 
         if(
             !args ||
             typeof args.data !== "object" ||
-            args.data === null
+            args.data === null ||
+            Array.isArray(args.data)
         ){
 
             throw new Error(
@@ -1648,7 +1866,9 @@ export class toolorchestrator {
                     artifactengine.createId(),
 
                 name:
-                    filename.endsWith(".json")
+                    filename.endsWith(
+                        ".json"
+                    )
                         ? filename
                         : `${filename}.json`,
 
@@ -1688,10 +1908,12 @@ export class toolorchestrator {
             String(
                 expression || ""
             )
-            .trim();
+                .trim();
 
 
-        if(!value){
+        if(
+            !value
+        ){
 
             throw new Error(
                 "Expressão matemática vazia."
@@ -1699,12 +1921,6 @@ export class toolorchestrator {
 
         }
 
-
-        /*
-        --------------------------------------------------
-        SOMENTE caracteres matemáticos seguros.
-        --------------------------------------------------
-        */
 
         if(
             !/^[0-9+\-*/%().,\s]+$/.test(
@@ -1730,11 +1946,6 @@ export class toolorchestrator {
 
 
         try{
-
-            /*
-            A expressão já foi validada para conter
-            apenas caracteres matemáticos seguros.
-            */
 
             result =
                 Function(
@@ -1789,7 +2000,9 @@ export class toolorchestrator {
         context = {}
     ){
 
-        switch(name){
+        switch(
+            name
+        ){
 
             case "web_search":
 
@@ -1864,10 +2077,6 @@ export class artifactengine {
         const artifacts = [];
 
 
-        // ----------------------------------
-        // CODE FENCES
-        // ----------------------------------
-
         const codeRegex =
             /```([a-zA-Z0-9_+-]*)\s*\n([\s\S]*?)```/g;
 
@@ -1876,9 +2085,12 @@ export class artifactengine {
 
 
         while(
-            (match =
-                codeRegex.exec(response))
-            !== null
+            (
+                match =
+                    codeRegex.exec(
+                        response
+                    )
+            ) !== null
         ){
 
             const language =
@@ -1886,15 +2098,18 @@ export class artifactengine {
                     match[1] ||
                     "text"
                 )
-                .toLowerCase()
-                .trim();
+                    .toLowerCase()
+                    .trim();
 
 
             const content =
-                match[2] || "";
+                match[2] ||
+                "";
 
 
-            if(!content.trim()){
+            if(
+                !content.trim()
+            ){
 
                 continue;
 
@@ -1903,6 +2118,12 @@ export class artifactengine {
 
             const extension =
                 this.extensionFromLanguage(
+                    language
+                );
+
+
+            const mime =
+                this.mimeFromLanguage(
                     language
                 );
 
@@ -1916,14 +2137,9 @@ export class artifactengine {
                     `honey-ia-result.${extension}`,
 
                 type:
-                    this.mimeFromLanguage(
-                        language
-                    ),
+                    mime,
 
-                mime:
-                    this.mimeFromLanguage(
-                        language
-                    ),
+                mime,
 
                 kind:
                     language === "html"
@@ -2103,7 +2319,10 @@ export class artifactengine {
             "_" +
             Math.random()
                 .toString(36)
-                .slice(2, 9)
+                .slice(
+                    2,
+                    9
+                )
         );
 
     }
@@ -2123,6 +2342,7 @@ export class Orchestrator {
 
         this.groq =
             groqClient;
+
 
         this.maxToolRounds =
             5;
@@ -2151,6 +2371,7 @@ export class Orchestrator {
         messages,
 
         tools,
+
         stream = false
 
     }){
@@ -2158,23 +2379,26 @@ export class Orchestrator {
         const payload = {
 
             model:
-                agent.model ||
+                agent?.model ||
                 "llama-3.3-70b-versatile",
 
             messages,
 
             temperature:
-                agent.temperature ??
+                agent?.temperature ??
                 0.5,
 
             max_tokens:
-                agent.maxTokens ||
+                agent?.maxTokens ||
                 4096
 
         };
 
 
-        if(tools){
+        if(
+            Array.isArray(tools) &&
+            tools.length
+        ){
 
             payload.tools =
                 tools;
@@ -2199,7 +2423,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // PROCESS TOOL CALLS
+    // EXECUTE TOOL CALLS
     // ======================================
 
     async executeToolCalls(
@@ -2246,12 +2470,19 @@ export class Orchestrator {
 
             try{
 
-                args =
+                if(
                     functionData?.arguments
-                        ? JSON.parse(
-                            functionData.arguments
-                        )
-                        : {};
+                ){
+
+                    args =
+                        typeof functionData.arguments ===
+                        "string"
+                            ? JSON.parse(
+                                functionData.arguments
+                            )
+                            : functionData.arguments;
+
+                }
 
             }
 
@@ -2276,12 +2507,6 @@ export class Orchestrator {
 
             }
 
-
-            /*
-            --------------------------------------------------
-            VERIFICA SE O AGENTE POSSUI A FERRAMENTA
-            --------------------------------------------------
-            */
 
             if(
                 !toolorchestrator.agentCanUseTool(
@@ -2356,7 +2581,7 @@ export class Orchestrator {
                         false,
 
                     error:
-                        error.message ||
+                        error?.message ||
                         "Erro ao executar ferramenta."
 
                 });
@@ -2367,6 +2592,133 @@ export class Orchestrator {
 
 
         return results;
+
+    }
+
+
+    // ======================================
+    // APPEND TOOL RESULTS
+    // ======================================
+
+    appendToolResults(
+        messages,
+        toolResults
+    ){
+
+        if(
+            !Array.isArray(
+                messages
+            ) ||
+            !Array.isArray(
+                toolResults
+            )
+        ){
+
+            return;
+
+        }
+
+
+        for(
+            const item
+            of toolResults
+        ){
+
+            messages.push({
+
+                role:
+                    "tool",
+
+                tool_call_id:
+                    item.toolCallId,
+
+                content:
+                    JSON.stringify(
+
+                        item.success
+                            ? item.result
+                            : {
+
+                                success:
+                                    false,
+
+                                error:
+                                    item.error
+
+                            }
+
+                    )
+
+            });
+
+        }
+
+    }
+
+
+    // ======================================
+    // BUILD TOOL TELEMETRY
+    // ======================================
+
+    normalizeToolTelemetry(
+        toolResults
+    ){
+
+        if(
+            !Array.isArray(
+                toolResults
+            )
+        ){
+
+            return [];
+
+        }
+
+
+        return toolResults.map(
+            item => ({
+
+                name:
+                    item.name,
+
+                success:
+                    item.success
+
+            })
+        );
+
+    }
+
+
+    // ======================================
+    // EXTRACT GENERATED ARTIFACTS
+    // ======================================
+
+    extractGeneratedArtifacts(
+        toolResults
+    ){
+
+        if(
+            !Array.isArray(
+                toolResults
+            )
+        ){
+
+            return [];
+
+        }
+
+
+        return toolResults
+            .filter(
+                item =>
+                    item?.success &&
+                    item?.result?.artifact
+            )
+            .map(
+                item =>
+                    item.result.artifact
+            );
 
     }
 
@@ -2457,19 +2809,22 @@ export class Orchestrator {
             let finalResponse =
                 "";
 
+
             let finalCompletion =
                 null;
 
-            let executedTools = [];
 
-            let generatedArtifacts = [];
+            let executedTools =
+                [];
 
 
-            /*
-            ==================================================
-            TOOL LOOP
-            ==================================================
-            */
+            let generatedArtifacts =
+                [];
+
+
+            // ==================================
+            // TOOL LOOP
+            // ==================================
 
             for(
                 let round = 0;
@@ -2520,12 +2875,6 @@ export class Orchestrator {
                 }
 
 
-                /*
-                ------------------------------------------------
-                NORMAL RESPONSE
-                ------------------------------------------------
-                */
-
                 const toolCalls =
                     Array.isArray(
                         message.tool_calls
@@ -2534,22 +2883,28 @@ export class Orchestrator {
                         : [];
 
 
-                if(!toolCalls.length){
+                // ------------------------------
+                // FINAL RESPONSE
+                // ------------------------------
+
+                if(
+                    !toolCalls.length
+                ){
 
                     finalResponse =
-                        message.content ||
-                        "Sem resposta gerada.";
+                        typeof message.content ===
+                        "string"
+                            ? message.content
+                            : "";
 
                     break;
 
                 }
 
 
-                /*
-                ------------------------------------------------
-                GUARDA A MENSAGEM DO ASSISTENTE
-                ------------------------------------------------
-                */
+                // ------------------------------
+                // ASSISTANT TOOL MESSAGE
+                // ------------------------------
 
                 messages.push({
 
@@ -2557,7 +2912,8 @@ export class Orchestrator {
                         "assistant",
 
                     content:
-                        message.content || null,
+                        message.content ||
+                        null,
 
                     tool_calls:
                         toolCalls
@@ -2565,11 +2921,9 @@ export class Orchestrator {
                 });
 
 
-                /*
-                ------------------------------------------------
-                EXECUTA FERRAMENTAS
-                ------------------------------------------------
-                */
+                // ------------------------------
+                // EXECUTE TOOLS
+                // ------------------------------
 
                 const toolResults =
                     await this.executeToolCalls(
@@ -2579,68 +2933,36 @@ export class Orchestrator {
                     );
 
 
-                /*
-                ------------------------------------------------
-                DEVOLVE RESULTADOS AO GROQ
-                ------------------------------------------------
-                */
-
-                for(
-                    const item
-                    of toolResults
-                ){
-
-                    executedTools.push({
-
-                        name:
-                            item.name,
-
-                        success:
-                            item.success
-
-                    });
+                executedTools.push(
+                    ...this.normalizeToolTelemetry(
+                        toolResults
+                    )
+                );
 
 
-                    if(
-                        item.result?.artifact
-                    ){
-
-                        generatedArtifacts.push(
-                            item.result.artifact
-                        );
-
-                    }
+                generatedArtifacts.push(
+                    ...this.extractGeneratedArtifacts(
+                        toolResults
+                    )
+                );
 
 
-                    messages.push({
+                // ------------------------------
+                // RETURN RESULTS TO GROQ
+                // ------------------------------
 
-                        role:
-                            "tool",
-
-                        tool_call_id:
-                            item.toolCallId,
-
-                        content:
-                            JSON.stringify(
-                                item.success
-                                    ? item.result
-                                    : {
-                                        success:
-                                            false,
-
-                                        error:
-                                            item.error
-                                    }
-                            )
-
-                    });
-
-                }
+                this.appendToolResults(
+                    messages,
+                    toolResults
+                );
 
             }
 
 
-            if(!finalResponse){
+            if(
+                !finalResponse ||
+                !finalResponse.trim()
+            ){
 
                 finalResponse =
                     "Não foi possível concluir a resposta.";
@@ -2648,11 +2970,9 @@ export class Orchestrator {
             }
 
 
-            /*
-            ==================================================
-            AGENT POST PROCESSOR
-            ==================================================
-            */
+            // ==================================
+            // AGENT POST PROCESSOR
+            // ==================================
 
             if(
                 typeof agent.after ===
@@ -2667,11 +2987,9 @@ export class Orchestrator {
             }
 
 
-            /*
-            ==================================================
-            ARTIFACTS
-            ==================================================
-            */
+            // ==================================
+            // ARTIFACTS
+            // ==================================
 
             const extractedArtifacts =
                 artifactengine.extract(
@@ -2785,8 +3103,11 @@ export class Orchestrator {
                 tools:
                     [],
 
+                usage:
+                    null,
+
                 error:
-                    error.message ||
+                    error?.message ||
                     "Erro ao processar pedido.",
 
                 latency:
@@ -2878,402 +3199,231 @@ export class Orchestrator {
                     );
 
 
-            /*
-            ==================================================
-            PRIMEIRO PEDIDO
-            ==================================================
-            */
+            const toolContext = {
 
-            const firstCompletion =
-                await this.groq
-                    .chat
-                    .completions
-                    .create({
+                agent,
 
-                        ...this.buildPayload({
+                workspaceContext,
 
-                            agent,
+                userMemory
 
-                            messages,
-
-                            tools,
-
-                            stream:
-                                false
-
-                        })
-
-                    });
+            };
 
 
-            const firstMessage =
-                firstCompletion
-                    ?.choices?.[0]
-                    ?.message;
+            let executedTools =
+                [];
 
 
-            if(!firstMessage){
-
-                throw new Error(
-                    "O Groq não devolveu uma mensagem válida."
-                );
-
-            }
+            let generatedArtifacts =
+                [];
 
 
-            /*
-            ==================================================
-            SEM TOOL CALL
-            ==================================================
-            */
+            let finalResponse =
+                "";
 
-            if(
-                !Array.isArray(
-                    firstMessage.tool_calls
-                ) ||
-                !firstMessage.tool_calls.length
+
+            let lastUsage =
+                null;
+
+
+            // ==================================
+            // LIVE TOOL LOOP
+            // ==================================
+
+            for(
+                let round = 0;
+                round < this.maxToolRounds;
+                round++
             ){
 
-                let response =
-                    firstMessage.content ||
-                    "";
-
-
                 /*
-                ----------------------------------------------
-                STREAM FINAL RESPONSE
-                ----------------------------------------------
+                ------------------------------------------------
+                PRIMEIRA FASE
+
+                Fazemos uma chamada não-stream para descobrir
+                se o modelo pretende utilizar uma ferramenta.
+
+                Isto evita iniciar streaming antes de sabermos
+                se existe tool call.
+                ------------------------------------------------
                 */
 
-                const stream =
+                const completion =
                     await this.groq
                         .chat
                         .completions
-                        .create({
+                        .create(
 
-                            ...this.buildPayload({
+                            this.buildPayload({
 
                                 agent,
 
                                 messages,
 
-                                tools:
-                                    undefined,
+                                tools,
 
                                 stream:
-                                    true
+                                    false
 
                             })
 
-                        });
+                        );
 
 
-                let completeResponse =
-                    "";
+                lastUsage =
+                    completion?.usage ||
+                    lastUsage;
 
 
-                for await(
-                    const chunk
-                    of stream
+                const message =
+                    completion
+                        ?.choices?.[0]
+                        ?.message;
+
+
+                if(!message){
+
+                    throw new Error(
+                        "O Groq não devolveu uma mensagem válida."
+                    );
+
+                }
+
+
+                const toolCalls =
+                    Array.isArray(
+                        message.tool_calls
+                    )
+                        ? message.tool_calls
+                        : [];
+
+
+                /*
+                ------------------------------------------------
+                NÃO EXISTEM TOOLS
+
+                Aqui está a correção principal da versão anterior.
+
+                Não fazemos uma segunda chamada independente.
+
+                A resposta obtida acima já é a resposta final.
+
+                Para manter streaming visual, fazemos uma chamada
+                de streaming somente quando o modelo não solicitou
+                tools e ainda não temos uma resposta final utilizável.
+                ------------------------------------------------
+                */
+
+                if(
+                    !toolCalls.length
                 ){
 
-                    const text =
-                        chunk
-                            ?.choices?.[0]
-                            ?.delta
-                            ?.content
-                        || "";
+                    finalResponse =
+                        typeof message.content ===
+                        "string"
+                            ? message.content
+                            : "";
 
 
-                    if(!text){
+                    /*
+                    Se a primeira resposta já contém conteúdo,
+                    enviamos esse conteúdo como um chunk único.
 
-                        continue;
-
-                    }
-
-
-                    completeResponse +=
-                        text;
-
+                    Assim evitamos executar duas gerações diferentes
+                    do modelo para a mesma pergunta.
+                    */
 
                     if(
+                        finalResponse &&
                         typeof onChunk ===
                         "function"
                     ){
 
                         onChunk(
-                            text
+                            finalResponse
                         );
 
                     }
 
-                }
 
-
-                response =
-                    completeResponse ||
-                    response;
-
-
-                if(
-                    typeof agent.after ===
-                    "function"
-                ){
-
-                    response =
-                        agent.after(
-                            response
-                        );
+                    break;
 
                 }
 
 
-                const artifacts =
-                    artifactengine.extract(
-                        response
-                    );
-
-
-                const result = {
-
-                    success:
-                        true,
-
-                    agent: {
-
-                        id:
-                            agent.id,
-
-                        name:
-                            agent.name,
-
-                        emoji:
-                            agent.emoji ||
-                            "🤖"
-
-                    },
-
-                    routing: {
-
-                        score:
-                            selection.score,
-
-                        reason:
-                            selection.reason
-
-                    },
-
-                    response,
-
-                    artifacts,
-
-                    tools:
-                        [],
-
-                    latency:
-                        Date.now() -
-                        start
-
-                };
-
-
-                if(
-                    typeof onComplete ===
-                    "function"
-                ){
-
-                    onComplete(
-                        result
-                    );
-
-                }
-
-
-                return result;
-
-            }
-
-
-            /*
-            ==================================================
-            TOOL CALL DETECTADO
-            ==================================================
-            */
-
-            messages.push({
-
-                role:
-                    "assistant",
-
-                content:
-                    firstMessage.content ||
-                    null,
-
-                tool_calls:
-                    firstMessage.tool_calls
-
-            });
-
-
-            const toolResults =
-                await this.executeToolCalls(
-
-                    firstMessage.tool_calls,
-
-                    agent,
-
-                    {
-
-                        agent,
-
-                        workspaceContext,
-
-                        userMemory
-
-                    }
-
-                );
-
-
-            const executedTools =
-                toolResults.map(
-                    item => ({
-
-                        name:
-                            item.name,
-
-                        success:
-                            item.success
-
-                    })
-                );
-
-
-            const generatedArtifacts =
-                toolResults
-
-                    .filter(
-                        item =>
-                            item.result?.artifact
-                    )
-
-                    .map(
-                        item =>
-                            item.result.artifact
-                    );
-
-
-            for(
-                const item
-                of toolResults
-            ){
+                /*
+                ------------------------------------------------
+                EXISTEM TOOL CALLS
+                ------------------------------------------------
+                */
 
                 messages.push({
 
                     role:
-                        "tool",
-
-                    tool_call_id:
-                        item.toolCallId,
+                        "assistant",
 
                     content:
-                        JSON.stringify(
+                        message.content ||
+                        null,
 
-                            item.success
-
-                                ? item.result
-
-                                : {
-
-                                    success:
-                                        false,
-
-                                    error:
-                                        item.error
-
-                                }
-
-                        )
+                    tool_calls:
+                        toolCalls
 
                 });
+
+
+                const toolResults =
+                    await this.executeToolCalls(
+                        toolCalls,
+                        agent,
+                        toolContext
+                    );
+
+
+                executedTools.push(
+                    ...this.normalizeToolTelemetry(
+                        toolResults
+                    )
+                );
+
+
+                generatedArtifacts.push(
+                    ...this.extractGeneratedArtifacts(
+                        toolResults
+                    )
+                );
+
+
+                this.appendToolResults(
+                    messages,
+                    toolResults
+                );
 
             }
 
 
             /*
             ==================================================
-            SEGUNDO PEDIDO
+            FINAL RESPONSE VALIDATION
             ==================================================
             */
 
-            const finalStream =
-                await this.groq
-                    .chat
-                    .completions
-                    .create({
-
-                        ...this.buildPayload({
-
-                            agent,
-
-                            messages,
-
-                            tools:
-                                undefined,
-
-                            stream:
-                                true
-
-                        })
-
-                    });
-
-
-            let completeResponse =
-                "";
-
-
-            for await(
-                const chunk
-                of finalStream
+            if(
+                !finalResponse ||
+                !finalResponse.trim()
             ){
 
-                const text =
-                    chunk
-                        ?.choices?.[0]
-                        ?.delta
-                        ?.content
-                    || "";
-
-
-                if(!text){
-
-                    continue;
-
-                }
-
-
-                completeResponse +=
-                    text;
-
-
-                if(
-                    typeof onChunk ===
-                    "function"
-                ){
-
-                    onChunk(
-                        text
-                    );
-
-                }
+                finalResponse =
+                    "Não foi possível concluir a resposta.";
 
             }
 
 
-            let finalResponse =
-                completeResponse;
-
+            /*
+            ==================================================
+            AGENT POST PROCESSOR
+            ==================================================
+            */
 
             if(
                 typeof agent.after ===
@@ -3288,16 +3438,32 @@ export class Orchestrator {
             }
 
 
+            /*
+            ==================================================
+            ARTIFACTS
+            ==================================================
+            */
+
+            const extractedArtifacts =
+                artifactengine.extract(
+                    finalResponse
+                );
+
+
             const artifacts = [
 
                 ...generatedArtifacts,
 
-                ...artifactengine.extract(
-                    finalResponse
-                )
+                ...extractedArtifacts
 
             ];
 
+
+            /*
+            ==================================================
+            RESULT
+            ==================================================
+            */
 
             const result = {
 
@@ -3336,6 +3502,9 @@ export class Orchestrator {
                 tools:
                     executedTools,
 
+                usage:
+                    lastUsage,
+
                 latency:
                     Date.now() -
                     start
@@ -3348,7 +3517,7 @@ export class Orchestrator {
                 "function"
             ){
 
-                onComplete(
+                await onComplete(
                     result
                 );
 
@@ -3372,7 +3541,7 @@ export class Orchestrator {
                 "function"
             ){
 
-                onError(
+                await onError(
                     error
                 );
 
@@ -3398,27 +3567,26 @@ export class Orchestrator {
                 "online",
 
             engine:
-                "Honey IA Orchestrator V7",
+                "Honey IA Orchestrator V8",
 
             agents:
                 Object.keys(
                     agents_registry
                 ).length,
 
-            tools:
-                [
+            tools: [
 
-                    "web_search",
+                "web_search",
 
-                    "get_analytics",
+                "get_analytics",
 
-                    "create_text_artifact",
+                "create_text_artifact",
 
-                    "create_json_artifact",
+                "create_json_artifact",
 
-                    "calculate"
+                "calculate"
 
-                ],
+            ],
 
             groq:
                 Boolean(
@@ -3448,6 +3616,10 @@ export class Orchestrator {
 const orchestratorinstance =
     new Orchestrator();
 
+
+// ==========================================
+// EXPORTS
+// ==========================================
 
 export {
 
