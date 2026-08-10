@@ -1,9 +1,9 @@
 /*
 ==========================================
 HONEY IA OS
-SERVER CORE V8.1
+SERVER CORE V9.0
 Enterprise AI Backend
-Authentication + AI + Workspace
+Authentication + AI + Chat + Workspace
 MongoDB + JWT + Google Authentication
 Render Ready
 ==========================================
@@ -16,9 +16,7 @@ ENVIRONMENT
 ==========================================
 */
 
-
 import "dotenv/config";
-
 
 import express from "express";
 
@@ -37,6 +35,7 @@ import orchestratorinstance from "./orchestrator.js";
 
 import authRoutes from "./auth.routes.js";
 
+import chatRoutes from "./chat.routes.js";
 
 
 /*
@@ -45,66 +44,68 @@ PATH CONFIGURATION
 ==========================================
 */
 
-
 const __filename =
 
-fileURLToPath(import.meta.url);
+    fileURLToPath(import.meta.url);
 
 
 const __dirname =
 
-path.dirname(__filename);
-
+    path.dirname(__filename);
 
 
 /*
 ==========================================
-ENVIRONMENT VALIDATION
+ENVIRONMENT CONFIGURATION
 ==========================================
 */
 
-
 const PORT =
 
-process.env.PORT ||
+    process.env.PORT ||
 
-3000;
+    3000;
 
 
 const NODE_ENV =
 
-process.env.NODE_ENV ||
+    process.env.NODE_ENV ||
 
-"development";
+    "development";
 
 
 const hasMongoDB =
 
-Boolean(
+    Boolean(
 
-    process.env.MONGODB_URI
+        process.env.MONGODB_URI
 
-);
+    );
 
 
 const hasJWT =
 
-Boolean(
+    Boolean(
 
-    process.env.JWT_SECRET
+        process.env.JWT_SECRET
 
-);
+    );
 
 
 const hasGoogle =
 
-Boolean(
+    Boolean(
 
-    process.env.GOOGLE_CLIENT_ID
+        process.env.GOOGLE_CLIENT_ID
 
-);
+    );
 
 
+/*
+==========================================
+STARTUP INFORMATION
+==========================================
+*/
 
 console.log(
 
@@ -148,21 +149,18 @@ if(!hasMongoDB){
 }
 
 
-
 /*
 ==========================================
 APPLICATION BOOT
 ==========================================
 */
 
-
 await kernel.boot();
 
 
 const app =
 
-kernel.getApp();
-
+    kernel.getApp();
 
 
 /*
@@ -171,7 +169,6 @@ TRUST PROXY
 Render / Reverse Proxy
 ==========================================
 */
-
 
 app.set(
 
@@ -182,19 +179,19 @@ app.set(
 );
 
 
-
 /*
 ==========================================
 BODY PARSER
 ==========================================
 */
 
-
 app.use(
 
     express.json({
 
-        limit:"15mb"
+        limit:
+
+            "15mb"
 
     })
 
@@ -205,14 +202,17 @@ app.use(
 
     express.urlencoded({
 
-        extended:true,
+        extended:
 
-        limit:"15mb"
+            true,
+
+        limit:
+
+            "15mb"
 
     })
 
 );
-
 
 
 /*
@@ -220,7 +220,6 @@ app.use(
 STATIC FRONTEND
 ==========================================
 */
-
 
 app.use(
 
@@ -237,25 +236,21 @@ app.use(
 );
 
 
-
 /*
 ==========================================
 DATABASE CONNECTION
 ==========================================
 */
 
-
 async function connectDatabase(){
 
 
     const mongoURI =
 
-    process.env.MONGODB_URI;
-
+        process.env.MONGODB_URI;
 
 
     if(!mongoURI){
-
 
         console.warn(
 
@@ -263,12 +258,9 @@ async function connectDatabase(){
 
         );
 
-
         return false;
 
-
     }
-
 
 
     try{
@@ -308,18 +300,14 @@ async function connectDatabase(){
 
         return false;
 
-
     }
-
 
 }
 
 
-
 const databaseConnected =
 
-await connectDatabase();
-
+    await connectDatabase();
 
 
 /*
@@ -329,43 +317,76 @@ GLOBAL API PROTECTION
 ==========================================
 */
 
-
 const apiLimiter =
 
-rateLimit({
+    rateLimit({
 
-    windowMs:
+        windowMs:
 
-    60 * 1000,
+            60 * 1000,
+
+        max:
+
+            20,
+
+        standardHeaders:
+
+            true,
+
+        legacyHeaders:
+
+            false,
+
+        message:{
+
+            success:false,
+
+            error:
+
+                "Muitas requisições. Aguarde alguns segundos."
+
+        }
+
+    });
 
 
-    max:
+/*
+==========================================
+CHAT RATE LIMIT
+==========================================
+*/
 
-    20,
+const chatLimiter =
 
+    rateLimit({
 
-    standardHeaders:
+        windowMs:
 
-    true,
+            60 * 1000,
 
+        max:
 
-    legacyHeaders:
+            30,
 
-    false,
+        standardHeaders:
 
+            true,
 
-    message:{
+        legacyHeaders:
 
-        success:false,
+            false,
 
-        error:
+        message:{
 
-        "Muitas requisições. Aguarde alguns segundos."
+            success:false,
 
-    }
+            error:
 
-});
+                "Muitas mensagens em pouco tempo. Aguarde alguns segundos."
 
+        }
+
+    });
 
 
 /*
@@ -373,7 +394,6 @@ rateLimit({
 AUTHENTICATION API
 ==========================================
 */
-
 
 app.use(
 
@@ -384,13 +404,29 @@ app.use(
 );
 
 
+/*
+==========================================
+CHAT API
+CONVERSATIONS + MESSAGES
+==========================================
+*/
+
+app.use(
+
+    "/api/chat",
+
+    chatLimiter,
+
+    chatRoutes
+
+);
+
 
 /*
 ==========================================
 API HEALTH
 ==========================================
 */
-
 
 app.get(
 
@@ -401,39 +437,59 @@ app.get(
 
         return res.json({
 
-            success:true,
+            success:
 
-            system:"Honey IA OS",
+                true,
 
-            status:"online",
+            system:
 
-            version:"8.1.0",
+                "Honey IA OS",
+
+            status:
+
+                "online",
+
+            version:
+
+                "9.0.0",
 
             environment:
 
-            NODE_ENV,
+                NODE_ENV,
 
             database:
 
-            mongoose.connection.readyState === 1
+                mongoose.connection.readyState === 1
 
-            ?
+                    ?
 
-            "connected"
+                    "connected"
 
-            :
+                    :
 
-            "disconnected",
+                    "disconnected",
 
             authentication:{
 
                 jwt:
 
-                hasJWT,
+                    hasJWT,
 
                 google:
 
-                hasGoogle
+                    hasGoogle
+
+            },
+
+            chat:{
+
+                enabled:
+
+                    true,
+
+                endpoint:
+
+                    "/api/chat"
 
             }
 
@@ -445,14 +501,12 @@ app.get(
 );
 
 
-
 /*
 ==========================================
 AI REQUEST ROUTE
-STANDARD AI RESPONSE
+LEGACY / STANDARD AI RESPONSE
 ==========================================
 */
-
 
 app.post(
 
@@ -478,10 +532,13 @@ app.post(
 
                 memory,
 
-                mode
+                mode,
+
+                anexoBase64,
+
+                fileName
 
             } = req.body || {};
-
 
 
             if(
@@ -496,75 +553,76 @@ app.post(
 
                 return res
 
-                .status(400)
+                    .status(400)
 
-                .json({
+                    .json({
 
-                    success:false,
+                        success:false,
 
-                    error:
+                        error:
 
-                    "Prompt vazio."
+                            "Prompt vazio."
 
-                });
+                    });
 
             }
 
 
-
             const result =
 
-            await orchestratorinstance
+                await orchestratorinstance
 
-            .processRequest({
+                    .processRequest({
 
-                userPrompt:
+                        userPrompt:
 
-                prompt.trim(),
+                            prompt.trim(),
 
+                        agentId:
 
-                agentId:
+                            agentId || null,
 
-                agentId || null,
+                        history:
 
+                            Array.isArray(history)
 
-                history:
+                                ?
 
-                Array.isArray(history)
+                                history
 
-                ?
+                                :
 
-                history
+                                [],
 
-                :
+                        workspaceContext:
 
-                [],
+                            workspaceContext || {},
 
+                        userMemory:
 
-                workspaceContext:
+                            Array.isArray(memory)
 
-                workspaceContext || {},
+                                ?
 
+                                memory
 
-                userMemory:
+                                :
 
-                Array.isArray(memory)
+                                [],
 
-                ?
+                        mode:
 
-                memory
+                            mode || "chat",
 
-                :
+                        anexoBase64:
 
-                [],
+                            anexoBase64 || null,
 
+                        fileName:
 
-                mode:
+                            fileName || null
 
-                mode || "chat"
-
-            });
-
+                    });
 
 
             return res.json(
@@ -591,28 +649,25 @@ app.post(
 
             return res
 
-            .status(500)
+                .status(500)
 
-            .json({
+                .json({
 
-                success:false,
+                    success:false,
 
-                error:
+                    error:
 
-                error.message ||
+                        error.message ||
 
-                "Erro ao processar pedido."
+                        "Erro ao processar pedido."
 
-            });
-
+                });
 
         }
-
 
     }
 
 );
-
 
 
 /*
@@ -621,7 +676,6 @@ LIVE AI STREAM ROUTE
 REAL TIME RESPONSES
 ==========================================
 */
-
 
 app.post(
 
@@ -650,7 +704,6 @@ app.post(
             } = req.body || {};
 
 
-
             if(
 
                 !prompt ||
@@ -663,20 +716,19 @@ app.post(
 
                 return res
 
-                .status(400)
+                    .status(400)
 
-                .json({
+                    .json({
 
-                    success:false,
+                        success:false,
 
-                    error:
+                        error:
 
-                    "Prompt vazio."
+                            "Prompt vazio."
 
-                });
+                    });
 
             }
-
 
 
             res.setHeader(
@@ -706,176 +758,159 @@ app.post(
             );
 
 
-
             res.flushHeaders?.();
-
 
 
             await orchestratorinstance
 
-            .processStream({
+                .processStream({
 
-                userPrompt:
+                    userPrompt:
 
-                prompt.trim(),
+                        prompt.trim(),
 
+                    agentId:
 
-                agentId:
+                        agentId || null,
 
-                agentId || null,
+                    history:
 
+                        Array.isArray(history)
 
-                history:
+                            ?
 
-                Array.isArray(history)
+                            history
 
-                ?
+                            :
 
-                history
+                            [],
 
-                :
+                    workspaceContext:
 
-                [],
+                        workspaceContext || {},
 
+                    userMemory:
 
-                workspaceContext:
+                        Array.isArray(memory)
 
-                workspaceContext || {},
+                            ?
 
+                            memory
 
-                userMemory:
+                            :
 
-                Array.isArray(memory)
+                            [],
 
-                ?
+                    mode:
 
-                memory
-
-                :
-
-                [],
-
-
-                mode:
-
-                "live",
+                        "live",
 
 
+                    onChunk:(chunk)=>{
 
-                onChunk:(chunk)=>{
+
+                        if(
+
+                            res.writableEnded
+
+                        ){
+
+                            return;
+
+                        }
 
 
-                    if(
+                        res.write(
 
-                        res.writableEnded
+                            `data: ${JSON.stringify({
 
-                    ){
+                                text:
 
-                        return;
+                                    chunk
+
+                            })}\n\n`
+
+                        );
+
+                    },
+
+
+                    onComplete:(result)=>{
+
+
+                        if(
+
+                            res.writableEnded
+
+                        ){
+
+                            return;
+
+                        }
+
+
+                        res.write(
+
+                            `data: ${JSON.stringify({
+
+                                done:true,
+
+                                agent:
+
+                                    result?.agent ||
+
+                                    null,
+
+                                latency:
+
+                                    result?.latency ||
+
+                                    null
+
+                            })}\n\n`
+
+                        );
+
+
+                        res.end();
+
+                    },
+
+
+                    onError:(error)=>{
+
+
+                        if(
+
+                            res.writableEnded
+
+                        ){
+
+                            return;
+
+                        }
+
+
+                        res.write(
+
+                            `data: ${JSON.stringify({
+
+                                error:
+
+                                    error?.message ||
+
+                                    "Erro no modo Live."
+
+                            })}\n\n`
+
+                        );
+
+
+                        res.end();
 
                     }
 
-
-
-                    res.write(
-
-                        `data: ${JSON.stringify({
-
-                            text:
-
-                            chunk
-
-                        })}\n\n`
-
-                    );
-
-
-                },
-
-
-
-                onComplete:(result)=>{
-
-
-                    if(
-
-                        res.writableEnded
-
-                    ){
-
-                        return;
-
-                    }
-
-
-
-                    res.write(
-
-                        `data: ${JSON.stringify({
-
-                            done:true,
-
-                            agent:
-
-                            result?.agent ||
-
-                            null,
-
-                            latency:
-
-                            result?.latency ||
-
-                            null
-
-                        })}\n\n`
-
-                    );
-
-
-                    res.end();
-
-
-                },
-
-
-
-                onError:(error)=>{
-
-
-                    if(
-
-                        res.writableEnded
-
-                    ){
-
-                        return;
-
-                    }
-
-
-
-                    res.write(
-
-                        `data: ${JSON.stringify({
-
-                            error:
-
-                            error?.message ||
-
-                            "Erro no modo Live."
-
-                        })}\n\n`
-
-                    );
-
-
-                    res.end();
-
-
-                }
-
-
-            });
+                });
 
 
         }
@@ -901,20 +936,19 @@ app.post(
 
                 return res
 
-                .status(500)
+                    .status(500)
 
-                .json({
+                    .json({
 
-                    success:false,
+                        success:false,
 
-                    error:
+                        error:
 
-                    error.message ||
+                            error.message ||
 
-                    "Erro no modo Live."
+                            "Erro no modo Live."
 
-                });
-
+                    });
 
             }
 
@@ -929,14 +963,11 @@ app.post(
 
             }
 
-
         }
-
 
     }
 
 );
-
 
 
 /*
@@ -945,7 +976,6 @@ AGENTS API
 LIST ALL SPECIALISTS
 ==========================================
 */
-
 
 app.get(
 
@@ -968,58 +998,52 @@ app.get(
             );
 
 
-
             const agents =
 
-            Object.values(
+                Object.values(
 
-                agents_registry || {}
+                    agents_registry || {}
 
-            )
+                )
 
-            .map(agent=>({
+                .map(agent=>({
 
+                    id:
 
-                id:
+                        agent.id,
 
-                agent.id,
+                    name:
 
+                        agent.name,
 
-                name:
+                    description:
 
-                agent.name,
+                        agent.description || "",
 
+                    category:
 
-                description:
+                        agent.category ||
 
-                agent.description || "",
+                        "Tecnologia",
 
+                    emoji:
 
-                category:
+                        agent.emoji ||
 
-                agent.category ||
+                        "🤖"
 
-                "Tecnologia",
-
-
-                emoji:
-
-                agent.emoji ||
-
-                "🤖"
-
-
-            }));
-
+                }));
 
 
             return res.json({
 
-                success:true,
+                success:
+
+                    true,
 
                 total:
 
-                agents.length,
+                    agents.length,
 
                 agents
 
@@ -1043,28 +1067,25 @@ app.get(
 
             return res
 
-            .status(500)
+                .status(500)
 
-            .json({
+                .json({
 
-                success:false,
+                    success:false,
 
-                error:
+                    error:
 
-                error.message ||
+                        error.message ||
 
-                "Erro ao carregar agentes."
+                        "Erro ao carregar agentes."
 
-            });
-
+                });
 
         }
-
 
     }
 
 );
-
 
 
 /*
@@ -1072,7 +1093,6 @@ app.get(
 ORCHESTRATOR STATUS
 ==========================================
 */
-
 
 app.get(
 
@@ -1088,7 +1108,7 @@ app.get(
 
                 orchestratorinstance
 
-                .getTelemetry()
+                    .getTelemetry()
 
             );
 
@@ -1110,28 +1130,25 @@ app.get(
 
             return res
 
-            .status(500)
+                .status(500)
 
-            .json({
+                .json({
 
-                success:false,
+                    success:false,
 
-                error:
+                    error:
 
-                error.message ||
+                        error.message ||
 
-                "Erro ao obter estado do sistema."
+                        "Erro ao obter estado do sistema."
 
-            });
-
+                });
 
         }
-
 
     }
 
 );
-
 
 
 /*
@@ -1140,7 +1157,6 @@ FRONTEND FALLBACK
 EXPRESS 5 COMPATIBLE
 ==========================================
 */
-
 
 app.get(
 
@@ -1151,11 +1167,10 @@ app.get(
 
         /*
         ----------------------------------
-        Não transformar pedidos de API
-        desconhecidos em index.html
+        NÃO TRANSFORMAR API DESCONHECIDA
+        EM index.html
         ----------------------------------
         */
-
 
         if(
 
@@ -1169,21 +1184,26 @@ app.get(
 
             return res
 
-            .status(404)
+                .status(404)
 
-            .json({
+                .json({
 
-                success:false,
+                    success:false,
 
-                error:
+                    error:
 
-                "Endpoint API não encontrado."
+                        "Endpoint API não encontrado."
 
-            });
+                });
 
         }
 
 
+        /*
+        ----------------------------------
+        FRONTEND
+        ----------------------------------
+        */
 
         return res.sendFile(
 
@@ -1197,11 +1217,9 @@ app.get(
 
         );
 
-
     }
 
 );
-
 
 
 /*
@@ -1209,7 +1227,6 @@ app.get(
 GLOBAL ERROR HANDLER
 ==========================================
 */
-
 
 app.use(
 
@@ -1225,7 +1242,6 @@ app.use(
         );
 
 
-
         if(
 
             res.headersSent
@@ -1237,34 +1253,31 @@ app.use(
         }
 
 
-
         return res
 
-        .status(
+            .status(
 
-            err.status ||
+                err.status ||
 
-            500
+                500
 
-        )
+            )
 
-        .json({
+            .json({
 
-            success:false,
+                success:false,
 
-            error:
+                error:
 
-            err.message ||
+                    err.message ||
 
-            "Erro interno no servidor."
+                    "Erro interno no servidor."
 
-        });
-
+            });
 
     }
 
 );
-
 
 
 /*
@@ -1274,132 +1287,137 @@ RENDER COMPATIBILITY
 ==========================================
 */
 
-
 const server =
 
-app.listen(
+    app.listen(
 
-    PORT,
+        PORT,
 
-    ()=>{
+        ()=>{
 
 
-        console.log(
+            console.log(
 
-            "🐝 =================================="
+                "🐝 =================================="
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            "🚀 Honey IA OS Online"
+                "🚀 Honey IA OS Online"
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            `🌐 Porta: ${PORT}`
+                `🌐 Porta: ${PORT}`
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            `🌍 Environment: ${NODE_ENV}`
+                `🌍 Environment: ${NODE_ENV}`
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            `🍃 MongoDB: ${
+                `🍃 MongoDB: ${
 
-                databaseConnected
+                    databaseConnected
 
-                ?
+                        ?
 
-                "CONNECTED"
+                        "CONNECTED"
 
-                :
+                        :
 
-                "DISCONNECTED"
+                        "DISCONNECTED"
 
-            }`
+                }`
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            `🔐 JWT: ${
+                `🔐 JWT: ${
 
-                hasJWT
+                    hasJWT
 
-                ?
+                        ?
 
-                "CONFIGURED"
+                        "CONFIGURED"
 
-                :
+                        :
 
-                "MISSING"
+                        "MISSING"
 
-            }`
+                }`
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            `🔵 Google Auth: ${
+                `🔵 Google Auth: ${
 
-                hasGoogle
+                    hasGoogle
 
-                ?
+                        ?
 
-                "CONFIGURED"
+                        "CONFIGURED"
 
-                :
+                        :
 
-                "MISSING"
+                        "MISSING"
 
-            }`
+                }`
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            "🤖 30 Agentes carregados"
+                "💬 Chat API: /api/chat"
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            "🧠 Orchestrator ativo"
+                "🤖 30 Agentes carregados"
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            "🔐 Authentication System ativo"
+                "🧠 Orchestrator ativo"
 
-        );
+            );
 
 
-        console.log(
+            console.log(
 
-            "🐝 =================================="
+                "🔐 Authentication System ativo"
 
-        );
+            );
 
 
-    }
+            console.log(
+
+                "🐝 =================================="
+
+            );
+
+        }
+
 );
-
 
 
 /*
@@ -1407,7 +1425,6 @@ app.listen(
 GRACEFUL SHUTDOWN
 ==========================================
 */
-
 
 async function shutdown(signal){
 
@@ -1419,12 +1436,10 @@ async function shutdown(signal){
     );
 
 
-
     try{
 
 
         await mongoose.connection.close();
-
 
 
         server.close(()=>{
@@ -1438,7 +1453,6 @@ async function shutdown(signal){
 
 
             process.exit(0);
-
 
         });
 
@@ -1460,12 +1474,9 @@ async function shutdown(signal){
 
         process.exit(1);
 
-
     }
 
-
 }
-
 
 
 process.on(
