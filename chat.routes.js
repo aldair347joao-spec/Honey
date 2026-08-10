@@ -52,7 +52,7 @@ const JWT_SECRET =
 
 /*
 ==========================================================
-AUTHENTICATION
+AUTHENTICATION MIDDLEWARE
 JWT SESSION PROTECTION
 ==========================================================
 */
@@ -314,21 +314,6 @@ async function requireAuth(
 
         /*
         --------------------------------------------------
-        EMAIL VERIFICATION
-        --------------------------------------------------
-
-        A autenticação JWT é válida mesmo antes da
-        verificação do email.
-
-        A aplicação pode decidir posteriormente quais
-        recursos exigem emailVerified.
-        --------------------------------------------------
-        */
-
-
-
-        /*
-        --------------------------------------------------
         ATTACH AUTHENTICATED USER
         --------------------------------------------------
         */
@@ -512,8 +497,10 @@ router.post(
 ==========================================================
 LIVE CHAT
 POST /api/chat/live
+==========================================================
 
 Server-Sent Events
+Streaming AI Response
 ==========================================================
 */
 
@@ -720,7 +707,7 @@ router.get(
 
             return await chatController
 
-                .getConversation(
+                .getMessages(
 
                     req,
 
@@ -1024,7 +1011,6 @@ router.use(
                     "Erro interno no sistema de Chat."
 
             });
-
 
     }
 
