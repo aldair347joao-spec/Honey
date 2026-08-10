@@ -3,9 +3,10 @@
 HONEY IA OS
 CHAT PERSISTENCE ENGINE
 Conversation + Message Storage
-V4.0
+V5.0
 MongoDB Persistent Chat System
 Enterprise Conversation Layer
+Production Ready
 ==========================================
 */
 
@@ -17,6 +18,8 @@ import {
     Message
 
 } from "./models.js";
+
+import mongoose from "mongoose";
 
 
 
@@ -47,9 +50,19 @@ const DEFAULT_LIMIT =
     20;
 
 
+const MAX_LIMIT =
+
+    100;
+
+
 const MAX_CONTENT_LENGTH =
 
     50000;
+
+
+const MAX_TITLE_LENGTH =
+
+    200;
 
 
 
@@ -77,7 +90,6 @@ function normalizeAgentId(
         return DEFAULT_AGENT;
 
     }
-
 
 
     return agentId
@@ -115,7 +127,6 @@ function normalizeWorkspace(
     }
 
 
-
     return workspace
 
         .trim()
@@ -151,16 +162,23 @@ function normalizeTitle(
     }
 
 
-
     return title
 
         .trim()
+
+        .replace(
+
+            /\s+/g,
+
+            " "
+
+        )
 
         .slice(
 
             0,
 
-            200
+            MAX_TITLE_LENGTH
 
         );
 
@@ -176,8 +194,11 @@ function normalizeLimit(
 
     const value =
 
-        Number(limit);
+        Number(
 
+            limit
+
+        );
 
 
     if(
@@ -193,12 +214,11 @@ function normalizeLimit(
     }
 
 
-
     return Math.min(
 
         Math.floor(value),
 
-        100
+        MAX_LIMIT
 
     );
 
@@ -221,7 +241,6 @@ function normalizeContent(
         return "";
 
     }
-
 
 
     return content
@@ -259,30 +278,40 @@ function normalizeConversationId(
     }
 
 
+    const value =
 
-    if(
-
-        typeof conversationId !== "string"
-
-    ){
-
-        return String(
+        String(
 
             conversationId
 
-        );
+        )
+
+            .trim();
+
+
+    if(!value){
+
+        return null;
 
     }
 
 
+    if(
 
-    const value =
+        !mongoose.Types.ObjectId.isValid(
 
-        conversationId.trim();
+            value
+
+        )
+
+    ){
+
+        return null;
+
+    }
 
 
-
-    return value || null;
+    return value;
 
 }
 
@@ -304,7 +333,11 @@ function normalizeRole(
 
             "system"
 
-        ].includes(role)
+        ].includes(
+
+            role
+
+        )
 
     ){
 
@@ -313,8 +346,67 @@ function normalizeRole(
     }
 
 
-
     return null;
+
+}
+
+
+
+function isValidUserId(
+
+    userId
+
+){
+
+    return Boolean(
+
+        userId
+
+    );
+
+}
+
+
+
+function buildConversationQuery(
+
+    userId,
+
+    conversationId
+
+){
+
+    const normalizedId =
+
+        normalizeConversationId(
+
+            conversationId
+
+        );
+
+
+    if(
+
+        !isValidUserId(userId) ||
+
+        !normalizedId
+
+    ){
+
+        return null;
+
+    }
+
+
+    return {
+
+        _id:
+
+            normalizedId,
+
+        userId
+
+    };
 
 }
 
@@ -335,20 +427,26 @@ export async function createConversation(
 
 ){
 
+    if(
+
+        !isValidUserId(
+
+            userId
+
+        )
+
+    ){
+
+        throw new Error(
+
+            "userId é obrigatório."
+
+        );
+
+    }
+
+
     try{
-
-
-        if(!userId){
-
-            throw new Error(
-
-                "userId é obrigatório."
-
-            );
-
-        }
-
-
 
         const conversation =
 
@@ -380,23 +478,21 @@ export async function createConversation(
 
                     ),
 
-                archived:false
+                archived:
+
+                    false
 
             });
-
 
 
         await conversation.save();
 
 
-
         return conversation;
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -407,8 +503,7 @@ export async function createConversation(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -431,48 +526,35 @@ export async function getConversation(
 
 ){
 
+    const query =
+
+        buildConversationQuery(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!query){
+
+        return null;
+
+    }
+
+
     try{
 
+        return await Conversation.findOne(
 
-        if(
+            query
 
-            !userId ||
-
-            !conversationId
-
-        ){
-
-            return null;
-
-        }
-
-
-
-        const conversation =
-
-            await Conversation.findOne({
-
-                _id:
-
-                    normalizeConversationId(
-
-                        conversationId
-
-                    ),
-
-                userId
-
-            });
-
-
-
-        return conversation;
-
+        );
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -483,8 +565,7 @@ export async function getConversation(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -509,16 +590,22 @@ export async function getOrCreateConversation(
 
 ){
 
+    if(
+
+        !isValidUserId(
+
+            userId
+
+        )
+
+    ){
+
+        return null;
+
+    }
+
+
     try{
-
-
-        if(!userId){
-
-            return null;
-
-        }
-
-
 
         const normalizedConversationId =
 
@@ -529,7 +616,6 @@ export async function getOrCreateConversation(
             );
 
 
-
         /*
         --------------------------------------------------
         EXISTING CONVERSATION
@@ -537,7 +623,11 @@ export async function getOrCreateConversation(
         */
 
 
-        if(normalizedConversationId){
+        if(
+
+            normalizedConversationId
+
+        ){
 
             const existing =
 
@@ -550,15 +640,30 @@ export async function getOrCreateConversation(
                 );
 
 
-
             if(existing){
 
                 return existing;
 
             }
 
-        }
 
+            /*
+            ------------------------------------------------
+            ID FOI FORNECIDO MAS NÃO EXISTE
+            ------------------------------------------------
+
+            Não criamos silenciosamente uma nova conversa
+            quando o cliente forneceu um ID válido.
+
+            Isto evita que uma conversa perdida seja
+            acidentalmente transformada numa nova conversa.
+            ------------------------------------------------
+            */
+
+
+            return null;
+
+        }
 
 
         /*
@@ -600,11 +705,9 @@ export async function getOrCreateConversation(
 
         );
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -615,8 +718,7 @@ export async function getOrCreateConversation(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -639,16 +741,22 @@ export async function getConversations(
 
 ){
 
+    if(
+
+        !isValidUserId(
+
+            userId
+
+        )
+
+    ){
+
+        return [];
+
+    }
+
+
     try{
-
-
-        if(!userId){
-
-            return [];
-
-        }
-
-
 
         const query = {
 
@@ -656,6 +764,12 @@ export async function getConversations(
 
         };
 
+
+        /*
+        --------------------------------------------------
+        ARCHIVED FILTER
+        --------------------------------------------------
+        */
 
 
         if(
@@ -668,6 +782,12 @@ export async function getConversations(
 
         }
 
+
+        /*
+        --------------------------------------------------
+        AGENT FILTER
+        --------------------------------------------------
+        */
 
 
         if(
@@ -689,38 +809,42 @@ export async function getConversations(
         }
 
 
-
-        const conversations =
-
-            await Conversation
-
-                .find(query)
-
-                .sort({
-
-                    updatedAt:-1
-
-                })
-
-                .limit(
-
-                    normalizeLimit(
-
-                        options.limit || 50
-
-                    )
-
-                );
+        /*
+        --------------------------------------------------
+        QUERY
+        --------------------------------------------------
+        */
 
 
+        return await Conversation
 
-        return conversations;
+            .find(
 
+                query
+
+            )
+
+            .sort({
+
+                updatedAt:
+
+                    -1
+
+            })
+
+            .limit(
+
+                normalizeLimit(
+
+                    options.limit || 50
+
+                )
+
+            );
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -731,8 +855,7 @@ export async function getConversations(
         );
 
 
-
-        return [];
+        throw error;
 
     }
 
@@ -757,25 +880,34 @@ export async function updateConversation(
 
 ){
 
+    const query =
+
+        buildConversationQuery(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!query){
+
+        return null;
+
+    }
+
+
     try{
-
-
-        if(
-
-            !userId ||
-
-            !conversationId
-
-        ){
-
-            return null;
-
-        }
-
-
 
         const allowedUpdates = {};
 
+
+        /*
+        --------------------------------------------------
+        TITLE
+        --------------------------------------------------
+        */
 
 
         if(
@@ -795,6 +927,12 @@ export async function updateConversation(
         }
 
 
+        /*
+        --------------------------------------------------
+        AGENT
+        --------------------------------------------------
+        */
+
 
         if(
 
@@ -812,6 +950,12 @@ export async function updateConversation(
 
         }
 
+
+        /*
+        --------------------------------------------------
+        WORKSPACE
+        --------------------------------------------------
+        */
 
 
         if(
@@ -831,6 +975,12 @@ export async function updateConversation(
         }
 
 
+        /*
+        --------------------------------------------------
+        ARCHIVED
+        --------------------------------------------------
+        */
+
 
         if(
 
@@ -843,7 +993,6 @@ export async function updateConversation(
                 updates.archived;
 
         }
-
 
 
         /*
@@ -874,55 +1023,54 @@ export async function updateConversation(
         }
 
 
-
         /*
         --------------------------------------------------
-        UPDATE
+        UPDATE TIMESTAMP
         --------------------------------------------------
         */
 
 
-        const conversation =
+        allowedUpdates.updatedAt =
 
-            await Conversation.findOneAndUpdate(
-
-                {
-
-                    _id:
-
-                        conversationId,
-
-                    userId
-
-                },
-
-                {
-
-                    $set:
-
-                        allowedUpdates
-
-                },
-
-                {
-
-                    new:true,
-
-                    runValidators:true
-
-                }
-
-            );
+            new Date();
 
 
+        /*
+        --------------------------------------------------
+        DATABASE UPDATE
+        --------------------------------------------------
+        */
 
-        return conversation;
 
+        return await Conversation.findOneAndUpdate(
+
+            query,
+
+            {
+
+                $set:
+
+                    allowedUpdates
+
+            },
+
+            {
+
+                new:
+
+                    true,
+
+                runValidators:
+
+                    true
+
+            }
+
+        );
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -933,8 +1081,7 @@ export async function updateConversation(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -944,7 +1091,7 @@ export async function updateConversation(
 
 /*
 ==========================================================
-ARCHIVE
+ARCHIVE CONVERSATION
 ==========================================================
 */
 
@@ -965,7 +1112,9 @@ export async function archiveConversation(
 
         {
 
-            archived:true
+            archived:
+
+                true
 
         }
 
@@ -977,7 +1126,7 @@ export async function archiveConversation(
 
 /*
 ==========================================================
-RESTORE
+RESTORE CONVERSATION
 ==========================================================
 */
 
@@ -998,7 +1147,9 @@ export async function restoreConversation(
 
         {
 
-            archived:false
+            archived:
+
+                false
 
         }
 
@@ -1023,35 +1174,40 @@ export async function deleteConversation(
 
 ){
 
+    const query =
+
+        buildConversationQuery(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!query){
+
+        return false;
+
+    }
+
+
     try{
 
-
-        if(
-
-            !userId ||
-
-            !conversationId
-
-        ){
-
-            return false;
-
-        }
-
+        /*
+        --------------------------------------------------
+        VERIFY OWNERSHIP
+        --------------------------------------------------
+        */
 
 
         const conversation =
 
-            await Conversation.findOne({
+            await Conversation.findOne(
 
-                _id:
+                query
 
-                    conversationId,
-
-                userId
-
-            });
-
+            );
 
 
         if(!conversation){
@@ -1060,6 +1216,12 @@ export async function deleteConversation(
 
         }
 
+
+        /*
+        --------------------------------------------------
+        DELETE MESSAGES
+        --------------------------------------------------
+        */
 
 
         await Message.deleteMany({
@@ -1071,24 +1233,29 @@ export async function deleteConversation(
         });
 
 
+        /*
+        --------------------------------------------------
+        DELETE CONVERSATION
+        --------------------------------------------------
+        */
+
 
         await Conversation.deleteOne({
 
             _id:
 
-                conversation._id
+                conversation._id,
+
+            userId
 
         });
 
 
-
         return true;
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1099,8 +1266,7 @@ export async function deleteConversation(
         );
 
 
-
-        return false;
+        throw error;
 
     }
 
@@ -1129,62 +1295,88 @@ export async function saveMessage(
 
 ){
 
+    if(
+
+        !isValidUserId(
+
+            userId
+
+        )
+
+    ){
+
+        throw new Error(
+
+            "userId é obrigatório."
+
+        );
+
+    }
+
+
+    const query =
+
+        buildConversationQuery(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!query){
+
+        throw new Error(
+
+            "conversationId inválido."
+
+        );
+
+    }
+
+
+    const normalizedRole =
+
+        normalizeRole(
+
+            role
+
+        );
+
+
+    if(!normalizedRole){
+
+        throw new Error(
+
+            "Role de mensagem inválida."
+
+        );
+
+    }
+
+
+    const normalizedContent =
+
+        normalizeContent(
+
+            content
+
+        );
+
+
+    if(!normalizedContent){
+
+        throw new Error(
+
+            "O conteúdo da mensagem está vazio."
+
+        );
+
+    }
+
+
     try{
-
-
-        if(
-
-            !userId ||
-
-            !conversationId
-
-        ){
-
-            return null;
-
-        }
-
-
-
-        const normalizedRole =
-
-            normalizeRole(
-
-                role
-
-            );
-
-
-
-        if(!normalizedRole){
-
-            throw new Error(
-
-                "Role de mensagem inválida."
-
-            );
-
-        }
-
-
-
-        const normalizedContent =
-
-            normalizeContent(
-
-                content
-
-            );
-
-
-
-        if(!normalizedContent){
-
-            return null;
-
-        }
-
-
 
         /*
         --------------------------------------------------
@@ -1195,16 +1387,11 @@ export async function saveMessage(
 
         const conversation =
 
-            await Conversation.findOne({
+            await Conversation.findOne(
 
-                _id:
+                query
 
-                    conversationId,
-
-                userId
-
-            });
-
+            );
 
 
         if(!conversation){
@@ -1216,7 +1403,6 @@ export async function saveMessage(
             );
 
         }
-
 
 
         /*
@@ -1237,10 +1423,9 @@ export async function saveMessage(
             );
 
 
-
         /*
         --------------------------------------------------
-        MESSAGE
+        CREATE MESSAGE
         --------------------------------------------------
         */
 
@@ -1268,9 +1453,7 @@ export async function saveMessage(
             });
 
 
-
         await message.save();
-
 
 
         /*
@@ -1283,7 +1466,6 @@ export async function saveMessage(
         conversation.updatedAt =
 
             new Date();
-
 
 
         if(
@@ -1299,7 +1481,6 @@ export async function saveMessage(
                 normalizedAgentId;
 
         }
-
 
 
         /*
@@ -1337,6 +1518,8 @@ export async function saveMessage(
 
                     )
 
+                    .trim()
+
                     .slice(
 
                         0,
@@ -1344,7 +1527,6 @@ export async function saveMessage(
                         80
 
                     );
-
 
 
             if(generatedTitle){
@@ -1358,18 +1540,14 @@ export async function saveMessage(
         }
 
 
-
         await conversation.save();
-
 
 
         return message;
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1380,8 +1558,7 @@ export async function saveMessage(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -1406,35 +1583,40 @@ export async function getMessages(
 
 ){
 
+    const query =
+
+        buildConversationQuery(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!query){
+
+        return [];
+
+    }
+
+
     try{
 
-
-        if(
-
-            !userId ||
-
-            !conversationId
-
-        ){
-
-            return [];
-
-        }
-
+        /*
+        --------------------------------------------------
+        VERIFY OWNERSHIP
+        --------------------------------------------------
+        */
 
 
         const conversation =
 
-            await Conversation.findOne({
+            await Conversation.findOne(
 
-                _id:
+                query
 
-                    conversationId,
-
-                userId
-
-            });
-
+            );
 
 
         if(!conversation){
@@ -1444,8 +1626,14 @@ export async function getMessages(
         }
 
 
+        /*
+        --------------------------------------------------
+        MESSAGE QUERY
+        --------------------------------------------------
+        */
 
-        const query = {
+
+        const messageQuery = {
 
             conversationId:
 
@@ -1453,6 +1641,12 @@ export async function getMessages(
 
         };
 
+
+        /*
+        --------------------------------------------------
+        AGENT FILTER
+        --------------------------------------------------
+        */
 
 
         if(
@@ -1463,7 +1657,7 @@ export async function getMessages(
 
         ){
 
-            query.agentId =
+            messageQuery.agentId =
 
                 normalizeAgentId(
 
@@ -1474,16 +1668,28 @@ export async function getMessages(
         }
 
 
+        /*
+        --------------------------------------------------
+        FETCH
+        --------------------------------------------------
+        */
+
 
         const messages =
 
             await Message
 
-                .find(query)
+                .find(
+
+                    messageQuery
+
+                )
 
                 .sort({
 
-                    createdAt:-1
+                    createdAt:
+
+                        -1
 
                 })
 
@@ -1498,14 +1704,18 @@ export async function getMessages(
                 );
 
 
+        /*
+        --------------------------------------------------
+        RESTORE CHRONOLOGICAL ORDER
+        --------------------------------------------------
+        */
+
 
         return messages.reverse();
-
 
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1516,8 +1726,7 @@ export async function getMessages(
         );
 
 
-
-        return [];
+        throw error;
 
     }
 
@@ -1577,28 +1786,25 @@ export async function getChatHistory(
 
 ){
 
+    const conversation =
+
+        await getConversation(
+
+            userId,
+
+            conversationId
+
+        );
+
+
+    if(!conversation){
+
+        return null;
+
+    }
+
+
     try{
-
-
-        const conversation =
-
-            await getConversation(
-
-                userId,
-
-                conversationId
-
-            );
-
-
-
-        if(!conversation){
-
-            return null;
-
-        }
-
-
 
         const messages =
 
@@ -1613,7 +1819,6 @@ export async function getChatHistory(
             );
 
 
-
         return {
 
             conversation,
@@ -1622,11 +1827,9 @@ export async function getChatHistory(
 
         };
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1637,8 +1840,7 @@ export async function getChatHistory(
         );
 
 
-
-        return null;
+        throw error;
 
     }
 
@@ -1665,7 +1867,6 @@ export async function buildAIHistory(
 
     try{
 
-
         const messages =
 
             await getMessages(
@@ -1683,24 +1884,23 @@ export async function buildAIHistory(
             );
 
 
-
         return messages
 
             .filter(
 
                 message =>
 
-                    [
+                    (
 
-                        "user",
+                        message.role === "user" ||
 
-                        "assistant"
+                        message.role === "assistant"
 
-                    ].includes(
+                    ) &&
 
-                        message.role
+                    typeof message.content === "string" &&
 
-                    )
+                    message.content.trim()
 
             )
 
@@ -1720,11 +1920,9 @@ export async function buildAIHistory(
 
             );
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1735,8 +1933,7 @@ export async function buildAIHistory(
         );
 
 
-
-        return [];
+        throw error;
 
     }
 
