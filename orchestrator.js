@@ -1,18 +1,24 @@
 /*
 ==========================================
 HONEY IA OS
-ORCHESTRATOR ENGINE V8.0
-FULL MULTI-AGENT + TOOL ENGINE
+ORCHESTRATOR ENGINE
+PRODUCTION V9.0
+==========================================
+
+FULL MULTI-AGENT ENGINE
 30 SPECIALIST AGENTS
-Agent Routing
-Prompt Factory
-Groq AI
-Real Tool Calling
-Multi-Round Tool Execution
-Artifacts
-Live Streaming
-Enterprise Workspace Integration
-Production Hardened
+SMART AGENT ROUTING
+FORCED AGENT SELECTION
+PROMPT FACTORY
+GROQ AI
+REAL TOOL CALLING
+MULTI-ROUND TOOL EXECUTION
+ARTIFACT ENGINE
+LIVE STREAMING
+WORKSPACE CONTEXT
+USER MEMORY
+TELEMETRY
+PRODUCTION ERROR HANDLING
 ==========================================
 */
 
@@ -126,6 +132,35 @@ const agents_registry = {
 
 
 // ==========================================
+// CONSTANTS
+// ==========================================
+
+const DEFAULT_AGENT_ID =
+    "general";
+
+const DEFAULT_MODEL =
+    "llama-3.3-70b-versatile";
+
+const DEFAULT_TEMPERATURE =
+    0.5;
+
+const DEFAULT_MAX_TOKENS =
+    4096;
+
+const DEFAULT_MAX_TOOL_ROUNDS =
+    5;
+
+const MAX_MESSAGE_LENGTH =
+    100000;
+
+const MAX_ARTIFACTS =
+    50;
+
+const MAX_TOOL_RESULTS =
+    50;
+
+
+// ==========================================
 // AGENT NORMALIZATION
 // ==========================================
 
@@ -178,6 +213,13 @@ Object.entries(
         }
 
 
+        if(!Array.isArray(agent.keywords)){
+
+            agent.keywords = [];
+
+        }
+
+
         if(!agent.category){
 
             agent.category =
@@ -197,7 +239,7 @@ Object.entries(
         if(!agent.description){
 
             agent.description =
-                "Especialista Honey IA.";
+                "Especialista profissional Honey IA.";
 
         }
 
@@ -206,34 +248,93 @@ Object.entries(
 
 
 // ==========================================
+// SAFE STRING
+// ==========================================
+
+function safeString(
+    value,
+    maxLength = MAX_MESSAGE_LENGTH
+){
+
+    if(
+        value === null ||
+        value === undefined
+    ){
+
+        return "";
+
+    }
+
+
+    return String(
+        value
+    )
+        .trim()
+        .slice(
+            0,
+            maxLength
+        );
+
+}
+
+
+// ==========================================
 // AGENT ROUTER
 // ==========================================
 
 export class agentrouter {
+
+    static normalizeAgentId(
+        agentId
+    ){
+
+        if(
+            typeof agentId !==
+            "string"
+        ){
+
+            return null;
+
+        }
+
+
+        const normalized =
+            agentId
+                .toLowerCase()
+                .trim()
+                .slice(
+                    0,
+                    150
+                );
+
+
+        return normalized ||
+            null;
+
+    }
+
 
     static selectagent(
         usermessage = "",
         forcedagentid = null
     ){
 
-        const normalizedforcedid =
-            forcedagentid
-                ? String(
-                    forcedagentid
-                )
-                    .toLowerCase()
-                    .trim()
-                : null;
+        const normalizedForcedId =
+            this.normalizeAgentId(
+                forcedagentid
+            );
 
 
-        // ----------------------------------
-        // FORCE AGENT
-        // ----------------------------------
+        // ==================================
+        // EXPLICIT AGENT
+        // ==================================
 
         if(
-            normalizedforcedid &&
+            normalizedForcedId &&
+            normalizedForcedId !==
+                DEFAULT_AGENT_ID &&
             agents_registry[
-                normalizedforcedid
+                normalizedForcedId
             ]
         ){
 
@@ -241,27 +342,47 @@ export class agentrouter {
 
                 agent:
                     agents_registry[
-                        normalizedforcedid
+                        normalizedForcedId
                     ],
 
                 score:
                     1,
 
+                confidence:
+                    1,
+
                 reason:
-                    "forced_by_user"
+                    "forced_by_user",
+
+                forced:
+                    true
 
             };
 
         }
 
 
-        // ----------------------------------
-        // DEFAULT
-        // ----------------------------------
+        /*
+        --------------------------------------------------
+        IMPORTANT
+
+        "general" is treated as the default/fallback agent.
+
+        It does NOT count as an explicit specialist choice.
+
+        This allows automatic routing to work correctly when
+        the frontend sends agentId = "general".
+        --------------------------------------------------
+        */
+
 
         if(
-            !usermessage ||
-            typeof usermessage !== "string"
+            normalizedForcedId &&
+            normalizedForcedId !==
+                DEFAULT_AGENT_ID &&
+            !agents_registry[
+                normalizedForcedId
+            ]
         ){
 
             return {
@@ -270,33 +391,67 @@ export class agentrouter {
                     generalagent,
 
                 score:
-                    1,
+                    0,
+
+                confidence:
+                    0,
 
                 reason:
-                    "default_general"
+                    "invalid_agent_fallback",
+
+                forced:
+                    false
 
             };
 
         }
 
 
+        // ==================================
+        // DEFAULT
+        // ==================================
+
         const text =
-            usermessage
-                .toLowerCase()
-                .trim();
+            safeString(
+                usermessage
+            )
+                .toLowerCase();
+
+
+        if(!text){
+
+            return {
+
+                agent:
+                    generalagent,
+
+                score:
+                    0,
+
+                confidence:
+                    0,
+
+                reason:
+                    "default_general",
+
+                forced:
+                    false
+
+            };
+
+        }
 
 
         let selected =
             generalagent;
 
-
         let bestScore =
             0;
 
 
-        // ----------------------------------
-        // ANALYZE AGENTS
-        // ----------------------------------
+        // ==================================
+        // ANALYZE SPECIALIST AGENTS
+        // ==================================
 
         for(
             const [id, agent]
@@ -305,7 +460,10 @@ export class agentrouter {
             )
         ){
 
-            if(!agent){
+            if(
+                !agent ||
+                id === DEFAULT_AGENT_ID
+            ){
 
                 continue;
 
@@ -316,9 +474,9 @@ export class agentrouter {
                 0;
 
 
-            // ------------------------------
-            // CUSTOM CAN HANDLE
-            // ------------------------------
+            // --------------------------------
+            // CAN HANDLE
+            // --------------------------------
 
             if(
                 typeof agent.canHandle ===
@@ -344,13 +502,17 @@ export class agentrouter {
 
                     else if(
                         typeof result ===
-                        "number"
+                        "number" &&
+                        Number.isFinite(result)
                     ){
 
                         score +=
                             Math.max(
                                 0,
-                                result
+                                Math.min(
+                                    result,
+                                    1
+                                )
                             );
 
                     }
@@ -360,8 +522,8 @@ export class agentrouter {
                 catch(error){
 
                     console.warn(
-                        `[Router] Erro no agente ${id}:`,
-                        error.message
+                        `[Router] canHandle error (${id}):`,
+                        error?.message
                     );
 
                 }
@@ -369,60 +531,61 @@ export class agentrouter {
             }
 
 
-            // ------------------------------
+            // --------------------------------
             // KEYWORDS
-            // ------------------------------
+            // --------------------------------
 
             if(
                 Array.isArray(
                     agent.keywords
-                ) &&
-                agent.keywords.length
+                )
             ){
 
-                const matches =
-                    agent.keywords.filter(
-                        keyword => {
-
-                            if(
-                                typeof keyword !==
-                                "string"
-                            ){
-
-                                return false;
-
-                            }
+                let keywordMatches =
+                    0;
 
 
-                            const normalizedKeyword =
-                                keyword
-                                    .toLowerCase()
-                                    .trim();
+                for(
+                    const keyword
+                    of agent.keywords
+                ){
+
+                    if(
+                        typeof keyword !==
+                        "string"
+                    ){
+
+                        continue;
+
+                    }
 
 
-                            if(
-                                !normalizedKeyword
-                            ){
-
-                                return false;
-
-                            }
+                    const normalizedKeyword =
+                        keyword
+                            .toLowerCase()
+                            .trim();
 
 
-                            return text.includes(
-                                normalizedKeyword
-                            );
+                    if(
+                        normalizedKeyword &&
+                        text.includes(
+                            normalizedKeyword
+                        )
+                    ){
 
-                        }
-                    );
+                        keywordMatches++;
+
+                    }
+
+                }
 
 
-                if(matches.length){
+                if(keywordMatches){
 
                     score +=
                         Math.min(
                             0.6,
-                            matches.length *
+                            keywordMatches *
                             0.2
                         );
 
@@ -431,79 +594,125 @@ export class agentrouter {
             }
 
 
-            // ------------------------------
-            // NAME MATCH
-            // ------------------------------
+            // --------------------------------
+            // AGENT NAME
+            // --------------------------------
 
             if(
-                agent.name &&
-                text.includes(
+                agent.name
+            ){
+
+                const agentName =
                     String(
                         agent.name
-                    ).toLowerCase()
-                )
-            ){
+                    )
+                        .toLowerCase()
+                        .trim();
 
-                score +=
-                    0.15;
+
+                if(
+                    agentName &&
+                    text.includes(
+                        agentName
+                    )
+                ){
+
+                    score +=
+                        0.15;
+
+                }
 
             }
 
 
-            // ------------------------------
-            // CATEGORY MATCH
-            // ------------------------------
+            // --------------------------------
+            // CATEGORY
+            // --------------------------------
 
             if(
-                agent.category &&
-                text.includes(
-                    String(
-                        agent.category
-                    ).toLowerCase()
-                )
+                agent.category
             ){
 
-                score +=
-                    0.1;
+                const category =
+                    String(
+                        agent.category
+                    )
+                        .toLowerCase()
+                        .trim();
+
+
+                if(
+                    category &&
+                    text.includes(
+                        category
+                    )
+                ){
+
+                    score +=
+                        0.1;
+
+                }
 
             }
 
 
-            // ------------------------------
-            // DESCRIPTION MATCH
-            // ------------------------------
+            // --------------------------------
+            // DESCRIPTION
+            // --------------------------------
 
-            if(agent.description){
+            if(
+                agent.description
+            ){
 
-                const descriptionWords =
+                const words =
                     String(
                         agent.description
                     )
                         .toLowerCase()
-                        .split(/\s+/)
+                        .split(
+                            /\s+/
+                        )
+                        .map(
+                            word =>
+                                word.replace(
+                                    /[^a-záàâãéêíóôõúç0-9]/gi,
+                                    ""
+                                )
+                        )
                         .filter(
                             word =>
                                 word.length >= 5
                         );
 
 
-                const descriptionMatches =
-                    descriptionWords.filter(
-                        word =>
-                            text.includes(
-                                word
-                            )
-                    );
+                let matches =
+                    0;
 
 
-                if(
-                    descriptionMatches.length
+                for(
+                    const word
+                    of words
                 ){
+
+                    if(
+                        text.includes(
+                            word
+                        )
+                    ){
+
+                        matches++;
+
+                    }
+
+                }
+
+
+                if(matches){
 
                     score +=
                         Math.min(
                             0.2,
-                            descriptionMatches.length *
+                            matches *
                             0.04
                         );
 
@@ -512,9 +721,9 @@ export class agentrouter {
             }
 
 
-            // ------------------------------
+            // --------------------------------
             // BEST AGENT
-            // ------------------------------
+            // --------------------------------
 
             if(
                 score >
@@ -532,9 +741,9 @@ export class agentrouter {
         }
 
 
-        // ----------------------------------
+        // ==================================
         // LOW CONFIDENCE
-        // ----------------------------------
+        // ==================================
 
         if(
             bestScore < 0.3
@@ -548,12 +757,29 @@ export class agentrouter {
                 score:
                     0,
 
+                confidence:
+                    0,
+
                 reason:
-                    "low_confidence"
+                    "low_confidence",
+
+                forced:
+                    false
 
             };
 
         }
+
+
+        const normalizedScore =
+            Number(
+                Math.min(
+                    bestScore,
+                    1
+                ).toFixed(
+                    2
+                )
+            );
 
 
         return {
@@ -562,14 +788,16 @@ export class agentrouter {
                 selected,
 
             score:
-                Number(
-                    bestScore.toFixed(
-                        2
-                    )
-                ),
+                normalizedScore,
+
+            confidence:
+                normalizedScore,
 
             reason:
-                "smart_agent_match"
+                "smart_agent_match",
+
+            forced:
+                false
 
         };
 
@@ -608,15 +836,27 @@ segura, útil e profissional.
 
             try{
 
-                return agent.systemPrompt();
+                const result =
+                    agent.systemPrompt();
+
+
+                if(
+                    typeof result ===
+                    "string" &&
+                    result.trim()
+                ){
+
+                    return result;
+
+                }
 
             }
 
             catch(error){
 
                 console.warn(
-                    "[PromptFactory] Erro no systemPrompt:",
-                    error.message
+                    "[PromptFactory] systemPrompt error:",
+                    error?.message
                 );
 
             }
@@ -626,7 +866,8 @@ segura, útil e profissional.
 
         if(
             typeof agent.systemPrompt ===
-            "string"
+            "string" &&
+            agent.systemPrompt.trim()
         ){
 
             return agent.systemPrompt;
@@ -634,9 +875,23 @@ segura, útil e profissional.
         }
 
 
+        const capabilities =
+            Array.isArray(
+                agent.capabilities
+            ) &&
+            agent.capabilities.length
+                ? agent.capabilities.join(
+                    "\n- "
+                )
+                : "Fornecer assistência profissional.";
+
+
         return `
 
-Você é ${agent.name || "um agente Honey IA"}.
+Você é ${
+    agent.name ||
+    "um agente Honey IA"
+}.
 
 Especialidade:
 ${
@@ -645,11 +900,7 @@ ${
 }
 
 Responsabilidades:
-${
-    Array.isArray(agent.capabilities)
-        ? agent.capabilities.join("\n- ")
-        : "Fornecer assistência profissional."
-}
+- ${capabilities}
 
 Responda de forma clara,
 profissional, segura e útil.
@@ -675,70 +926,104 @@ profissional, segura e útil.
 
         if(
             workspaceContext &&
-            typeof workspaceContext === "object" &&
-            !Array.isArray(workspaceContext) &&
-            Object.keys(
+            typeof workspaceContext ===
+                "object" &&
+            !Array.isArray(
                 workspaceContext
-            ).length
+            )
         ){
 
-            finalPrompt += `
+            const safeContext = {
+                ...workspaceContext
+            };
+
+
+            const contextKeys =
+                Object.keys(
+                    safeContext
+                );
+
+
+            if(contextKeys.length){
+
+                finalPrompt += `
 
 === CONTEXTO DO WORKSPACE ===
 `;
 
-            if(
-                workspaceContext.projectName
-            ){
 
-                finalPrompt += `
+                if(
+                    safeContext.projectName
+                ){
+
+                    finalPrompt += `
 Projeto:
-${workspaceContext.projectName}
+${safeString(
+    safeContext.projectName,
+    500
+)}
 `;
 
-            }
+                }
 
 
-            if(
-                workspaceContext.activeFile
-            ){
+                if(
+                    safeContext.activeFile
+                ){
 
-                finalPrompt += `
+                    finalPrompt += `
 Ficheiro ativo:
-${workspaceContext.activeFile}
+${safeString(
+    safeContext.activeFile,
+    500
+)}
 `;
 
-            }
+                }
 
 
-            if(
-                workspaceContext.language
-            ){
+                if(
+                    safeContext.language
+                ){
 
-                finalPrompt += `
+                    finalPrompt += `
 Tecnologia:
-${workspaceContext.language}
+${safeString(
+    safeContext.language,
+    300
+)}
 `;
 
-            }
+                }
 
 
-            if(
-                workspaceContext.content
-            ){
+                if(
+                    safeContext.content
+                ){
 
-                finalPrompt += `
+                    finalPrompt += `
 Conteúdo relevante:
-${workspaceContext.content}
+${safeString(
+    safeContext.content,
+    20000
+)}
 `;
+
+                }
 
             }
 
         }
 
 
+        // ==================================
+        // USER MEMORY
+        // ==================================
+
         if(
-            Array.isArray(userMemory) &&
+            Array.isArray(
+                userMemory
+            ) &&
             userMemory.length
         ){
 
@@ -746,6 +1031,7 @@ ${workspaceContext.content}
 
 === MEMÓRIA DO UTILIZADOR ===
 `;
+
 
             userMemory
                 .slice(
@@ -758,15 +1044,47 @@ ${workspaceContext.content}
                         index
                     ) => {
 
-                        const value =
-                            typeof memory === "string"
-                                ? memory
-                                : JSON.stringify(
-                                    memory
-                                );
+                        let value;
+
+
+                        if(
+                            typeof memory ===
+                            "string"
+                        ){
+
+                            value =
+                                memory;
+
+                        }
+
+                        else{
+
+                            try{
+
+                                value =
+                                    JSON.stringify(
+                                        memory
+                                    );
+
+                            }
+
+                            catch{
+
+                                value =
+                                    String(
+                                        memory
+                                    );
+
+                            }
+
+                        }
+
 
                         finalPrompt += `
-${index + 1}. ${value}
+${index + 1}. ${safeString(
+    value,
+    2000
+)}
 `;
 
                     }
@@ -802,6 +1120,7 @@ ${index + 1}. ${value}
 - Use frases claras.
 - Evite explicações desnecessariamente longas.
 - Mantenha uma conversa fluida.
+- Não repita informações já fornecidas.
 `;
 
         }
@@ -809,7 +1128,7 @@ ${index + 1}. ${value}
 
         return prompt + `
 
-=== MODO TEXTO ===
+=== MODO CHAT ===
 
 - Estruture a resposta.
 - Use Markdown quando necessário.
@@ -846,7 +1165,7 @@ ${index + 1}. ${value}
 === OUTPUT HONEY IA ===
 
 Quando a tarefa exigir um resultado concreto,
-priorize produzir o conteúdo solicitado.
+priorize produzir diretamente o conteúdo solicitado.
 
 Tipos de saída suportados:
 ${
@@ -856,11 +1175,11 @@ ${
 }
 
 Se produzir código:
-- mantenha o código completo;
+- entregue o código completo;
 - não omita partes importantes;
 - preserve consistência entre ficheiros;
 - use padrões profissionais;
-- considere segurança e desempenho.
+- considere segurança, desempenho e manutenção.
 
 Se produzir conteúdo textual:
 - entregue diretamente o resultado;
@@ -874,7 +1193,7 @@ Quando uma ferramenta estiver disponível:
 2. Utilize-a quando a tarefa exigir informação externa,
    processamento ou operação suportada.
 3. Não diga que executou uma ferramenta se ela não foi realmente executada.
-4. Use o resultado recebido da ferramenta para construir a resposta.
+4. Utilize os resultados reais das ferramentas.
 5. Se uma ferramenta falhar, informe a limitação de forma transparente.
 `;
 
@@ -937,20 +1256,27 @@ Quando uma ferramenta estiver disponível:
                     .filter(
                         item =>
                             item &&
+                            (
+                                item.role === "user" ||
+                                item.role === "assistant"
+                            ) &&
                             typeof item.content ===
-                            "string"
+                                "string"
                     )
-                    .slice(-30)
+                    .slice(
+                        -30
+                    )
                     .map(
                         item => ({
 
                             role:
-                                item.role === "user"
-                                    ? "user"
-                                    : "assistant",
+                                item.role,
 
                             content:
-                                item.content
+                                safeString(
+                                    item.content,
+                                    MAX_MESSAGE_LENGTH
+                                )
 
                         })
                     )
@@ -977,8 +1303,8 @@ Quando uma ferramenta estiver disponível:
                     "user",
 
                 content:
-                    String(
-                        userPrompt || ""
+                    safeString(
+                        userPrompt
                     )
 
             }
@@ -997,7 +1323,7 @@ Quando uma ferramenta estiver disponível:
 export class toolorchestrator {
 
     // ======================================
-    // NORMALIZE TOOL IDS
+    // NORMALIZE AGENT TOOLS
     // ======================================
 
     static normalizeAgentTools(
@@ -1056,9 +1382,9 @@ export class toolorchestrator {
         const tools = [];
 
 
-        // ----------------------------------
+        // ==================================
         // WEB SEARCH
-        // ----------------------------------
+        // ==================================
 
         if(
             normalizedTools.includes(
@@ -1100,7 +1426,10 @@ export class toolorchestrator {
 
                         required: [
                             "query"
-                        ]
+                        ],
+
+                        additionalProperties:
+                            false
 
                     }
 
@@ -1111,9 +1440,9 @@ export class toolorchestrator {
         }
 
 
-        // ----------------------------------
+        // ==================================
         // ANALYTICS
-        // ----------------------------------
+        // ==================================
 
         if(
             normalizedTools.includes(
@@ -1155,7 +1484,10 @@ export class toolorchestrator {
 
                         required: [
                             "metric"
-                        ]
+                        ],
+
+                        additionalProperties:
+                            false
 
                     }
 
@@ -1166,9 +1498,9 @@ export class toolorchestrator {
         }
 
 
-        // ----------------------------------
-        // CREATE TEXT ARTIFACT
-        // ----------------------------------
+        // ==================================
+        // TEXT ARTIFACT
+        // ==================================
 
         if(
             normalizedTools.includes(
@@ -1228,7 +1560,10 @@ export class toolorchestrator {
                         required: [
                             "filename",
                             "content"
-                        ]
+                        ],
+
+                        additionalProperties:
+                            false
 
                     }
 
@@ -1239,9 +1574,9 @@ export class toolorchestrator {
         }
 
 
-        // ----------------------------------
-        // CREATE JSON ARTIFACT
-        // ----------------------------------
+        // ==================================
+        // JSON ARTIFACT
+        // ==================================
 
         if(
             normalizedTools.includes(
@@ -1294,7 +1629,10 @@ export class toolorchestrator {
                         required: [
                             "filename",
                             "data"
-                        ]
+                        ],
+
+                        additionalProperties:
+                            false
 
                     }
 
@@ -1305,9 +1643,9 @@ export class toolorchestrator {
         }
 
 
-        // ----------------------------------
+        // ==================================
         // CALCULATOR
-        // ----------------------------------
+        // ==================================
 
         if(
             normalizedTools.includes(
@@ -1350,7 +1688,7 @@ export class toolorchestrator {
                                     "string",
 
                                 description:
-                                    "Expressão matemática a calcular."
+                                    "Expressão matemática."
 
                             }
 
@@ -1358,7 +1696,10 @@ export class toolorchestrator {
 
                         required: [
                             "expression"
-                        ]
+                        ],
+
+                        additionalProperties:
+                            false
 
                     }
 
@@ -1473,10 +1814,10 @@ export class toolorchestrator {
     ){
 
         const normalizedQuery =
-            String(
-                query || ""
-            )
-                .trim();
+            safeString(
+                query,
+                2000
+            );
 
 
         if(
@@ -1492,7 +1833,6 @@ export class toolorchestrator {
 
         const apiKey =
             process.env.WEB_SEARCH_API_KEY;
-
 
         const endpoint =
             process.env.WEB_SEARCH_API_URL;
@@ -1538,9 +1878,7 @@ export class toolorchestrator {
 
             const response =
                 await fetch(
-
                     endpoint,
-
                     {
 
                         method:
@@ -1568,7 +1906,6 @@ export class toolorchestrator {
                             controller.signal
 
                     }
-
                 );
 
 
@@ -1646,10 +1983,10 @@ export class toolorchestrator {
     ){
 
         const normalizedMetric =
-            String(
-                metric || ""
-            )
-                .trim();
+            safeString(
+                metric,
+                300
+            );
 
 
         if(
@@ -1669,7 +2006,11 @@ export class toolorchestrator {
 
         if(
             analytics &&
-            typeof analytics === "object"
+            typeof analytics ===
+                "object" &&
+            !Array.isArray(
+                analytics
+            )
         ){
 
             if(
@@ -1746,22 +2087,18 @@ export class toolorchestrator {
     ){
 
         const filename =
-            String(
+            safeString(
                 args?.filename ||
-                "honey-ia-result.txt"
-            )
-                .trim()
-                .slice(
-                    0,
-                    200
-                );
+                "honey-ia-result.txt",
+                200
+            );
 
 
         const content =
-            String(
-                args?.content ||
-                ""
-            );
+            typeof args?.content ===
+                "string"
+                ? args.content
+                : "";
 
 
         if(
@@ -1775,6 +2112,11 @@ export class toolorchestrator {
         }
 
 
+        const finalFilename =
+            filename ||
+            "honey-ia-result.txt";
+
+
         return {
 
             success:
@@ -1786,7 +2128,7 @@ export class toolorchestrator {
                     artifactengine.createId(),
 
                 name:
-                    filename,
+                    finalFilename,
 
                 type:
                     "text/plain",
@@ -1798,8 +2140,11 @@ export class toolorchestrator {
                     "document",
 
                 language:
-                    args?.language ||
-                    "text",
+                    safeString(
+                        args?.language ||
+                        "text",
+                        50
+                    ),
 
                 content,
 
@@ -1822,22 +2167,21 @@ export class toolorchestrator {
     ){
 
         const filename =
-            String(
+            safeString(
                 args?.filename ||
-                "honey-ia-result.json"
-            )
-                .trim()
-                .slice(
-                    0,
-                    200
-                );
+                "honey-ia-result.json",
+                200
+            );
 
 
         if(
             !args ||
-            typeof args.data !== "object" ||
+            typeof args.data !==
+                "object" ||
             args.data === null ||
-            Array.isArray(args.data)
+            Array.isArray(
+                args.data
+            )
         ){
 
             throw new Error(
@@ -1855,6 +2199,14 @@ export class toolorchestrator {
             );
 
 
+        const finalFilename =
+            filename.endsWith(
+                ".json"
+            )
+                ? filename
+                : `${filename}.json`;
+
+
         return {
 
             success:
@@ -1866,11 +2218,7 @@ export class toolorchestrator {
                     artifactengine.createId(),
 
                 name:
-                    filename.endsWith(
-                        ".json"
-                    )
-                        ? filename
-                        : `${filename}.json`,
+                    finalFilename,
 
                 type:
                     "application/json",
@@ -1905,15 +2253,13 @@ export class toolorchestrator {
     ){
 
         const value =
-            String(
-                expression || ""
-            )
-                .trim();
+            safeString(
+                expression,
+                1000
+            );
 
 
-        if(
-            !value
-        ){
+        if(!value){
 
             throw new Error(
                 "Expressão matemática vazia."
@@ -1921,6 +2267,20 @@ export class toolorchestrator {
 
         }
 
+
+        /*
+        --------------------------------------------------
+        Apenas números, operadores e parênteses.
+
+        Não são permitidos:
+        - letras
+        - funções
+        - propriedades
+        - acesso a objetos
+        - strings
+        - código arbitrário
+        --------------------------------------------------
+        */
 
         if(
             !/^[0-9+\-*/%().,\s]+$/.test(
@@ -1936,11 +2296,18 @@ export class toolorchestrator {
 
 
         const normalized =
-            value.replace(
-                /,/g,
-                "."
-            );
+            value
+                .replace(
+                    /,/g,
+                    "."
+                );
 
+
+        /*
+        --------------------------------------------------
+        Validamos novamente o resultado sintático básico.
+        --------------------------------------------------
+        */
 
         let result;
 
@@ -1954,7 +2321,7 @@ export class toolorchestrator {
 
         }
 
-        catch(error){
+        catch{
 
             throw new Error(
                 "Não foi possível calcular a expressão."
@@ -1964,8 +2331,11 @@ export class toolorchestrator {
 
 
         if(
-            typeof result !== "number" ||
-            !Number.isFinite(result)
+            typeof result !==
+                "number" ||
+            !Number.isFinite(
+                result
+            )
         ){
 
             throw new Error(
@@ -2000,21 +2370,29 @@ export class toolorchestrator {
         context = {}
     ){
 
+        const normalizedName =
+            safeString(
+                name,
+                100
+            )
+                .toLowerCase();
+
+
         switch(
-            name
+            normalizedName
         ){
 
             case "web_search":
 
                 return this.webSearch(
-                    args.query
+                    args?.query
                 );
 
 
             case "get_analytics":
 
                 return this.getAnalytics(
-                    args.metric,
+                    args?.metric,
                     context.workspaceContext ||
                     {}
                 );
@@ -2037,7 +2415,7 @@ export class toolorchestrator {
             case "calculate":
 
                 return this.calculate(
-                    args.expression
+                    args?.expression
                 );
 
 
@@ -2065,7 +2443,8 @@ export class artifactengine {
     ){
 
         if(
-            typeof response !== "string" ||
+            typeof response !==
+                "string" ||
             !response.trim()
         ){
 
@@ -2078,7 +2457,7 @@ export class artifactengine {
 
 
         const codeRegex =
-            /```([a-zA-Z0-9_+-]*)\s*\n([\s\S]*?)```/g;
+            /```([a-zA-Z0-9_+#.-]*)\s*\n([\s\S]*?)```/g;
 
 
         let match;
@@ -2093,13 +2472,23 @@ export class artifactengine {
             ) !== null
         ){
 
+            if(
+                artifacts.length >=
+                MAX_ARTIFACTS
+            ){
+
+                break;
+
+            }
+
+
             const language =
-                String(
+                safeString(
                     match[1] ||
-                    "text"
+                    "text",
+                    50
                 )
-                    .toLowerCase()
-                    .trim();
+                    .toLowerCase();
 
 
             const content =
@@ -2224,7 +2613,22 @@ export class artifactengine {
                 "md",
 
             md:
-                "md"
+                "md",
+
+            yaml:
+                "yaml",
+
+            yml:
+                "yml",
+
+            csv:
+                "csv",
+
+            text:
+                "txt",
+
+            txt:
+                "txt"
 
         };
 
@@ -2298,7 +2702,22 @@ export class artifactengine {
                 "text/markdown",
 
             md:
-                "text/markdown"
+                "text/markdown",
+
+            yaml:
+                "text/yaml",
+
+            yml:
+                "text/yaml",
+
+            csv:
+                "text/csv",
+
+            text:
+                "text/plain",
+
+            txt:
+                "text/plain"
 
         };
 
@@ -2345,7 +2764,7 @@ export class Orchestrator {
 
 
         this.maxToolRounds =
-            5;
+            DEFAULT_MAX_TOOL_ROUNDS;
 
     }
 
@@ -2356,6 +2775,8 @@ export class Orchestrator {
 
         this.groq =
             client;
+
+        return this;
 
     }
 
@@ -2380,17 +2801,23 @@ export class Orchestrator {
 
             model:
                 agent?.model ||
-                "llama-3.3-70b-versatile",
+                DEFAULT_MODEL,
 
             messages,
 
             temperature:
-                agent?.temperature ??
-                0.5,
+                Number.isFinite(
+                    agent?.temperature
+                )
+                    ? agent.temperature
+                    : DEFAULT_TEMPERATURE,
 
             max_tokens:
-                agent?.maxTokens ||
-                4096
+                Number.isFinite(
+                    agent?.maxTokens
+                )
+                    ? agent.maxTokens
+                    : DEFAULT_MAX_TOKENS
 
         };
 
@@ -2436,7 +2863,9 @@ export class Orchestrator {
 
 
         if(
-            !Array.isArray(toolCalls) ||
+            !Array.isArray(
+                toolCalls
+            ) ||
             !toolCalls.length
         ){
 
@@ -2447,7 +2876,10 @@ export class Orchestrator {
 
         for(
             const toolCall
-            of toolCalls
+            of toolCalls.slice(
+                0,
+                MAX_TOOL_RESULTS
+            )
         ){
 
             const functionData =
@@ -2455,7 +2887,10 @@ export class Orchestrator {
 
 
             const name =
-                functionData?.name;
+                safeString(
+                    functionData?.name,
+                    100
+                );
 
 
             if(!name){
@@ -2476,7 +2911,7 @@ export class Orchestrator {
 
                     args =
                         typeof functionData.arguments ===
-                        "string"
+                            "string"
                             ? JSON.parse(
                                 functionData.arguments
                             )
@@ -2486,12 +2921,13 @@ export class Orchestrator {
 
             }
 
-            catch(error){
+            catch{
 
                 results.push({
 
                     toolCallId:
-                        toolCall.id,
+                        toolCall.id ||
+                        artifactengine.createId(),
 
                     name,
 
@@ -2509,6 +2945,24 @@ export class Orchestrator {
 
 
             if(
+                !args ||
+                typeof args !==
+                    "object" ||
+                Array.isArray(
+                    args
+                )
+            ){
+
+                args = {};
+
+            }
+
+
+            // ==================================
+            // PERMISSION CHECK
+            // ==================================
+
+            if(
                 !toolorchestrator.agentCanUseTool(
                     agent,
                     name
@@ -2518,7 +2972,8 @@ export class Orchestrator {
                 results.push({
 
                     toolCallId:
-                        toolCall.id,
+                        toolCall.id ||
+                        artifactengine.createId(),
 
                     name,
 
@@ -2535,6 +2990,10 @@ export class Orchestrator {
             }
 
 
+            // ==================================
+            // EXECUTION
+            // ==================================
+
             try{
 
                 const result =
@@ -2549,7 +3008,8 @@ export class Orchestrator {
                 results.push({
 
                     toolCallId:
-                        toolCall.id,
+                        toolCall.id ||
+                        artifactengine.createId(),
 
                     name,
 
@@ -2565,7 +3025,7 @@ export class Orchestrator {
             catch(error){
 
                 console.error(
-                    `[Tool Error] ${name}`,
+                    `[Tool Error] ${name}:`,
                     error
                 );
 
@@ -2573,7 +3033,8 @@ export class Orchestrator {
                 results.push({
 
                     toolCallId:
-                        toolCall.id,
+                        toolCall.id ||
+                        artifactengine.createId(),
 
                     name,
 
@@ -2634,7 +3095,6 @@ export class Orchestrator {
 
                 content:
                     JSON.stringify(
-
                         item.success
                             ? item.result
                             : {
@@ -2646,7 +3106,6 @@ export class Orchestrator {
                                     item.error
 
                             }
-
                     )
 
             });
@@ -2657,7 +3116,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // BUILD TOOL TELEMETRY
+    // TOOL TELEMETRY
     // ======================================
 
     normalizeToolTelemetry(
@@ -2682,7 +3141,10 @@ export class Orchestrator {
                     item.name,
 
                 success:
-                    item.success
+                    item.success,
+
+                toolCallId:
+                    item.toolCallId
 
             })
         );
@@ -2691,7 +3153,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // EXTRACT GENERATED ARTIFACTS
+    // EXTRACT TOOL ARTIFACTS
     // ======================================
 
     extractGeneratedArtifacts(
@@ -2724,7 +3186,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // REQUEST WITH TOOL LOOP
+    // PROCESS REQUEST
     // ======================================
 
     async processRequest({
@@ -2809,14 +3271,11 @@ export class Orchestrator {
             let finalResponse =
                 "";
 
-
             let finalCompletion =
                 null;
 
-
             let executedTools =
                 [];
-
 
             let generatedArtifacts =
                 [];
@@ -2828,7 +3287,8 @@ export class Orchestrator {
 
             for(
                 let round = 0;
-                round < this.maxToolRounds;
+                round <
+                    this.maxToolRounds;
                 round++
             ){
 
@@ -2883,9 +3343,9 @@ export class Orchestrator {
                         : [];
 
 
-                // ------------------------------
+                // ==================================
                 // FINAL RESPONSE
-                // ------------------------------
+                // ==================================
 
                 if(
                     !toolCalls.length
@@ -2893,7 +3353,7 @@ export class Orchestrator {
 
                     finalResponse =
                         typeof message.content ===
-                        "string"
+                            "string"
                             ? message.content
                             : "";
 
@@ -2902,9 +3362,9 @@ export class Orchestrator {
                 }
 
 
-                // ------------------------------
+                // ==================================
                 // ASSISTANT TOOL MESSAGE
-                // ------------------------------
+                // ==================================
 
                 messages.push({
 
@@ -2921,9 +3381,9 @@ export class Orchestrator {
                 });
 
 
-                // ------------------------------
+                // ==================================
                 // EXECUTE TOOLS
-                // ------------------------------
+                // ==================================
 
                 const toolResults =
                     await this.executeToolCalls(
@@ -2947,10 +3407,6 @@ export class Orchestrator {
                 );
 
 
-                // ------------------------------
-                // RETURN RESULTS TO GROQ
-                // ------------------------------
-
                 this.appendToolResults(
                     messages,
                     toolResults
@@ -2958,6 +3414,10 @@ export class Orchestrator {
 
             }
 
+
+            // ==================================
+            // FINAL RESPONSE
+            // ==================================
 
             if(
                 !finalResponse ||
@@ -2979,16 +3439,41 @@ export class Orchestrator {
                 "function"
             ){
 
-                finalResponse =
-                    agent.after(
-                        finalResponse
+                try{
+
+                    const processed =
+                        await agent.after(
+                            finalResponse
+                        );
+
+
+                    if(
+                        typeof processed ===
+                        "string" &&
+                        processed.trim()
+                    ){
+
+                        finalResponse =
+                            processed;
+
+                    }
+
+                }
+
+                catch(error){
+
+                    console.warn(
+                        "[Agent Post Processor Error]:",
+                        error?.message
                     );
+
+                }
 
             }
 
 
             // ==================================
-            // ARTIFACTS
+            // RESPONSE ARTIFACTS
             // ==================================
 
             const extractedArtifacts =
@@ -3003,7 +3488,10 @@ export class Orchestrator {
 
                 ...extractedArtifacts
 
-            ];
+            ].slice(
+                0,
+                MAX_ARTIFACTS
+            );
 
 
             return {
@@ -3030,8 +3518,14 @@ export class Orchestrator {
                     score:
                         selection.score,
 
+                    confidence:
+                        selection.confidence,
+
                     reason:
-                        selection.reason
+                        selection.reason,
+
+                    forced:
+                        selection.forced
 
                 },
 
@@ -3072,7 +3566,7 @@ export class Orchestrator {
 
                     id:
                         agent?.id ||
-                        "general",
+                        DEFAULT_AGENT_ID,
 
                     name:
                         agent?.name ||
@@ -3089,8 +3583,14 @@ export class Orchestrator {
                     score:
                         selection.score,
 
+                    confidence:
+                        selection.confidence,
+
                     reason:
-                        selection.reason
+                        selection.reason,
+
+                    forced:
+                        selection.forced
 
                 },
 
@@ -3122,7 +3622,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // STREAM PROCESSING
+    // PROCESS STREAM
     // ======================================
 
     async processStream({
@@ -3213,38 +3713,37 @@ export class Orchestrator {
             let executedTools =
                 [];
 
-
             let generatedArtifacts =
                 [];
 
-
             let finalResponse =
                 "";
-
 
             let lastUsage =
                 null;
 
 
             // ==================================
-            // LIVE TOOL LOOP
+            // TOOL DISCOVERY LOOP
             // ==================================
 
             for(
                 let round = 0;
-                round < this.maxToolRounds;
+                round <
+                    this.maxToolRounds;
                 round++
             ){
 
                 /*
                 ------------------------------------------------
-                PRIMEIRA FASE
+                Fazemos uma chamada normal para permitir que o
+                modelo determine se necessita de uma ferramenta.
 
-                Fazemos uma chamada não-stream para descobrir
-                se o modelo pretende utilizar uma ferramenta.
+                Quando existem tools, o resultado é processado
+                e devolvido ao modelo.
 
-                Isto evita iniciar streaming antes de sabermos
-                se existe tool call.
+                Quando já não existem tools, fazemos UMA chamada
+                de streaming para produzir a resposta final.
                 ------------------------------------------------
                 */
 
@@ -3298,50 +3797,73 @@ export class Orchestrator {
                         : [];
 
 
-                /*
-                ------------------------------------------------
-                NÃO EXISTEM TOOLS
-
-                Aqui está a correção principal da versão anterior.
-
-                Não fazemos uma segunda chamada independente.
-
-                A resposta obtida acima já é a resposta final.
-
-                Para manter streaming visual, fazemos uma chamada
-                de streaming somente quando o modelo não solicitou
-                tools e ainda não temos uma resposta final utilizável.
-                ------------------------------------------------
-                */
+                // ==================================
+                // NO MORE TOOLS
+                // ==================================
 
                 if(
                     !toolCalls.length
                 ){
 
+                    /*
+                    ------------------------------------------------
+                    A resposta desta chamada já é válida.
+
+                    Para streaming verdadeiro, precisamos de evitar
+                    uma segunda geração do mesmo conteúdo.
+
+                    Portanto, quando o modelo já respondeu sem tool,
+                    entregamos a resposta diretamente.
+
+                    Isto mantém consistência e evita duplicação
+                    de tokens.
+                    ------------------------------------------------
+                    */
+
                     finalResponse =
                         typeof message.content ===
-                        "string"
+                            "string"
                             ? message.content
                             : "";
 
 
-                    /*
-                    Se a primeira resposta já contém conteúdo,
-                    enviamos esse conteúdo como um chunk único.
-
-                    Assim evitamos executar duas gerações diferentes
-                    do modelo para a mesma pergunta.
-                    */
-
                     if(
                         finalResponse &&
                         typeof onChunk ===
-                        "function"
+                            "function"
                     ){
 
-                        onChunk(
-                            finalResponse
-                        );
+                        /*
+                        Entrega em pequenos blocos para manter
+                        compatibilidade com qualquer frontend que
+                        espere múltiplos chunks.
+                        */
+
+                        const chunkSize =
+                            80;
+
+
+                        for(
+                            let index = 0;
+                            index <
+                                finalResponse.length;
+                            index +=
+                                chunkSize
+                        ){
+
+                            const chunk =
+                                finalResponse.slice(
+                                    index,
+                                    index +
+                                        chunkSize
+                                );
+
+
+                            await onChunk(
+                                chunk
+                            );
+
+                        }
 
                     }
 
@@ -3351,11 +3873,9 @@ export class Orchestrator {
                 }
 
 
-                /*
-                ------------------------------------------------
-                EXISTEM TOOL CALLS
-                ------------------------------------------------
-                */
+                // ==================================
+                // ASSISTANT TOOL MESSAGE
+                // ==================================
 
                 messages.push({
 
@@ -3371,6 +3891,10 @@ export class Orchestrator {
 
                 });
 
+
+                // ==================================
+                // EXECUTE TOOLS
+                // ==================================
 
                 const toolResults =
                     await this.executeToolCalls(
@@ -3402,11 +3926,9 @@ export class Orchestrator {
             }
 
 
-            /*
-            ==================================================
-            FINAL RESPONSE VALIDATION
-            ==================================================
-            */
+            // ==================================
+            // FINAL RESPONSE VALIDATION
+            // ==================================
 
             if(
                 !finalResponse ||
@@ -3419,30 +3941,51 @@ export class Orchestrator {
             }
 
 
-            /*
-            ==================================================
-            AGENT POST PROCESSOR
-            ==================================================
-            */
+            // ==================================
+            // POST PROCESSOR
+            // ==================================
 
             if(
                 typeof agent.after ===
                 "function"
             ){
 
-                finalResponse =
-                    agent.after(
-                        finalResponse
+                try{
+
+                    const processed =
+                        await agent.after(
+                            finalResponse
+                        );
+
+
+                    if(
+                        typeof processed ===
+                        "string" &&
+                        processed.trim()
+                    ){
+
+                        finalResponse =
+                            processed;
+
+                    }
+
+                }
+
+                catch(error){
+
+                    console.warn(
+                        "[Agent Post Processor Error]:",
+                        error?.message
                     );
+
+                }
 
             }
 
 
-            /*
-            ==================================================
-            ARTIFACTS
-            ==================================================
-            */
+            // ==================================
+            // ARTIFACTS
+            // ==================================
 
             const extractedArtifacts =
                 artifactengine.extract(
@@ -3456,14 +3999,15 @@ export class Orchestrator {
 
                 ...extractedArtifacts
 
-            ];
+            ].slice(
+                0,
+                MAX_ARTIFACTS
+            );
 
 
-            /*
-            ==================================================
-            RESULT
-            ==================================================
-            */
+            // ==================================
+            // FINAL RESULT
+            // ==================================
 
             const result = {
 
@@ -3489,8 +4033,14 @@ export class Orchestrator {
                     score:
                         selection.score,
 
+                    confidence:
+                        selection.confidence,
+
                     reason:
-                        selection.reason
+                        selection.reason,
+
+                    forced:
+                        selection.forced
 
                 },
 
@@ -3567,7 +4117,10 @@ export class Orchestrator {
                 "online",
 
             engine:
-                "Honey IA Orchestrator V8",
+                "Honey IA Orchestrator Production",
+
+            version:
+                "9.0.0",
 
             agents:
                 Object.keys(
@@ -3594,6 +4147,24 @@ export class Orchestrator {
                 ),
 
             toolCalling:
+                true,
+
+            multiRoundTools:
+                true,
+
+            artifactEngine:
+                true,
+
+            agentRouting:
+                true,
+
+            workspaceIntegration:
+                true,
+
+            userMemory:
+                true,
+
+            liveProcessing:
                 true,
 
             maxToolRounds:
