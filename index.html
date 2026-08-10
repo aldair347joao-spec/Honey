@@ -5,7 +5,10 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>Honey IA Studio</title>
 
@@ -24,7 +27,10 @@
      FONTS
 ====================================================== -->
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+>
 
 <link
     rel="preconnect"
@@ -68,184 +74,6 @@
 >
 
 
-<!-- ======================================================
-     AUTH BOOTSTRAP
-     Carregado antes da aplicação principal.
-====================================================== -->
-
-<script type="module">
-import authmanager from "./auth.js";
-import logincontroller from "./login.js";
-
-
-
-/*
-==========================================================
-HONEY IA AUTH BOOTSTRAP
-==========================================================
-Responsável por decidir o que aparece depois do loader.
-
-Fluxo:
-
-Loader
-   ↓
-Verificar sessão
-   ↓
-Existe sessão?
-   ├── SIM → Studio
-   └── NÃO → Login
-==========================================================
-*/
-
-
-(async function bootstrapHoneyAuth(){
-
-    const loader =
-        document.getElementById("appLoader");
-
-
-    const studio =
-        document.getElementById("studioApp");
-
-
-    /*
-    ------------------------------------------------------
-    ESCONDER STUDIO DURANTE O BOOT
-    ------------------------------------------------------
-    */
-
-    if(studio){
-
-        studio.style.display = "none";
-
-    }
-
-
-    /*
-    ------------------------------------------------------
-    SEGURANÇA CONTRA LOADER INFINITO
-    ------------------------------------------------------
-    */
-
-    let finished = false;
-
-
-    const finishLoader = () => {
-
-        if(finished){
-
-            return;
-
-        }
-
-        finished = true;
-
-
-        if(loader){
-
-            loader.classList.add("is-hidden");
-
-
-            setTimeout(() => {
-
-                loader.remove();
-
-            }, 450);
-
-        }
-
-    };
-
-
-    /*
-    ------------------------------------------------------
-    VERIFICAR AUTENTICAÇÃO
-    ------------------------------------------------------
-    */
-
-    try{
-
-        await authmanager.waitUntilReady();
-
-
-        /*
-        --------------------------------------------------
-        UTILIZADOR AUTENTICADO
-        --------------------------------------------------
-        */
-
-        if(authmanager.isAuthenticated()){
-
-            if(studio){
-
-                studio.style.display = "";
-
-                studio.classList.add("auth-ready");
-
-            }
-
-
-            finishLoader();
-
-
-            return;
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        UTILIZADOR NÃO AUTENTICADO
-        --------------------------------------------------
-        */
-
-        finishLoader();
-
-
-        await logincontroller.init();
-
-
-    }
-
-    catch(error){
-
-        console.error(
-            "HONEY AUTH BOOT ERROR:",
-            error
-        );
-
-
-        /*
-        --------------------------------------------------
-        MESMO COM ERRO, NUNCA DEIXAR O LOADER PRESO
-        --------------------------------------------------
-        */
-
-        finishLoader();
-
-
-        try{
-
-            await logincontroller.init();
-
-        }
-
-        catch(loginError){
-
-            console.error(
-                "LOGIN INITIALIZATION ERROR:",
-                loginError
-            );
-
-        }
-
-    }
-
-
-})();
-
-</script>
-
 </head>
 
 
@@ -269,9 +97,7 @@ Existe sessão?
         <span>🐝</span>
 
         <h2>
-
             Honey IA
-
         </h2>
 
     </div>
@@ -281,6 +107,7 @@ Existe sessão?
 
 
 </div>
+
 
 
 <!-- ======================================================
@@ -304,6 +131,7 @@ Existe sessão?
 ></div>
 
 
+
 <!-- ======================================================
      SIDEBAR
 ====================================================== -->
@@ -321,29 +149,21 @@ Existe sessão?
 
 
             <div class="logo-mark">
-
                 🐝
-
             </div>
 
 
             <div>
 
                 <strong>
-
                     Honey IA
-
                 </strong>
 
-
                 <small>
-
                     Studio
-
                 </small>
 
             </div>
-
 
         </div>
 
@@ -351,6 +171,8 @@ Existe sessão?
         <button
             id="btnCloseSidebar"
             class="mobile-close"
+            type="button"
+            aria-label="Fechar menu"
         >
 
             <i class="fa-solid fa-xmark"></i>
@@ -359,6 +181,7 @@ Existe sessão?
 
 
     </div>
+
 
 
     <nav
@@ -376,9 +199,7 @@ Existe sessão?
             <i class="fa-solid fa-house"></i>
 
             <span>
-
                 Dashboard
-
             </span>
 
         </a>
@@ -393,9 +214,7 @@ Existe sessão?
             <i class="fa-solid fa-robot"></i>
 
             <span>
-
                 Agentes IA
-
             </span>
 
         </a>
@@ -410,9 +229,7 @@ Existe sessão?
             <i class="fa-solid fa-folder-open"></i>
 
             <span>
-
                 Projetos
-
             </span>
 
         </a>
@@ -427,9 +244,7 @@ Existe sessão?
             <i class="fa-solid fa-clock-rotate-left"></i>
 
             <span>
-
                 Histórico
-
             </span>
 
         </a>
@@ -444,9 +259,7 @@ Existe sessão?
             <i class="fa-solid fa-crown"></i>
 
             <span>
-
                 Planos
-
             </span>
 
         </a>
@@ -461,15 +274,14 @@ Existe sessão?
             <i class="fa-solid fa-file-contract"></i>
 
             <span>
-
                 Termos de Uso
-
             </span>
 
         </a>
 
 
     </nav>
+
 
 
     <div class="sidebar-bottom">
@@ -481,29 +293,21 @@ Existe sessão?
         >
 
             <div class="avatar">
-
                 U
-
             </div>
 
 
             <div>
 
                 <strong>
-
                     Utilizador
-
                 </strong>
 
-
                 <small>
-
                     Plano Gratuito
-
                 </small>
 
             </div>
-
 
         </div>
 
@@ -512,6 +316,7 @@ Existe sessão?
 
 
 </aside>
+
 
 
 <!-- ======================================================
@@ -531,6 +336,8 @@ Existe sessão?
     <button
         id="btnMobileMenu"
         class="mobile-menu"
+        type="button"
+        aria-label="Abrir menu"
     >
 
         <i class="fa-solid fa-bars"></i>
@@ -560,6 +367,8 @@ Existe sessão?
         <button
             id="btnNotifications"
             class="icon-button"
+            type="button"
+            aria-label="Notificações"
         >
 
             <i class="fa-solid fa-bell"></i>
@@ -573,16 +382,11 @@ Existe sessão?
         >
 
             <span>
-
                 Plano
-
             </span>
 
-
             <strong>
-
                 Gratuito
-
             </strong>
 
         </div>
@@ -592,6 +396,7 @@ Existe sessão?
 
 
 </header>
+
 
 
 <!-- ======================================================
@@ -614,24 +419,18 @@ Existe sessão?
 
 
                 <span class="hero-tag">
-
                     🐝 Honey IA Studio
-
                 </span>
 
 
                 <h1>
-
                     Transforme ideias em soluções com Inteligência Artificial
-
                 </h1>
 
 
                 <p>
-
                     Crie projetos, analise documentos, desenvolva aplicações,
                     gere conteúdos e trabalhe com agentes especializados.
-
                 </p>
 
 
@@ -641,6 +440,7 @@ Existe sessão?
                     <button
                         id="btnCreateProject"
                         class="primary-button"
+                        type="button"
                     >
 
                         <i class="fa-solid fa-sparkles"></i>
@@ -654,6 +454,7 @@ Existe sessão?
                         id="btnExploreAgents"
                         class="secondary-button"
                         data-target="agents"
+                        type="button"
                     >
 
                         Explorar Agentes
@@ -672,13 +473,9 @@ Existe sessão?
 
                 <div class="ai-orb">
 
-
                     <div class="orb-center">
-
                         🐝
-
                     </div>
-
 
                 </div>
 
@@ -693,6 +490,7 @@ Existe sessão?
 
 
 </section>
+
 
 
 <!-- ======================================================
@@ -712,16 +510,11 @@ Existe sessão?
         <div>
 
             <h2>
-
                 Agentes IA
-
             </h2>
 
-
             <p>
-
                 Especialistas inteligentes para cada área.
-
             </p>
 
         </div>
@@ -745,6 +538,7 @@ Existe sessão?
 </section>
 
 
+
 <!-- ======================================================
      PROJECTS
 ====================================================== -->
@@ -762,18 +556,12 @@ Existe sessão?
         <div>
 
             <h2>
-
                 Projetos
-
             </h2>
 
-
             <p>
-
                 Organize suas criações dentro do Workspace.
-
             </p>
-
 
         </div>
 
@@ -795,16 +583,12 @@ Existe sessão?
 
 
         <h3>
-
             Nenhum projeto criado
-
         </h3>
 
 
         <p>
-
             Comece criando um novo projeto com a Honey IA.
-
         </p>
 
 
@@ -812,6 +596,7 @@ Existe sessão?
 
 
 </section>
+
 
 
 <!-- ======================================================
@@ -827,20 +612,13 @@ Existe sessão?
 
     <div class="section-header">
 
-
         <h2>
-
             Histórico
-
         </h2>
 
-
         <p>
-
             Veja as conversas e trabalhos realizados.
-
         </p>
-
 
     </div>
 
@@ -852,6 +630,7 @@ Existe sessão?
 
 
 </section>
+
 
 
 <!-- ======================================================
@@ -867,20 +646,13 @@ Existe sessão?
 
     <div class="section-header">
 
-
         <h2>
-
             Planos Honey IA
-
         </h2>
 
-
         <p>
-
             Escolha o nível ideal para suas necessidades.
-
         </p>
-
 
     </div>
 
@@ -890,121 +662,114 @@ Existe sessão?
 
         <div class="plan-card">
 
-
             <h3>
-
                 Gratuito
-
             </h3>
 
-
             <h4>
-
                 0 Kz
-
             </h4>
-
 
             <ul>
 
-                <li>Chat IA</li>
+                <li>
+                    Chat IA
+                </li>
 
-                <li>Análise básica</li>
+                <li>
+                    Análise básica
+                </li>
 
-                <li>1 projeto</li>
+                <li>
+                    1 projeto
+                </li>
 
             </ul>
 
-
-            <button class="secondary-button">
-
+            <button
+                class="secondary-button"
+                type="button"
+            >
                 Atual
-
             </button>
 
-
         </div>
+
 
 
         <div class="plan-card featured">
 
-
             <span class="featured-label">
-
                 Popular
-
             </span>
 
-
             <h3>
-
                 Individual
-
             </h3>
 
-
             <h4>
-
                 15.000 Kz/mês
-
             </h4>
-
 
             <ul>
 
-                <li>Agentes avançados</li>
+                <li>
+                    Agentes avançados
+                </li>
 
-                <li>Exportação</li>
+                <li>
+                    Exportação
+                </li>
 
-                <li>Projetos ilimitados</li>
+                <li>
+                    Projetos ilimitados
+                </li>
 
             </ul>
 
-
-            <button class="primary-button">
-
+            <button
+                class="primary-button"
+                type="button"
+            >
                 Escolher Plano
-
             </button>
-
 
         </div>
 
 
+
         <div class="plan-card">
 
-
             <h3>
-
                 Business
-
             </h3>
 
-
             <h4>
-
                 400.000 Kz/mês
-
             </h4>
-
 
             <ul>
 
-                <li>Equipe empresarial</li>
+                <li>
+                    Equipe empresarial
+                </li>
 
-                <li>Agentes personalizados</li>
+                <li>
+                    Agentes personalizados
+                </li>
 
-                <li>Workspace completo</li>
+                <li>
+                    Workspace completo
+                </li>
 
             </ul>
 
-
-            <button class="secondary-button">
-
+            <button
+                class="secondary-button"
+                type="button"
+            >
                 Contactar
-
             </button>
-
 
         </div>
 
@@ -1013,6 +778,7 @@ Existe sessão?
 
 
 </section>
+
 
 
 <!-- ======================================================
@@ -1028,20 +794,13 @@ Existe sessão?
 
     <div class="section-header">
 
-
         <h2>
-
             Termos de Uso
-
         </h2>
 
-
         <p>
-
             Informações sobre utilização da plataforma Honey IA.
-
         </p>
-
 
     </div>
 
@@ -1053,48 +812,36 @@ Existe sessão?
 
 
         <h3>
-
             Utilização responsável
-
         </h3>
 
 
         <p>
-
             A Honey IA é uma plataforma de inteligência artificial criada
             para auxiliar utilizadores, empreendedores e empresas na criação,
             análise e desenvolvimento de soluções digitais.
-
         </p>
 
 
         <h3>
-
             Privacidade
-
         </h3>
 
 
         <p>
-
             Os dados enviados para processamento devem respeitar as normas
             de segurança e privacidade aplicáveis.
-
         </p>
 
 
         <h3>
-
             Responsabilidade
-
         </h3>
 
 
         <p>
-
             As respostas geradas pela inteligência artificial devem ser revistas
             antes de serem utilizadas em decisões importantes.
-
         </p>
 
 
@@ -1102,6 +849,7 @@ Existe sessão?
 
 
 </section>
+
 
 
 <!-- ======================================================
@@ -1130,16 +878,11 @@ Existe sessão?
                 <div>
 
                     <h2>
-
                         Honey IA
-
                     </h2>
 
-
                     <span>
-
                         Assistente inteligente
-
                     </span>
 
                 </div>
@@ -1151,6 +894,7 @@ Existe sessão?
                     <button
                         id="btnChatMode"
                         class="mode-button active"
+                        type="button"
                     >
 
                         <i class="fa-solid fa-comment"></i>
@@ -1163,6 +907,7 @@ Existe sessão?
                     <button
                         id="btnLiveMode"
                         class="mode-button"
+                        type="button"
                     >
 
                         <i class="fa-solid fa-microphone"></i>
@@ -1188,23 +933,17 @@ Existe sessão?
 
 
                     <div class="welcome-icon">
-
                         🐝
-
                     </div>
 
 
                     <h3>
-
                         Olá, sou a Honey IA
-
                     </h3>
 
 
                     <p>
-
                         Como posso ajudar hoje?
-
                     </p>
 
 
@@ -1227,6 +966,8 @@ Existe sessão?
 
                 <button
                     id="btn-remove-attachment"
+                    type="button"
+                    aria-label="Remover ficheiro"
                 >
 
                     <i class="fa-solid fa-xmark"></i>
@@ -1243,6 +984,8 @@ Existe sessão?
                 <button
                     id="btnAttach"
                     class="input-action"
+                    type="button"
+                    aria-label="Anexar ficheiro"
                 >
 
                     <i class="fa-solid fa-paperclip"></i>
@@ -1267,6 +1010,8 @@ Existe sessão?
                 <button
                     id="btnVoice"
                     class="input-action"
+                    type="button"
+                    aria-label="Entrada de voz"
                 >
 
                     <i class="fa-solid fa-microphone"></i>
@@ -1277,6 +1022,8 @@ Existe sessão?
                 <button
                     id="btnSend"
                     class="send-button"
+                    type="button"
+                    aria-label="Enviar mensagem"
                 >
 
                     <i class="fa-solid fa-paper-plane"></i>
@@ -1298,16 +1045,15 @@ Existe sessão?
 
             <div class="preview-header">
 
-
                 <h3>
-
                     Preview
-
                 </h3>
 
 
                 <button
                     id="btn-close-preview"
+                    type="button"
+                    aria-label="Fechar preview"
                 >
 
                     <i class="fa-solid fa-xmark"></i>
@@ -1333,6 +1079,7 @@ Existe sessão?
 </section>
 
 
+
 <!-- ======================================================
      GLOBAL TOASTS
 ====================================================== -->
@@ -1349,6 +1096,7 @@ Existe sessão?
 </div>
 
 
+
 <!-- ======================================================
      JAVASCRIPT LIBRARIES
 ====================================================== -->
@@ -1361,6 +1109,7 @@ Existe sessão?
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
 ></script>
+
 
 
 <!-- ======================================================
