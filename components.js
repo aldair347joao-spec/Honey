@@ -1,580 +1,819 @@
 /*
 ==========================================
 HONEY IA
-COMPONENTS MODULE V2.0
+COMPONENTS MODULE V3.0
 Dynamic Agent Studio UI
+Compatible with Honey IA Core V10
 ==========================================
 */
 
+
 import agents from "./agents.js";
+
 import agentstudio from "./agentstudio.js";
 
+
+
+/*
+==========================================================
+COMPONENTS
+==========================================================
+*/
 
 
 export const Components = {
 
 
 
-/*
-==========================================
-WORKSPACES
-==========================================
-*/
+    /*
+    ======================================================
+    WORKSPACES
+    ======================================================
+    */
 
 
-renderWorkspaces(container){
+    renderWorkspaces(container){
 
 
-container.innerHTML = `
+        if(!container)
 
-<div class="panel-page">
+        return;
 
-<h2>📂 Workspaces Ativos</h2>
 
-<p class="muted">
-Ambientes isolados com memória e contexto próprio.
-</p>
 
+        container.innerHTML = `
 
-<div class="cards-grid">
+            <div class="panel-page">
 
+                <h2>📂 Workspaces Ativos</h2>
 
-<div class="honey-card">
+                <p class="muted">
+                    Ambientes isolados com memória e contexto próprio.
+                </p>
 
-<h3>📌 Geral & Desenvolvimento</h3>
+                <div class="cards-grid">
 
-<p>
-Ambiente principal da Honey IA.
-</p>
+                    <div class="honey-card">
 
-<span class="status-online">
-● Ativo
-</span>
+                        <h3>📌 Geral & Desenvolvimento</h3>
 
-</div>
+                        <p>
+                            Ambiente principal da Honey IA.
+                        </p>
 
+                        <span class="status-online">
+                            ● Ativo
+                        </span>
 
+                    </div>
 
 
-<div class="honey-card">
+                    <div class="honey-card">
 
-<h3>📊 Financeiro</h3>
+                        <h3>📊 Financeiro</h3>
 
-<p>
-Análise de dados, Excel e documentos.
-</p>
+                        <p>
+                            Análise de dados, Excel e documentos.
+                        </p>
 
-<span>
-5 conversas
-</span>
+                        <span>
+                            5 conversas
+                        </span>
 
-</div>
+                    </div>
 
 
+                    <div class="honey-card">
 
-<div class="honey-card">
+                        <h3>🎨 Design Studio</h3>
 
-<h3>🎨 Design Studio</h3>
+                        <p>
+                            UI, UX e criação visual.
+                        </p>
 
-<p>
-UI, UX e criação visual.
-</p>
+                        <span>
+                            Preview Live
+                        </span>
 
-<span>
-Preview Live
-</span>
+                    </div>
 
-</div>
+                </div>
 
+            </div>
 
-</div>
+        `;
 
-</div>
+    },
 
-`;
 
-},
 
+    /*
+    ======================================================
+    MEMÓRIA
+    ======================================================
+    */
 
 
+    renderMemories(container){
 
 
+        if(!container)
 
+        return;
 
-/*
-==========================================
-MEMÓRIA
-==========================================
-*/
 
 
-renderMemories(container){
+        container.innerHTML = `
 
+            <div class="panel-page">
 
+                <h2>🧠 Memória Inteligente</h2>
 
-container.innerHTML = `
+                <p class="muted">
+                    Contextos aprendidos pela Honey IA.
+                </p>
 
-<div class="panel-page">
 
+                <div class="honey-card">
 
-<h2>🧠 Memória Inteligente</h2>
+                    <h3>
+                        Preferências do Sistema
+                    </h3>
 
+                    <p>
+                        Arquitetura modular, ES Modules,
+                        Node.js moderno.
+                    </p>
 
-<p class="muted">
-Contextos aprendidos pela Honey IA.
-</p>
+                </div>
 
 
+                <div class="honey-card">
 
-<div class="honey-card">
+                    <h3>
+                        Contexto do Utilizador
+                    </h3>
 
+                    <p>
+                        Projetos, conversas e preferências guardadas.
+                    </p>
 
-<h3>
-Preferências do Sistema
-</h3>
+                </div>
 
+            </div>
 
-<p>
-Arquitetura modular, ES Modules,
-Node.js moderno.
-</p>
+        `;
 
+    },
 
-</div>
 
 
+    /*
+    ======================================================
+    AGENTES DINÂMICOS
+    ======================================================
+    */
 
-<div class="honey-card">
 
+    renderAgents(container){
 
-<h3>
-Contexto do Utilizador
-</h3>
 
+        if(!container)
 
-<p>
-Projetos, conversas e preferências guardadas.
-</p>
+        return;
 
 
-</div>
 
+        /*
+        --------------------------------------------------
+        O módulo agents pode expor getAll()
+        ou diretamente um array.
+        --------------------------------------------------
+        */
 
-</div>
 
-`;
+        let agentList = [];
 
-},
 
 
+        try{
 
 
+            if(
 
+                agents &&
 
+                typeof agents.getAll ===
 
+                "function"
 
+            ){
 
-/*
-==========================================
-AGENTES DINÂMICOS
-==========================================
-*/
 
+                agentList =
 
-renderAgents(container){
+                    agents.getAll() || [];
 
 
+            }
 
-const agents =
-Agents.getAll();
+            else if(
 
+                Array.isArray(
 
+                    agents
 
+                )
 
+            ){
 
 
-container.innerHTML = `
+                agentList =
 
+                    agents;
 
-<div class="panel-page">
 
+            }
 
-<h2>🤖 Honey Agent Studio</h2>
 
+        }
 
-<p class="muted">
-Escolha um especialista para trabalhar.
-</p>
+        catch(error){
 
 
+            console.error(
 
+                "Components agents error:",
 
-<div class="agents-grid">
+                error
 
+            );
 
-${agents.map(agent=>`
 
+            agentList = [];
 
 
-<div class="agent-card">
+        }
 
 
-<div class="agent-header">
 
+        /*
+        --------------------------------------------------
+        RENDER
+        --------------------------------------------------
+        */
 
-<div class="agent-avatar">
 
-${agent.emoji || "🐝"}
+        container.innerHTML = `
 
-</div>
+            <div class="panel-page">
 
+                <h2>🤖 Honey Agent Studio</h2>
 
+                <p class="muted">
+                    Escolha um especialista para trabalhar.
+                </p>
 
-<div>
 
+                <div class="agents-grid">
 
-<h3>
+                    ${
+                        agentList.length
 
-${agent.name}
+                        ?
 
-</h3>
+                        agentList.map(
 
+                            agent => `
 
-<span class="status-online">
+                                <div
+                                    class="agent-card"
+                                    data-agent-id="${this.escapeHTML(
+                                        agent.id
+                                    )}"
+                                >
 
-● Online
+                                    <div class="agent-header">
 
-</span>
+                                        <div class="agent-avatar">
 
+                                            ${
+                                                agent.emoji ||
+                                                "🐝"
+                                            }
 
-</div>
+                                        </div>
 
 
-</div>
+                                        <div>
 
+                                            <h3>
 
+                                                ${
+                                                    this.escapeHTML(
+                                                        agent.name ||
+                                                        "Agente Honey IA"
+                                                    )
+                                                }
 
+                                            </h3>
 
-<p>
 
-${agent.description}
+                                            <span class="status-online">
 
-</p>
+                                                ● Online
 
+                                            </span>
 
+                                        </div>
 
+                                    </div>
 
 
-<button
+                                    <p>
 
-class="activate-agent-btn"
+                                        ${
+                                            this.escapeHTML(
+                                                agent.description ||
+                                                "Agente inteligente Honey IA."
+                                            )
+                                        }
 
-data-agent="${agent.id}"
+                                    </p>
 
->
 
-Ativar Agente
+                                    <button
 
-</button>
+                                        type="button"
 
+                                        class="activate-agent-btn"
 
+                                        data-agent="${this.escapeHTML(
+                                            agent.id
+                                        )}"
 
-</div>
+                                    >
 
+                                        Ativar Agente
 
+                                    </button>
 
-`).join("")}
+                                </div>
 
+                            `
 
+                        ).join("")
 
-</div>
+                        :
 
+                        `
 
-</div>
+                            <div class="empty-state">
 
+                                <div class="empty-icon">
 
-`;
+                                    🤖
 
+                                </div>
 
+                                <h3>
 
+                                    Nenhum agente disponível
 
+                                </h3>
 
+                                <p>
 
-container
-.querySelectorAll(".activate-agent-btn")
-.forEach(button=>{
+                                    Os agentes Honey IA serão carregados
+                                    quando o módulo estiver disponível.
 
+                                </p>
 
+                            </div>
 
-button.addEventListener(
-"click",
-async()=>{
+                        `
 
+                    }
 
-const id =
-button.dataset.agent;
+                </div>
 
+            </div>
 
+        `;
 
 
-const agent =
-agentstudio.setAgent(id);
 
+        /*
+        --------------------------------------------------
+        EVENTOS DOS AGENTES
+        --------------------------------------------------
+        */
 
 
+        container
 
-if(agent){
+            .querySelectorAll(
 
+                ".activate-agent-btn"
 
-button.innerText =
-"✓ Ativo";
+            )
 
+            .forEach(
 
-document.dispatchEvent(
+                button => {
 
-new CustomEvent(
-"agent-changed",
-{
 
-detail:agent
+                    button.addEventListener(
 
-}
+                        "click",
 
-)
+                        () => {
 
-);
 
+                            const id =
 
+                                button.dataset.agent;
 
-}
 
 
+                            if(!id)
 
-}
+                            return;
 
-);
 
 
+                            try{
 
-});
 
+                                const selectedAgent =
 
+                                    agentstudio &&
 
+                                    typeof agentstudio.setAgent ===
 
-},
+                                    "function"
 
+                                    ?
 
+                                    agentstudio.setAgent(
 
+                                        id
 
+                                    )
 
+                                    :
 
+                                    null;
 
 
 
-/*
-==========================================
-TOOLS
-==========================================
-*/
+                                if(selectedAgent){
 
 
-renderTools(container){
+                                    button.innerText =
 
+                                        "✓ Ativo";
 
 
-container.innerHTML=`
 
+                                    container
 
-<div class="panel-page">
+                                        .querySelectorAll(
 
+                                            ".activate-agent-btn"
 
-<h2>
-🧩 Ferramentas
-</h2>
+                                        )
 
+                                        .forEach(
 
+                                            otherButton => {
 
-<div class="cards-grid">
 
+                                                if(
 
-<div class="honey-card">
+                                                    otherButton !==
 
+                                                    button
 
-<h3>
-🌐 Web
-</h3>
+                                                ){
 
 
-<p>
-Pesquisa e análise.
-</p>
+                                                    otherButton.innerText =
 
+                                                        "Ativar Agente";
 
-</div>
 
+                                                }
 
 
-<div class="honey-card">
+                                            }
 
+                                        );
 
-<h3>
-💻 Code
-</h3>
 
 
-<p>
-Programação e automação.
-</p>
+                                    document.dispatchEvent(
 
+                                        new CustomEvent(
 
-</div>
+                                            "agent-selected",
 
+                                            {
 
-</div>
+                                                detail:
 
+                                                    selectedAgent
 
-</div>
+                                            }
 
+                                        )
 
-`;
+                                    );
 
 
+                                }
 
-},
 
+                            }
 
+                            catch(error){
 
 
+                                console.error(
 
+                                    "Agent activation error:",
 
+                                    error
 
+                                );
 
 
-/*
-==========================================
-ANALYTICS
-==========================================
-*/
+                            }
 
 
-renderAnalytics(container){
+                        }
 
+                    );
 
 
-container.innerHTML=`
+                }
 
+            );
 
-<div class="panel-page">
 
+    },
 
-<h2>
-📊 Analytics
-</h2>
 
 
-<div class="cards-grid">
+    /*
+    ======================================================
+    TOOLS
+    ======================================================
+    */
 
 
-<div class="honey-card">
+    renderTools(container){
 
 
-<h3>
-420ms
-</h3>
+        if(!container)
 
+        return;
 
-<p>
-Tempo médio resposta
-</p>
 
 
-</div>
+        container.innerHTML = `
 
+            <div class="panel-page">
 
+                <h2>
+                    🧩 Ferramentas
+                </h2>
 
-<div class="honey-card">
 
+                <div class="cards-grid">
 
-<h3>
-99.8%
-</h3>
+                    <div class="honey-card">
 
+                        <h3>
+                            🌐 Web
+                        </h3>
 
-<p>
-Sucesso API
-</p>
+                        <p>
+                            Pesquisa e análise.
+                        </p>
 
+                    </div>
 
-</div>
 
+                    <div class="honey-card">
 
-</div>
+                        <h3>
+                            💻 Code
+                        </h3>
 
+                        <p>
+                            Programação e automação.
+                        </p>
 
-</div>
+                    </div>
 
+                </div>
 
-`;
+            </div>
 
+        `;
 
+    },
 
-},
 
 
+    /*
+    ======================================================
+    ANALYTICS
+    ======================================================
+    */
 
 
+    renderAnalytics(container){
 
 
+        if(!container)
 
+        return;
 
 
-/*
-==========================================
-SISTEMA
-==========================================
-*/
 
+        container.innerHTML = `
 
-renderSystem(container){
+            <div class="panel-page">
 
+                <h2>
+                    📊 Analytics
+                </h2>
 
 
-container.innerHTML=`
+                <div class="cards-grid">
 
+                    <div class="honey-card">
 
-<div class="panel-page">
+                        <h3>
+                            420ms
+                        </h3>
 
+                        <p>
+                            Tempo médio resposta
+                        </p>
 
-<h2>
-⚙ Sistema
-</h2>
+                    </div>
 
 
-<div class="honey-card">
+                    <div class="honey-card">
 
+                        <h3>
+                            99.8%
+                        </h3>
 
-<p>
-Honey IA OS V6
-</p>
+                        <p>
+                            Sucesso API
+                        </p>
 
+                    </div>
 
-<p>
-Sistema operacional de agentes inteligentes.
-</p>
+                </div>
 
+            </div>
 
-</div>
+        `;
 
+    },
 
-</div>
 
 
-`;
+    /*
+    ======================================================
+    SISTEMA
+    ======================================================
+    */
 
 
+    renderSystem(container){
 
-}
 
+        if(!container)
 
+        return;
+
+
+
+        container.innerHTML = `
+
+            <div class="panel-page">
+
+                <h2>
+                    ⚙ Sistema
+                </h2>
+
+
+                <div class="honey-card">
+
+                    <p>
+                        Honey IA OS V10
+                    </p>
+
+                    <p>
+                        Sistema operacional de agentes inteligentes.
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
+
+    },
+
+
+
+    /*
+    ======================================================
+    ESCAPE HTML
+    ======================================================
+    */
+
+
+    escapeHTML(value){
+
+
+        return String(
+
+            value ?? ""
+
+        )
+
+        .replace(
+
+            /&/g,
+
+            "&amp;"
+
+        )
+
+        .replace(
+
+            /</g,
+
+            "&lt;"
+
+        )
+
+        .replace(
+
+            />/g,
+
+            "&gt;"
+
+        )
+
+        .replace(
+
+            /"/g,
+
+            "&quot;"
+
+        )
+
+        .replace(
+
+            /'/g,
+
+            "&#039;"
+
+        );
+
+    }
 
 };
+
+
+
+/*
+==========================================================
+BACKWARD COMPATIBILITY
+==========================================================
+*/
+
+
+export const components =
+
+    Components;
+
+
+
+/*
+==========================================================
+DEFAULT EXPORT
+==========================================================
+*/
+
+
+export default Components;
