@@ -6,10 +6,12 @@ Conversation + Message Storage
 V5.0
 MongoDB Persistent Chat System
 Enterprise Conversation Layer
-Production Ready
+Production Architecture
 ==========================================
 */
 
+
+import mongoose from "mongoose";
 
 import {
 
@@ -18,8 +20,6 @@ import {
     Message
 
 } from "./models.js";
-
-import mongoose from "mongoose";
 
 
 
@@ -50,9 +50,9 @@ const DEFAULT_LIMIT =
     20;
 
 
-const MAX_LIMIT =
+const MAX_CONVERSATION_TITLE_LENGTH =
 
-    100;
+    200;
 
 
 const MAX_CONTENT_LENGTH =
@@ -60,9 +60,19 @@ const MAX_CONTENT_LENGTH =
     50000;
 
 
-const MAX_TITLE_LENGTH =
+const MAX_AGENT_ID_LENGTH =
 
-    200;
+    150;
+
+
+const MAX_WORKSPACE_LENGTH =
+
+    100;
+
+
+const MAX_PROJECT_ID_LENGTH =
+
+    100;
 
 
 
@@ -100,7 +110,7 @@ function normalizeAgentId(
 
             0,
 
-            150
+            MAX_AGENT_ID_LENGTH
 
         );
 
@@ -135,7 +145,7 @@ function normalizeWorkspace(
 
             0,
 
-            100
+            MAX_WORKSPACE_LENGTH
 
         );
 
@@ -178,7 +188,7 @@ function normalizeTitle(
 
             0,
 
-            MAX_TITLE_LENGTH
+            MAX_CONVERSATION_TITLE_LENGTH
 
         );
 
@@ -188,17 +198,15 @@ function normalizeTitle(
 
 function normalizeLimit(
 
-    limit
+    limit,
+
+    fallback = DEFAULT_LIMIT
 
 ){
 
     const value =
 
-        Number(
-
-            limit
-
-        );
+        Number(limit);
 
 
     if(
@@ -209,7 +217,7 @@ function normalizeLimit(
 
     ){
 
-        return DEFAULT_LIMIT;
+        return fallback;
 
     }
 
@@ -218,7 +226,7 @@ function normalizeLimit(
 
         Math.floor(value),
 
-        MAX_LIMIT
+        100
 
     );
 
@@ -278,25 +286,38 @@ function normalizeConversationId(
     }
 
 
-    const value =
+    if(
 
-        String(
+        conversationId instanceof
 
-            conversationId
+        mongoose.Types.ObjectId
 
-        )
+    ){
 
-            .trim();
+        return conversationId;
+
+    }
 
 
-    if(!value){
+    if(
+
+        typeof conversationId !== "string"
+
+    ){
 
         return null;
 
     }
 
 
+    const value =
+
+        conversationId.trim();
+
+
     if(
+
+        !value ||
 
         !mongoose.Types.ObjectId.isValid(
 
@@ -311,7 +332,150 @@ function normalizeConversationId(
     }
 
 
-    return value;
+    return new mongoose.Types.ObjectId(
+
+        value
+
+    );
+
+}
+
+
+
+function normalizeUserId(
+
+    userId
+
+){
+
+    if(
+
+        userId instanceof
+
+        mongoose.Types.ObjectId
+
+    ){
+
+        return userId;
+
+    }
+
+
+    if(
+
+        typeof userId !== "string"
+
+    ){
+
+        return null;
+
+    }
+
+
+    const value =
+
+        userId.trim();
+
+
+    if(
+
+        !value ||
+
+        !mongoose.Types.ObjectId.isValid(
+
+            value
+
+        )
+
+    ){
+
+        return null;
+
+    }
+
+
+    return new mongoose.Types.ObjectId(
+
+        value
+
+    );
+
+}
+
+
+
+function normalizeProjectId(
+
+    projectId
+
+){
+
+    if(
+
+        projectId === null ||
+
+        projectId === undefined ||
+
+        projectId === ""
+
+    ){
+
+        return null;
+
+    }
+
+
+    if(
+
+        projectId instanceof
+
+        mongoose.Types.ObjectId
+
+    ){
+
+        return projectId;
+
+    }
+
+
+    if(
+
+        typeof projectId !== "string"
+
+    ){
+
+        return null;
+
+    }
+
+
+    const value =
+
+        projectId.trim();
+
+
+    if(
+
+        !value ||
+
+        !mongoose.Types.ObjectId.isValid(
+
+            value
+
+        )
+
+    ){
+
+        return null;
+
+    }
+
+
+    return new mongoose.Types.ObjectId(
+
+        value
+
+    );
 
 }
 
@@ -323,6 +487,19 @@ function normalizeRole(
 
 ){
 
+    const normalized =
+
+        typeof role === "string"
+
+            ? role
+
+                .trim()
+
+                .toLowerCase()
+
+            : "";
+
+
     if(
 
         [
@@ -331,17 +508,19 @@ function normalizeRole(
 
             "assistant",
 
-            "system"
+            "system",
+
+            "tool"
 
         ].includes(
 
-            role
+            normalized
 
         )
 
     ){
 
-        return role;
+        return normalized;
 
     }
 
@@ -352,44 +531,15 @@ function normalizeRole(
 
 
 
-function isValidUserId(
+function normalizeToolCallId(
 
-    userId
-
-){
-
-    return Boolean(
-
-        userId
-
-    );
-
-}
-
-
-
-function buildConversationQuery(
-
-    userId,
-
-    conversationId
+    toolCallId
 
 ){
-
-    const normalizedId =
-
-        normalizeConversationId(
-
-            conversationId
-
-        );
-
 
     if(
 
-        !isValidUserId(userId) ||
-
-        !normalizedId
+        typeof toolCallId !== "string"
 
     ){
 
@@ -398,15 +548,86 @@ function buildConversationQuery(
     }
 
 
-    return {
+    const value =
 
-        _id:
+        toolCallId.trim();
 
-            normalizedId,
 
-        userId
+    return value
 
-    };
+        ? value.slice(
+
+            0,
+
+            300
+
+        )
+
+        : null;
+
+}
+
+
+
+function createConversationTitle(
+
+    content
+
+){
+
+    const normalized =
+
+        normalizeContent(
+
+            content
+
+        );
+
+
+    if(!normalized){
+
+        return DEFAULT_TITLE;
+
+    }
+
+
+    return normalized
+
+        .replace(
+
+            /\s+/g,
+
+            " "
+
+        )
+
+        .slice(
+
+            0,
+
+            80
+
+        );
+
+}
+
+
+
+function isConversationIdValid(
+
+    conversationId
+
+){
+
+    return Boolean(
+
+        normalizeConversationId(
+
+            conversationId
+
+        )
+
+    );
 
 }
 
@@ -427,85 +648,77 @@ export async function createConversation(
 
 ){
 
-    if(
+    const normalizedUserId =
 
-        !isValidUserId(
+        normalizeUserId(
 
             userId
 
-        )
+        );
 
-    ){
+
+    if(!normalizedUserId){
 
         throw new Error(
 
-            "userId é obrigatório."
+            "userId inválido ou ausente."
 
         );
 
     }
 
 
-    try{
+    const conversation =
 
-        const conversation =
+        new Conversation({
 
-            new Conversation({
+            userId:
 
-                userId,
+                normalizedUserId,
 
-                title:
+            title:
 
-                    normalizeTitle(
+                normalizeTitle(
 
-                        options.title
+                    options.title
 
-                    ),
+                ),
 
-                agentId:
+            agentId:
 
-                    normalizeAgentId(
+                normalizeAgentId(
 
-                        options.agentId
+                    options.agentId
 
-                    ),
+                ),
 
-                workspace:
+            workspace:
 
-                    normalizeWorkspace(
+                normalizeWorkspace(
 
-                        options.workspace
+                    options.workspace
 
-                    ),
+                ),
 
-                archived:
+            projectId:
 
-                    false
+                normalizeProjectId(
 
-            });
+                    options.projectId
 
+                ),
 
-        await conversation.save();
+            archived:
 
+                false
 
-        return conversation;
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            "[CHAT CREATE ERROR]",
-
-            error
-
-        );
+        });
 
 
-        throw error;
+    await conversation.save();
 
-    }
+
+    return conversation;
 
 }
 
@@ -526,48 +739,48 @@ export async function getConversation(
 
 ){
 
-    const query =
+    const normalizedUserId =
 
-        buildConversationQuery(
+        normalizeUserId(
 
-            userId,
+            userId
+
+        );
+
+
+    const normalizedConversationId =
+
+        normalizeConversationId(
 
             conversationId
 
         );
 
 
-    if(!query){
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
 
         return null;
 
     }
 
 
-    try{
+    return Conversation.findOne({
 
-        return await Conversation.findOne(
+        _id:
 
-            query
+            normalizedConversationId,
 
-        );
+        userId:
 
-    }
+            normalizedUserId
 
-    catch(error){
-
-        console.error(
-
-            "[CHAT GET CONVERSATION ERROR]",
-
-            error
-
-        );
-
-
-        throw error;
-
-    }
+    });
 
 }
 
@@ -590,137 +803,100 @@ export async function getOrCreateConversation(
 
 ){
 
-    if(
+    const normalizedUserId =
 
-        !isValidUserId(
+        normalizeUserId(
 
             userId
 
-        )
+        );
 
-    ){
+
+    if(!normalizedUserId){
 
         return null;
 
     }
 
 
-    try{
+    const normalizedConversationId =
 
-        const normalizedConversationId =
+        normalizeConversationId(
 
-            normalizeConversationId(
+            conversationId
 
-                conversationId
+        );
+
+
+    /*
+    --------------------------------------------------
+    EXISTING CONVERSATION
+    --------------------------------------------------
+    */
+
+
+    if(normalizedConversationId){
+
+        const existing =
+
+            await getConversation(
+
+                normalizedUserId,
+
+                normalizedConversationId
 
             );
 
 
-        /*
-        --------------------------------------------------
-        EXISTING CONVERSATION
-        --------------------------------------------------
-        */
+        if(existing){
 
-
-        if(
-
-            normalizedConversationId
-
-        ){
-
-            const existing =
-
-                await getConversation(
-
-                    userId,
-
-                    normalizedConversationId
-
-                );
-
-
-            if(existing){
-
-                return existing;
-
-            }
-
-
-            /*
-            ------------------------------------------------
-            ID FOI FORNECIDO MAS NÃO EXISTE
-            ------------------------------------------------
-
-            Não criamos silenciosamente uma nova conversa
-            quando o cliente forneceu um ID válido.
-
-            Isto evita que uma conversa perdida seja
-            acidentalmente transformada numa nova conversa.
-            ------------------------------------------------
-            */
-
-
-            return null;
+            return existing;
 
         }
 
-
-        /*
-        --------------------------------------------------
-        CREATE NEW
-        --------------------------------------------------
-        */
-
-
-        return await createConversation(
-
-            userId,
-
-            {
-
-                title:
-
-                    options.title ||
-
-                    DEFAULT_TITLE,
-
-
-
-                agentId:
-
-                    options.agentId ||
-
-                    DEFAULT_AGENT,
-
-
-
-                workspace:
-
-                    options.workspace ||
-
-                    DEFAULT_WORKSPACE
-
-            }
-
-        );
-
     }
 
-    catch(error){
 
-        console.error(
-
-            "[CHAT GET/CREATE ERROR]",
-
-            error
-
-        );
+    /*
+    --------------------------------------------------
+    CREATE NEW CONVERSATION
+    --------------------------------------------------
+    */
 
 
-        throw error;
+    return createConversation(
 
-    }
+        normalizedUserId,
+
+        {
+
+            title:
+
+                options.title ||
+
+                DEFAULT_TITLE,
+
+            agentId:
+
+                options.agentId ||
+
+                DEFAULT_AGENT,
+
+            workspace:
+
+                options.workspace ||
+
+                DEFAULT_WORKSPACE,
+
+            projectId:
+
+                options.projectId ||
+
+                null
+
+        }
+
+    );
 
 }
 
@@ -741,123 +917,163 @@ export async function getConversations(
 
 ){
 
-    if(
+    const normalizedUserId =
 
-        !isValidUserId(
+        normalizeUserId(
 
             userId
 
-        )
+        );
 
-    ){
+
+    if(!normalizedUserId){
 
         return [];
 
     }
 
 
-    try{
+    const query = {
 
-        const query = {
+        userId:
 
-            userId
+            normalizedUserId
 
-        };
-
-
-        /*
-        --------------------------------------------------
-        ARCHIVED FILTER
-        --------------------------------------------------
-        */
+    };
 
 
-        if(
-
-            options.includeArchived !== true
-
-        ){
-
-            query.archived = false;
-
-        }
+    /*
+    --------------------------------------------------
+    ARCHIVED FILTER
+    --------------------------------------------------
+    */
 
 
-        /*
-        --------------------------------------------------
-        AGENT FILTER
-        --------------------------------------------------
-        */
+    if(
+
+        options.includeArchived !== true
+
+    ){
+
+        query.archived =
+
+            false;
+
+    }
 
 
-        if(
-
-            typeof options.agentId === "string" &&
-
-            options.agentId.trim()
-
-        ){
-
-            query.agentId =
-
-                normalizeAgentId(
-
-                    options.agentId
-
-                );
-
-        }
+    /*
+    --------------------------------------------------
+    AGENT FILTER
+    --------------------------------------------------
+    */
 
 
-        /*
-        --------------------------------------------------
-        QUERY
-        --------------------------------------------------
-        */
+    if(
 
+        typeof options.agentId === "string" &&
 
-        return await Conversation
+        options.agentId.trim()
 
-            .find(
+    ){
 
-                query
+        query.agentId =
 
-            )
+            normalizeAgentId(
 
-            .sort({
-
-                updatedAt:
-
-                    -1
-
-            })
-
-            .limit(
-
-                normalizeLimit(
-
-                    options.limit || 50
-
-                )
+                options.agentId
 
             );
 
     }
 
-    catch(error){
 
-        console.error(
-
-            "[CHAT LIST ERROR]",
-
-            error
-
-        );
+    /*
+    --------------------------------------------------
+    WORKSPACE FILTER
+    --------------------------------------------------
+    */
 
 
-        throw error;
+    if(
+
+        typeof options.workspace === "string" &&
+
+        options.workspace.trim()
+
+    ){
+
+        query.workspace =
+
+            normalizeWorkspace(
+
+                options.workspace
+
+            );
 
     }
+
+
+    /*
+    --------------------------------------------------
+    PROJECT FILTER
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        options.projectId !== undefined &&
+
+        options.projectId !== null &&
+
+        options.projectId !== ""
+
+    ){
+
+        const projectId =
+
+            normalizeProjectId(
+
+                options.projectId
+
+            );
+
+
+        if(projectId){
+
+            query.projectId =
+
+                projectId;
+
+        }
+
+    }
+
+
+    return Conversation
+
+        .find(query)
+
+        .sort({
+
+            updatedAt:
+
+                -1
+
+        })
+
+        .limit(
+
+            normalizeLimit(
+
+                options.limit,
+
+                50
+
+            )
+
+        );
 
 }
 
@@ -880,210 +1096,233 @@ export async function updateConversation(
 
 ){
 
-    const query =
+    const normalizedUserId =
 
-        buildConversationQuery(
+        normalizeUserId(
 
-            userId,
+            userId
+
+        );
+
+
+    const normalizedConversationId =
+
+        normalizeConversationId(
 
             conversationId
 
         );
 
 
-    if(!query){
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
 
         return null;
 
     }
 
 
-    try{
-
-        const allowedUpdates = {};
+    const allowedUpdates = {};
 
 
-        /*
-        --------------------------------------------------
-        TITLE
-        --------------------------------------------------
-        */
+
+    /*
+    --------------------------------------------------
+    TITLE
+    --------------------------------------------------
+    */
 
 
-        if(
+    if(
 
-            typeof updates.title === "string"
+        typeof updates.title === "string"
 
-        ){
+    ){
 
-            allowedUpdates.title =
+        allowedUpdates.title =
 
-                normalizeTitle(
+            normalizeTitle(
 
-                    updates.title
-
-                );
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        AGENT
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            typeof updates.agentId === "string"
-
-        ){
-
-            allowedUpdates.agentId =
-
-                normalizeAgentId(
-
-                    updates.agentId
-
-                );
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        WORKSPACE
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            typeof updates.workspace === "string"
-
-        ){
-
-            allowedUpdates.workspace =
-
-                normalizeWorkspace(
-
-                    updates.workspace
-
-                );
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        ARCHIVED
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            typeof updates.archived === "boolean"
-
-        ){
-
-            allowedUpdates.archived =
-
-                updates.archived;
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        NOTHING TO UPDATE
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            !Object.keys(
-
-                allowedUpdates
-
-            ).length
-
-        ){
-
-            return getConversation(
-
-                userId,
-
-                conversationId
+                updates.title
 
             );
 
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    AGENT
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        typeof updates.agentId === "string"
+
+    ){
+
+        allowedUpdates.agentId =
+
+            normalizeAgentId(
+
+                updates.agentId
+
+            );
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    WORKSPACE
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        typeof updates.workspace === "string"
+
+    ){
+
+        allowedUpdates.workspace =
+
+            normalizeWorkspace(
+
+                updates.workspace
+
+            );
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    PROJECT
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        updates.projectId !== undefined
+
+    ){
+
+        allowedUpdates.projectId =
+
+            normalizeProjectId(
+
+                updates.projectId
+
+            );
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    ARCHIVED
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        typeof updates.archived === "boolean"
+
+    ){
+
+        allowedUpdates.archived =
+
+            updates.archived;
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    NOTHING TO UPDATE
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        !Object.keys(
+
+            allowedUpdates
+
+        ).length
+
+    ){
+
+        return getConversation(
+
+            normalizedUserId,
+
+            normalizedConversationId
+
+        );
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    UPDATE
+    --------------------------------------------------
+    */
+
+
+    return Conversation.findOneAndUpdate(
+
+        {
+
+            _id:
+
+                normalizedConversationId,
+
+            userId:
+
+                normalizedUserId
+
+        },
+
+        {
+
+            $set:
+
+                allowedUpdates
+
+        },
+
+        {
+
+            new:
+
+                true,
+
+            runValidators:
+
+                true
+
         }
 
-
-        /*
-        --------------------------------------------------
-        UPDATE TIMESTAMP
-        --------------------------------------------------
-        */
-
-
-        allowedUpdates.updatedAt =
-
-            new Date();
-
-
-        /*
-        --------------------------------------------------
-        DATABASE UPDATE
-        --------------------------------------------------
-        */
-
-
-        return await Conversation.findOneAndUpdate(
-
-            query,
-
-            {
-
-                $set:
-
-                    allowedUpdates
-
-            },
-
-            {
-
-                new:
-
-                    true,
-
-                runValidators:
-
-                    true
-
-            }
-
-        );
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            "[CHAT UPDATE ERROR]",
-
-            error
-
-        );
-
-
-        throw error;
-
-    }
+    );
 
 }
 
@@ -1174,71 +1413,94 @@ export async function deleteConversation(
 
 ){
 
-    const query =
+    const normalizedUserId =
 
-        buildConversationQuery(
+        normalizeUserId(
 
-            userId,
+            userId
+
+        );
+
+
+    const normalizedConversationId =
+
+        normalizeConversationId(
 
             conversationId
 
         );
 
 
-    if(!query){
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
 
         return false;
 
     }
 
 
-    try{
-
-        /*
-        --------------------------------------------------
-        VERIFY OWNERSHIP
-        --------------------------------------------------
-        */
+    /*
+    --------------------------------------------------
+    VERIFY OWNERSHIP
+    --------------------------------------------------
+    */
 
 
-        const conversation =
+    const conversation =
 
-            await Conversation.findOne(
+        await Conversation.findOne({
 
-                query
+            _id:
 
-            );
+                normalizedConversationId,
 
+            userId:
 
-        if(!conversation){
-
-            return false;
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        DELETE MESSAGES
-        --------------------------------------------------
-        */
-
-
-        await Message.deleteMany({
-
-            conversationId:
-
-                conversation._id
+                normalizedUserId
 
         });
 
 
-        /*
-        --------------------------------------------------
-        DELETE CONVERSATION
-        --------------------------------------------------
-        */
+    if(!conversation){
 
+        return false;
+
+    }
+
+
+    /*
+    --------------------------------------------------
+    DELETE MESSAGES
+    --------------------------------------------------
+    */
+
+
+    await Message.deleteMany({
+
+        conversationId:
+
+            conversation._id,
+
+        userId:
+
+            normalizedUserId
+
+    });
+
+
+    /*
+    --------------------------------------------------
+    DELETE CONVERSATION
+    --------------------------------------------------
+    */
+
+
+    const result =
 
         await Conversation.deleteOne({
 
@@ -1246,29 +1508,18 @@ export async function deleteConversation(
 
                 conversation._id,
 
-            userId
+            userId:
+
+                normalizedUserId
 
         });
 
 
-        return true;
+    return (
 
-    }
+        result.deletedCount === 1
 
-    catch(error){
-
-        console.error(
-
-            "[CHAT DELETE ERROR]",
-
-            error
-
-        );
-
-
-        throw error;
-
-    }
+    );
 
 }
 
@@ -1291,49 +1542,48 @@ export async function saveMessage(
 
     content,
 
-    agentId = DEFAULT_AGENT
+    agentId = DEFAULT_AGENT,
+
+    options = {}
 
 ){
 
-    if(
+    const normalizedUserId =
 
-        !isValidUserId(
+        normalizeUserId(
 
             userId
 
-        )
-
-    ){
-
-        throw new Error(
-
-            "userId é obrigatório."
-
         );
 
-    }
 
+    const normalizedConversationId =
 
-    const query =
-
-        buildConversationQuery(
-
-            userId,
+        normalizeConversationId(
 
             conversationId
 
         );
 
 
-    if(!query){
+    if(
 
-        throw new Error(
+        !normalizedUserId ||
 
-            "conversationId inválido."
+        !normalizedConversationId
 
-        );
+    ){
+
+        return null;
 
     }
+
+
+    /*
+    --------------------------------------------------
+    ROLE
+    --------------------------------------------------
+    */
 
 
     const normalizedRole =
@@ -1356,6 +1606,13 @@ export async function saveMessage(
     }
 
 
+    /*
+    --------------------------------------------------
+    CONTENT
+    --------------------------------------------------
+    */
+
+
     const normalizedContent =
 
         normalizeContent(
@@ -1367,200 +1624,223 @@ export async function saveMessage(
 
     if(!normalizedContent){
 
+        return null;
+
+    }
+
+
+    /*
+    --------------------------------------------------
+    VERIFY CONVERSATION OWNERSHIP
+    --------------------------------------------------
+    */
+
+
+    const conversation =
+
+        await Conversation.findOne({
+
+            _id:
+
+                normalizedConversationId,
+
+            userId:
+
+                normalizedUserId
+
+        });
+
+
+    if(!conversation){
+
         throw new Error(
 
-            "O conteúdo da mensagem está vazio."
+            "Conversa não encontrada."
 
         );
 
     }
 
 
-    try{
-
-        /*
-        --------------------------------------------------
-        VERIFY CONVERSATION OWNERSHIP
-        --------------------------------------------------
-        */
+    /*
+    --------------------------------------------------
+    AGENT
+    --------------------------------------------------
+    */
 
 
-        const conversation =
+    const normalizedAgentId =
 
-            await Conversation.findOne(
+        normalizeAgentId(
 
-                query
+            agentId ||
 
-            );
+            conversation.agentId ||
 
+            DEFAULT_AGENT
 
-        if(!conversation){
-
-            throw new Error(
-
-                "Conversa não encontrada."
-
-            );
-
-        }
+        );
 
 
-        /*
-        --------------------------------------------------
-        AGENT
-        --------------------------------------------------
-        */
+    /*
+    --------------------------------------------------
+    OPTIONAL TOOL DATA
+    --------------------------------------------------
+    */
 
 
-        const normalizedAgentId =
+    const toolCallId =
 
-            normalizeAgentId(
+        normalizeToolCallId(
 
-                agentId ||
+            options.toolCallId
 
-                conversation.agentId
-
-            );
+        );
 
 
-        /*
-        --------------------------------------------------
-        CREATE MESSAGE
-        --------------------------------------------------
-        */
+    const toolId =
 
+        options.toolId &&
 
-        const message =
+        mongoose.Types.ObjectId.isValid(
 
-            new Message({
+            options.toolId
 
-                conversationId:
+        )
 
-                    conversation._id,
+            ? new mongoose.Types.ObjectId(
 
-                agentId:
-
-                    normalizedAgentId,
-
-                role:
-
-                    normalizedRole,
-
-                content:
-
-                    normalizedContent
-
-            });
-
-
-        await message.save();
-
-
-        /*
-        --------------------------------------------------
-        UPDATE CONVERSATION
-        --------------------------------------------------
-        */
-
-
-        conversation.updatedAt =
-
-            new Date();
-
-
-        if(
-
-            normalizedAgentId !==
-
-            conversation.agentId
-
-        ){
-
-            conversation.agentId =
-
-                normalizedAgentId;
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        AUTOMATIC TITLE
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            normalizedRole === "user" &&
-
-            (
-
-                !conversation.title ||
-
-                conversation.title ===
-
-                    DEFAULT_TITLE
+                options.toolId
 
             )
 
-        ){
+            : null;
 
-            const generatedTitle =
+
+
+    /*
+    --------------------------------------------------
+    CREATE MESSAGE
+    --------------------------------------------------
+    */
+
+
+    const message =
+
+        new Message({
+
+            conversationId:
+
+                conversation._id,
+
+            userId:
+
+                normalizedUserId,
+
+            agentId:
+
+                normalizedAgentId,
+
+            role:
+
+                normalizedRole,
+
+            content:
+
+                normalizedContent,
+
+            toolCallId,
+
+            toolId
+
+        });
+
+
+    await message.save();
+
+
+
+    /*
+    --------------------------------------------------
+    UPDATE CONVERSATION
+    --------------------------------------------------
+    */
+
+
+    conversation.updatedAt =
+
+        new Date();
+
+
+    if(
+
+        normalizedAgentId !==
+
+        conversation.agentId
+
+    ){
+
+        conversation.agentId =
+
+            normalizedAgentId;
+
+    }
+
+
+
+    /*
+    --------------------------------------------------
+    AUTOMATIC TITLE
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        normalizedRole === "user" &&
+
+        (
+
+            !conversation.title ||
+
+            conversation.title ===
+
+                DEFAULT_TITLE
+
+        )
+
+    ){
+
+        const generatedTitle =
+
+            createConversationTitle(
 
                 normalizedContent
 
-                    .replace(
-
-                        /\s+/g,
-
-                        " "
-
-                    )
-
-                    .trim()
-
-                    .slice(
-
-                        0,
-
-                        80
-
-                    );
+            );
 
 
-            if(generatedTitle){
+        if(
 
-                conversation.title =
+            generatedTitle !==
 
-                    generatedTitle;
+            DEFAULT_TITLE
 
-            }
+        ){
+
+            conversation.title =
+
+                generatedTitle;
 
         }
 
-
-        await conversation.save();
-
-
-        return message;
-
     }
 
-    catch(error){
 
-        console.error(
-
-            "[CHAT SAVE MESSAGE ERROR]",
-
-            error
-
-        );
+    await conversation.save();
 
 
-        throw error;
-
-    }
+    return message;
 
 }
 
@@ -1583,152 +1863,205 @@ export async function getMessages(
 
 ){
 
-    const query =
+    const normalizedUserId =
 
-        buildConversationQuery(
+        normalizeUserId(
 
-            userId,
+            userId
+
+        );
+
+
+    const normalizedConversationId =
+
+        normalizeConversationId(
 
             conversationId
 
         );
 
 
-    if(!query){
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
 
         return [];
 
     }
 
 
-    try{
-
-        /*
-        --------------------------------------------------
-        VERIFY OWNERSHIP
-        --------------------------------------------------
-        */
+    /*
+    --------------------------------------------------
+    VERIFY CONVERSATION OWNERSHIP
+    --------------------------------------------------
+    */
 
 
-        const conversation =
+    const conversation =
 
-            await Conversation.findOne(
+        await Conversation.findOne({
 
-                query
+            _id:
+
+                normalizedConversationId,
+
+            userId:
+
+                normalizedUserId
+
+        });
+
+
+    if(!conversation){
+
+        return [];
+
+    }
+
+
+    /*
+    --------------------------------------------------
+    QUERY
+    --------------------------------------------------
+    */
+
+
+    const query = {
+
+        conversationId:
+
+            conversation._id,
+
+        userId:
+
+            normalizedUserId
+
+    };
+
+
+    /*
+    --------------------------------------------------
+    AGENT FILTER
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        typeof options.agentId === "string" &&
+
+        options.agentId.trim()
+
+    ){
+
+        query.agentId =
+
+            normalizeAgentId(
+
+                options.agentId
+
+            );
+
+    }
+
+
+    /*
+    --------------------------------------------------
+    ROLE FILTER
+    --------------------------------------------------
+    */
+
+
+    if(
+
+        Array.isArray(
+
+            options.roles
+
+        ) &&
+
+        options.roles.length
+
+    ){
+
+        const roles =
+
+            options.roles
+
+                .map(
+
+                    normalizeRole
+
+                )
+
+                .filter(
+
+                    Boolean
+
+                );
+
+
+        if(roles.length){
+
+            query.role = {
+
+                $in:
+
+                    roles
+
+            };
+
+        }
+
+    }
+
+
+    /*
+    --------------------------------------------------
+    FETCH
+    --------------------------------------------------
+    */
+
+
+    const messages =
+
+        await Message
+
+            .find(query)
+
+            .sort({
+
+                createdAt:
+
+                    -1
+
+            })
+
+            .limit(
+
+                normalizeLimit(
+
+                    options.limit,
+
+                    100
+
+                )
 
             );
 
 
-        if(!conversation){
-
-            return [];
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        MESSAGE QUERY
-        --------------------------------------------------
-        */
+    /*
+    --------------------------------------------------
+    RETURN CHRONOLOGICAL ORDER
+    --------------------------------------------------
+    */
 
 
-        const messageQuery = {
-
-            conversationId:
-
-                conversation._id
-
-        };
-
-
-        /*
-        --------------------------------------------------
-        AGENT FILTER
-        --------------------------------------------------
-        */
-
-
-        if(
-
-            typeof options.agentId === "string" &&
-
-            options.agentId.trim()
-
-        ){
-
-            messageQuery.agentId =
-
-                normalizeAgentId(
-
-                    options.agentId
-
-                );
-
-        }
-
-
-        /*
-        --------------------------------------------------
-        FETCH
-        --------------------------------------------------
-        */
-
-
-        const messages =
-
-            await Message
-
-                .find(
-
-                    messageQuery
-
-                )
-
-                .sort({
-
-                    createdAt:
-
-                        -1
-
-                })
-
-                .limit(
-
-                    normalizeLimit(
-
-                        options.limit || 100
-
-                    )
-
-                );
-
-
-        /*
-        --------------------------------------------------
-        RESTORE CHRONOLOGICAL ORDER
-        --------------------------------------------------
-        */
-
-
-        return messages.reverse();
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            "[CHAT GET MESSAGES ERROR]",
-
-            error
-
-        );
-
-
-        throw error;
-
-    }
+    return messages.reverse();
 
 }
 
@@ -1804,45 +2137,26 @@ export async function getChatHistory(
     }
 
 
-    try{
+    const messages =
 
-        const messages =
+        await getMessages(
 
-            await getMessages(
+            userId,
 
-                userId,
+            conversationId,
 
-                conversationId,
-
-                options
-
-            );
-
-
-        return {
-
-            conversation,
-
-            messages
-
-        };
-
-    }
-
-    catch(error){
-
-        console.error(
-
-            "[CHAT HISTORY ERROR]",
-
-            error
+            options
 
         );
 
 
-        throw error;
+    return {
 
-    }
+        conversation,
+
+        messages
+
+    };
 
 }
 
@@ -1865,48 +2179,106 @@ export async function buildAIHistory(
 
 ){
 
-    try{
+    const messages =
 
-        const messages =
+        await getMessages(
 
-            await getMessages(
+            userId,
 
-                userId,
+            conversationId,
 
-                conversationId,
+            {
 
-                {
+                limit
 
-                    limit
+            }
 
-                }
-
-            );
+        );
 
 
-        return messages
+    return messages
 
-            .filter(
+        .filter(
 
-                message =>
+            message =>
 
-                    (
+                [
 
-                        message.role === "user" ||
+                    "user",
 
-                        message.role === "assistant"
+                    "assistant",
 
-                    ) &&
+                    "system"
 
-                    typeof message.content === "string" &&
+                ].includes(
 
-                    message.content.trim()
+                    message.role
 
-            )
+                )
 
-            .map(
+        )
 
-                message => ({
+        .map(
+
+            message => ({
+
+                role:
+
+                    message.role,
+
+                content:
+
+                    message.content
+
+            })
+
+        );
+
+}
+
+
+
+/*
+==========================================================
+BUILD FULL AI HISTORY
+==========================================================
+*/
+
+
+export async function buildFullAIHistory(
+
+    userId,
+
+    conversationId,
+
+    limit = DEFAULT_LIMIT
+
+){
+
+    const messages =
+
+        await getMessages(
+
+            userId,
+
+            conversationId,
+
+            {
+
+                limit
+
+            }
+
+        );
+
+
+    return messages
+
+        .map(
+
+            message => {
+
+                const item = {
 
                     role:
 
@@ -1916,26 +2288,197 @@ export async function buildAIHistory(
 
                         message.content
 
-                })
+                };
 
-            );
 
-    }
+                if(
 
-    catch(error){
+                    message.toolCallId
 
-        console.error(
+                ){
 
-            "[CHAT AI HISTORY ERROR]",
+                    item.tool_call_id =
 
-            error
+                        message.toolCallId;
+
+                }
+
+
+                return item;
+
+            }
+
+        );
+
+}
+
+
+
+/*
+==========================================================
+COUNT MESSAGES
+==========================================================
+*/
+
+
+export async function countMessages(
+
+    userId,
+
+    conversationId
+
+){
+
+    const normalizedUserId =
+
+        normalizeUserId(
+
+            userId
 
         );
 
 
-        throw error;
+    const normalizedConversationId =
+
+        normalizeConversationId(
+
+            conversationId
+
+        );
+
+
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
+
+        return 0;
 
     }
+
+
+    const conversation =
+
+        await Conversation.findOne({
+
+            _id:
+
+                normalizedConversationId,
+
+            userId:
+
+                normalizedUserId
+
+        });
+
+
+    if(!conversation){
+
+        return 0;
+
+    }
+
+
+    return Message.countDocuments({
+
+        conversationId:
+
+            conversation._id,
+
+        userId:
+
+            normalizedUserId
+
+    });
+
+}
+
+
+
+/*
+==========================================================
+TOUCH CONVERSATION
+==========================================================
+*/
+
+
+export async function touchConversation(
+
+    userId,
+
+    conversationId
+
+){
+
+    const normalizedUserId =
+
+        normalizeUserId(
+
+            userId
+
+        );
+
+
+    const normalizedConversationId =
+
+        normalizeConversationId(
+
+            conversationId
+
+        );
+
+
+    if(
+
+        !normalizedUserId ||
+
+        !normalizedConversationId
+
+    ){
+
+        return null;
+
+    }
+
+
+    return Conversation.findOneAndUpdate(
+
+        {
+
+            _id:
+
+                normalizedConversationId,
+
+            userId:
+
+                normalizedUserId
+
+        },
+
+        {
+
+            $set: {
+
+                updatedAt:
+
+                    new Date()
+
+            }
+
+        },
+
+        {
+
+            new:
+
+                true
+
+        }
+
+    );
 
 }
 
@@ -1974,6 +2517,12 @@ export default {
 
     getChatHistory,
 
-    buildAIHistory
+    buildAIHistory,
+
+    buildFullAIHistory,
+
+    countMessages,
+
+    touchConversation
 
 };
