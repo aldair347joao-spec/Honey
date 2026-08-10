@@ -2,25 +2,31 @@
 ==========================================
 HONEY IA OS
 ORCHESTRATOR ENGINE V7.0
-Enterprise Multi-Agent Runtime
-Groq AI Integration
-30+ Specialist Agents
-Intelligent Agent Routing
-Agent Personality Engine
-Prompt Engineering
-Workspace Context
-Conversation Memory
-Streaming
+FULL MULTI-AGENT PRODUCTION
+
+30 SPECIALIST AGENTS
+Agent Routing
+Prompt Factory
+AI Response
+Tool Generation
 Artifacts
-Tool Runtime Preparation
-Enterprise Telemetry
+Live Streaming
+Enterprise Workspace Integration
+Groq Production Engine
 ==========================================
 */
 
 
-// ==========================================================
+// ==========================================
+// TOOL ENGINE
+// ==========================================
+
+import ToolEngine from "./toolengine.js";
+
+
+// ==========================================
 // CORE AGENTS
-// ==========================================================
+// ==========================================
 
 import generalagent from "./agents/generalagent.js";
 import architectagent from "./agents/architectagent.js";
@@ -38,9 +44,9 @@ import securityagent from "./agents/securityagent.js";
 import videoagent from "./agents/videoagent.js";
 
 
-// ==========================================================
+// ==========================================
 // ENTERPRISE AGENTS
-// ==========================================================
+// ==========================================
 
 import writeragent from "./agents/writeragent.js";
 import documentagent from "./agents/documentagent.js";
@@ -59,114 +65,84 @@ import accountingagent from "./agents/accountingagent.js";
 import strategistagent from "./agents/strategistagent.js";
 
 
-// ==========================================================
+// ==========================================
 // CENTRAL AGENT REGISTRY
-// ==========================================================
+// ==========================================
 
 const agents_registry = {
 
-    general:
-        generalagent,
+    general: generalagent,
 
-    architect:
-        architectagent,
+    architect: architectagent,
 
-    designer:
-        designeragent,
+    designer: designeragent,
 
-    developer:
-        developeragent,
+    developer: developeragent,
 
-    education:
-        educationagent,
+    education: educationagent,
 
-    excel:
-        excelagent,
+    excel: excelagent,
 
-    finance:
-        financeagent,
+    finance: financeagent,
 
-    healthcare:
-        healthcareagent,
+    healthcare: healthcareagent,
 
-    image:
-        imageagent,
+    image: imageagent,
 
-    legal:
-        legalagent,
+    legal: legalagent,
 
-    marketing:
-        marketingagent,
+    marketing: marketingagent,
 
-    sales:
-        salesagent,
+    sales: salesagent,
 
-    security:
-        securityagent,
+    security: securityagent,
 
-    video:
-        videoagent,
+    video: videoagent,
 
-    writer:
-        writeragent,
+    writer: writeragent,
 
-    document:
-        documentagent,
+    document: documentagent,
 
-    banking:
-        bankingagent,
+    banking: bankingagent,
 
-    entrepreneur:
-        entrepreneuragent,
+    entrepreneur: entrepreneuragent,
 
-    interiordesign:
-        interiordesignagent,
+    interiordesign: interiordesignagent,
 
-    ecommerce:
-        ecommerceagent,
+    ecommerce: ecommerceagent,
 
-    socialmedia:
-        socialmediaagent,
+    socialmedia: socialmediaagent,
 
-    research:
-        researchagent,
+    research: researchagent,
 
-    automation:
-        automationagent,
+    automation: automationagent,
 
-    analytics:
-        analyticsagent,
+    analytics: analyticsagent,
 
-    customer:
-        customeragent,
+    customer: customeragent,
 
-    translation:
-        translationagent,
+    translation: translationagent,
 
-    business:
-        businessagent,
+    business: businessagent,
 
-    accounting:
-        accountingagent,
+    accounting: accountingagent,
 
-    strategist:
-        strategistagent
+    strategist: strategistagent
 
 };
 
 
-// ==========================================================
+// ==========================================
 // AGENT NORMALIZATION
-// ==========================================================
+// ==========================================
 
 Object.entries(
     agents_registry
 ).forEach(
     ([key, agent]) => {
 
-        if(!agent){
+        if(!agent)
             return;
-        }
 
 
         if(!agent.id){
@@ -185,14 +161,6 @@ Object.entries(
         }
 
 
-        if(!agent.emoji){
-
-            agent.emoji =
-                "🤖";
-
-        }
-
-
         if(!Array.isArray(agent.tools)){
 
             agent.tools = [];
@@ -207,16 +175,16 @@ Object.entries(
         }
 
 
-        if(!Array.isArray(agent.keywords)){
+        if(!Array.isArray(agent.outputTypes)){
 
-            agent.keywords = [];
+            agent.outputTypes = [];
 
         }
 
 
-        if(!Array.isArray(agent.outputTypes)){
+        if(!Array.isArray(agent.keywords)){
 
-            agent.outputTypes = [];
+            agent.keywords = [];
 
         }
 
@@ -244,740 +212,13 @@ Object.entries(
 
         }
 
-
-        if(
-            typeof agent.temperature !==
-            "number"
-        ){
-
-            agent.temperature =
-                0.5;
-
-        }
-
-
-        if(
-            typeof agent.maxTokens !==
-            "number"
-        ){
-
-            agent.maxTokens =
-                4096;
-
-        }
-
     }
 );
 
 
-// ==========================================================
-// ROUTING DOMAIN INTELLIGENCE
-//
-// Serve como camada adicional para agentes que ainda não
-// possuam keywords próprias.
-// ==========================================================
-
-const routing_domains = {
-
-    architect: [
-
-        "arquitetura",
-        "arquiteto",
-        "planta",
-        "plantas",
-        "edifício",
-        "edificio",
-        "construção",
-        "construcao",
-        "fachada",
-        "espaço",
-        "espaco",
-        "ambiente",
-        "layout arquitetónico",
-        "layout arquitetonico"
-
-    ],
-
-
-    designer: [
-
-        "design",
-        "designer",
-        "ui",
-        "ux",
-        "interface",
-        "identidade visual",
-        "branding",
-        "logotipo",
-        "logo",
-        "tipografia",
-        "paleta",
-        "protótipo",
-        "prototipo"
-
-    ],
-
-
-    developer: [
-
-        "programar",
-        "programação",
-        "programacao",
-        "código",
-        "codigo",
-        "software",
-        "website",
-        "site",
-        "aplicação",
-        "aplicacao",
-        "app",
-        "api",
-        "backend",
-        "frontend",
-        "full stack",
-        "fullstack",
-        "javascript",
-        "typescript",
-        "python",
-        "react",
-        "node",
-        "mongodb",
-        "postgresql",
-        "html",
-        "css",
-        "bug",
-        "erro no código",
-        "erro no codigo"
-
-    ],
-
-
-    education: [
-
-        "educação",
-        "educacao",
-        "escola",
-        "escolas",
-        "professor",
-        "professora",
-        "aluno",
-        "alunos",
-        "estudante",
-        "estudantes",
-        "aula",
-        "aulas",
-        "currículo",
-        "curriculo",
-        "plano de aula",
-        "plano de estudo",
-        "avaliação",
-        "avaliacao",
-        "exercício",
-        "exercicio",
-        "universidade",
-        "instituição de ensino",
-        "instituicao de ensino",
-        "curso",
-        "formação",
-        "formacao",
-        "aprendizagem",
-        "ensino",
-        "pedagogia"
-
-    ],
-
-
-    excel: [
-
-        "excel",
-        "planilha",
-        "planilhas",
-        "spreadsheet",
-        "fórmula",
-        "formula",
-        "função excel",
-        "tabela dinâmica",
-        "tabela dinamica",
-        "vlookup",
-        "procv",
-        "xlookup",
-        "procx",
-        "power query",
-        "dashboard excel",
-        "google sheets",
-        "folha de cálculo",
-        "folha de calculo"
-
-    ],
-
-
-    finance: [
-
-        "finanças",
-        "financas",
-        "financeiro",
-        "financeira",
-        "receita",
-        "despesa",
-        "lucro",
-        "prejuízo",
-        "prejuizo",
-        "orçamento",
-        "orcamento",
-        "rentabilidade",
-        "margem",
-        "kpi financeiro",
-        "fluxo financeiro"
-
-    ],
-
-
-    healthcare: [
-
-        "saúde",
-        "saude",
-        "hospital",
-        "hospitais",
-        "clínica",
-        "clinica",
-        "clínicas",
-        "clinicas",
-        "médico",
-        "medico",
-        "médica",
-        "medica",
-        "enfermeiro",
-        "enfermagem",
-        "paciente",
-        "pacientes",
-        "consulta",
-        "consultas",
-        "prontuário",
-        "prontuario",
-        "farmácia",
-        "farmacia",
-        "laboratório",
-        "laboratorio"
-
-    ],
-
-
-    image: [
-
-        "imagem",
-        "imagens",
-        "gerar imagem",
-        "criar imagem",
-        "banner",
-        "cartaz",
-        "poster",
-        "visual",
-        "arte",
-        "ilustração",
-        "ilustracao",
-        "fotografia",
-        "direção artística",
-        "direcao artistica"
-
-    ],
-
-
-    legal: [
-
-        "lei",
-        "legal",
-        "jurídico",
-        "juridico",
-        "contrato",
-        "contratos",
-        "advogado",
-        "advogada",
-        "processo judicial",
-        "processo jurídico",
-        "processo juridico",
-        "cláusula",
-        "clausula",
-        "direito",
-        "legislação",
-        "legislacao"
-
-    ],
-
-
-    marketing: [
-
-        "marketing",
-        "campanha",
-        "publicidade",
-        "publicitário",
-        "publicitario",
-        "marca",
-        "posicionamento",
-        "cliente",
-        "clientes",
-        "vendas",
-        "aquisição",
-        "aquisicao",
-        "leads",
-        "funil",
-        "conversão",
-        "conversao",
-        "anúncio",
-        "anuncio"
-
-    ],
-
-
-    sales: [
-
-        "venda",
-        "vendas",
-        "vendedor",
-        "vendedor",
-        "cliente potencial",
-        "lead",
-        "prospecção",
-        "prospeccao",
-        "pipeline",
-        "crm",
-        "negociação",
-        "negociacao",
-        "fechar venda",
-        "fechar negócio",
-        "fechar negocio"
-
-    ],
-
-
-    security: [
-
-        "segurança",
-        "seguranca",
-        "cibersegurança",
-        "ciberseguranca",
-        "cybersecurity",
-        "hack",
-        "hacking",
-        "vulnerabilidade",
-        "vulnerabilidades",
-        "firewall",
-        "malware",
-        "phishing",
-        "ransomware",
-        "auditoria de segurança",
-        "auditoria de seguranca",
-        "pentest",
-        "zero trust",
-        "proteção de dados",
-        "protecao de dados"
-
-    ],
-
-
-    video: [
-
-        "vídeo",
-        "video",
-        "vídeos",
-        "videos",
-        "roteiro",
-        "storyboard",
-        "filmagem",
-        "cinema",
-        "reels",
-        "youtube",
-        "produção audiovisual",
-        "producao audiovisual",
-        "edição de vídeo",
-        "edicao de video"
-
-    ],
-
-
-    writer: [
-
-        "escrever",
-        "escrita",
-        "texto",
-        "artigo",
-        "redação",
-        "redacao",
-        "copy",
-        "copywriting",
-        "ebook",
-        "livro",
-        "história",
-        "historia",
-        "post",
-        "conteúdo escrito",
-        "conteudo escrito"
-
-    ],
-
-
-    document: [
-
-        "documento",
-        "documentos",
-        "pdf",
-        "word",
-        "relatório",
-        "relatorio",
-        "resumo de documento",
-        "extrair texto",
-        "analisar documento",
-        "comparar documentos",
-        "arquivo",
-        "ficheiro"
-
-    ],
-
-
-    banking: [
-
-        "banco",
-        "bancário",
-        "bancaria",
-        "bancária",
-        "conta bancária",
-        "conta bancaria",
-        "transferência",
-        "transferencia",
-        "pagamento bancário",
-        "pagamento bancario",
-        "depósito",
-        "deposito",
-        "levantamento",
-        "crédito bancário",
-        "credito bancario",
-        "empréstimo",
-        "emprestimo",
-        "financiamento",
-        "juros",
-        "taxa bancária",
-        "taxa bancaria",
-        "comissão bancária",
-        "comissao bancaria",
-        "tesouraria",
-        "liquidez",
-        "cash flow",
-        "fluxo de caixa",
-        "reconciliação bancária",
-        "reconciliacao bancaria",
-        "transação bancária",
-        "transacao bancaria",
-        "fraude bancária",
-        "fraude bancaria",
-        "kyc",
-        "aml",
-        "compliance bancário",
-        "compliance bancario",
-        "open banking",
-        "api bancária",
-        "api bancaria",
-        "iban",
-        "swift"
-
-    ],
-
-
-    entrepreneur: [
-
-        "empreendedor",
-        "empreendedora",
-        "empreendedorismo",
-        "startup",
-        "começar empresa",
-        "comecar empresa",
-        "abrir empresa",
-        "ideia de negócio",
-        "ideia de negocio",
-        "modelo de negócio",
-        "modelo de negocio",
-        "fundador",
-        "fundadora"
-
-    ],
-
-
-    interiordesign: [
-
-        "interior",
-        "design de interiores",
-        "decoração",
-        "decoracao",
-        "móveis",
-        "moveis",
-        "sala",
-        "quarto",
-        "cozinha",
-        "banheiro",
-        "casa",
-        "ambiente interior"
-
-    ],
-
-
-    ecommerce: [
-
-        "e-commerce",
-        "ecommerce",
-        "loja online",
-        "loja virtual",
-        "produto online",
-        "checkout",
-        "carrinho",
-        "shopify",
-        "marketplace",
-        "comércio eletrónico",
-        "comercio eletronico"
-
-    ],
-
-
-    socialmedia: [
-
-        "instagram",
-        "facebook",
-        "tiktok",
-        "linkedin",
-        "twitter",
-        "x.com",
-        "redes sociais",
-        "social media",
-        "seguidores",
-        "engajamento",
-        "engagement",
-        "calendário de conteúdo",
-        "calendario de conteudo",
-        "reels",
-        "stories"
-
-    ],
-
-
-    research: [
-
-        "pesquisa",
-        "pesquisar",
-        "investigação",
-        "investigacao",
-        "estudo",
-        "estudo de mercado",
-        "artigo científico",
-        "artigo cientifico",
-        "literatura",
-        "referências",
-        "referencias",
-        "fontes",
-        "dados de pesquisa"
-
-    ],
-
-
-    automation: [
-
-        "automação",
-        "automacao",
-        "automatizar",
-        "workflow",
-        "workflows",
-        "processo automático",
-        "processo automatico",
-        "integração",
-        "integracao",
-        "zapier",
-        "make",
-        "n8n",
-        "produtividade automática",
-        "produtividade automatizada"
-
-    ],
-
-
-    analytics: [
-
-        "analytics",
-        "análise de dados",
-        "analise de dados",
-        "dados",
-        "métricas",
-        "metricas",
-        "dashboard",
-        "indicadores",
-        "kpi",
-        "bi",
-        "business intelligence",
-        "estatística",
-        "estatistica",
-        "previsão",
-        "previsao"
-
-    ],
-
-
-    customer: [
-
-        "atendimento",
-        "cliente",
-        "clientes",
-        "suporte",
-        "reclamação",
-        "reclamacao",
-        "satisfação",
-        "satisfacao",
-        "experiência do cliente",
-        "experiencia do cliente",
-        "customer service",
-        "customer experience",
-        "sac"
-
-    ],
-
-
-    translation: [
-
-        "traduzir",
-        "tradução",
-        "traducao",
-        "translate",
-        "translation",
-        "idioma",
-        "idiomas",
-        "inglês",
-        "ingles",
-        "francês",
-        "frances",
-        "espanhol",
-        "português",
-        "portugues",
-        "localização",
-        "localizacao"
-
-    ],
-
-
-    business: [
-
-        "empresa",
-        "empresarial",
-        "gestão",
-        "gestao",
-        "gestor",
-        "gestora",
-        "negócio",
-        "negocio",
-        "operações",
-        "operacoes",
-        "processos internos",
-        "estratégia empresarial",
-        "estrategia empresarial",
-        "crescimento empresarial"
-
-    ],
-
-
-    accounting: [
-
-        "contabilidade",
-        "contabilista",
-        "contabilista certificado",
-        "contabilização",
-        "contabilizacao",
-        "balanço",
-        "balanco",
-        "balancete",
-        "iva",
-        "imposto",
-        "impostos",
-        "fiscal",
-        "fiscalidade",
-        "depreciação",
-        "depreciacao",
-        "demonstrações financeiras",
-        "demonstracoes financeiras",
-        "razão",
-        "razao",
-        "lançamento contabilístico",
-        "lancamento contabilistico"
-
-    ],
-
-
-    strategist: [
-
-        "estratégia",
-        "estrategia",
-        "planeamento estratégico",
-        "planeamento estrategico",
-        "planejamento estratégico",
-        "planejamento estrategico",
-        "visão estratégica",
-        "visao estrategica",
-        "roadmap",
-        "plano estratégico",
-        "plano estrategico",
-        "decisão estratégica",
-        "decisao estrategica"
-
-    ]
-
-};
-
-
-// ==========================================================
-// TEXT NORMALIZATION
-// ==========================================================
-
-function normalizeText(
-    value = ""
-){
-
-    return String(value || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
-        .replace(
-            /[^\p{L}\p{N}\s_-]/gu,
-            " "
-        )
-        .replace(
-            /\s+/g,
-            " "
-        )
-        .trim();
-
-}
-
-
-// ==========================================================
-// TOKENIZATION
-// ==========================================================
-
-function tokenize(
-    value = ""
-){
-
-    return [
-        ...new Set(
-            normalizeText(value)
-                .split(/\s+/)
-                .filter(
-                    token =>
-                        token.length >= 3
-                )
-        )
-    ];
-
-}
-
-
-// ==========================================================
+// ==========================================
 // AGENT ROUTER
-// ==========================================================
+// ==========================================
 
 export class agentrouter {
 
@@ -987,29 +228,39 @@ export class agentrouter {
         forcedagentid = null
     ){
 
-        const forced =
+        const normalizedforcedid =
+
             forcedagentid
+
                 ? String(
                     forcedagentid
                 )
                     .toLowerCase()
                     .trim()
+
                 : null;
 
 
-        // ==================================================
-        // EXPLICIT AGENT
-        // ==================================================
+        // ----------------------------------
+        // FORCE AGENT
+        // ----------------------------------
 
         if(
-            forced &&
-            agents_registry[forced]
+
+            normalizedforcedid &&
+
+            agents_registry[
+                normalizedforcedid
+            ]
+
         ){
 
             return {
 
                 agent:
-                    agents_registry[forced],
+                    agents_registry[
+                        normalizedforcedid
+                    ],
 
                 score:
                     1,
@@ -1022,13 +273,17 @@ export class agentrouter {
         }
 
 
-        // ==================================================
-        // EMPTY MESSAGE
-        // ==================================================
+        // ----------------------------------
+        // DEFAULT
+        // ----------------------------------
 
         if(
+
             !usermessage ||
-            typeof usermessage !== "string"
+
+            typeof usermessage !==
+            "string"
+
         ){
 
             return {
@@ -1048,18 +303,13 @@ export class agentrouter {
 
 
         const text =
-            normalizeText(
-                usermessage
-            );
+
+            usermessage
+                .toLowerCase()
+                .trim();
 
 
-        const tokens =
-            tokenize(
-                usermessage
-            );
-
-
-        let bestAgent =
+        let selected =
             generalagent;
 
 
@@ -1067,40 +317,40 @@ export class agentrouter {
             0;
 
 
-        const scores = {};
-
-
-        // ==================================================
-        // ANALYZE EVERY AGENT
-        // ==================================================
+        // ----------------------------------
+        // ANALYZE AGENTS
+        // ----------------------------------
 
         for(
-            const [id, agent]
+
+            const [
+                id,
+                agent
+            ]
+
             of Object.entries(
                 agents_registry
             )
+
         ){
 
-            if(!agent){
+            if(!agent)
                 continue;
-            }
 
 
             let score =
                 0;
 
 
-            let evidence =
-                0;
-
-
-            // ==============================================
-            // EXPLICIT CAN HANDLE
-            // ==============================================
+            // ------------------------------
+            // CUSTOM CAN HANDLE
+            // ------------------------------
 
             if(
+
                 typeof agent.canHandle ===
                 "function"
+
             ){
 
                 try{
@@ -1111,35 +361,25 @@ export class agentrouter {
                         );
 
 
-                    if(
-                        result === true
-                    ){
+                    if(result === true){
 
                         score +=
                             0.8;
 
-                        evidence +=
-                            1;
-
                     }
 
-
                     else if(
+
                         typeof result ===
                         "number"
+
                     ){
 
                         score +=
                             Math.max(
                                 0,
-                                Math.min(
-                                    result,
-                                    1
-                                )
+                                result
                             );
-
-                        evidence +=
-                            1;
 
                     }
 
@@ -1148,8 +388,11 @@ export class agentrouter {
                 catch(error){
 
                     console.warn(
-                        `[Router] canHandle(${id}):`,
+
+                        `[Router] Erro no agente ${id}:`,
+
                         error.message
+
                     );
 
                 }
@@ -1157,310 +400,176 @@ export class agentrouter {
             }
 
 
-            // ==============================================
-            // AGENT KEYWORDS
-            // ==============================================
+            // ------------------------------
+            // KEYWORDS
+            // ------------------------------
 
-            const agentKeywords = [
+            if(
 
-                ...(Array.isArray(agent.keywords)
-                    ? agent.keywords
-                    : []),
+                Array.isArray(
+                    agent.keywords
+                ) &&
 
-                ...(Array.isArray(
-                    routing_domains[id]
-                )
-                    ? routing_domains[id]
-                    : [])
+                agent.keywords.length
 
-            ];
+            ){
 
+                const matches =
 
-            const normalizedKeywords =
-                agentKeywords
-                    .map(
-                        keyword =>
-                            normalizeText(
-                                keyword
-                            )
-                    )
-                    .filter(Boolean);
+                    agent.keywords.filter(
+                        keyword => {
 
+                            if(
 
-            const keywordMatches =
-                normalizedKeywords.filter(
-                    keyword => {
+                                typeof keyword !==
+                                "string"
 
-                        if(
-                            keyword.includes(" ")
-                        ){
+                            ){
+
+                                return false;
+
+                            }
+
 
                             return text.includes(
+
                                 keyword
+                                    .toLowerCase()
+                                    .trim()
+
                             );
 
                         }
+                    );
 
 
-                        return tokens.includes(
-                            keyword
+                if(matches.length){
+
+                    score +=
+
+                        Math.min(
+
+                            0.6,
+
+                            matches.length *
+                            0.2
+
                         );
 
-                    }
-                );
-
-
-            const uniqueKeywordMatches =
-                [
-                    ...new Set(
-                        keywordMatches
-                    )
-                ];
-
-
-            if(
-                uniqueKeywordMatches.length
-            ){
-
-                score += Math.min(
-                    0.75,
-                    uniqueKeywordMatches.length *
-                    0.15
-                );
-
-                evidence +=
-                    uniqueKeywordMatches.length;
+                }
 
             }
 
 
-            // ==============================================
+            // ------------------------------
             // NAME MATCH
-            // ==============================================
+            // ------------------------------
 
-            if(agent.name){
+            if(
 
-                const agentName =
-                    normalizeText(
+                agent.name &&
+
+                text.includes(
+
+                    String(
                         agent.name
-                    );
-
-
-                if(
-                    text.includes(
-                        agentName
                     )
-                ){
+                        .toLowerCase()
 
-                    score +=
-                        0.3;
-
-                    evidence +=
-                        1;
-
-                }
-
-            }
-
-
-            // ==============================================
-            // CATEGORY MATCH
-            // ==============================================
-
-            if(agent.category){
-
-                const category =
-                    normalizeText(
-                        agent.category
-                    );
-
-
-                if(
-                    category &&
-                    text.includes(
-                        category
-                    )
-                ){
-
-                    score +=
-                        0.15;
-
-                    evidence +=
-                        1;
-
-                }
-
-            }
-
-
-            // ==============================================
-            // DESCRIPTION MATCH
-            // ==============================================
-
-            if(agent.description){
-
-                const descriptionTokens =
-                    tokenize(
-                        agent.description
-                    );
-
-
-                let descriptionMatches =
-                    0;
-
-
-                for(
-                    const token
-                    of descriptionTokens
-                ){
-
-                    if(
-                        tokens.includes(
-                            token
-                        )
-                    ){
-
-                        descriptionMatches++;
-
-                    }
-
-                }
-
-
-                if(
-                    descriptionMatches
-                ){
-
-                    score += Math.min(
-                        0.25,
-                        descriptionMatches *
-                        0.03
-                    );
-
-                    evidence +=
-                        descriptionMatches;
-
-                }
-
-            }
-
-
-            // ==============================================
-            // CAPABILITIES MATCH
-            // ==============================================
-
-            if(
-                Array.isArray(
-                    agent.capabilities
                 )
-            ){
 
-                let capabilityMatches =
-                    0;
-
-
-                for(
-                    const capability
-                    of agent.capabilities
-                ){
-
-                    const capabilityTokens =
-                        tokenize(
-                            capability
-                        );
-
-
-                    const matched =
-                        capabilityTokens.some(
-                            token =>
-                                tokens.includes(
-                                    token
-                                )
-                        );
-
-
-                    if(matched){
-
-                        capabilityMatches++;
-
-                    }
-
-                }
-
-
-                if(
-                    capabilityMatches
-                ){
-
-                    score += Math.min(
-                        0.35,
-                        capabilityMatches *
-                        0.04
-                    );
-
-                    evidence +=
-                        capabilityMatches;
-
-                }
-
-            }
-
-
-            // ==============================================
-            // AGENT LEVEL BONUS
-            // ==============================================
-
-            if(
-                agent.level ===
-                "Enterprise" &&
-                score > 0
             ){
 
                 score +=
-                    0.02;
+                    0.15;
 
             }
 
 
-            // ==============================================
-            // GENERAL PENALTY
-            //
-            // General should not steal specialized requests.
-            // ==============================================
+            // ------------------------------
+            // CATEGORY MATCH
+            // ------------------------------
 
             if(
-                id === "general" &&
-                score > 0
+
+                agent.category &&
+
+                text.includes(
+
+                    String(
+                        agent.category
+                    )
+                        .toLowerCase()
+
+                )
+
             ){
 
-                score *=
-                    0.35;
+                score +=
+                    0.1;
 
             }
 
 
-            scores[id] = {
+            // ------------------------------
+            // DESCRIPTION MATCH
+            // ------------------------------
 
-                score,
+            if(agent.description){
 
-                evidence
+                const descriptionWords =
 
-            };
+                    String(
+                        agent.description
+                    )
+                        .toLowerCase()
+                        .split(/\s+/)
+                        .filter(
+                            word =>
+                                word.length >= 5
+                        );
 
 
-            // ==============================================
+                const descriptionMatches =
+
+                    descriptionWords.filter(
+                        word =>
+                            text.includes(
+                                word
+                            )
+                    );
+
+
+                if(
+                    descriptionMatches.length
+                ){
+
+                    score +=
+
+                        Math.min(
+
+                            0.2,
+
+                            descriptionMatches.length *
+                            0.04
+
+                        );
+
+                }
+
+            }
+
+
+            // ------------------------------
             // BEST AGENT
-            // ==============================================
+            // ------------------------------
 
-            if(
-                score >
-                bestScore
-            ){
+            if(score > bestScore){
 
                 bestScore =
                     score;
 
-                bestAgent =
+                selected =
                     agent;
 
             }
@@ -1468,13 +577,11 @@ export class agentrouter {
         }
 
 
-        // ==================================================
+        // ----------------------------------
         // LOW CONFIDENCE
-        // ==================================================
+        // ----------------------------------
 
-        if(
-            bestScore < 0.3
-        ){
+        if(bestScore < 0.3){
 
             return {
 
@@ -1495,20 +602,15 @@ export class agentrouter {
         return {
 
             agent:
-                bestAgent,
+                selected,
 
             score:
                 Number(
-                    Math.min(
-                        bestScore,
-                        1
-                    ).toFixed(2)
+                    bestScore.toFixed(2)
                 ),
 
             reason:
-                "smart_agent_match",
-
-            scores
+                "smart_agent_match"
 
         };
 
@@ -1517,16 +619,16 @@ export class agentrouter {
 }
 
 
-// ==========================================================
+// ==========================================
 // PROMPT FACTORY
-// ==========================================================
+// ==========================================
 
 export class promptfactory {
 
 
-    // ======================================================
-    // EXTRACT BASE SYSTEM PROMPT
-    // ======================================================
+    // ======================================
+    // EXTRACT SYSTEM PROMPT
+    // ======================================
 
     static extractsystemprompt(
         agent
@@ -1535,21 +637,24 @@ export class promptfactory {
         if(!agent){
 
             return `
+
 Você é a Honey IA,
 uma inteligência artificial
 profissional.
 
 Responda de forma clara,
-segura, útil e orientada
-para resultados.
+segura e útil.
+
 `;
 
         }
 
 
         if(
+
             typeof agent.systemPrompt ===
             "function"
+
         ){
 
             try{
@@ -1561,8 +666,11 @@ para resultados.
             catch(error){
 
                 console.warn(
-                    "[PromptFactory] systemPrompt():",
+
+                    "[PromptFactory] Erro no systemPrompt:",
+
                     error.message
+
                 );
 
             }
@@ -1571,8 +679,10 @@ para resultados.
 
 
         if(
+
             typeof agent.systemPrompt ===
             "string"
+
         ){
 
             return agent.systemPrompt;
@@ -1582,9 +692,13 @@ para resultados.
 
         return `
 
-Você é ${agent.name || "um agente Honey IA"}.
+Você é ${
+    agent.name ||
+    "um agente Honey IA"
+}.
 
 Especialidade:
+
 ${
     agent.description ||
     "Assistência inteligente profissional."
@@ -1593,152 +707,37 @@ ${
 Responsabilidades:
 
 ${
-    Array.isArray(agent.capabilities) &&
-    agent.capabilities.length
+    Array.isArray(
+        agent.capabilities
+    )
 
-        ? "- " +
-          agent.capabilities.join(
-              "\n- "
-          )
+        ? agent.capabilities.join(
+            "\n- "
+        )
 
-        : "- Fornecer assistência profissional."
+        : "Fornecer assistência profissional."
 }
 
-Responda de forma:
-
-- clara;
-- profissional;
-- segura;
-- objetiva;
-- orientada para resultados.
+Responda de forma clara,
+profissional, segura e útil.
 
 `;
 
     }
 
 
-    // ======================================================
-    // AGENT IDENTITY
-    // ======================================================
-
-    static injectagentidentity(
-        prompt,
-        agent
-    ){
-
-        if(!agent){
-
-            return prompt;
-
-        }
-
-
-        let identity = `
-
-==========================================================
-HONEY IA — AGENT IDENTITY
-==========================================================
-
-Agente:
-${agent.name || "Honey IA"}
-
-ID:
-${agent.id || "general"}
-
-Categoria:
-${agent.category || "Geral"}
-
-Nível:
-${agent.level || "Professional"}
-
-Descrição:
-${agent.description || ""}
-
-`;
-
-
-
-        if(
-            Array.isArray(
-                agent.capabilities
-            ) &&
-            agent.capabilities.length
-        ){
-
-            identity += `
-
-CAPACIDADES DO AGENTE:
-
-- ${
-    agent.capabilities.join(
-        "\n- "
-    )
-}
-
-`;
-
-        }
-
-
-        if(
-            Array.isArray(
-                agent.tools
-            ) &&
-            agent.tools.length
-        ){
-
-            identity += `
-
-DOMÍNIOS E TECNOLOGIAS CONHECIDOS:
-
-- ${
-    agent.tools.join(
-        "\n- "
-    )
-}
-
-`;
-
-        }
-
-
-        identity += `
-
-REGRA DE IDENTIDADE:
-
-Você está a atuar especificamente
-como ${agent.name || "este agente"}.
-
-Não abandone a sua especialidade sem motivo.
-
-Quando o pedido estiver claramente dentro
-da sua área, responda como especialista.
-
-Quando o pedido estiver fora da sua área,
-seja transparente e, quando apropriado,
-oriente o utilizador para o agente Honey IA
-mais adequado.
-
-Não invente capacidades, dados,
-resultados ou informações externas.
-`;
-
-
-
-        return prompt +
-            identity;
-
-    }
-
-
-    // ======================================================
+    // ======================================
     // WORKSPACE CONTEXT
-    // ======================================================
+    // ======================================
 
     static injectworkspacecontext(
+
         baseprompt,
+
         workspaceContext = {},
+
         userMemory = []
+
     ){
 
         let finalPrompt =
@@ -1746,21 +745,22 @@ resultados ou informações externas.
 
 
         if(
+
             workspaceContext &&
+
             typeof workspaceContext ===
             "object" &&
+
             Object.keys(
                 workspaceContext
             ).length
+
         ){
 
             finalPrompt += `
 
-==========================================================
-CONTEXTO DO WORKSPACE
-==========================================================
+=== CONTEXTO DO WORKSPACE ===
 `;
-
 
 
             if(
@@ -1768,8 +768,10 @@ CONTEXTO DO WORKSPACE
             ){
 
                 finalPrompt += `
+
 Projeto:
 ${workspaceContext.projectName}
+
 `;
 
             }
@@ -1780,8 +782,10 @@ ${workspaceContext.projectName}
             ){
 
                 finalPrompt += `
+
 Ficheiro ativo:
 ${workspaceContext.activeFile}
+
 `;
 
             }
@@ -1792,8 +796,10 @@ ${workspaceContext.activeFile}
             ){
 
                 finalPrompt += `
+
 Tecnologia:
 ${workspaceContext.language}
+
 `;
 
             }
@@ -1804,20 +810,10 @@ ${workspaceContext.language}
             ){
 
                 finalPrompt += `
+
 Conteúdo relevante:
 ${workspaceContext.content}
-`;
 
-            }
-
-
-            if(
-                workspaceContext.instructions
-            ){
-
-                finalPrompt += `
-Instruções do Workspace:
-${workspaceContext.instructions}
 `;
 
             }
@@ -1826,26 +822,23 @@ ${workspaceContext.instructions}
 
 
         if(
+
             Array.isArray(
                 userMemory
             ) &&
+
             userMemory.length
+
         ){
 
             finalPrompt += `
 
-==========================================================
-MEMÓRIA DO UTILIZADOR
-==========================================================
+=== MEMÓRIA DO UTILIZADOR ===
 `;
 
 
-
             userMemory
-                .slice(
-                    0,
-                    20
-                )
+                .slice(0, 20)
                 .forEach(
                     (
                         memory,
@@ -1853,6 +846,7 @@ MEMÓRIA DO UTILIZADOR
                     ) => {
 
                         const value =
+
                             typeof memory ===
                             "string"
 
@@ -1864,7 +858,9 @@ MEMÓRIA DO UTILIZADOR
 
 
                         finalPrompt += `
+
 ${index + 1}. ${value}
+
 `;
 
                     }
@@ -1878,31 +874,30 @@ ${index + 1}. ${value}
     }
 
 
-    // ======================================================
+    // ======================================
     // MODE RULES
-    // ======================================================
+    // ======================================
 
     static applymoderules(
+
         prompt,
+
         mode = "chat"
+
     ){
 
-        if(
-            mode === "live"
-        ){
+        if(mode === "live"){
 
             return prompt + `
 
-==========================================================
-MODO LIVE
-==========================================================
+=== MODO LIVE ===
 
 - Responda naturalmente.
 - Seja direto.
-- Use frases relativamente curtas.
-- Evite excesso de estrutura.
+- Use frases curtas.
+- Evite explicações desnecessariamente longas.
 - Mantenha uma conversa fluida.
-- Não sacrifique precisão.
+
 `;
 
         }
@@ -1910,140 +905,154 @@ MODO LIVE
 
         return prompt + `
 
-==========================================================
-MODO TEXTO
-==========================================================
+=== MODO TEXTO ===
 
 - Estruture a resposta.
-- Use Markdown quando ajudar.
-- Utilize títulos e listas quando apropriado.
+- Use Markdown quando necessário.
 - Explique como especialista.
-- Forneça soluções práticas.
-- Não desperdice espaço com introduções vazias.
-- Quando criar código, entregue código completo
-  e consistente.
+- Forneça soluções profissionais.
+- Quando criar código, entregue código completo e organizado.
+
 `;
 
     }
 
 
-    // ======================================================
+    // ======================================
     // OUTPUT RULES
-    // ======================================================
+    // ======================================
 
     static applyoutputrules(
+
         prompt,
+
         agent
+
     ){
 
         const outputTypes =
+
             Array.isArray(
                 agent?.outputTypes
             )
+
                 ? agent.outputTypes
+
                 : [];
 
 
         return prompt + `
 
-==========================================================
-HONEY IA — OUTPUT ENGINE
-==========================================================
+=== OUTPUT HONEY IA ===
 
-Quando o utilizador pedir um resultado concreto,
-priorize entregar o resultado.
+Quando a tarefa exigir um resultado concreto,
+priorize produzir o conteúdo solicitado.
 
-Não responda apenas dizendo como fazer
-quando o utilizador pediu que você faça.
-
-Tipos de resultado potencialmente suportados:
+Tipos de saída suportados:
 
 ${
     outputTypes.length
-        ? outputTypes.join(
-            ", "
-        )
-        : "texto, código, análise, documentação e conteúdo estruturado"
+
+        ? outputTypes.join(", ")
+
+        : "texto, código, documentos e conteúdo estruturado"
 }
 
-REGRAS:
+Se produzir código:
 
-- Não inventar dados.
-- Não inventar ficheiros que não foram criados.
-- Não afirmar que executou algo se não executou.
-- Não afirmar que consultou a internet se não consultou.
-- Não afirmar que criou um artefacto real se apenas forneceu código.
-- Diferenciar claramente exemplos, estimativas e resultados reais.
+- mantenha o código completo;
+- não omita partes importantes;
+- preserve consistência entre ficheiros;
+- use padrões profissionais;
+- considere segurança e desempenho.
 
-Quando produzir código:
+Se produzir conteúdo textual:
 
-- código completo;
-- código consistente;
-- sem secrets;
-- sem credenciais;
-- com tratamento de erros quando necessário;
-- estrutura profissional.
+- entregue diretamente o resultado;
+- evite comentários desnecessários sobre o processo.
 
 `;
 
     }
 
 
-    // ======================================================
-    // PROFESSIONAL RESPONSE ENGINE
-    // ======================================================
+    // ======================================
+    // TOOL CONTEXT
+    // ======================================
 
-    static injectresponsebehavior(
+    static injecttoolcontext(
+
         prompt,
-        agent
+
+        toolRequest = null
+
     ){
+
+        if(
+
+            !toolRequest ||
+
+            !toolRequest.requested ||
+
+            !toolRequest.tool
+
+        ){
+
+            return prompt;
+
+        }
+
 
         return prompt + `
 
-==========================================================
-COMPORTAMENTO PROFISSIONAL
-==========================================================
+=== HONEY IA TOOL MODE ===
 
-O objetivo não é apenas responder.
+O utilizador não está apenas a pedir
+uma resposta textual.
 
-O objetivo é ajudar o utilizador a chegar
-a uma solução.
+Ele está a pedir uma ferramenta concreta.
 
-Sempre que apropriado:
+Ferramenta identificada:
 
-1. compreenda o objetivo;
-2. identifique os requisitos;
-3. analise limitações;
-4. proponha uma solução;
-5. execute intelectualmente a tarefa;
-6. apresente o resultado;
-7. indique próximos passos quando necessário.
+Tipo:
+${toolRequest.tool.type}
 
-Se faltarem informações críticas:
+Nome:
+${toolRequest.tool.name}
 
-- não invente;
-- identifique exatamente o que falta;
-- continue com pressupostos razoáveis quando possível;
-- deixe os pressupostos explícitos.
+Categoria:
+${toolRequest.tool.category}
 
-Quando existirem várias soluções:
+Agente responsável:
+${
+    toolRequest.tool.agent?.name ||
+    "Honey IA"
+}
 
-- compare;
-- explique vantagens e limitações;
-- recomende uma opção quando houver
-  informação suficiente.
+Descrição:
+${toolRequest.tool.description}
 
-Você representa a qualidade profissional
-da Honey IA.
+O resultado deve ser concreto,
+utilizável e coerente com a especialidade
+do agente.
+
+Não responda apenas dizendo que a ferramenta
+foi criada.
+
+PRODUZA A FERRAMENTA.
+
+${toolRequest.prompt}
+
+=== END HONEY IA TOOL MODE ===
 
 `;
 
     }
 
 
-    // ======================================================
+    // ======================================
     // BUILD GROQ MESSAGES
-    // ======================================================
+    // ======================================
 
     static buildmessagespayload({
 
@@ -2057,94 +1066,102 @@ da Honey IA.
 
         userMemory = [],
 
-        mode = "chat"
+        mode = "chat",
+
+        toolRequest = null
 
     }){
 
         let systemPrompt =
+
             this.extractsystemprompt(
                 agent
             );
 
 
         systemPrompt =
-            this.injectagentidentity(
-                systemPrompt,
-                agent
-            );
 
-
-        systemPrompt =
             this.injectworkspacecontext(
+
                 systemPrompt,
+
                 workspaceContext,
+
                 userMemory
+
             );
 
 
         systemPrompt =
+
             this.applymoderules(
+
                 systemPrompt,
+
                 mode
+
             );
 
 
         systemPrompt =
+
             this.applyoutputrules(
+
                 systemPrompt,
+
                 agent
+
             );
 
 
         systemPrompt =
-            this.injectresponsebehavior(
+
+            this.injecttoolcontext(
+
                 systemPrompt,
-                agent
+
+                toolRequest
+
             );
 
 
         const formattedHistory =
-            Array.isArray(
-                history
-            )
+
+            Array.isArray(history)
 
                 ? history
+
                     .filter(
+
                         item =>
+
                             item &&
+
                             typeof item.content ===
                             "string"
-                    )
-                    .slice(
-                        -30
-                    )
-                    .map(
-                        item => {
 
-                            const role =
-                                item.role ===
-                                "user"
+                    )
+
+                    .slice(-30)
+
+                    .map(
+
+                        item => ({
+
+                            role:
+
+                                item.role === "user"
 
                                     ? "user"
 
-                                    : item.role ===
-                                      "system"
+                                    : "assistant",
 
-                                        ? "system"
+                            content:
 
-                                        : "assistant";
+                                item.content
 
+                        })
 
-                            return {
-
-                                role,
-
-                                content:
-                                    item.content
-
-                            };
-
-                        }
                     )
 
                 : [];
@@ -2170,9 +1187,9 @@ da Honey IA.
                     "user",
 
                 content:
+
                     String(
-                        userPrompt ||
-                        ""
+                        userPrompt || ""
                     )
 
             }
@@ -2184,12 +1201,9 @@ da Honey IA.
 }
 
 
-// ==========================================================
-// TOOL ORCHESTRATOR
-//
-// Preparado para ferramentas reais.
-// Não declara ferramentas falsas para o Groq.
-// ==========================================================
+// ==========================================
+// TOOLS ORCHESTRATOR
+// ==========================================
 
 export class toolorchestrator {
 
@@ -2198,38 +1212,14 @@ export class toolorchestrator {
         agent
     ){
 
-        if(!agent){
-
-            return undefined;
-
-        }
-
-
-        /*
-        ======================================================
-        FUTURE EXECUTABLE TOOLS
-
-        Um agente pode futuramente possuir:
-
-        executableTools: [
-            {
-                name,
-                description,
-                parameters,
-                handler
-            }
-        ]
-
-        Apenas ferramentas realmente executáveis
-        devem ser expostas ao Groq.
-        ======================================================
-        */
-
-
         if(
+
+            !agent ||
+
             !Array.isArray(
-                agent.executableTools
+                agent.tools
             )
+
         ){
 
             return undefined;
@@ -2237,38 +1227,124 @@ export class toolorchestrator {
         }
 
 
-        const tools =
-            agent.executableTools
-                .filter(
-                    tool =>
-                        tool &&
-                        typeof tool.name ===
-                        "string" &&
-                        typeof tool.description ===
-                        "string" &&
-                        tool.parameters
-                )
-                .map(
-                    tool => ({
+        const normalizedTools =
+
+            agent.tools.map(
+
+                tool =>
+
+                    String(tool)
+                        .toLowerCase()
+                        .trim()
+
+            );
+
+
+        const tools = [];
+
+
+        // ----------------------------------
+        // WEB
+        // ----------------------------------
+
+        if(
+            normalizedTools.includes(
+                "web"
+            )
+        ){
+
+            tools.push({
+
+                type:
+                    "function",
+
+                function: {
+
+                    name:
+                        "web_search",
+
+                    description:
+                        "Pesquisa informações atualizadas na internet.",
+
+                    parameters: {
 
                         type:
-                            "function",
+                            "object",
 
-                        function: {
+                        properties: {
 
-                            name:
-                                tool.name,
+                            query: {
 
-                            description:
-                                tool.description,
+                                type:
+                                    "string"
 
-                            parameters:
-                                tool.parameters
+                            }
 
-                        }
+                        },
 
-                    })
-                );
+                        required: [
+                            "query"
+                        ]
+
+                    }
+
+                }
+
+            });
+
+        }
+
+
+        // ----------------------------------
+        // ANALYTICS
+        // ----------------------------------
+
+        if(
+            normalizedTools.includes(
+                "analytics"
+            )
+        ){
+
+            tools.push({
+
+                type:
+                    "function",
+
+                function: {
+
+                    name:
+                        "get_analytics",
+
+                    description:
+                        "Obtém métricas e informações analíticas disponíveis no sistema.",
+
+                    parameters: {
+
+                        type:
+                            "object",
+
+                        properties: {
+
+                            metric: {
+
+                                type:
+                                    "string"
+
+                            }
+
+                        },
+
+                        required: [
+                            "metric"
+                        ]
+
+                    }
+
+                }
+
+            });
+
+        }
 
 
         return tools.length
@@ -2277,59 +1353,12 @@ export class toolorchestrator {
 
     }
 
-
-    static gethandlers(
-        agent
-    ){
-
-        if(
-            !agent ||
-            !Array.isArray(
-                agent.executableTools
-            )
-        ){
-
-            return {};
-
-        }
-
-
-        const handlers = {};
-
-
-        agent.executableTools
-            .forEach(
-                tool => {
-
-                    if(
-                        tool &&
-                        typeof tool.name ===
-                        "string" &&
-                        typeof tool.handler ===
-                        "function"
-                    ){
-
-                        handlers[
-                            tool.name
-                        ] =
-                            tool.handler;
-
-                    }
-
-                }
-            );
-
-
-        return handlers;
-
-    }
-
 }
 
 
-// ==========================================================
+// ==========================================
 // ARTIFACT ENGINE
-// ==========================================================
+// ==========================================
 
 export class artifactengine {
 
@@ -2339,9 +1368,12 @@ export class artifactengine {
     ){
 
         if(
+
             typeof response !==
             "string" ||
+
             !response.trim()
+
         ){
 
             return [];
@@ -2353,25 +1385,26 @@ export class artifactengine {
 
 
         const codeRegex =
-            /```([a-zA-Z0-9_+#.-]*)\s*\n([\s\S]*?)```/g;
+
+            /```([a-zA-Z0-9_+-]*)\s*\n([\s\S]*?)```/g;
 
 
         let match;
 
-        let index =
-            0;
-
 
         while(
+
             (
                 match =
                     codeRegex.exec(
                         response
                     )
             ) !== null
+
         ){
 
             const language =
+
                 String(
                     match[1] ||
                     "text"
@@ -2381,32 +1414,18 @@ export class artifactengine {
 
 
             const content =
-                match[2] ||
-                "";
+                match[2] || "";
 
 
-            if(
-                !content.trim()
-            ){
-
+            if(!content.trim())
                 continue;
-
-            }
 
 
             const extension =
+
                 this.extensionFromLanguage(
                     language
                 );
-
-
-            const mime =
-                this.mimeFromLanguage(
-                    language
-                );
-
-
-            index++;
 
 
             artifacts.push({
@@ -2415,20 +1434,24 @@ export class artifactengine {
                     this.createId(),
 
                 name:
-                    this.createArtifactName(
-                        language,
-                        extension,
-                        index
-                    ),
+                    `honey-ia-result.${extension}`,
 
                 type:
-                    mime,
+                    this.mimeFromLanguage(
+                        language
+                    ),
 
-                mime,
+                mime:
+                    this.mimeFromLanguage(
+                        language
+                    ),
 
                 kind:
+
                     language === "html"
+
                         ? "website"
+
                         : "code",
 
                 language,
@@ -2436,10 +1459,7 @@ export class artifactengine {
                 content,
 
                 size:
-                    Buffer.byteLength(
-                        content,
-                        "utf8"
-                    )
+                    content.length
 
             });
 
@@ -2447,66 +1467,6 @@ export class artifactengine {
 
 
         return artifacts;
-
-    }
-
-
-    static createArtifactName(
-        language,
-        extension,
-        index
-    ){
-
-        if(
-            language ===
-            "html" &&
-            index === 1
-        ){
-
-            return "index.html";
-
-        }
-
-
-        if(
-            language ===
-            "css" &&
-            index === 1
-        ){
-
-            return "style.css";
-
-        }
-
-
-        if(
-            (
-                language ===
-                "javascript" ||
-                language ===
-                "js"
-            ) &&
-            index === 1
-        ){
-
-            return "script.js";
-
-        }
-
-
-        if(
-            language ===
-            "typescript" ||
-            language ===
-            "ts"
-        ){
-
-            return `honey-result-${index}.ts`;
-
-        }
-
-
-        return `honey-result-${index}.${extension}`;
 
     }
 
@@ -2559,12 +1519,6 @@ export class artifactengine {
             c:
                 "c",
 
-            csharp:
-                "cs",
-
-            cs:
-                "cs",
-
             php:
                 "php",
 
@@ -2574,42 +1528,20 @@ export class artifactengine {
             tsx:
                 "tsx",
 
-            go:
-                "go",
-
-            rust:
-                "rs",
-
-            bash:
-                "sh",
-
-            shell:
-                "sh",
-
-            yaml:
-                "yaml",
-
-            yml:
-                "yml",
-
             markdown:
                 "md",
 
             md:
-                "md",
-
-            text:
-                "txt",
-
-            txt:
-                "txt"
+                "md"
 
         };
 
 
         return (
+
             map[language] ||
             "txt"
+
         );
 
     }
@@ -2663,12 +1595,6 @@ export class artifactengine {
             c:
                 "text/plain",
 
-            csharp:
-                "text/plain",
-
-            cs:
-                "text/plain",
-
             php:
                 "text/plain",
 
@@ -2677,24 +1603,6 @@ export class artifactengine {
 
             tsx:
                 "text/typescript",
-
-            go:
-                "text/plain",
-
-            rust:
-                "text/plain",
-
-            bash:
-                "text/plain",
-
-            shell:
-                "text/plain",
-
-            yaml:
-                "text/yaml",
-
-            yml:
-                "text/yaml",
 
             markdown:
                 "text/markdown",
@@ -2706,8 +1614,10 @@ export class artifactengine {
 
 
         return (
+
             map[language] ||
             "text/plain"
+
         );
 
     }
@@ -2716,12 +1626,17 @@ export class artifactengine {
     static createId(){
 
         return (
+
             "artifact_" +
+
             Date.now() +
+
             "_" +
+
             Math.random()
                 .toString(36)
-                .slice(2,9)
+                .slice(2, 9)
+
         );
 
     }
@@ -2729,64 +1644,9 @@ export class artifactengine {
 }
 
 
-// ==========================================================
-// AGENT CONFIGURATION
-// ==========================================================
-
-function getAgentModelConfig(
-    agent
-){
-
-    return {
-
-        model:
-            agent?.model ||
-            "llama-3.3-70b-versatile",
-
-        temperature:
-            typeof agent?.temperature ===
-            "number"
-
-                ? agent.temperature
-
-                : 0.5,
-
-        max_tokens:
-            typeof agent?.maxTokens ===
-            "number"
-
-                ? agent.maxTokens
-
-                : 4096
-
-    };
-
-}
-
-
-// ==========================================================
-// GROQ RESPONSE EXTRACTION
-// ==========================================================
-
-function extractCompletionResponse(
-    completion
-){
-
-    return (
-        completion
-            ?.choices?.[0]
-            ?.message
-            ?.content
-        ||
-        "Sem resposta gerada."
-    );
-
-}
-
-
-// ==========================================================
+// ==========================================
 // ORCHESTRATOR MAIN ENGINE
-// ==========================================================
+// ==========================================
 
 export class Orchestrator {
 
@@ -2801,9 +1661,9 @@ export class Orchestrator {
     }
 
 
-    // ======================================================
-    // SET GROQ
-    // ======================================================
+    // ======================================
+    // SET GROQ CLIENT
+    // ======================================
 
     setGroqClient(
         client
@@ -2815,34 +1675,82 @@ export class Orchestrator {
     }
 
 
-    // ======================================================
-    // GET AGENT
-    // ======================================================
+    // ======================================
+    // PREPARE TOOL
+    // ======================================
 
-    getAgent(
-        agentId
-    ){
+    prepareTool({
 
-        const id =
-            String(
-                agentId ||
-                "general"
-            )
-                .toLowerCase()
-                .trim();
+        userPrompt,
+
+        agent,
+
+        workspaceContext = {}
+
+    }){
+
+        try{
+
+            return ToolEngine.prepareToolRequest({
+
+                userPrompt,
+
+                agent,
+
+                workspaceContext
+
+            });
+
+        }
+
+        catch(error){
+
+            console.error(
+
+                "[ToolEngine Error]",
+
+                error
+
+            );
 
 
-        return (
-            agents_registry[id] ||
-            generalagent
-        );
+            return {
+
+                requested:
+                    false,
+
+                detection: {
+
+                    requested:
+                        false,
+
+                    type:
+                        null,
+
+                    score:
+                        0,
+
+                    reason:
+                        "tool_engine_error"
+
+                },
+
+                tool:
+                    null,
+
+                prompt:
+                    null
+
+            };
+
+        }
 
     }
 
 
-    // ======================================================
+    // ======================================
     // PROCESS REQUEST
-    // ======================================================
+    // ======================================
 
     async processRequest({
 
@@ -2864,14 +1772,18 @@ export class Orchestrator {
             Date.now();
 
 
-        // ==================================================
-        // ROUTING
-        // ==================================================
+        // ----------------------------------
+        // ROUTE AGENT
+        // ----------------------------------
 
         const selection =
+
             agentrouter.selectagent(
+
                 userPrompt,
+
                 agentId
+
             );
 
 
@@ -2881,24 +1793,44 @@ export class Orchestrator {
 
         try{
 
-            // ==================================================
-            // GROQ VALIDATION
-            // ==================================================
+            // --------------------------------
+            // VERIFY GROQ
+            // --------------------------------
 
             if(!this.groq){
 
                 throw new Error(
+
                     "Groq SDK não inicializada."
+
                 );
 
             }
 
 
-            // ==================================================
-            // MESSAGE BUILDING
-            // ==================================================
+            // --------------------------------
+            // DETECT TOOL
+            // --------------------------------
+
+            const toolRequest =
+
+                this.prepareTool({
+
+                    userPrompt,
+
+                    agent,
+
+                    workspaceContext
+
+                });
+
+
+            // --------------------------------
+            // BUILD MESSAGES
+            // --------------------------------
 
             const messages =
+
                 promptfactory
                     .buildmessagespayload({
 
@@ -2912,44 +1844,52 @@ export class Orchestrator {
 
                         userMemory,
 
-                        mode
+                        mode,
+
+                        toolRequest
 
                     });
 
 
-            // ==================================================
-            // TOOLS
-            // ==================================================
+            // --------------------------------
+            // NATIVE TOOLS
+            // --------------------------------
 
             const tools =
+
                 toolorchestrator
                     .getavailabletools(
                         agent
                     );
 
 
-            // ==================================================
-            // MODEL CONFIG
-            // ==================================================
-
-            const config =
-                getAgentModelConfig(
-                    agent
-                );
-
+            // --------------------------------
+            // GROQ PAYLOAD
+            // --------------------------------
 
             const payload = {
 
                 model:
-                    config.model,
+
+                    agent.model ||
+
+                    "llama-3.3-70b-versatile",
 
                 messages,
 
                 temperature:
-                    config.temperature,
+
+                    agent.temperature ??
+                    (
+                        toolRequest.requested
+                            ? 0.35
+                            : 0.5
+                    ),
 
                 max_tokens:
-                    config.max_tokens
+
+                    agent.maxTokens ||
+                    8192
 
             };
 
@@ -2962,11 +1902,12 @@ export class Orchestrator {
             }
 
 
-            // ==================================================
-            // GROQ REQUEST
-            // ==================================================
+            // --------------------------------
+            // GROQ CALL
+            // --------------------------------
 
             const completion =
+
                 await this.groq
                     .chat
                     .completions
@@ -2975,45 +1916,87 @@ export class Orchestrator {
                     );
 
 
-            // ==================================================
-            // RESPONSE
-            // ==================================================
-
             let response =
-                extractCompletionResponse(
-                    completion
+
+                completion
+                    ?.choices?.[0]
+                    ?.message
+                    ?.content
+
+                ||
+
+                "Sem resposta gerada.";
+
+
+            // --------------------------------
+            // AGENT POST PROCESSING
+            // --------------------------------
+
+            if(
+
+                typeof agent.after ===
+                "function"
+
+            ){
+
+                response =
+
+                    agent.after(
+                        response
+                    );
+
+            }
+
+
+            // --------------------------------
+            // ARTIFACTS
+            // --------------------------------
+
+            const artifacts =
+
+                artifactengine.extract(
+                    response
                 );
 
 
-            // ==================================================
-            // AGENT POST PROCESSING
-            // ==================================================
+            // --------------------------------
+            // FINAL TOOL
+            // --------------------------------
+
+            let tool = null;
+
 
             if(
-                typeof agent.after ===
-                "function"
+
+                toolRequest.requested &&
+
+                toolRequest.tool
+
             ){
 
                 try{
 
-                    response =
-                        await agent.after(
-                            response,
-                            {
-                                userPrompt,
-                                history,
-                                workspaceContext,
-                                userMemory
-                            }
-                        );
+                    tool =
+
+                        ToolEngine.finalizeTool({
+
+                            tool:
+                                toolRequest.tool,
+
+                            response
+
+                        });
 
                 }
 
                 catch(error){
 
                     console.warn(
-                        `[Agent:${agent.id}] after():`,
+
+                        "[ToolEngine] Falha ao finalizar ferramenta:",
+
                         error.message
+
                     );
 
                 }
@@ -3021,24 +2004,15 @@ export class Orchestrator {
             }
 
 
-            // ==================================================
-            // ARTIFACTS
-            // ==================================================
-
-            const artifacts =
-                artifactengine.extract(
-                    response
-                );
-
-
-            // ==================================================
-            // RESULT
-            // ==================================================
+            // --------------------------------
+            // RETURN RESULT
+            // --------------------------------
 
             return {
 
                 success:
                     true,
+
 
                 agent: {
 
@@ -3050,15 +2024,10 @@ export class Orchestrator {
 
                     emoji:
                         agent.emoji ||
-                        "🤖",
-
-                    category:
-                        agent.category,
-
-                    level:
-                        agent.level
+                        "🤖"
 
                 },
+
 
                 routing: {
 
@@ -3070,18 +2039,46 @@ export class Orchestrator {
 
                 },
 
+
+                tool: tool,
+
+
+                toolGeneration: {
+
+                    requested:
+                        Boolean(
+                            toolRequest.requested
+                        ),
+
+                    type:
+                        toolRequest.detection?.type ||
+                        null,
+
+                    score:
+                        toolRequest.detection?.score ||
+                        0,
+
+                    reason:
+                        toolRequest.detection?.reason ||
+                        "normal_chat"
+
+                },
+
+
                 response,
+
 
                 artifacts,
 
+
                 usage:
-                    completion?.usage ||
+
+                    completion.usage ||
                     null,
 
-                model:
-                    config.model,
 
                 latency:
+
                     Date.now() -
                     start
 
@@ -3092,8 +2089,11 @@ export class Orchestrator {
         catch(error){
 
             console.error(
+
                 "[Orchestrator Error]",
+
                 error
+
             );
 
 
@@ -3101,6 +2101,7 @@ export class Orchestrator {
 
                 success:
                     false,
+
 
                 agent: {
 
@@ -3118,6 +2119,7 @@ export class Orchestrator {
 
                 },
 
+
                 routing: {
 
                     score:
@@ -3128,17 +2130,45 @@ export class Orchestrator {
 
                 },
 
+
+                tool:
+                    null,
+
+
+                toolGeneration: {
+
+                    requested:
+                        false,
+
+                    type:
+                        null,
+
+                    score:
+                        0,
+
+                    reason:
+                        "generation_error"
+
+                },
+
+
                 response:
                     "",
+
 
                 artifacts:
                     [],
 
+
                 error:
-                    error?.message ||
+
+                    error.message ||
+
                     "Erro ao processar pedido.",
 
+
                 latency:
+
                     Date.now() -
                     start
 
@@ -3149,9 +2179,9 @@ export class Orchestrator {
     }
 
 
-    // ======================================================
+    // ======================================
     // STREAM PROCESSING
-    // ======================================================
+    // ======================================
 
     async processStream({
 
@@ -3179,14 +2209,18 @@ export class Orchestrator {
             Date.now();
 
 
-        // ==================================================
-        // ROUTING
-        // ==================================================
+        // ----------------------------------
+        // ROUTE
+        // ----------------------------------
 
         const selection =
+
             agentrouter.selectagent(
+
                 userPrompt,
+
                 agentId
+
             );
 
 
@@ -3196,20 +2230,44 @@ export class Orchestrator {
 
         try{
 
+            // --------------------------------
+            // VERIFY GROQ
+            // --------------------------------
+
             if(!this.groq){
 
                 throw new Error(
+
                     "Groq SDK não inicializada."
+
                 );
 
             }
 
 
-            // ==================================================
-            // MESSAGES
-            // ==================================================
+            // --------------------------------
+            // DETECT TOOL
+            // --------------------------------
+
+            const toolRequest =
+
+                this.prepareTool({
+
+                    userPrompt,
+
+                    agent,
+
+                    workspaceContext
+
+                });
+
+
+            // --------------------------------
+            // BUILD MESSAGES
+            // --------------------------------
 
             const messages =
+
                 promptfactory
                     .buildmessagespayload({
 
@@ -3223,41 +2281,49 @@ export class Orchestrator {
 
                         userMemory,
 
-                        mode
+                        mode,
+
+                        toolRequest
 
                     });
 
 
-            // ==================================================
-            // CONFIG
-            // ==================================================
-
-            const config =
-                getAgentModelConfig(
-                    agent
-                );
-
-
-            // ==================================================
-            // STREAM
-            // ==================================================
+            // --------------------------------
+            // GROQ STREAM
+            // --------------------------------
 
             const stream =
+
                 await this.groq
                     .chat
                     .completions
                     .create({
 
                         model:
-                            config.model,
+
+                            agent.model ||
+
+                            "llama-3.3-70b-versatile",
+
 
                         messages,
 
+
                         temperature:
-                            config.temperature,
+
+                            agent.temperature ??
+                            (
+                                toolRequest.requested
+                                    ? 0.35
+                                    : 0.5
+                            ),
+
 
                         max_tokens:
-                            config.max_tokens,
+
+                            agent.maxTokens ||
+                            8192,
+
 
                         stream:
                             true
@@ -3269,28 +2335,29 @@ export class Orchestrator {
                 "";
 
 
-            // ==================================================
-            // READ STREAM
-            // ==================================================
+            // --------------------------------
+            // RECEIVE STREAM
+            // --------------------------------
 
             for await(
+
                 const chunk
                 of stream
+
             ){
 
                 const text =
+
                     chunk
                         ?.choices?.[0]
                         ?.delta
                         ?.content
+
                     || "";
 
 
-                if(!text){
-
+                if(!text)
                     continue;
-
-                }
 
 
                 completeResponse +=
@@ -3298,8 +2365,10 @@ export class Orchestrator {
 
 
                 if(
+
                     typeof onChunk ===
                     "function"
+
                 ){
 
                     onChunk(
@@ -3311,39 +2380,80 @@ export class Orchestrator {
             }
 
 
-            // ==================================================
-            // POST PROCESS
-            // ==================================================
+            // --------------------------------
+            // AGENT POST PROCESSING
+            // --------------------------------
 
             let finalResponse =
                 completeResponse;
 
 
             if(
+
                 typeof agent.after ===
                 "function"
+
+            ){
+
+                finalResponse =
+
+                    agent.after(
+                        completeResponse
+                    );
+
+            }
+
+
+            // --------------------------------
+            // ARTIFACTS
+            // --------------------------------
+
+            const artifacts =
+
+                artifactengine.extract(
+                    finalResponse
+                );
+
+
+            // --------------------------------
+            // FINAL TOOL
+            // --------------------------------
+
+            let tool = null;
+
+
+            if(
+
+                toolRequest.requested &&
+
+                toolRequest.tool
+
             ){
 
                 try{
 
-                    finalResponse =
-                        await agent.after(
-                            completeResponse,
-                            {
-                                userPrompt,
-                                history,
-                                workspaceContext,
-                                userMemory
-                            }
-                        );
+                    tool =
+
+                        ToolEngine.finalizeTool({
+
+                            tool:
+                                toolRequest.tool,
+
+                            response:
+                                finalResponse
+
+                        });
 
                 }
 
                 catch(error){
 
                     console.warn(
-                        `[Agent:${agent.id}] after():`,
+
+                        "[ToolEngine] Falha no streaming da ferramenta:",
+
                         error.message
+
                     );
 
                 }
@@ -3351,24 +2461,15 @@ export class Orchestrator {
             }
 
 
-            // ==================================================
-            // ARTIFACTS
-            // ==================================================
-
-            const artifacts =
-                artifactengine.extract(
-                    finalResponse
-                );
-
-
-            // ==================================================
-            // RESULT
-            // ==================================================
+            // --------------------------------
+            // FINAL RESULT
+            // --------------------------------
 
             const result = {
 
                 success:
                     true,
+
 
                 agent: {
 
@@ -3380,15 +2481,10 @@ export class Orchestrator {
 
                     emoji:
                         agent.emoji ||
-                        "🤖",
-
-                    category:
-                        agent.category,
-
-                    level:
-                        agent.level
+                        "🤖"
 
                 },
+
 
                 routing: {
 
@@ -3400,24 +2496,57 @@ export class Orchestrator {
 
                 },
 
+
+                tool:
+                    tool,
+
+
+                toolGeneration: {
+
+                    requested:
+                        Boolean(
+                            toolRequest.requested
+                        ),
+
+                    type:
+                        toolRequest.detection?.type ||
+                        null,
+
+                    score:
+                        toolRequest.detection?.score ||
+                        0,
+
+                    reason:
+                        toolRequest.detection?.reason ||
+                        "normal_chat"
+
+                },
+
+
                 response:
                     finalResponse,
 
+
                 artifacts,
 
-                model:
-                    config.model,
 
                 latency:
+
                     Date.now() -
                     start
 
             };
 
 
+            // --------------------------------
+            // COMPLETE CALLBACK
+            // --------------------------------
+
             if(
+
                 typeof onComplete ===
                 "function"
+
             ){
 
                 onComplete(
@@ -3434,14 +2563,19 @@ export class Orchestrator {
         catch(error){
 
             console.error(
+
                 "[Orchestrator Stream Error]",
+
                 error
+
             );
 
 
             if(
+
                 typeof onError ===
                 "function"
+
             ){
 
                 onError(
@@ -3458,28 +2592,56 @@ export class Orchestrator {
     }
 
 
-    // ======================================================
+    // ======================================
+    // TOOL CATALOG
+    // ======================================
+
+    getToolCatalog(){
+
+        return ToolEngine.getCatalog();
+
+    }
+
+
+    // ======================================
+    // AGENT TOOL CATALOG
+    // ======================================
+
+    getAgentToolCatalog(){
+
+        return ToolEngine.getAgentCatalog();
+
+    }
+
+
+    // ======================================
     // TELEMETRY
-    // ======================================================
+    // ======================================
 
     getTelemetry(){
 
         return {
 
             status:
-                this.groq
-                    ? "online"
-                    : "offline",
+                "online",
 
             engine:
                 "Honey IA Orchestrator V7",
 
             agents:
+
                 Object.keys(
                     agents_registry
                 ).length,
 
+            tools:
+
+                ToolEngine
+                    .getCatalog()
+                    .length,
+
             groq:
+
                 Boolean(
                     this.groq
                 ),
@@ -3494,17 +2656,18 @@ export class Orchestrator {
 }
 
 
-// ==========================================================
-// INSTANCE
-// ==========================================================
+// ==========================================
+// CREATE INSTANCE
+// ==========================================
 
 const orchestratorinstance =
+
     new Orchestrator();
 
 
-// ==========================================================
+// ==========================================
 // EXPORTS
-// ==========================================================
+// ==========================================
 
 export {
 
