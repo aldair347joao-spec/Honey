@@ -2,11 +2,12 @@
 ==========================================
 HONEY IA OS
 CHAT ROUTES
-Conversation & AI Chat API
-V1.0
+Conversation + AI Chat API
+V2.0
+Production Chat Architecture
 JWT Protected
 MongoDB
-Production Architecture
+SSE Live Chat
 ==========================================
 */
 
@@ -20,20 +21,26 @@ import { User } from "./models.js";
 import chatController from "./chat.controller.js";
 
 
+
 /*
-==========================================
+==========================================================
 ROUTER
-==========================================
+==========================================================
 */
 
-const router = express.Router();
+
+const router =
+
+    express.Router();
+
 
 
 /*
-==========================================
+==========================================================
 CONFIGURATION
-==========================================
+==========================================================
 */
+
 
 const JWT_SECRET =
 
@@ -42,12 +49,14 @@ const JWT_SECRET =
     "honey-secret-change-me";
 
 
+
 /*
-==========================================
-AUTHENTICATION MIDDLEWARE
+==========================================================
+AUTHENTICATION
 JWT SESSION PROTECTION
-==========================================
+==========================================================
 */
+
 
 async function requireAuth(
 
@@ -59,14 +68,13 @@ async function requireAuth(
 
 ){
 
-
     try{
 
 
         /*
-        ----------------------------------
+        --------------------------------------------------
         AUTHORIZATION HEADER
-        ----------------------------------
+        --------------------------------------------------
         */
 
 
@@ -88,7 +96,6 @@ async function requireAuth(
 
         ){
 
-
             return res
 
                 .status(401)
@@ -103,15 +110,14 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
+        --------------------------------------------------
         TOKEN
-        ----------------------------------
+        --------------------------------------------------
         */
 
 
@@ -127,7 +133,6 @@ async function requireAuth(
 
         if(!token){
 
-
             return res
 
                 .status(401)
@@ -142,15 +147,14 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
+        --------------------------------------------------
         VERIFY JWT
-        ----------------------------------
+        --------------------------------------------------
         */
 
 
@@ -174,7 +178,6 @@ async function requireAuth(
 
         }
 
-
         catch(error){
 
 
@@ -192,15 +195,14 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
-        USER ID
-        ----------------------------------
+        --------------------------------------------------
+        EXTRACT USER ID
+        --------------------------------------------------
         */
 
 
@@ -216,7 +218,6 @@ async function requireAuth(
 
         if(!userId){
 
-
             return res
 
                 .status(401)
@@ -231,38 +232,40 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
+        --------------------------------------------------
         LOAD USER
-        ----------------------------------
+        --------------------------------------------------
         */
 
 
         const user =
 
-            await User.findById(
+            await User
 
-                userId
+                .findById(
 
-            ).select(
+                    userId
 
-                "-password " +
+                )
 
-                "-verificationCode " +
+                .select(
 
-                "-verificationExpires"
+                    "-password " +
 
-            );
+                    "-verificationCode " +
+
+                    "-verificationExpires"
+
+                );
 
 
 
         if(!user){
-
 
             return res
 
@@ -278,20 +281,18 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
+        --------------------------------------------------
         ACCOUNT STATUS
-        ----------------------------------
+        --------------------------------------------------
         */
 
 
         if(!user.isActive){
-
 
             return res
 
@@ -307,15 +308,29 @@ async function requireAuth(
 
                 });
 
-
         }
 
 
 
         /*
-        ----------------------------------
-        REQUEST USER
-        ----------------------------------
+        --------------------------------------------------
+        EMAIL VERIFICATION
+        --------------------------------------------------
+
+        A autenticação JWT é válida mesmo antes da
+        verificação do email.
+
+        A aplicação pode decidir posteriormente quais
+        recursos exigem emailVerified.
+        --------------------------------------------------
+        */
+
+
+
+        /*
+        --------------------------------------------------
+        ATTACH AUTHENTICATED USER
+        --------------------------------------------------
         */
 
 
@@ -325,11 +340,10 @@ async function requireAuth(
 
 
 
-        next();
+        return next();
 
 
     }
-
 
     catch(error){
 
@@ -358,17 +372,19 @@ async function requireAuth(
 
             });
 
-
     }
 
 }
 
 
+
 /*
-==========================================
+==========================================================
 HEALTH
-==========================================
+GET /api/chat/health
+==========================================================
 */
+
 
 router.get(
 
@@ -397,12 +413,14 @@ router.get(
 );
 
 
+
 /*
-==========================================
+==========================================================
 SEND MESSAGE
 POST /api/chat
-==========================================
+==========================================================
 */
+
 
 router.post(
 
@@ -429,12 +447,10 @@ router.post(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -444,13 +460,14 @@ router.post(
 );
 
 
+
 /*
-==========================================
-SEND MESSAGE
-ALIAS
+==========================================================
+SEND MESSAGE ALIAS
 POST /api/chat/message
-==========================================
+==========================================================
 */
+
 
 router.post(
 
@@ -477,12 +494,10 @@ router.post(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -492,12 +507,63 @@ router.post(
 );
 
 
+
 /*
-==========================================
-GET USER CONVERSATIONS
-GET /api/chat/conversations
-==========================================
+==========================================================
+LIVE CHAT
+POST /api/chat/live
+
+Server-Sent Events
+==========================================================
 */
+
+
+router.post(
+
+    "/live",
+
+    requireAuth,
+
+    async(req,res,next)=>{
+
+
+        try{
+
+
+            return await chatController
+
+                .sendLiveMessage(
+
+                    req,
+
+                    res
+
+                );
+
+
+        }
+
+        catch(error){
+
+
+            return next(error);
+
+        }
+
+
+    }
+
+);
+
+
+
+/*
+==========================================================
+LIST CONVERSATIONS
+GET /api/chat/conversations
+==========================================================
+*/
+
 
 router.get(
 
@@ -513,7 +579,7 @@ router.get(
 
             return await chatController
 
-                .getConversations(
+                .listConversations(
 
                     req,
 
@@ -524,12 +590,10 @@ router.get(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -539,12 +603,14 @@ router.get(
 );
 
 
+
 /*
-==========================================
+==========================================================
 CREATE CONVERSATION
 POST /api/chat/conversations
-==========================================
+==========================================================
 */
+
 
 router.post(
 
@@ -571,12 +637,10 @@ router.post(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -586,12 +650,14 @@ router.post(
 );
 
 
+
 /*
-==========================================
+==========================================================
 GET SINGLE CONVERSATION
 GET /api/chat/conversations/:conversationId
-==========================================
+==========================================================
 */
+
 
 router.get(
 
@@ -618,12 +684,10 @@ router.get(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -633,12 +697,14 @@ router.get(
 );
 
 
+
 /*
-==========================================
+==========================================================
 GET CONVERSATION MESSAGES
 GET /api/chat/conversations/:conversationId/messages
-==========================================
+==========================================================
 */
+
 
 router.get(
 
@@ -654,7 +720,7 @@ router.get(
 
             return await chatController
 
-                .getMessages(
+                .getConversation(
 
                     req,
 
@@ -665,12 +731,10 @@ router.get(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -680,12 +744,14 @@ router.get(
 );
 
 
+
 /*
-==========================================
-ARCHIVE CONVERSATION
+==========================================================
+UPDATE CONVERSATION
 PATCH /api/chat/conversations/:conversationId
-==========================================
+==========================================================
 */
+
 
 router.patch(
 
@@ -712,12 +778,10 @@ router.patch(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -727,59 +791,14 @@ router.patch(
 );
 
 
-/*
-==========================================
-DELETE CONVERSATION
-DELETE /api/chat/conversations/:conversationId
-==========================================
-*/
-
-router.delete(
-
-    "/conversations/:conversationId",
-
-    requireAuth,
-
-    async(req,res,next)=>{
-
-
-        try{
-
-
-            return await chatController
-
-                .deleteConversation(
-
-                    req,
-
-                    res
-
-                );
-
-
-        }
-
-
-        catch(error){
-
-
-            next(error);
-
-
-        }
-
-
-    }
-
-);
-
 
 /*
-==========================================
+==========================================================
 ARCHIVE CONVERSATION
 POST /api/chat/conversations/:conversationId/archive
-==========================================
+==========================================================
 */
+
 
 router.post(
 
@@ -806,12 +825,10 @@ router.post(
 
         }
 
-
         catch(error){
 
 
-            next(error);
-
+            return next(error);
 
         }
 
@@ -821,11 +838,107 @@ router.post(
 );
 
 
+
 /*
-==========================================
-GLOBAL CHAT ROUTE ERROR HANDLER
-==========================================
+==========================================================
+RESTORE CONVERSATION
+POST /api/chat/conversations/:conversationId/restore
+==========================================================
 */
+
+
+router.post(
+
+    "/conversations/:conversationId/restore",
+
+    requireAuth,
+
+    async(req,res,next)=>{
+
+
+        try{
+
+
+            return await chatController
+
+                .restoreConversation(
+
+                    req,
+
+                    res
+
+                );
+
+
+        }
+
+        catch(error){
+
+
+            return next(error);
+
+        }
+
+
+    }
+
+);
+
+
+
+/*
+==========================================================
+DELETE CONVERSATION
+DELETE /api/chat/conversations/:conversationId
+==========================================================
+*/
+
+
+router.delete(
+
+    "/conversations/:conversationId",
+
+    requireAuth,
+
+    async(req,res,next)=>{
+
+
+        try{
+
+
+            return await chatController
+
+                .deleteConversation(
+
+                    req,
+
+                    res
+
+                );
+
+
+        }
+
+        catch(error){
+
+
+            return next(error);
+
+        }
+
+
+    }
+
+);
+
+
+
+/*
+==========================================================
+GLOBAL CHAT ROUTE ERROR HANDLER
+==========================================================
+*/
+
 
 router.use(
 
@@ -834,9 +947,33 @@ router.use(
 
         console.error(
 
-            "[CHAT ROUTE ERROR]",
+            "=========================================="
+
+        );
+
+
+
+        console.error(
+
+            "HONEY IA CHAT ROUTE ERROR"
+
+        );
+
+
+
+        console.error(
 
             error
+
+        );
+
+
+
+        console.error(
+
+            "=========================================="
+
+
 
         );
 
@@ -854,15 +991,27 @@ router.use(
 
 
 
-        return res
+        const status =
 
-            .status(
+            Number.isInteger(
 
-                error.status ||
-
-                500
+                error?.status
 
             )
+
+                ?
+
+                error.status
+
+                :
+
+                500;
+
+
+
+        return res
+
+            .status(status)
 
             .json({
 
@@ -870,7 +1019,7 @@ router.use(
 
                 error:
 
-                    error.message ||
+                    error?.message ||
 
                     "Erro interno no sistema de Chat."
 
@@ -882,10 +1031,12 @@ router.use(
 );
 
 
+
 /*
-==========================================
+==========================================================
 EXPORT
-==========================================
+==========================================================
 */
+
 
 export default router;
