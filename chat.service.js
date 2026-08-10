@@ -3,8 +3,10 @@
 HONEY IA OS
 CHAT SERVICE
 Conversation + AI Orchestration
-V1.0
+V2.0
 Persistent Enterprise Chat Engine
+Tool + Artifact Integration
+Agent Production Support
 ==========================================
 */
 
@@ -201,7 +203,11 @@ function normalizeWorkspaceContext(
 
 
 
-    return workspaceContext;
+    return {
+
+        ...workspaceContext
+
+    };
 
 }
 
@@ -232,6 +238,345 @@ function normalizeMemory(
         50
 
     );
+
+}
+
+
+
+/*
+==========================================================
+NORMALIZE ARTIFACTS
+==========================================================
+*/
+
+
+function normalizeArtifacts(
+
+    artifacts
+
+){
+
+    if(
+
+        !Array.isArray(artifacts)
+
+    ){
+
+        return [];
+
+    }
+
+
+
+    return artifacts
+
+        .filter(
+
+            artifact =>
+
+                artifact &&
+
+                typeof artifact === "object"
+
+        )
+
+        .map(
+
+            artifact => ({
+
+                id:
+
+                    artifact.id ||
+
+                    null,
+
+
+
+                name:
+
+                    artifact.name ||
+
+                    "honey-ia-result",
+
+
+
+                type:
+
+                    artifact.type ||
+
+                    "text/plain",
+
+
+
+                mime:
+
+                    artifact.mime ||
+
+                    artifact.type ||
+
+                    "text/plain",
+
+
+
+                kind:
+
+                    artifact.kind ||
+
+                    "artifact",
+
+
+
+                language:
+
+                    artifact.language ||
+
+                    null,
+
+
+
+                content:
+
+                    typeof artifact.content === "string"
+
+                        ? artifact.content
+
+                        : "",
+
+
+
+                size:
+
+                    Number.isFinite(
+
+                        artifact.size
+
+                    )
+
+                        ? artifact.size
+
+                        : (
+
+                            typeof artifact.content === "string"
+
+                                ? artifact.content.length
+
+                                : 0
+
+                        )
+
+            })
+
+        );
+
+}
+
+
+
+/*
+==========================================================
+NORMALIZE TOOLS
+==========================================================
+*/
+
+
+function normalizeTools(
+
+    tools
+
+){
+
+    if(
+
+        !Array.isArray(tools)
+
+    ){
+
+        return [];
+
+    }
+
+
+
+    return tools
+
+        .filter(
+
+            tool =>
+
+                tool &&
+
+                typeof tool === "object"
+
+        )
+
+        .map(
+
+            tool => ({
+
+                id:
+
+                    tool.id ||
+
+                    null,
+
+
+
+                name:
+
+                    tool.name ||
+
+                    tool.tool ||
+
+                    null,
+
+
+
+                type:
+
+                    tool.type ||
+
+                    "tool",
+
+
+
+                status:
+
+                    tool.status ||
+
+                    "completed",
+
+
+
+                description:
+
+                    tool.description ||
+
+                    "",
+
+
+
+                input:
+
+                    tool.input ||
+
+                    tool.arguments ||
+
+                    null,
+
+
+
+                output:
+
+                    tool.output ||
+
+                    tool.result ||
+
+                    null
+
+            })
+
+        );
+
+}
+
+
+
+/*
+==========================================================
+BUILD AI RESULT
+==========================================================
+*/
+
+
+function normalizeAIResult(
+
+    result,
+
+    fallbackAgentId
+
+){
+
+    const response =
+
+        result?.response ||
+
+        result?.resposta ||
+
+        result?.answer ||
+
+        result?.content ||
+
+        "";
+
+
+
+    return {
+
+        response:
+
+            typeof response === "string"
+
+                ? response
+
+                : String(response || ""),
+
+
+
+        agent:
+
+            result?.agent ||
+
+            fallbackAgentId,
+
+
+
+        artifacts:
+
+            normalizeArtifacts(
+
+                result?.artifacts
+
+            ),
+
+
+
+        tools:
+
+            normalizeTools(
+
+                result?.tools ||
+
+                result?.toolResults ||
+
+                result?.toolCalls
+
+            ),
+
+
+
+        routing:
+
+            result?.routing ||
+
+            null,
+
+
+
+        usage:
+
+            result?.usage ||
+
+            null,
+
+
+
+        latency:
+
+            result?.latency ||
+
+            null
+
+    };
 
 }
 
@@ -974,7 +1319,6 @@ export async function processChat(
 
     try{
 
-
         result =
 
             await orchestratorinstance
@@ -1019,11 +1363,9 @@ export async function processChat(
 
                 });
 
-
     }
 
     catch(error){
-
 
         console.error(
 
@@ -1043,22 +1385,26 @@ export async function processChat(
 
     /*
     ------------------------------------------------------
-    EXTRACT RESPONSE
+    NORMALIZE AI RESULT
     ------------------------------------------------------
     */
 
 
+    const aiResult =
+
+        normalizeAIResult(
+
+            result,
+
+            normalizedAgentId
+
+        );
+
+
+
     const answer =
 
-        result?.response ||
-
-        result?.resposta ||
-
-        result?.answer ||
-
-        result?.content ||
-
-        "";
+        aiResult.response;
 
 
 
@@ -1071,7 +1417,7 @@ export async function processChat(
 
     if(
 
-        typeof answer !== "string" ||
+        !answer ||
 
         !answer.trim()
 
@@ -1207,27 +1553,69 @@ export async function processChat(
 
 
 
+        /*
+        ----------------------------------------------
+        AGENT
+        ----------------------------------------------
+        */
+
         agent:
 
-            result?.agent ||
-
-            normalizedAgentId,
+            aiResult.agent,
 
 
+
+        /*
+        ----------------------------------------------
+        ROUTING
+        ----------------------------------------------
+        */
+
+        routing:
+
+            aiResult.routing,
+
+
+
+        /*
+        ----------------------------------------------
+        TOOLS
+        ----------------------------------------------
+        */
+
+        tools:
+
+            aiResult.tools,
+
+
+
+        /*
+        ----------------------------------------------
+        ARTIFACTS
+        ----------------------------------------------
+        */
+
+        artifacts:
+
+            aiResult.artifacts,
+
+
+
+        /*
+        ----------------------------------------------
+        TELEMETRY
+        ----------------------------------------------
+        */
 
         latency:
 
-            result?.latency ||
-
-            null,
+            aiResult.latency,
 
 
 
         usage:
 
-            result?.usage ||
-
-            null
+            aiResult.usage
 
     };
 
@@ -1396,7 +1784,7 @@ export async function processLiveChat(
 
                 normalizedAgentId
 
-            );
+        );
 
 
 
@@ -1535,17 +1923,39 @@ export async function processLiveChat(
                     try{
 
 
+                        const aiResult =
+
+                            normalizeAIResult(
+
+                                {
+
+                                    ...result,
+
+                                    response:
+
+                                        fullResponse ||
+
+                                        result?.response ||
+
+                                        result?.resposta ||
+
+                                        result?.answer ||
+
+                                        result?.content ||
+
+                                        ""
+
+                                },
+
+                                normalizedAgentId
+
+                            );
+
+
+
                         const answer =
 
-                            fullResponse ||
-
-                            result?.response ||
-
-                            result?.resposta ||
-
-                            result?.answer ||
-
-                            "";
+                            aiResult.response;
 
 
 
@@ -1557,7 +1967,7 @@ export async function processLiveChat(
 
                         if(
 
-                            typeof answer === "string" &&
+                            answer &&
 
                             answer.trim()
 
@@ -1591,7 +2001,11 @@ export async function processLiveChat(
 
                             await onComplete({
 
-                                ...result,
+                                success:true,
+
+
+
+                                ...aiResult,
 
 
 
