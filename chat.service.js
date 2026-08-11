@@ -17,7 +17,7 @@ Production Hardened
 */
 
 
-import chat from "./chat.js";
+import chat from "./chat.persistence.js";
 
 import orchestratorinstance from "./orchestrator.js";
 
