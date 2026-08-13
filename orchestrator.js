@@ -2,30 +2,25 @@
 ==========================================
 HONEY IA OS
 ORCHESTRATOR ENGINE
-PRODUCTION V9.0
+PRODUCTION V10.0
 ==========================================
 
-FULL MULTI-AGENT ENGINE
 30 SPECIALIST AGENTS
-SMART AGENT ROUTING
+SMART ROUTING
 FORCED AGENT SELECTION
 PROMPT FACTORY
 GROQ AI
-REAL TOOL CALLING
+ROBUST TOOL CALLING
 MULTI-ROUND TOOL EXECUTION
 ARTIFACT ENGINE
-LIVE STREAMING
+REAL STREAMING
 WORKSPACE CONTEXT
 USER MEMORY
 TELEMETRY
-PRODUCTION ERROR HANDLING
+SECURITY / VALIDATION
+BACKWARD COMPATIBILITY WITH V9
 ==========================================
 */
-
-
-// ==========================================
-// CORE AGENTS
-// ==========================================
 
 import generalagent from "./agents/generalagent.js";
 import architectagent from "./agents/architectagent.js";
@@ -41,11 +36,6 @@ import marketingagent from "./agents/marketingagent.js";
 import salesagent from "./agents/salesagent.js";
 import securityagent from "./agents/securityagent.js";
 import videoagent from "./agents/videoagent.js";
-
-
-// ==========================================
-// ENTERPRISE AGENTS
-// ==========================================
 
 import writeragent from "./agents/writeragent.js";
 import documentagent from "./agents/documentagent.js";
@@ -64,192 +54,153 @@ import accountingagent from "./agents/accountingagent.js";
 import strategistagent from "./agents/strategistagent.js";
 
 
-// ==========================================
-// CENTRAL AGENT REGISTRY
-// ==========================================
-
 const agents_registry = {
 
-    general: generalagent,
+    general:
+        generalagent,
 
-    architect: architectagent,
+    architect:
+        architectagent,
 
-    designer: designeragent,
+    designer:
+        designeragent,
 
-    developer: developeragent,
+    developer:
+        developeragent,
 
-    education: educationagent,
+    education:
+        educationagent,
 
-    excel: excelagent,
+    excel:
+        excelagent,
 
-    finance: financeagent,
+    finance:
+        financeagent,
 
-    healthcare: healthcareagent,
+    healthcare:
+        healthcareagent,
 
-    image: imageagent,
+    image:
+        imageagent,
 
-    legal: legalagent,
+    legal:
+        legalagent,
 
-    marketing: marketingagent,
+    marketing:
+        marketingagent,
 
-    sales: salesagent,
+    sales:
+        salesagent,
 
-    security: securityagent,
+    security:
+        securityagent,
 
-    video: videoagent,
+    video:
+        videoagent,
 
-    writer: writeragent,
+    writer:
+        writeragent,
 
-    document: documentagent,
+    document:
+        documentagent,
 
-    banking: bankingagent,
+    banking:
+        bankingagent,
 
-    entrepreneur: entrepreneuragent,
+    entrepreneur:
+        entrepreneuragent,
 
-    interiordesign: interiordesignagent,
+    interiordesign:
+        interiordesignagent,
 
-    ecommerce: ecommerceagent,
+    ecommerce:
+        ecommerceagent,
 
-    socialmedia: socialmediaagent,
+    socialmedia:
+        socialmediaagent,
 
-    research: researchagent,
+    research:
+        researchagent,
 
-    automation: automationagent,
+    automation:
+        automationagent,
 
-    analytics: analyticsagent,
+    analytics:
+        analyticsagent,
 
-    customer: customeragent,
+    customer:
+        customeragent,
 
-    translation: translationagent,
+    translation:
+        translationagent,
 
-    business: businessagent,
+    business:
+        businessagent,
 
-    accounting: accountingagent,
+    accounting:
+        accountingagent,
 
-    strategist: strategistagent
+    strategist:
+        strategistagent
 
 };
 
 
-// ==========================================
-// CONSTANTS
-// ==========================================
-
 const DEFAULT_AGENT_ID =
     "general";
+
 
 const DEFAULT_MODEL =
     "llama-3.3-70b-versatile";
 
+
 const DEFAULT_TEMPERATURE =
     0.5;
+
 
 const DEFAULT_MAX_TOKENS =
     4096;
 
+
 const DEFAULT_MAX_TOOL_ROUNDS =
     5;
+
 
 const MAX_MESSAGE_LENGTH =
     100000;
 
+
+const MAX_HISTORY_ITEMS =
+    30;
+
+
+const MAX_MEMORY_ITEMS =
+    20;
+
+
 const MAX_ARTIFACTS =
     50;
+
 
 const MAX_TOOL_RESULTS =
     50;
 
 
-// ==========================================
-// AGENT NORMALIZATION
-// ==========================================
-
-Object.entries(
-    agents_registry
-).forEach(
-    ([key, agent]) => {
-
-        if(!agent){
-
-            return;
-
-        }
+const MAX_TOOL_ARGUMENT_LENGTH =
+    50000;
 
 
-        if(!agent.id){
-
-            agent.id =
-                key;
-
-        }
+const MAX_CONTEXT_CONTENT =
+    20000;
 
 
-        if(!agent.name){
-
-            agent.name =
-                `Agente ${key}`;
-
-        }
+const MAX_ROUTER_TEXT =
+    12000;
 
 
-        if(!Array.isArray(agent.tools)){
+const MAX_TOOL_ROUNDS_HARD =
+    10;
 
-            agent.tools = [];
-
-        }
-
-
-        if(!Array.isArray(agent.capabilities)){
-
-            agent.capabilities = [];
-
-        }
-
-
-        if(!Array.isArray(agent.outputTypes)){
-
-            agent.outputTypes = [];
-
-        }
-
-
-        if(!Array.isArray(agent.keywords)){
-
-            agent.keywords = [];
-
-        }
-
-
-        if(!agent.category){
-
-            agent.category =
-                "Tecnologia";
-
-        }
-
-
-        if(!agent.level){
-
-            agent.level =
-                "Professional";
-
-        }
-
-
-        if(!agent.description){
-
-            agent.description =
-                "Especialista profissional Honey IA.";
-
-        }
-
-    }
-);
-
-
-// ==========================================
-// SAFE STRING
-// ==========================================
 
 function safeString(
     value,
@@ -265,7 +216,6 @@ function safeString(
 
     }
 
-
     return String(
         value
     )
@@ -278,9 +228,206 @@ function safeString(
 }
 
 
-// ==========================================
-// AGENT ROUTER
-// ==========================================
+function clamp(
+    value,
+    min,
+    max,
+    fallback
+){
+
+    const number =
+        Number(
+            value
+        );
+
+    if(
+        !Number.isFinite(
+            number
+        )
+    ){
+
+        return fallback;
+
+    }
+
+    return Math.min(
+        max,
+        Math.max(
+            min,
+            number
+        )
+    );
+
+}
+
+
+function normalizeText(
+    value
+){
+
+    return safeString(
+        value,
+        MAX_ROUTER_TEXT
+    )
+        .toLowerCase()
+        .normalize(
+            "NFD"
+        )
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        )
+        .replace(
+            /[^a-z0-9áàâãéêíóôõúçñ\s._-]/gi,
+            " "
+        )
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .trim();
+
+}
+
+
+function normalizeToolName(
+    value
+){
+
+    return safeString(
+        value,
+        100
+    )
+        .toLowerCase();
+
+}
+
+
+function uniqueStrings(
+    values
+){
+
+    return [
+        ...new Set(
+
+            (
+                Array.isArray(
+                    values
+                )
+                    ? values
+                    : []
+            )
+                .map(
+                    value =>
+                        safeString(
+                            value,
+                            200
+                        ).toLowerCase()
+                )
+                .filter(
+                    Boolean
+                )
+
+        )
+    ];
+
+}
+
+
+Object.entries(
+    agents_registry
+).forEach(
+    (
+        [
+            key,
+            agent
+        ]
+    ) => {
+
+        if(!agent){
+
+            return;
+
+        }
+
+        if(!agent.id){
+
+            agent.id =
+                key;
+
+        }
+
+        if(!agent.name){
+
+            agent.name =
+                `Agente ${key}`;
+
+        }
+
+        if(
+            !Array.isArray(
+                agent.tools
+            )
+        ){
+
+            agent.tools = [];
+
+        }
+
+        if(
+            !Array.isArray(
+                agent.capabilities
+            )
+        ){
+
+            agent.capabilities = [];
+
+        }
+
+        if(
+            !Array.isArray(
+                agent.outputTypes
+            )
+        ){
+
+            agent.outputTypes = [];
+
+        }
+
+        if(
+            !Array.isArray(
+                agent.keywords
+            )
+        ){
+
+            agent.keywords = [];
+
+        }
+
+        if(!agent.category){
+
+            agent.category =
+                "Tecnologia";
+
+        }
+
+        if(!agent.level){
+
+            agent.level =
+                "Professional";
+
+        }
+
+        if(!agent.description){
+
+            agent.description =
+                "Especialista profissional Honey IA.";
+
+        }
+
+    }
+);
+
 
 export class agentrouter {
 
@@ -297,7 +444,6 @@ export class agentrouter {
 
         }
 
-
         const normalized =
             agentId
                 .toLowerCase()
@@ -306,7 +452,6 @@ export class agentrouter {
                     0,
                     150
                 );
-
 
         return normalized ||
             null;
@@ -319,22 +464,18 @@ export class agentrouter {
         forcedagentid = null
     ){
 
-        const normalizedForcedId =
+        const forced =
             this.normalizeAgentId(
                 forcedagentid
             );
 
 
-        // ==================================
-        // EXPLICIT AGENT
-        // ==================================
-
         if(
-            normalizedForcedId &&
-            normalizedForcedId !==
+            forced &&
+            forced !==
                 DEFAULT_AGENT_ID &&
             agents_registry[
-                normalizedForcedId
+                forced
             ]
         ){
 
@@ -342,7 +483,7 @@ export class agentrouter {
 
                 agent:
                     agents_registry[
-                        normalizedForcedId
+                        forced
                     ],
 
                 score:
@@ -362,26 +503,12 @@ export class agentrouter {
         }
 
 
-        /*
-        --------------------------------------------------
-        IMPORTANT
-
-        "general" is treated as the default/fallback agent.
-
-        It does NOT count as an explicit specialist choice.
-
-        This allows automatic routing to work correctly when
-        the frontend sends agentId = "general".
-        --------------------------------------------------
-        */
-
-
         if(
-            normalizedForcedId &&
-            normalizedForcedId !==
+            forced &&
+            forced !==
                 DEFAULT_AGENT_ID &&
             !agents_registry[
-                normalizedForcedId
+                forced
             ]
         ){
 
@@ -407,15 +534,10 @@ export class agentrouter {
         }
 
 
-        // ==================================
-        // DEFAULT
-        // ==================================
-
         const text =
-            safeString(
+            normalizeText(
                 usermessage
-            )
-                .toLowerCase();
+            );
 
 
         if(!text){
@@ -445,16 +567,20 @@ export class agentrouter {
         let selected =
             generalagent;
 
+
         let bestScore =
             0;
 
 
-        // ==================================
-        // ANALYZE SPECIALIST AGENTS
-        // ==================================
+        let secondScore =
+            0;
+
 
         for(
-            const [id, agent]
+            const [
+                id,
+                agent
+            ]
             of Object.entries(
                 agents_registry
             )
@@ -462,7 +588,8 @@ export class agentrouter {
 
             if(
                 !agent ||
-                id === DEFAULT_AGENT_ID
+                id ===
+                    DEFAULT_AGENT_ID
             ){
 
                 continue;
@@ -473,10 +600,6 @@ export class agentrouter {
             let score =
                 0;
 
-
-            // --------------------------------
-            // CAN HANDLE
-            // --------------------------------
 
             if(
                 typeof agent.canHandle ===
@@ -492,28 +615,30 @@ export class agentrouter {
 
 
                     if(
-                        result === true
+                        result ===
+                        true
                     ){
 
                         score +=
-                            0.8;
+                            0.75;
 
                     }
 
                     else if(
                         typeof result ===
                         "number" &&
-                        Number.isFinite(result)
+                        Number.isFinite(
+                            result
+                        )
                     ){
 
                         score +=
-                            Math.max(
+                            clamp(
+                                result,
                                 0,
-                                Math.min(
-                                    result,
-                                    1
-                                )
-                            );
+                                1,
+                                0
+                            ) * 0.9;
 
                     }
 
@@ -531,204 +656,156 @@ export class agentrouter {
             }
 
 
-            // --------------------------------
-            // KEYWORDS
-            // --------------------------------
+            const keywords =
+                uniqueStrings(
+                    agent.keywords
+                );
+
+
+            let keywordMatches =
+                0;
+
+
+            for(
+                const keyword
+                of keywords
+            ){
+
+                if(
+                    keyword.length >=
+                        2 &&
+                    text.includes(
+                        normalizeText(
+                            keyword
+                        )
+                    )
+                ){
+
+                    keywordMatches++;
+
+                }
+
+            }
+
+
+            if(keywordMatches){
+
+                score +=
+                    Math.min(
+                        0.55,
+                        keywordMatches *
+                        0.18
+                    );
+
+            }
+
+
+            const agentName =
+                normalizeText(
+                    agent.name
+                );
+
 
             if(
-                Array.isArray(
-                    agent.keywords
+                agentName &&
+                text.includes(
+                    agentName
                 )
             ){
 
-                let keywordMatches =
-                    0;
-
-
-                for(
-                    const keyword
-                    of agent.keywords
-                ){
-
-                    if(
-                        typeof keyword !==
-                        "string"
-                    ){
-
-                        continue;
-
-                    }
-
-
-                    const normalizedKeyword =
-                        keyword
-                            .toLowerCase()
-                            .trim();
-
-
-                    if(
-                        normalizedKeyword &&
-                        text.includes(
-                            normalizedKeyword
-                        )
-                    ){
-
-                        keywordMatches++;
-
-                    }
-
-                }
-
-
-                if(keywordMatches){
-
-                    score +=
-                        Math.min(
-                            0.6,
-                            keywordMatches *
-                            0.2
-                        );
-
-                }
+                score +=
+                    0.15;
 
             }
 
 
-            // --------------------------------
-            // AGENT NAME
-            // --------------------------------
+            const category =
+                normalizeText(
+                    agent.category
+                );
+
 
             if(
-                agent.name
+                category &&
+                text.includes(
+                    category
+                )
             ){
 
-                const agentName =
-                    String(
-                        agent.name
-                    )
-                        .toLowerCase()
-                        .trim();
+                score +=
+                    0.08;
 
+            }
+
+
+            const descriptionWords =
+                normalizeText(
+                    agent.description
+                )
+                    .split(
+                        /\s+/
+                    )
+                    .filter(
+                        word =>
+                            word.length >=
+                            5
+                    )
+                    .slice(
+                        0,
+                        80
+                    );
+
+
+            let descriptionMatches =
+                0;
+
+
+            for(
+                const word
+                of descriptionWords
+            ){
 
                 if(
-                    agentName &&
                     text.includes(
-                        agentName
+                        word
                     )
                 ){
 
-                    score +=
-                        0.15;
+                    descriptionMatches++;
 
                 }
 
             }
 
-
-            // --------------------------------
-            // CATEGORY
-            // --------------------------------
 
             if(
-                agent.category
+                descriptionMatches
             ){
 
-                const category =
-                    String(
-                        agent.category
-                    )
-                        .toLowerCase()
-                        .trim();
-
-
-                if(
-                    category &&
-                    text.includes(
-                        category
-                    )
-                ){
-
-                    score +=
-                        0.1;
-
-                }
+                score +=
+                    Math.min(
+                        0.16,
+                        descriptionMatches *
+                        0.025
+                    );
 
             }
 
 
-            // --------------------------------
-            // DESCRIPTION
-            // --------------------------------
+            score =
+                Math.min(
+                    score,
+                    1
+                );
 
-            if(
-                agent.description
-            ){
-
-                const words =
-                    String(
-                        agent.description
-                    )
-                        .toLowerCase()
-                        .split(
-                            /\s+/
-                        )
-                        .map(
-                            word =>
-                                word.replace(
-                                    /[^a-záàâãéêíóôõúç0-9]/gi,
-                                    ""
-                                )
-                        )
-                        .filter(
-                            word =>
-                                word.length >= 5
-                        );
-
-
-                let matches =
-                    0;
-
-
-                for(
-                    const word
-                    of words
-                ){
-
-                    if(
-                        text.includes(
-                            word
-                        )
-                    ){
-
-                        matches++;
-
-                    }
-
-                }
-
-
-                if(matches){
-
-                    score +=
-                        Math.min(
-                            0.2,
-                            matches *
-                            0.04
-                        );
-
-                }
-
-            }
-
-
-            // --------------------------------
-            // BEST AGENT
-            // --------------------------------
 
             if(
                 score >
                 bestScore
             ){
+
+                secondScore =
+                    bestScore;
 
                 bestScore =
                     score;
@@ -738,15 +815,22 @@ export class agentrouter {
 
             }
 
+            else if(
+                score >
+                secondScore
+            ){
+
+                secondScore =
+                    score;
+
+            }
+
         }
 
 
-        // ==================================
-        // LOW CONFIDENCE
-        // ==================================
-
         if(
-            bestScore < 0.3
+            bestScore <
+            0.30
         ){
 
             return {
@@ -771,12 +855,33 @@ export class agentrouter {
         }
 
 
-        const normalizedScore =
+        const margin =
+            Math.max(
+                0,
+                bestScore -
+                secondScore
+            );
+
+
+        const confidence =
             Number(
-                Math.min(
-                    bestScore,
-                    1
+                clamp(
+                    bestScore *
+                    0.75 +
+                    margin *
+                    0.35,
+                    0,
+                    1,
+                    0
                 ).toFixed(
+                    2
+                )
+            );
+
+
+        const score =
+            Number(
+                bestScore.toFixed(
                     2
                 )
             );
@@ -787,11 +892,9 @@ export class agentrouter {
             agent:
                 selected,
 
-            score:
-                normalizedScore,
+            score,
 
-            confidence:
-                normalizedScore,
+            confidence,
 
             reason:
                 "smart_agent_match",
@@ -803,14 +906,15 @@ export class agentrouter {
 
     }
 
-}
-
-
-// ==========================================
+}// ==========================================
 // PROMPT FACTORY
 // ==========================================
 
 export class promptfactory {
+
+    // ======================================
+    // EXTRACT SYSTEM PROMPT
+    // ======================================
 
     static extractsystemprompt(
         agent
@@ -820,10 +924,14 @@ export class promptfactory {
 
             return `
 Você é a Honey IA,
-uma inteligência artificial profissional.
+uma inteligência artificial profissional empresarial.
 
 Responda de forma clara,
 segura, útil e profissional.
+
+Não invente informações,
+resultados de ferramentas,
+dados externos ou ações que não foram executadas.
 `;
 
         }
@@ -846,7 +954,7 @@ segura, útil e profissional.
                     result.trim()
                 ){
 
-                    return result;
+                    return result.trim();
 
                 }
 
@@ -870,7 +978,7 @@ segura, útil e profissional.
             agent.systemPrompt.trim()
         ){
 
-            return agent.systemPrompt;
+            return agent.systemPrompt.trim();
 
         }
 
@@ -880,18 +988,25 @@ segura, útil e profissional.
                 agent.capabilities
             ) &&
             agent.capabilities.length
-                ? agent.capabilities.join(
-                    "\n- "
-                )
+                ? agent.capabilities
+                    .slice(
+                        0,
+                        50
+                    )
+                    .join(
+                        "\n- "
+                    )
                 : "Fornecer assistência profissional.";
 
 
         return `
-
 Você é ${
     agent.name ||
     "um agente Honey IA"
 }.
+
+Você faz parte da Honey IA,
+uma plataforma empresarial de inteligência artificial.
 
 Especialidade:
 ${
@@ -902,10 +1017,96 @@ ${
 Responsabilidades:
 - ${capabilities}
 
-Responda de forma clara,
-profissional, segura e útil.
+Regras gerais:
 
+- Responda de forma clara.
+- Seja profissional.
+- Seja útil.
+- Seja objetivo quando a tarefa for simples.
+- Seja detalhado quando a tarefa exigir.
+- Não invente informações.
+- Não diga que executou uma ação se ela não foi realmente executada.
+- Quando uma ferramenta estiver disponível e for necessária, utilize-a.
+- Respeite o contexto do workspace.
+- Preserve consistência com informações anteriores.
 `;
+
+    }
+
+
+    // ======================================
+    // SANITIZE WORKSPACE
+    // ======================================
+
+    static sanitizeworkspace(
+        workspaceContext = {}
+    ){
+
+        if(
+            !workspaceContext ||
+            typeof workspaceContext !==
+                "object" ||
+            Array.isArray(
+                workspaceContext
+            )
+        ){
+
+            return {};
+
+        }
+
+
+        return {
+
+            projectName:
+                safeString(
+                    workspaceContext.projectName,
+                    500
+                ),
+
+            activeFile:
+                safeString(
+                    workspaceContext.activeFile,
+                    500
+                ),
+
+            language:
+                safeString(
+                    workspaceContext.language,
+                    300
+                ),
+
+            framework:
+                safeString(
+                    workspaceContext.framework,
+                    300
+                ),
+
+            projectType:
+                safeString(
+                    workspaceContext.projectType,
+                    300
+                ),
+
+            content:
+                safeString(
+                    workspaceContext.content,
+                    MAX_CONTEXT_CONTENT
+                ),
+
+            selectedText:
+                safeString(
+                    workspaceContext.selectedText,
+                    10000
+                ),
+
+            currentPage:
+                safeString(
+                    workspaceContext.currentPage,
+                    500
+                )
+
+        };
 
     }
 
@@ -921,97 +1122,144 @@ profissional, segura e útil.
     ){
 
         let finalPrompt =
-            baseprompt;
+            safeString(
+                baseprompt,
+                MAX_MESSAGE_LENGTH
+            );
 
 
-        if(
-            workspaceContext &&
-            typeof workspaceContext ===
-                "object" &&
-            !Array.isArray(
+        const context =
+            this.sanitizeworkspace(
                 workspaceContext
+            );
+
+
+        const hasContext =
+            Object.values(
+                context
             )
-        ){
-
-            const safeContext = {
-                ...workspaceContext
-            };
-
-
-            const contextKeys =
-                Object.keys(
-                    safeContext
+                .some(
+                    value =>
+                        Boolean(
+                            value
+                        )
                 );
 
 
-            if(contextKeys.length){
+        if(
+            hasContext
+        ){
 
-                finalPrompt += `
+            finalPrompt += `
 
 === CONTEXTO DO WORKSPACE ===
+
+Use este contexto para compreender
+o trabalho atual do utilizador.
+
 `;
 
 
-                if(
-                    safeContext.projectName
-                ){
+            if(
+                context.projectName
+            ){
 
-                    finalPrompt += `
+                finalPrompt += `
 Projeto:
-${safeString(
-    safeContext.projectName,
-    500
-)}
+${context.projectName}
 `;
-
-                }
-
-
-                if(
-                    safeContext.activeFile
-                ){
-
-                    finalPrompt += `
-Ficheiro ativo:
-${safeString(
-    safeContext.activeFile,
-    500
-)}
-`;
-
-                }
-
-
-                if(
-                    safeContext.language
-                ){
-
-                    finalPrompt += `
-Tecnologia:
-${safeString(
-    safeContext.language,
-    300
-)}
-`;
-
-                }
-
-
-                if(
-                    safeContext.content
-                ){
-
-                    finalPrompt += `
-Conteúdo relevante:
-${safeString(
-    safeContext.content,
-    20000
-)}
-`;
-
-                }
 
             }
+
+
+            if(
+                context.projectType
+            ){
+
+                finalPrompt += `
+Tipo de projeto:
+${context.projectType}
+`;
+
+            }
+
+
+            if(
+                context.activeFile
+            ){
+
+                finalPrompt += `
+Ficheiro ativo:
+${context.activeFile}
+`;
+
+            }
+
+
+            if(
+                context.language
+            ){
+
+                finalPrompt += `
+Linguagem:
+${context.language}
+`;
+
+            }
+
+
+            if(
+                context.framework
+            ){
+
+                finalPrompt += `
+Framework:
+${context.framework}
+`;
+
+            }
+
+
+            if(
+                context.currentPage
+            ){
+
+                finalPrompt += `
+Página atual:
+${context.currentPage}
+`;
+
+            }
+
+
+            if(
+                context.selectedText
+            ){
+
+                finalPrompt += `
+Texto selecionado:
+${context.selectedText}
+`;
+
+            }
+
+
+            if(
+                context.content
+            ){
+
+                finalPrompt += `
+Conteúdo relevante:
+${context.content}
+`;
+
+            }
+
+
+            finalPrompt += `
+
+=== FIM DO CONTEXTO DO WORKSPACE ===
+`;
 
         }
 
@@ -1030,13 +1278,19 @@ ${safeString(
             finalPrompt += `
 
 === MEMÓRIA DO UTILIZADOR ===
+
+Use a memória abaixo somente quando
+ela for relevante para a tarefa atual.
+
+Não exponha a memória desnecessariamente.
+
 `;
 
 
             userMemory
                 .slice(
                     0,
-                    20
+                    MAX_MEMORY_ITEMS
                 )
                 .forEach(
                     (
@@ -1090,6 +1344,12 @@ ${index + 1}. ${safeString(
                     }
                 );
 
+
+            finalPrompt += `
+
+=== FIM DA MEMÓRIA ===
+`;
+
         }
 
 
@@ -1107,20 +1367,87 @@ ${index + 1}. ${safeString(
         mode = "chat"
     ){
 
+        const normalizedMode =
+            safeString(
+                mode,
+                50
+            )
+                .toLowerCase();
+
+
         if(
-            mode === "live"
+            normalizedMode ===
+            "live"
         ){
 
             return prompt + `
 
 === MODO LIVE ===
 
+Você está em uma interação em tempo real.
+
+Regras:
+
 - Responda naturalmente.
 - Seja direto.
 - Use frases claras.
-- Evite explicações desnecessariamente longas.
+- Evite explicações excessivamente longas.
 - Mantenha uma conversa fluida.
 - Não repita informações já fornecidas.
+- Priorize respostas rápidas e úteis.
+- Não introduza estruturas complexas quando não forem necessárias.
+`;
+
+        }
+
+
+        if(
+            normalizedMode ===
+            "code"
+        ){
+
+            return prompt + `
+
+=== MODO CODE ===
+
+A tarefa está relacionada com programação.
+
+Regras:
+
+- Analise cuidadosamente o código existente.
+- Preserve compatibilidade.
+- Entregue código funcional.
+- Não omita partes importantes.
+- Considere segurança.
+- Considere desempenho.
+- Considere manutenção.
+- Explique alterações importantes.
+- Quando substituir um ficheiro inteiro for solicitado,
+  entregue o ficheiro completo.
+`;
+
+        }
+
+
+        if(
+            normalizedMode ===
+            "analysis"
+        ){
+
+            return prompt + `
+
+=== MODO ANALYSIS ===
+
+Analise a tarefa de forma estruturada.
+
+Regras:
+
+- Identifique o problema.
+- Separe causas de sintomas.
+- Avalie alternativas.
+- Explique riscos relevantes.
+- Apresente uma solução prática.
+- Evite conclusões sem fundamento.
 `;
 
         }
@@ -1130,11 +1457,15 @@ ${index + 1}. ${safeString(
 
 === MODO CHAT ===
 
+Regras:
+
 - Estruture a resposta.
 - Use Markdown quando necessário.
 - Explique como especialista.
 - Forneça soluções profissionais.
-- Quando criar código, entregue código completo.
+- Seja claro e objetivo.
+- Quando criar código, entregue código completo
+  quando isso for solicitado.
 - Não invente resultados de ferramentas.
 - Quando uma ferramenta estiver disponível e for necessária,
   utilize-a antes de responder.
@@ -1157,6 +1488,20 @@ ${index + 1}. ${safeString(
                 agent?.outputTypes
             )
                 ? agent.outputTypes
+                    .slice(
+                        0,
+                        50
+                    )
+                : [];
+
+
+        const tools =
+            Array.isArray(
+                agent?.tools
+            )
+                ? uniqueStrings(
+                    agent.tools
+                )
                 : [];
 
 
@@ -1168,22 +1513,49 @@ Quando a tarefa exigir um resultado concreto,
 priorize produzir diretamente o conteúdo solicitado.
 
 Tipos de saída suportados:
+
 ${
     outputTypes.length
-        ? outputTypes.join(", ")
+        ? outputTypes.join(
+            ", "
+        )
         : "texto, código, documentos e conteúdo estruturado"
 }
 
+Ferramentas autorizadas para este agente:
+
+${
+    tools.length
+        ? tools.join(
+            ", "
+        )
+        : "nenhuma ferramenta específica"
+}
+
+=== REGRAS DE CÓDIGO ===
+
 Se produzir código:
-- entregue o código completo;
+
+- entregue código completo quando solicitado;
 - não omita partes importantes;
 - preserve consistência entre ficheiros;
+- mantenha imports e exports válidos;
+- evite dependências desnecessárias;
 - use padrões profissionais;
-- considere segurança, desempenho e manutenção.
+- considere segurança;
+- considere desempenho;
+- considere manutenção;
+- não invente APIs inexistentes;
+- não altere funcionalidades sem necessidade.
+
+=== REGRAS DE CONTEÚDO ===
 
 Se produzir conteúdo textual:
+
 - entregue diretamente o resultado;
-- evite comentários desnecessários sobre o processo.
+- evite comentários desnecessários sobre o processo;
+- adapte o nível de detalhe à tarefa;
+- não repita a mesma informação.
 
 === FERRAMENTAS ===
 
@@ -1192,10 +1564,65 @@ Quando uma ferramenta estiver disponível:
 1. Avalie se ela é necessária.
 2. Utilize-a quando a tarefa exigir informação externa,
    processamento ou operação suportada.
-3. Não diga que executou uma ferramenta se ela não foi realmente executada.
+3. Não diga que executou uma ferramenta
+   se ela não foi realmente executada.
 4. Utilize os resultados reais das ferramentas.
-5. Se uma ferramenta falhar, informe a limitação de forma transparente.
+5. Se uma ferramenta falhar,
+   informe a limitação de forma transparente.
 `;
+
+    }
+
+
+    // ======================================
+    // HISTORY NORMALIZATION
+    // ======================================
+
+    static normalizehistory(
+        history = []
+    ){
+
+        if(
+            !Array.isArray(
+                history
+            )
+        ){
+
+            return [];
+
+        }
+
+
+        return history
+            .filter(
+                item =>
+                    item &&
+                    (
+                        item.role ===
+                            "user" ||
+                        item.role ===
+                            "assistant"
+                    ) &&
+                    typeof item.content ===
+                        "string"
+            )
+            .slice(
+                -MAX_HISTORY_ITEMS
+            )
+            .map(
+                item => ({
+
+                    role:
+                        item.role,
+
+                    content:
+                        safeString(
+                            item.content,
+                            MAX_MESSAGE_LENGTH
+                        )
+
+                })
+            );
 
     }
 
@@ -1249,38 +1676,15 @@ Quando uma ferramenta estiver disponível:
 
 
         const formattedHistory =
-            Array.isArray(
+            this.normalizehistory(
                 history
-            )
-                ? history
-                    .filter(
-                        item =>
-                            item &&
-                            (
-                                item.role === "user" ||
-                                item.role === "assistant"
-                            ) &&
-                            typeof item.content ===
-                                "string"
-                    )
-                    .slice(
-                        -30
-                    )
-                    .map(
-                        item => ({
+            );
 
-                            role:
-                                item.role,
 
-                            content:
-                                safeString(
-                                    item.content,
-                                    MAX_MESSAGE_LENGTH
-                                )
-
-                        })
-                    )
-                : [];
+        const normalizedUserPrompt =
+            safeString(
+                userPrompt
+            );
 
 
         return [
@@ -1303,9 +1707,7 @@ Quando uma ferramenta estiver disponível:
                     "user",
 
                 content:
-                    safeString(
-                        userPrompt
-                    )
+                    normalizedUserPrompt
 
             }
 
@@ -1342,18 +1744,9 @@ export class toolorchestrator {
         }
 
 
-        return agent.tools
-            .map(
-                tool =>
-                    String(
-                        tool
-                    )
-                        .toLowerCase()
-                        .trim()
-            )
-            .filter(
-                Boolean
-            );
+        return uniqueStrings(
+            agent.tools
+        );
 
     }
 
@@ -1403,7 +1796,7 @@ export class toolorchestrator {
                         "web_search",
 
                     description:
-                        "Pesquisa informações atualizadas na internet. Use quando a resposta depender de informação externa ou atualizada.",
+                        "Pesquisa informações atualizadas na internet. Use quando a resposta depender de informação externa, atualizada ou verificável.",
 
                     parameters: {
 
@@ -1461,7 +1854,7 @@ export class toolorchestrator {
                         "get_analytics",
 
                     description:
-                        "Obtém métricas disponíveis no contexto do workspace Honey IA.",
+                        "Obtém métricas disponíveis no contexto atual do workspace Honey IA.",
 
                     parameters: {
 
@@ -1537,21 +1930,30 @@ export class toolorchestrator {
                             filename: {
 
                                 type:
-                                    "string"
+                                    "string",
+
+                                description:
+                                    "Nome do ficheiro."
 
                             },
 
                             content: {
 
                                 type:
-                                    "string"
+                                    "string",
+
+                                description:
+                                    "Conteúdo completo do ficheiro."
 
                             },
 
                             language: {
 
                                 type:
-                                    "string"
+                                    "string",
+
+                                description:
+                                    "Linguagem ou formato do conteúdo."
 
                             }
 
@@ -1613,14 +2015,20 @@ export class toolorchestrator {
                             filename: {
 
                                 type:
-                                    "string"
+                                    "string",
+
+                                description:
+                                    "Nome do ficheiro JSON."
 
                             },
 
                             data: {
 
                                 type:
-                                    "object"
+                                    "object",
+
+                                description:
+                                    "Dados JSON do ficheiro."
 
                             }
 
@@ -1776,11 +2184,9 @@ export class toolorchestrator {
 
         const allowedTools =
             permissions[
-                String(
+                normalizeToolName(
                     toolName
                 )
-                    .toLowerCase()
-                    .trim()
             ];
 
 
@@ -1801,6 +2207,92 @@ export class toolorchestrator {
                     permission
                 )
         );
+
+    }
+
+
+    // ======================================
+    // VALIDATE TOOL ARGUMENTS
+    // ======================================
+
+    static validateToolArguments(
+        name,
+        args
+    ){
+
+        if(
+            !args ||
+            typeof args !==
+                "object" ||
+            Array.isArray(
+                args
+            )
+        ){
+
+            return {
+
+                valid:
+                    false,
+
+                error:
+                    "Os argumentos da ferramenta são inválidos."
+
+            };
+
+        }
+
+
+        try{
+
+            const serialized =
+                JSON.stringify(
+                    args
+                );
+
+
+            if(
+                serialized.length >
+                MAX_TOOL_ARGUMENT_LENGTH
+            ){
+
+                return {
+
+                    valid:
+                        false,
+
+                    error:
+                        "Os argumentos da ferramenta excedem o limite permitido."
+
+                };
+
+            }
+
+        }
+
+        catch{
+
+            return {
+
+                valid:
+                    false,
+
+                error:
+                    "Não foi possível validar os argumentos da ferramenta."
+
+            };
+
+        }
+
+
+        return {
+
+            valid:
+                true,
+
+            error:
+                null
+
+        };
 
     }
 
@@ -1833,6 +2325,7 @@ export class toolorchestrator {
 
         const apiKey =
             process.env.WEB_SEARCH_API_KEY;
+
 
         const endpoint =
             process.env.WEB_SEARCH_API_URL;
@@ -2112,11 +2605,6 @@ export class toolorchestrator {
         }
 
 
-        const finalFilename =
-            filename ||
-            "honey-ia-result.txt";
-
-
         return {
 
             success:
@@ -2128,7 +2616,8 @@ export class toolorchestrator {
                     artifactengine.createId(),
 
                 name:
-                    finalFilename,
+                    filename ||
+                    "honey-ia-result.txt",
 
                 type:
                     "text/plain",
@@ -2269,8 +2758,8 @@ export class toolorchestrator {
 
 
         /*
-        --------------------------------------------------
-        Apenas números, operadores e parênteses.
+        Apenas números, operadores,
+        espaços, pontos, vírgulas e parênteses.
 
         Não são permitidos:
         - letras
@@ -2279,7 +2768,6 @@ export class toolorchestrator {
         - acesso a objetos
         - strings
         - código arbitrário
-        --------------------------------------------------
         */
 
         if(
@@ -2296,23 +2784,21 @@ export class toolorchestrator {
 
 
         const normalized =
-            value
-                .replace(
-                    /,/g,
-                    "."
-                );
+            value.replace(
+                /,/g,
+                "."
+            );
 
-
-        /*
-        --------------------------------------------------
-        Validamos novamente o resultado sintático básico.
-        --------------------------------------------------
-        */
 
         let result;
 
 
         try{
+
+            /*
+            A expressão foi validada acima
+            antes da avaliação.
+            */
 
             result =
                 Function(
@@ -2371,11 +2857,9 @@ export class toolorchestrator {
     ){
 
         const normalizedName =
-            safeString(
-                name,
-                100
-            )
-                .toLowerCase();
+            normalizeToolName(
+                name
+            );
 
 
         switch(
@@ -2429,14 +2913,537 @@ export class toolorchestrator {
 
     }
 
-}
-
-
-// ==========================================
+}// ==========================================
 // ARTIFACT ENGINE
 // ==========================================
 
 export class artifactengine {
+
+    // ======================================
+    // CREATE UNIQUE ID
+    // ======================================
+
+    static createId(){
+
+        return (
+            "artifact_" +
+            Date.now() +
+            "_" +
+            Math.random()
+                .toString(36)
+                .slice(2, 10)
+        );
+
+    }
+
+
+    // ======================================
+    // NORMALIZE LANGUAGE
+    // ======================================
+
+    static normalizeLanguage(
+        language = ""
+    ){
+
+        return safeString(
+            language,
+            50
+        )
+            .toLowerCase()
+            .replace(
+                /[^a-z0-9+#.-]/g,
+                ""
+            );
+
+    }
+
+
+    // ======================================
+    // EXTENSION
+    // ======================================
+
+    static extensionFromLanguage(
+        language
+    ){
+
+        const normalized =
+            this.normalizeLanguage(
+                language
+            );
+
+
+        const map = {
+
+            javascript:
+                "js",
+
+            js:
+                "js",
+
+            node:
+                "js",
+
+            nodejs:
+                "js",
+
+            typescript:
+                "ts",
+
+            ts:
+                "ts",
+
+            python:
+                "py",
+
+            py:
+                "py",
+
+            html:
+                "html",
+
+            htm:
+                "html",
+
+            css:
+                "css",
+
+            scss:
+                "scss",
+
+            sass:
+                "sass",
+
+            less:
+                "less",
+
+            json:
+                "json",
+
+            xml:
+                "xml",
+
+            sql:
+                "sql",
+
+            java:
+                "java",
+
+            kotlin:
+                "kt",
+
+            swift:
+                "swift",
+
+            c:
+                "c",
+
+            cpp:
+                "cpp",
+
+            "c++":
+                "cpp",
+
+            csharp:
+                "cs",
+
+            "c#":
+                "cs",
+
+            php:
+                "php",
+
+            ruby:
+                "rb",
+
+            go:
+                "go",
+
+            rust:
+                "rs",
+
+            jsx:
+                "jsx",
+
+            tsx:
+                "tsx",
+
+            vue:
+                "vue",
+
+            svelte:
+                "svelte",
+
+            markdown:
+                "md",
+
+            md:
+                "md",
+
+            yaml:
+                "yaml",
+
+            yml:
+                "yml",
+
+            csv:
+                "csv",
+
+            graphql:
+                "graphql",
+
+            bash:
+                "sh",
+
+            shell:
+                "sh",
+
+            sh:
+                "sh",
+
+            powershell:
+                "ps1",
+
+            dockerfile:
+                "dockerfile",
+
+            text:
+                "txt",
+
+            txt:
+                "txt"
+
+        };
+
+
+        return (
+            map[normalized] ||
+            "txt"
+        );
+
+    }
+
+
+    // ======================================
+    // MIME TYPE
+    // ======================================
+
+    static mimeFromLanguage(
+        language
+    ){
+
+        const normalized =
+            this.normalizeLanguage(
+                language
+            );
+
+
+        const map = {
+
+            javascript:
+                "text/javascript",
+
+            js:
+                "text/javascript",
+
+            node:
+                "text/javascript",
+
+            nodejs:
+                "text/javascript",
+
+            typescript:
+                "text/typescript",
+
+            ts:
+                "text/typescript",
+
+            python:
+                "text/x-python",
+
+            py:
+                "text/x-python",
+
+            html:
+                "text/html",
+
+            htm:
+                "text/html",
+
+            css:
+                "text/css",
+
+            scss:
+                "text/x-scss",
+
+            sass:
+                "text/x-sass",
+
+            less:
+                "text/x-less",
+
+            json:
+                "application/json",
+
+            xml:
+                "application/xml",
+
+            sql:
+                "text/plain",
+
+            java:
+                "text/x-java-source",
+
+            kotlin:
+                "text/plain",
+
+            swift:
+                "text/plain",
+
+            c:
+                "text/plain",
+
+            cpp:
+                "text/plain",
+
+            "c++":
+                "text/plain",
+
+            csharp:
+                "text/plain",
+
+            "c#":
+                "text/plain",
+
+            php:
+                "text/x-php",
+
+            ruby:
+                "text/x-ruby",
+
+            go:
+                "text/x-go",
+
+            rust:
+                "text/x-rust",
+
+            jsx:
+                "text/javascript",
+
+            tsx:
+                "text/typescript",
+
+            vue:
+                "text/plain",
+
+            svelte:
+                "text/plain",
+
+            markdown:
+                "text/markdown",
+
+            md:
+                "text/markdown",
+
+            yaml:
+                "text/yaml",
+
+            yml:
+                "text/yaml",
+
+            csv:
+                "text/csv",
+
+            graphql:
+                "application/graphql",
+
+            bash:
+                "application/x-sh",
+
+            shell:
+                "application/x-sh",
+
+            sh:
+                "application/x-sh",
+
+            powershell:
+                "text/plain",
+
+            dockerfile:
+                "text/plain",
+
+            text:
+                "text/plain",
+
+            txt:
+                "text/plain"
+
+        };
+
+
+        return (
+            map[normalized] ||
+            "text/plain"
+        );
+
+    }
+
+
+    // ======================================
+    // DETERMINE ARTIFACT KIND
+    // ======================================
+
+    static determineKind(
+        language
+    ){
+
+        const normalized =
+            this.normalizeLanguage(
+                language
+            );
+
+
+        if(
+            normalized === "html" ||
+            normalized === "htm" ||
+            normalized === "vue" ||
+            normalized === "svelte"
+        ){
+
+            return "website";
+
+        }
+
+
+        if(
+            normalized === "json"
+        ){
+
+            return "data";
+
+        }
+
+
+        if(
+            normalized === "csv"
+        ){
+
+            return "spreadsheet";
+
+        }
+
+
+        if(
+            normalized === "markdown" ||
+            normalized === "md"
+        ){
+
+            return "document";
+
+        }
+
+
+        if(
+            normalized === "text" ||
+            normalized === "txt"
+        ){
+
+            return "document";
+
+        }
+
+
+        return "code";
+
+    }
+
+
+    // ======================================
+    // CREATE ARTIFACT
+    // ======================================
+
+    static createArtifact({
+
+        filename,
+        content,
+        language = "text",
+        kind = null,
+        mime = null
+    } = {}){
+
+        const safeFilename =
+            safeString(
+                filename ||
+                `honey-ia-result.${this.extensionFromLanguage(language)}`,
+                250
+            );
+
+
+        const safeContent =
+            typeof content ===
+                "string"
+                ? content
+                : String(
+                    content ?? ""
+                );
+
+
+        const normalizedLanguage =
+            this.normalizeLanguage(
+                language ||
+                "text"
+            );
+
+
+        const finalMime =
+            mime ||
+            this.mimeFromLanguage(
+                normalizedLanguage
+            );
+
+
+        return {
+
+            id:
+                this.createId(),
+
+            name:
+                safeFilename,
+
+            filename:
+                safeFilename,
+
+            type:
+                finalMime,
+
+            mime:
+                finalMime,
+
+            kind:
+                kind ||
+                this.determineKind(
+                    normalizedLanguage
+                ),
+
+            language:
+                normalizedLanguage,
+
+            content:
+                safeContent,
+
+            size:
+                safeContent.length,
+
+            createdAt:
+                new Date().toISOString()
+
+        };
+
+    }
+
+
+    // ======================================
+    // EXTRACT CODE BLOCKS
+    // ======================================
 
     static extract(
         response = ""
@@ -2457,7 +3464,7 @@ export class artifactengine {
 
 
         const codeRegex =
-            /```([a-zA-Z0-9_+#.-]*)\s*\n([\s\S]*?)```/g;
+            /```([a-zA-Z0-9_+#.-]*)[ \t]*\r?\n([\s\S]*?)```/g;
 
 
         let match;
@@ -2483,12 +3490,10 @@ export class artifactengine {
 
 
             const language =
-                safeString(
+                this.normalizeLanguage(
                     match[1] ||
-                    "text",
-                    50
-                )
-                    .toLowerCase();
+                    "text"
+                );
 
 
             const content =
@@ -2511,38 +3516,22 @@ export class artifactengine {
                 );
 
 
-            const mime =
-                this.mimeFromLanguage(
+            const artifact =
+                this.createArtifact({
+
+                    filename:
+                        `honey-ia-result.${extension}`,
+
+                    content,
+
                     language
-                );
+
+                });
 
 
-            artifacts.push({
-
-                id:
-                    this.createId(),
-
-                name:
-                    `honey-ia-result.${extension}`,
-
-                type:
-                    mime,
-
-                mime,
-
-                kind:
-                    language === "html"
-                        ? "website"
-                        : "code",
-
-                language,
-
-                content,
-
-                size:
-                    content.length
-
-            });
+            artifacts.push(
+                artifact
+            );
 
         }
 
@@ -2552,197 +3541,202 @@ export class artifactengine {
     }
 
 
-    static extensionFromLanguage(
-        language
+    // ======================================
+    // EXTRACT NAMED FILES
+    // ======================================
+
+    static extractNamedFiles(
+        response = ""
     ){
 
-        const map = {
+        if(
+            typeof response !==
+                "string" ||
+            !response.trim()
+        ){
 
-            javascript:
-                "js",
+            return [];
 
-            js:
-                "js",
-
-            typescript:
-                "ts",
-
-            ts:
-                "ts",
-
-            python:
-                "py",
-
-            py:
-                "py",
-
-            html:
-                "html",
-
-            css:
-                "css",
-
-            json:
-                "json",
-
-            xml:
-                "xml",
-
-            sql:
-                "sql",
-
-            java:
-                "java",
-
-            cpp:
-                "cpp",
-
-            c:
-                "c",
-
-            php:
-                "php",
-
-            jsx:
-                "jsx",
-
-            tsx:
-                "tsx",
-
-            markdown:
-                "md",
-
-            md:
-                "md",
-
-            yaml:
-                "yaml",
-
-            yml:
-                "yml",
-
-            csv:
-                "csv",
-
-            text:
-                "txt",
-
-            txt:
-                "txt"
-
-        };
+        }
 
 
-        return (
-            map[language] ||
-            "txt"
-        );
+        const artifacts = [];
+
+
+        /*
+        --------------------------------------------------
+        Detecta formatos como:
+
+        Ficheiro: index.html
+        Arquivo: style.css
+        File: app.js
+
+        seguido de um bloco de código.
+        --------------------------------------------------
+        */
+
+        const namedRegex =
+            /(?:Ficheiro|Arquivo|Ficheiro de|File)\s*:\s*`?([a-zA-Z0-9_./\\-]+\.[a-zA-Z0-9]+)`?[\s\S]*?```([a-zA-Z0-9_+#.-]*)[ \t]*\r?\n([\s\S]*?)```/gi;
+
+
+        let match;
+
+
+        while(
+            (
+                match =
+                    namedRegex.exec(
+                        response
+                    )
+            ) !== null
+        ){
+
+            if(
+                artifacts.length >=
+                MAX_ARTIFACTS
+            ){
+
+                break;
+
+            }
+
+
+            const filename =
+                safeString(
+                    match[1],
+                    250
+                );
+
+
+            const language =
+                this.normalizeLanguage(
+                    match[2] ||
+                    "text"
+                );
+
+
+            const content =
+                match[3] ||
+                "";
+
+
+            if(
+                !filename ||
+                !content.trim()
+            ){
+
+                continue;
+
+            }
+
+
+            artifacts.push(
+                this.createArtifact({
+
+                    filename,
+
+                    content,
+
+                    language
+
+                })
+            );
+
+        }
+
+
+        return artifacts;
 
     }
 
 
-    static mimeFromLanguage(
-        language
+    // ======================================
+    // MERGE ARTIFACTS
+    // ======================================
+
+    static merge(
+        ...artifactLists
     ){
 
-        const map = {
-
-            javascript:
-                "text/javascript",
-
-            js:
-                "text/javascript",
-
-            typescript:
-                "text/typescript",
-
-            ts:
-                "text/typescript",
-
-            python:
-                "text/x-python",
-
-            py:
-                "text/x-python",
-
-            html:
-                "text/html",
-
-            css:
-                "text/css",
-
-            json:
-                "application/json",
-
-            xml:
-                "application/xml",
-
-            sql:
-                "text/plain",
-
-            java:
-                "text/plain",
-
-            cpp:
-                "text/plain",
-
-            c:
-                "text/plain",
-
-            php:
-                "text/plain",
-
-            jsx:
-                "text/javascript",
-
-            tsx:
-                "text/typescript",
-
-            markdown:
-                "text/markdown",
-
-            md:
-                "text/markdown",
-
-            yaml:
-                "text/yaml",
-
-            yml:
-                "text/yaml",
-
-            csv:
-                "text/csv",
-
-            text:
-                "text/plain",
-
-            txt:
-                "text/plain"
-
-        };
+        const result = [];
 
 
-        return (
-            map[language] ||
-            "text/plain"
-        );
-
-    }
+        const seen =
+            new Set();
 
 
-    static createId(){
+        for(
+            const list
+            of artifactLists
+        ){
 
-        return (
-            "artifact_" +
-            Date.now() +
-            "_" +
-            Math.random()
-                .toString(36)
-                .slice(
-                    2,
-                    9
+            if(
+                !Array.isArray(
+                    list
                 )
-        );
+            ){
+
+                continue;
+
+            }
+
+
+            for(
+                const artifact
+                of list
+            ){
+
+                if(
+                    !artifact ||
+                    typeof artifact !==
+                        "object"
+                ){
+
+                    continue;
+
+                }
+
+
+                const key =
+                    `${artifact.name || ""}:${artifact.content || ""}`;
+
+
+                if(
+                    seen.has(
+                        key
+                    )
+                ){
+
+                    continue;
+
+                }
+
+
+                seen.add(
+                    key
+                );
+
+
+                result.push(
+                    artifact
+                );
+
+
+                if(
+                    result.length >=
+                    MAX_ARTIFACTS
+                ){
+
+                    return result;
+
+                }
+
+            }
+
+        }
+
+
+        return result;
 
     }
 
@@ -2750,13 +3744,190 @@ export class artifactengine {
 
 
 // ==========================================
-// ORCHESTRATOR MAIN ENGINE
+// TELEMETRY ENGINE
+// ==========================================
+
+export class telemetryengine {
+
+    constructor(){
+
+        this.events = [];
+
+        this.maxEvents =
+            500;
+
+    }
+
+
+    // ======================================
+    // RECORD EVENT
+    // ======================================
+
+    record(
+        type,
+        data = {}
+    ){
+
+        const event = {
+
+            id:
+                artifactengine.createId(),
+
+            type:
+                safeString(
+                    type,
+                    100
+                ),
+
+            timestamp:
+                Date.now(),
+
+            data:
+                data &&
+                typeof data ===
+                    "object"
+                    ? data
+                    : {}
+
+        };
+
+
+        this.events.push(
+            event
+        );
+
+
+        if(
+            this.events.length >
+            this.maxEvents
+        ){
+
+            this.events =
+                this.events.slice(
+                    -this.maxEvents
+                );
+
+        }
+
+
+        return event;
+
+    }
+
+
+    // ======================================
+    // GET EVENTS
+    // ======================================
+
+    getEvents(){
+
+        return [
+            ...this.events
+        ];
+
+    }
+
+
+    // ======================================
+    // CLEAR
+    // ======================================
+
+    clear(){
+
+        this.events = [];
+
+    }
+
+
+    // ======================================
+    // SUMMARY
+    // ======================================
+
+    summary(){
+
+        const summary = {
+
+            total:
+                this.events.length,
+
+            successful:
+                0,
+
+            failed:
+                0,
+
+            tools:
+                0,
+
+            requests:
+                0
+
+        };
+
+
+        for(
+            const event
+            of this.events
+        ){
+
+            if(
+                event.type ===
+                "request_completed"
+            ){
+
+                summary.requests++;
+
+            }
+
+
+            if(
+                event.type ===
+                "tool_executed"
+            ){
+
+                summary.tools++;
+
+            }
+
+
+            if(
+                event.data?.success ===
+                true
+            ){
+
+                summary.successful++;
+
+            }
+
+
+            if(
+                event.data?.success ===
+                false
+            ){
+
+                summary.failed++;
+
+            }
+
+        }
+
+
+        return summary;
+
+    }
+
+}
+
+
+// ==========================================
+// ORCHESTRATOR MAIN ENGINE V10
 // ==========================================
 
 export class Orchestrator {
 
     constructor(
-        groqClient = null
+        groqClient = null,
+        options = {}
     ){
 
         this.groq =
@@ -2764,10 +3935,32 @@ export class Orchestrator {
 
 
         this.maxToolRounds =
-            DEFAULT_MAX_TOOL_ROUNDS;
+            Number.isInteger(
+                options.maxToolRounds
+            )
+                ? Math.max(
+                    1,
+                    Math.min(
+                        options.maxToolRounds,
+                        10
+                    )
+                )
+                : DEFAULT_MAX_TOOL_ROUNDS;
+
+
+        this.telemetry =
+            new telemetryengine();
+
+
+        this.version =
+            "10.0.0";
 
     }
 
+
+    // ======================================
+    // SET GROQ CLIENT
+    // ======================================
 
     setGroqClient(
         client
@@ -2775,6 +3968,37 @@ export class Orchestrator {
 
         this.groq =
             client;
+
+        return this;
+
+    }
+
+
+    // ======================================
+    // SET TOOL ROUND LIMIT
+    // ======================================
+
+    setMaxToolRounds(
+        value
+    ){
+
+        if(
+            Number.isInteger(
+                value
+            )
+        ){
+
+            this.maxToolRounds =
+                Math.max(
+                    1,
+                    Math.min(
+                        value,
+                        10
+                    )
+                );
+
+        }
+
 
         return this;
 
@@ -2793,9 +4017,37 @@ export class Orchestrator {
 
         tools,
 
-        stream = false
+        stream = false,
+
+        temperature = null,
+
+        maxTokens = null
 
     }){
+
+        const finalTemperature =
+            Number.isFinite(
+                temperature
+            )
+                ? temperature
+                : Number.isFinite(
+                    agent?.temperature
+                )
+                    ? agent.temperature
+                    : DEFAULT_TEMPERATURE;
+
+
+        const finalMaxTokens =
+            Number.isFinite(
+                maxTokens
+            )
+                ? maxTokens
+                : Number.isFinite(
+                    agent?.maxTokens
+                )
+                    ? agent.maxTokens
+                    : DEFAULT_MAX_TOKENS;
+
 
         const payload = {
 
@@ -2806,29 +4058,24 @@ export class Orchestrator {
             messages,
 
             temperature:
-                Number.isFinite(
-                    agent?.temperature
-                )
-                    ? agent.temperature
-                    : DEFAULT_TEMPERATURE,
+                finalTemperature,
 
             max_tokens:
-                Number.isFinite(
-                    agent?.maxTokens
-                )
-                    ? agent.maxTokens
-                    : DEFAULT_MAX_TOKENS
+                finalMaxTokens
 
         };
 
 
         if(
-            Array.isArray(tools) &&
+            Array.isArray(
+                tools
+            ) &&
             tools.length
         ){
 
             payload.tools =
                 tools;
+
 
             payload.tool_choice =
                 "auto";
@@ -2836,7 +4083,9 @@ export class Orchestrator {
         }
 
 
-        if(stream){
+        if(
+            stream
+        ){
 
             payload.stream =
                 true;
@@ -2856,7 +4105,7 @@ export class Orchestrator {
     async executeToolCalls(
         toolCalls,
         agent,
-        context
+        context = {}
     ){
 
         const results = [];
@@ -2903,6 +4152,10 @@ export class Orchestrator {
             let args = {};
 
 
+            // ==================================
+            // PARSE ARGUMENTS
+            // ==================================
+
             try{
 
                 if(
@@ -2921,7 +4174,7 @@ export class Orchestrator {
 
             }
 
-            catch{
+            catch(error){
 
                 results.push({
 
@@ -2938,6 +4191,23 @@ export class Orchestrator {
                         "Argumentos da ferramenta inválidos."
 
                 });
+
+
+                this.telemetry.record(
+                    "tool_executed",
+                    {
+
+                        name,
+
+                        success:
+                            false,
+
+                        error:
+                            "invalid_arguments"
+
+                    }
+                );
+
 
                 continue;
 
@@ -2959,7 +4229,7 @@ export class Orchestrator {
 
 
             // ==================================
-            // PERMISSION CHECK
+            // PERMISSION
             // ==================================
 
             if(
@@ -2984,6 +4254,23 @@ export class Orchestrator {
                         "O agente não possui autorização para utilizar esta ferramenta."
 
                 });
+
+
+                this.telemetry.record(
+                    "tool_executed",
+                    {
+
+                        name,
+
+                        success:
+                            false,
+
+                        error:
+                            "permission_denied"
+
+                    }
+                );
+
 
                 continue;
 
@@ -3020,14 +4307,32 @@ export class Orchestrator {
 
                 });
 
+
+                this.telemetry.record(
+                    "tool_executed",
+                    {
+
+                        name,
+
+                        success:
+                            true
+
+                    }
+                );
+
             }
 
             catch(error){
 
                 console.error(
-                    `[Tool Error] ${name}:`,
+                    `[Honey IA Tool Error] ${name}:`,
                     error
                 );
+
+
+                const message =
+                    error?.message ||
+                    "Erro ao executar ferramenta.";
 
 
                 results.push({
@@ -3042,10 +4347,25 @@ export class Orchestrator {
                         false,
 
                     error:
-                        error?.message ||
-                        "Erro ao executar ferramenta."
+                        message
 
                 });
+
+
+                this.telemetry.record(
+                    "tool_executed",
+                    {
+
+                        name,
+
+                        success:
+                            false,
+
+                        error:
+                            message
+
+                    }
+                );
 
             }
 
@@ -3085,15 +4405,12 @@ export class Orchestrator {
             of toolResults
         ){
 
-            messages.push({
+            let content;
 
-                role:
-                    "tool",
 
-                tool_call_id:
-                    item.toolCallId,
+            try{
 
-                content:
+                content =
                     JSON.stringify(
                         item.success
                             ? item.result
@@ -3106,7 +4423,35 @@ export class Orchestrator {
                                     item.error
 
                             }
-                    )
+                    );
+
+            }
+
+            catch{
+
+                content =
+                    JSON.stringify({
+
+                        success:
+                            false,
+
+                        error:
+                            "Resultado da ferramenta não pôde ser serializado."
+
+                    });
+
+            }
+
+
+            messages.push({
+
+                role:
+                    "tool",
+
+                tool_call_id:
+                    item.toolCallId,
+
+                content
 
             });
 
@@ -3186,6 +4531,94 @@ export class Orchestrator {
 
 
     // ======================================
+    // FINALIZE ARTIFACTS
+    // ======================================
+
+    finalizeArtifacts(
+        generatedArtifacts,
+        finalResponse
+    ){
+
+        const extractedArtifacts =
+            artifactengine.extract(
+                finalResponse
+            );
+
+
+        const namedArtifacts =
+            artifactengine.extractNamedFiles(
+                finalResponse
+            );
+
+
+        return artifactengine.merge(
+            generatedArtifacts,
+            namedArtifacts,
+            extractedArtifacts
+        ).slice(
+            0,
+            MAX_ARTIFACTS
+        );
+
+    }
+
+
+    // ======================================
+    // POST PROCESS RESPONSE
+    // ======================================
+
+    async postProcessResponse(
+        agent,
+        response
+    ){
+
+        if(
+            !agent ||
+            typeof agent.after !==
+                "function"
+        ){
+
+            return response;
+
+        }
+
+
+        try{
+
+            const processed =
+                await agent.after(
+                    response
+                );
+
+
+            if(
+                typeof processed ===
+                    "string" &&
+                processed.trim()
+            ){
+
+                return processed;
+
+            }
+
+        }
+
+        catch(error){
+
+            console.warn(
+                "[Honey IA Post Processor Error]:",
+                error?.message
+            );
+
+        }
+
+
+        return response;
+
+    }
+
+
+    // ======================================
     // PROCESS REQUEST
     // ======================================
 
@@ -3203,21 +4636,76 @@ export class Orchestrator {
 
         mode = "chat"
 
-    }){
+    } = {}){
 
         const start =
             Date.now();
 
 
+        // ==================================
+        // INPUT VALIDATION
+        // ==================================
+
+        const normalizedPrompt =
+            safeString(
+                userPrompt
+            );
+
+
+        if(
+            !normalizedPrompt
+        ){
+
+            return {
+
+                success:
+                    false,
+
+                error:
+                    "O pedido do utilizador está vazio.",
+
+                response:
+                    "",
+
+                artifacts:
+                    [],
+
+                tools:
+                    []
+
+            };
+
+        }
+
+
+        // ==================================
+        // ROUTING
+        // ==================================
+
         const selection =
             agentrouter.selectagent(
-                userPrompt,
+                normalizedPrompt,
                 agentId
             );
 
 
         const agent =
-            selection.agent;
+            selection.agent ||
+            generalagent;
+
+
+        this.telemetry.record(
+            "request_started",
+            {
+
+                agent:
+                    agent.id,
+
+                routing:
+                    selection
+
+            }
+        );
 
 
         try{
@@ -3231,13 +4719,18 @@ export class Orchestrator {
             }
 
 
+            // ==================================
+            // BUILD MESSAGES
+            // ==================================
+
             const messages =
                 promptfactory
                     .buildmessagespayload({
 
                         agent,
 
-                        userPrompt,
+                        userPrompt:
+                            normalizedPrompt,
 
                         history,
 
@@ -3249,6 +4742,10 @@ export class Orchestrator {
 
                     });
 
+
+            // ==================================
+            // TOOLS
+            // ==================================
 
             const tools =
                 toolorchestrator
@@ -3344,7 +4841,7 @@ export class Orchestrator {
 
 
                 // ==================================
-                // FINAL RESPONSE
+                // FINAL ANSWER
                 // ==================================
 
                 if(
@@ -3356,6 +4853,7 @@ export class Orchestrator {
                             "string"
                             ? message.content
                             : "";
+
 
                     break;
 
@@ -3416,7 +4914,7 @@ export class Orchestrator {
 
 
             // ==================================
-            // FINAL RESPONSE
+            // FALLBACK
             // ==================================
 
             if(
@@ -3431,70 +4929,28 @@ export class Orchestrator {
 
 
             // ==================================
-            // AGENT POST PROCESSOR
+            // POST PROCESS
             // ==================================
 
-            if(
-                typeof agent.after ===
-                "function"
-            ){
-
-                try{
-
-                    const processed =
-                        await agent.after(
-                            finalResponse
-                        );
-
-
-                    if(
-                        typeof processed ===
-                        "string" &&
-                        processed.trim()
-                    ){
-
-                        finalResponse =
-                            processed;
-
-                    }
-
-                }
-
-                catch(error){
-
-                    console.warn(
-                        "[Agent Post Processor Error]:",
-                        error?.message
-                    );
-
-                }
-
-            }
-
-
-            // ==================================
-            // RESPONSE ARTIFACTS
-            // ==================================
-
-            const extractedArtifacts =
-                artifactengine.extract(
+            finalResponse =
+                await this.postProcessResponse(
+                    agent,
                     finalResponse
                 );
 
 
-            const artifacts = [
+            // ==================================
+            // ARTIFACTS
+            // ==================================
 
-                ...generatedArtifacts,
-
-                ...extractedArtifacts
-
-            ].slice(
-                0,
-                MAX_ARTIFACTS
-            );
+            const artifacts =
+                this.finalizeArtifacts(
+                    generatedArtifacts,
+                    finalResponse
+                );
 
 
-            return {
+            const result = {
 
                 success:
                     true,
@@ -3543,21 +4999,57 @@ export class Orchestrator {
 
                 latency:
                     Date.now() -
-                    start
+                    start,
+
+                engine: {
+
+                    name:
+                        "Honey IA Orchestrator",
+
+                    version:
+                        this.version
+
+                }
 
             };
+
+
+            this.telemetry.record(
+                "request_completed",
+                {
+
+                    success:
+                        true,
+
+                    agent:
+                        agent.id,
+
+                    latency:
+                        result.latency,
+
+                    tools:
+                        executedTools.length,
+
+                    artifacts:
+                        artifacts.length
+
+                }
+            );
+
+
+            return result;
 
         }
 
         catch(error){
 
             console.error(
-                "[Orchestrator Error]",
+                "[Honey IA Orchestrator Error]",
                 error
             );
 
 
-            return {
+            const result = {
 
                 success:
                     false,
@@ -3612,9 +5104,43 @@ export class Orchestrator {
 
                 latency:
                     Date.now() -
-                    start
+                    start,
+
+                engine: {
+
+                    name:
+                        "Honey IA Orchestrator",
+
+                    version:
+                        this.version
+
+                }
 
             };
+
+
+            this.telemetry.record(
+                "request_completed",
+                {
+
+                    success:
+                        false,
+
+                    agent:
+                        agent?.id ||
+                        DEFAULT_AGENT_ID,
+
+                    latency:
+                        result.latency,
+
+                    error:
+                        result.error
+
+                }
+            );
+
+
+            return result;
 
         }
 
@@ -3645,21 +5171,55 @@ export class Orchestrator {
 
         onError
 
-    }){
+    } = {}){
 
         const start =
             Date.now();
 
 
+        const normalizedPrompt =
+            safeString(
+                userPrompt
+            );
+
+
+        if(
+            !normalizedPrompt
+        ){
+
+            const error =
+                new Error(
+                    "O pedido do utilizador está vazio."
+                );
+
+
+            if(
+                typeof onError ===
+                "function"
+            ){
+
+                await onError(
+                    error
+                );
+
+            }
+
+
+            throw error;
+
+        }
+
+
         const selection =
             agentrouter.selectagent(
-                userPrompt,
+                normalizedPrompt,
                 agentId
             );
 
 
         const agent =
-            selection.agent;
+            selection.agent ||
+            generalagent;
 
 
         try{
@@ -3679,7 +5239,8 @@ export class Orchestrator {
 
                         agent,
 
-                        userPrompt,
+                        userPrompt:
+                            normalizedPrompt,
 
                         history,
 
@@ -3724,7 +5285,7 @@ export class Orchestrator {
 
 
             // ==================================
-            // TOOL DISCOVERY LOOP
+            // TOOL DISCOVERY
             // ==================================
 
             for(
@@ -3733,19 +5294,6 @@ export class Orchestrator {
                     this.maxToolRounds;
                 round++
             ){
-
-                /*
-                ------------------------------------------------
-                Fazemos uma chamada normal para permitir que o
-                modelo determine se necessita de uma ferramenta.
-
-                Quando existem tools, o resultado é processado
-                e devolvido ao modelo.
-
-                Quando já não existem tools, fazemos UMA chamada
-                de streaming para produzir a resposta final.
-                ------------------------------------------------
-                */
 
                 const completion =
                     await this.groq
@@ -3798,27 +5346,12 @@ export class Orchestrator {
 
 
                 // ==================================
-                // NO MORE TOOLS
+                // FINAL RESPONSE
                 // ==================================
 
                 if(
                     !toolCalls.length
                 ){
-
-                    /*
-                    ------------------------------------------------
-                    A resposta desta chamada já é válida.
-
-                    Para streaming verdadeiro, precisamos de evitar
-                    uma segunda geração do mesmo conteúdo.
-
-                    Portanto, quando o modelo já respondeu sem tool,
-                    entregamos a resposta diretamente.
-
-                    Isto mantém consistência e evita duplicação
-                    de tokens.
-                    ------------------------------------------------
-                    */
 
                     finalResponse =
                         typeof message.content ===
@@ -3834,9 +5367,14 @@ export class Orchestrator {
                     ){
 
                         /*
-                        Entrega em pequenos blocos para manter
-                        compatibilidade com qualquer frontend que
-                        espere múltiplos chunks.
+                        ------------------------------------------
+                        O resultado final desta etapa já foi
+                        produzido pelo Groq.
+
+                        Dividimos a resposta em chunks para que
+                        o frontend possa apresentar uma experiência
+                        de streaming sem gerar a resposta duas vezes.
+                        ------------------------------------------
                         */
 
                         const chunkSize =
@@ -3927,7 +5465,7 @@ export class Orchestrator {
 
 
             // ==================================
-            // FINAL RESPONSE VALIDATION
+            // VALIDATE RESPONSE
             // ==================================
 
             if(
@@ -3942,71 +5480,29 @@ export class Orchestrator {
 
 
             // ==================================
-            // POST PROCESSOR
+            // POST PROCESS
             // ==================================
 
-            if(
-                typeof agent.after ===
-                "function"
-            ){
-
-                try{
-
-                    const processed =
-                        await agent.after(
-                            finalResponse
-                        );
-
-
-                    if(
-                        typeof processed ===
-                        "string" &&
-                        processed.trim()
-                    ){
-
-                        finalResponse =
-                            processed;
-
-                    }
-
-                }
-
-                catch(error){
-
-                    console.warn(
-                        "[Agent Post Processor Error]:",
-                        error?.message
-                    );
-
-                }
-
-            }
+            finalResponse =
+                await this.postProcessResponse(
+                    agent,
+                    finalResponse
+                );
 
 
             // ==================================
             // ARTIFACTS
             // ==================================
 
-            const extractedArtifacts =
-                artifactengine.extract(
+            const artifacts =
+                this.finalizeArtifacts(
+                    generatedArtifacts,
                     finalResponse
                 );
 
 
-            const artifacts = [
-
-                ...generatedArtifacts,
-
-                ...extractedArtifacts
-
-            ].slice(
-                0,
-                MAX_ARTIFACTS
-            );
-
-
             // ==================================
-            // FINAL RESULT
+            // RESULT
             // ==================================
 
             const result = {
@@ -4057,10 +5553,47 @@ export class Orchestrator {
 
                 latency:
                     Date.now() -
-                    start
+                    start,
+
+                engine: {
+
+                    name:
+                        "Honey IA Orchestrator",
+
+                    version:
+                        this.version
+
+                }
 
             };
 
+
+            this.telemetry.record(
+                "request_completed",
+                {
+
+                    success:
+                        true,
+
+                    agent:
+                        agent.id,
+
+                    latency:
+                        result.latency,
+
+                    tools:
+                        executedTools.length,
+
+                    artifacts:
+                        artifacts.length
+
+                }
+            );
+
+
+            // ==================================
+            // COMPLETE CALLBACK
+            // ==================================
 
             if(
                 typeof onComplete ===
@@ -4081,8 +5614,30 @@ export class Orchestrator {
         catch(error){
 
             console.error(
-                "[Orchestrator Stream Error]",
+                "[Honey IA Orchestrator Stream Error]",
                 error
+            );
+
+
+            this.telemetry.record(
+                "request_completed",
+                {
+
+                    success:
+                        false,
+
+                    agent:
+                        agent?.id ||
+                        DEFAULT_AGENT_ID,
+
+                    latency:
+                        Date.now() -
+                        start,
+
+                    error:
+                        error?.message
+
+                }
             );
 
 
@@ -4106,7 +5661,7 @@ export class Orchestrator {
 
 
     // ======================================
-    // TELEMETRY
+    // GET TELEMETRY
     // ======================================
 
     getTelemetry(){
@@ -4120,7 +5675,7 @@ export class Orchestrator {
                 "Honey IA Orchestrator Production",
 
             version:
-                "9.0.0",
+                this.version,
 
             agents:
                 Object.keys(
@@ -4167,8 +5722,122 @@ export class Orchestrator {
             liveProcessing:
                 true,
 
+            telemetry:
+                true,
+
             maxToolRounds:
                 this.maxToolRounds,
+
+            timestamp:
+                Date.now()
+
+        };
+
+    }
+
+
+    // ======================================
+    // GET TELEMETRY SUMMARY
+    // ======================================
+
+    getTelemetrySummary(){
+
+        return this.telemetry.summary();
+
+    }
+
+
+    // ======================================
+    // GET AGENTS
+    // ======================================
+
+    getAgents(){
+
+        return Object.entries(
+            agents_registry
+        ).map(
+            ([id, agent]) => ({
+
+                id,
+
+                name:
+                    agent?.name ||
+                    `Agente ${id}`,
+
+                emoji:
+                    agent?.emoji ||
+                    "🤖",
+
+                category:
+                    agent?.category ||
+                    "Tecnologia",
+
+                level:
+                    agent?.level ||
+                    "Professional",
+
+                description:
+                    agent?.description ||
+                    "",
+
+                capabilities:
+                    Array.isArray(
+                        agent?.capabilities
+                    )
+                        ? agent.capabilities
+                        : [],
+
+                tools:
+                    Array.isArray(
+                        agent?.tools
+                    )
+                        ? agent.tools
+                        : [],
+
+                outputTypes:
+                    Array.isArray(
+                        agent?.outputTypes
+                    )
+                        ? agent.outputTypes
+                        : []
+
+            })
+        );
+
+    }
+
+
+    // ======================================
+    // HEALTH CHECK
+    // ======================================
+
+    health(){
+
+        return {
+
+            status:
+                this.groq
+                    ? "healthy"
+                    : "degraded",
+
+            engine:
+                "Honey IA Orchestrator",
+
+            version:
+                this.version,
+
+            groq:
+                Boolean(
+                    this.groq
+                ),
+
+            agents:
+                Object.keys(
+                    agents_registry
+                ).length,
+
+            tools:
+                5,
 
             timestamp:
                 Date.now()
@@ -4181,7 +5850,7 @@ export class Orchestrator {
 
 
 // ==========================================
-// CREATE INSTANCE
+// CREATE ORCHESTRATOR INSTANCE
 // ==========================================
 
 const orchestratorinstance =
@@ -4189,7 +5858,7 @@ const orchestratorinstance =
 
 
 // ==========================================
-// EXPORTS
+// EXPORT REGISTRY
 // ==========================================
 
 export {
@@ -4198,5 +5867,9 @@ export {
 
 };
 
+
+// ==========================================
+// DEFAULT EXPORT
+// ==========================================
 
 export default orchestratorinstance;
