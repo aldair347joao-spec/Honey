@@ -2,12 +2,13 @@
 ==========================================================
 HONEY IA OS
 FRONTEND CHAT ENGINE
-V2.0
-PRODUCTION CHAT INTERFACE
+V3.0
+PRODUCTION AI STUDIO CHAT ENGINE
 
 JWT Authentication
 MongoDB Persistent Conversations
-Conversation History
+Unlimited Persistent Conversation History
+Smart Backend Context Management
 Markdown Rendering
 Code Highlighting
 Live SSE
@@ -19,6 +20,7 @@ User Profile
 Subscription Awareness
 Production Error Handling
 Secure Rendering
+Groq + Gemini Backend Compatible
 ==========================================================
 */
 
@@ -37,9 +39,21 @@ const DEFAULT_AGENT = "general";
 
 const DEFAULT_MODE = "chat";
 
-const DEFAULT_HISTORY_LIMIT = 100;
+/*
+==========================================================
+IMPORTANT
 
-const SEND_HISTORY_LIMIT = 20;
+Não existe limite artificial de quantidade ou idade
+do histórico neste frontend.
+
+O backend/orchestrator é responsável por decidir quanto
+do histórico persistente deve ser enviado ao modelo,
+através de mecanismos inteligentes de contexto,
+compactação ou seleção de mensagens.
+
+O histórico MongoDB continua persistente.
+==========================================================
+*/
 
 const MAX_MESSAGE_LENGTH = 50000;
 
@@ -47,7 +61,9 @@ const MAX_FILE_SIZE = 1024 * 1024;
 
 const SSE_BUFFER_LIMIT = 1024 * 1024;
 
+
 const SUPPORTED_TEXT_EXTENSIONS = [
+
     "txt",
     "md",
     "markdown",
@@ -72,6 +88,7 @@ const SUPPORTED_TEXT_EXTENSIONS = [
     "sh",
     "yaml",
     "yml"
+
 ];
 
 
@@ -279,7 +296,8 @@ AUTHENTICATION
 
 async function initializeAuthenticatedChat(){
 
-    const token = getAuthToken();
+    const token =
+        getAuthToken();
 
     if(!token){
 
@@ -385,7 +403,8 @@ async function apiRequest(
     options = {}
 ){
 
-    const token = getAuthToken();
+    const token =
+        getAuthToken();
 
     const headers = {
 
@@ -417,14 +436,15 @@ async function apiRequest(
 
     try{
 
-        response = await fetch(
-            `${API_BASE}${endpoint}`,
-            {
-                ...options,
-                headers,
-                credentials: "include"
-            }
-        );
+        response =
+            await fetch(
+                `${API_BASE}${endpoint}`,
+                {
+                    ...options,
+                    headers,
+                    credentials: "include"
+                }
+            );
 
     }
     catch(error){
@@ -434,7 +454,8 @@ async function apiRequest(
                 "Não foi possível contactar o servidor da Honey IA."
             );
 
-        networkError.cause = error;
+        networkError.cause =
+            error;
 
         throw networkError;
 
@@ -447,7 +468,8 @@ async function apiRequest(
                 "Sessão expirada."
             );
 
-        error.status = 401;
+        error.status =
+            401;
 
         throw error;
 
@@ -457,7 +479,8 @@ async function apiRequest(
 
     try{
 
-        data = await response.json();
+        data =
+            await response.json();
 
     }
     catch(error){
@@ -692,7 +715,9 @@ function setupChatControls(){
 
             createNewConversation();
 
-            activateWorkspace("chat");
+            activateWorkspace(
+                "chat"
+            );
 
         }
     );
@@ -767,7 +792,8 @@ function setupSuggestions(){
                 () => {
 
                     const prompt =
-                        button.dataset.prompt || "";
+                        button.dataset.prompt ||
+                        "";
 
                     if(!prompt){
 
@@ -868,11 +894,24 @@ CONVERSATIONS
 ==========================================================
 */
 
+/*
+Não usamos:
+
+    ?limit=100
+
+O backend é responsável por devolver o histórico
+persistente disponível para o utilizador.
+
+Se no futuro for necessário paginação para uma UI
+com milhões de conversas, isso poderá ser implementado
+separadamente sem criar um limite temporal.
+*/
+
 async function loadConversations(){
 
     const data =
         await apiRequest(
-            "/conversations?limit=100"
+            "/conversations"
         );
 
     state.conversations =
@@ -967,6 +1006,7 @@ async function createNewConversation(
                 "/conversations",
                 {
                     method: "POST",
+
                     body: JSON.stringify({
 
                         agentId:
@@ -979,6 +1019,7 @@ async function createNewConversation(
                             "Nova Conversa"
 
                     })
+
                 }
             );
 
@@ -1074,11 +1115,15 @@ async function openConversation(
 
     try{
 
+        /*
+        Sem limite artificial de histórico.
+        */
+
         const data =
             await apiRequest(
                 `/conversations/${encodeURIComponent(
                     conversationId
-                )}?limit=${DEFAULT_HISTORY_LIMIT}`
+                )}`
             );
 
         if(!data?.conversation){
@@ -1267,15 +1312,19 @@ async function sendMessage(
 
     state.isSending = true;
 
-    setSendingState(true);
+    setSendingState(
+        true
+    );
 
     hideWelcome();
 
     const userMessage = {
 
-        role: "user",
+        role:
+            "user",
 
-        content: prompt,
+        content:
+            prompt,
 
         createdAt:
             new Date().toISOString()
@@ -1298,11 +1347,15 @@ async function sendMessage(
     state.currentAssistantElement =
         assistantElement;
 
-    state.currentAssistantContent = "";
+    state.currentAssistantContent =
+        "";
 
     try{
 
-        if(state.currentMode === "live"){
+        if(
+            state.currentMode ===
+            "live"
+        ){
 
             await sendLiveMessage(
                 prompt,
@@ -1345,17 +1398,24 @@ async function sendMessage(
     }
     finally{
 
-        state.isSending = false;
+        state.isSending =
+            false;
 
-        state.isLive = false;
+        state.isLive =
+            false;
 
-        state.liveAbortController = null;
+        state.liveAbortController =
+            null;
 
-        setSendingState(false);
+        setSendingState(
+            false
+        );
 
-        state.currentAssistantElement = null;
+        state.currentAssistantElement =
+            null;
 
-        state.currentAssistantContent = "";
+        state.currentAssistantContent =
+            "";
 
         clearInputAfterSend();
 
@@ -1377,6 +1437,23 @@ async function sendStandardMessage(
     assistantElement
 ){
 
+    /*
+    Não enviamos historyLimit.
+
+    O backend/orchestrator decide como utilizar
+    o histórico persistente da conversa.
+
+    Isto permite trabalhar com:
+
+    - histórico completo
+    - memória persistente
+    - seleção inteligente
+    - compactação
+    - Gemini
+    - Groq
+    - fallback entre modelos
+    */
+
     const payload = {
 
         prompt,
@@ -1396,10 +1473,8 @@ async function sendStandardMessage(
 
         memory: [],
 
-        mode: "chat",
-
-        historyLimit:
-            SEND_HISTORY_LIMIT
+        mode:
+            "chat"
 
     };
 
@@ -1407,8 +1482,14 @@ async function sendStandardMessage(
         await apiRequest(
             "",
             {
-                method: "POST",
-                body: JSON.stringify(payload)
+                method:
+                    "POST",
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+
             }
         );
 
@@ -1465,9 +1546,11 @@ async function sendStandardMessage(
 
     const assistantMessage = {
 
-        role: "assistant",
+        role:
+            "assistant",
 
-        content: response,
+        content:
+            response,
 
         createdAt:
             new Date().toISOString()
@@ -1500,7 +1583,8 @@ async function sendLiveMessage(
     assistantElement
 ){
 
-    state.isLive = true;
+    state.isLive =
+        true;
 
     state.liveAbortController =
         new AbortController();
@@ -1516,7 +1600,9 @@ async function sendLiveMessage(
             await fetch(
                 `${API_BASE}/live`,
                 {
-                    method: "POST",
+
+                    method:
+                        "POST",
 
                     headers: {
 
@@ -1535,34 +1621,34 @@ async function sendLiveMessage(
 
                     },
 
-                    credentials: "include",
+                    credentials:
+                        "include",
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        prompt,
+                            prompt,
 
-                        conversationId:
-                            state.conversationId,
+                            conversationId:
+                                state.conversationId,
 
-                        agentId:
-                            state.agentId,
+                            agentId:
+                                state.agentId,
 
-                        workspaceContext: {
+                            workspaceContext: {
 
-                            workspace:
-                                state.workspace
+                                workspace:
+                                    state.workspace
 
-                        },
+                            },
 
-                        memory: [],
+                            memory: []
 
-                        historyLimit:
-                            SEND_HISTORY_LIMIT
-
-                    }),
+                        }),
 
                     signal:
-                        state.liveAbortController.signal
+                        state.liveAbortController
+                            .signal
 
                 }
             );
@@ -1570,7 +1656,10 @@ async function sendLiveMessage(
     }
     catch(error){
 
-        if(error?.name === "AbortError"){
+        if(
+            error?.name ===
+            "AbortError"
+        ){
 
             throw new Error(
                 "A resposta Live foi interrompida."
@@ -1591,7 +1680,8 @@ async function sendLiveMessage(
                 "Sessão expirada."
             );
 
-        error.status = 401;
+        error.status =
+            401;
 
         throw error;
 
@@ -1615,13 +1705,21 @@ async function sendLiveMessage(
         }
         catch(error){
 
-            // Corpo de erro inválido ou inexistente.
+            /*
+            Corpo de erro inválido ou inexistente.
+            */
 
         }
 
-        throw new Error(
-            errorMessage
-        );
+        const error =
+            new Error(
+                errorMessage
+            );
+
+        error.status =
+            response.status;
+
+        throw error;
 
     }
 
@@ -1656,11 +1754,15 @@ async function consumeSSEStream(
         body.getReader();
 
     const decoder =
-        new TextDecoder("utf-8");
+        new TextDecoder(
+            "utf-8"
+        );
 
-    let buffer = "";
+    let buffer =
+        "";
 
-    let streamFinished = false;
+    let streamFinished =
+        false;
 
     try{
 
@@ -1669,7 +1771,8 @@ async function consumeSSEStream(
             const {
                 value,
                 done
-            } = await reader.read();
+            } =
+                await reader.read();
 
             if(done){
 
@@ -1681,11 +1784,15 @@ async function consumeSSEStream(
                 decoder.decode(
                     value,
                     {
-                        stream: true
+                        stream:
+                            true
                     }
                 );
 
-            if(buffer.length > SSE_BUFFER_LIMIT){
+            if(
+                buffer.length >
+                SSE_BUFFER_LIMIT
+            ){
 
                 throw new Error(
                     "O stream Live excedeu o limite permitido."
@@ -1694,12 +1801,17 @@ async function consumeSSEStream(
             }
 
             const events =
-                buffer.split(/\r?\n\r?\n/);
+                buffer.split(
+                    /\r?\n\r?\n/
+                );
 
             buffer =
                 events.pop() || "";
 
-            for(const event of events){
+            for(
+                const event
+                of events
+            ){
 
                 const finished =
                     processSSEEvent(
@@ -1709,7 +1821,8 @@ async function consumeSSEStream(
 
                 if(finished){
 
-                    streamFinished = true;
+                    streamFinished =
+                        true;
 
                     break;
 
@@ -1735,7 +1848,8 @@ async function consumeSSEStream(
         }
 
         if(
-            !state.currentAssistantContent.trim()
+            !state.currentAssistantContent
+                .trim()
         ){
 
             throw new Error(
@@ -1754,7 +1868,9 @@ async function consumeSSEStream(
         }
         catch(error){
 
-            // Reader já libertado.
+            /*
+            Reader já libertado.
+            */
 
         }
 
@@ -1775,7 +1891,8 @@ function processSSEEvent(
 ){
 
     if(
-        typeof rawEvent !== "string" ||
+        typeof rawEvent !==
+        "string" ||
         !rawEvent.trim()
     ){
 
@@ -1784,13 +1901,22 @@ function processSSEEvent(
     }
 
     const lines =
-        rawEvent.split(/\r?\n/);
+        rawEvent.split(
+            /\r?\n/
+        );
 
     const dataLines = [];
 
-    for(const line of lines){
+    for(
+        const line
+        of lines
+    ){
 
-        if(line.startsWith("data:")){
+        if(
+            line.startsWith(
+                "data:"
+            )
+        ){
 
             dataLines.push(
                 line.slice(5).trim()
@@ -1807,9 +1933,14 @@ function processSSEEvent(
     }
 
     const rawData =
-        dataLines.join("\n");
+        dataLines.join(
+            "\n"
+        );
 
-    if(rawData === "[DONE]"){
+    if(
+        rawData ===
+        "[DONE]"
+    ){
 
         return true;
 
@@ -1820,7 +1951,9 @@ function processSSEEvent(
     try{
 
         payload =
-            JSON.parse(rawData);
+            JSON.parse(
+                rawData
+            );
 
     }
     catch(error){
@@ -1847,7 +1980,8 @@ function processSSEEvent(
     }
 
     if(
-        typeof payload?.text === "string" &&
+        typeof payload?.text ===
+            "string" &&
         payload.text
     ){
 
@@ -1894,7 +2028,8 @@ function processSSEEvent(
                 payload.error
             );
 
-        error.streamError = true;
+        error.streamError =
+            true;
 
         throw error;
 
@@ -1918,9 +2053,11 @@ function processSSEEvent(
 
             state.messages.push({
 
-                role: "assistant",
+                role:
+                    "assistant",
 
-                content: response,
+                content:
+                    response,
 
                 createdAt:
                     new Date().toISOString()
@@ -1941,13 +2078,22 @@ function processSSEEvent(
         if(payload.agent){
 
             state.agentId =
-                typeof payload.agent === "string"
+                typeof payload.agent ===
+                    "string"
                     ? payload.agent
                     : (
                         payload.agent.id ||
                         payload.agent._id ||
                         state.agentId
                     );
+
+        }
+
+        if(payload.conversation){
+
+            synchronizeConversation(
+                payload.conversation
+            );
 
         }
 
@@ -1988,11 +2134,15 @@ async function refreshCurrentConversation(){
 
     try{
 
+        /*
+        Sem limite de quantidade de mensagens.
+        */
+
         const data =
             await apiRequest(
                 `/conversations/${encodeURIComponent(
                     state.conversationId
-                )}?limit=${DEFAULT_HISTORY_LIMIT}`
+                )}`
             );
 
         if(data?.conversation){
@@ -2019,7 +2169,10 @@ async function refreshCurrentConversation(){
     }
     catch(error){
 
-        if(error?.status === 401){
+        if(
+            error?.status ===
+            401
+        ){
 
             redirectToLogin();
 
@@ -2099,7 +2252,8 @@ function addConversationToState(
     const index =
         state.conversations.findIndex(
             item =>
-                getConversationId(item) === id
+                getConversationId(item) ===
+                id
         );
 
     if(index >= 0){
@@ -2180,7 +2334,8 @@ function clearChatMessages(){
 
     }
 
-    dom.chatMessages.innerHTML = "";
+    dom.chatMessages.innerHTML =
+        "";
 
 }
 
@@ -2207,7 +2362,9 @@ function showWelcome(){
     }
 
     const welcome =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     welcome.className =
         "welcome-message";
@@ -2315,7 +2472,8 @@ function appendMessage(
     }
 
     const content =
-        typeof message?.content === "string"
+        typeof message?.content ===
+            "string"
             ? message.content
             : "";
 
@@ -2328,7 +2486,9 @@ function appendMessage(
     hideWelcome();
 
     const wrapper =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     wrapper.className =
         `chat-message message-${role}`;
@@ -2337,7 +2497,9 @@ function appendMessage(
         role;
 
     const avatar =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     avatar.className =
         "message-avatar";
@@ -2348,18 +2510,24 @@ function appendMessage(
             : "🐝";
 
     const body =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     body.className =
         "message-body";
 
     const contentElement =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     contentElement.className =
         "message-content";
 
-    if(role === "assistant"){
+    if(
+        role === "assistant"
+    ){
 
         contentElement.innerHTML =
             renderMarkdown(
@@ -2429,7 +2597,9 @@ function createStreamingAssistantMessage(){
     hideWelcome();
 
     const wrapper =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     wrapper.className =
         "chat-message message-assistant streaming-message";
@@ -2438,7 +2608,9 @@ function createStreamingAssistantMessage(){
         "assistant";
 
     const avatar =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     avatar.className =
         "message-avatar";
@@ -2447,13 +2619,17 @@ function createStreamingAssistantMessage(){
         "🐝";
 
     const body =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     body.className =
         "message-body";
 
     const content =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     content.className =
         "message-content";
@@ -2601,7 +2777,10 @@ function renderResponseMetadata(
     result
 ){
 
-    if(!element || !result){
+    if(
+        !element ||
+        !result
+    ){
 
         return;
 
@@ -2612,7 +2791,8 @@ function renderResponseMetadata(
     if(result.agent){
 
         const agentName =
-            typeof result.agent === "string"
+            typeof result.agent ===
+                "string"
                 ? result.agent
                 : (
                     result.agent.name ||
@@ -2677,7 +2857,9 @@ function renderResponseMetadata(
         "message-meta";
 
     meta.textContent =
-        metadata.join(" · ");
+        metadata.join(
+            " · "
+        );
 
     body.appendChild(
         meta
@@ -2697,9 +2879,15 @@ function createMessageTimestamp(
     }
 
     const date =
-        new Date(value);
+        new Date(
+            value
+        );
 
-    if(Number.isNaN(date.getTime())){
+    if(
+        Number.isNaN(
+            date.getTime()
+        )
+    ){
 
         return null;
 
@@ -2717,8 +2905,11 @@ function createMessageTimestamp(
         date.toLocaleTimeString(
             "pt-PT",
             {
-                hour: "2-digit",
-                minute: "2-digit"
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit"
             }
         );
 
@@ -2732,7 +2923,8 @@ function normalizeMessageRole(
 ){
 
     if(
-        typeof role !== "string"
+        typeof role !==
+        "string"
     ){
 
         return null;
@@ -2740,7 +2932,9 @@ function normalizeMessageRole(
     }
 
     const normalized =
-        role.trim().toLowerCase();
+        role
+            .trim()
+            .toLowerCase();
 
     if(
         [
@@ -2773,7 +2967,8 @@ function renderMarkdown(
 ){
 
     if(
-        typeof content !== "string" ||
+        typeof content !==
+            "string" ||
         !content
     ){
 
@@ -2782,7 +2977,8 @@ function renderMarkdown(
     }
 
     if(
-        typeof marked === "undefined"
+        typeof marked ===
+        "undefined"
     ){
 
         return escapeHTML(
@@ -2800,8 +2996,11 @@ function renderMarkdown(
             marked.parse(
                 content,
                 {
-                    breaks: true,
-                    gfm: true
+                    breaks:
+                        true,
+
+                    gfm:
+                        true
                 }
             );
 
@@ -2835,7 +3034,8 @@ function highlightCode(
 
     if(
         !container ||
-        typeof hljs === "undefined"
+        typeof hljs ===
+            "undefined"
     ){
 
         return;
@@ -2880,7 +3080,9 @@ function sanitizeHTML(
 
     const parsed =
         parser.parseFromString(
-            String(html || ""),
+            String(
+                html || ""
+            ),
             "text/html"
         );
 
@@ -2916,7 +3118,9 @@ function sanitizeHTML(
                             value.toLowerCase();
 
                         if(
-                            name.startsWith("on")
+                            name.startsWith(
+                                "on"
+                            )
                         ){
 
                             element.removeAttribute(
@@ -2934,7 +3138,9 @@ function sanitizeHTML(
                                 "action",
                                 "formaction",
                                 "xlink:href"
-                            ].includes(name)
+                            ].includes(
+                                name
+                            )
                         ){
 
                             if(
@@ -2963,7 +3169,8 @@ function sanitizeHTML(
                         }
 
                         if(
-                            name === "target"
+                            name ===
+                            "target"
                         ){
 
                             element.setAttribute(
@@ -3020,7 +3227,9 @@ function escapeHTML(
         );
 
     element.textContent =
-        String(value ?? "");
+        String(
+            value ?? ""
+        );
 
     return element.innerHTML;
 
@@ -3057,7 +3266,8 @@ function renderArtifacts(
             }
 
             const content =
-                typeof artifact.content === "string"
+                typeof artifact.content ===
+                    "string"
                     ? artifact.content
                     : "";
 
@@ -3153,7 +3363,8 @@ function openArtifactPreview(
     }
 
     const content =
-        typeof artifact?.content === "string"
+        typeof artifact?.content ===
+            "string"
             ? artifact.content
             : "";
 
@@ -3174,7 +3385,8 @@ function openArtifactPreview(
 
     if(
         type.includes("html") ||
-        artifact?.language === "html"
+        artifact?.language ===
+            "html"
     ){
 
         documentContent =
@@ -3400,7 +3612,8 @@ function removeStreamingAssistantIfEmpty(
     }
 
     const content =
-        state.currentAssistantContent.trim();
+        state.currentAssistantContent
+            .trim();
 
     if(!content){
 
@@ -3725,7 +3938,9 @@ function getFileExtension(
         ).toLowerCase();
 
     const index =
-        value.lastIndexOf(".");
+        value.lastIndexOf(
+            "."
+        );
 
     if(index < 0){
 
@@ -3734,7 +3949,9 @@ function getFileExtension(
     }
 
     return value
-        .slice(index + 1)
+        .slice(
+            index + 1
+        )
         .trim();
 
 }
@@ -3852,7 +4069,10 @@ function startVoiceInput(){
                 event.results?.[0]?.[0]?.transcript ||
                 "";
 
-            if(dom.chatInput && transcript){
+            if(
+                dom.chatInput &&
+                transcript
+            ){
 
                 dom.chatInput.value =
                     `${dom.chatInput.value} ${transcript}`
@@ -3958,12 +4178,14 @@ function filterHistory(
 
                 const title =
                     String(
-                        conversation.title || ""
+                        conversation.title ||
+                        ""
                     ).toLowerCase();
 
                 const agent =
                     String(
-                        conversation.agentId || ""
+                        conversation.agentId ||
+                        ""
                     ).toLowerCase();
 
                 return (
@@ -3988,7 +4210,8 @@ HISTORY
 */
 
 function renderHistory(
-    conversations = state.conversations
+    conversations =
+        state.conversations
 ){
 
     if(!dom.historyContainer){
@@ -4232,9 +4455,15 @@ function formatConversationDate(
     }
 
     const date =
-        new Date(value);
+        new Date(
+            value
+        );
 
-    if(Number.isNaN(date.getTime())){
+    if(
+        Number.isNaN(
+            date.getTime()
+        )
+    ){
 
         return "";
 
@@ -4243,11 +4472,20 @@ function formatConversationDate(
     return date.toLocaleString(
         "pt-PT",
         {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
+            day:
+                "2-digit",
+
+            month:
+                "2-digit",
+
+            year:
+                "numeric",
+
+            hour:
+                "2-digit",
+
+            minute:
+                "2-digit"
         }
     );
 
@@ -4288,7 +4526,8 @@ async function deleteConversation(
                 conversationId
             )}`,
             {
-                method: "DELETE"
+                method:
+                    "DELETE"
             }
         );
 
@@ -4372,6 +4611,7 @@ async function loadUserProfile(){
             await fetch(
                 "/api/auth/me",
                 {
+
                     headers: {
 
                         Authorization:
@@ -4384,11 +4624,13 @@ async function loadUserProfile(){
 
                     credentials:
                         "include"
+
                 }
             );
 
         if(
-            response.status === 401
+            response.status ===
+            401
         ){
 
             redirectToLogin();
@@ -4484,7 +4726,9 @@ async function loadUserProfile(){
                     );
 
                 image.src =
-                    String(avatar);
+                    String(
+                        avatar
+                    );
 
                 image.alt =
                     "";
@@ -4687,7 +4931,8 @@ function handleApiError(
     );
 
     if(
-        error?.status === 401
+        error?.status ===
+        401
     ){
 
         redirectToLogin();
@@ -4783,7 +5028,8 @@ window.HoneyChat = {
     ){
 
         const normalized =
-            typeof prompt === "string"
+            typeof prompt ===
+                "string"
                 ? prompt.trim()
                 : "";
 
@@ -4841,5 +5087,13 @@ STARTUP
 */
 
 console.info(
-    "[HONEY IA] Frontend Chat Engine V2.0 initialized."
+    "[HONEY IA] Frontend Chat Engine V3.0 initialized."
+);
+
+console.info(
+    "[HONEY IA] Persistent conversation history is controlled by the backend."
+);
+
+console.info(
+    "[HONEY IA] Compatible with Groq + Gemini orchestration."
 );
