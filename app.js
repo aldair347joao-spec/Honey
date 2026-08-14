@@ -2,7 +2,7 @@
 ==========================================================
 HONEY IA STUDIO
 APPLICATION CONTROLLER
-V12.0
+V13.0
 
 RESPONSIBILITIES
 ----------------------------------------------------------
@@ -22,6 +22,7 @@ RESPONSIBILITIES
 • HTML preview
 • Markdown configuration
 • UI state synchronization
+• Runtime cleanup
 
 ARCHITECTURE
 ----------------------------------------------------------
@@ -53,19 +54,12 @@ It does NOT contain AI logic.
 ======================================================== */
 
 import liveclient from "./liveclient.js";
-
 import agentstudio from "./agentstudio.js";
-
 import { components } from "./components.js";
-
 import agentsui from "./agents-ui.js";
-
 import dashboard from "./dashboard.js";
-
 import authmanager from "./auth.js";
-
 import logincontroller from "./login.js";
-
 import userprofile from "./userprofile.js";
 
 
@@ -73,7 +67,7 @@ import userprofile from "./userprofile.js";
    APPLICATION CONSTANTS
 ======================================================== */
 
-const APP_VERSION = "12.0";
+const APP_VERSION = "13.0";
 
 const DEFAULT_AGENT = "general";
 
@@ -87,21 +81,11 @@ const TOAST_DURATION = 3500;
 
 
 /* ========================================================
-   SESSION
+   APPLICATION SESSION
 ======================================================== */
 
-/*
-   A new application session is created when the page loads.
-
-   Chat conversations should use their own chatId.
-   Authentication should use the auth session.
-   This ID only identifies this browser application runtime.
-*/
-
 const APPLICATION_SESSION_ID =
-
     typeof crypto !== "undefined" &&
-
     typeof crypto.randomUUID === "function"
 
         ? crypto.randomUUID()
@@ -127,11 +111,8 @@ class EventBus {
     on(event, callback){
 
         if(
-
             !event ||
-
             typeof callback !== "function"
-
         ){
 
             return () => {};
@@ -142,37 +123,28 @@ class EventBus {
         if(!this.events.has(event)){
 
             this.events.set(
-
                 event,
-
                 new Set()
-
             );
 
         }
 
 
         const listeners =
-
             this.events.get(event);
 
 
         listeners.add(callback);
 
 
-        /*
-           Return unsubscribe function.
-        */
-
-        return () =>
+        return () => {
 
             this.off(
-
                 event,
-
                 callback
-
             );
+
+        };
 
     }
 
@@ -180,7 +152,6 @@ class EventBus {
     off(event, callback){
 
         const listeners =
-
             this.events.get(event);
 
 
@@ -206,7 +177,6 @@ class EventBus {
     emit(event, data){
 
         const listeners =
-
             this.events.get(event);
 
 
@@ -218,7 +188,6 @@ class EventBus {
 
 
         [...listeners].forEach(
-
             callback => {
 
                 try{
@@ -230,17 +199,13 @@ class EventBus {
                 catch(error){
 
                     console.error(
-
                         `Honey IA EventBus error [${event}]:`,
-
                         error
-
                     );
 
                 }
 
             }
-
         );
 
     }
@@ -269,7 +234,6 @@ class EventBus {
 ======================================================== */
 
 export const EventBusInstance =
-
     new EventBus();
 
 
@@ -282,55 +246,42 @@ export const Store = {
     state: {
 
         sessionId:
-
             APPLICATION_SESSION_ID,
 
         conversation:
-
             [],
 
         loading:
-
             false,
 
         selectedFileBase64:
-
             null,
 
         selectedFileName:
-
             null,
 
         selectedAgent:
-
             DEFAULT_AGENT,
 
         isAuthenticated:
-
             false,
 
         workspace:
-
             DEFAULT_WORKSPACE,
 
         user:
-
             null,
 
         chatInitialized:
-
             false,
 
         currentChatId:
-
             null,
 
         currentMode:
-
             "chat",
 
         liveConnected:
-
             false
 
     },
@@ -346,31 +297,21 @@ export const Store = {
 
 
         const previousValue =
-
             this.state[key];
 
 
         this.state[key] =
-
             value;
 
 
         EventBusInstance.emit(
-
             "stateChanged",
-
             {
-
                 key,
-
                 value,
-
                 previousValue,
-
                 state: this.state
-
             }
-
         );
 
     },
@@ -386,19 +327,15 @@ export const Store = {
     patch(values = {}){
 
         Object.entries(values)
-
             .forEach(
-
-                ([key, value]) =>
+                ([key, value]) => {
 
                     this.setState(
-
                         key,
-
                         value
+                    );
 
-                    )
-
+                }
             );
 
     }
@@ -415,11 +352,9 @@ class HoneyAIApp {
 
     constructor(){
 
-        /*
-        ----------------------------------------------------
-        Runtime state
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Runtime
+        ------------------------------------------------- */
 
         this.initialized = false;
 
@@ -440,22 +375,18 @@ class HoneyAIApp {
         this.domInitialized = false;
 
 
-        /*
-        ----------------------------------------------------
-        Chat
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Chat
+        ------------------------------------------------- */
 
         this.chatModule = null;
 
         this.chatInstance = null;
 
 
-        /*
-        ----------------------------------------------------
-        Live
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Live
+        ------------------------------------------------- */
 
         this.liveMode = false;
 
@@ -466,38 +397,30 @@ class HoneyAIApp {
         this.currentMode = "chat";
 
 
-        /*
-        ----------------------------------------------------
-        Authentication
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Authentication
+        ------------------------------------------------- */
 
         this.authSubscription = null;
 
 
-        /*
-        ----------------------------------------------------
-        Event cleanup
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Cleanup
+        ------------------------------------------------- */
 
         this.cleanupCallbacks = [];
 
 
-        /*
-        ----------------------------------------------------
-        DOM
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           DOM
+        ------------------------------------------------- */
 
         this.initDOMReferences();
 
 
-        /*
-        ----------------------------------------------------
-        Authentication listeners
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Authentication
+        ------------------------------------------------- */
 
         this.bindAuthEvents();
 
@@ -505,197 +428,134 @@ class HoneyAIApp {
 
 
     /* ====================================================
-       DOM
+       DOM REFERENCES
     ==================================================== */
 
     initDOMReferences(){
 
         this.btnChatMode =
-
             document.getElementById(
-
                 "btnChatMode"
-
             );
 
 
         this.btnLiveMode =
-
             document.getElementById(
-
                 "btnLiveMode"
-
             );
 
 
         this.chatFeed =
-
             document.getElementById(
-
                 "chatMessages"
-
             );
 
 
         this.promptTextarea =
-
             document.getElementById(
-
                 "chatInput"
-
             );
 
 
         this.btnSend =
-
             document.getElementById(
-
                 "btnSend"
-
             );
 
 
         this.btnVoice =
-
             document.getElementById(
-
                 "btnVoice"
-
             );
 
 
         this.fileUploadInput =
-
             document.getElementById(
-
                 "fileInput"
-
             );
 
 
         this.btnAttach =
-
             document.getElementById(
-
                 "btnAttach"
-
             );
 
 
         this.attachmentBar =
-
             document.getElementById(
-
                 "attachment-bar"
-
             );
 
 
         this.attachedFileName =
-
             document.getElementById(
-
                 "attached-file-name"
-
             );
 
 
         this.btnRemoveAttachment =
-
             document.getElementById(
-
                 "btn-remove-attachment"
-
             );
 
 
         this.btnToggleMenu =
-
             document.getElementById(
-
                 "btnMobileMenu"
-
             );
 
 
         this.btnCloseSidebar =
-
             document.getElementById(
-
                 "btnCloseSidebar"
-
             );
 
 
         this.sidebar =
-
             document.getElementById(
-
                 "sidebar"
-
             );
 
 
         this.sidebarOverlay =
-
             document.getElementById(
-
                 "sidebarOverlay"
-
             );
 
 
         this.previewPane =
-
             document.getElementById(
-
                 "preview-pane"
-
             );
 
 
         this.livePreviewIframe =
-
             document.getElementById(
-
                 "live-preview-iframe"
-
             );
 
 
         this.btnClosePreview =
-
             document.getElementById(
-
                 "btn-close-preview"
-
             );
 
 
         this.toastContainer =
-
             document.getElementById(
-
                 "toastContainer"
-
             );
 
 
         this.globalSearch =
-
             document.getElementById(
-
                 "globalSearch"
-
             );
 
 
         this.btnNotifications =
-
             document.getElementById(
-
                 "btnNotifications"
-
             );
 
 
@@ -705,76 +565,70 @@ class HoneyAIApp {
 
 
     /* ====================================================
-       AUTHENTICATION
+       AUTHENTICATION EVENTS
     ==================================================== */
 
     bindAuthEvents(){
 
-        /*
-        ----------------------------------------------------
-        auth.js subscription
-        ----------------------------------------------------
-        */
-
         if(
-
             authmanager &&
-
             typeof authmanager.subscribe ===
-
             "function"
-
         ){
 
-            this.authSubscription =
+            try{
 
-                authmanager.subscribe(
+                this.authSubscription =
+                    authmanager.subscribe(
+                        user => {
 
-                    user => {
+                            if(
+                                user &&
+                                typeof authmanager.isAuthenticated ===
+                                "function" &&
+                                authmanager.isAuthenticated()
+                            ){
 
-                        if(
+                                this.handleAuthenticatedUser(
+                                    user,
+                                    false
+                                );
 
-                            user &&
+                                return;
 
-                            authmanager.isAuthenticated()
+                            }
 
-                        ){
 
-                            this.handleAuthenticatedUser(
-
-                                user,
-
-                                false
-
-                            );
-
-                            return;
+                            this.handleUnauthenticatedUser();
 
                         }
+                    );
 
+            }
 
-                        this.handleUnauthenticatedUser();
+            catch(error){
 
-                    }
-
+                console.error(
+                    "Auth subscription error:",
+                    error
                 );
+
+            }
 
         }
 
 
-        /*
-        ----------------------------------------------------
-        Login event
-        ----------------------------------------------------
-        */
-
         const loginHandler = event => {
 
             const user =
-
                 event?.detail ||
-
-                authmanager.getUser();
+                (
+                    authmanager &&
+                    typeof authmanager.getUser ===
+                    "function"
+                        ? authmanager.getUser()
+                        : null
+                );
 
 
             if(!user){
@@ -785,45 +639,30 @@ class HoneyAIApp {
 
 
             this.handleAuthenticatedUser(
-
                 user,
-
                 true
-
             );
 
         };
 
 
         document.addEventListener(
-
             "user-login",
-
             loginHandler
-
         );
 
 
         this.cleanupCallbacks.push(
-
-            () =>
+            () => {
 
                 document.removeEventListener(
-
                     "user-login",
-
                     loginHandler
+                );
 
-                )
-
+            }
         );
 
-
-        /*
-        ----------------------------------------------------
-        Logout event
-        ----------------------------------------------------
-        */
 
         const logoutHandler = async () => {
 
@@ -833,30 +672,28 @@ class HoneyAIApp {
 
 
         document.addEventListener(
-
             "user-logout",
-
             logoutHandler
-
         );
 
 
         this.cleanupCallbacks.push(
-
-            () =>
+            () => {
 
                 document.removeEventListener(
-
                     "user-logout",
-
                     logoutHandler
+                );
 
-                )
-
+            }
         );
 
     }
 
+
+    /* ====================================================
+       AUTHENTICATION START
+    ==================================================== */
 
     async startAuthentication(){
 
@@ -871,22 +708,16 @@ class HoneyAIApp {
 
 
         console.log(
-
             `🔐 Honey IA ${APP_VERSION}: verificando sessão...`
-
         );
 
 
         try{
 
             if(
-
                 authmanager &&
-
                 typeof authmanager.waitUntilReady ===
-
                 "function"
-
             ){
 
                 await Promise.race([
@@ -894,17 +725,14 @@ class HoneyAIApp {
                     authmanager.waitUntilReady(),
 
                     new Promise(
-
-                        resolve =>
+                        resolve => {
 
                             setTimeout(
-
                                 resolve,
-
                                 6000
+                            );
 
-                            )
-
+                        }
                     )
 
                 ]);
@@ -916,22 +744,16 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "AUTH READY ERROR:",
-
                 error
-
             );
 
         }
 
 
         const authenticated =
-
             authmanager &&
-
             typeof authmanager.isAuthenticated ===
-
             "function"
 
                 ? authmanager.isAuthenticated()
@@ -940,11 +762,8 @@ class HoneyAIApp {
 
 
         const user =
-
             authmanager &&
-
             typeof authmanager.getUser ===
-
             "function"
 
                 ? authmanager.getUser()
@@ -953,21 +772,14 @@ class HoneyAIApp {
 
 
         if(
-
             authenticated &&
-
             user
-
         ){
 
             this.handleAuthenticatedUser(
-
                 user,
-
                 false
-
             );
-
 
             return;
 
@@ -977,22 +789,12 @@ class HoneyAIApp {
         this.handleUnauthenticatedUser();
 
 
-        /*
-        ----------------------------------------------------
-        Login UI
-        ----------------------------------------------------
-        */
-
         try{
 
             if(
-
                 logincontroller &&
-
                 typeof logincontroller.init ===
-
                 "function"
-
             ){
 
                 await logincontroller.init();
@@ -1004,11 +806,8 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Login initialization error:",
-
                 error
-
             );
 
         }
@@ -1019,12 +818,13 @@ class HoneyAIApp {
     }
 
 
+    /* ====================================================
+       AUTHENTICATED USER
+    ==================================================== */
+
     handleAuthenticatedUser(
-
         user,
-
         showWelcome = false
-
     ){
 
         if(!user){
@@ -1037,20 +837,16 @@ class HoneyAIApp {
         Store.patch({
 
             isAuthenticated:
-
                 true,
 
             user:
-
                 user
 
         });
 
 
         this.updateUserInterface(
-
             user
-
         );
 
 
@@ -1063,37 +859,33 @@ class HoneyAIApp {
         if(showWelcome){
 
             this.showToast(
-
                 `Bem-vindo, ${this.getUserName(user)}!`,
-
                 "success"
-
             );
 
         }
 
 
         EventBusInstance.emit(
-
             "authenticated",
-
             user
-
         );
 
     }
 
+
+    /* ====================================================
+       UNAUTHENTICATED USER
+    ==================================================== */
 
     handleUnauthenticatedUser(){
 
         Store.patch({
 
             isAuthenticated:
-
                 false,
 
             user:
-
                 null
 
         });
@@ -1103,9 +895,7 @@ class HoneyAIApp {
 
 
         EventBusInstance.emit(
-
             "unauthenticated"
-
         );
 
     }
@@ -1118,43 +908,29 @@ class HoneyAIApp {
     showWorkspace(){
 
         const studioApp =
-
             document.getElementById(
-
                 "studioApp"
-
             );
 
 
         const loginApp =
-
             document.getElementById(
-
                 "loginApp"
-
             );
 
 
         if(studioApp){
 
             studioApp.style.display =
-
                 "flex";
 
-
             studioApp.classList.add(
-
                 "auth-ready"
-
             );
 
-
             studioApp.setAttribute(
-
                 "aria-hidden",
-
                 "false"
-
             );
 
         }
@@ -1163,16 +939,11 @@ class HoneyAIApp {
         if(loginApp){
 
             loginApp.style.display =
-
                 "none";
 
-
             loginApp.setAttribute(
-
                 "aria-hidden",
-
                 "true"
-
             );
 
         }
@@ -1186,34 +957,23 @@ class HoneyAIApp {
     hideWorkspace(){
 
         const studioApp =
-
             document.getElementById(
-
                 "studioApp"
-
             );
 
 
         if(studioApp){
 
             studioApp.style.display =
-
                 "none";
 
-
             studioApp.setAttribute(
-
                 "aria-hidden",
-
                 "true"
-
             );
 
-
             studioApp.classList.remove(
-
                 "auth-ready"
-
             );
 
         }
@@ -1228,11 +988,8 @@ class HoneyAIApp {
     hideLoader(){
 
         const loader =
-
             document.getElementById(
-
                 "appLoader"
-
             );
 
 
@@ -1244,35 +1001,27 @@ class HoneyAIApp {
 
 
         loader.classList.add(
-
             "hidden"
-
         );
 
 
         loader.classList.add(
-
             "is-hidden"
-
         );
 
 
         setTimeout(
-
             () => {
 
                 if(loader){
 
                     loader.style.display =
-
                         "none";
 
                 }
 
             },
-
             LOADER_HIDE_DELAY
-
         );
 
     }
@@ -1295,9 +1044,7 @@ class HoneyAIApp {
 
 
         console.log(
-
             "🐝 Inicializando Honey IA Workspace..."
-
         );
 
 
@@ -1317,22 +1064,34 @@ class HoneyAIApp {
 
         this.initAgentStudio();
 
-        this.initChat();
+        /*
+         * Chat is intentionally asynchronous.
+         * It starts without blocking the rest
+         * of the workspace.
+         */
+
+        this.initChat().catch(
+            error => {
+
+                console.error(
+                    "Workspace chat startup error:",
+                    error
+                );
+
+            }
+        );
+
 
         this.initializeInitialWorkspace();
 
 
         console.log(
-
             "🚀 Honey IA Workspace carregado."
-
         );
 
 
         EventBusInstance.emit(
-
             "workspaceReady"
-
         );
 
     }
@@ -1345,49 +1104,32 @@ class HoneyAIApp {
     initializeInitialWorkspace(){
 
         const hash =
-
             window.location.hash
-
                 .replace(
-
                     "#",
-
                     ""
-
                 )
-
                 .trim();
 
 
         if(hash){
 
             const target =
-
                 document.getElementById(
-
                     hash
-
                 );
 
 
             if(
-
                 target &&
-
                 target.classList.contains(
-
                     "workspace-view"
-
                 )
-
             ){
 
                 this.showWorkspaceView(
-
                     hash,
-
                     false
-
                 );
 
                 return;
@@ -1398,11 +1140,8 @@ class HoneyAIApp {
 
 
         this.showWorkspaceView(
-
             DEFAULT_WORKSPACE,
-
             false
-
         );
 
     }
@@ -1414,8 +1153,18 @@ class HoneyAIApp {
 
     initUserSession(){
 
-        const user =
+        if(
+            !authmanager ||
+            typeof authmanager.getUser !==
+            "function"
+        ){
 
+            return;
+
+        }
+
+
+        const user =
             authmanager.getUser();
 
 
@@ -1429,20 +1178,19 @@ class HoneyAIApp {
         Store.patch({
 
             isAuthenticated:
-
-                authmanager.isAuthenticated(),
+                typeof authmanager.isAuthenticated ===
+                "function"
+                    ? authmanager.isAuthenticated()
+                    : false,
 
             user:
-
                 user
 
         });
 
 
         this.updateUserInterface(
-
             user
-
         );
 
     }
@@ -1462,87 +1210,53 @@ class HoneyAIApp {
 
 
         const userBox =
-
             document.getElementById(
-
                 "userBox"
-
             );
 
 
         const planBadge =
-
             document.getElementById(
-
                 "planBadge"
-
             );
 
 
         const displayName =
-
             this.getUserName(
-
                 user
-
             );
 
 
         const plan =
-
             this.getPlanName(
-
                 user.plan
-
             );
 
-
-        /*
-        ----------------------------------------------------
-        User box
-        ----------------------------------------------------
-        */
 
         if(userBox){
 
             const avatar =
-
                 user.avatar ||
-
                 user.picture ||
-
                 displayName
-
                     .charAt(0)
-
                     .toUpperCase();
 
 
             const isImage =
-
                 typeof avatar ===
-
                 "string" &&
-
                 (
-
                     avatar.startsWith(
-
                         "http"
-
                     ) ||
-
                     avatar.startsWith(
-
                         "data:image"
-
                     )
-
                 );
 
 
             const avatarMarkup =
-
                 isImage
 
                     ?
@@ -1552,32 +1266,24 @@ class HoneyAIApp {
                     :
 
                     this.escapeHTML(
-
                         avatar
-
                     );
 
 
             userBox.innerHTML = `
 
                 <div class="avatar">
-
                     ${avatarMarkup}
-
                 </div>
 
                 <div class="user-meta">
 
                     <strong>
-
                         ${this.escapeHTML(displayName)}
-
                     </strong>
 
                     <small>
-
                         Plano ${this.escapeHTML(plan)}
-
                     </small>
 
                 </div>
@@ -1587,26 +1293,16 @@ class HoneyAIApp {
         }
 
 
-        /*
-        ----------------------------------------------------
-        Plan badge
-        ----------------------------------------------------
-        */
-
         if(planBadge){
 
             planBadge.innerHTML = `
 
                 <span>
-
                     Plano
-
                 </span>
 
                 <strong>
-
                     ${this.escapeHTML(plan)}
-
                 </strong>
 
             `;
@@ -1615,11 +1311,8 @@ class HoneyAIApp {
 
 
         EventBusInstance.emit(
-
             "userInterfaceUpdated",
-
             user
-
         );
 
     }
@@ -1635,36 +1328,25 @@ class HoneyAIApp {
 
 
         const firstName =
-
             user.firstName ||
-
             "";
 
 
         const lastName =
-
             user.lastName ||
-
             "";
 
 
         const fullName =
-
             `${firstName} ${lastName}`
-
                 .trim();
 
 
         return (
-
             fullName ||
-
             user.name ||
-
             user.email ||
-
             "Utilizador"
-
         );
 
     }
@@ -1675,28 +1357,21 @@ class HoneyAIApp {
         const plans = {
 
             free:
-
                 "Gratuito",
 
             individual:
-
                 "Individual",
 
             business:
-
                 "Business"
 
         };
 
 
         return (
-
             plans[plan] ||
-
             plan ||
-
             "Gratuito"
-
         );
 
     }
@@ -1709,49 +1384,27 @@ class HoneyAIApp {
     escapeHTML(value){
 
         return String(
-
             value ?? ""
-
         )
-
         .replace(
-
             /&/g,
-
             "&amp;"
-
         )
-
         .replace(
-
             /</g,
-
             "&lt;"
-
         )
-
         .replace(
-
             />/g,
-
             "&gt;"
-
         )
-
         .replace(
-
             /"/g,
-
             "&quot;"
-
         )
-
         .replace(
-
             /'/g,
-
             "&#039;"
-
         );
 
     }
@@ -1764,24 +1417,16 @@ class HoneyAIApp {
     initDashboard(){
 
         const dashboardContainer =
-
             document.getElementById(
-
                 "dashboardContainer"
-
             );
 
 
         if(
-
             !dashboardContainer ||
-
             !dashboard ||
-
             typeof dashboard.init !==
-
             "function"
-
         ){
 
             return;
@@ -1792,16 +1437,12 @@ class HoneyAIApp {
         try{
 
             dashboard.init(
-
                 "dashboardContainer"
-
             );
 
 
             console.log(
-
                 "📊 Dashboard carregado"
-
             );
 
         }
@@ -1809,11 +1450,8 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Dashboard initialization error:",
-
                 error
-
             );
 
         }
@@ -1838,39 +1476,27 @@ class HoneyAIApp {
 
 
         const container =
-
             document.getElementById(
-
                 "agentsContainer"
-
             );
 
 
         if(
-
             container &&
-
             agentsui &&
-
             typeof agentsui.init ===
-
             "function"
-
         ){
 
             try{
 
                 agentsui.init(
-
                     "agentsContainer"
-
                 );
 
 
                 console.log(
-
                     "🤖 Agents UI conectado"
-
                 );
 
             }
@@ -1878,11 +1504,8 @@ class HoneyAIApp {
             catch(error){
 
                 console.error(
-
                     "Agents UI initialization error:",
-
                     error
-
                 );
 
             }
@@ -1890,74 +1513,45 @@ class HoneyAIApp {
         }
 
 
-        const agentSelectedHandler = event => {
+        const agentSelectedHandler =
+            event => {
 
-            const agent =
-
-                event?.detail;
-
-
-            if(
-
-                !agent ||
-
-                !agent.id
-
-            ){
-
-                return;
-
-            }
+                const agent =
+                    event?.detail;
 
 
-            Store.setState(
+                if(
+                    !agent ||
+                    !agent.id
+                ){
 
-                "selectedAgent",
+                    return;
 
-                agent.id
-
-            );
-
-
-            EventBusInstance.emit(
-
-                "agentChanged",
-
-                agent
-
-            );
+                }
 
 
-            this.setChatAgent(
+                this.setChatAgent(
+                    agent.id
+                );
 
-                agent.id
-
-            );
-
-        };
+            };
 
 
         document.addEventListener(
-
             "agent-selected",
-
             agentSelectedHandler
-
         );
 
 
         this.cleanupCallbacks.push(
-
-            () =>
+            () => {
 
                 document.removeEventListener(
-
                     "agent-selected",
-
                     agentSelectedHandler
+                );
 
-                )
-
+            }
         );
 
     }
@@ -1980,39 +1574,27 @@ class HoneyAIApp {
 
 
         const studioContainer =
-
             document.getElementById(
-
                 "agentStudioContainer"
-
             );
 
 
         if(
-
             studioContainer &&
-
             agentstudio &&
-
             typeof agentstudio.init ===
-
             "function"
-
         ){
 
             try{
 
                 agentstudio.init(
-
                     "agentStudioContainer"
-
                 );
 
 
                 console.log(
-
                     "⚡ Agent Studio conectado"
-
                 );
 
             }
@@ -2020,11 +1602,8 @@ class HoneyAIApp {
             catch(error){
 
                 console.error(
-
                     "Agent Studio initialization error:",
-
                     error
-
                 );
 
             }
@@ -2033,13 +1612,9 @@ class HoneyAIApp {
 
 
         if(
-
             agentstudio &&
-
             typeof agentstudio.listenEvents ===
-
             "function"
-
         ){
 
             try{
@@ -2051,11 +1626,8 @@ class HoneyAIApp {
             catch(error){
 
                 console.error(
-
                     "Agent Studio event error:",
-
                     error
-
                 );
 
             }
@@ -2073,30 +1645,25 @@ class HoneyAIApp {
 
         if(this.chatInitialized){
 
-            return;
+            return this.chatInstance;
 
         }
 
 
         const chatSection =
-
             document.getElementById(
-
                 "chat"
-
             );
 
 
         if(!chatSection){
 
             console.warn(
-
                 "⚠️ Chat section não encontrada."
-
             );
 
 
-            return;
+            return null;
 
         }
 
@@ -2104,56 +1671,35 @@ class HoneyAIApp {
         try{
 
             const chatModule =
-
                 await import(
-
                     "./chat.js"
-
                 );
 
 
             this.chatModule =
-
                 chatModule;
 
 
-            /*
-            ------------------------------------------------
-            Detect supported export
-            ------------------------------------------------
-            */
-
             let chatInstance =
-
                 chatModule.default ||
-
                 chatModule.chat ||
-
                 chatModule.chatController ||
-
                 chatModule.ChatController ||
-
                 null;
 
 
             /*
-            ------------------------------------------------
-            Class support
-            ------------------------------------------------
-            */
+             * Support for class-based exports.
+             */
 
             if(
-
                 typeof chatInstance ===
-
                 "function"
-
             ){
 
                 try{
 
                     chatInstance =
-
                         new chatInstance();
 
                 }
@@ -2161,14 +1707,13 @@ class HoneyAIApp {
                 catch(error){
 
                     console.warn(
-
                         "Chat exportado como classe não pôde ser instanciado:",
-
                         error
-
                     );
 
-                    chatInstance = null;
+
+                    chatInstance =
+                        null;
 
                 }
 
@@ -2176,135 +1721,177 @@ class HoneyAIApp {
 
 
             this.chatInstance =
-
                 chatInstance;
 
 
             const initOptions = {
 
                 sessionId:
-
                     APPLICATION_SESSION_ID,
 
                 user:
-
-                    authmanager.getUser(),
+                    authmanager &&
+                    typeof authmanager.getUser ===
+                    "function"
+                        ? authmanager.getUser()
+                        : null,
 
                 agentId:
-
                     Store.state.selectedAgent,
 
                 workspace:
-
                     Store.state.workspace,
 
                 apiBase:
-
                     CHAT_API_BASE
 
             };
 
 
+            let initialized =
+                false;
+
+
             /*
-            ------------------------------------------------
-            Instance initialization
-            ------------------------------------------------
-            */
+             * Instance initialization.
+             */
 
             if(
-
                 this.chatInstance &&
-
                 typeof this.chatInstance.init ===
-
                 "function"
-
             ){
 
                 await this.chatInstance.init(
-
                     initOptions
-
                 );
+
+
+                initialized =
+                    true;
 
             }
 
+
             /*
-            ------------------------------------------------
-            Module initialization
-            ------------------------------------------------
-            */
+             * Module initialization.
+             */
 
             else if(
-
                 chatModule &&
-
                 typeof chatModule.init ===
-
                 "function"
-
             ){
 
                 await chatModule.init(
-
                     initOptions
-
                 );
+
+
+                initialized =
+                    true;
 
             }
 
-            else{
+
+            if(!initialized){
 
                 console.warn(
-
                     "⚠️ chat.js carregado, mas nenhum init() foi encontrado."
-
                 );
 
             }
 
 
-            this.chatInitialized = true;
+            this.chatInitialized =
+                true;
 
 
             Store.setState(
-
                 "chatInitialized",
-
                 true
-
             );
 
 
             console.log(
-
                 "💬 Chat Engine conectado"
-
             );
 
 
             this.bindChatEvents();
+
+
+            /*
+             * Synchronize current mode.
+             */
+
+            if(
+                this.chatInstance &&
+                typeof this.chatInstance.setMode ===
+                "function"
+            ){
+
+                try{
+
+                    await this.chatInstance.setMode(
+                        this.currentMode
+                    );
+
+                }
+
+                catch(error){
+
+                    console.warn(
+                        "Chat mode synchronization error:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            EventBusInstance.emit(
+                "chatReady",
+                {
+                    instance:
+                        this.chatInstance,
+
+                    module:
+                        this.chatModule
+                }
+            );
+
+
+            return this.chatInstance;
 
         }
 
         catch(error){
 
             console.error(
-
                 "❌ Chat initialization error:",
-
                 error
-
             );
+
+
+            this.chatInitialized =
+                false;
 
 
             Store.setState(
-
                 "chatInitialized",
-
                 false
-
             );
+
+
+            EventBusInstance.emit(
+                "chatInitializationError",
+                error
+            );
+
+
+            return null;
 
         }
 
@@ -2324,250 +1911,274 @@ class HoneyAIApp {
         }
 
 
-        this.chatEventsInitialized = true;
+        this.chatEventsInitialized =
+            true;
 
 
-        /*
-        ----------------------------------------------------
-        Chat state
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Chat state
+        ------------------------------------------------- */
 
-        const chatStateHandler = event => {
+        const chatStateHandler =
+            event => {
 
-            const state =
-
-                event?.detail;
+                const state =
+                    event?.detail;
 
 
-            if(!state){
+                if(!state){
 
-                return;
+                    return;
 
-            }
-
-
-            if(
-
-                typeof state.loading ===
-
-                "boolean"
-
-            ){
-
-                Store.setState(
-
-                    "loading",
-
-                    state.loading
-
-                );
-
-            }
+                }
 
 
-            if(
+                if(
+                    typeof state.loading ===
+                    "boolean"
+                ){
 
-                state.chatId !==
+                    Store.setState(
+                        "loading",
+                        state.loading
+                    );
 
-                undefined
+                }
 
-            ){
 
-                Store.setState(
+                if(
+                    state.chatId !==
+                    undefined
+                ){
 
-                    "currentChatId",
+                    Store.setState(
+                        "currentChatId",
+                        state.chatId
+                    );
 
-                    state.chatId
+                }
 
-                );
 
-            }
+                if(
+                    Array.isArray(
+                        state.conversation
+                    )
+                ){
 
-        };
+                    Store.setState(
+                        "conversation",
+                        state.conversation
+                    );
+
+                }
+
+
+                if(
+                    state.agentId
+                ){
+
+                    Store.setState(
+                        "selectedAgent",
+                        state.agentId
+                    );
+
+                }
+
+            };
 
 
         document.addEventListener(
-
             "chat-state",
-
             chatStateHandler
-
         );
 
 
-        /*
-        ----------------------------------------------------
-        Chat message
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Chat message
+        ------------------------------------------------- */
 
-        const chatMessageHandler = event => {
+        const chatMessageHandler =
+            event => {
 
-            EventBusInstance.emit(
+                EventBusInstance.emit(
+                    "chatMessage",
+                    event.detail
+                );
 
-                "chatMessage",
-
-                event.detail
-
-            );
-
-        };
+            };
 
 
         document.addEventListener(
-
             "chat-message",
-
             chatMessageHandler
-
         );
 
 
-        /*
-        ----------------------------------------------------
-        Conversation update
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Conversation update
+        ------------------------------------------------- */
 
-        const chatUpdatedHandler = event => {
+        const chatUpdatedHandler =
+            event => {
 
-            EventBusInstance.emit(
+                const data =
+                    event?.detail;
 
-                "conversationUpdated",
 
-                event.detail
+                if(
+                    data &&
+                    Array.isArray(
+                        data.conversation
+                    )
+                ){
 
-            );
+                    Store.setState(
+                        "conversation",
+                        data.conversation
+                    );
 
-        };
+                }
+
+
+                EventBusInstance.emit(
+                    "conversationUpdated",
+                    data
+                );
+
+            };
 
 
         document.addEventListener(
-
             "chat-updated",
-
             chatUpdatedHandler
-
         );
 
 
-        /*
-        ----------------------------------------------------
-        Error
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Chat error
+        ------------------------------------------------- */
 
-        const chatErrorHandler = event => {
+        const chatErrorHandler =
+            event => {
 
-            const error =
-
-                event?.detail;
+                const error =
+                    event?.detail;
 
 
-            this.showToast(
+                this.showToast(
+                    error?.message ||
+                    "Ocorreu um erro no Chat Honey IA.",
+                    "error"
+                );
 
-                error?.message ||
 
-                "Ocorreu um erro no Chat Honey IA.",
+                EventBusInstance.emit(
+                    "chatError",
+                    error
+                );
 
-                "error"
-
-            );
-
-        };
+            };
 
 
         document.addEventListener(
-
             "chat-error",
-
             chatErrorHandler
-
         );
 
 
-        /*
-        ----------------------------------------------------
-        Authentication required
-        ----------------------------------------------------
-        */
+        /* -------------------------------------------------
+           Authentication required
+        ------------------------------------------------- */
 
-        const chatAuthHandler = async () => {
+        const chatAuthHandler =
+            async () => {
 
-            this.showToast(
-
-                "A sua sessão expirou. Faça login novamente.",
-
-                "error"
-
-            );
+                this.showToast(
+                    "A sua sessão expirou. Faça login novamente.",
+                    "error"
+                );
 
 
-            await this.handleSessionExpired();
+                await this.handleSessionExpired();
 
-        };
+            };
 
 
         document.addEventListener(
-
             "chat-auth-required",
-
             chatAuthHandler
+        );
 
+
+        /* -------------------------------------------------
+           Preview
+        ------------------------------------------------- */
+
+        const previewHandler =
+            event => {
+
+                const text =
+                    event?.detail?.text ||
+                    event?.detail?.content ||
+                    "";
+
+
+                if(text){
+
+                    this.detectAndRenderPreview(
+                        text
+                    );
+
+                }
+
+            };
+
+
+        document.addEventListener(
+            "chat-preview",
+            previewHandler
         );
 
 
         this.cleanupCallbacks.push(
-
             () => {
 
                 document.removeEventListener(
-
                     "chat-state",
-
                     chatStateHandler
-
                 );
 
 
                 document.removeEventListener(
-
                     "chat-message",
-
                     chatMessageHandler
-
                 );
 
 
                 document.removeEventListener(
-
                     "chat-updated",
-
                     chatUpdatedHandler
-
                 );
 
 
                 document.removeEventListener(
-
                     "chat-error",
-
                     chatErrorHandler
-
                 );
 
 
                 document.removeEventListener(
-
                     "chat-auth-required",
-
                     chatAuthHandler
+                );
 
+
+                document.removeEventListener(
+                    "chat-preview",
+                    previewHandler
                 );
 
             }
-
         );
 
     }
@@ -2580,17 +2191,15 @@ class HoneyAIApp {
     openChat(){
 
         if(
-
+            !authmanager ||
+            typeof authmanager.isAuthenticated !==
+            "function" ||
             !authmanager.isAuthenticated()
-
         ){
 
             this.showToast(
-
                 "Faça login para utilizar o Chat Honey IA.",
-
                 "error"
-
             );
 
 
@@ -2600,9 +2209,7 @@ class HoneyAIApp {
 
 
         this.showWorkspaceView(
-
             "chat"
-
         );
 
 
@@ -2610,17 +2217,34 @@ class HoneyAIApp {
 
 
         this.updateURL(
-
             "chat"
-
         );
 
 
         EventBusInstance.emit(
-
             "chatOpened"
-
         );
+
+
+        /*
+         * If authentication finished before
+         * chat initialization, initialize it now.
+         */
+
+        if(!this.chatInitialized){
+
+            this.initChat().catch(
+                error => {
+
+                    console.error(
+                        "Deferred chat initialization error:",
+                        error
+                    );
+
+                }
+            );
+
+        }
 
 
         return true;
@@ -2634,7 +2258,7 @@ class HoneyAIApp {
 
     async newChat(){
 
-        if(!this.chatInstance){
+        if(!this.chatInitialized){
 
             await this.initChat();
 
@@ -2644,94 +2268,114 @@ class HoneyAIApp {
         try{
 
             if(
-
                 this.chatInstance &&
-
                 typeof this.chatInstance.newConversation ===
-
                 "function"
-
             ){
 
                 await this.chatInstance.newConversation();
 
+                Store.patch({
+
+                    conversation:
+                        [],
+
+                    currentChatId:
+                        null
+
+                });
+
+
                 return true;
 
             }
 
 
             if(
-
                 this.chatInstance &&
-
                 typeof this.chatInstance.newChat ===
-
                 "function"
-
             ){
 
                 await this.chatInstance.newChat();
 
+                Store.patch({
+
+                    conversation:
+                        [],
+
+                    currentChatId:
+                        null
+
+                });
+
+
                 return true;
 
             }
 
 
             if(
-
                 this.chatInstance &&
-
                 typeof this.chatInstance.reset ===
-
                 "function"
-
             ){
 
                 await this.chatInstance.reset();
 
+                Store.patch({
+
+                    conversation:
+                        [],
+
+                    currentChatId:
+                        null
+
+                });
+
+
                 return true;
 
             }
 
 
             if(
-
                 this.chatModule &&
-
                 typeof this.chatModule.newChat ===
-
                 "function"
-
             ){
 
                 await this.chatModule.newChat();
+
+                Store.patch({
+
+                    conversation:
+                        [],
+
+                    currentChatId:
+                        null
+
+                });
+
 
                 return true;
 
             }
 
 
-            /*
-            Fallback:
-            */
-
             Store.patch({
 
                 conversation:
-
                     [],
 
                 currentChatId:
-
                     null
 
             });
 
 
             EventBusInstance.emit(
-
                 "newChatRequested"
-
             );
 
 
@@ -2742,20 +2386,14 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "New chat error:",
-
                 error
-
             );
 
 
             this.showToast(
-
                 "Não foi possível iniciar uma nova conversa.",
-
                 "error"
-
             );
 
 
@@ -2774,78 +2412,72 @@ class HoneyAIApp {
 
         if(!agentId){
 
-            return;
+            return false;
 
         }
 
 
         Store.setState(
-
             "selectedAgent",
-
             agentId
-
         );
 
 
         try{
 
             if(
-
                 this.chatInstance &&
-
                 typeof this.chatInstance.setAgent ===
-
                 "function"
-
             ){
 
                 await this.chatInstance.setAgent(
-
                     agentId
-
                 );
 
             }
 
             else if(
-
                 this.chatModule &&
-
                 typeof this.chatModule.setAgent ===
-
                 "function"
-
             ){
 
                 await this.chatModule.setAgent(
-
                     agentId
-
                 );
 
             }
 
 
             EventBusInstance.emit(
-
-                "chatAgentChanged",
-
-                agentId
-
+                "agentChanged",
+                {
+                    id:
+                        agentId
+                }
             );
+
+
+            EventBusInstance.emit(
+                "chatAgentChanged",
+                agentId
+            );
+
+
+            return true;
 
         }
 
         catch(error){
 
             console.error(
-
                 "Chat agent change error:",
-
                 error
-
             );
+
+
+            return false;
 
         }
 
@@ -2861,16 +2493,12 @@ class HoneyAIApp {
         try{
 
             if(
-
                 authmanager &&
-
                 typeof authmanager.clearSession ===
-
                 "function"
-
             ){
 
-                authmanager.clearSession();
+                await authmanager.clearSession();
 
             }
 
@@ -2879,35 +2507,14 @@ class HoneyAIApp {
         catch(error){
 
             console.warn(
-
                 "Session clear error:",
-
                 error
-
             );
 
         }
 
 
-        Store.patch({
-
-            isAuthenticated:
-
-                false,
-
-            user:
-
-                null,
-
-            currentChatId:
-
-                null,
-
-            loading:
-
-                false
-
-        });
+        this.resetRuntimeState();
 
 
         this.hideWorkspace();
@@ -2916,13 +2523,9 @@ class HoneyAIApp {
         try{
 
             if(
-
                 logincontroller &&
-
                 typeof logincontroller.init ===
-
                 "function"
-
             ){
 
                 await logincontroller.init();
@@ -2934,14 +2537,16 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Login initialization error:",
-
                 error
-
             );
 
         }
+
+
+        EventBusInstance.emit(
+            "sessionExpired"
+        );
 
     }
 
@@ -2958,18 +2563,12 @@ class HoneyAIApp {
         ----------------------------------------------------
         */
 
-        document.addEventListener(
-
-            "click",
-
+        const chatNavigationHandler =
             event => {
 
                 const trigger =
-
                     event.target.closest(
-
                         "[data-target='chat']"
-
                     );
 
 
@@ -2985,8 +2584,12 @@ class HoneyAIApp {
 
                 this.openChat();
 
-            }
+            };
 
+
+        document.addEventListener(
+            "click",
+            chatNavigationHandler
         );
 
 
@@ -2996,18 +2599,12 @@ class HoneyAIApp {
         ----------------------------------------------------
         */
 
-        document.addEventListener(
-
-            "click",
-
+        const newChatHandler =
             event => {
 
                 const button =
-
                     event.target.closest(
-
                         "#btnNewChat, #btnNewConversation"
-
                     );
 
 
@@ -3027,8 +2624,12 @@ class HoneyAIApp {
 
                 }
 
-            }
+            };
 
+
+        document.addEventListener(
+            "click",
+            newChatHandler
         );
 
 
@@ -3041,15 +2642,12 @@ class HoneyAIApp {
         if(this.btnClosePreview){
 
             this.btnClosePreview.addEventListener(
-
                 "click",
-
                 () => {
 
                     this.closePreview();
 
                 }
-
             );
 
         }
@@ -3064,20 +2662,16 @@ class HoneyAIApp {
         if(this.btnToggleMenu){
 
             this.btnToggleMenu.addEventListener(
-
                 "click",
-
                 event => {
 
                     event.preventDefault();
 
                     event.stopPropagation();
 
-
                     this.openSidebar();
 
                 }
-
             );
 
         }
@@ -3086,20 +2680,16 @@ class HoneyAIApp {
         if(this.btnCloseSidebar){
 
             this.btnCloseSidebar.addEventListener(
-
                 "click",
-
                 event => {
 
                     event.preventDefault();
 
                     event.stopPropagation();
 
-
                     this.closeSidebar();
 
                 }
-
             );
 
         }
@@ -3108,18 +2698,14 @@ class HoneyAIApp {
         if(this.sidebarOverlay){
 
             this.sidebarOverlay.addEventListener(
-
                 "click",
-
                 event => {
 
                     event.preventDefault();
 
-
                     this.closeSidebar();
 
                 }
-
             );
 
         }
@@ -3132,30 +2718,22 @@ class HoneyAIApp {
         */
 
         const userBox =
-
             document.getElementById(
-
                 "userBox"
-
             );
 
 
         if(userBox){
 
             userBox.addEventListener(
-
                 "click",
-
                 () => {
 
                     EventBusInstance.emit(
-
                         "userMenuRequested"
-
                     );
 
                 }
-
             );
 
         }
@@ -3170,15 +2748,12 @@ class HoneyAIApp {
         if(this.btnChatMode){
 
             this.btnChatMode.addEventListener(
-
                 "click",
-
                 () => {
 
                     this.activateChatMode();
 
                 }
-
             );
 
         }
@@ -3193,15 +2768,12 @@ class HoneyAIApp {
         if(this.btnLiveMode){
 
             this.btnLiveMode.addEventListener(
-
                 "click",
-
                 () => {
 
                     this.startLiveMode();
 
                 }
-
             );
 
         }
@@ -3216,17 +2788,12 @@ class HoneyAIApp {
         if(this.globalSearch){
 
             this.globalSearch.addEventListener(
-
                 "keydown",
-
                 event => {
 
                     if(
-
                         event.key !==
-
                         "Enter"
-
                     ){
 
                         return;
@@ -3235,9 +2802,7 @@ class HoneyAIApp {
 
 
                     const query =
-
                         this.globalSearch.value
-
                             .trim();
 
 
@@ -3249,15 +2814,11 @@ class HoneyAIApp {
 
 
                     EventBusInstance.emit(
-
                         "globalSearch",
-
                         query
-
                     );
 
                 }
-
             );
 
         }
@@ -3272,19 +2833,14 @@ class HoneyAIApp {
         if(this.btnNotifications){
 
             this.btnNotifications.addEventListener(
-
                 "click",
-
                 () => {
 
                     EventBusInstance.emit(
-
                         "notificationsRequested"
-
                     );
 
                 }
-
             );
 
         }
@@ -3305,26 +2861,48 @@ class HoneyAIApp {
         ----------------------------------------------------
         */
 
-        document.addEventListener(
-
-            "keydown",
-
+        const escapeHandler =
             event => {
 
                 if(
-
                     event.key ===
-
                     "Escape"
-
                 ){
 
                     this.closeSidebar();
 
                 }
 
-            }
+            };
 
+
+        document.addEventListener(
+            "keydown",
+            escapeHandler
+        );
+
+
+        this.cleanupCallbacks.push(
+            () => {
+
+                document.removeEventListener(
+                    "click",
+                    chatNavigationHandler
+                );
+
+
+                document.removeEventListener(
+                    "click",
+                    newChatHandler
+                );
+
+
+                document.removeEventListener(
+                    "keydown",
+                    escapeHandler
+                );
+
+            }
         );
 
     }
@@ -3343,21 +2921,16 @@ class HoneyAIApp {
         }
 
 
-        this.navigationInitialized = true;
+        this.navigationInitialized =
+            true;
 
 
-        document.addEventListener(
-
-            "click",
-
+        const navigationHandler =
             event => {
 
                 const targetElement =
-
                     event.target.closest(
-
                         "[data-target]"
-
                     );
 
 
@@ -3369,24 +2942,16 @@ class HoneyAIApp {
 
 
                 const studioApp =
-
                     document.getElementById(
-
                         "studioApp"
-
                     );
 
 
                 if(
-
                     studioApp &&
-
                     !studioApp.contains(
-
                         targetElement
-
                     )
-
                 ){
 
                     return;
@@ -3395,7 +2960,6 @@ class HoneyAIApp {
 
 
                 const target =
-
                     targetElement.dataset.target;
 
 
@@ -3406,23 +2970,14 @@ class HoneyAIApp {
                 }
 
 
-                /*
-                Chat special case
-                */
-
                 if(
-
                     target ===
-
                     "chat"
-
                 ){
 
                     event.preventDefault();
 
-
                     this.openChat();
-
 
                     return;
 
@@ -3430,24 +2985,16 @@ class HoneyAIApp {
 
 
                 const targetView =
-
                     document.getElementById(
-
                         target
-
                     );
 
 
                 if(
-
                     !targetView ||
-
                     !targetView.classList.contains(
-
                         "workspace-view"
-
                     )
-
                 ){
 
                     return;
@@ -3459,9 +3006,7 @@ class HoneyAIApp {
 
 
                 this.showWorkspaceView(
-
                     target
-
                 );
 
 
@@ -3469,34 +3014,24 @@ class HoneyAIApp {
 
 
                 this.updateURL(
-
                     target
-
                 );
 
-            }
+            };
 
+
+        document.addEventListener(
+            "click",
+            navigationHandler
         );
 
 
-        /*
-        ----------------------------------------------------
-        Create project
-        ----------------------------------------------------
-        */
-
-        document.addEventListener(
-
-            "click",
-
+        const createProjectHandler =
             event => {
 
                 const button =
-
                     event.target.closest(
-
                         "#btnCreateProject"
-
                     );
 
 
@@ -3511,9 +3046,7 @@ class HoneyAIApp {
 
 
                 this.showWorkspaceView(
-
                     "projects"
-
                 );
 
 
@@ -3521,24 +3054,46 @@ class HoneyAIApp {
 
 
                 this.updateURL(
-
                     "projects"
-
                 );
 
 
                 EventBusInstance.emit(
-
                     "createProjectRequested"
+                );
 
+            };
+
+
+        document.addEventListener(
+            "click",
+            createProjectHandler
+        );
+
+
+        this.cleanupCallbacks.push(
+            () => {
+
+                document.removeEventListener(
+                    "click",
+                    navigationHandler
+                );
+
+
+                document.removeEventListener(
+                    "click",
+                    createProjectHandler
                 );
 
             }
-
         );
 
     }
 
+
+    /* ====================================================
+       UPDATE URL
+    ==================================================== */
 
     updateURL(target){
 
@@ -3552,13 +3107,9 @@ class HoneyAIApp {
         try{
 
             history.replaceState(
-
                 null,
-
                 "",
-
                 `#${target}`
-
             );
 
         }
@@ -3566,11 +3117,8 @@ class HoneyAIApp {
         catch(error){
 
             console.warn(
-
                 "Navigation history error:",
-
                 error
-
             );
 
         }
@@ -3583,11 +3131,8 @@ class HoneyAIApp {
     ==================================================== */
 
     showWorkspaceView(
-
         target,
-
         updateHistory = true
-
     ){
 
         if(!target){
@@ -3598,30 +3143,20 @@ class HoneyAIApp {
 
 
         const targetView =
-
             document.getElementById(
-
                 target
-
             );
 
 
         if(
-
             !targetView ||
-
             !targetView.classList.contains(
-
                 "workspace-view"
-
             )
-
         ){
 
             console.warn(
-
                 `Workspace view não encontrada: ${target}`
-
             );
 
 
@@ -3631,129 +3166,105 @@ class HoneyAIApp {
 
 
         const views =
-
             document.querySelectorAll(
-
                 ".workspace-view"
-
             );
 
 
         views.forEach(
-
             view => {
 
                 const active =
-
                     view.id ===
-
                     target;
 
 
                 view.style.display =
-
                     active
-
                         ? ""
-
                         : "none";
 
 
                 view.setAttribute(
-
                     "aria-hidden",
-
                     active
-
                         ? "false"
-
                         : "true"
-
                 );
 
             }
-
         );
 
 
         const navItems =
-
             document.querySelectorAll(
-
                 ".nav-item[data-target]"
-
             );
 
 
         navItems.forEach(
-
             item => {
 
                 item.classList.toggle(
-
                     "active",
-
                     item.dataset.target ===
-
-                        target
-
+                    target
                 );
 
             }
-
         );
 
 
         Store.setState(
-
             "workspace",
-
             target
-
         );
 
 
         if(updateHistory){
 
             this.updateURL(
-
                 target
-
             );
 
         }
 
 
         EventBusInstance.emit(
-
             "workspaceChanged",
-
             target
-
         );
 
 
         if(
-
             target ===
-
             "chat"
-
         ){
 
             EventBusInstance.emit(
-
                 "chatOpened"
-
             );
+
+            if(!this.chatInitialized){
+
+                this.initChat().catch(
+                    error => {
+
+                        console.error(
+                            "Chat view initialization error:",
+                            error
+                        );
+
+                    }
+                );
+
+            }
 
         }
 
 
         console.log(
-
             `📍 Workspace: ${target}`
-
         );
 
     }
@@ -3771,18 +3282,13 @@ class HoneyAIApp {
         if(this.sidebar){
 
             this.sidebar.classList.add(
-
                 "open"
-
             );
 
 
             this.sidebar.setAttribute(
-
                 "aria-hidden",
-
                 "false"
-
             );
 
         }
@@ -3791,34 +3297,25 @@ class HoneyAIApp {
         if(this.sidebarOverlay){
 
             this.sidebarOverlay.classList.add(
-
                 "active"
-
             );
 
 
             this.sidebarOverlay.setAttribute(
-
                 "aria-hidden",
-
                 "false"
-
             );
 
         }
 
 
         document.body.classList.add(
-
             "sidebar-open"
-
         );
 
 
         EventBusInstance.emit(
-
             "sidebarOpened"
-
         );
 
     }
@@ -3832,18 +3329,13 @@ class HoneyAIApp {
         if(this.sidebar){
 
             this.sidebar.classList.remove(
-
                 "open"
-
             );
 
 
             this.sidebar.setAttribute(
-
                 "aria-hidden",
-
                 "true"
-
             );
 
         }
@@ -3852,34 +3344,25 @@ class HoneyAIApp {
         if(this.sidebarOverlay){
 
             this.sidebarOverlay.classList.remove(
-
                 "active"
-
             );
 
 
             this.sidebarOverlay.setAttribute(
-
                 "aria-hidden",
-
                 "true"
-
             );
 
         }
 
 
         document.body.classList.remove(
-
             "sidebar-open"
-
         );
 
 
         EventBusInstance.emit(
-
             "sidebarClosed"
-
         );
 
     }
@@ -3892,32 +3375,26 @@ class HoneyAIApp {
     async startLiveMode(){
 
         if(
-
+            !authmanager ||
+            typeof authmanager.isAuthenticated !==
+            "function" ||
             !authmanager.isAuthenticated()
-
         ){
 
             this.showToast(
-
                 "Faça login para utilizar o modo Live.",
-
                 "error"
-
             );
 
 
-            return;
+            return false;
 
         }
 
 
-        /*
-        Already connected
-        */
-
         if(this.liveMode){
 
-            return;
+            return true;
 
         }
 
@@ -3925,53 +3402,41 @@ class HoneyAIApp {
         try{
 
             if(
-
                 !liveclient ||
-
                 typeof liveclient.start !==
-
                 "function"
-
             ){
 
                 throw new Error(
-
                     "Live Client não está disponível."
-
                 );
 
             }
 
 
             const result =
-
                 await liveclient.start();
 
 
             if(
-
                 result &&
-
                 result.success
-
             ){
 
                 this.currentMode =
-
                     "live";
 
 
-                this.liveMode = true;
+                this.liveMode =
+                    true;
 
 
                 Store.patch({
 
                     currentMode:
-
                         "live",
 
                     liveConnected:
-
                         true
 
                 });
@@ -3980,35 +3445,52 @@ class HoneyAIApp {
                 this.updateModeButtons();
 
 
+                if(
+                    this.chatInstance &&
+                    typeof this.chatInstance.setMode ===
+                    "function"
+                ){
+
+                    try{
+
+                        await this.chatInstance.setMode(
+                            "live"
+                        );
+
+                    }
+
+                    catch(error){
+
+                        console.warn(
+                            "Chat Live synchronization error:",
+                            error
+                        );
+
+                    }
+
+                }
+
+
                 EventBusInstance.emit(
-
                     "liveStarted",
-
                     result
-
                 );
 
 
                 this.showToast(
-
                     "Modo Live conectado.",
-
                     "success"
-
                 );
 
 
-                return;
+                return true;
 
             }
 
 
             throw new Error(
-
                 result?.message ||
-
                 "Não foi possível conectar ao modo Live."
-
             );
 
         }
@@ -4016,30 +3498,25 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Live Mode error:",
-
                 error
-
             );
 
 
             this.currentMode =
-
                 "chat";
 
 
-            this.liveMode = false;
+            this.liveMode =
+                false;
 
 
             Store.patch({
 
                 currentMode:
-
                     "chat",
 
                 liveConnected:
-
                     false
 
             });
@@ -4049,16 +3526,100 @@ class HoneyAIApp {
 
 
             this.showToast(
-
                 error?.message ||
-
                 "Não foi possível iniciar o modo Live.",
-
                 "error"
+            );
 
+
+            return false;
+
+        }
+
+    }
+
+
+    /* ====================================================
+       STOP LIVE MODE
+    ==================================================== */
+
+    async stopLiveMode(){
+
+        try{
+
+            if(
+                liveclient &&
+                typeof liveclient.stop ===
+                "function"
+            ){
+
+                await liveclient.stop();
+
+            }
+
+        }
+
+        catch(error){
+
+            console.warn(
+                "Live stop error:",
+                error
             );
 
         }
+
+
+        this.currentMode =
+            "chat";
+
+
+        this.liveMode =
+            false;
+
+
+        Store.patch({
+
+            currentMode:
+                "chat",
+
+            liveConnected:
+                false
+
+        });
+
+
+        this.updateModeButtons();
+
+
+        if(
+            this.chatInstance &&
+            typeof this.chatInstance.setMode ===
+            "function"
+        ){
+
+            try{
+
+                await this.chatInstance.setMode(
+                    "chat"
+                );
+
+            }
+
+            catch(error){
+
+                console.warn(
+                    "Chat mode restore error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        EventBusInstance.emit(
+            "liveStopped"
+        );
 
     }
 
@@ -4067,24 +3628,35 @@ class HoneyAIApp {
        CHAT MODE
     ==================================================== */
 
-    activateChatMode(){
+    async activateChatMode(){
+
+        /*
+         * Stop Live cleanly if necessary.
+         */
+
+        if(this.liveMode){
+
+            await this.stopLiveMode();
+
+            return;
+
+        }
+
 
         this.currentMode =
-
             "chat";
 
 
-        this.liveMode = false;
+        this.liveMode =
+            false;
 
 
         Store.patch({
 
             currentMode:
-
                 "chat",
 
             liveConnected:
-
                 false
 
         });
@@ -4094,28 +3666,20 @@ class HoneyAIApp {
 
 
         EventBusInstance.emit(
-
             "chatModeActivated"
-
         );
 
 
         if(
-
             this.chatInstance &&
-
             typeof this.chatInstance.setMode ===
-
             "function"
-
         ){
 
             try{
 
-                this.chatInstance.setMode(
-
+                await this.chatInstance.setMode(
                     "chat"
-
                 );
 
             }
@@ -4123,11 +3687,8 @@ class HoneyAIApp {
             catch(error){
 
                 console.warn(
-
                     "Chat mode error:",
-
                     error
-
                 );
 
             }
@@ -4144,33 +3705,47 @@ class HoneyAIApp {
     updateModeButtons(){
 
         this.btnChatMode
-
             ?.classList
-
             .toggle(
-
                 "active",
-
                 this.currentMode ===
-
-                    "chat"
-
+                "chat"
             );
 
 
         this.btnLiveMode
-
             ?.classList
-
             .toggle(
-
                 "active",
-
                 this.currentMode ===
-
-                    "live"
-
+                "live"
             );
+
+
+        if(this.btnChatMode){
+
+            this.btnChatMode.setAttribute(
+                "aria-pressed",
+                this.currentMode ===
+                "chat"
+                    ? "true"
+                    : "false"
+            );
+
+        }
+
+
+        if(this.btnLiveMode){
+
+            this.btnLiveMode.setAttribute(
+                "aria-pressed",
+                this.currentMode ===
+                "live"
+                    ? "true"
+                    : "false"
+            );
+
+        }
 
     }
 
@@ -4182,42 +3757,42 @@ class HoneyAIApp {
     initMarkdownEngine(){
 
         if(
-
-            typeof window !==
-
-            "undefined" &&
-
-            window.marked
-
+            typeof window ===
+            "undefined"
         ){
 
-            try{
+            return;
 
-                window.marked.setOptions({
+        }
 
-                    breaks:
 
-                        true,
+        if(!window.marked){
 
-                    gfm:
+            return;
 
-                        true
+        }
 
-                });
 
-            }
+        try{
 
-            catch(error){
+            window.marked.setOptions({
 
-                console.warn(
+                breaks:
+                    true,
 
-                    "Markdown configuration error:",
+                gfm:
+                    true
 
-                    error
+            });
 
-                );
+        }
 
-            }
+        catch(error){
+
+            console.warn(
+                "Markdown configuration error:",
+                error
+            );
 
         }
 
@@ -4231,11 +3806,8 @@ class HoneyAIApp {
     detectAndRenderPreview(text){
 
         if(
-
             !text ||
-
             !this.livePreviewIframe
-
         ){
 
             return false;
@@ -4244,20 +3816,14 @@ class HoneyAIApp {
 
 
         const match =
-
             text.match(
-
-                /```html([\s\S]*?)```/i
-
+                /```html\s*([\s\S]*?)```/i
             );
 
 
         if(
-
             !match ||
-
             !match[1]
-
         ){
 
             return false;
@@ -4266,23 +3832,14 @@ class HoneyAIApp {
 
 
         const html =
-
             match[1].trim();
 
 
         try{
 
             const frameDocument =
-
-                this.livePreviewIframe
-
-                    .contentDocument ||
-
-                this.livePreviewIframe
-
-                    .contentWindow
-
-                    ?.document;
+                this.livePreviewIframe.contentDocument ||
+                this.livePreviewIframe.contentWindow?.document;
 
 
             if(!frameDocument){
@@ -4294,7 +3851,9 @@ class HoneyAIApp {
 
             frameDocument.open();
 
-            frameDocument.write(html);
+            frameDocument.write(
+                html
+            );
 
             frameDocument.close();
 
@@ -4302,22 +3861,16 @@ class HoneyAIApp {
             if(this.previewPane){
 
                 this.previewPane.style.display =
-
                     "block";
 
             }
 
 
             EventBusInstance.emit(
-
                 "previewUpdated",
-
                 {
-
                     html
-
                 }
-
             );
 
 
@@ -4328,11 +3881,8 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Preview rendering error:",
-
                 error
-
             );
 
 
@@ -4343,21 +3893,22 @@ class HoneyAIApp {
     }
 
 
+    /* ====================================================
+       CLOSE PREVIEW
+    ==================================================== */
+
     closePreview(){
 
         if(this.previewPane){
 
             this.previewPane.style.display =
-
                 "none";
 
         }
 
 
         EventBusInstance.emit(
-
             "previewClosed"
-
         );
 
     }
@@ -4368,11 +3919,8 @@ class HoneyAIApp {
     ==================================================== */
 
     showToast(
-
         message,
-
         type = "info"
-
     ){
 
         if(!message){
@@ -4385,11 +3933,8 @@ class HoneyAIApp {
         if(!this.toastContainer){
 
             this.toastContainer =
-
                 document.getElementById(
-
                     "toastContainer"
-
                 );
 
         }
@@ -4398,9 +3943,7 @@ class HoneyAIApp {
         if(!this.toastContainer){
 
             console.warn(
-
                 message
-
             );
 
 
@@ -4409,83 +3952,83 @@ class HoneyAIApp {
         }
 
 
+        const allowedTypes = [
+            "info",
+            "success",
+            "warning",
+            "error"
+        ];
+
+
+        const safeType =
+            allowedTypes.includes(
+                type
+            )
+                ? type
+                : "info";
+
+
         const toast =
-
             document.createElement(
-
                 "div"
-
             );
 
 
         toast.className =
-
-            `toast ${this.escapeHTML(type)}`;
+            `toast ${safeType}`;
 
 
         toast.setAttribute(
-
             "role",
-
             "status"
+        );
 
+
+        toast.setAttribute(
+            "aria-live",
+            "polite"
         );
 
 
         toast.textContent =
-
             String(message);
 
 
         this.toastContainer.appendChild(
-
             toast
-
         );
 
 
         requestAnimationFrame(
-
             () => {
 
                 toast.classList.add(
-
                     "visible"
-
                 );
 
             }
-
         );
 
 
         setTimeout(
-
             () => {
 
                 toast.classList.add(
-
                     "removing"
-
                 );
 
 
                 setTimeout(
-
                     () => {
 
                         toast.remove();
 
                     },
-
                     250
-
                 );
 
             },
-
             TOAST_DURATION
-
         );
 
     }
@@ -4498,34 +4041,23 @@ class HoneyAIApp {
     initModalsAndUiActions(){
 
         document
-
             .querySelectorAll(
-
                 "[data-close]"
-
             )
-
             .forEach(
-
                 button => {
 
                     button.addEventListener(
-
                         "click",
-
                         () => {
 
                             const modalId =
-
                                 button.dataset.close;
 
 
                             const modal =
-
                                 document.getElementById(
-
                                     modalId
-
                                 );
 
 
@@ -4536,11 +4068,9 @@ class HoneyAIApp {
                             }
 
                         }
-
                     );
 
                 }
-
             );
 
     }
@@ -4553,9 +4083,10 @@ class HoneyAIApp {
     requireAuthentication(){
 
         if(
-
+            authmanager &&
+            typeof authmanager.isAuthenticated ===
+            "function" &&
             authmanager.isAuthenticated()
-
         ){
 
             return true;
@@ -4567,13 +4098,9 @@ class HoneyAIApp {
 
 
         if(
-
             logincontroller &&
-
             typeof logincontroller.init ===
-
             "function"
-
         ){
 
             logincontroller.init();
@@ -4587,28 +4114,134 @@ class HoneyAIApp {
 
 
     /* ====================================================
+       RESET RUNTIME STATE
+    ==================================================== */
+
+    resetRuntimeState(){
+
+        Store.patch({
+
+            isAuthenticated:
+                false,
+
+            user:
+                null,
+
+            conversation:
+                [],
+
+            currentChatId:
+                null,
+
+            loading:
+                false,
+
+            selectedFileBase64:
+                null,
+
+            selectedFileName:
+                null,
+
+            chatInitialized:
+                false,
+
+            currentMode:
+                "chat",
+
+            liveConnected:
+                false,
+
+            selectedAgent:
+                DEFAULT_AGENT
+
+        });
+
+
+        this.currentMode =
+            "chat";
+
+
+        this.liveMode =
+            false;
+
+
+        this.voiceActive =
+            false;
+
+
+        this.voiceRecognition =
+            null;
+
+
+        /*
+         * The actual Chat Engine instance is
+         * discarded so the next authenticated
+         * session can initialize cleanly.
+         */
+
+        this.chatInstance =
+            null;
+
+
+        this.chatModule =
+            null;
+
+
+        this.chatInitialized =
+            false;
+
+
+        this.chatEventsInitialized =
+            false;
+
+
+        this.updateModeButtons();
+
+    }
+
+
+    /* ====================================================
        LOGOUT
     ==================================================== */
 
     async logout(){
 
         console.log(
-
             "🔐 A terminar sessão Honey IA..."
-
         );
 
 
         try{
 
+            /*
+             * Stop Live before authentication
+             * is destroyed.
+             */
+
+            if(this.liveMode){
+
+                await this.stopLiveMode();
+
+            }
+
+        }
+
+        catch(error){
+
+            console.warn(
+                "Live shutdown error:",
+                error
+            );
+
+        }
+
+
+        try{
+
             if(
-
                 authmanager &&
-
                 typeof authmanager.logout ===
-
                 "function"
-
             ){
 
                 await authmanager.logout();
@@ -4620,113 +4253,41 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Logout error:",
-
                 error
-
             );
 
         }
 
 
         /*
-        ----------------------------------------------------
-        Reset application state
-        ----------------------------------------------------
-        */
+         * Reset application state.
+         */
 
-        Store.patch({
-
-            isAuthenticated:
-
-                false,
-
-            user:
-
-                null,
-
-            conversation:
-
-                [],
-
-            currentChatId:
-
-                null,
-
-            loading:
-
-                false,
-
-            chatInitialized:
-
-                false,
-
-            currentMode:
-
-                "chat",
-
-            liveConnected:
-
-                false,
-
-            selectedAgent:
-
-                DEFAULT_AGENT
-
-        });
+        this.resetRuntimeState();
 
 
         /*
-        ----------------------------------------------------
-        Reset runtime
-        ----------------------------------------------------
-        */
-
-        this.currentMode =
-
-            "chat";
-
-
-        this.liveMode =
-
-            false;
-
-
-        this.updateModeButtons();
-
+         * Do not destroy global navigation.
+         * Only reset the current runtime.
+         */
 
         this.closeSidebar();
 
-
-        /*
-        ----------------------------------------------------
-        Important:
-        Do NOT destroy global navigation listeners.
-
-        They were initialized once and remain valid.
-        ----------------------------------------------------
-        */
 
         this.hideWorkspace();
 
 
         /*
-        ----------------------------------------------------
-        Reinitialize login
-        ----------------------------------------------------
-        */
+         * Login UI.
+         */
 
         try{
 
             if(
-
                 logincontroller &&
-
                 typeof logincontroller.init ===
-
                 "function"
-
             ){
 
                 await logincontroller.init();
@@ -4738,11 +4299,8 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "Login initialization error:",
-
                 error
-
             );
 
         }
@@ -4752,16 +4310,12 @@ class HoneyAIApp {
 
 
         EventBusInstance.emit(
-
             "loggedOut"
-
         );
 
 
         console.log(
-
             "✅ Sessão encerrada."
-
         );
 
     }
@@ -4780,15 +4334,13 @@ class HoneyAIApp {
         }
 
 
-        this.initialized = true;
+        this.initialized =
+            true;
 
 
         console.log(
-
             `🐝 Honey IA Studio V${APP_VERSION} iniciado`,
-
             APPLICATION_SESSION_ID
-
         );
 
 
@@ -4801,20 +4353,14 @@ class HoneyAIApp {
         catch(error){
 
             console.error(
-
                 "HONEY IA START ERROR:",
-
                 error
-
             );
 
 
             this.showToast(
-
                 "Não foi possível iniciar o Honey IA.",
-
                 "error"
-
             );
 
         }
@@ -4829,13 +4375,39 @@ class HoneyAIApp {
     destroy(){
 
         /*
-        ----------------------------------------------------
-        Remove DOM listeners registered through cleanup.
-        ----------------------------------------------------
-        */
+         * Stop Live.
+         */
+
+        try{
+
+            if(
+                this.liveMode &&
+                liveclient &&
+                typeof liveclient.stop ===
+                "function"
+            ){
+
+                liveclient.stop();
+
+            }
+
+        }
+
+        catch(error){
+
+            console.warn(
+                "Live cleanup error:",
+                error
+            );
+
+        }
+
+
+        /*
+         * DOM event cleanup.
+         */
 
         this.cleanupCallbacks.forEach(
-
             cleanup => {
 
                 try{
@@ -4847,31 +4419,28 @@ class HoneyAIApp {
                 catch(error){
 
                     console.warn(
-
                         "Cleanup error:",
-
                         error
-
                     );
 
                 }
 
             }
-
         );
 
 
-        this.cleanupCallbacks = [];
+        this.cleanupCallbacks =
+            [];
 
+
+        /*
+         * Auth subscription cleanup.
+         */
 
         if(
-
             this.authSubscription &&
-
             typeof this.authSubscription ===
-
             "function"
-
         ){
 
             try{
@@ -4883,11 +4452,8 @@ class HoneyAIApp {
             catch(error){
 
                 console.warn(
-
                     "Auth subscription cleanup error:",
-
                     error
-
                 );
 
             }
@@ -4895,13 +4461,48 @@ class HoneyAIApp {
         }
 
 
-        this.authSubscription = null;
+        this.authSubscription =
+            null;
+
+
+        this.chatInstance =
+            null;
+
+
+        this.chatModule =
+            null;
+
+
+        this.chatInitialized =
+            false;
+
+
+        this.chatEventsInitialized =
+            false;
+
+
+        this.initialized =
+            false;
+
+
+        this.workspaceInitialized =
+            false;
+
+
+        this.navigationInitialized =
+            false;
+
+
+        this.agentsInitialized =
+            false;
+
+
+        this.agentStudioInitialized =
+            false;
 
 
         EventBusInstance.emit(
-
             "applicationDestroyed"
-
         );
 
     }
@@ -4914,7 +4515,6 @@ class HoneyAIApp {
 ======================================================== */
 
 const honeyAI =
-
     new HoneyAIApp();
 
 
@@ -4923,7 +4523,6 @@ const honeyAI =
 ======================================================== */
 
 const startHoneyAI =
-
     async () => {
 
         try{
@@ -4935,20 +4534,14 @@ const startHoneyAI =
         catch(error){
 
             console.error(
-
                 "HONEY IA START ERROR:",
-
                 error
-
             );
 
 
             honeyAI.showToast(
-
                 "Não foi possível iniciar o Honey IA.",
-
                 "error"
-
             );
 
         }
@@ -4961,27 +4554,17 @@ const startHoneyAI =
 ======================================================== */
 
 if(
-
     document.readyState ===
-
     "loading"
-
 ){
 
     document.addEventListener(
-
         "DOMContentLoaded",
-
         startHoneyAI,
-
         {
-
             once:
-
                 true
-
         }
-
     );
 
 }
@@ -5003,7 +4586,7 @@ export default honeyAI;
 /*
 ==========================================================
 HONEY IA STUDIO
-APPLICATION CONTROLLER V12.0
-END
+APPLICATION CONTROLLER V13.0
+FINAL
 ==========================================================
 */
