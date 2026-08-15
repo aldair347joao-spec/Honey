@@ -54,7 +54,7 @@
     >
 
     <!-- =====================================================
-         MARKDOWN
+         MARKDOWN / CODE
     ====================================================== -->
 
     <link
@@ -93,7 +93,9 @@
             class="loader-logo"
             aria-hidden="true"
         >
-            <span class="loader-logo-mark">🐝</span>
+            <span class="loader-logo-mark">
+                🐝
+            </span>
         </div>
 
         <div class="loader-brand">
@@ -161,9 +163,9 @@
         <div class="sidebar-header">
 
             <a
-                href="#dashboard"
+                href="#chat"
                 class="brand-logo"
-                aria-label="Honey IA Studio — Dashboard"
+                aria-label="Honey IA Studio — Honey IA"
             >
 
                 <span
@@ -202,7 +204,9 @@
         </div>
 
 
-        <!-- SIDEBAR NAVIGATION -->
+        <!-- =================================================
+             SIDEBAR NAVIGATION
+        ================================================== -->
 
         <nav
             id="sidebarNav"
@@ -217,10 +221,15 @@
                 </span>
 
 
+                <!--
+                    O Chat IA NÃO aparece aqui.
+                    O chat é agora a página principal.
+                -->
+
                 <a
-                    href="#dashboard"
+                    href="#chat"
                     class="nav-item active"
-                    data-target="dashboard"
+                    data-target="chat"
                     aria-current="page"
                 >
 
@@ -230,31 +239,8 @@
                     ></i>
 
                     <span>
-                        Dashboard
+                        Início
                     </span>
-
-                </a>
-
-
-                <a
-                    href="#chat"
-                    class="nav-item"
-                    data-target="chat"
-                >
-
-                    <i
-                        class="fa-solid fa-comments"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Chat IA
-                    </span>
-
-                    <span
-                        class="nav-item-status"
-                        aria-hidden="true"
-                    ></span>
 
                 </a>
 
@@ -315,6 +301,10 @@
             </div>
 
 
+            <!-- =================================================
+                 ACCOUNT
+            ================================================== -->
+
             <div class="nav-section">
 
                 <span class="nav-section-label">
@@ -362,7 +352,9 @@
         </nav>
 
 
-        <!-- SIDEBAR FOOTER -->
+        <!-- =================================================
+             SIDEBAR FOOTER
+        ================================================== -->
 
         <div class="sidebar-bottom">
 
@@ -535,17 +527,22 @@
 
 
             <!-- =================================================
-                 HONEY INTELLIGENCE WORKSPACE
+                 HONEY IA — MAIN CHAT WORKSPACE
+                 
+                 Este é agora o ÚNICO chat da aplicação.
+                 O chat.js controla esta secção.
             ================================================== -->
 
             <section
-                id="dashboard"
+                id="chat"
                 class="workspace-view dashboard-section intelligence-workspace"
-                data-view="dashboard"
-                aria-labelledby="intelligenceTitle"
+                data-view="chat"
+                aria-label="Honey IA"
             >
 
-                <!-- Ambient intelligence background -->
+                <!-- =================================================
+                     AMBIENT INTELLIGENCE BACKGROUND
+                ================================================== -->
 
                 <div
                     class="intelligence-background"
@@ -561,7 +558,9 @@
                 </div>
 
 
-                <!-- Workspace top -->
+                <!-- =================================================
+                     WORKSPACE TOP BAR
+                ================================================== -->
 
                 <div class="intelligence-topbar">
 
@@ -664,6 +663,8 @@
 
                 <!-- =================================================
                      INTELLIGENCE HOME
+                     
+                     Chat inicial / composer principal.
                 ================================================== -->
 
                 <div
@@ -816,6 +817,7 @@
                         <div class="composer-footer">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-paperclip"
                                     aria-hidden="true"
@@ -850,10 +852,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-wand-magic-sparkles"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -878,10 +882,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-magnifying-glass-chart"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -906,10 +912,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-lightbulb"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -934,10 +942,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-code"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -962,10 +972,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-globe"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -990,10 +1002,12 @@
                         >
 
                             <span class="action-icon">
+
                                 <i
                                     class="fa-solid fa-bolt"
                                     aria-hidden="true"
                                 ></i>
+
                             </span>
 
                             <span class="action-content">
@@ -1085,6 +1099,9 @@
 
                 <!-- =================================================
                      CHAT CONVERSATION WORKSPACE
+                     
+                     Continua dentro do mesmo #chat.
+                     NÃO é uma segunda página de Chat.
                 ================================================== -->
 
                 <div
@@ -1233,6 +1250,10 @@
                     ></div>
 
 
+                    <!-- =================================================
+                         ATTACHMENT BAR
+                    ================================================== -->
+
                     <div
                         id="attachment-bar"
                         class="attachment-bar hidden"
@@ -1281,11 +1302,13 @@
                     </div>
 
 
+                    <!-- =================================================
+                         CONVERSATION COMPOSER
+                    ================================================== -->
+
                     <div class="chat-input-wrapper">
 
-                        <div
-                            class="chat-input-area"
-                        >
+                        <div class="chat-input-area">
 
                             <button
                                 class="input-action"
@@ -1402,12 +1425,14 @@
                         <div class="context-item">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-brain"
                                     aria-hidden="true"
                                 ></i>
 
                                 Modelo
+
                             </span>
 
                             <strong>
@@ -1420,12 +1445,14 @@
                         <div class="context-item">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-memory"
                                     aria-hidden="true"
                                 ></i>
 
                                 Memória
+
                             </span>
 
                             <strong>
@@ -1438,12 +1465,14 @@
                         <div class="context-item">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-file"
                                     aria-hidden="true"
                                 ></i>
 
                                 Ficheiros
+
                             </span>
 
                             <strong id="contextFilesCount">
@@ -1456,12 +1485,14 @@
                         <div class="context-item">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-folder"
                                     aria-hidden="true"
                                 ></i>
 
                                 Projeto
+
                             </span>
 
                             <strong>
@@ -1474,12 +1505,14 @@
                         <div class="context-item">
 
                             <span>
+
                                 <i
                                     class="fa-solid fa-robot"
                                     aria-hidden="true"
                                 ></i>
 
                                 Agente
+
                             </span>
 
                             <strong>
@@ -1836,6 +1869,8 @@
 
                 <div class="plans-grid">
 
+                    <!-- FREE -->
+
                     <article class="plan-card">
 
                         <div class="plan-card-header">
@@ -1922,6 +1957,8 @@
 
                     </article>
 
+
+                    <!-- INDIVIDUAL -->
 
                     <article class="plan-card featured">
 
@@ -2014,6 +2051,8 @@
 
                     </article>
 
+
+                    <!-- BUSINESS -->
 
                     <article class="plan-card">
 
@@ -2241,385 +2280,6 @@
 
             </section>
 
-
-            <!-- =================================================
-                 CHAT IA — ENGINE COMPATIBILITY VIEW
-            ================================================== -->
-
-            <section
-                id="chat"
-                class="workspace-view chat-section"
-                data-view="chat"
-                hidden
-                aria-label="Chat IA"
-            >
-
-                <div
-                    id="chatLayout"
-                    class="chat-layout"
-                >
-
-                    <div
-                        id="chatPanel"
-                        class="chat-panel"
-                    >
-
-                        <header class="chat-header">
-
-                            <div class="chat-title-area">
-
-                                <div
-                                    class="chat-agent-avatar"
-                                    aria-hidden="true"
-                                >
-                                    🐝
-                                </div>
-
-                                <div class="chat-title">
-
-                                    <h2>
-                                        Honey IA
-                                    </h2>
-
-                                    <span class="chat-status">
-
-                                        <span
-                                            class="context-status"
-                                            aria-hidden="true"
-                                        ></span>
-
-                                        Assistente inteligente
-
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="chat-header-actions">
-
-                                <button
-                                    id="btnNewChat"
-                                    class="chat-header-button"
-                                    type="button"
-                                    aria-label="Nova conversa"
-                                    title="Nova conversa"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-plus"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <div
-                                    class="mode-switch"
-                                    role="group"
-                                    aria-label="Modo do assistente"
-                                >
-
-                                    <button
-                                        id="btnChatMode"
-                                        class="mode-button active"
-                                        type="button"
-                                        aria-pressed="true"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-comment"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Chat
-                                        </span>
-
-                                    </button>
-
-
-                                    <button
-                                        id="btnLiveMode"
-                                        class="mode-button"
-                                        type="button"
-                                        aria-pressed="false"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-microphone"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Live
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </header>
-
-
-                        <div
-                            id="chatContextBar"
-                            class="chat-context-bar"
-                        >
-
-                            <div class="chat-context-agent">
-
-                                <span
-                                    class="context-status"
-                                    aria-hidden="true"
-                                ></span>
-
-                                <span>
-                                    Honey IA
-                                </span>
-
-                            </div>
-
-
-                            <span
-                                id="conversationTitle"
-                                class="conversation-title"
-                            >
-                                Nova Conversa
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            id="chatMessages"
-                            class="chat-messages"
-                            role="log"
-                            aria-live="polite"
-                            aria-relevant="additions text"
-                            aria-label="Mensagens da conversa"
-                        ></div>
-
-
-                        <div
-                            id="attachment-bar"
-                            class="attachment-bar hidden"
-                            aria-live="polite"
-                        >
-
-                            <div class="attachment-info">
-
-                                <span
-                                    class="attachment-icon"
-                                    aria-hidden="true"
-                                >
-
-                                    <i class="fa-solid fa-paperclip"></i>
-
-                                </span>
-
-                                <div class="attachment-details">
-
-                                    <span class="attachment-label">
-                                        Ficheiro anexado
-                                    </span>
-
-                                    <strong id="attached-file-name"></strong>
-
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                id="btn-remove-attachment"
-                                class="attachment-remove"
-                                type="button"
-                                aria-label="Remover ficheiro"
-                                title="Remover ficheiro"
-                            >
-
-                                <i
-                                    class="fa-solid fa-xmark"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
-
-                        <div class="chat-input-wrapper">
-
-                            <div class="chat-input-area">
-
-                                <button
-                                    class="input-action"
-                                    type="button"
-                                    aria-label="Anexar ficheiro"
-                                    title="Anexar ficheiro"
-                                    id="btnChatAttach"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-paperclip"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <textarea
-                                    id="chatInputLegacy"
-                                    rows="1"
-                                    placeholder="Escreva uma mensagem para a Honey IA..."
-                                    autocomplete="off"
-                                    spellcheck="true"
-                                    aria-label="Mensagem para a Honey IA"
-                                ></textarea>
-
-
-                                <div class="input-actions-right">
-
-                                    <button
-                                        class="input-action"
-                                        type="button"
-                                        aria-label="Entrada de voz"
-                                        title="Falar com a Honey IA"
-                                        id="btnChatVoice"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-microphone"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                    </button>
-
-
-                                    <button
-                                        class="send-button"
-                                        type="button"
-                                        aria-label="Enviar mensagem"
-                                        title="Enviar mensagem"
-                                        id="btnChatSend"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-arrow-up"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="chat-input-footer">
-
-                                <span>
-                                    A Honey IA pode cometer erros.
-                                    Verifique informações importantes.
-                                </span>
-
-                                <span>
-                                    Enter para enviar · Shift + Enter para nova linha
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <aside
-                        id="preview-pane-legacy"
-                        class="preview-pane"
-                        aria-label="Live Preview"
-                        hidden
-                    >
-
-                        <header class="preview-header">
-
-                            <div class="preview-title">
-
-                                <span
-                                    class="preview-status"
-                                    aria-hidden="true"
-                                ></span>
-
-                                <i
-                                    class="fa-solid fa-display"
-                                    aria-hidden="true"
-                                ></i>
-
-                                <h3>
-                                    Preview
-                                </h3>
-
-                            </div>
-
-
-                            <div class="preview-actions">
-
-                                <button
-                                    id="btn-refresh-preview"
-                                    class="preview-button"
-                                    type="button"
-                                    aria-label="Atualizar preview"
-                                    title="Atualizar preview"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-rotate"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <button
-                                    id="btn-close-preview"
-                                    class="preview-button"
-                                    type="button"
-                                    aria-label="Fechar preview"
-                                    title="Fechar preview"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-xmark"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-                            </div>
-
-                        </header>
-
-
-                        <div class="preview-body">
-
-                            <iframe
-                                id="live-preview-iframe"
-                                title="Live Preview"
-                                sandbox="allow-scripts"
-                            ></iframe>
-
-                        </div>
-
-                    </aside>
-
-                </div>
-
-            </section>
-
         </div>
 
     </main>
@@ -2681,10 +2341,11 @@
     src="dashboard.js"
 ></script>
 
-<script
-    type="module"
-    src="chat.js"
-></script>
+<!--
+    chat.js é carregado pelo app.js.
+    Não o carregamos aqui novamente para evitar
+    inicialização duplicada.
+-->
 
 <script
     type="module"
