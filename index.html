@@ -14,7 +14,7 @@
 
     <meta
         name="description"
-        content="Honey IA Studio — Intelligence Workspace para criação, análise, desenvolvimento e automação com Inteligência Artificial."
+        content="Honey IA Studio — Plataforma inteligente para criação, análise, desenvolvimento e automação com Inteligência Artificial."
     >
 
     <meta
@@ -89,25 +89,13 @@
 
     <div class="loader-content">
 
-        <div
-            class="loader-logo"
-            aria-hidden="true"
-        >
-            <span class="loader-logo-mark">
-                🐝
-            </span>
+        <div class="loader-logo" aria-hidden="true">
+            <span class="loader-logo-mark">🐝</span>
         </div>
 
         <div class="loader-brand">
-
-            <strong>
-                Honey IA
-            </strong>
-
-            <span>
-                Studio
-            </span>
-
+            <strong>Honey IA</strong>
+            <span>Studio</span>
         </div>
 
         <div
@@ -163,9 +151,9 @@
         <div class="sidebar-header">
 
             <a
-                href="#chat"
+                href="#dashboard"
                 class="brand-logo"
-                aria-label="Honey IA Studio — Honey IA"
+                aria-label="Honey IA Studio — Dashboard"
             >
 
                 <span
@@ -204,9 +192,7 @@
         </div>
 
 
-        <!-- =================================================
-             SIDEBAR NAVIGATION
-        ================================================== -->
+        <!-- SIDEBAR NAVIGATION -->
 
         <nav
             id="sidebarNav"
@@ -221,15 +207,10 @@
                 </span>
 
 
-                <!--
-                    O Chat IA NÃO aparece aqui.
-                    O chat é agora a página principal.
-                -->
-
                 <a
-                    href="#chat"
+                    href="#dashboard"
                     class="nav-item active"
-                    data-target="chat"
+                    data-target="dashboard"
                     aria-current="page"
                 >
 
@@ -239,8 +220,31 @@
                     ></i>
 
                     <span>
-                        Início
+                        Dashboard
                     </span>
+
+                </a>
+
+
+                <a
+                    href="#chat"
+                    class="nav-item"
+                    data-target="chat"
+                >
+
+                    <i
+                        class="fa-solid fa-comments"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>
+                        Chat IA
+                    </span>
+
+                    <span
+                        class="nav-item-status"
+                        aria-hidden="true"
+                    ></span>
 
                 </a>
 
@@ -301,10 +305,6 @@
             </div>
 
 
-            <!-- =================================================
-                 ACCOUNT
-            ================================================== -->
-
             <div class="nav-section">
 
                 <span class="nav-section-label">
@@ -352,9 +352,7 @@
         </nav>
 
 
-        <!-- =================================================
-             SIDEBAR FOOTER
-        ================================================== -->
+        <!-- SIDEBAR FOOTER -->
 
         <div class="sidebar-bottom">
 
@@ -517,7 +515,7 @@
 
 
         <!-- =================================================
-             WORKSPACE
+             WORKSPACE VIEWS
         ================================================== -->
 
         <div
@@ -525,849 +523,114 @@
             class="workspace"
         >
 
-
-            <!-- =================================================
-                 HONEY IA — MAIN CHAT WORKSPACE
-                 
-                 Este é agora o ÚNICO chat da aplicação.
-                 O chat.js controla esta secção.
-            ================================================== -->
+            <!-- =============================================
+                 DASHBOARD
+            ============================================== -->
 
             <section
-                id="chat"
-                class="workspace-view dashboard-section intelligence-workspace"
-                data-view="chat"
-                aria-label="Honey IA"
+                id="dashboard"
+                class="workspace-view dashboard-section"
+                data-view="dashboard"
+                aria-labelledby="dashboardTitle"
             >
 
-                <!-- =================================================
-                     AMBIENT INTELLIGENCE BACKGROUND
-                ================================================== -->
-
                 <div
-                    class="intelligence-background"
-                    aria-hidden="true"
+                    id="dashboardContainer"
+                    class="dashboard-container"
                 >
 
-                    <div class="intelligence-glow glow-one"></div>
+                    <div class="hero-dashboard">
 
-                    <div class="intelligence-glow glow-two"></div>
+                        <div class="hero-content">
 
-                    <div class="intelligence-grid"></div>
-
-                </div>
-
-
-                <!-- =================================================
-                     WORKSPACE TOP BAR
-                ================================================== -->
-
-                <div class="intelligence-topbar">
-
-                    <div class="intelligence-identity">
-
-                        <span
-                            class="intelligence-core"
-                            aria-hidden="true"
-                        >
-                            🐝
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                Honey IA
-                            </strong>
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-circle"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Online
-
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="intelligence-tools">
-
-                        <button
-                            id="btnWorkspaceContext"
-                            class="intelligence-tool"
-                            type="button"
-                            title="Contexto da inteligência"
-                            aria-label="Contexto da inteligência"
-                        >
-
-                            <i
-                                class="fa-solid fa-layer-group"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Contexto
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="btnWorkspaceLive"
-                            class="intelligence-tool"
-                            type="button"
-                            title="Ativar Live"
-                            aria-label="Ativar Live"
-                        >
-
-                            <i
-                                class="fa-solid fa-microphone"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Live
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="btnWorkspaceNewChat"
-                            class="intelligence-tool"
-                            type="button"
-                            title="Nova conversa"
-                            aria-label="Nova conversa"
-                        >
-
-                            <i
-                                class="fa-solid fa-plus"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Nova conversa
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     INTELLIGENCE HOME
-                     
-                     Chat inicial / composer principal.
-                ================================================== -->
-
-                <div
-                    id="intelligenceHome"
-                    class="intelligence-home"
-                >
-
-                    <div class="intelligence-heading">
-
-                        <span class="intelligence-eyebrow">
-
-                            <span
-                                class="eyebrow-line"
-                                aria-hidden="true"
-                            ></span>
-
-                            HONEY INTELLIGENCE
-
-                        </span>
-
-
-                        <h1 id="intelligenceTitle">
-
-                            O que vamos
-                            <span>criar hoje?</span>
-
-                        </h1>
-
-
-                        <p>
-
-                            Converse com a Honey IA para transformar
-                            ideias, problemas e objetivos em soluções.
-
-                        </p>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         MAIN COMPOSER
-                    ================================================== -->
-
-                    <div
-                        id="mainChatComposer"
-                        class="main-chat-composer"
-                    >
-
-                        <div class="composer-top">
-
-                            <span class="composer-label">
+                            <span class="hero-tag">
 
                                 <span
-                                    class="composer-status"
+                                    class="hero-tag-dot"
                                     aria-hidden="true"
                                 ></span>
 
-                                Honey IA está pronta
+                                Honey IA Studio
 
                             </span>
 
 
-                            <span
-                                id="composerContext"
-                                class="composer-context"
-                            >
-                                Contexto inteligente ativo
-                            </span>
+                            <h1 id="dashboardTitle">
+
+                                Transforme ideias em
+                                <span>soluções inteligentes.</span>
+
+                            </h1>
+
+
+                            <p>
+
+                                Crie projetos, analise documentos,
+                                desenvolva aplicações, gere conteúdos
+                                e trabalhe com agentes especializados
+                                usando Inteligência Artificial.
+
+                            </p>
+
+
+                            <div class="hero-actions">
+
+                                <button
+                                    id="btnCreateProject"
+                                    class="primary-button"
+                                    type="button"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-wand-magic-sparkles"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                    <span>
+                                        Criar Projeto
+                                    </span>
+
+                                </button>
+
+
+                                <a
+                                    id="btnExploreAgents"
+                                    class="secondary-button"
+                                    href="agents.html"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-robot"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                    <span>
+                                        Explorar Agentes
+                                    </span>
+
+                                </a>
+
+                            </div>
 
                         </div>
 
 
                         <div
-                            id="chatInputArea"
-                            class="chat-input-area intelligence-composer"
+                            class="hero-visual"
+                            aria-hidden="true"
                         >
 
-                            <button
-                                id="btnAttach"
-                                class="input-action composer-action"
-                                type="button"
-                                aria-label="Anexar ficheiro"
-                                title="Anexar ficheiro"
-                            >
+                            <div class="ai-orb">
 
-                                <i
-                                    class="fa-solid fa-paperclip"
-                                    aria-hidden="true"
-                                ></i>
+                                <div class="orb-ring orb-ring-one"></div>
 
-                            </button>
+                                <div class="orb-ring orb-ring-two"></div>
 
+                                <div class="orb-ring orb-ring-three"></div>
 
-                            <input
-                                id="fileInput"
-                                type="file"
-                                hidden
-                                aria-hidden="true"
-                            >
-
-
-                            <textarea
-                                id="chatInput"
-                                rows="1"
-                                placeholder="Escreva para a Honey IA..."
-                                autocomplete="off"
-                                spellcheck="true"
-                                aria-label="Mensagem para a Honey IA"
-                            ></textarea>
-
-
-                            <div class="composer-actions">
-
-                                <button
-                                    id="btnVoice"
-                                    class="input-action composer-action"
-                                    type="button"
-                                    aria-label="Entrada de voz"
-                                    title="Falar com a Honey IA"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-microphone"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <button
-                                    id="btnSend"
-                                    class="send-button intelligence-send"
-                                    type="button"
-                                    aria-label="Enviar mensagem"
-                                    title="Enviar mensagem"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-arrow-up"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="composer-footer">
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-paperclip"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Ficheiros
-
-                            </span>
-
-                            <span>
-                                Enter para enviar · Shift + Enter para nova linha
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         INTELLIGENCE ACTIONS
-                    ================================================== -->
-
-                    <div
-                        class="intelligence-actions"
-                        aria-label="Ações inteligentes"
-                    >
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Ajuda-me a criar um novo projeto."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-wand-magic-sparkles"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Criar
-                                </strong>
-
-                                <small>
-                                    Novo projeto
-                                </small>
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Analisa este problema e apresenta uma solução detalhada."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-magnifying-glass-chart"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Analisar
-                                </strong>
-
-                                <small>
-                                    Problema ou dados
-                                </small>
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Ajuda-me a desenvolver esta ideia passo a passo."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-lightbulb"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Desenvolver
-                                </strong>
-
-                                <small>
-                                    Ideia ou estratégia
-                                </small>
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Ajuda-me a desenvolver esta solução em código."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-code"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Construir
-                                </strong>
-
-                                <small>
-                                    Código e aplicações
-                                </small>
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Pesquisa e analisa este assunto com profundidade."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-globe"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Investigar
-                                </strong>
-
-                                <small>
-                                    Pesquisa inteligente
-                                </small>
-
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="intelligence-action"
-                            data-prompt="Ajuda-me a criar uma automação para esta tarefa."
-                        >
-
-                            <span class="action-icon">
-
-                                <i
-                                    class="fa-solid fa-bolt"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-                            <span class="action-content">
-
-                                <strong>
-                                    Automatizar
-                                </strong>
-
-                                <small>
-                                    Processos e tarefas
-                                </small>
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         CAPABILITY INDICATORS
-                    ================================================== -->
-
-                    <div class="intelligence-capabilities">
-
-                        <span>
-
-                            <i
-                                class="fa-solid fa-brain"
-                                aria-hidden="true"
-                            ></i>
-
-                            Inteligência contextual
-
-                        </span>
-
-
-                        <span>
-
-                            <i
-                                class="fa-solid fa-file-lines"
-                                aria-hidden="true"
-                            ></i>
-
-                            Ficheiros
-
-                        </span>
-
-
-                        <span>
-
-                            <i
-                                class="fa-solid fa-code"
-                                aria-hidden="true"
-                            ></i>
-
-                            Código
-
-                        </span>
-
-
-                        <span>
-
-                            <i
-                                class="fa-solid fa-microphone"
-                                aria-hidden="true"
-                            ></i>
-
-                            Voz
-
-                        </span>
-
-
-                        <span>
-
-                            <i
-                                class="fa-solid fa-bolt"
-                                aria-hidden="true"
-                            ></i>
-
-                            Live
-
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     CHAT CONVERSATION WORKSPACE
-                     
-                     Continua dentro do mesmo #chat.
-                     NÃO é uma segunda página de Chat.
-                ================================================== -->
-
-                <div
-                    id="chatWorkspace"
-                    class="chat-workspace"
-                    hidden
-                >
-
-                    <header class="chat-header">
-
-                        <div class="chat-title-area">
-
-                            <div
-                                class="chat-agent-avatar"
-                                aria-hidden="true"
-                            >
-                                🐝
-                            </div>
-
-                            <div class="chat-title">
-
-                                <h2>
-                                    Honey IA
-                                </h2>
-
-                                <span class="chat-status">
-
-                                    <span
-                                        class="context-status"
-                                        aria-hidden="true"
-                                    ></span>
-
-                                    Assistente inteligente
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="chat-header-actions">
-
-                            <button
-                                id="btnNewChat"
-                                class="chat-header-button"
-                                type="button"
-                                aria-label="Nova conversa"
-                                title="Nova conversa"
-                            >
-
-                                <i
-                                    class="fa-solid fa-plus"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-
-                            <div
-                                class="mode-switch"
-                                role="group"
-                                aria-label="Modo do assistente"
-                            >
-
-                                <button
-                                    id="btnChatMode"
-                                    class="mode-button active"
-                                    type="button"
-                                    aria-pressed="true"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-comment"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    <span>
-                                        Chat
-                                    </span>
-
-                                </button>
-
-
-                                <button
-                                    id="btnLiveMode"
-                                    class="mode-button"
-                                    type="button"
-                                    aria-pressed="false"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-microphone"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    <span>
-                                        Live
-                                    </span>
-
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </header>
-
-
-                    <div
-                        id="chatContextBar"
-                        class="chat-context-bar"
-                    >
-
-                        <div class="chat-context-agent">
-
-                            <span
-                                class="context-status"
-                                aria-hidden="true"
-                            ></span>
-
-                            <span>
-                                Honey IA
-                            </span>
-
-                        </div>
-
-
-                        <span
-                            id="conversationTitle"
-                            class="conversation-title"
-                        >
-                            Nova Conversa
-                        </span>
-
-                    </div>
-
-
-                    <div
-                        id="chatMessages"
-                        class="chat-messages"
-                        role="log"
-                        aria-live="polite"
-                        aria-relevant="additions text"
-                        aria-label="Mensagens da conversa"
-                    ></div>
-
-
-                    <!-- =================================================
-                         ATTACHMENT BAR
-                    ================================================== -->
-
-                    <div
-                        id="attachment-bar"
-                        class="attachment-bar hidden"
-                        aria-live="polite"
-                    >
-
-                        <div class="attachment-info">
-
-                            <span
-                                class="attachment-icon"
-                                aria-hidden="true"
-                            >
-
-                                <i class="fa-solid fa-paperclip"></i>
-
-                            </span>
-
-                            <div class="attachment-details">
-
-                                <span class="attachment-label">
-                                    Ficheiro anexado
-                                </span>
-
-                                <strong id="attached-file-name"></strong>
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            id="btn-remove-attachment"
-                            class="attachment-remove"
-                            type="button"
-                            aria-label="Remover ficheiro"
-                            title="Remover ficheiro"
-                        >
-
-                            <i
-                                class="fa-solid fa-xmark"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         CONVERSATION COMPOSER
-                    ================================================== -->
-
-                    <div class="chat-input-wrapper">
-
-                        <div class="chat-input-area">
-
-                            <button
-                                class="input-action"
-                                type="button"
-                                id="btnAttachConversation"
-                                aria-label="Anexar ficheiro"
-                                title="Anexar ficheiro"
-                            >
-
-                                <i
-                                    class="fa-solid fa-paperclip"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-
-                            <textarea
-                                id="chatInputConversation"
-                                rows="1"
-                                placeholder="Escreva para a Honey IA..."
-                                autocomplete="off"
-                                spellcheck="true"
-                                aria-label="Mensagem para a Honey IA"
-                            ></textarea>
-
-
-                            <div class="input-actions-right">
-
-                                <button
-                                    class="input-action"
-                                    type="button"
-                                    id="btnVoiceConversation"
-                                    aria-label="Entrada de voz"
-                                    title="Falar com a Honey IA"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-microphone"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <button
-                                    class="send-button"
-                                    type="button"
-                                    id="btnSendConversation"
-                                    aria-label="Enviar mensagem"
-                                    title="Enviar mensagem"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-arrow-up"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
+                                <div class="orb-center">
+                                    🐝
+                                </div>
 
                             </div>
 
@@ -1375,245 +638,118 @@
 
                     </div>
 
-                </div>
 
+                    <!-- DASHBOARD QUICK ACTIONS -->
 
-                <!-- =================================================
-                     INTELLIGENCE CONTEXT PANEL
-                ================================================== -->
-
-                <aside
-                    id="intelligenceContextPanel"
-                    class="intelligence-context-panel"
-                    hidden
-                    aria-label="Contexto da Honey IA"
-                >
-
-                    <header>
-
-                        <div>
-
-                            <span>
-                                HONEY INTELLIGENCE
-                            </span>
-
-                            <h3>
-                                Contexto
-                            </h3>
-
-                        </div>
-
+                    <div class="dashboard-quick-actions">
 
                         <button
-                            id="btnCloseContext"
+                            class="quick-action-card"
                             type="button"
-                            aria-label="Fechar contexto"
+                            data-action="chat"
                         >
 
+                            <span class="quick-action-icon">
+                                <i
+                                    class="fa-solid fa-message"
+                                    aria-hidden="true"
+                                ></i>
+                            </span>
+
+                            <span class="quick-action-content">
+
+                                <strong>
+                                    Conversar com a IA
+                                </strong>
+
+                                <small>
+                                    Comece uma nova conversa
+                                </small>
+
+                            </span>
+
                             <i
-                                class="fa-solid fa-xmark"
+                                class="fa-solid fa-arrow-right"
                                 aria-hidden="true"
                             ></i>
 
                         </button>
 
-                    </header>
 
+                        <a
+                            class="quick-action-card"
+                            href="agents.html"
+                        >
 
-                    <div class="context-panel-content">
-
-                        <div class="context-item">
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-brain"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Modelo
-
-                            </span>
-
-                            <strong>
-                                Honey Intelligence
-                            </strong>
-
-                        </div>
-
-
-                        <div class="context-item">
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-memory"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Memória
-
-                            </span>
-
-                            <strong>
-                                Ativa
-                            </strong>
-
-                        </div>
-
-
-                        <div class="context-item">
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-file"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Ficheiros
-
-                            </span>
-
-                            <strong id="contextFilesCount">
-                                0
-                            </strong>
-
-                        </div>
-
-
-                        <div class="context-item">
-
-                            <span>
-
-                                <i
-                                    class="fa-solid fa-folder"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Projeto
-
-                            </span>
-
-                            <strong>
-                                Nenhum
-                            </strong>
-
-                        </div>
-
-
-                        <div class="context-item">
-
-                            <span>
-
+                            <span class="quick-action-icon">
                                 <i
                                     class="fa-solid fa-robot"
                                     aria-hidden="true"
                                 ></i>
+                            </span>
 
-                                Agente
+                            <span class="quick-action-content">
+
+                                <strong>
+                                    Agentes especializados
+                                </strong>
+
+                                <small>
+                                    Encontre o especialista ideal
+                                </small>
 
                             </span>
 
-                            <strong>
-                                Honey IA
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                </aside>
-
-
-                <!-- =================================================
-                     LIVE PREVIEW
-                ================================================== -->
-
-                <aside
-                    id="preview-pane"
-                    class="preview-pane"
-                    aria-label="Live Preview"
-                    hidden
-                >
-
-                    <header class="preview-header">
-
-                        <div class="preview-title">
-
-                            <span
-                                class="preview-status"
-                                aria-hidden="true"
-                            ></span>
-
                             <i
-                                class="fa-solid fa-display"
+                                class="fa-solid fa-arrow-right"
                                 aria-hidden="true"
                             ></i>
 
-                            <h3>
-                                Preview
-                            </h3>
-
-                        </div>
+                        </a>
 
 
-                        <div class="preview-actions">
+                        <button
+                            class="quick-action-card"
+                            type="button"
+                            data-action="project"
+                        >
 
-                            <button
-                                id="btn-refresh-preview"
-                                class="preview-button"
-                                type="button"
-                                aria-label="Atualizar preview"
-                                title="Atualizar preview"
-                            >
-
+                            <span class="quick-action-icon">
                                 <i
-                                    class="fa-solid fa-rotate"
+                                    class="fa-solid fa-folder-plus"
                                     aria-hidden="true"
                                 ></i>
+                            </span>
 
-                            </button>
+                            <span class="quick-action-content">
 
+                                <strong>
+                                    Novo projeto
+                                </strong>
 
-                            <button
-                                id="btn-close-preview"
-                                class="preview-button"
-                                type="button"
-                                aria-label="Fechar preview"
-                                title="Fechar preview"
-                            >
+                                <small>
+                                    Organize o seu trabalho
+                                </small>
 
-                                <i
-                                    class="fa-solid fa-xmark"
-                                    aria-hidden="true"
-                                ></i>
+                            </span>
 
-                            </button>
+                            <i
+                                class="fa-solid fa-arrow-right"
+                                aria-hidden="true"
+                            ></i>
 
-                        </div>
-
-                    </header>
-
-
-                    <div class="preview-body">
-
-                        <iframe
-                            id="live-preview-iframe"
-                            title="Live Preview"
-                            sandbox="allow-scripts"
-                        ></iframe>
+                        </button>
 
                     </div>
 
-                </aside>
+                </div>
 
             </section>
 
 
-            <!-- =================================================
+            <!-- =============================================
                  AGENTS
-            ================================================== -->
+            ============================================== -->
 
             <section
                 id="agents"
@@ -1659,9 +795,9 @@
             </section>
 
 
-            <!-- =================================================
+            <!-- =============================================
                  PROJECTS
-            ================================================== -->
+            ============================================== -->
 
             <section
                 id="projects"
@@ -1751,9 +887,9 @@
             </section>
 
 
-            <!-- =================================================
+            <!-- =============================================
                  HISTORY
-            ================================================== -->
+            ============================================== -->
 
             <section
                 id="history"
@@ -1833,9 +969,9 @@
             </section>
 
 
-            <!-- =================================================
+            <!-- =============================================
                  PLANS
-            ================================================== -->
+            ============================================== -->
 
             <section
                 id="plans"
@@ -1876,12 +1012,10 @@
                         <div class="plan-card-header">
 
                             <span class="plan-icon">
-
                                 <i
                                     class="fa-solid fa-seedling"
                                     aria-hidden="true"
                                 ></i>
-
                             </span>
 
                             <h3>
@@ -1912,36 +1046,27 @@
                         <ul class="plan-features">
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Chat IA
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Análise básica
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 1 projeto
-
                             </li>
 
                         </ul>
@@ -1970,12 +1095,10 @@
                         <div class="plan-card-header">
 
                             <span class="plan-icon">
-
                                 <i
                                     class="fa-solid fa-bolt"
                                     aria-hidden="true"
                                 ></i>
-
                             </span>
 
                             <h3>
@@ -2006,36 +1129,27 @@
                         <ul class="plan-features">
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Agentes avançados
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Exportação
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Projetos ilimitados
-
                             </li>
 
                         </ul>
@@ -2046,7 +1160,9 @@
                             type="button"
                             data-plan="individual"
                         >
+
                             Escolher plano
+
                         </button>
 
                     </article>
@@ -2059,12 +1175,10 @@
                         <div class="plan-card-header">
 
                             <span class="plan-icon">
-
                                 <i
                                     class="fa-solid fa-building"
                                     aria-hidden="true"
                                 ></i>
-
                             </span>
 
                             <h3>
@@ -2095,36 +1209,27 @@
                         <ul class="plan-features">
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Equipa empresarial
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Agentes personalizados
-
                             </li>
 
                             <li>
-
                                 <i
                                     class="fa-solid fa-check"
                                     aria-hidden="true"
                                 ></i>
-
                                 Workspace completo
-
                             </li>
 
                         </ul>
@@ -2135,7 +1240,9 @@
                             type="button"
                             data-plan="business"
                         >
+
                             Contactar
+
                         </button>
 
                     </article>
@@ -2145,9 +1252,9 @@
             </section>
 
 
-            <!-- =================================================
+            <!-- =============================================
                  TERMS
-            ================================================== -->
+            ============================================== -->
 
             <section
                 id="terms"
@@ -2280,6 +1387,510 @@
 
             </section>
 
+
+            <!-- =============================================
+                 CHAT IA
+            ============================================== -->
+
+            <section
+                id="chat"
+                class="workspace-view chat-section"
+                data-view="chat"
+                hidden
+                aria-label="Chat IA"
+            >
+
+                <div
+                    id="chatLayout"
+                    class="chat-layout"
+                >
+
+                    <!-- =====================================
+                         CHAT PANEL
+                    ====================================== -->
+
+                    <div
+                        id="chatPanel"
+                        class="chat-panel"
+                    >
+
+                        <!-- CHAT HEADER -->
+
+                        <header class="chat-header">
+
+                            <div class="chat-title-area">
+
+                                <div
+                                    class="chat-agent-avatar"
+                                    aria-hidden="true"
+                                >
+                                    🐝
+                                </div>
+
+                                <div class="chat-title">
+
+                                    <h2>
+                                        Honey IA
+                                    </h2>
+
+                                    <span class="chat-status">
+
+                                        <span
+                                            class="context-status"
+                                            aria-hidden="true"
+                                        ></span>
+
+                                        Assistente inteligente
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="chat-header-actions">
+
+                                <button
+                                    id="btnNewChat"
+                                    class="chat-header-button"
+                                    type="button"
+                                    aria-label="Nova conversa"
+                                    title="Nova conversa"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-plus"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </button>
+
+
+                                <div
+                                    class="mode-switch"
+                                    role="group"
+                                    aria-label="Modo do assistente"
+                                >
+
+                                    <button
+                                        id="btnChatMode"
+                                        class="mode-button active"
+                                        type="button"
+                                        aria-pressed="true"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-comment"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        <span>
+                                            Chat
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnLiveMode"
+                                        class="mode-button"
+                                        type="button"
+                                        aria-pressed="false"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-microphone"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        <span>
+                                            Live
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </header>
+
+
+                        <!-- CHAT CONTEXT -->
+
+                        <div
+                            id="chatContextBar"
+                            class="chat-context-bar"
+                        >
+
+                            <div class="chat-context-agent">
+
+                                <span
+                                    class="context-status"
+                                    aria-hidden="true"
+                                ></span>
+
+                                <span>
+                                    Honey IA
+                                </span>
+
+                            </div>
+
+
+                            <span
+                                id="conversationTitle"
+                                class="conversation-title"
+                            >
+                                Nova Conversa
+                            </span>
+
+                        </div>
+
+
+                        <!-- CHAT MESSAGES -->
+
+                        <div
+                            id="chatMessages"
+                            class="chat-messages"
+                            role="log"
+                            aria-live="polite"
+                            aria-relevant="additions text"
+                            aria-label="Mensagens da conversa"
+                        >
+
+                            <div
+                                id="chatWelcome"
+                                class="welcome-message"
+                            >
+
+                                <div
+                                    class="welcome-icon"
+                                    aria-hidden="true"
+                                >
+                                    🐝
+                                </div>
+
+
+                                <div class="welcome-content">
+
+                                    <span class="welcome-eyebrow">
+                                        HONEY IA
+                                    </span>
+
+                                    <h3>
+                                        Olá, sou a Honey IA.
+                                    </h3>
+
+                                    <p>
+                                        Estou pronta para ajudar a transformar
+                                        as suas ideias em soluções.
+                                    </p>
+
+                                </div>
+
+
+                                <div
+                                    class="welcome-suggestions"
+                                    aria-label="Sugestões"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="suggestion-button"
+                                        data-prompt="Ajuda-me a criar um novo projeto."
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-lightbulb"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        <span>
+                                            Criar um projeto
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="suggestion-button"
+                                        data-prompt="Analisa este problema e apresenta uma solução."
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-wand-magic-sparkles"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        <span>
+                                            Analisar um problema
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="suggestion-button"
+                                        data-prompt="Ajuda-me a desenvolver uma ideia de negócio."
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-chart-line"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                        <span>
+                                            Desenvolver uma ideia
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ATTACHMENT BAR -->
+
+                        <div
+                            id="attachment-bar"
+                            class="attachment-bar hidden"
+                            aria-live="polite"
+                        >
+
+                            <div class="attachment-info">
+
+                                <span
+                                    class="attachment-icon"
+                                    aria-hidden="true"
+                                >
+
+                                    <i class="fa-solid fa-paperclip"></i>
+
+                                </span>
+
+                                <div class="attachment-details">
+
+                                    <span class="attachment-label">
+                                        Ficheiro anexado
+                                    </span>
+
+                                    <strong id="attached-file-name">
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                id="btn-remove-attachment"
+                                class="attachment-remove"
+                                type="button"
+                                aria-label="Remover ficheiro"
+                                title="Remover ficheiro"
+                            >
+
+                                <i
+                                    class="fa-solid fa-xmark"
+                                    aria-hidden="true"
+                                ></i>
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- CHAT COMPOSER -->
+
+                        <div class="chat-input-wrapper">
+
+                            <div
+                                id="chatInputArea"
+                                class="chat-input-area"
+                            >
+
+                                <button
+                                    id="btnAttach"
+                                    class="input-action"
+                                    type="button"
+                                    aria-label="Anexar ficheiro"
+                                    title="Anexar ficheiro"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-paperclip"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </button>
+
+
+                                <input
+                                    id="fileInput"
+                                    type="file"
+                                    hidden
+                                    aria-hidden="true"
+                                >
+
+
+                                <textarea
+                                    id="chatInput"
+                                    rows="1"
+                                    placeholder="Escreva uma mensagem para a Honey IA..."
+                                    autocomplete="off"
+                                    spellcheck="true"
+                                    aria-label="Mensagem para a Honey IA"
+                                ></textarea>
+
+
+                                <div class="input-actions-right">
+
+                                    <button
+                                        id="btnVoice"
+                                        class="input-action"
+                                        type="button"
+                                        aria-label="Entrada de voz"
+                                        title="Falar com a Honey IA"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-microphone"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnSend"
+                                        class="send-button"
+                                        type="button"
+                                        aria-label="Enviar mensagem"
+                                        title="Enviar mensagem"
+                                    >
+
+                                        <i
+                                            class="fa-solid fa-arrow-up"
+                                            aria-hidden="true"
+                                        ></i>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="chat-input-footer">
+
+                                <span>
+                                    A Honey IA pode cometer erros.
+                                    Verifique informações importantes.
+                                </span>
+
+                                <span>
+                                    Enter para enviar · Shift + Enter para nova linha
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                         LIVE PREVIEW
+                    ====================================== -->
+
+                    <aside
+                        id="preview-pane"
+                        class="preview-pane"
+                        aria-label="Live Preview"
+                        hidden
+                    >
+
+                        <header class="preview-header">
+
+                            <div class="preview-title">
+
+                                <span
+                                    class="preview-status"
+                                    aria-hidden="true"
+                                ></span>
+
+                                <i
+                                    class="fa-solid fa-display"
+                                    aria-hidden="true"
+                                ></i>
+
+                                <h3>
+                                    Preview
+                                </h3>
+
+                            </div>
+
+
+                            <div class="preview-actions">
+
+                                <button
+                                    id="btn-refresh-preview"
+                                    class="preview-button"
+                                    type="button"
+                                    aria-label="Atualizar preview"
+                                    title="Atualizar preview"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-rotate"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </button>
+
+
+                                <button
+                                    id="btn-close-preview"
+                                    class="preview-button"
+                                    type="button"
+                                    aria-label="Fechar preview"
+                                    title="Fechar preview"
+                                >
+
+                                    <i
+                                        class="fa-solid fa-xmark"
+                                        aria-hidden="true"
+                                    ></i>
+
+                                </button>
+
+                            </div>
+
+                        </header>
+
+
+                        <div class="preview-body">
+
+                            <iframe
+                                id="live-preview-iframe"
+                                title="Live Preview"
+                                sandbox="allow-scripts"
+                            ></iframe>
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
+            </section>
+
         </div>
 
     </main>
@@ -2288,7 +1899,7 @@
 
 
 <!-- =========================================================
-     GLOBAL TOAST
+     GLOBAL TOAST SYSTEM
 ========================================================= -->
 
 <div
@@ -2341,11 +1952,10 @@
     src="dashboard.js"
 ></script>
 
-<!--
-    chat.js é carregado pelo app.js.
-    Não o carregamos aqui novamente para evitar
-    inicialização duplicada.
--->
+<script
+    type="module"
+    src="chat.js"
+></script>
 
 <script
     type="module"
@@ -2390,10 +2000,8 @@
 
 
                     logoutBtn.innerHTML = `
-                        <i
-                            class="fa-solid fa-spinner fa-spin"
-                            aria-hidden="true"
-                        ></i>
+                        <i class="fa-solid fa-spinner fa-spin"
+                           aria-hidden="true"></i>
 
                         <span>
                             A terminar sessão...
