@@ -3,1904 +3,1410 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>Honey IA Studio</title>
+<title>Honey IA Studio</title>
 
-    <meta
-        name="description"
-        content="Honey IA Studio — Plataforma inteligente para criação, análise, desenvolvimento e automação com Inteligência Artificial."
-    >
+<meta
+    name="description"
+    content="Honey IA - Plataforma inteligente empresarial com agentes de inteligência artificial."
+>
 
-    <meta
-        name="theme-color"
-        content="#07080a"
-    >
+<meta
+    name="theme-color"
+    content="#07080a"
+>
 
-    <meta
-        name="color-scheme"
-        content="dark"
-    >
 
-    <!-- =====================================================
-         FONTS
-    ====================================================== -->
+<!-- ======================================================
+     FONTS
+====================================================== -->
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+>
 
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+<link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
+<link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+>
 
-    <!-- =====================================================
-         ICONS
-    ====================================================== -->
+<link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+>
 
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
 
-    <!-- =====================================================
-         MARKDOWN / CODE
-    ====================================================== -->
+<!-- ======================================================
+     ICONS
+====================================================== -->
 
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
-    >
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+>
 
-    <!-- =====================================================
-         HONEY IA STYLE
-    ====================================================== -->
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+<!-- ======================================================
+     MARKDOWN / CODE HIGHLIGHT
+====================================================== -->
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+>
+
+
+<!-- ======================================================
+     HONEY IA STYLE
+====================================================== -->
+
+<link
+    rel="stylesheet"
+    href="style.css"
+>
 
 </head>
 
 
 <body>
 
-<!-- =========================================================
-     APPLICATION LOADER
-========================================================= -->
+
+<!-- ==========================================================
+     APP LOADER
+========================================================== -->
 
 <div
     id="appLoader"
     class="app-loader"
     aria-live="polite"
-    aria-label="A carregar Honey IA Studio"
+    aria-label="A carregar Honey IA"
 >
 
-    <div class="loader-content">
+    <div class="loader-logo">
 
-        <div class="loader-logo" aria-hidden="true">
-            <span class="loader-logo-mark">🐝</span>
-        </div>
+        <span>🐝</span>
 
-        <div class="loader-brand">
-            <strong>Honey IA</strong>
-            <span>Studio</span>
-        </div>
-
-        <div
-            class="loader-bar"
-            role="progressbar"
-            aria-label="A carregar aplicação"
-        >
-            <span></span>
-        </div>
-
-        <p class="loader-status">
-            A preparar o seu workspace...
-        </p>
+        <h2>
+            Honey IA
+        </h2>
 
     </div>
+
+
+    <div class="loader-bar"></div>
 
 </div>
 
 
-<!-- =========================================================
-     STUDIO APPLICATION
-========================================================= -->
+<!-- ==========================================================
+     STUDIO APP
+========================================================== -->
 
 <div
     id="studioApp"
     class="studio"
-    hidden
+    style="display:none;"
 >
 
-    <!-- =====================================================
-         MOBILE SIDEBAR OVERLAY
-    ====================================================== -->
 
-    <div
-        id="sidebarOverlay"
-        class="sidebar-overlay"
-        aria-hidden="true"
-    ></div>
+<!-- ======================================================
+     SIDEBAR OVERLAY
+====================================================== -->
+
+<div
+    id="sidebarOverlay"
+    class="sidebar-overlay"
+    aria-hidden="true"
+></div>
 
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
+<!-- ======================================================
+     SIDEBAR
+====================================================== -->
 
-    <aside
-        id="sidebar"
-        class="sidebar"
-        aria-label="Navegação principal"
+<aside
+    id="sidebar"
+    class="sidebar"
+    aria-label="Navegação principal"
+    aria-hidden="true"
+>
+
+
+    <div class="sidebar-header">
+
+
+        <div class="logo">
+
+
+            <div class="logo-mark">
+                🐝
+            </div>
+
+
+            <div>
+
+                <strong>
+                    Honey IA
+                </strong>
+
+                <small>
+                    Studio
+                </small>
+
+            </div>
+
+
+        </div>
+
+
+        <button
+            id="btnCloseSidebar"
+            class="mobile-close"
+            type="button"
+            aria-label="Fechar menu"
+        >
+
+            <i class="fa-solid fa-xmark"></i>
+
+        </button>
+
+
+    </div>
+
+
+<!-- ==================================================
+     MAIN NAVIGATION
+=================================================== -->
+
+<nav
+    id="sidebarNav"
+    class="sidebar-nav"
+    aria-label="Menu principal"
+>
+
+
+    <a
+        href="#dashboard"
+        data-target="dashboard"
+        class="nav-item active"
     >
 
-        <!-- SIDEBAR HEADER -->
+        <i class="fa-solid fa-house"></i>
 
-        <div class="sidebar-header">
+        <span>
+            Dashboard
+        </span>
 
-            <a
-                href="#dashboard"
-                class="brand-logo"
-                aria-label="Honey IA Studio — Dashboard"
-            >
-
-                <span
-                    class="logo-mark"
-                    aria-hidden="true"
-                >
-                    🐝
-                </span>
-
-                <span class="logo-text">
-
-                    <strong>
-                        Honey IA
-                    </strong>
-
-                    <small>
-                        Studio
-                    </small>
-
-                </span>
-
-            </a>
+    </a>
 
 
-            <button
-                id="btnCloseSidebar"
-                class="mobile-close"
-                type="button"
-                aria-label="Fechar menu"
-            >
+    <a
+        href="#chat"
+        data-target="chat"
+        class="nav-item"
+    >
 
-                <i class="fa-solid fa-xmark"></i>
+        <i class="fa-solid fa-comments"></i>
 
-            </button>
+        <span>
+            Chat IA
+        </span>
+
+    </a>
+
+
+    <a
+        href="agents.html"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-robot"></i>
+
+        <span>
+            Agentes IA
+        </span>
+
+    </a>
+
+
+    <a
+        href="#projects"
+        data-target="projects"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-folder-open"></i>
+
+        <span>
+            Projetos
+        </span>
+
+    </a>
+
+
+    <a
+        href="#history"
+        data-target="history"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-clock-rotate-left"></i>
+
+        <span>
+            Histórico
+        </span>
+
+    </a>
+
+
+    <a
+        href="#plans"
+        data-target="plans"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-crown"></i>
+
+        <span>
+            Planos
+        </span>
+
+    </a>
+
+
+    <a
+        href="#terms"
+        data-target="terms"
+        class="nav-item"
+    >
+
+        <i class="fa-solid fa-file-contract"></i>
+
+        <span>
+            Termos de Uso
+        </span>
+
+    </a>
+
+
+</nav>
+
+
+<!-- ==================================================
+     SIDEBAR USER + LOGOUT
+=================================================== -->
+
+<div class="sidebar-bottom">
+
+
+    <div
+        id="userBox"
+        class="user-box"
+        role="button"
+        tabindex="0"
+        aria-label="Abrir perfil do utilizador"
+    >
+
+        <div class="avatar">
+            U
+        </div>
+
+
+        <div>
+
+            <strong>
+                Utilizador
+            </strong>
+
+            <small>
+                Plano Gratuito
+            </small>
 
         </div>
 
 
-        <!-- SIDEBAR NAVIGATION -->
+    </div>
 
-        <nav
-            id="sidebarNav"
-            class="sidebar-nav"
-            aria-label="Menu principal"
+
+    <!-- ==================================================
+         LOGOUT
+    =================================================== -->
+
+    <button
+        id="logoutBtn"
+        class="sidebar-logout"
+        type="button"
+        aria-label="Terminar sessão"
+    >
+
+        <i class="fa-solid fa-right-from-bracket"></i>
+
+        <span>
+            Logout
+        </span>
+
+    </button>
+
+
+</div>
+
+</aside>
+
+
+<!-- ======================================================
+     MAIN CONTENT
+====================================================== -->
+
+<main class="main-content">
+
+
+<!-- ==================================================
+     TOP HEADER
+=================================================== -->
+
+<header class="top-header">
+
+
+    <button
+        id="btnMobileMenu"
+        class="mobile-menu"
+        type="button"
+        aria-label="Abrir menu"
+        aria-controls="sidebar"
+        aria-expanded="false"
+    >
+
+        <i class="fa-solid fa-bars"></i>
+
+    </button>
+
+
+    <div class="header-search">
+
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Pesquisar no Studio..."
+            autocomplete="off"
         >
 
-            <div class="nav-section">
 
-                <span class="nav-section-label">
-                    Workspace
-                </span>
+    </div>
 
 
-                <a
-                    href="#dashboard"
-                    class="nav-item active"
-                    data-target="dashboard"
-                    aria-current="page"
-                >
+    <div class="header-actions">
 
-                    <i
-                        class="fa-solid fa-house"
-                        aria-hidden="true"
-                    ></i>
 
-                    <span>
-                        Dashboard
-                    </span>
+        <button
+            id="btnNotifications"
+            class="icon-button"
+            type="button"
+            aria-label="Notificações"
+        >
 
-                </a>
+            <i class="fa-solid fa-bell"></i>
 
+        </button>
 
-                <a
-                    href="#chat"
-                    class="nav-item"
-                    data-target="chat"
-                >
-
-                    <i
-                        class="fa-solid fa-comments"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Chat IA
-                    </span>
-
-                    <span
-                        class="nav-item-status"
-                        aria-hidden="true"
-                    ></span>
-
-                </a>
-
-
-                <a
-                    href="agents.html"
-                    class="nav-item"
-                    data-page="agents"
-                >
-
-                    <i
-                        class="fa-solid fa-robot"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Agentes IA
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#projects"
-                    class="nav-item"
-                    data-target="projects"
-                >
-
-                    <i
-                        class="fa-solid fa-folder-open"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Projetos
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#history"
-                    class="nav-item"
-                    data-target="history"
-                >
-
-                    <i
-                        class="fa-solid fa-clock-rotate-left"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Histórico
-                    </span>
-
-                </a>
-
-            </div>
-
-
-            <div class="nav-section">
-
-                <span class="nav-section-label">
-                    Conta
-                </span>
-
-
-                <a
-                    href="#plans"
-                    class="nav-item"
-                    data-target="plans"
-                >
-
-                    <i
-                        class="fa-solid fa-crown"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Planos
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="#terms"
-                    class="nav-item"
-                    data-target="terms"
-                >
-
-                    <i
-                        class="fa-solid fa-file-contract"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span>
-                        Termos de Uso
-                    </span>
-
-                </a>
-
-            </div>
-
-        </nav>
-
-
-        <!-- SIDEBAR FOOTER -->
-
-        <div class="sidebar-bottom">
-
-            <button
-                id="userBox"
-                class="user-box"
-                type="button"
-                aria-label="Abrir perfil do utilizador"
-            >
-
-                <span
-                    id="userAvatar"
-                    class="avatar"
-                    aria-hidden="true"
-                >
-                    U
-                </span>
-
-                <span class="user-info">
-
-                    <strong id="userName">
-                        Utilizador
-                    </strong>
-
-                    <small id="userPlan">
-                        Plano Gratuito
-                    </small>
-
-                </span>
-
-                <i
-                    class="fa-solid fa-chevron-right user-chevron"
-                    aria-hidden="true"
-                ></i>
-
-            </button>
-
-
-            <button
-                id="logoutBtn"
-                class="sidebar-logout"
-                type="button"
-                aria-label="Terminar sessão"
-            >
-
-                <i
-                    class="fa-solid fa-right-from-bracket"
-                    aria-hidden="true"
-                ></i>
-
-                <span>
-                    Terminar sessão
-                </span>
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- =====================================================
-         MAIN CONTENT
-    ====================================================== -->
-
-    <main class="main-content">
-
-        <!-- =================================================
-             TOP HEADER
-        ================================================== -->
-
-        <header class="top-header">
-
-            <div class="header-left">
-
-                <button
-                    id="btnMobileMenu"
-                    class="mobile-menu"
-                    type="button"
-                    aria-label="Abrir menu"
-                    aria-controls="sidebar"
-                    aria-expanded="false"
-                >
-
-                    <i
-                        class="fa-solid fa-bars"
-                        aria-hidden="true"
-                    ></i>
-
-                </button>
-
-
-                <div class="header-search">
-
-                    <i
-                        class="fa-solid fa-magnifying-glass"
-                        aria-hidden="true"
-                    ></i>
-
-                    <input
-                        id="globalSearch"
-                        type="search"
-                        placeholder="Pesquisar no Studio..."
-                        autocomplete="off"
-                        aria-label="Pesquisar no Studio"
-                    >
-
-                    <kbd>
-                        /
-                    </kbd>
-
-                </div>
-
-            </div>
-
-
-            <div class="header-actions">
-
-                <button
-                    id="btnNotifications"
-                    class="icon-button"
-                    type="button"
-                    aria-label="Notificações"
-                    title="Notificações"
-                >
-
-                    <i
-                        class="fa-solid fa-bell"
-                        aria-hidden="true"
-                    ></i>
-
-                    <span
-                        id="notificationIndicator"
-                        class="notification-indicator"
-                        aria-hidden="true"
-                    ></span>
-
-                </button>
-
-
-                <div
-                    id="planBadge"
-                    class="plan-badge"
-                    aria-label="Plano atual"
-                >
-
-                    <span>
-                        Plano
-                    </span>
-
-                    <strong id="planBadgeName">
-                        Gratuito
-                    </strong>
-
-                </div>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
-             WORKSPACE VIEWS
-        ================================================== -->
 
         <div
-            id="workspace"
-            class="workspace"
+            id="planBadge"
+            class="plan-badge"
         >
 
-            <!-- =============================================
-                 DASHBOARD
-            ============================================== -->
+            <span>
+                Plano
+            </span>
 
-            <section
-                id="dashboard"
-                class="workspace-view dashboard-section"
-                data-view="dashboard"
-                aria-labelledby="dashboardTitle"
-            >
+            <strong>
+                Gratuito
+            </strong>
 
-                <div
-                    id="dashboardContainer"
-                    class="dashboard-container"
-                >
+        </div>
 
-                    <div class="hero-dashboard">
 
-                        <div class="hero-content">
+    </div>
 
-                            <span class="hero-tag">
 
-                                <span
-                                    class="hero-tag-dot"
-                                    aria-hidden="true"
-                                ></span>
+</header>
 
-                                Honey IA Studio
 
-                            </span>
+<!-- ==================================================
+     DASHBOARD
+=================================================== -->
 
+<section
+    id="dashboard"
+    class="workspace-view dashboard-section"
+>
 
-                            <h1 id="dashboardTitle">
 
-                                Transforme ideias em
-                                <span>soluções inteligentes.</span>
+    <div id="dashboardContainer">
 
-                            </h1>
 
+        <div class="hero-dashboard">
 
-                            <p>
 
-                                Crie projetos, analise documentos,
-                                desenvolva aplicações, gere conteúdos
-                                e trabalhe com agentes especializados
-                                usando Inteligência Artificial.
+            <div class="hero-content">
 
-                            </p>
 
+                <span class="hero-tag">
+                    🐝 Honey IA Studio
+                </span>
 
-                            <div class="hero-actions">
 
-                                <button
-                                    id="btnCreateProject"
-                                    class="primary-button"
-                                    type="button"
-                                >
+                <h1>
+                    Transforme ideias em soluções com Inteligência Artificial
+                </h1>
 
-                                    <i
-                                        class="fa-solid fa-wand-magic-sparkles"
-                                        aria-hidden="true"
-                                    ></i>
 
-                                    <span>
-                                        Criar Projeto
-                                    </span>
+                <p>
+                    Crie projetos, analise documentos, desenvolva aplicações,
+                    gere conteúdos e trabalhe com agentes especializados.
+                </p>
 
-                                </button>
 
-
-                                <a
-                                    id="btnExploreAgents"
-                                    class="secondary-button"
-                                    href="agents.html"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-robot"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    <span>
-                                        Explorar Agentes
-                                    </span>
-
-                                </a>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            class="hero-visual"
-                            aria-hidden="true"
-                        >
-
-                            <div class="ai-orb">
-
-                                <div class="orb-ring orb-ring-one"></div>
-
-                                <div class="orb-ring orb-ring-two"></div>
-
-                                <div class="orb-ring orb-ring-three"></div>
-
-                                <div class="orb-center">
-                                    🐝
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- DASHBOARD QUICK ACTIONS -->
-
-                    <div class="dashboard-quick-actions">
-
-                        <button
-                            class="quick-action-card"
-                            type="button"
-                            data-action="chat"
-                        >
-
-                            <span class="quick-action-icon">
-                                <i
-                                    class="fa-solid fa-message"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <span class="quick-action-content">
-
-                                <strong>
-                                    Conversar com a IA
-                                </strong>
-
-                                <small>
-                                    Comece uma nova conversa
-                                </small>
-
-                            </span>
-
-                            <i
-                                class="fa-solid fa-arrow-right"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <a
-                            class="quick-action-card"
-                            href="agents.html"
-                        >
-
-                            <span class="quick-action-icon">
-                                <i
-                                    class="fa-solid fa-robot"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <span class="quick-action-content">
-
-                                <strong>
-                                    Agentes especializados
-                                </strong>
-
-                                <small>
-                                    Encontre o especialista ideal
-                                </small>
-
-                            </span>
-
-                            <i
-                                class="fa-solid fa-arrow-right"
-                                aria-hidden="true"
-                            ></i>
-
-                        </a>
-
-
-                        <button
-                            class="quick-action-card"
-                            type="button"
-                            data-action="project"
-                        >
-
-                            <span class="quick-action-icon">
-                                <i
-                                    class="fa-solid fa-folder-plus"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <span class="quick-action-content">
-
-                                <strong>
-                                    Novo projeto
-                                </strong>
-
-                                <small>
-                                    Organize o seu trabalho
-                                </small>
-
-                            </span>
-
-                            <i
-                                class="fa-solid fa-arrow-right"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =============================================
-                 AGENTS
-            ============================================== -->
-
-            <section
-                id="agents"
-                class="workspace-view app-section"
-                data-view="agents"
-                hidden
-                aria-labelledby="agentsTitle"
-            >
-
-                <div class="section-header">
-
-                    <div>
-
-                        <span class="section-eyebrow">
-                            HONEY IA
-                        </span>
-
-                        <h2 id="agentsTitle">
-                            Agentes IA
-                        </h2>
-
-                        <p>
-                            Especialistas inteligentes para cada área
-                            do seu trabalho.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="agentsContainer"
-                    class="agents-grid"
-                ></div>
-
-
-                <div
-                    id="agentStudioContainer"
-                    class="agent-studio-container"
-                ></div>
-
-            </section>
-
-
-            <!-- =============================================
-                 PROJECTS
-            ============================================== -->
-
-            <section
-                id="projects"
-                class="workspace-view app-section"
-                data-view="projects"
-                hidden
-                aria-labelledby="projectsTitle"
-            >
-
-                <div class="section-header">
-
-                    <div>
-
-                        <span class="section-eyebrow">
-                            WORKSPACE
-                        </span>
-
-                        <h2 id="projectsTitle">
-                            Projetos
-                        </h2>
-
-                        <p>
-                            Organize as suas criações dentro do
-                            Honey IA Studio.
-                        </p>
-
-                    </div>
+                <div class="hero-actions">
 
 
                     <button
-                        id="btnCreateProjectProjects"
+                        id="btnCreateProject"
                         class="primary-button"
                         type="button"
                     >
 
-                        <i
-                            class="fa-solid fa-plus"
-                            aria-hidden="true"
-                        ></i>
+                        <i class="fa-solid fa-sparkles"></i>
 
-                        Novo projeto
+                        Criar Projeto
 
                     </button>
 
-                </div>
 
-
-                <div
-                    id="projectsContainer"
-                    class="projects-container empty-state"
-                >
-
-                    <div class="empty-icon">
-
-                        <i
-                            class="fa-solid fa-folder-open"
-                            aria-hidden="true"
-                        ></i>
-
-                    </div>
-
-                    <h3>
-                        Nenhum projeto criado
-                    </h3>
-
-                    <p>
-                        Comece criando um novo projeto com a Honey IA.
-                    </p>
-
-                    <button
+                    <a
+                        id="btnExploreAgents"
                         class="secondary-button"
-                        type="button"
-                        data-action="project"
+                        href="agents.html"
                     >
 
-                        <i
-                            class="fa-solid fa-plus"
-                            aria-hidden="true"
-                        ></i>
+                        <i class="fa-solid fa-robot"></i>
 
-                        Criar primeiro projeto
+                        Explorar Agentes
 
-                    </button>
+                    </a>
 
-                </div>
-
-            </section>
-
-
-            <!-- =============================================
-                 HISTORY
-            ============================================== -->
-
-            <section
-                id="history"
-                class="workspace-view app-section"
-                data-view="history"
-                hidden
-                aria-labelledby="historyTitle"
-            >
-
-                <div class="section-header">
-
-                    <div>
-
-                        <span class="section-eyebrow">
-                            WORKSPACE
-                        </span>
-
-                        <h2 id="historyTitle">
-                            Histórico
-                        </h2>
-
-                        <p>
-                            Consulte as suas conversas e trabalhos
-                            realizados com a Honey IA.
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        id="btnNewConversation"
-                        class="secondary-button"
-                        type="button"
-                    >
-
-                        <i
-                            class="fa-solid fa-plus"
-                            aria-hidden="true"
-                        ></i>
-
-                        Nova conversa
-
-                    </button>
 
                 </div>
 
 
-                <div
-                    id="historyContainer"
-                    class="history-container"
-                >
-
-                    <div class="empty-state">
-
-                        <div class="empty-icon">
-
-                            <i
-                                class="fa-solid fa-clock-rotate-left"
-                                aria-hidden="true"
-                            ></i>
-
-                        </div>
-
-                        <h3>
-                            O seu histórico aparecerá aqui
-                        </h3>
-
-                        <p>
-                            As suas conversas serão guardadas
-                            automaticamente pela Honey IA.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </section>
+            </div>
 
 
-            <!-- =============================================
-                 PLANS
-            ============================================== -->
+            <div class="hero-visual">
 
-            <section
-                id="plans"
-                class="workspace-view app-section"
-                data-view="plans"
-                hidden
-                aria-labelledby="plansTitle"
-            >
 
-                <div class="section-header">
+                <div class="ai-orb">
 
-                    <div>
-
-                        <span class="section-eyebrow">
-                            HONEY IA
-                        </span>
-
-                        <h2 id="plansTitle">
-                            Planos
-                        </h2>
-
-                        <p>
-                            Escolha o nível ideal para as suas
-                            necessidades.
-                        </p>
-
+                    <div class="orb-center">
+                        🐝
                     </div>
 
                 </div>
 
 
-                <div class="plans-grid">
+            </div>
 
-                    <!-- FREE -->
-
-                    <article class="plan-card">
-
-                        <div class="plan-card-header">
-
-                            <span class="plan-icon">
-                                <i
-                                    class="fa-solid fa-seedling"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <h3>
-                                Gratuito
-                            </h3>
-
-                        </div>
-
-
-                        <p class="plan-description">
-                            Para começar a explorar a Honey IA.
-                        </p>
-
-
-                        <div class="plan-price">
-
-                            <strong>
-                                0
-                            </strong>
-
-                            <span>
-                                Kz
-                            </span>
-
-                        </div>
-
-
-                        <ul class="plan-features">
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Chat IA
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Análise básica
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                1 projeto
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            class="secondary-button plan-button"
-                            type="button"
-                            disabled
-                        >
-                            Plano atual
-                        </button>
-
-                    </article>
-
-
-                    <!-- INDIVIDUAL -->
-
-                    <article class="plan-card featured">
-
-                        <span class="featured-label">
-                            Mais popular
-                        </span>
-
-
-                        <div class="plan-card-header">
-
-                            <span class="plan-icon">
-                                <i
-                                    class="fa-solid fa-bolt"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <h3>
-                                Individual
-                            </h3>
-
-                        </div>
-
-
-                        <p class="plan-description">
-                            Mais capacidade para criadores e profissionais.
-                        </p>
-
-
-                        <div class="plan-price">
-
-                            <strong>
-                                15.000
-                            </strong>
-
-                            <span>
-                                Kz/mês
-                            </span>
-
-                        </div>
-
-
-                        <ul class="plan-features">
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Agentes avançados
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Exportação
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Projetos ilimitados
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            class="primary-button plan-button"
-                            type="button"
-                            data-plan="individual"
-                        >
-
-                            Escolher plano
-
-                        </button>
-
-                    </article>
-
-
-                    <!-- BUSINESS -->
-
-                    <article class="plan-card">
-
-                        <div class="plan-card-header">
-
-                            <span class="plan-icon">
-                                <i
-                                    class="fa-solid fa-building"
-                                    aria-hidden="true"
-                                ></i>
-                            </span>
-
-                            <h3>
-                                Business
-                            </h3>
-
-                        </div>
-
-
-                        <p class="plan-description">
-                            Poder empresarial para equipas e organizações.
-                        </p>
-
-
-                        <div class="plan-price">
-
-                            <strong>
-                                400.000
-                            </strong>
-
-                            <span>
-                                Kz/mês
-                            </span>
-
-                        </div>
-
-
-                        <ul class="plan-features">
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Equipa empresarial
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Agentes personalizados
-                            </li>
-
-                            <li>
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-                                Workspace completo
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            class="secondary-button plan-button"
-                            type="button"
-                            data-plan="business"
-                        >
-
-                            Contactar
-
-                        </button>
-
-                    </article>
-
-                </div>
-
-            </section>
-
-
-            <!-- =============================================
-                 TERMS
-            ============================================== -->
-
-            <section
-                id="terms"
-                class="workspace-view app-section"
-                data-view="terms"
-                hidden
-                aria-labelledby="termsTitle"
-            >
-
-                <div class="section-header">
-
-                    <div>
-
-                        <span class="section-eyebrow">
-                            HONEY IA
-                        </span>
-
-                        <h2 id="termsTitle">
-                            Termos de Uso
-                        </h2>
-
-                        <p>
-                            Informações sobre a utilização responsável
-                            da plataforma.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <article
-                    id="termsContainer"
-                    class="terms-card"
-                >
-
-                    <section class="terms-block">
-
-                        <span class="terms-number">
-                            01
-                        </span>
-
-                        <div>
-
-                            <h3>
-                                Utilização responsável
-                            </h3>
-
-                            <p>
-                                A Honey IA é uma plataforma de inteligência
-                                artificial criada para auxiliar utilizadores,
-                                empreendedores e empresas na criação, análise
-                                e desenvolvimento de soluções digitais.
-                            </p>
-
-                        </div>
-
-                    </section>
-
-
-                    <section class="terms-block">
-
-                        <span class="terms-number">
-                            02
-                        </span>
-
-                        <div>
-
-                            <h3>
-                                Privacidade
-                            </h3>
-
-                            <p>
-                                Os dados enviados para processamento devem
-                                respeitar as normas de segurança e privacidade
-                                aplicáveis.
-                            </p>
-
-                        </div>
-
-                    </section>
-
-
-                    <section class="terms-block">
-
-                        <span class="terms-number">
-                            03
-                        </span>
-
-                        <div>
-
-                            <h3>
-                                Responsabilidade
-                            </h3>
-
-                            <p>
-                                As respostas geradas pela inteligência artificial
-                                devem ser revistas antes de serem utilizadas em
-                                decisões importantes.
-                            </p>
-
-                        </div>
-
-                    </section>
-
-
-                    <section class="terms-block">
-
-                        <span class="terms-number">
-                            04
-                        </span>
-
-                        <div>
-
-                            <h3>
-                                Utilização da plataforma
-                            </h3>
-
-                            <p>
-                                O utilizador é responsável pela utilização dos
-                                conteúdos, ficheiros e informações submetidos
-                                na plataforma.
-                            </p>
-
-                        </div>
-
-                    </section>
-
-                </article>
-
-            </section>
-
-
-            <!-- =============================================
-                 CHAT IA
-            ============================================== -->
-
-            <section
-                id="chat"
-                class="workspace-view chat-section"
-                data-view="chat"
-                hidden
-                aria-label="Chat IA"
-            >
-
-                <div
-                    id="chatLayout"
-                    class="chat-layout"
-                >
-
-                    <!-- =====================================
-                         CHAT PANEL
-                    ====================================== -->
-
-                    <div
-                        id="chatPanel"
-                        class="chat-panel"
-                    >
-
-                        <!-- CHAT HEADER -->
-
-                        <header class="chat-header">
-
-                            <div class="chat-title-area">
-
-                                <div
-                                    class="chat-agent-avatar"
-                                    aria-hidden="true"
-                                >
-                                    🐝
-                                </div>
-
-                                <div class="chat-title">
-
-                                    <h2>
-                                        Honey IA
-                                    </h2>
-
-                                    <span class="chat-status">
-
-                                        <span
-                                            class="context-status"
-                                            aria-hidden="true"
-                                        ></span>
-
-                                        Assistente inteligente
-
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="chat-header-actions">
-
-                                <button
-                                    id="btnNewChat"
-                                    class="chat-header-button"
-                                    type="button"
-                                    aria-label="Nova conversa"
-                                    title="Nova conversa"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-plus"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <div
-                                    class="mode-switch"
-                                    role="group"
-                                    aria-label="Modo do assistente"
-                                >
-
-                                    <button
-                                        id="btnChatMode"
-                                        class="mode-button active"
-                                        type="button"
-                                        aria-pressed="true"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-comment"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Chat
-                                        </span>
-
-                                    </button>
-
-
-                                    <button
-                                        id="btnLiveMode"
-                                        class="mode-button"
-                                        type="button"
-                                        aria-pressed="false"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-microphone"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Live
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </header>
-
-
-                        <!-- CHAT CONTEXT -->
-
-                        <div
-                            id="chatContextBar"
-                            class="chat-context-bar"
-                        >
-
-                            <div class="chat-context-agent">
-
-                                <span
-                                    class="context-status"
-                                    aria-hidden="true"
-                                ></span>
-
-                                <span>
-                                    Honey IA
-                                </span>
-
-                            </div>
-
-
-                            <span
-                                id="conversationTitle"
-                                class="conversation-title"
-                            >
-                                Nova Conversa
-                            </span>
-
-                        </div>
-
-
-                        <!-- CHAT MESSAGES -->
-
-                        <div
-                            id="chatMessages"
-                            class="chat-messages"
-                            role="log"
-                            aria-live="polite"
-                            aria-relevant="additions text"
-                            aria-label="Mensagens da conversa"
-                        >
-
-                            <div
-                                id="chatWelcome"
-                                class="welcome-message"
-                            >
-
-                                <div
-                                    class="welcome-icon"
-                                    aria-hidden="true"
-                                >
-                                    🐝
-                                </div>
-
-
-                                <div class="welcome-content">
-
-                                    <span class="welcome-eyebrow">
-                                        HONEY IA
-                                    </span>
-
-                                    <h3>
-                                        Olá, sou a Honey IA.
-                                    </h3>
-
-                                    <p>
-                                        Estou pronta para ajudar a transformar
-                                        as suas ideias em soluções.
-                                    </p>
-
-                                </div>
-
-
-                                <div
-                                    class="welcome-suggestions"
-                                    aria-label="Sugestões"
-                                >
-
-                                    <button
-                                        type="button"
-                                        class="suggestion-button"
-                                        data-prompt="Ajuda-me a criar um novo projeto."
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-lightbulb"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Criar um projeto
-                                        </span>
-
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        class="suggestion-button"
-                                        data-prompt="Analisa este problema e apresenta uma solução."
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-wand-magic-sparkles"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Analisar um problema
-                                        </span>
-
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        class="suggestion-button"
-                                        data-prompt="Ajuda-me a desenvolver uma ideia de negócio."
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-chart-line"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                        <span>
-                                            Desenvolver uma ideia
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- ATTACHMENT BAR -->
-
-                        <div
-                            id="attachment-bar"
-                            class="attachment-bar hidden"
-                            aria-live="polite"
-                        >
-
-                            <div class="attachment-info">
-
-                                <span
-                                    class="attachment-icon"
-                                    aria-hidden="true"
-                                >
-
-                                    <i class="fa-solid fa-paperclip"></i>
-
-                                </span>
-
-                                <div class="attachment-details">
-
-                                    <span class="attachment-label">
-                                        Ficheiro anexado
-                                    </span>
-
-                                    <strong id="attached-file-name">
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                id="btn-remove-attachment"
-                                class="attachment-remove"
-                                type="button"
-                                aria-label="Remover ficheiro"
-                                title="Remover ficheiro"
-                            >
-
-                                <i
-                                    class="fa-solid fa-xmark"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
-
-                        <!-- CHAT COMPOSER -->
-
-                        <div class="chat-input-wrapper">
-
-                            <div
-                                id="chatInputArea"
-                                class="chat-input-area"
-                            >
-
-                                <button
-                                    id="btnAttach"
-                                    class="input-action"
-                                    type="button"
-                                    aria-label="Anexar ficheiro"
-                                    title="Anexar ficheiro"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-paperclip"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <input
-                                    id="fileInput"
-                                    type="file"
-                                    hidden
-                                    aria-hidden="true"
-                                >
-
-
-                                <textarea
-                                    id="chatInput"
-                                    rows="1"
-                                    placeholder="Escreva uma mensagem para a Honey IA..."
-                                    autocomplete="off"
-                                    spellcheck="true"
-                                    aria-label="Mensagem para a Honey IA"
-                                ></textarea>
-
-
-                                <div class="input-actions-right">
-
-                                    <button
-                                        id="btnVoice"
-                                        class="input-action"
-                                        type="button"
-                                        aria-label="Entrada de voz"
-                                        title="Falar com a Honey IA"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-microphone"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                    </button>
-
-
-                                    <button
-                                        id="btnSend"
-                                        class="send-button"
-                                        type="button"
-                                        aria-label="Enviar mensagem"
-                                        title="Enviar mensagem"
-                                    >
-
-                                        <i
-                                            class="fa-solid fa-arrow-up"
-                                            aria-hidden="true"
-                                        ></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="chat-input-footer">
-
-                                <span>
-                                    A Honey IA pode cometer erros.
-                                    Verifique informações importantes.
-                                </span>
-
-                                <span>
-                                    Enter para enviar · Shift + Enter para nova linha
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- =====================================
-                         LIVE PREVIEW
-                    ====================================== -->
-
-                    <aside
-                        id="preview-pane"
-                        class="preview-pane"
-                        aria-label="Live Preview"
-                        hidden
-                    >
-
-                        <header class="preview-header">
-
-                            <div class="preview-title">
-
-                                <span
-                                    class="preview-status"
-                                    aria-hidden="true"
-                                ></span>
-
-                                <i
-                                    class="fa-solid fa-display"
-                                    aria-hidden="true"
-                                ></i>
-
-                                <h3>
-                                    Preview
-                                </h3>
-
-                            </div>
-
-
-                            <div class="preview-actions">
-
-                                <button
-                                    id="btn-refresh-preview"
-                                    class="preview-button"
-                                    type="button"
-                                    aria-label="Atualizar preview"
-                                    title="Atualizar preview"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-rotate"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-
-                                <button
-                                    id="btn-close-preview"
-                                    class="preview-button"
-                                    type="button"
-                                    aria-label="Fechar preview"
-                                    title="Fechar preview"
-                                >
-
-                                    <i
-                                        class="fa-solid fa-xmark"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                </button>
-
-                            </div>
-
-                        </header>
-
-
-                        <div class="preview-body">
-
-                            <iframe
-                                id="live-preview-iframe"
-                                title="Live Preview"
-                                sandbox="allow-scripts"
-                            ></iframe>
-
-                        </div>
-
-                    </aside>
-
-                </div>
-
-            </section>
 
         </div>
 
-    </main>
 
-</div>
+    </div>
 
 
-<!-- =========================================================
-     GLOBAL TOAST SYSTEM
-========================================================= -->
+</section>
+
+
+<!-- ==================================================
+     AGENTS
+=================================================== -->
+
+<section
+    id="agents"
+    class="workspace-view app-section"
+    style="display:none;"
+>
+
+
+    <div class="section-header">
+
+
+        <div>
+
+            <h2>
+                Agentes IA
+            </h2>
+
+            <p>
+                Especialistas inteligentes para cada área.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <div
+        id="agentsContainer"
+        class="agents-grid"
+    ></div>
+
+
+    <div
+        id="agentStudioContainer"
+        class="agent-studio-container"
+    ></div>
+
+
+</section>
+
+
+<!-- ==================================================
+     PROJECTS
+=================================================== -->
+
+<section
+    id="projects"
+    class="workspace-view app-section"
+    style="display:none;"
+>
+
+
+    <div class="section-header">
+
+
+        <div>
+
+            <h2>
+                Projetos
+            </h2>
+
+            <p>
+                Organize suas criações dentro do Workspace.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <div
+        id="projectsContainer"
+        class="empty-state"
+    >
+
+
+        <div class="empty-icon">
+
+            <i class="fa-solid fa-folder-plus"></i>
+
+        </div>
+
+
+        <h3>
+            Nenhum projeto criado
+        </h3>
+
+
+        <p>
+            Comece criando um novo projeto com a Honey IA.
+        </p>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     HISTORY
+=================================================== -->
+
+<section
+    id="history"
+    class="workspace-view app-section"
+    style="display:none;"
+>
+
+
+    <div class="section-header">
+
+
+        <div>
+
+            <h2>
+                Histórico
+            </h2>
+
+            <p>
+                Veja as conversas e trabalhos realizados.
+            </p>
+
+        </div>
+
+
+        <button
+            id="btnNewConversation"
+            class="secondary-button"
+            type="button"
+        >
+
+            <i class="fa-solid fa-plus"></i>
+
+            Nova conversa
+
+        </button>
+
+
+    </div>
+
+
+    <div
+        id="historyContainer"
+        class="history-container"
+    >
+
+
+        <div class="empty-state">
+
+
+            <div class="empty-icon">
+
+                <i class="fa-solid fa-comments"></i>
+
+            </div>
+
+
+            <h3>
+                O seu histórico aparecerá aqui
+            </h3>
+
+
+            <p>
+                As suas conversas serão guardadas automaticamente
+                pela Honey IA.
+            </p>
+
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     PLANS
+=================================================== -->
+
+<section
+    id="plans"
+    class="workspace-view app-section"
+    style="display:none;"
+>
+
+
+    <div class="section-header">
+
+
+        <div>
+
+            <h2>
+                Planos Honey IA
+            </h2>
+
+            <p>
+                Escolha o nível ideal para suas necessidades.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <div class="plans-grid">
+
+
+        <div class="plan-card">
+
+
+            <h3>
+                Gratuito
+            </h3>
+
+
+            <h4>
+                0 Kz
+            </h4>
+
+
+            <ul>
+
+                <li>
+                    Chat IA
+                </li>
+
+                <li>
+                    Análise básica
+                </li>
+
+                <li>
+                    1 projeto
+                </li>
+
+            </ul>
+
+
+            <button
+                class="secondary-button"
+                type="button"
+                disabled
+            >
+
+                Atual
+
+            </button>
+
+
+        </div>
+
+
+        <div class="plan-card featured">
+
+
+            <span class="featured-label">
+                Popular
+            </span>
+
+
+            <h3>
+                Individual
+            </h3>
+
+
+            <h4>
+                15.000 Kz/mês
+            </h4>
+
+
+            <ul>
+
+                <li>
+                    Agentes avançados
+                </li>
+
+                <li>
+                    Exportação
+                </li>
+
+                <li>
+                    Projetos ilimitados
+                </li>
+
+            </ul>
+
+
+            <button
+                class="primary-button"
+                type="button"
+            >
+
+                Escolher Plano
+
+            </button>
+
+
+        </div>
+
+
+        <div class="plan-card">
+
+
+            <h3>
+                Business
+            </h3>
+
+
+            <h4>
+                400.000 Kz/mês
+            </h4>
+
+
+            <ul>
+
+                <li>
+                    Equipe empresarial
+                </li>
+
+                <li>
+                    Agentes personalizados
+                </li>
+
+                <li>
+                    Workspace completo
+                </li>
+
+            </ul>
+
+
+            <button
+                class="secondary-button"
+                type="button"
+            >
+
+                Contactar
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     TERMS
+=================================================== -->
+
+<section
+    id="terms"
+    class="workspace-view app-section"
+    style="display:none;"
+>
+
+
+    <div class="section-header">
+
+
+        <div>
+
+            <h2>
+                Termos de Uso
+            </h2>
+
+            <p>
+                Informações sobre utilização da plataforma Honey IA.
+            </p>
+
+        </div>
+
+
+    </div>
+
+
+    <div
+        id="termsContainer"
+        class="terms-card"
+    >
+
+
+        <h3>
+            Utilização responsável
+        </h3>
+
+
+        <p>
+            A Honey IA é uma plataforma de inteligência artificial criada
+            para auxiliar utilizadores, empreendedores e empresas na criação,
+            análise e desenvolvimento de soluções digitais.
+        </p>
+
+
+        <h3>
+            Privacidade
+        </h3>
+
+
+        <p>
+            Os dados enviados para processamento devem respeitar as normas
+            de segurança e privacidade aplicáveis.
+        </p>
+
+
+        <h3>
+            Responsabilidade
+        </h3>
+
+
+        <p>
+            As respostas geradas pela inteligência artificial devem ser revistas
+            antes de serem utilizadas em decisões importantes.
+        </p>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     CHAT IA
+=================================================== -->
+
+<section
+    id="chat"
+    class="workspace-view chat-section"
+    style="display:none;"
+>
+
+
+    <div
+        id="chatLayout"
+        class="chat-layout"
+    >
+
+
+        <!-- ==========================================
+             CHAT PANEL
+        =========================================== -->
+
+        <div
+            id="chatPanel"
+            class="chat-panel"
+        >
+
+
+            <!-- ======================================
+                 CHAT HEADER
+            ======================================= -->
+
+            <div class="chat-header">
+
+
+                <div class="chat-title-area">
+
+
+                    <div class="chat-agent-avatar">
+                        🐝
+                    </div>
+
+
+                    <div>
+
+                        <h2>
+                            Honey IA
+                        </h2>
+
+                        <span>
+                            Assistente inteligente
+                        </span>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="chat-header-actions">
+
+
+                    <button
+                        id="btnNewChat"
+                        class="chat-header-button"
+                        type="button"
+                        aria-label="Nova conversa"
+                        title="Nova conversa"
+                    >
+
+                        <i class="fa-solid fa-plus"></i>
+
+                    </button>
+
+
+                    <div class="mode-switch">
+
+
+                        <button
+                            id="btnChatMode"
+                            class="mode-button active"
+                            type="button"
+                            aria-pressed="true"
+                        >
+
+                            <i class="fa-solid fa-comment"></i>
+
+                            <span>
+                                Chat
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            id="btnLiveMode"
+                            class="mode-button"
+                            type="button"
+                            aria-pressed="false"
+                        >
+
+                            <i class="fa-solid fa-microphone"></i>
+
+                            <span>
+                                Live
+                            </span>
+
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ======================================
+                 CHAT CONTEXT
+            ======================================= -->
+
+            <div
+                id="chatContextBar"
+                class="chat-context-bar"
+            >
+
+
+                <div class="chat-context-agent">
+
+
+                    <span class="context-status"></span>
+
+
+                    <span>
+                        Honey IA
+                    </span>
+
+
+                </div>
+
+
+                <span
+                    id="conversationTitle"
+                    class="conversation-title"
+                >
+                    Nova Conversa
+                </span>
+
+
+            </div>
+
+
+            <!-- ======================================
+                 CHAT MESSAGES
+            ======================================= -->
+
+            <div
+                id="chatMessages"
+                class="chat-messages"
+                role="log"
+                aria-live="polite"
+                aria-label="Mensagens da conversa"
+            >
+
+
+                <div
+                    id="chatWelcome"
+                    class="welcome-message"
+                >
+
+
+                    <div class="welcome-icon">
+                        🐝
+                    </div>
+
+
+                    <h3>
+                        Olá, sou a Honey IA
+                    </h3>
+
+
+                    <p>
+                        Como posso ajudar hoje?
+                    </p>
+
+
+                    <div class="welcome-suggestions">
+
+
+                        <button
+                            type="button"
+                            class="suggestion-button"
+                            data-prompt="Ajuda-me a criar um novo projeto."
+                        >
+
+                            <i class="fa-solid fa-lightbulb"></i>
+
+                            Criar um projeto
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="suggestion-button"
+                            data-prompt="Analisa este problema e apresenta uma solução."
+                        >
+
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                            Analisar um problema
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="suggestion-button"
+                            data-prompt="Ajuda-me a desenvolver uma ideia de negócio."
+                        >
+
+                            <i class="fa-solid fa-chart-line"></i>
+
+                            Desenvolver uma ideia
+
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ======================================
+                 ATTACHMENT BAR
+            ======================================= -->
+
+            <div
+                id="attachment-bar"
+                class="attachment-bar hidden"
+                aria-live="polite"
+            >
+
+
+                <div class="attachment-info">
+
+
+                    <i class="fa-solid fa-paperclip"></i>
+
+
+                    <span
+                        id="attached-file-name"
+                    ></span>
+
+
+                </div>
+
+
+                <button
+                    id="btn-remove-attachment"
+                    type="button"
+                    aria-label="Remover ficheiro"
+                    title="Remover ficheiro"
+                >
+
+                    <i class="fa-solid fa-xmark"></i>
+
+                </button>
+
+
+            </div>
+
+
+            <!-- ======================================
+                 CHAT INPUT
+            ======================================= -->
+
+            <div class="chat-input-wrapper">
+
+
+                <div
+                    class="chat-input-area"
+                    id="chatInputArea"
+                >
+
+
+                    <button
+                        id="btnAttach"
+                        class="input-action"
+                        type="button"
+                        aria-label="Anexar ficheiro"
+                        title="Anexar ficheiro"
+                    >
+
+                        <i class="fa-solid fa-paperclip"></i>
+
+                    </button>
+
+
+                    <input
+                        type="file"
+                        id="fileInput"
+                        hidden
+                        multiple="false"
+                    >
+
+
+                    <textarea
+                        id="chatInput"
+                        placeholder="Escreva uma mensagem para a Honey IA..."
+                        rows="1"
+                        autocomplete="off"
+                        spellcheck="true"
+                        aria-label="Mensagem"
+                    ></textarea>
+
+
+                    <button
+                        id="btnVoice"
+                        class="input-action"
+                        type="button"
+                        aria-label="Entrada de voz"
+                        title="Falar com a Honey IA"
+                    >
+
+                        <i class="fa-solid fa-microphone"></i>
+
+                    </button>
+
+
+                    <button
+                        id="btnSend"
+                        class="send-button"
+                        type="button"
+                        aria-label="Enviar mensagem"
+                        title="Enviar mensagem"
+                    >
+
+                        <i class="fa-solid fa-paper-plane"></i>
+
+                    </button>
+
+
+                </div>
+
+
+                <div class="chat-input-footer">
+
+
+                    <span>
+                        A Honey IA pode cometer erros. Verifique informações importantes.
+                    </span>
+
+
+                    <span>
+                        Enter para enviar · Shift + Enter para nova linha
+                    </span>
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ==========================================
+             LIVE PREVIEW
+        =========================================== -->
+
+        <aside
+            id="preview-pane"
+            class="preview-pane"
+            aria-label="Preview"
+        >
+
+
+            <div class="preview-header">
+
+
+                <div>
+
+                    <i class="fa-solid fa-display"></i>
+
+                    <h3>
+                        Preview
+                    </h3>
+
+                </div>
+
+
+                <button
+                    id="btn-close-preview"
+                    type="button"
+                    aria-label="Fechar preview"
+                    title="Fechar preview"
+                >
+
+                    <i class="fa-solid fa-xmark"></i>
+
+                </button>
+
+
+            </div>
+
+
+            <iframe
+                id="live-preview-iframe"
+                title="Live Preview"
+                sandbox="allow-scripts"
+            ></iframe>
+
+
+        </aside>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     GLOBAL TOASTS
+=================================================== -->
 
 <div
     id="toastContainer"
@@ -1910,27 +1416,27 @@
 ></div>
 
 
-<!-- =========================================================
-     MARKDOWN
-========================================================= -->
+</main>
+
+</div>
+
+
+<!-- ==========================================================
+     JAVASCRIPT LIBRARIES
+========================================================== -->
 
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"
 ></script>
-
-
-<!-- =========================================================
-     SYNTAX HIGHLIGHTING
-========================================================= -->
 
 <script
     src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
 ></script>
 
 
-<!-- =========================================================
+<!-- ==========================================================
      HONEY IA MODULES
-========================================================= -->
+========================================================== -->
 
 <script
     type="module"
@@ -1963,9 +1469,10 @@
 ></script>
 
 
-<!-- =========================================================
-     AUTH / LOGOUT
-========================================================= -->
+<!-- ==========================================================
+     HONEY IA AUTHENTICATION
+     LOGOUT CONTROLLER
+========================================================== -->
 
 <script type="module">
 
@@ -1976,12 +1483,17 @@
         "DOMContentLoaded",
         () => {
 
+
             const logoutBtn =
-                document.getElementById("logoutBtn");
+                document.getElementById(
+                    "logoutBtn"
+                );
 
 
-            if (!logoutBtn) {
+            if(!logoutBtn){
+
                 return;
+
             }
 
 
@@ -1989,51 +1501,71 @@
                 "click",
                 async () => {
 
-                    if (logoutBtn.disabled) {
+
+                    if(logoutBtn.disabled){
+
                         return;
+
                     }
 
 
                     logoutBtn.disabled = true;
 
-                    logoutBtn.classList.add("loading");
+                    logoutBtn.classList.add(
+                        "loading"
+                    );
 
 
                     logoutBtn.innerHTML = `
-                        <i class="fa-solid fa-spinner fa-spin"
-                           aria-hidden="true"></i>
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
 
                         <span>
                             A terminar sessão...
                         </span>
+
                     `;
 
 
-                    try {
+                    try{
+
 
                         await authmanager.logout();
 
+
                     }
 
-                    catch (error) {
+                    catch(error){
+
 
                         console.warn(
                             "HONEY IA LOGOUT ERROR:",
                             error
                         );
 
+
                     }
 
-                    finally {
+                    finally{
+
+
+                        /*
+                        ======================================
+                        REDIRECT TO AUTHENTICATION
+                        ======================================
+                        */
 
                         window.location.replace(
                             "login.html"
                         );
 
+
                     }
+
 
                 }
             );
+
 
         }
     );
