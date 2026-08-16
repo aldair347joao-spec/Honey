@@ -2,7 +2,7 @@
 ==========================================================
 HONEY IA OS
 CHAT ENGINE
-V4.0
+V5.0
 PRODUCTION AI STUDIO CHAT ENGINE
 
 - JWT Authentication
@@ -14,6 +14,9 @@ PRODUCTION AI STUDIO CHAT ENGINE
 - Code Highlighting
 - SSE Streaming
 - Abort / Stop Generation
+- User Controlled Scroll
+- Buffered Streaming Rendering
+- Generation Isolation
 - File Context
 - Artifacts
 - Artifact Preview
@@ -53,6 +56,19 @@ const SSE_BUFFER_LIMIT = 1024 * 1024;
 const MAX_VISIBLE_ARTIFACTS = 100;
 
 const MAX_VISIBLE_TOOLS = 100;
+
+/*
+    Distância máxima do fim para considerar que
+    o utilizador ainda está acompanhando a resposta.
+*/
+const SCROLL_BOTTOM_THRESHOLD = 72;
+
+/*
+    Intervalo mínimo entre renders visuais do streaming.
+    O texto continua sendo acumulado imediatamente,
+    mas o DOM não é reconstruído a cada micro-chunk.
+*/
+const STREAM_RENDER_INTERVAL = 32;
 
 
 /*
@@ -117,53 +133,121 @@ STATE
 
 const state = {
 
-    initialized: false,
+    initialized:
+        false,
 
-    authenticated: false,
+    authenticated:
+        false,
 
-    conversationId: null,
+    conversationId:
+        null,
 
-    conversation: null,
+    conversation:
+        null,
 
-    conversations: [],
+    conversations:
+        [],
 
-    messages: [],
+    messages:
+        [],
 
-    selectedFile: null,
+    selectedFile:
+        null,
 
-    selectedFileContent: "",
+    selectedFileContent:
+        "",
 
-    selectedFileSupported: false,
+    selectedFileSupported:
+        false,
 
-    isSending: false,
+    isSending:
+        false,
 
-    isLive: false,
+    isLive:
+        false,
 
-    generationStartedAt: null,
+    generationStartedAt:
+        null,
 
-    liveAbortController: null,
+    liveAbortController:
+        null,
 
-    currentAssistantElement: null,
+    generationAbortController:
+        null,
 
-    currentAssistantContent: "",
+    currentGenerationId:
+        null,
 
-    currentAssistantMessageId: null,
+    currentAssistantElement:
+        null,
 
-    currentMode: DEFAULT_MODE,
+    currentAssistantContent:
+        "",
 
-    agentId: DEFAULT_AGENT,
+    currentAssistantMessageId:
+        null,
 
-    workspace: "main",
+    currentMode:
+        DEFAULT_MODE,
 
-    artifacts: [],
+    agentId:
+        DEFAULT_AGENT,
 
-    tools: [],
+    workspace:
+        "main",
 
-    voiceRecognition: null,
+    artifacts:
+        [],
 
-    searchQuery: "",
+    tools:
+        [],
 
-    generationCancelled: false
+    voiceRecognition:
+        null,
+
+    searchQuery:
+        "",
+
+    generationCancelled:
+        false,
+
+    generationStatus:
+        "idle",
+
+    /*
+        Indica se o utilizador está próximo do fim.
+        O chat nunca deve forçar o scroll quando false.
+    */
+    userNearBottom:
+        true,
+
+    /*
+        Durante streaming, o conteúdo é acumulado aqui
+        e renderizado em ciclos controlados.
+    */
+    streamRenderQueued:
+        false,
+
+    streamRenderTimer:
+        null,
+
+    streamLastRenderAt:
+        0,
+
+    streamRenderGenerationId:
+        null,
+
+    /*
+        Evita renders concorrentes.
+    */
+    streamRenderRequested:
+        false,
+
+    /*
+        Guarda se já houve conteúdo efetivamente renderizado.
+    */
+    streamHasRenderedContent:
+        false
 
 };
 
@@ -197,7 +281,8 @@ async function initializeChat(){
 
     }
 
-    state.initialized = true;
+    state.initialized =
+        true;
 
     cacheDOM();
 
@@ -226,6 +311,8 @@ async function initializeChat(){
     setupModeSwitch();
 
     setupGlobalKeyboardShortcuts();
+
+    setupScrollTracking();
 
     await initializeAuthenticatedChat();
 
@@ -340,7 +427,8 @@ async function initializeAuthenticatedChat(){
 
     }
 
-    state.authenticated = true;
+    state.authenticated =
+        true;
 
     try{
 
@@ -482,6 +570,14 @@ async function apiRequest(
     }
     catch(error){
 
+        if(
+            error?.name === "AbortError"
+        ){
+
+            throw error;
+
+        }
+
         const networkError =
             new Error(
                 "Não foi possível contactar o servidor da Honey IA."
@@ -508,7 +604,8 @@ async function apiRequest(
 
     }
 
-    let data = null;
+    let data =
+        null;
 
     const contentType =
         response.headers.get(
@@ -529,7 +626,8 @@ async function apiRequest(
         }
         catch(error){
 
-            data = null;
+            data =
+                null;
 
         }
 
@@ -724,9 +822,14 @@ CHAT CONTROLS
 
 function setupChatControls(){
 
+    /*
+        O botão usa um único listener.
+        O comportamento muda conforme state.isSending.
+    */
+
     dom.btnSend?.addEventListener(
         "click",
-        sendCurrentMessage
+        handleSendButton
     );
 
     dom.chatInput?.addEventListener(
@@ -788,6 +891,21 @@ function setupChatControls(){
 }
 
 
+function handleSendButton(){
+
+    if(state.isSending){
+
+        stopGeneration();
+
+        return;
+
+    }
+
+    sendCurrentMessage();
+
+}
+
+
 /*
 ==========================================================
 GLOBAL KEYBOARD SHORTCUTS
@@ -828,6 +946,64 @@ function setupGlobalKeyboardShortcuts(){
 
         }
     );
+
+}
+
+
+/*
+==========================================================
+SCROLL TRACKING
+==========================================================
+*/
+
+function setupScrollTracking(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    dom.chatMessages.addEventListener(
+        "scroll",
+        () => {
+
+            state.userNearBottom =
+                isChatNearBottom();
+
+        },
+        {
+            passive:
+                true
+        }
+    );
+
+    /*
+        Quando o chat é aberto pela primeira vez,
+        consideramos que está no fim.
+    */
+
+    state.userNearBottom =
+        true;
+
+}
+
+
+function isChatNearBottom(){
+
+    if(!dom.chatMessages){
+
+        return true;
+
+    }
+
+    const distance =
+        dom.chatMessages.scrollHeight -
+        dom.chatMessages.scrollTop -
+        dom.chatMessages.clientHeight;
+
+    return distance <=
+        SCROLL_BOTTOM_THRESHOLD;
 
 }
 
@@ -1009,16 +1185,6 @@ CONVERSATIONS
 
 async function loadConversations(){
 
-    /*
-    IMPORTANTE:
-
-    Não existe limite artificial de quantidade,
-    idade ou tempo neste frontend.
-
-    O backend decide como recuperar e contextualizar
-    o histórico persistente.
-    */
-
     const data =
         await apiRequest(
             "/conversations"
@@ -1095,6 +1261,151 @@ function getConversationId(
 
 /*
 ==========================================================
+GENERATION CONTROL
+==========================================================
+*/
+
+function createGeneration(){
+
+    const id =
+        createClientMessageId();
+
+    state.currentGenerationId =
+        id;
+
+    state.generationAbortController =
+        new AbortController();
+
+    state.generationCancelled =
+        false;
+
+    state.generationStatus =
+        "preparing";
+
+    state.streamRenderGenerationId =
+        id;
+
+    state.streamRenderQueued =
+        false;
+
+    state.streamRenderRequested =
+        false;
+
+    state.streamHasRenderedContent =
+        false;
+
+    state.streamLastRenderAt =
+        0;
+
+    clearStreamRenderTimer();
+
+    return {
+
+        id,
+
+        controller:
+            state.generationAbortController
+
+    };
+
+}
+
+
+function isCurrentGeneration(
+    generationId
+){
+
+    return Boolean(
+        generationId &&
+        state.currentGenerationId ===
+            generationId
+    );
+
+}
+
+
+function invalidateCurrentGeneration(){
+
+    state.currentGenerationId =
+        null;
+
+    state.generationStatus =
+        "idle";
+
+    clearStreamRenderTimer();
+
+}
+
+
+function abortCurrentGeneration(
+    silent = false
+){
+
+    const controller =
+        state.generationAbortController;
+
+    if(controller){
+
+        try{
+
+            controller.abort();
+
+        }
+        catch(error){
+
+            console.warn(
+                "[HONEY CHAT] Abort error:",
+                error
+            );
+
+        }
+
+    }
+
+    if(
+        state.liveAbortController &&
+        state.liveAbortController !==
+            controller
+    ){
+
+        try{
+
+            state.liveAbortController.abort();
+
+        }
+        catch(error){
+
+            console.warn(
+                "[HONEY CHAT] Live abort error:",
+                error
+            );
+
+        }
+
+    }
+
+    state.generationCancelled =
+        true;
+
+    state.generationStatus =
+        "stopping";
+
+    clearStreamRenderTimer();
+
+    if(!silent){
+
+        showToast(
+            "Geração interrompida.",
+            "info"
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
 CREATE CONVERSATION
 ==========================================================
 */
@@ -1103,9 +1414,29 @@ async function createNewConversation(
     notify = true
 ){
 
+    /*
+        Criar uma nova conversa implica abandonar a geração
+        anterior. O utilizador deve poder mudar de contexto
+        sem ficar bloqueado.
+    */
+
     if(state.isSending){
 
-        return null;
+        abortCurrentGeneration(
+            true
+        );
+
+        state.isSending =
+            false;
+
+        state.isLive =
+            false;
+
+        setSendingState(
+            false
+        );
+
+        await waitForAbortSettlement();
 
     }
 
@@ -1201,6 +1532,24 @@ async function createNewConversation(
 }
 
 
+async function waitForAbortSettlement(){
+
+    /*
+        Não esperamos um tempo artificialmente longo.
+        Apenas permitimos que o event loop processe o abort.
+    */
+
+    await new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                0
+            )
+    );
+
+}
+
+
 /*
 ==========================================================
 RESET CONVERSATION STATE
@@ -1209,11 +1558,16 @@ RESET CONVERSATION STATE
 
 function resetConversationState(){
 
-    state.messages = [];
+    clearStreamRenderTimer();
 
-    state.artifacts = [];
+    state.messages =
+        [];
 
-    state.tools = [];
+    state.artifacts =
+        [];
+
+    state.tools =
+        [];
 
     state.currentAssistantElement =
         null;
@@ -1225,6 +1579,30 @@ function resetConversationState(){
         null;
 
     state.generationCancelled =
+        false;
+
+    state.generationStatus =
+        "idle";
+
+    state.currentGenerationId =
+        null;
+
+    state.generationAbortController =
+        null;
+
+    state.liveAbortController =
+        null;
+
+    state.streamRenderGenerationId =
+        null;
+
+    state.streamRenderQueued =
+        false;
+
+    state.streamRenderRequested =
+        false;
+
+    state.streamHasRenderedContent =
         false;
 
     removeAttachment();
@@ -1249,22 +1627,33 @@ async function openConversation(
 
     }
 
+    /*
+        Se o utilizador abrir outra conversa enquanto uma
+        resposta está sendo gerada, cancelamos a geração
+        anterior em vez de bloquear a navegação.
+    */
+
     if(
         state.isSending &&
-        String(
-            conversationId
-        ) !==
-        String(
-            state.conversationId
-        )
+        String(conversationId) !==
+        String(state.conversationId)
     ){
 
-        showToast(
-            "Aguarde a resposta atual terminar.",
-            "warning"
+        abortCurrentGeneration(
+            true
         );
 
-        return null;
+        state.isSending =
+            false;
+
+        state.isLive =
+            false;
+
+        setSendingState(
+            false
+        );
+
+        await waitForAbortSettlement();
 
     }
 
@@ -1308,9 +1697,19 @@ async function openConversation(
             data.conversation.workspace ||
             "main";
 
-        state.artifacts = [];
+        state.artifacts =
+            [];
 
-        state.tools = [];
+        state.tools =
+            [];
+
+        state.currentGenerationId =
+            null;
+
+        state.generationStatus =
+            "idle";
+
+        clearStreamRenderTimer();
 
         clearChatMessages();
 
@@ -1323,6 +1722,18 @@ async function openConversation(
         );
 
         removeAttachment();
+
+        /*
+            Depois de abrir uma conversa, o comportamento natural
+            é mostrar o final do histórico.
+        */
+
+        state.userNearBottom =
+            true;
+
+        scrollChatToBottom(
+            true
+        );
 
         if(activate){
 
@@ -1393,12 +1804,18 @@ async function sendCurrentMessage(){
 
     }
 
+    const displayPrompt =
+        prompt;
+
+    let requestPrompt =
+        prompt;
+
     if(
         state.selectedFileSupported &&
         state.selectedFileContent
     ){
 
-        prompt =
+        requestPrompt =
             buildPromptWithFileContext(
                 prompt
             );
@@ -1406,7 +1823,7 @@ async function sendCurrentMessage(){
     }
 
     if(
-        prompt.length >
+        requestPrompt.length >
         MAX_MESSAGE_LENGTH
     ){
 
@@ -1420,7 +1837,8 @@ async function sendCurrentMessage(){
     }
 
     await sendMessage(
-        prompt
+        requestPrompt,
+        displayPrompt
     );
 
 }
@@ -1433,7 +1851,8 @@ SEND MESSAGE
 */
 
 async function sendMessage(
-    prompt
+    prompt,
+    displayPrompt = prompt
 ){
 
     if(state.isSending){
@@ -1465,6 +1884,12 @@ async function sendMessage(
 
     }
 
+    const generation =
+        createGeneration();
+
+    const generationId =
+        generation.id;
+
     state.isSending =
         true;
 
@@ -1473,6 +1898,9 @@ async function sendMessage(
 
     state.generationCancelled =
         false;
+
+    state.generationStatus =
+        "preparing";
 
     state.currentAssistantContent =
         "";
@@ -1495,7 +1923,7 @@ async function sendMessage(
             "user",
 
         content:
-            prompt,
+            displayPrompt,
 
         createdAt:
             new Date().toISOString()
@@ -1507,10 +1935,21 @@ async function sendMessage(
     );
 
     appendMessage(
-        userMessage
+        userMessage,
+        false
     );
 
-    scrollChatToBottom();
+    /*
+        Depois de enviar uma mensagem, colocamos o viewport
+        no final porque esta foi uma ação explícita do utilizador.
+    */
+
+    state.userNearBottom =
+        true;
+
+    scrollChatToBottom(
+        true
+    );
 
     const assistantElement =
         createStreamingAssistantMessage();
@@ -1527,7 +1966,8 @@ async function sendMessage(
 
             await sendLiveMessage(
                 prompt,
-                assistantElement
+                assistantElement,
+                generationId
             );
 
         }
@@ -1535,7 +1975,8 @@ async function sendMessage(
 
             await sendStandardMessage(
                 prompt,
-                assistantElement
+                assistantElement,
+                generationId
             );
 
         }
@@ -1548,18 +1989,70 @@ async function sendMessage(
             error
         );
 
-        removeStreamingAssistantIfEmpty(
-            assistantElement
-        );
+        const stillCurrent =
+            isCurrentGeneration(
+                generationId
+            );
 
         if(
-            !state.generationCancelled
+            error?.name === "AbortError" ||
+            state.generationCancelled
         ){
 
-            showErrorMessage(
-                error?.message ||
-                "Não foi possível processar a mensagem."
-            );
+            /*
+                Não mostrar erro para uma interrupção
+                intencional.
+            */
+
+            if(
+                stillCurrent &&
+                state.currentAssistantContent.trim()
+            ){
+
+                finalizeInterruptedAssistant(
+                    assistantElement
+                );
+
+            }
+
+        }
+        else if(stillCurrent){
+
+            /*
+                Se já existe resposta parcial, mantemos.
+                Apenas informamos que a geração terminou com erro.
+            */
+
+            if(
+                state.currentAssistantContent.trim()
+            ){
+
+                setAssistantStatus(
+                    assistantElement,
+                    "A geração foi interrompida por um erro."
+                );
+
+                addAssistantMessageOnce(
+                    state.currentAssistantContent,
+                    {
+                        interrupted:
+                            true
+                    }
+                );
+
+            }
+            else{
+
+                removeStreamingAssistantIfEmpty(
+                    assistantElement
+                );
+
+                showErrorMessage(
+                    error?.message ||
+                    "Não foi possível processar a mensagem."
+                );
+
+            }
 
         }
 
@@ -1572,13 +2065,33 @@ async function sendMessage(
     }
     finally{
 
+        if(
+            !isCurrentGeneration(
+                generationId
+            )
+        ){
+
+            return;
+
+        }
+
+        clearStreamRenderTimer();
+
         state.isSending =
             false;
 
         state.isLive =
             false;
 
+        state.generationStatus =
+            state.generationCancelled
+                ? "stopped"
+                : "completed";
+
         state.liveAbortController =
+            null;
+
+        state.generationAbortController =
             null;
 
         state.generationStartedAt =
@@ -1599,7 +2112,19 @@ async function sendMessage(
 
         clearInputAfterSend();
 
-        scrollChatToBottom();
+        /*
+            Só fazemos scroll final se o utilizador já estava
+            acompanhando o fim da conversa.
+        */
+
+        if(state.userNearBottom){
+
+            scrollChatToBottom();
+
+        }
+
+        state.currentGenerationId =
+            null;
 
     }
 
@@ -1614,8 +2139,22 @@ STANDARD CHAT
 
 async function sendStandardMessage(
     prompt,
-    assistantElement
+    assistantElement,
+    generationId
 ){
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    const controller =
+        state.generationAbortController;
 
     const payload = {
 
@@ -1641,6 +2180,13 @@ async function sendStandardMessage(
 
     };
 
+    state.generationStatus =
+        "streaming";
+
+    /*
+        Mantemos o request normal, mas agora com AbortController.
+    */
+
     const data =
         await apiRequest(
             "",
@@ -1652,10 +2198,23 @@ async function sendStandardMessage(
                 body:
                     JSON.stringify(
                         payload
-                    )
+                    ),
+
+                signal:
+                    controller?.signal
 
             }
         );
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
 
     if(
         !data ||
@@ -1693,7 +2252,11 @@ async function sendStandardMessage(
 
     renderAssistantContent(
         assistantElement,
-        response
+        response,
+        {
+            final:
+                true
+        }
     );
 
     renderResponseMetadata(
@@ -1736,7 +2299,10 @@ async function sendStandardMessage(
 
     renderHistory();
 
-    scrollChatToBottom();
+    /*
+        Não forçamos scroll aqui.
+        O utilizador controla o viewport.
+    */
 
 }
 
@@ -1749,14 +2315,32 @@ LIVE CHAT
 
 async function sendLiveMessage(
     prompt,
-    assistantElement
+    assistantElement,
+    generationId
 ){
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
 
     state.isLive =
         true;
 
+    state.generationStatus =
+        "streaming";
+
+    /*
+        Usamos o controller principal da geração.
+    */
+
     state.liveAbortController =
-        new AbortController();
+        state.generationAbortController;
 
     const token =
         getAuthToken();
@@ -1819,8 +2403,7 @@ async function sendLiveMessage(
                         }),
 
                     signal:
-                        state.liveAbortController
-                            .signal
+                        state.generationAbortController?.signal
 
                 }
             );
@@ -1836,13 +2419,23 @@ async function sendLiveMessage(
             state.generationCancelled =
                 true;
 
-            return;
+            throw error;
 
         }
 
         throw new Error(
             "Não foi possível estabelecer a ligação Live com a Honey IA."
         );
+
+    }
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
 
     }
 
@@ -1879,7 +2472,7 @@ async function sendLiveMessage(
         catch(error){
 
             /*
-            Corpo de erro inválido ou inexistente.
+                Corpo de erro inválido ou inexistente.
             */
 
         }
@@ -1906,7 +2499,8 @@ async function sendLiveMessage(
 
     await consumeSSEStream(
         response.body,
-        assistantElement
+        assistantElement,
+        generationId
     );
 
 }
@@ -1926,51 +2520,34 @@ function stopGeneration(){
 
     }
 
+    const element =
+        state.currentAssistantElement;
+
     state.generationCancelled =
         true;
 
-    if(
-        state.liveAbortController
-    ){
+    state.generationStatus =
+        "stopping";
 
-        try{
-
-            state.liveAbortController.abort();
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Abort error:",
-                error
-            );
-
-        }
-
-    }
-
-    const element =
-        state.currentAssistantElement;
+    abortCurrentGeneration(
+        true
+    );
 
     if(
         element &&
         state.currentAssistantContent.trim()
     ){
 
-        addAssistantMessageOnce(
-            state.currentAssistantContent,
-            {
-                interrupted:
-                    true
-            }
-        );
-
-        setAssistantStatus(
-            element,
-            "Resposta interrompida."
+        finalizeInterruptedAssistant(
+            element
         );
 
     }
+
+    /*
+        O finally de sendMessage() tratará o estado final.
+        Aqui atualizamos imediatamente a interface para o utilizador.
+    */
 
     setSendingState(
         false
@@ -1986,13 +2563,63 @@ function stopGeneration(){
 
 /*
 ==========================================================
+FINALIZE INTERRUPTED ASSISTANT
+==========================================================
+*/
+
+function finalizeInterruptedAssistant(
+    element
+){
+
+    if(!element){
+
+        return;
+
+    }
+
+    clearStreamRenderTimer();
+
+    if(
+        state.currentAssistantContent.trim()
+    ){
+
+        renderAssistantContent(
+            element,
+            state.currentAssistantContent,
+            {
+                final:
+                    true
+            }
+        );
+
+        addAssistantMessageOnce(
+            state.currentAssistantContent,
+            {
+                interrupted:
+                    true
+            }
+        );
+
+    }
+
+    setAssistantStatus(
+        element,
+        "Resposta interrompida."
+    );
+
+}
+
+
+/*
+==========================================================
 SSE STREAM
 ==========================================================
 */
 
 async function consumeSSEStream(
     body,
-    assistantElement
+    assistantElement,
+    generationId
 ){
 
     const reader =
@@ -2012,6 +2639,29 @@ async function consumeSSEStream(
     try{
 
         while(!streamFinished){
+
+            if(
+                !isCurrentGeneration(
+                    generationId
+                )
+            ){
+
+                try{
+
+                    await reader.cancel();
+
+                }
+                catch(error){
+
+                    /*
+                        Reader já cancelado.
+                    */
+
+                }
+
+                break;
+
+            }
 
             const {
                 value,
@@ -2058,10 +2708,24 @@ async function consumeSSEStream(
                 of events
             ){
 
+                if(
+                    !isCurrentGeneration(
+                        generationId
+                    )
+                ){
+
+                    streamFinished =
+                        true;
+
+                    break;
+
+                }
+
                 const finished =
                     processSSEEvent(
                         event,
-                        assistantElement
+                        assistantElement,
+                        generationId
                     );
 
                 if(finished){
@@ -2082,17 +2746,29 @@ async function consumeSSEStream(
 
         if(
             !streamFinished &&
+            isCurrentGeneration(
+                generationId
+            ) &&
             buffer.trim()
         ){
 
             processSSEEvent(
                 buffer,
-                assistantElement
+                assistantElement,
+                generationId
             );
 
         }
 
+        /*
+            Só consideramos stream vazio como erro se não houve
+            interrupção e a geração ainda pertence ao contexto atual.
+        */
+
         if(
+            isCurrentGeneration(
+                generationId
+            ) &&
             !state.generationCancelled &&
             !state.currentAssistantContent.trim()
         ){
@@ -2114,7 +2790,7 @@ async function consumeSSEStream(
         catch(error){
 
             /*
-            Reader já libertado.
+                Reader já libertado.
             */
 
         }
@@ -2132,8 +2808,19 @@ PROCESS SSE EVENT
 
 function processSSEEvent(
     rawEvent,
-    assistantElement
+    assistantElement,
+    generationId
 ){
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return true;
+
+    }
 
     if(
         typeof rawEvent !==
@@ -2150,7 +2837,8 @@ function processSSEEvent(
             /\r?\n/
         );
 
-    const dataLines = [];
+    const dataLines =
+        [];
 
     for(
         const line
@@ -2190,7 +2878,8 @@ function processSSEEvent(
     ){
 
         finalizeStreamingAssistant(
-            assistantElement
+            assistantElement,
+            generationId
         );
 
         return true;
@@ -2214,6 +2903,16 @@ function processSSEEvent(
         );
 
         return false;
+
+    }
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return true;
 
     }
 
@@ -2245,12 +2944,18 @@ function processSSEEvent(
         payload?.thinking === true
     ){
 
+        state.generationStatus =
+            "thinking";
+
         setAssistantStatus(
             assistantElement,
-            "A Honey IA está a pensar..."
+            "A Honey IA está a analisar..."
         );
 
     }
+
+    let receivedText =
+        false;
 
     if(
         typeof payload?.text ===
@@ -2258,20 +2963,14 @@ function processSSEEvent(
         payload.text
     ){
 
-        state.currentAssistantContent +=
-            payload.text;
-
-        renderAssistantContent(
+        appendStreamText(
+            payload.text,
             assistantElement,
-            state.currentAssistantContent
+            generationId
         );
 
-        setAssistantStatus(
-            assistantElement,
-            ""
-        );
-
-        scrollChatToBottom();
+        receivedText =
+            true;
 
     }
 
@@ -2281,15 +2980,26 @@ function processSSEEvent(
         payload.delta
     ){
 
-        state.currentAssistantContent +=
-            payload.delta;
-
-        renderAssistantContent(
+        appendStreamText(
+            payload.delta,
             assistantElement,
-            state.currentAssistantContent
+            generationId
         );
 
-        scrollChatToBottom();
+        receivedText =
+            true;
+
+    }
+
+    if(receivedText){
+
+        state.generationStatus =
+            "streaming";
+
+        setAssistantStatus(
+            assistantElement,
+            ""
+        );
 
     }
 
@@ -2303,9 +3013,9 @@ function processSSEEvent(
         state.currentAssistantContent =
             payload.response;
 
-        renderAssistantContent(
+        queueAssistantRender(
             assistantElement,
-            state.currentAssistantContent
+            generationId
         );
 
     }
@@ -2414,7 +3124,11 @@ function processSSEEvent(
 
             renderAssistantContent(
                 assistantElement,
-                response
+                response,
+                {
+                    final:
+                        true
+                }
             );
 
             addAssistantMessageOnce(
@@ -2451,21 +3165,266 @@ function processSSEEvent(
 
 /*
 ==========================================================
+STREAM TEXT BUFFER
+==========================================================
+*/
+
+function appendStreamText(
+    text,
+    assistantElement,
+    generationId
+){
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    if(
+        typeof text !==
+        "string" ||
+        !text
+    ){
+
+        return;
+
+    }
+
+    state.currentAssistantContent +=
+        text;
+
+    queueAssistantRender(
+        assistantElement,
+        generationId
+    );
+
+}
+
+
+/*
+==========================================================
+QUEUE ASSISTANT RENDER
+==========================================================
+*/
+
+function queueAssistantRender(
+    assistantElement,
+    generationId
+){
+
+    if(
+        !assistantElement ||
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    state.streamRenderRequested =
+        true;
+
+    state.streamRenderGenerationId =
+        generationId;
+
+    if(state.streamRenderQueued){
+
+        return;
+
+    }
+
+    const now =
+        performance.now();
+
+    const elapsed =
+        now -
+        state.streamLastRenderAt;
+
+    const renderNow =
+        elapsed >=
+        STREAM_RENDER_INTERVAL;
+
+    state.streamRenderQueued =
+        true;
+
+    if(renderNow){
+
+        requestAnimationFrame(
+            () => {
+
+                performQueuedAssistantRender(
+                    assistantElement,
+                    generationId
+                );
+
+            }
+        );
+
+        return;
+
+    }
+
+    const delay =
+        Math.max(
+            0,
+            STREAM_RENDER_INTERVAL -
+            elapsed
+        );
+
+    state.streamRenderTimer =
+        setTimeout(
+            () => {
+
+                state.streamRenderTimer =
+                    null;
+
+                requestAnimationFrame(
+                    () => {
+
+                        performQueuedAssistantRender(
+                            assistantElement,
+                            generationId
+                        );
+
+                    }
+                );
+
+            },
+            delay
+        );
+
+}
+
+
+function performQueuedAssistantRender(
+    assistantElement,
+    generationId
+){
+
+    state.streamRenderQueued =
+        false;
+
+    state.streamRenderRequested =
+        false;
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    if(
+        !state.currentAssistantContent
+    ){
+
+        return;
+
+    }
+
+    state.streamLastRenderAt =
+        performance.now();
+
+    renderAssistantContent(
+        assistantElement,
+        state.currentAssistantContent,
+        {
+            final:
+                false
+        }
+    );
+
+    state.streamHasRenderedContent =
+        true;
+
+    /*
+        Este é o ponto central do novo comportamento:
+        só acompanhamos o fim se o utilizador estiver no fim.
+    */
+
+    if(state.userNearBottom){
+
+        scrollChatToBottom();
+
+    }
+
+}
+
+
+function clearStreamRenderTimer(){
+
+    if(
+        state.streamRenderTimer
+    ){
+
+        clearTimeout(
+            state.streamRenderTimer
+        );
+
+        state.streamRenderTimer =
+            null;
+
+    }
+
+    state.streamRenderQueued =
+        false;
+
+    state.streamRenderRequested =
+        false;
+
+}
+
+
+/*
+==========================================================
 FINALIZE STREAM
 ==========================================================
 */
 
 function finalizeStreamingAssistant(
-    assistantElement
+    assistantElement,
+    generationId
 ){
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    clearStreamRenderTimer();
 
     if(
         state.currentAssistantContent.trim()
     ){
 
+        /*
+            Renderização final:
+            aqui sim fazemos Markdown completo e
+            syntax highlighting.
+        */
+
         renderAssistantContent(
             assistantElement,
-            state.currentAssistantContent
+            state.currentAssistantContent,
+            {
+                final:
+                    true
+            }
         );
 
         addAssistantMessageOnce(
@@ -2475,12 +3434,21 @@ function finalizeStreamingAssistant(
 
     }
 
+    state.generationStatus =
+        "completed";
+
     setAssistantStatus(
         assistantElement,
         ""
     );
 
     renderHistory();
+
+    if(state.userNearBottom){
+
+        scrollChatToBottom();
+
+    }
 
 }
 
@@ -2519,6 +3487,20 @@ function addAssistantMessageOnce(
         ).trim() ===
         normalized
     ){
+
+        /*
+            Atualizamos a flag interrupted se necessário,
+            sem criar uma segunda mensagem.
+        */
+
+        if(
+            metadata?.interrupted === true
+        ){
+
+            last.interrupted =
+                true;
+
+        }
 
         return;
 
@@ -2894,7 +3876,12 @@ function renderMessages(
         }
     );
 
-    scrollChatToBottom();
+    state.userNearBottom =
+        true;
+
+    scrollChatToBottom(
+        true
+    );
 
 }
 
@@ -3028,6 +4015,25 @@ function appendMessage(
 
     }
 
+    if(message?.interrupted){
+
+        const status =
+            document.createElement(
+                "div"
+            );
+
+        status.className =
+            "assistant-status";
+
+        status.textContent =
+            "Resposta interrompida.";
+
+        body.appendChild(
+            status
+        );
+
+    }
+
     wrapper.appendChild(
         avatar
     );
@@ -3042,7 +4048,12 @@ function appendMessage(
 
     if(scroll){
 
-        scrollChatToBottom();
+        state.userNearBottom =
+            true;
+
+        scrollChatToBottom(
+            true
+        );
 
     }
 
@@ -3077,6 +4088,13 @@ function createStreamingAssistantMessage(){
 
     wrapper.dataset.role =
         "assistant";
+
+    if(state.currentGenerationId){
+
+        wrapper.dataset.generationId =
+            state.currentGenerationId;
+
+    }
 
     const avatar =
         document.createElement(
@@ -3148,7 +4166,17 @@ function createStreamingAssistantMessage(){
         wrapper
     );
 
-    scrollChatToBottom();
+    /*
+        A criação da mensagem é consequência direta do envio
+        do utilizador, portanto podemos ir ao fim.
+    */
+
+    state.userNearBottom =
+        true;
+
+    scrollChatToBottom(
+        true
+    );
 
     return wrapper;
 
@@ -3163,7 +4191,8 @@ ASSISTANT CONTENT
 
 function renderAssistantContent(
     element,
-    content
+    content,
+    options = {}
 ){
 
     if(!element){
@@ -3206,9 +4235,20 @@ function renderAssistantContent(
             content
         );
 
-    highlightCode(
-        contentElement
-    );
+    /*
+        Durante streaming evitamos o highlighting completo.
+        No final fazemos a operação completa.
+    */
+
+    if(
+        options.final === true
+    ){
+
+        highlightCode(
+            contentElement
+        );
+
+    }
 
 }
 
@@ -3343,9 +4383,7 @@ function renderResponseMetadata(
 
     }
 
-    if(
-        result.provider
-    ){
+    if(result.provider){
 
         metadata.push(
             String(
@@ -3610,9 +4648,21 @@ function highlightCode(
 
                 try{
 
+                    if(
+                        block.dataset.honeyHighlighted ===
+                        "true"
+                    ){
+
+                        return;
+
+                    }
+
                     hljs.highlightElement(
                         block
                     );
+
+                    block.dataset.honeyHighlighted =
+                        "true";
 
                 }
                 catch(error){
@@ -3983,6 +5033,9 @@ function renderArtifactCards(){
 
     }
 
+    const wasNearBottom =
+        state.userNearBottom;
+
     dom.chatMessages
         .querySelectorAll(
             ".chat-artifact"
@@ -4124,8 +5177,21 @@ function renderArtifactCards(){
             );
 
         }
-
     );
+
+    /*
+        A recriação dos artifacts não deve roubar o viewport
+        de quem está lendo conteúdo anterior.
+    */
+
+    state.userNearBottom =
+        wasNearBottom;
+
+    if(wasNearBottom){
+
+        scrollChatToBottom();
+
+    }
 
 }
 
@@ -4173,7 +5239,7 @@ function openArtifactPreview(
     if(
         type.includes("html") ||
         artifact?.language ===
-            "html"
+        "html"
     ){
 
         documentContent =
@@ -4390,6 +5456,9 @@ function renderToolCards(){
 
     }
 
+    const wasNearBottom =
+        state.userNearBottom;
+
     dom.chatMessages
         .querySelectorAll(
             ".chat-tool-result"
@@ -4447,6 +5516,15 @@ function renderToolCards(){
 
         }
     );
+
+    state.userNearBottom =
+        wasNearBottom;
+
+    if(wasNearBottom){
+
+        scrollChatToBottom();
+
+    }
 
 }
 
@@ -4574,7 +5652,18 @@ function showErrorMessage(
         element
     );
 
-    scrollChatToBottom();
+    /*
+        Erro provocado diretamente pelo envio deve aparecer
+        imediatamente no final. Depois disso o utilizador
+        volta a controlar o viewport.
+    */
+
+    state.userNearBottom =
+        true;
+
+    scrollChatToBottom(
+        true
+    );
 
 }
 
@@ -4643,8 +5732,10 @@ function setSendingState(
                 "Parar geração"
             );
 
-            dom.btnSend.onclick =
-                stopGeneration;
+            dom.btnSend.setAttribute(
+                "data-state",
+                "generating"
+            );
 
         }
         else{
@@ -4663,8 +5754,10 @@ function setSendingState(
                 "Enviar mensagem"
             );
 
-            dom.btnSend.onclick =
-                sendCurrentMessage;
+            dom.btnSend.setAttribute(
+                "data-state",
+                "idle"
+            );
 
         }
 
@@ -4691,19 +5784,10 @@ function setSendingState(
 
     }
 
-    if(dom.btnNewChat){
-
-        dom.btnNewChat.disabled =
-            sending;
-
-    }
-
-    if(dom.btnNewConversation){
-
-        dom.btnNewConversation.disabled =
-            sending;
-
-    }
+    /*
+        Não bloqueamos os botões de nova conversa.
+        O utilizador deve poder abandonar o contexto atual.
+    */
 
 }
 
@@ -5073,7 +6157,7 @@ function startVoiceInput(){
         catch(error){
 
             /*
-            Recognition already stopped.
+                Recognition already stopped.
             */
 
         }
@@ -5611,6 +6695,37 @@ async function deleteConversation(
 
     }
 
+    /*
+        Se estiver eliminando a conversa atual durante geração,
+        interrompemos primeiro.
+    */
+
+    if(
+        state.isSending &&
+        String(
+            state.conversationId
+        ) ===
+        String(
+            conversationId
+        )
+    ){
+
+        abortCurrentGeneration(
+            true
+        );
+
+        state.isSending =
+            false;
+
+        state.isLive =
+            false;
+
+        setSendingState(
+            false
+        );
+
+    }
+
     try{
 
         await apiRequest(
@@ -5881,9 +6996,25 @@ SCROLL
 ==========================================================
 */
 
-function scrollChatToBottom(){
+function scrollChatToBottom(
+    force = false
+){
 
     if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    /*
+        Sem force, o scroll só acontece quando o utilizador
+        está acompanhando o final.
+    */
+
+    if(
+        !force &&
+        !state.userNearBottom
+    ){
 
         return;
 
@@ -5892,8 +7023,21 @@ function scrollChatToBottom(){
     requestAnimationFrame(
         () => {
 
+            if(!dom.chatMessages){
+
+                return;
+
+            }
+
             dom.chatMessages.scrollTop =
                 dom.chatMessages.scrollHeight;
+
+            /*
+                Reavaliamos a posição depois do scroll.
+            */
+
+            state.userNearBottom =
+                true;
 
         }
     );
@@ -6025,6 +7169,15 @@ function handleApiError(
     );
 
     if(
+        error?.name ===
+        "AbortError"
+    ){
+
+        return;
+
+    }
+
+    if(
         error?.status ===
         401
     ){
@@ -6085,7 +7238,13 @@ window.HoneyChat = {
                 [...state.artifacts],
 
             tools:
-                [...state.tools]
+                [...state.tools],
+
+            generationStatus:
+                state.generationStatus,
+
+            userNearBottom:
+                state.userNearBottom
 
         };
 
@@ -6154,6 +7313,7 @@ window.HoneyChat = {
         }
 
         return sendMessage(
+            normalized,
             normalized
         );
 
@@ -6208,7 +7368,7 @@ DIAGNOSTICS
 */
 
 console.info(
-    "[HONEY IA] Chat Engine V4.0 initialized."
+    "[HONEY IA] Chat Engine V5.0 initialized."
 );
 
 console.info(
@@ -6225,4 +7385,16 @@ console.info(
 
 console.info(
     "[HONEY IA] Live SSE + Stop Generation enabled."
+);
+
+console.info(
+    "[HONEY IA] User-controlled scroll enabled."
+);
+
+console.info(
+    "[HONEY IA] Buffered streaming rendering enabled."
+);
+
+console.info(
+    "[HONEY IA] Generation isolation enabled."
 );
