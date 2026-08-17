@@ -3,13 +3,15 @@
 HONEY IA OS
 CHAT CSS
 PREMIUM AI WORKSPACE CHAT SYSTEM
-V2.1
+V3.0
 
 RESPONSIBILITIES
 ------------------------------------------------------------
 - Chat Workspace
-- Chat Header
-- Chat Context
+- Fixed Chat Header
+- Fixed Chat Context
+- Independent Message Scrolling
+- Fixed Composer
 - Welcome Screen
 - Messages
 - Markdown
@@ -17,7 +19,6 @@ RESPONSIBILITIES
 - Tables
 - Suggestions
 - Attachments
-- Composer
 - Voice
 - Send
 - Chat / Live Mode
@@ -27,6 +28,7 @@ RESPONSIBILITIES
 - Accessibility
 - Mobile Workspace
 - Long Response Navigation
+- Reading Optimisation
 ============================================================
 */
 
@@ -98,23 +100,36 @@ RESPONSIBILITIES
 
 /* =========================================================
    03. CHAT PANEL
+   FIXED HEADER / SCROLLING MESSAGES / FIXED COMPOSER
 ========================================================= */
 
 .chat-panel {
 
     position: relative;
 
-    display: flex;
+    display: grid;
 
-    flex-direction: column;
+    /*
+       Three structural zones:
+
+       1. Header + context
+       2. Messages
+       3. Composer / attachment area
+
+       The middle row is the ONLY expandable/scrol­lable
+       region.
+    */
+
+    grid-template-rows:
+        auto
+        minmax(0, 1fr)
+        auto;
 
     width: 100%;
     height: 100%;
 
     min-width: 0;
     min-height: 0;
-
-    flex: 1 1 0;
 
     overflow: hidden;
 
@@ -125,6 +140,25 @@ RESPONSIBILITIES
             transparent 18%
         ),
         var(--bg-deep);
+
+}
+
+
+/*
+   Header and context belong to the fixed top zone.
+   They never participate in message scrolling.
+*/
+
+.chat-panel > .chat-header,
+.chat-panel > .chat-context-bar {
+
+    position: relative;
+
+    flex: 0 0 auto;
+
+    min-width: 0;
+
+    z-index: 20;
 
 }
 
@@ -145,8 +179,6 @@ RESPONSIBILITIES
 
     gap: 20px;
 
-    flex: 0 0 auto;
-
     min-height: 78px;
 
     padding:
@@ -158,15 +190,26 @@ RESPONSIBILITIES
         var(--border-soft);
 
     background:
-        rgba(9,11,15,.92);
+        rgba(9,11,15,.96);
 
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 
-    z-index: 10;
+    z-index: 20;
+
+    /*
+       Prevents the header from visually blending
+       into the scrolling content.
+    */
+
+    isolation: isolate;
 
 }
 
+
+/* =========================================================
+   05. CHAT TITLE
+========================================================= */
 
 .chat-title-area {
 
@@ -280,7 +323,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   05. ONLINE INDICATOR
+   06. ONLINE INDICATOR
 ========================================================= */
 
 .chat-online-indicator {
@@ -302,7 +345,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   06. HEADER ACTIONS
+   07. HEADER ACTIONS
 ========================================================= */
 
 .chat-header-actions {
@@ -404,7 +447,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   07. MODE SWITCH
+   08. MODE SWITCH
 ========================================================= */
 
 .mode-switch {
@@ -511,7 +554,8 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   08. CHAT CONTEXT
+   09. CHAT CONTEXT
+   FIXED WITH HEADER
 ========================================================= */
 
 .chat-context-bar {
@@ -524,8 +568,6 @@ RESPONSIBILITIES
 
     gap: 15px;
 
-    flex: 0 0 auto;
-
     min-height: 42px;
 
     padding:
@@ -537,11 +579,18 @@ RESPONSIBILITIES
         var(--border-soft);
 
     background:
-        rgba(15,17,23,.62);
+        rgba(15,17,23,.96);
 
     color: var(--text-muted);
 
     font-size: 11px;
+
+    z-index: 19;
+
+    /*
+       The context bar is deliberately outside
+       .chat-messages.
+    */
 
 }
 
@@ -645,8 +694,8 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   09. MESSAGES AREA
-   DEFINITIVE LONG-RESPONSE SCROLL SYSTEM
+   10. MESSAGES AREA
+   THE ONLY VERTICAL SCROLLING REGION
 ========================================================= */
 
 .chat-messages {
@@ -655,16 +704,19 @@ RESPONSIBILITIES
 
     display: block;
 
-    flex: 1 1 0;
+    /*
+       Critical:
 
-    width: 100%;
-
-    height: 0;
+       This row receives all remaining height.
+       Nothing outside this element scrolls vertically.
+    */
 
     min-width: 0;
     min-height: 0;
 
-    max-height: none;
+    width: 100%;
+
+    height: auto;
 
     overflow-x: hidden;
 
@@ -691,14 +743,21 @@ RESPONSIBILITIES
         rgba(255,255,255,.16)
         transparent;
 
+    /*
+       Ensures that the content viewport itself,
+       not the entire chat panel, owns the scroll.
+    */
+
+    contain:
+        layout
+        paint;
+
 }
 
 
-/*
-============================================================
-SCROLLBAR
-============================================================
-*/
+/* =========================================================
+   SCROLLBAR
+========================================================= */
 
 .chat-messages::-webkit-scrollbar {
 
@@ -745,11 +804,9 @@ SCROLLBAR
 }
 
 
-/*
-============================================================
-DURING ACTIVE STREAMING
-============================================================
-*/
+/* =========================================================
+   ACTIVE STREAMING
+========================================================= */
 
 .chat-messages.is-streaming {
 
@@ -760,9 +817,8 @@ DURING ACTIVE STREAMING
 
 
 /*
-============================================================
-CHILDREN MUST NOT BREAK THE SCROLL CHAIN
-============================================================
+   Never allow children to establish a competing
+   vertical scrolling context.
 */
 
 .chat-messages > * {
@@ -773,7 +829,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   10. WELCOME
+   11. WELCOME
 ========================================================= */
 
 .welcome-message {
@@ -941,7 +997,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   11. WELCOME SUGGESTIONS
+   12. WELCOME SUGGESTIONS
 ========================================================= */
 
 .welcome-suggestions {
@@ -1140,7 +1196,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   12. CAPABILITIES
+   13. CAPABILITIES
 ========================================================= */
 
 .chat-capabilities {
@@ -1198,7 +1254,8 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   13. ATTACHMENT BAR
+   14. ATTACHMENT BAR
+   FIXED ABOVE COMPOSER
 ========================================================= */
 
 .attachment-bar {
@@ -1374,14 +1431,19 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   14. INPUT WRAPPER
+   15. INPUT WRAPPER
+   FIXED BOTTOM ZONE
 ========================================================= */
 
 .chat-input-wrapper {
 
     position: relative;
 
+    display: block;
+
     flex: 0 0 auto;
+
+    min-width: 0;
 
     padding:
         10px
@@ -1395,13 +1457,20 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
             rgba(9,11,15,.96) 28%
         );
 
-    z-index: 5;
+    z-index: 15;
+
+    /*
+       Never allow the composer to become part
+       of the message scroll viewport.
+    */
+
+    overflow: visible;
 
 }
 
 
 /* =========================================================
-   15. INPUT AREA
+   16. INPUT AREA
 ========================================================= */
 
 .chat-input-area {
@@ -1476,7 +1545,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   16. INPUT ACTIONS
+   17. INPUT ACTIONS
 ========================================================= */
 
 .input-action {
@@ -1542,7 +1611,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   17. VOICE STATES
+   18. VOICE
 ========================================================= */
 
 #btnVoice {
@@ -1615,7 +1684,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   18. TEXTAREA
+   19. TEXTAREA
 ========================================================= */
 
 .chat-textarea-container {
@@ -1731,7 +1800,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   19. SEND BUTTON
+   20. SEND BUTTON
 ========================================================= */
 
 .send-button {
@@ -1811,7 +1880,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   20. GENERATION / STOP STATES
+   21. GENERATION / STOP
 ========================================================= */
 
 .chat-section.is-generating .send-button,
@@ -1838,14 +1907,95 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     color:
         #ff7070;
 
-    border-color:
-        rgba(239,68,68,.18);
+}
+
+
+/*
+   Generation indicator:
+
+   Keep it visually minimal. No artificial timing,
+   no duration display and no bee animation.
+*/
+
+.chat-generating {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding:
+        5px
+        0;
+
+    color:
+        var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.3;
+
+}
+
+
+.chat-generating span {
+
+    width: 5px;
+    height: 5px;
+
+    flex: 0 0 5px;
+
+    border-radius: 50%;
+
+    background:
+        var(--gold);
+
+    animation:
+        chatTyping 1.2s infinite ease-in-out;
+
+}
+
+
+.chat-generating span:nth-child(2) {
+
+    animation-delay: .15s;
+
+}
+
+
+.chat-generating span:nth-child(3) {
+
+    animation-delay: .3s;
+
+}
+
+
+@keyframes chatTyping {
+
+    0%,
+    60%,
+    100% {
+
+        opacity: .25;
+
+        transform: translateY(0);
+
+    }
+
+    30% {
+
+        opacity: 1;
+
+        transform: translateY(-3px);
+
+    }
 
 }
 
 
 /* =========================================================
-   21. INPUT FOOTER
+   22. INPUT FOOTER
 ========================================================= */
 
 .chat-input-footer {
@@ -1949,7 +2099,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   22. PREVIEW PANE
+   23. PREVIEW PANE
 ========================================================= */
 
 .preview-pane {
@@ -1977,7 +2127,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   23. PREVIEW HEADER
+   24. PREVIEW HEADER
 ========================================================= */
 
 .preview-header {
@@ -2152,7 +2302,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   24. PREVIEW BODY
+   25. PREVIEW BODY
 ========================================================= */
 
 .preview-body {
@@ -2191,7 +2341,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   25. CHAT MESSAGE SYSTEM
+   26. CHAT MESSAGE SYSTEM
 ========================================================= */
 
 .chat-message {
@@ -2255,11 +2405,17 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     color: var(--text-soft);
 
+    /*
+       Comfortable default reading size.
+    */
+
     font-size:
-        var(--chat-font-size, 15px);
+        var(--chat-font-size, 15.5px);
 
     line-height:
-        var(--chat-line-height, 1.75);
+        var(--chat-line-height, 1.8);
+
+    font-weight: 400;
 
     overflow-wrap: anywhere;
 
@@ -2311,7 +2467,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   26. MESSAGE TYPOGRAPHY
+   27. MESSAGE TYPOGRAPHY
 ========================================================= */
 
 .message-content p {
@@ -2319,7 +2475,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     margin:
         0
         0
-        15px;
+        16px;
 
 }
 
@@ -2337,9 +2493,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 .message-content h4 {
 
     margin:
-        28px
+        30px
         0
-        12px;
+        13px;
 
     color:
         var(--text);
@@ -2368,28 +2524,28 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 .message-content h1 {
 
-    font-size: 26px;
+    font-size: 27px;
 
 }
 
 
 .message-content h2 {
 
-    font-size: 22px;
+    font-size: 23px;
 
 }
 
 
 .message-content h3 {
 
-    font-size: 18px;
+    font-size: 19px;
 
 }
 
 
 .message-content h4 {
 
-    font-size: 15px;
+    font-size: 16px;
 
 }
 
@@ -2398,11 +2554,11 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 .message-content ol {
 
     margin:
-        11px
+        12px
         0
-        17px;
+        18px;
 
-    padding-left: 26px;
+    padding-left: 27px;
 
 }
 
@@ -2412,16 +2568,16 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 .message-content ul ol,
 .message-content ol ul {
 
-    margin-top: 6px;
+    margin-top: 7px;
 
-    margin-bottom: 6px;
+    margin-bottom: 7px;
 
 }
 
 
 .message-content li {
 
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 
     padding-left: 2px;
 
@@ -2504,12 +2660,12 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 .message-content blockquote {
 
     margin:
-        18px
+        19px
         0;
 
     padding:
-        11px
-        16px;
+        12px
+        17px;
 
     border-left:
         3px solid
@@ -2538,7 +2694,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   27. INLINE CODE
+   28. INLINE CODE
 ========================================================= */
 
 .message-content code {
@@ -2573,7 +2729,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   28. CODE BLOCK
+   29. CODE BLOCK
 ========================================================= */
 
 .message-content pre {
@@ -2587,7 +2743,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     max-width: 100%;
 
     margin:
-        19px
+        20px
         0;
 
     padding:
@@ -2684,10 +2840,6 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 }
 
 
-/*
-   Highlight.js compatibility.
-*/
-
 .message-content pre code.hljs {
 
     padding: 0;
@@ -2698,7 +2850,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   29. TABLES
+   30. TABLES
 ========================================================= */
 
 .message-content table {
@@ -2712,7 +2864,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     max-width: 100%;
 
     margin:
-        19px
+        20px
         0;
 
     overflow-x: auto;
@@ -2745,8 +2897,8 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     min-width: 110px;
 
     padding:
-        10px
-        12px;
+        11px
+        13px;
 
     border-bottom:
         1px solid
@@ -2754,9 +2906,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     text-align: left;
 
-    font-size: 12px;
+    font-size: 12.5px;
 
-    line-height: 1.5;
+    line-height: 1.55;
 
     vertical-align: top;
 
@@ -2794,13 +2946,13 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   30. HORIZONTAL RULE
+   31. HORIZONTAL RULE
 ========================================================= */
 
 .message-content hr {
 
     margin:
-        26px
+        27px
         0;
 
     border: 0;
@@ -2813,7 +2965,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   31. IMAGES / MEDIA
+   32. IMAGES / MEDIA
 ========================================================= */
 
 .message-content img {
@@ -2824,7 +2976,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     height: auto;
 
     margin:
-        18px
+        19px
         0;
 
     border:
@@ -2848,7 +3000,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     max-width: 100%;
 
     margin:
-        18px
+        19px
         0;
 
     border-radius:
@@ -2856,87 +3008,6 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     background:
         #000;
-
-}
-
-
-/* =========================================================
-   32. GENERATION / STREAMING
-========================================================= */
-
-.chat-generating {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    padding:
-        5px
-        0;
-
-    color:
-        var(--text-muted);
-
-    font-size: 11px;
-
-    line-height: 1.3;
-
-}
-
-
-.chat-generating span {
-
-    width: 5px;
-    height: 5px;
-
-    flex: 0 0 5px;
-
-    border-radius: 50%;
-
-    background:
-        var(--gold);
-
-    animation:
-        chatTyping 1.2s infinite ease-in-out;
-
-}
-
-
-.chat-generating span:nth-child(2) {
-
-    animation-delay: .15s;
-
-}
-
-
-.chat-generating span:nth-child(3) {
-
-    animation-delay: .3s;
-
-}
-
-
-@keyframes chatTyping {
-
-    0%,
-    60%,
-    100% {
-
-        opacity: .25;
-
-        transform: translateY(0);
-
-    }
-
-    30% {
-
-        opacity: 1;
-
-        transform: translateY(-3px);
-
-    }
 
 }
 
@@ -3040,7 +3111,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   34. ACCESSIBILITY / FOCUS
+   34. ACCESSIBILITY
 ========================================================= */
 
 .chat-section button:focus-visible,
@@ -3137,7 +3208,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     .message-content {
 
         font-size:
-            var(--chat-font-size, 15px);
+            var(--chat-font-size, 15.5px);
 
     }
 
@@ -3239,6 +3310,8 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
         min-height: 0;
 
+        overflow: hidden;
+
     }
 
 
@@ -3258,10 +3331,19 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     .chat-panel {
 
+        display: grid;
+
+        grid-template-rows:
+            auto
+            minmax(0, 1fr)
+            auto;
+
         width: 100%;
         height: 100%;
 
         min-height: 0;
+
+        overflow: hidden;
 
     }
 
@@ -3376,11 +3458,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     .chat-messages {
 
-        height: 0;
-
         min-height: 0;
 
-        max-height: none;
+        height: auto;
 
         padding:
             25px
@@ -3391,9 +3471,11 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
         overflow-y: auto;
 
-        overscroll-behavior-y: contain;
+        overscroll-behavior-y:
+            contain;
 
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling:
+            touch;
 
     }
 
@@ -3478,7 +3560,10 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
         max-width: 96%;
 
         font-size:
-            var(--chat-font-size, 15px);
+            15px;
+
+        line-height:
+            1.78;
 
     }
 
@@ -3611,13 +3696,6 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
     }
 
 
-    .mode-button span {
-
-        display: none;
-
-    }
-
-
     .chat-context-bar {
 
         min-height: 38px;
@@ -3648,9 +3726,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     .chat-messages {
 
-        height: 0;
-
         min-height: 0;
+
+        height: auto;
 
         padding:
             20px
@@ -3661,7 +3739,8 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
         overflow-y: auto;
 
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling:
+            touch;
 
     }
 
@@ -3878,9 +3957,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
         max-width: 98%;
 
-        font-size: 14px;
+        font-size: 14.5px;
 
-        line-height: 1.7;
+        line-height: 1.72;
 
     }
 
@@ -4002,9 +4081,9 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     .chat-messages {
 
-        height: 0;
-
         min-height: 0;
+
+        height: auto;
 
         padding-left: 8px;
         padding-right: 8px;
@@ -4070,33 +4149,44 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   43.5. DEFINITIVE CHAT SCROLL OVERRIDE
-   HONEY IA — LONG RESPONSE NAVIGATION FIX
+   44. DEFINITIVE STRUCTURAL SCROLL SYSTEM
 ========================================================= */
 
 /*
-   Establishes a complete min-height:0 flex chain.
-   This prevents long AI responses from expanding
-   the entire application instead of scrolling inside
-   the messages viewport.
+   IMPORTANT:
+
+   Do NOT reintroduce a flex-based height:0 hack here.
+
+   The chat panel is now a three-row grid:
+
+       HEADER / CONTEXT
+             ↓
+       MESSAGE VIEWPORT
+             ↓
+       COMPOSER
+
+   Only .chat-messages gets vertical scrolling.
 */
 
-.chat-section,
-.chat-layout,
-.chat-panel {
+
+.chat-section {
+
+    min-width: 0 !important;
 
     min-height: 0 !important;
+
+    overflow: hidden !important;
 
 }
 
 
 .chat-layout {
 
-    flex: 1 1 0 !important;
-
-    height: 100% !important;
+    min-width: 0 !important;
 
     min-height: 0 !important;
+
+    height: 100% !important;
 
     overflow: hidden !important;
 
@@ -4105,15 +4195,18 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 .chat-panel {
 
-    display: flex !important;
+    display: grid !important;
 
-    flex-direction: column !important;
+    grid-template-rows:
+        auto
+        minmax(0, 1fr)
+        auto !important;
 
-    flex: 1 1 0 !important;
-
-    height: 100% !important;
+    min-width: 0 !important;
 
     min-height: 0 !important;
+
+    height: 100% !important;
 
     overflow: hidden !important;
 
@@ -4121,23 +4214,49 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /*
-   The message viewport is the ONLY vertical
-   scrolling surface for normal chat messages.
+   Explicitly keep top controls outside
+   the scrolling viewport.
 */
 
-.chat-messages {
+.chat-panel > .chat-header {
 
-    display: block !important;
+    grid-row: 1;
 
-    flex: 1 1 0 !important;
+    min-height: 0;
 
-    width: 100% !important;
+    overflow: hidden;
 
-    height: 0 !important;
+}
+
+
+.chat-panel > .chat-context-bar {
+
+    grid-row: 1;
+
+    /*
+       Context remains attached to the header zone.
+       Because both elements are outside .chat-messages,
+       neither scrolls with responses.
+    */
+
+}
+
+
+/*
+   Message viewport.
+*/
+
+.chat-panel > .chat-messages {
+
+    grid-row: 2;
 
     min-width: 0 !important;
 
     min-height: 0 !important;
+
+    width: 100% !important;
+
+    height: auto !important;
 
     max-height: none !important;
 
@@ -4145,24 +4264,28 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     overflow-y: auto !important;
 
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: contain !important;
 
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: touch !important;
 
 }
 
 
 /*
-   Messages themselves never become competing
-   vertical scroll containers.
+   Composer zone.
+
+   Everything here remains outside the message viewport.
 */
 
-.chat-message,
-.ai-message,
-.assistant-message,
-.user-message {
+.chat-panel > .chat-input-wrapper {
+
+    grid-row: 3;
+
+    min-width: 0;
 
     min-height: 0;
+
+    flex: none !important;
 
     overflow: visible;
 
@@ -4170,14 +4293,38 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /*
-   AI response is allowed to grow naturally.
-   The parent .chat-messages controls navigation.
+   If the attachment bar is a direct child of the
+   chat panel, keep it in the bottom zone as well.
 */
 
-.ai-message .message-content,
-.assistant-message .message-content {
+.chat-panel > .attachment-bar {
 
-    height: auto !important;
+    grid-row: 3;
+
+}
+
+
+/*
+   Messages must never become vertical scroll containers.
+*/
+
+.chat-message,
+.ai-message,
+.assistant-message,
+.user-message {
+
+    min-height: 0 !important;
+
+    max-height: none !important;
+
+    overflow: visible !important;
+
+}
+
+
+.ai-message .message-content,
+.assistant-message .message-content,
+.user-message .message-content {
 
     min-height: 0 !important;
 
@@ -4189,13 +4336,18 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /*
-   Prevent response content from creating a
-   horizontal overflow on the entire workspace.
+   Long content remains inside the horizontal bounds
+   of the message viewport.
 */
 
 .message-content {
 
-    min-width: 0;
+    min-width: 0 !important;
+
+    max-width: min(
+        90%,
+        840px
+    );
 
     overflow-wrap: anywhere;
 
@@ -4203,8 +4355,8 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /*
-   Code blocks have independent horizontal
-   navigation while preserving vertical chat scroll.
+   Code and tables have their own horizontal scrolling,
+   but NEVER create a vertical scrolling region.
 */
 
 .message-content pre {
@@ -4220,10 +4372,6 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 }
 
 
-/*
-   Tables also scroll horizontally by themselves.
-*/
-
 .message-content table {
 
     max-width: 100% !important;
@@ -4236,8 +4384,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /*
-   Long unbroken URLs, identifiers and technical
-   strings cannot force the chat wider.
+   Prevent technical strings from expanding the workspace.
 */
 
 .message-content a,
@@ -4252,18 +4399,160 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 }
 
 
+/* =========================================================
+   45. HEADER VISIBILITY / LAYER PROTECTION
+========================================================= */
+
 /*
-   Mobile keeps the exact same independent
-   vertical navigation model.
+   The following makes the top and bottom zones visually
+   independent from the scrolling content.
+
+   No JavaScript is required for this behavior.
 */
+
+.chat-header,
+.chat-context-bar {
+
+    isolation: isolate;
+
+    backface-visibility: hidden;
+
+}
+
+
+.chat-input-wrapper {
+
+    isolation: isolate;
+
+    backface-visibility: hidden;
+
+}
+
+
+/*
+   The message viewport must never paint over
+   the fixed interface zones.
+*/
+
+.chat-messages {
+
+    position: relative;
+
+    z-index: 1;
+
+}
+
+
+.chat-header,
+.chat-context-bar {
+
+    z-index: 10;
+
+}
+
+
+.chat-input-wrapper {
+
+    z-index: 10;
+
+}
+
+
+/* =========================================================
+   46. REMOVE VISUAL GENERATION NOISE
+========================================================= */
+
+/*
+   These selectors intentionally remove only visual
+   presentation of legacy status/timing elements.
+
+   They do not alter JavaScript behavior.
+*/
+
+/*
+   Legacy duration/time labels.
+*/
+
+.chat-time,
+.message-time,
+.response-time,
+.generation-time,
+.chat-duration,
+.response-duration,
+.message-duration,
+[data-chat-time],
+[data-message-time],
+[data-response-time],
+[data-generation-time],
+[data-duration] {
+
+    display: none !important;
+
+}
+
+
+/*
+   Legacy connection/preparation labels.
+
+   Only elements carrying these known status classes/
+   attributes are affected.
+*/
+
+.chat-connecting,
+.chat-connection-status,
+.chat-preparing,
+.chat-preparation-status,
+.generation-time,
+.response-time-label,
+.connection-label,
+[data-connecting],
+[data-preparing],
+[data-generation-time] {
+
+    display: none !important;
+
+}
+
+
+/*
+   Legacy bee/loading visual elements.
+
+   The generic .bee selector is intentionally NOT hidden,
+   because unrelated interface elements could potentially
+   use that class.
+
+   These selectors target common chat-generation names.
+*/
+
+.chat-bee,
+.chat-loading-bee,
+.chat-generating-bee,
+.ai-bee,
+.response-bee,
+.generation-bee,
+[data-chat-bee],
+[data-generating-bee] {
+
+    display: none !important;
+
+}
+
+
+/* =========================================================
+   47. MOBILE STRUCTURAL PROTECTION
+========================================================= */
 
 @media (max-width: 820px) {
 
-    .chat-layout {
+    .chat-section,
+    .chat-layout,
+    .chat-panel {
 
-        height: 100% !important;
+        min-width: 0 !important;
 
         min-height: 0 !important;
+
+        height: 100% !important;
 
         overflow: hidden !important;
 
@@ -4272,30 +4561,38 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
     .chat-panel {
 
-        height: 100% !important;
+        display: grid !important;
 
-        min-height: 0 !important;
-
-        overflow: hidden !important;
+        grid-template-rows:
+            auto
+            minmax(0, 1fr)
+            auto !important;
 
     }
 
 
-    .chat-messages {
+    .chat-panel > .chat-messages {
 
-        flex: 1 1 0 !important;
-
-        height: 0 !important;
+        min-width: 0 !important;
 
         min-height: 0 !important;
 
-        max-height: none !important;
+        height: auto !important;
 
         overflow-x: hidden !important;
 
         overflow-y: auto !important;
 
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: touch !important;
+
+    }
+
+
+    .chat-panel > .chat-header,
+    .chat-panel > .chat-context-bar,
+    .chat-panel > .chat-input-wrapper {
+
+        flex: none !important;
 
     }
 
@@ -4303,7 +4600,7 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   44. PRINT
+   48. PRINT
 ========================================================= */
 
 @media print {
@@ -4341,5 +4638,5 @@ CHILDREN MUST NOT BREAK THE SCROLL CHAIN
 
 
 /* =========================================================
-   END OF HONEY IA CHAT CSS V2.1
+   END OF HONEY IA CHAT CSS V3.0
 ========================================================= */
