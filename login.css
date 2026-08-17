@@ -4,7 +4,7 @@ HONEY IA
 AUTHENTICATION INTERFACE
 LOGIN CSS
 PREMIUM ENTERPRISE AUTHENTICATION
-V2.1
+V2.2
 ============================================================
 
 ARQUITETURA
@@ -749,12 +749,6 @@ SOCIAL BUTTON BASE
     border-radius:
         var(--honey-auth-button-radius);
 
-    /*
-    IMPORTANTE:
-    Google e Facebook usam a mesma superfície.
-    A identidade da rede fica no ícone.
-    */
-
     background:
         rgba(255,255,255,.045);
 
@@ -831,14 +825,6 @@ GOOGLE BUTTON
 
 /* ==========================================================
 FACEBOOK BUTTON
-==========================================================
-
-O Facebook NÃO deve parecer um botão azul separado.
-
-Ele é uma segunda opção de autenticação no mesmo nível
-visual do Google.
-
-Apenas o ícone mantém a identidade azul do Facebook.
 ========================================================== */
 
 .facebook-btn {
@@ -1079,7 +1065,7 @@ AUTH NOTE
 .auth-note {
 
     margin:
-        20px 0 0;
+        34px 0 0;
 
     color:
         var(--honey-auth-subtle);
@@ -1307,7 +1293,7 @@ FOOTER
         10px;
 
     margin:
-        28px 0 0;
+        18px 0 0;
 
 }
 
@@ -1582,6 +1568,14 @@ MOBILE
     }
 
 
+    .auth-note {
+
+        margin-top:
+            30px;
+
+    }
+
+
     .auth-orb {
 
         opacity:
@@ -1593,7 +1587,7 @@ MOBILE
     .auth-footer {
 
         margin-top:
-            24px;
+            16px;
 
     }
 
@@ -1703,6 +1697,14 @@ SMALL MOBILE
     }
 
 
+    .auth-note {
+
+        margin-top:
+            28px;
+
+    }
+
+
     .auth-footer span {
 
         font-size:
@@ -1767,6 +1769,14 @@ VERY SMALL DEVICES
 
         font-size:
             11px;
+
+    }
+
+
+    .auth-note {
+
+        margin-top:
+            26px;
 
     }
 
