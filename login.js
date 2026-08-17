@@ -2,15 +2,42 @@
 ==========================================
 HONEY IA OS
 LOGIN CONTROLLER
-Professional Authentication UI
-V11.0
-Google Identity Services
-Secure Authentication Flow
-Automatic Server Google Configuration
-Email Verification + Resend
-Independent Authentication Interface
-Google OAuth Credential Flow
-Workspace Authentication Gate
+Social Authentication
+V12.0
+
+AUTHENTICATION
+------------------------------------------
+• Google Identity Services
+• Facebook Login
+• Automatic account creation
+• JWT session
+• Workspace authentication gate
+• No local registration
+• No email/password
+• No email verification
+• No password recovery
+
+FLOW
+------------------------------------------
+Google
+    ↓
+Google Credential
+    ↓
+/api/auth/google
+    ↓
+JWT
+    ↓
+Workspace
+
+Facebook
+    ↓
+Facebook Access Token
+    ↓
+/api/auth/facebook
+    ↓
+JWT
+    ↓
+Workspace
 ==========================================
 */
 
@@ -25,21 +52,32 @@ class LoginController {
     constructor(){
 
 
+        /*
+        ==========================================
+        CORE STATE
+        ==========================================
+        */
+
+
         this.container = null;
 
-        this.mode = "login";
-
-        this.pendingEmail = null;
-
         this.initialized = false;
+
+        this.redirecting = false;
+
+
+        /*
+        ==========================================
+        GOOGLE STATE
+        ==========================================
+        */
+
 
         this.googleInitialized = false;
 
         this.googleLoading = false;
 
         this.googleLoadingPromise = null;
-
-        this.loadingActions = new Set();
 
         this.googleClientId = "";
 
@@ -49,11 +87,37 @@ class LoginController {
 
         this.googleCredentialHandler = null;
 
-        this.googleButtonRendered = false;
 
-        this.googleButtonContainer = null;
+        /*
+        ==========================================
+        FACEBOOK STATE
+        ==========================================
+        */
 
-        this.redirecting = false;
+
+        this.facebookInitialized = false;
+
+        this.facebookLoading = false;
+
+        this.facebookLoadingPromise = null;
+
+        this.facebookAppId = "";
+
+        this.facebookVersion = "v23.0";
+
+        this.facebookConfigPromise = null;
+
+        this.facebookScriptPromise = null;
+
+
+        /*
+        ==========================================
+        GENERAL LOADING
+        ==========================================
+        */
+
+
+        this.loadingActions = new Set();
 
 
     }
@@ -94,13 +158,19 @@ class LoginController {
 
             return;
 
-
         }
 
 
 
         this.initialized = true;
 
+
+
+        /*
+        --------------------------------------
+        WAIT FOR AUTH SESSION
+        --------------------------------------
+        */
 
 
         await authmanager.waitUntilReady();
@@ -126,7 +196,7 @@ class LoginController {
 
         /*
         --------------------------------------
-        CREATE LOGIN INTERFACE
+        CREATE LOGIN UI
         --------------------------------------
         */
 
@@ -143,7 +213,7 @@ class LoginController {
 
         /*
         --------------------------------------
-        PREPARE GOOGLE
+        PREPARE SOCIAL AUTH
         --------------------------------------
         */
 
@@ -155,6 +225,24 @@ class LoginController {
                 console.warn(
 
                     "GOOGLE SETUP:",
+
+                    error
+
+                );
+
+            }
+
+        );
+
+
+
+        this.setupFacebookLogin().catch(
+
+            error => {
+
+                console.warn(
+
+                    "FACEBOOK SETUP:",
 
                     error
 
@@ -202,7 +290,7 @@ class LoginController {
 
                 document.createElement(
 
-                    "div"
+                    "main"
 
                 );
 
@@ -216,7 +304,7 @@ class LoginController {
 
                 "aria-label",
 
-                "Autenticação Honey IA"
+                "Entrar na Honey IA"
 
             );
 
@@ -389,7 +477,7 @@ class LoginController {
 
     /*
     ==========================================
-    RENDER
+    RENDER LOGIN
     ==========================================
     */
 
@@ -425,6 +513,8 @@ class LoginController {
                 <div class="honey-auth-card">
 
 
+                    <!-- BRAND -->
+
                     <div class="auth-brand">
 
                         <div class="auth-logo">
@@ -446,6 +536,8 @@ class LoginController {
 
 
 
+                    <!-- MESSAGE -->
+
                     <div
                         id="authMessage"
                         class="auth-message"
@@ -465,16 +557,18 @@ class LoginController {
 
                         <div class="auth-heading">
 
-                            <h2>Bem-vindo de volta</h2>
+                            <h2>Bem-vindo</h2>
 
                             <p>
-                                Entre na sua área de trabalho
-                                inteligente.
+                                Entre no seu Workspace
+                                de forma simples e segura.
                             </p>
 
                         </div>
 
 
+
+                        <!-- GOOGLE -->
 
                         <button
                             id="googleLogin"
@@ -500,379 +594,81 @@ class LoginController {
 
 
 
+                        <!--
+                        Google Identity Services usa
+                        este elemento internamente quando
+                        necessário.
+                        -->
+
                         <div
                             id="googleOfficialButton"
                             class="google-official-button"
                             aria-hidden="true"
+                            style="display:none;"
                         ></div>
 
 
 
-                        <div class="divider">
-
-                            <span>ou continuar com email</span>
-
-                        </div>
-
-
-
-                        <div class="auth-field">
-
-                            <label for="loginEmail">
-                                Email
-                            </label>
-
-                            <div class="auth-input-wrapper">
-
-                                <i class="fa-regular fa-envelope"></i>
-
-                                <input
-                                    id="loginEmail"
-                                    type="email"
-                                    autocomplete="email"
-                                    placeholder="seu@email.com"
-                                    maxlength="254"
-                                >
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="auth-field">
-
-                            <label for="loginPassword">
-                                Palavra-passe
-                            </label>
-
-                            <div class="auth-input-wrapper">
-
-                                <i class="fa-solid fa-lock"></i>
-
-                                <input
-                                    id="loginPassword"
-                                    type="password"
-                                    autocomplete="current-password"
-                                    placeholder="A sua palavra-passe"
-                                >
-
-                            </div>
-
-                        </div>
-
-
+                        <!-- FACEBOOK -->
 
                         <button
-                            id="loginButton"
+                            id="facebookLogin"
                             type="button"
-                            class="auth-button"
+                            class="facebook-btn"
+                            aria-label="Continuar com Facebook"
+                            disabled
                         >
 
-                            <span>Entrar</span>
+                            <span class="facebook-icon">
 
-                        </button>
+                                <i class="fa-brands fa-facebook-f"></i>
 
-
-
-                        <button
-                            id="showRegister"
-                            type="button"
-                            class="auth-link"
-                        >
-
-                            Ainda não tem uma conta?
-                            <strong>Criar conta</strong>
-
-                        </button>
-
-
-                    </div>
-
-
-
-                    <!-- REGISTER -->
-
-                    <div
-                        id="registerMode"
-                        class="auth-mode"
-                        style="display:none;"
-                    >
-
-
-                        <div class="auth-heading">
-
-                            <h2>Criar conta</h2>
-
-                            <p>
-                                Comece a trabalhar com a
-                                inteligência da Honey IA.
-                            </p>
-
-                        </div>
-
-
-
-                        <div class="auth-row">
-
-
-                            <div class="auth-field">
-
-                                <label for="registerNome">
-                                    Primeiro nome
-                                </label>
-
-                                <div class="auth-input-wrapper">
-
-                                    <i class="fa-regular fa-user"></i>
-
-                                    <input
-                                        id="registerNome"
-                                        type="text"
-                                        autocomplete="given-name"
-                                        placeholder="Primeiro nome"
-                                        maxlength="80"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-
-                            <div class="auth-field">
-
-                                <label for="registerApelido">
-                                    Apelido
-                                </label>
-
-                                <div class="auth-input-wrapper">
-
-                                    <i class="fa-regular fa-user"></i>
-
-                                    <input
-                                        id="registerApelido"
-                                        type="text"
-                                        autocomplete="family-name"
-                                        placeholder="Apelido"
-                                        maxlength="80"
-                                    >
-
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-
-
-                        <div class="auth-field">
-
-                            <label for="registerEmail">
-                                Email
-                            </label>
-
-                            <div class="auth-input-wrapper">
-
-                                <i class="fa-regular fa-envelope"></i>
-
-                                <input
-                                    id="registerEmail"
-                                    type="email"
-                                    autocomplete="email"
-                                    placeholder="seu@email.com"
-                                    maxlength="254"
-                                >
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="auth-field">
-
-                            <label for="registerPassword">
-                                Palavra-passe
-                            </label>
-
-                            <div class="auth-input-wrapper">
-
-                                <i class="fa-solid fa-lock"></i>
-
-                                <input
-                                    id="registerPassword"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    placeholder="Criar palavra-passe"
-                                >
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div class="auth-password-hint">
-
-                            <i class="fa-solid fa-shield-halved"></i>
-
-                            <span>
-                                Mínimo 8 caracteres, incluindo
-                                maiúscula, minúscula, número e símbolo.
                             </span>
 
-                        </div>
+                            <span class="facebook-button-text">
+
+                                Preparando Facebook...
+
+                            </span>
+
+                        </button>
 
 
 
-                        <div class="auth-field">
+                        <!-- TERMS -->
 
-                            <label for="registerConfirm">
-                                Confirmar palavra-passe
-                            </label>
+                        <div class="auth-terms">
 
-                            <div class="auth-input-wrapper">
+                            <p>
 
-                                <i class="fa-solid fa-lock"></i>
+                                Ao continuar, aceita os
 
-                                <input
-                                    id="registerConfirm"
-                                    type="password"
-                                    autocomplete="new-password"
-                                    placeholder="Confirmar palavra-passe"
+                                <a
+                                    href="/terms.html"
+                                    class="auth-terms-link"
                                 >
+                                    Termos de Uso
+                                </a>
 
-                            </div>
+                                e a
 
-                        </div>
-
-
-
-                        <button
-                            id="registerButton"
-                            type="button"
-                            class="auth-button"
-                        >
-
-                            <span>Criar conta</span>
-
-                        </button>
-
-
-
-                        <button
-                            id="backLogin"
-                            type="button"
-                            class="auth-link"
-                        >
-
-                            Já tenho uma conta?
-                            <strong>Entrar</strong>
-
-                        </button>
-
-
-                    </div>
-
-
-
-                    <!-- VERIFY -->
-
-                    <div
-                        id="verifyMode"
-                        class="auth-mode"
-                        style="display:none;"
-                    >
-
-
-                        <div class="auth-verify-icon">
-
-                            <i class="fa-regular fa-envelope"></i>
-
-                        </div>
-
-
-
-                        <div class="auth-heading">
-
-                            <h2>Confirmar email</h2>
-
-                            <p id="verifyDescription">
-
-                                Enviámos um código de confirmação
-                                para o seu email.
+                                <a
+                                    href="/privacy.html"
+                                    class="auth-terms-link"
+                                >
+                                    Política de Privacidade
+                                </a>.
 
                             </p>
 
                         </div>
 
 
-
-                        <div class="auth-field">
-
-                            <label for="verifyCode">
-                                Código de confirmação
-                            </label>
-
-                            <div class="auth-input-wrapper">
-
-                                <i class="fa-solid fa-shield-halved"></i>
-
-                                <input
-                                    id="verifyCode"
-                                    type="text"
-                                    inputmode="numeric"
-                                    autocomplete="one-time-code"
-                                    maxlength="6"
-                                    placeholder="000000"
-                                >
-
-                            </div>
-
-                        </div>
-
-
-
-                        <button
-                            id="verifyButton"
-                            type="button"
-                            class="auth-button"
-                        >
-
-                            <span>Confirmar email</span>
-
-                        </button>
-
-
-
-                        <button
-                            id="resendCode"
-                            type="button"
-                            class="auth-link"
-                        >
-
-                            Reenviar código
-
-                        </button>
-
-
-
-                        <button
-                            id="backVerifyLogin"
-                            type="button"
-                            class="auth-link secondary"
-                        >
-
-                            Voltar ao login
-
-                        </button>
-
-
                     </div>
 
 
+
+                    <!-- FOOTER -->
 
                     <div class="auth-footer">
 
@@ -921,21 +717,11 @@ class LoginController {
 
         document
 
-            .getElementById("loginButton")
+            .getElementById(
 
-            ?.addEventListener(
+                "googleLogin"
 
-                "click",
-
-                () => this.login()
-
-            );
-
-
-
-        document
-
-            .getElementById("googleLogin")
+            )
 
             ?.addEventListener(
 
@@ -949,229 +735,17 @@ class LoginController {
 
         document
 
-            .getElementById("registerButton")
+            .getElementById(
+
+                "facebookLogin"
+
+            )
 
             ?.addEventListener(
 
                 "click",
 
-                () => this.register()
-
-            );
-
-
-
-        document
-
-            .getElementById("verifyButton")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.verifyEmail()
-
-            );
-
-
-
-        document
-
-            .getElementById("resendCode")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.resendVerificationCode()
-
-            );
-
-
-
-        document
-
-            .getElementById("showRegister")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.showMode("register")
-
-            );
-
-
-
-        document
-
-            .getElementById("backLogin")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.showMode("login")
-
-            );
-
-
-
-        document
-
-            .getElementById("backVerifyLogin")
-
-            ?.addEventListener(
-
-                "click",
-
-                () => this.showMode("login")
-
-            );
-
-
-
-        this.attachEnterKey(
-
-            "loginEmail",
-
-            () => this.login()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "loginPassword",
-
-            () => this.login()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "registerNome",
-
-            () => this.register()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "registerApelido",
-
-            () => this.register()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "registerEmail",
-
-            () => this.register()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "registerPassword",
-
-            () => this.register()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "registerConfirm",
-
-            () => this.register()
-
-        );
-
-
-        this.attachEnterKey(
-
-            "verifyCode",
-
-            () => this.verifyEmail()
-
-        );
-
-
-
-        const verifyCode =
-
-            document.getElementById(
-
-                "verifyCode"
-
-            );
-
-
-
-        verifyCode?.addEventListener(
-
-            "input",
-
-            event => {
-
-                event.target.value =
-
-                    event.target.value
-
-                        .replace(/\D/g, "")
-
-                        .slice(0, 6);
-
-            }
-
-        );
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    ENTER KEY
-    ==========================================
-    */
-
-
-    attachEnterKey(id, callback){
-
-
-        document
-
-            .getElementById(id)
-
-            ?.addEventListener(
-
-                "keydown",
-
-                event => {
-
-                    if(event.key === "Enter"){
-
-                        event.preventDefault();
-
-                        callback();
-
-                    }
-
-                }
+                () => this.facebookLogin()
 
             );
 
@@ -1188,7 +762,7 @@ class LoginController {
 
     /*
     ==========================================
-    LOAD GOOGLE IDENTITY SERVICES
+    LOAD GOOGLE SCRIPT
     ==========================================
     */
 
@@ -1271,25 +845,8 @@ class LoginController {
 
                             }
 
+
                         };
-
-
-
-                        if(
-
-                            window.google &&
-
-                            window.google.accounts &&
-
-                            window.google.accounts.id
-
-                        ){
-
-                            checkGoogle();
-
-                            return;
-
-                        }
 
 
 
@@ -1322,6 +879,22 @@ class LoginController {
                             {once:true}
 
                         );
+
+
+
+                        if(
+
+                            window.google &&
+
+                            window.google.accounts &&
+
+                            window.google.accounts.id
+
+                        ){
+
+                            checkGoogle();
+
+                        }
 
 
                         return;
@@ -1469,6 +1042,13 @@ class LoginController {
             (async()=>{
 
 
+                /*
+                ----------------------------------
+                GLOBAL CONFIG
+                ----------------------------------
+                */
+
+
                 if(window.HONEY_GOOGLE_CLIENT_ID){
 
                     const id = String(
@@ -1476,6 +1056,7 @@ class LoginController {
                         window.HONEY_GOOGLE_CLIENT_ID
 
                     ).trim();
+
 
 
                     if(id){
@@ -1497,6 +1078,7 @@ class LoginController {
                     ).trim();
 
 
+
                     if(id){
 
                         return id;
@@ -1505,6 +1087,13 @@ class LoginController {
 
                 }
 
+
+
+                /*
+                ----------------------------------
+                SERVER CONFIG
+                ----------------------------------
+                */
 
 
                 const response =
@@ -1703,22 +1292,8 @@ class LoginController {
 
 
 
-                    /*
-                    ----------------------------------
-                    1. GOOGLE GIS
-                    ----------------------------------
-                    */
-
-
                     await this.loadGoogleScript();
 
-
-
-                    /*
-                    ----------------------------------
-                    2. CLIENT ID
-                    ----------------------------------
-                    */
 
 
                     const clientId =
@@ -1737,13 +1312,6 @@ class LoginController {
 
                     }
 
-
-
-                    /*
-                    ----------------------------------
-                    3. INITIALIZE
-                    ----------------------------------
-                    */
 
 
                     const initialized =
@@ -1773,17 +1341,6 @@ class LoginController {
 
 
                     this.enableGoogleButton();
-
-
-
-                    /*
-                    ----------------------------------
-                    4. OFFICIAL GOOGLE BUTTON
-                    ----------------------------------
-                    */
-
-
-                    this.renderOfficialGoogleButton();
 
 
 
@@ -1889,11 +1446,13 @@ class LoginController {
 
                 response => {
 
+
                     this.handleGoogleCredential(
 
                         response?.credential
 
                     );
+
 
                 };
 
@@ -1917,9 +1476,15 @@ class LoginController {
 
 
 
-            this.googleClientId = clientId;
+            this.googleClientId =
 
-            this.googleInitialized = true;
+                clientId;
+
+
+
+            this.googleInitialized =
+
+                true;
 
 
 
@@ -1943,6 +1508,8 @@ class LoginController {
 
             this.googleInitialized = false;
 
+
+
             return false;
 
 
@@ -1961,121 +1528,7 @@ class LoginController {
 
     /*
     ==========================================
-    OFFICIAL GOOGLE BUTTON
-    ==========================================
-    */
-
-
-    renderOfficialGoogleButton(){
-
-
-        if(
-
-            !this.googleInitialized ||
-
-            !window.google?.accounts?.id
-
-        ){
-
-            return;
-
-        }
-
-
-
-        const target =
-
-            document.getElementById(
-
-                "googleOfficialButton"
-
-            );
-
-
-
-        if(!target){
-
-            return;
-
-        }
-
-
-
-        try{
-
-
-            target.innerHTML = "";
-
-
-
-            window.google.accounts.id.renderButton(
-
-                target,
-
-                {
-
-                    type: "standard",
-
-                    theme: "outline",
-
-                    size: "large",
-
-                    text: "continue_with",
-
-                    shape: "rectangular",
-
-                    width: 320,
-
-                    logo_alignment: "left"
-
-                }
-
-            );
-
-
-
-            this.googleButtonContainer =
-
-                target;
-
-
-
-            this.googleButtonRendered =
-
-                true;
-
-
-
-        }
-
-        catch(error){
-
-
-            console.warn(
-
-                "GOOGLE OFFICIAL BUTTON:",
-
-                error
-
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    ENABLE GOOGLE BUTTON
+    ENABLE GOOGLE
     ==========================================
     */
 
@@ -2175,850 +1628,6 @@ class LoginController {
 
     /*
     ==========================================
-    LOGIN
-    ==========================================
-    */
-
-
-    async login(){
-
-
-        if(this.loadingActions.has("login")){
-
-            return;
-
-        }
-
-
-
-        const email =
-
-            document
-
-                .getElementById("loginEmail")
-
-                ?.value
-
-                .trim()
-
-                .toLowerCase();
-
-
-
-        const password =
-
-            document
-
-                .getElementById("loginPassword")
-
-                ?.value;
-
-
-
-        if(!email){
-
-            this.showMessage(
-
-                "Digite o seu email.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(!this.isValidEmail(email)){
-
-            this.showMessage(
-
-                "Digite um email válido.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(!password){
-
-            this.showMessage(
-
-                "Digite a sua palavra-passe.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        this.loadingActions.add("login");
-
-
-
-        this.setLoading(
-
-            "loginButton",
-
-            true,
-
-            "Entrando..."
-
-        );
-
-
-
-        this.clearMessage();
-
-
-
-        try{
-
-
-            await authmanager.login({
-
-                email,
-
-                password
-
-            });
-
-
-
-            await this.finishAuthentication(
-
-                "Login realizado com sucesso."
-
-            );
-
-
-        }
-
-        catch(error){
-
-
-            console.error(
-
-                "LOGIN ERROR:",
-
-                error
-
-            );
-
-
-
-            this.showMessage(
-
-                this.getAuthErrorMessage(error),
-
-                "error"
-
-            );
-
-
-        }
-
-        finally{
-
-
-            this.loadingActions.delete(
-
-                "login"
-
-            );
-
-
-
-            this.setLoading(
-
-                "loginButton",
-
-                false,
-
-                "Entrar"
-
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    REGISTER
-    ==========================================
-    */
-
-
-    async register(){
-
-
-        if(this.loadingActions.has("register")){
-
-            return;
-
-        }
-
-
-
-        const firstName =
-
-            document
-
-                .getElementById("registerNome")
-
-                ?.value
-
-                .trim();
-
-
-
-        const lastName =
-
-            document
-
-                .getElementById("registerApelido")
-
-                ?.value
-
-                .trim();
-
-
-
-        const email =
-
-            document
-
-                .getElementById("registerEmail")
-
-                ?.value
-
-                .trim()
-
-                .toLowerCase();
-
-
-
-        const password =
-
-            document
-
-                .getElementById("registerPassword")
-
-                ?.value;
-
-
-
-        const confirmPassword =
-
-            document
-
-                .getElementById("registerConfirm")
-
-                ?.value;
-
-
-
-        if(
-
-            !firstName ||
-
-            !lastName ||
-
-            !email ||
-
-            !password ||
-
-            !confirmPassword
-
-        ){
-
-            this.showMessage(
-
-                "Preencha todos os campos.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(!this.isValidEmail(email)){
-
-            this.showMessage(
-
-                "Digite um email válido.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(password.length < 8){
-
-            this.showMessage(
-
-                "A palavra-passe deve ter pelo menos 8 caracteres.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(
-
-            !/[A-Z]/.test(password) ||
-
-            !/[a-z]/.test(password) ||
-
-            !/[0-9]/.test(password) ||
-
-            !/[^A-Za-z0-9]/.test(password)
-
-        ){
-
-            this.showMessage(
-
-                "A palavra-passe deve incluir maiúscula, minúscula, número e símbolo.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(password !== confirmPassword){
-
-            this.showMessage(
-
-                "As palavras-passe não coincidem.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        this.loadingActions.add("register");
-
-
-
-        this.setLoading(
-
-            "registerButton",
-
-            true,
-
-            "A criar conta..."
-
-        );
-
-
-
-        this.clearMessage();
-
-
-
-        try{
-
-
-            const result =
-
-                await authmanager.register({
-
-                    firstName,
-
-                    lastName,
-
-                    email,
-
-                    password,
-
-                    confirmPassword
-
-                });
-
-
-
-            this.pendingEmail = email;
-
-
-
-            const description =
-
-                document.getElementById(
-
-                    "verifyDescription"
-
-                );
-
-
-
-            if(description){
-
-                description.textContent =
-
-                    `Enviámos um código de confirmação para ${email}.`;
-
-            }
-
-
-
-            this.showMode("verify");
-
-
-
-            this.showMessage(
-
-                result.message ||
-
-                "Conta criada. Verifique o seu email.",
-
-                "success"
-
-            );
-
-
-        }
-
-        catch(error){
-
-
-            console.error(
-
-                "REGISTER ERROR:",
-
-                error
-
-            );
-
-
-
-            this.showMessage(
-
-                this.getAuthErrorMessage(error),
-
-                "error"
-
-            );
-
-
-        }
-
-        finally{
-
-
-            this.loadingActions.delete(
-
-                "register"
-
-            );
-
-
-
-            this.setLoading(
-
-                "registerButton",
-
-                false,
-
-                "Criar conta"
-
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    VERIFY EMAIL
-    ==========================================
-    */
-
-
-    async verifyEmail(){
-
-
-        if(this.loadingActions.has("verify")){
-
-            return;
-
-        }
-
-
-
-        const code =
-
-            document
-
-                .getElementById("verifyCode")
-
-                ?.value
-
-                .trim();
-
-
-
-        if(!this.pendingEmail){
-
-            this.showMessage(
-
-                "Email de confirmação não encontrado.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        if(!code || !/^\d{6}$/.test(code)){
-
-            this.showMessage(
-
-                "Digite o código de 6 dígitos.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        this.loadingActions.add("verify");
-
-
-
-        this.setLoading(
-
-            "verifyButton",
-
-            true,
-
-            "A confirmar..."
-
-        );
-
-
-
-        this.clearMessage();
-
-
-
-        try{
-
-
-            await authmanager.verifyEmail({
-
-                email: this.pendingEmail,
-
-                code
-
-            });
-
-
-
-            this.showMessage(
-
-                "Email confirmado com sucesso. Já pode entrar.",
-
-                "success"
-
-            );
-
-
-
-            setTimeout(
-
-                () => {
-
-                    this.showMode("login");
-
-
-
-                    const emailInput =
-
-                        document.getElementById(
-
-                            "loginEmail"
-
-                        );
-
-
-
-                    if(emailInput){
-
-                        emailInput.value =
-
-                            this.pendingEmail;
-
-                    }
-
-                },
-
-                700
-
-            );
-
-
-        }
-
-        catch(error){
-
-
-            console.error(
-
-                "VERIFY EMAIL ERROR:",
-
-                error
-
-            );
-
-
-
-            this.showMessage(
-
-                this.getAuthErrorMessage(error),
-
-                "error"
-
-            );
-
-
-        }
-
-        finally{
-
-
-            this.loadingActions.delete(
-
-                "verify"
-
-            );
-
-
-
-            this.setLoading(
-
-                "verifyButton",
-
-                false,
-
-                "Confirmar email"
-
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    RESEND VERIFICATION
-    ==========================================
-    */
-
-
-    async resendVerificationCode(){
-
-
-        if(this.loadingActions.has("resend")){
-
-            return;
-
-        }
-
-
-
-        if(!this.pendingEmail){
-
-            this.showMessage(
-
-                "Email de confirmação não encontrado.",
-
-                "error"
-
-            );
-
-            return;
-
-        }
-
-
-
-        this.loadingActions.add("resend");
-
-
-
-        this.setLoading(
-
-            "resendCode",
-
-            true,
-
-            "A enviar..."
-
-        );
-
-
-
-        this.clearMessage();
-
-
-
-        try{
-
-
-            await authmanager.resendVerification(
-
-                this.pendingEmail
-
-            );
-
-
-
-            this.showMessage(
-
-                "Novo código enviado para o seu email.",
-
-                "success"
-
-            );
-
-
-        }
-
-        catch(error){
-
-
-            console.error(
-
-                "RESEND VERIFICATION ERROR:",
-
-                error
-
-            );
-
-
-
-            this.showMessage(
-
-                this.getAuthErrorMessage(error),
-
-                "error"
-
-            );
-
-
-        }
-
-        finally{
-
-
-            this.loadingActions.delete(
-
-                "resend"
-
-            );
-
-
-
-            this.setLoading(
-
-                "resendCode",
-
-                false,
-
-                "Reenviar código"
-
-            );
-
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
     GOOGLE LOGIN
     ==========================================
     */
@@ -3043,15 +1652,6 @@ class LoginController {
 
         ){
 
-            this.showMessage(
-
-                "A preparar o login Google...",
-
-                "info"
-
-            );
-
-
 
             const ready =
 
@@ -3072,6 +1672,7 @@ class LoginController {
                 return;
 
             }
+
 
         }
 
@@ -3100,13 +1701,6 @@ class LoginController {
         try{
 
 
-            /*
-            ----------------------------------
-            GOOGLE PROMPT
-            ----------------------------------
-            */
-
-
             window.google.accounts.id.prompt(
 
                 notification => {
@@ -3118,29 +1712,15 @@ class LoginController {
 
                     ){
 
-                        const reason =
-
-                            notification
-
-                                .getNotDisplayedReason?.();
-
-
-
                         console.warn(
 
                             "Google prompt não apresentado:",
 
-                            reason
+                            notification
+
+                                .getNotDisplayedReason?.()
 
                         );
-
-
-
-                        /*
-                        Não tratamos o "prompt não apresentado"
-                        como falha imediata. O botão oficial
-                        continua disponível.
-                        */
 
                     }
 
@@ -3250,7 +1830,11 @@ class LoginController {
     */
 
 
-    async handleGoogleCredential(credential){
+    async handleGoogleCredential(
+
+        credential
+
+    ){
 
 
         if(!credential){
@@ -3311,26 +1895,12 @@ class LoginController {
         try{
 
 
-            /*
-            ----------------------------------
-            SEND GOOGLE CREDENTIAL TO SERVER
-            ----------------------------------
-            */
-
-
             await authmanager.loginWithGoogle(
 
                 credential
 
             );
 
-
-
-            /*
-            ----------------------------------
-            VERIFY LOCAL SESSION
-            ----------------------------------
-            */
 
 
             if(!authmanager.isAuthenticated()){
@@ -3369,7 +1939,13 @@ class LoginController {
 
             this.showMessage(
 
-                this.getGoogleAuthErrorMessage(error),
+                this.getSocialAuthErrorMessage(
+
+                    error,
+
+                    "Google"
+
+                ),
 
                 "error"
 
@@ -3385,15 +1961,1129 @@ class LoginController {
 
 
 
+            if(!this.redirecting){
+
+                this.setLoading(
+
+                    "googleLogin",
+
+                    false,
+
+                    "Continuar com Google"
+
+                );
+
+            }
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    LOAD FACEBOOK SDK
+    ==========================================
+    */
+
+
+    loadFacebookScript(){
+
+
+        if(window.FB){
+
+            return Promise.resolve();
+
+        }
+
+
+
+        if(this.facebookScriptPromise){
+
+            return this.facebookScriptPromise;
+
+        }
+
+
+
+        this.facebookScriptPromise =
+
+            new Promise(
+
+                (resolve, reject) => {
+
+
+                    const existing =
+
+                        document.querySelector(
+
+                            'script[data-honey-facebook="true"]'
+
+                        );
+
+
+
+                    if(existing){
+
+
+                        const checkFacebook = () => {
+
+
+                            if(window.FB){
+
+                                resolve();
+
+                            }
+
+                            else{
+
+                                reject(
+
+                                    new Error(
+
+                                        "Facebook SDK não está disponível."
+
+                                    )
+
+                                );
+
+                            }
+
+
+                        };
+
+
+
+                        existing.addEventListener(
+
+                            "load",
+
+                            checkFacebook,
+
+                            {once:true}
+
+                        );
+
+
+
+                        existing.addEventListener(
+
+                            "error",
+
+                            () => reject(
+
+                                new Error(
+
+                                    "Não foi possível carregar o Facebook SDK."
+
+                                )
+
+                            ),
+
+                            {once:true}
+
+                        );
+
+
+
+                        if(window.FB){
+
+                            checkFacebook();
+
+                        }
+
+
+                        return;
+
+                    }
+
+
+
+                    window.fbAsyncInit = () => {
+
+
+                        if(window.FB){
+
+                            resolve();
+
+                        }
+
+                        else{
+
+                            reject(
+
+                                new Error(
+
+                                    "Facebook SDK não está disponível."
+
+                                )
+
+                            );
+
+                        }
+
+
+                    };
+
+
+
+                    const script =
+
+                        document.createElement(
+
+                            "script"
+
+                        );
+
+
+
+                    script.src =
+
+                        "https://connect.facebook.net/en_US/sdk.js";
+
+
+
+                    script.async = true;
+
+                    script.defer = true;
+
+
+
+                    script.dataset.honeyFacebook =
+
+                        "true";
+
+
+
+                    script.onload = () => {
+
+
+                        if(window.FB){
+
+                            resolve();
+
+                        }
+
+                    };
+
+
+
+                    script.onerror = () => {
+
+
+                        reject(
+
+                            new Error(
+
+                                "Não foi possível carregar o Facebook SDK."
+
+                            )
+
+                        );
+
+
+                    };
+
+
+
+                    document.body.appendChild(
+
+                        script
+
+                    );
+
+
+                }
+
+            );
+
+
+
+        return this.facebookScriptPromise;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET FACEBOOK CONFIG
+    ==========================================
+    */
+
+
+    async getFacebookConfig(){
+
+
+        if(
+
+            this.facebookAppId
+
+        ){
+
+            return {
+
+                appId:
+
+                    this.facebookAppId,
+
+                version:
+
+                    this.facebookVersion
+
+            };
+
+        }
+
+
+
+        if(this.facebookConfigPromise){
+
+            return this.facebookConfigPromise;
+
+        }
+
+
+
+        this.facebookConfigPromise =
+
+            (async()=>{
+
+
+                /*
+                ----------------------------------
+                GLOBAL CONFIG
+                ----------------------------------
+                */
+
+
+                const globalAppId =
+
+                    window.HONEY_FACEBOOK_APP_ID ||
+
+                    window.FACEBOOK_APP_ID ||
+
+                    "";
+
+
+
+                const globalVersion =
+
+                    window.HONEY_FACEBOOK_VERSION ||
+
+                    window.FACEBOOK_VERSION ||
+
+                    "";
+
+
+
+                if(String(globalAppId).trim()){
+
+                    return {
+
+                        appId:
+
+                            String(
+
+                                globalAppId
+
+                            ).trim(),
+
+                        version:
+
+                            String(
+
+                                globalVersion
+
+                            ).trim() ||
+
+                            this.facebookVersion
+
+                    };
+
+                }
+
+
+
+                /*
+                ----------------------------------
+                SERVER CONFIG
+                ----------------------------------
+                */
+
+
+                const response =
+
+                    await fetch(
+
+                        "/api/auth/facebook-config",
+
+                        {
+
+                            method: "GET",
+
+                            headers: {
+
+                                "Accept":
+
+                                    "application/json"
+
+                            },
+
+                            credentials: "same-origin",
+
+                            cache: "no-store"
+
+                        }
+
+                    );
+
+
+
+                const data =
+
+                    await this.parseResponse(
+
+                        response
+
+                    );
+
+
+
+                if(
+
+                    !response.ok ||
+
+                    !data?.success ||
+
+                    !data?.appId
+
+                ){
+
+                    throw new Error(
+
+                        data?.error ||
+
+                        "Facebook App ID não configurado."
+
+                    );
+
+                }
+
+
+
+                return {
+
+                    appId:
+
+                        String(
+
+                            data.appId
+
+                        ).trim(),
+
+                    version:
+
+                        String(
+
+                            data.version ||
+
+                            this.facebookVersion
+
+                        ).trim()
+
+                };
+
+
+            })();
+
+
+
+        try{
+
+
+            const config =
+
+                await this.facebookConfigPromise;
+
+
+
+            if(!config?.appId){
+
+                throw new Error(
+
+                    "Facebook App ID vazio."
+
+                );
+
+            }
+
+
+
+            this.facebookAppId =
+
+                config.appId;
+
+
+
+            this.facebookVersion =
+
+                config.version ||
+
+                this.facebookVersion;
+
+
+
+            return config;
+
+
+        }
+
+        finally{
+
+
+            this.facebookConfigPromise =
+
+                null;
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    SETUP FACEBOOK
+    ==========================================
+    */
+
+
+    async setupFacebookLogin(){
+
+
+        const button =
+
+            document.getElementById(
+
+                "facebookLogin"
+
+            );
+
+
+
+        if(!button){
+
+            return false;
+
+        }
+
+
+
+        if(this.facebookInitialized){
+
+            this.enableFacebookButton();
+
+            return true;
+
+        }
+
+
+
+        if(this.facebookLoadingPromise){
+
+            return this.facebookLoadingPromise;
+
+        }
+
+
+
+        this.facebookLoadingPromise =
+
+            (async()=>{
+
+
+                try{
+
+
+                    button.disabled = true;
+
+
+
+                    this.setFacebookButtonText(
+
+                        "Preparando Facebook..."
+
+                    );
+
+
+
+                    const config =
+
+                        await this.getFacebookConfig();
+
+
+
+                    await this.loadFacebookScript();
+
+
+
+                    if(!window.FB){
+
+                        throw new Error(
+
+                            "Facebook SDK não está disponível."
+
+                        );
+
+                    }
+
+
+
+                    window.FB.init({
+
+                        appId:
+
+                            config.appId,
+
+                        cookie: true,
+
+                        xfbml: false,
+
+                        version:
+
+                            config.version ||
+
+                            this.facebookVersion
+
+                    });
+
+
+
+                    this.facebookInitialized = true;
+
+
+
+                    this.enableFacebookButton();
+
+
+
+                    return true;
+
+
+                }
+
+                catch(error){
+
+
+                    console.error(
+
+                        "FACEBOOK SETUP ERROR:",
+
+                        error
+
+                    );
+
+
+
+                    this.facebookInitialized = false;
+
+
+
+                    button.disabled = false;
+
+
+
+                    this.setFacebookButtonText(
+
+                        "Continuar com Facebook"
+
+                    );
+
+
+
+                    return false;
+
+
+                }
+
+                finally{
+
+
+                    this.facebookLoadingPromise =
+
+                        null;
+
+
+                }
+
+
+            })();
+
+
+
+        return this.facebookLoadingPromise;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    ENABLE FACEBOOK
+    ==========================================
+    */
+
+
+    enableFacebookButton(){
+
+
+        const button =
+
+            document.getElementById(
+
+                "facebookLogin"
+
+            );
+
+
+
+        if(!button){
+
+            return;
+
+        }
+
+
+
+        button.disabled = false;
+
+        button.dataset.ready = "true";
+
+
+
+        this.setFacebookButtonText(
+
+            "Continuar com Facebook"
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    FACEBOOK BUTTON TEXT
+    ==========================================
+    */
+
+
+    setFacebookButtonText(text){
+
+
+        const button =
+
+            document.getElementById(
+
+                "facebookLogin"
+
+            );
+
+
+
+        const element =
+
+            button?.querySelector(
+
+                ".facebook-button-text"
+
+            );
+
+
+
+        if(element){
+
+            element.textContent =
+
+                text;
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    FACEBOOK LOGIN
+    ==========================================
+    */
+
+
+    async facebookLogin(){
+
+
+        if(this.facebookLoading){
+
+            return;
+
+        }
+
+
+
+        if(
+
+            !this.facebookInitialized ||
+
+            !window.FB
+
+        ){
+
+
+            const ready =
+
+                await this.setupFacebookLogin();
+
+
+
+            if(!ready){
+
+                this.showMessage(
+
+                    "O login Facebook não está disponível neste momento.",
+
+                    "error"
+
+                );
+
+                return;
+
+            }
+
+
+        }
+
+
+
+        this.facebookLoading = true;
+
+
+
+        this.setLoading(
+
+            "facebookLogin",
+
+            true,
+
+            "A conectar..."
+
+        );
+
+
+
+        this.clearMessage();
+
+
+
+        try{
+
+
+            await new Promise(
+
+                (resolve, reject) => {
+
+
+                    window.FB.login(
+
+                        response => {
+
+
+                            if(
+
+                                response?.authResponse?.accessToken
+
+                            ){
+
+                                resolve(
+
+                                    response
+
+                                        .authResponse
+
+                                        .accessToken
+
+                                );
+
+                                return;
+
+                            }
+
+
+
+                            reject(
+
+                                new Error(
+
+                                    "O login Facebook foi cancelado ou não autorizou o acesso."
+
+                                )
+
+                            );
+
+
+                        },
+
+                        {
+
+                            scope:
+
+                                "email,public_profile",
+
+                            return_scopes:
+
+                                true
+
+                        }
+
+                    );
+
+
+                }
+
+            )
+
+                .then(
+
+                    accessToken =>
+
+                        this.handleFacebookCredential(
+
+                            accessToken
+
+                        )
+
+                );
+
+
+        }
+
+        catch(error){
+
+
+            console.error(
+
+                "FACEBOOK LOGIN ERROR:",
+
+                error
+
+            );
+
+
+
+            this.facebookLoading = false;
+
+
+
             this.setLoading(
 
-                "googleLogin",
+                "facebookLogin",
 
                 false,
 
-                "Continuar com Google"
+                "Continuar com Facebook"
 
             );
+
+
+
+            this.showMessage(
+
+                this.getSocialAuthErrorMessage(
+
+                    error,
+
+                    "Facebook"
+
+                ),
+
+                "error"
+
+            );
+
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    FACEBOOK CREDENTIAL
+    ==========================================
+    */
+
+
+    async handleFacebookCredential(
+
+        accessToken
+
+    ){
+
+
+        if(
+
+            !accessToken ||
+
+            typeof accessToken !== "string"
+
+        ){
+
+            throw new Error(
+
+                "O Facebook não forneceu um token válido."
+
+            );
+
+        }
+
+
+
+        this.setLoading(
+
+            "facebookLogin",
+
+            true,
+
+            "A entrar..."
+
+        );
+
+
+
+        try{
+
+
+            await authmanager.loginWithFacebook(
+
+                accessToken
+
+            );
+
+
+
+            if(!authmanager.isAuthenticated()){
+
+                throw new Error(
+
+                    "A sessão Facebook não foi estabelecida."
+
+                );
+
+            }
+
+
+
+            await this.finishAuthentication(
+
+                "Login Facebook realizado com sucesso."
+
+            );
+
+
+        }
+
+        catch(error){
+
+
+            console.error(
+
+                "FACEBOOK AUTH ERROR:",
+
+                error
+
+            );
+
+
+
+            throw error;
+
+
+        }
+
+        finally{
+
+
+            this.facebookLoading = false;
+
+
+
+            if(!this.redirecting){
+
+                this.setLoading(
+
+                    "facebookLogin",
+
+                    false,
+
+                    "Continuar com Facebook"
+
+                );
+
+            }
 
 
         }
@@ -3416,7 +3106,11 @@ class LoginController {
     */
 
 
-    async finishAuthentication(successMessage){
+    async finishAuthentication(
+
+        successMessage
+
+    ){
 
 
         if(this.redirecting){
@@ -3472,171 +3166,18 @@ class LoginController {
 
     /*
     ==========================================
-    SHOW MODE
+    SHOW MESSAGE
     ==========================================
     */
 
 
-    showMode(mode){
+    showMessage(
 
+        message,
 
-        const allowedModes = [
+        type = "info"
 
-            "login",
-
-            "register",
-
-            "verify"
-
-        ];
-
-
-
-        if(!allowedModes.includes(mode)){
-
-            mode = "login";
-
-        }
-
-
-
-        this.mode = mode;
-
-
-
-        const modes = {
-
-            login:
-
-                document.getElementById(
-
-                    "loginMode"
-
-                ),
-
-            register:
-
-                document.getElementById(
-
-                    "registerMode"
-
-                ),
-
-            verify:
-
-                document.getElementById(
-
-                    "verifyMode"
-
-                )
-
-        };
-
-
-
-        Object.entries(modes).forEach(
-
-            ([name, element]) => {
-
-
-                if(element){
-
-                    element.style.display =
-
-                        name === mode
-
-                            ? "block"
-
-                            : "none";
-
-                }
-
-
-            }
-
-        );
-
-
-
-        this.clearMessage();
-
-
-
-        requestAnimationFrame(
-
-            () => {
-
-
-                if(mode === "login"){
-
-                    document
-
-                        .getElementById(
-
-                            "loginEmail"
-
-                        )
-
-                        ?.focus();
-
-                }
-
-
-
-                if(mode === "register"){
-
-                    document
-
-                        .getElementById(
-
-                            "registerNome"
-
-                        )
-
-                        ?.focus();
-
-                }
-
-
-
-                if(mode === "verify"){
-
-                    document
-
-                        .getElementById(
-
-                            "verifyCode"
-
-                        )
-
-                        ?.focus();
-
-                }
-
-
-            }
-
-        );
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    MESSAGE
-    ==========================================
-    */
-
-
-    showMessage(message, type = "info"){
+    ){
 
 
         const element =
@@ -3657,15 +3198,25 @@ class LoginController {
 
 
 
-        element.textContent = message || "";
+        element.textContent =
+
+            message || "";
+
+
 
         element.className =
 
             `auth-message ${type}`;
 
+
+
         element.style.display =
 
-            message ? "block" : "none";
+            message
+
+                ? "block"
+
+                : "none";
 
 
     }
@@ -3708,11 +3259,17 @@ class LoginController {
 
         element.textContent = "";
 
+
+
         element.className =
 
             "auth-message";
 
-        element.style.display = "none";
+
+
+        element.style.display =
+
+            "none";
 
 
     }
@@ -3768,7 +3325,11 @@ class LoginController {
 
                 button.dataset.originalText =
 
-                    button.textContent.trim();
+                    button
+
+                        .textContent
+
+                        .trim();
 
             }
 
@@ -3776,7 +3337,11 @@ class LoginController {
 
             button.disabled = true;
 
-            button.classList.add("loading");
+            button.classList.add(
+
+                "loading"
+
+            );
 
 
 
@@ -3800,17 +3365,45 @@ class LoginController {
 
             button.disabled = false;
 
-            button.classList.remove("loading");
+            button.classList.remove(
+
+                "loading"
+
+            );
 
 
 
-            button.textContent =
+            button.innerHTML = `
 
-                loadingText ||
+                <span class="${
+                    buttonId === "googleLogin"
+                        ? "google-icon"
+                        : "facebook-icon"
+                }">
 
-                button.dataset.originalText ||
+                    <i class="${
+                        buttonId === "googleLogin"
+                            ? "fa-brands fa-google"
+                            : "fa-brands fa-facebook-f"
+                    }"></i>
 
-                "Continuar";
+                </span>
+
+                <span class="${
+                    buttonId === "googleLogin"
+                        ? "google-button-text"
+                        : "facebook-button-text"
+                }">
+
+                    ${
+                        loadingText ||
+                        button.dataset.originalText ||
+                        "Continuar"
+                    }
+
+                </span>
+
+            `;
 
 
         }
@@ -3833,7 +3426,11 @@ class LoginController {
     */
 
 
-    redirectToWorkspace(delay = 0){
+    redirectToWorkspace(
+
+        delay = 0
+
+    ){
 
 
         setTimeout(
@@ -3843,9 +3440,14 @@ class LoginController {
 
                 if(!authmanager.isAuthenticated()){
 
+
                     this.redirecting = false;
 
+
+
                     this.showLoginInterface();
+
+
 
                     this.showMessage(
 
@@ -3854,6 +3456,8 @@ class LoginController {
                         "error"
 
                     );
+
+
 
                     return;
 
@@ -3957,55 +3561,18 @@ class LoginController {
 
     /*
     ==========================================
-    AUTH ERROR MESSAGE
+    SOCIAL AUTH ERROR
     ==========================================
     */
 
 
-    getAuthErrorMessage(error){
+    getSocialAuthErrorMessage(
 
+        error,
 
-        const message =
+        provider
 
-            String(
-
-                error?.message ||
-
-                ""
-
-            ).trim();
-
-
-
-        if(!message){
-
-            return "Não foi possível realizar a autenticação.";
-
-        }
-
-
-
-        return message;
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    GOOGLE AUTH ERROR MESSAGE
-    ==========================================
-    */
-
-
-    getGoogleAuthErrorMessage(error){
+    ){
 
 
         const message =
@@ -4028,21 +3595,29 @@ class LoginController {
 
         if(
 
-            lower.includes("unauthorized") ||
+            lower.includes(
 
-            lower.includes("not authorized") ||
+                "cancelado"
 
-            lower.includes("não autorizado") ||
+            ) ||
 
-            lower.includes("autorização")
+            lower.includes(
+
+                "cancelled"
+
+            ) ||
+
+            lower.includes(
+
+                "canceled"
+
+            )
 
         ){
 
             return (
 
-                "O Google autenticou a conta, mas o servidor da Honey IA recusou a autorização. " +
-
-                "A credencial Google chegou corretamente, porém a configuração de autorização do servidor precisa corresponder ao Client ID utilizado."
+                `Login com ${provider} cancelado.`
 
             );
 
@@ -4052,17 +3627,35 @@ class LoginController {
 
         if(
 
-            lower.includes("invalid credential") ||
+            lower.includes(
 
-            lower.includes("credencial inválida")
+                "client id"
+
+            ) ||
+
+            lower.includes(
+
+                "client_id"
+
+            ) ||
+
+            lower.includes(
+
+                "app id"
+
+            ) ||
+
+            lower.includes(
+
+                "appid"
+
+            )
 
         ){
 
             return (
 
-                "A credencial recebida do Google é inválida ou expirou. " +
-
-                "Inicie novamente o login com Google."
+                `A configuração do ${provider} da Honey IA não está correta.`
 
             );
 
@@ -4072,15 +3665,29 @@ class LoginController {
 
         if(
 
-            lower.includes("client id") ||
+            lower.includes(
 
-            lower.includes("client_id")
+                "token"
+
+            ) ||
+
+            lower.includes(
+
+                "credential"
+
+            ) ||
+
+            lower.includes(
+
+                "credencial"
+
+            )
 
         ){
 
             return (
 
-                "O Google Client ID da Honey IA não corresponde à configuração de autenticação."
+                `A credencial do ${provider} não foi aceite pelo servidor.`
 
             );
 
@@ -4090,13 +3697,41 @@ class LoginController {
 
         if(
 
-            lower.includes("token")
+            lower.includes(
+
+                "unauthorized"
+
+            ) ||
+
+            lower.includes(
+
+                "não autorizado"
+
+            ) ||
+
+            lower.includes(
+
+                "autorização"
+
+            ) ||
+
+            lower.includes(
+
+                "authentication"
+
+            ) ||
+
+            lower.includes(
+
+                "autenticação"
+
+            )
 
         ){
 
             return (
 
-                "A sessão Google não pôde ser criada. O token recebido não foi aceite pelo servidor."
+                `O ${provider} autenticou a conta, mas o servidor da Honey IA recusou a autorização.`
 
             );
 
@@ -4108,34 +3743,7 @@ class LoginController {
 
             message ||
 
-            "Não foi possível concluir o login com Google."
-
-        );
-
-
-    }
-
-
-
-
-
-
-
-
-
-    /*
-    ==========================================
-    VALIDATE EMAIL
-    ==========================================
-    */
-
-
-    isValidEmail(email){
-
-
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-
-            email
+            `Não foi possível concluir o login com ${provider}.`
 
         );
 
@@ -4157,7 +3765,11 @@ class LoginController {
     */
 
 
-    async parseResponse(response){
+    async parseResponse(
+
+        response
+
+    ){
 
 
         try{
@@ -4175,11 +3787,15 @@ class LoginController {
 
             if(
 
-                !contentType.includes(
+                !contentType
 
-                    "application/json"
+                    .toLowerCase()
 
-                )
+                    .includes(
+
+                        "application/json"
+
+                    )
 
             ){
 
@@ -4207,7 +3823,7 @@ class LoginController {
 
             console.error(
 
-                "AUTH RESPONSE ERROR:",
+                "LOGIN RESPONSE ERROR:",
 
                 error
 
