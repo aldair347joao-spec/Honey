@@ -1,8 +1,10 @@
+import authmanager from "./auth.js";
+
 /*
 ==========================================================
 HONEY IA OS
 CHAT ENGINE
-V5.0
+V4.1
 PRODUCTION AI STUDIO CHAT ENGINE
 
 - JWT Authentication
@@ -14,9 +16,6 @@ PRODUCTION AI STUDIO CHAT ENGINE
 - Code Highlighting
 - SSE Streaming
 - Abort / Stop Generation
-- User Controlled Scroll
-- Buffered Streaming Rendering
-- Generation Isolation
 - File Context
 - Artifacts
 - Artifact Preview
@@ -29,6 +28,16 @@ PRODUCTION AI STUDIO CHAT ENGINE
 - Responsive Workspace
 - Secure HTML Rendering
 - Production Error Handling
+
+UI BEHAVIOR V4.1
+----------------------------------------------------------
+- No bee avatar during assistant responses
+- No response latency display
+- No message timestamps
+- No connection status text
+- No "preparing response" text
+- No "thinking" text
+- Clean streaming interface
 ==========================================================
 */
 
@@ -39,7 +48,7 @@ CONFIGURATION
 ==========================================================
 */
 
-const API_BASE = "/api/chat";
+let API_BASE = "/api/chat";
 
 const AUTH_TOKEN_KEY = "honey_token";
 
@@ -57,19 +66,6 @@ const MAX_VISIBLE_ARTIFACTS = 100;
 
 const MAX_VISIBLE_TOOLS = 100;
 
-/*
-    Distância máxima do fim para considerar que
-    o utilizador ainda está acompanhando a resposta.
-*/
-const SCROLL_BOTTOM_THRESHOLD = 72;
-
-/*
-    Intervalo mínimo entre renders visuais do streaming.
-    O texto continua sendo acumulado imediatamente,
-    mas o DOM não é reconstruído a cada micro-chunk.
-*/
-const STREAM_RENDER_INTERVAL = 32;
-
 
 /*
 ==========================================================
@@ -80,42 +76,59 @@ SUPPORTED TEXT FILES
 const SUPPORTED_TEXT_EXTENSIONS = [
 
     "txt",
+
     "md",
+
     "markdown",
+
     "json",
+
     "csv",
+
     "xml",
 
     "html",
+
     "htm",
 
     "css",
 
     "js",
+
     "mjs",
+
     "cjs",
 
     "ts",
+
     "tsx",
+
     "jsx",
 
     "py",
+
     "java",
 
     "c",
+
     "cpp",
+
     "h",
+
     "hpp",
 
     "sql",
 
     "sh",
+
     "bash",
 
     "yaml",
+
     "yml",
 
     "ini",
+
     "conf",
 
     "env",
@@ -172,12 +185,6 @@ const state = {
     liveAbortController:
         null,
 
-    generationAbortController:
-        null,
-
-    currentGenerationId:
-        null,
-
     currentAssistantElement:
         null,
 
@@ -209,44 +216,6 @@ const state = {
         "",
 
     generationCancelled:
-        false,
-
-    generationStatus:
-        "idle",
-
-    /*
-        Indica se o utilizador está próximo do fim.
-        O chat nunca deve forçar o scroll quando false.
-    */
-    userNearBottom:
-        true,
-
-    /*
-        Durante streaming, o conteúdo é acumulado aqui
-        e renderizado em ciclos controlados.
-    */
-    streamRenderQueued:
-        false,
-
-    streamRenderTimer:
-        null,
-
-    streamLastRenderAt:
-        0,
-
-    streamRenderGenerationId:
-        null,
-
-    /*
-        Evita renders concorrentes.
-    */
-    streamRenderRequested:
-        false,
-
-    /*
-        Guarda se já houve conteúdo efetivamente renderizado.
-    */
-    streamHasRenderedContent:
         false
 
 };
@@ -267,13 +236,7 @@ STARTUP
 ==========================================================
 */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeChat
-);
-
-
-async function initializeChat(){
+async function initializeChat(options = {}){
 
     if(state.initialized){
 
@@ -281,8 +244,36 @@ async function initializeChat(){
 
     }
 
-    state.initialized =
-        true;
+    state.initialized = true;
+
+    if(options.apiBase){
+
+        API_BASE =
+            String(
+                options.apiBase
+            );
+
+    }
+
+    if(options.agentId){
+
+        state.agentId =
+            String(
+                options.agentId
+            );
+
+    }
+
+    if(options.workspace){
+
+        state.workspace =
+            String(
+                options.workspace
+            );
+
+    }
+
+    await authmanager.waitUntilReady();
 
     cacheDOM();
 
@@ -296,7 +287,11 @@ async function initializeChat(){
 
     }
 
-    setupNavigation();
+    if(!options.managedByApp){
+
+        setupNavigation();
+
+    }
 
     setupChatControls();
 
@@ -312,8 +307,6 @@ async function initializeChat(){
 
     setupGlobalKeyboardShortcuts();
 
-    setupScrollTracking();
-
     await initializeAuthenticatedChat();
 
 }
@@ -328,82 +321,173 @@ CACHE DOM
 function cacheDOM(){
 
     dom.chatSection =
-        document.getElementById("chat");
+        document.getElementById(
+            "chat"
+        );
 
     dom.chatMessages =
-        document.getElementById("chatMessages");
+        document.getElementById(
+            "chatMessages"
+        );
 
     dom.chatWelcome =
-        document.getElementById("chatWelcome");
+        document.getElementById(
+            "chatWelcome"
+        );
 
     dom.chatInput =
-        document.getElementById("chatInput");
+        document.getElementById(
+            "chatInput"
+        );
 
     dom.chatInputArea =
-        document.getElementById("chatInputArea");
+        document.getElementById(
+            "chatInputArea"
+        );
 
     dom.btnSend =
-        document.getElementById("btnSend");
+        document.getElementById(
+            "btnSend"
+        );
 
     dom.btnVoice =
-        document.getElementById("btnVoice");
+        document.getElementById(
+            "btnVoice"
+        );
 
     dom.btnAttach =
-        document.getElementById("btnAttach");
+        document.getElementById(
+            "btnAttach"
+        );
 
     dom.fileInput =
-        document.getElementById("fileInput");
+        document.getElementById(
+            "chatFileInput"
+        ) ||
+        document.getElementById(
+            "fileInput"
+        );
 
-    dom.attachmentBar =
-        document.getElementById("attachment-bar");
+    dom.fileName =
+        document.getElementById(
+            "chatFileName"
+        );
 
-    dom.attachedFileName =
-        document.getElementById("attached-file-name");
-
-    dom.btnRemoveAttachment =
-        document.getElementById("btn-remove-attachment");
+    dom.fileRemove =
+        document.getElementById(
+            "chatFileRemove"
+        );
 
     dom.btnNewChat =
-        document.getElementById("btnNewChat");
+        document.getElementById(
+            "btnNewChat"
+        );
 
     dom.btnNewConversation =
-        document.getElementById("btnNewConversation");
+        document.getElementById(
+            "btnNewConversation"
+        );
 
     dom.btnChatMode =
-        document.getElementById("btnChatMode");
+        document.getElementById(
+            "btnChatMode"
+        );
 
     dom.btnLiveMode =
-        document.getElementById("btnLiveMode");
+        document.getElementById(
+            "btnLiveMode"
+        );
 
-    dom.conversationTitle =
-        document.getElementById("conversationTitle");
+    dom.chatContext =
+        document.getElementById(
+            "chatContext"
+        );
 
-    dom.historyContainer =
-        document.getElementById("historyContainer");
+    dom.chatTitle =
+        document.getElementById(
+            "chatTitle"
+        );
 
-    dom.projectsContainer =
-        document.getElementById("projectsContainer");
+    dom.chatAgent =
+        document.getElementById(
+            "chatAgent"
+        );
+
+    dom.chatStatus =
+        document.getElementById(
+            "chatStatus"
+        );
+
+    dom.historyList =
+        document.getElementById(
+            "historyList"
+        );
 
     dom.previewPane =
-        document.getElementById("preview-pane");
+        document.getElementById(
+            "previewPane"
+        );
 
     dom.previewIframe =
-        document.getElementById("live-preview-iframe");
+        document.getElementById(
+            "live-preview-iframe"
+        ) ||
+        document.getElementById(
+            "previewIframe"
+        );
 
-    dom.btnClosePreview =
-        document.getElementById("btn-close-preview");
+    dom.searchInput =
+        document.getElementById(
+            "chatSearch"
+        );
 
-    dom.globalSearch =
-        document.getElementById("globalSearch");
+}
 
-    dom.toastContainer =
-        document.getElementById("toastContainer");
 
-    dom.planBadge =
-        document.getElementById("planBadge");
+/*
+==========================================================
+AUTHENTICATED CHAT INITIALIZATION
+==========================================================
+*/
 
-    dom.userBox =
-        document.getElementById("userBox");
+async function initializeAuthenticatedChat(){
+
+    try{
+
+        const authenticated =
+            await checkAuthentication();
+
+        state.authenticated =
+            authenticated;
+
+        if(!authenticated){
+
+            redirectToLogin();
+
+            return;
+
+        }
+
+        await loadConversations();
+
+        await ensureInitialConversation();
+
+        updateAuthenticationUI();
+
+    }
+    catch(error){
+
+        console.error(
+            "[HONEY CHAT] Initialization error:",
+            error
+        );
+
+        handleApiError(
+            error,
+            "Não foi possível inicializar o Chat IA."
+        );
+
+    }
 
 }
 
@@ -414,50 +498,37 @@ AUTHENTICATION
 ==========================================================
 */
 
-async function initializeAuthenticatedChat(){
-
-    const token =
-        getAuthToken();
-
-    if(!token){
-
-        redirectToLogin();
-
-        return;
-
-    }
-
-    state.authenticated =
-        true;
+async function checkAuthentication(){
 
     try{
 
-        await loadConversations();
+        if(
+            typeof authmanager?.isAuthenticated ===
+            "function"
+        ){
 
-        await ensureInitialConversation();
+            return Boolean(
+                authmanager.isAuthenticated()
+            );
 
-        await loadUserProfile();
+        }
+
+        const token =
+            localStorage.getItem(
+                AUTH_TOKEN_KEY
+            );
+
+        return Boolean(token);
 
     }
     catch(error){
 
-        console.error(
-            "[HONEY CHAT] Initialization error:",
+        console.warn(
+            "[HONEY CHAT] Authentication check failed:",
             error
         );
 
-        if(error?.status === 401){
-
-            redirectToLogin();
-
-            return;
-
-        }
-
-        showToast(
-            "Não foi possível carregar o Chat da Honey IA.",
-            "error"
-        );
+        return false;
 
     }
 
@@ -468,21 +539,37 @@ function getAuthToken(){
 
     try{
 
-        const token =
-            localStorage.getItem(
-                AUTH_TOKEN_KEY
-            );
-
         if(
-            typeof token !== "string" ||
-            !token.trim()
+            typeof authmanager?.getToken ===
+            "function"
         ){
 
-            return null;
+            const token =
+                authmanager.getToken();
+
+            if(token){
+
+                return token;
+
+            }
 
         }
 
-        return token.trim();
+    }
+    catch(error){
+
+        console.warn(
+            "[HONEY CHAT] Could not read auth manager token:",
+            error
+        );
+
+    }
+
+    try{
+
+        return localStorage.getItem(
+            AUTH_TOKEN_KEY
+        );
 
     }
     catch(error){
@@ -496,19 +583,36 @@ function getAuthToken(){
 
 function redirectToLogin(){
 
-    if(
-        window.location.pathname.endsWith(
-            "login.html"
-        )
-    ){
+    try{
 
-        return;
+        if(
+            typeof authmanager?.logout ===
+            "function"
+        ){
+
+            authmanager.logout();
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "[HONEY CHAT] Logout redirect error:",
+            error
+        );
 
     }
 
-    window.location.replace(
-        "login.html"
-    );
+    if(
+        window.location.pathname !==
+        "/login.html"
+    ){
+
+        window.location.href =
+            "/login.html";
+
+    }
 
 }
 
@@ -520,7 +624,7 @@ API REQUEST
 */
 
 async function apiRequest(
-    endpoint = "",
+    endpoint,
     options = {}
 ){
 
@@ -529,22 +633,12 @@ async function apiRequest(
 
     const headers = {
 
-        Accept:
+        "Content-Type":
             "application/json",
 
         ...(options.headers || {})
 
     };
-
-    if(
-        options.body &&
-        !(options.body instanceof FormData)
-    ){
-
-        headers["Content-Type"] =
-            "application/json";
-
-    }
 
     if(token){
 
@@ -553,44 +647,19 @@ async function apiRequest(
 
     }
 
-    let response;
-
-    try{
-
-        response =
-            await fetch(
-                `${API_BASE}${endpoint}`,
-                {
-                    ...options,
-                    headers,
-                    credentials: "include"
-                }
-            );
-
-    }
-    catch(error){
-
-        if(
-            error?.name === "AbortError"
-        ){
-
-            throw error;
-
-        }
-
-        const networkError =
-            new Error(
-                "Não foi possível contactar o servidor da Honey IA."
-            );
-
-        networkError.cause =
-            error;
-
-        throw networkError;
-
-    }
+    const response =
+        await fetch(
+            `${API_BASE}${endpoint}`,
+            {
+                ...options,
+                headers
+            }
+        );
 
     if(response.status === 401){
+
+        state.authenticated =
+            false;
 
         const error =
             new Error(
@@ -604,8 +673,41 @@ async function apiRequest(
 
     }
 
-    let data =
-        null;
+    if(!response.ok){
+
+        let errorMessage =
+            `Erro HTTP ${response.status}.`;
+
+        try{
+
+            const data =
+                await response.json();
+
+            errorMessage =
+                data?.error ||
+                data?.message ||
+                errorMessage;
+
+        }
+        catch(error){
+
+            /*
+            Corpo de erro inválido ou inexistente.
+            */
+
+        }
+
+        const error =
+            new Error(
+                errorMessage
+            );
+
+        error.status =
+            response.status;
+
+        throw error;
+
+    }
 
     const contentType =
         response.headers.get(
@@ -618,41 +720,27 @@ async function apiRequest(
         )
     ){
 
-        try{
-
-            data =
-                await response.json();
-
-        }
-        catch(error){
-
-            data =
-                null;
-
-        }
+        return response.json();
 
     }
 
-    if(!response.ok){
+    const text =
+        await response.text();
 
-        const error =
-            new Error(
-                data?.error ||
-                data?.message ||
-                `Erro HTTP ${response.status}.`
-            );
+    try{
 
-        error.status =
-            response.status;
-
-        error.data =
-            data;
-
-        throw error;
+        return JSON.parse(
+            text
+        );
 
     }
+    catch(error){
 
-    return data;
+        return {
+            text
+        };
+
+    }
 
 }
 
@@ -822,14 +910,9 @@ CHAT CONTROLS
 
 function setupChatControls(){
 
-    /*
-        O botão usa um único listener.
-        O comportamento muda conforme state.isSending.
-    */
-
     dom.btnSend?.addEventListener(
         "click",
-        handleSendButton
+        sendCurrentMessage
     );
 
     dom.chatInput?.addEventListener(
@@ -891,21 +974,6 @@ function setupChatControls(){
 }
 
 
-function handleSendButton(){
-
-    if(state.isSending){
-
-        stopGeneration();
-
-        return;
-
-    }
-
-    sendCurrentMessage();
-
-}
-
-
 /*
 ==========================================================
 GLOBAL KEYBOARD SHORTCUTS
@@ -946,64 +1014,6 @@ function setupGlobalKeyboardShortcuts(){
 
         }
     );
-
-}
-
-
-/*
-==========================================================
-SCROLL TRACKING
-==========================================================
-*/
-
-function setupScrollTracking(){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    dom.chatMessages.addEventListener(
-        "scroll",
-        () => {
-
-            state.userNearBottom =
-                isChatNearBottom();
-
-        },
-        {
-            passive:
-                true
-        }
-    );
-
-    /*
-        Quando o chat é aberto pela primeira vez,
-        consideramos que está no fim.
-    */
-
-    state.userNearBottom =
-        true;
-
-}
-
-
-function isChatNearBottom(){
-
-    if(!dom.chatMessages){
-
-        return true;
-
-    }
-
-    const distance =
-        dom.chatMessages.scrollHeight -
-        dom.chatMessages.scrollTop -
-        dom.chatMessages.clientHeight;
-
-    return distance <=
-        SCROLL_BOTTOM_THRESHOLD;
 
 }
 
@@ -1185,6 +1195,16 @@ CONVERSATIONS
 
 async function loadConversations(){
 
+    /*
+    IMPORTANTE:
+
+    Não existe limite artificial de quantidade,
+    idade ou tempo neste frontend.
+
+    O backend decide como recuperar e contextualizar
+    o histórico persistente.
+    */
+
     const data =
         await apiRequest(
             "/conversations"
@@ -1261,151 +1281,6 @@ function getConversationId(
 
 /*
 ==========================================================
-GENERATION CONTROL
-==========================================================
-*/
-
-function createGeneration(){
-
-    const id =
-        createClientMessageId();
-
-    state.currentGenerationId =
-        id;
-
-    state.generationAbortController =
-        new AbortController();
-
-    state.generationCancelled =
-        false;
-
-    state.generationStatus =
-        "preparing";
-
-    state.streamRenderGenerationId =
-        id;
-
-    state.streamRenderQueued =
-        false;
-
-    state.streamRenderRequested =
-        false;
-
-    state.streamHasRenderedContent =
-        false;
-
-    state.streamLastRenderAt =
-        0;
-
-    clearStreamRenderTimer();
-
-    return {
-
-        id,
-
-        controller:
-            state.generationAbortController
-
-    };
-
-}
-
-
-function isCurrentGeneration(
-    generationId
-){
-
-    return Boolean(
-        generationId &&
-        state.currentGenerationId ===
-            generationId
-    );
-
-}
-
-
-function invalidateCurrentGeneration(){
-
-    state.currentGenerationId =
-        null;
-
-    state.generationStatus =
-        "idle";
-
-    clearStreamRenderTimer();
-
-}
-
-
-function abortCurrentGeneration(
-    silent = false
-){
-
-    const controller =
-        state.generationAbortController;
-
-    if(controller){
-
-        try{
-
-            controller.abort();
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Abort error:",
-                error
-            );
-
-        }
-
-    }
-
-    if(
-        state.liveAbortController &&
-        state.liveAbortController !==
-            controller
-    ){
-
-        try{
-
-            state.liveAbortController.abort();
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Live abort error:",
-                error
-            );
-
-        }
-
-    }
-
-    state.generationCancelled =
-        true;
-
-    state.generationStatus =
-        "stopping";
-
-    clearStreamRenderTimer();
-
-    if(!silent){
-
-        showToast(
-            "Geração interrompida.",
-            "info"
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
 CREATE CONVERSATION
 ==========================================================
 */
@@ -1414,29 +1289,9 @@ async function createNewConversation(
     notify = true
 ){
 
-    /*
-        Criar uma nova conversa implica abandonar a geração
-        anterior. O utilizador deve poder mudar de contexto
-        sem ficar bloqueado.
-    */
-
     if(state.isSending){
 
-        abortCurrentGeneration(
-            true
-        );
-
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
-
-        await waitForAbortSettlement();
+        return null;
 
     }
 
@@ -1532,24 +1387,6 @@ async function createNewConversation(
 }
 
 
-async function waitForAbortSettlement(){
-
-    /*
-        Não esperamos um tempo artificialmente longo.
-        Apenas permitimos que o event loop processe o abort.
-    */
-
-    await new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                0
-            )
-    );
-
-}
-
-
 /*
 ==========================================================
 RESET CONVERSATION STATE
@@ -1557,8 +1394,6 @@ RESET CONVERSATION STATE
 */
 
 function resetConversationState(){
-
-    clearStreamRenderTimer();
 
     state.messages =
         [];
@@ -1579,30 +1414,6 @@ function resetConversationState(){
         null;
 
     state.generationCancelled =
-        false;
-
-    state.generationStatus =
-        "idle";
-
-    state.currentGenerationId =
-        null;
-
-    state.generationAbortController =
-        null;
-
-    state.liveAbortController =
-        null;
-
-    state.streamRenderGenerationId =
-        null;
-
-    state.streamRenderQueued =
-        false;
-
-    state.streamRenderRequested =
-        false;
-
-    state.streamHasRenderedContent =
         false;
 
     removeAttachment();
@@ -1627,33 +1438,22 @@ async function openConversation(
 
     }
 
-    /*
-        Se o utilizador abrir outra conversa enquanto uma
-        resposta está sendo gerada, cancelamos a geração
-        anterior em vez de bloquear a navegação.
-    */
-
     if(
         state.isSending &&
-        String(conversationId) !==
-        String(state.conversationId)
+        String(
+            conversationId
+        ) !==
+        String(
+            state.conversationId
+        )
     ){
 
-        abortCurrentGeneration(
-            true
+        showToast(
+            "Aguarde a resposta atual terminar.",
+            "warning"
         );
 
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
-
-        await waitForAbortSettlement();
+        return null;
 
     }
 
@@ -1703,14 +1503,6 @@ async function openConversation(
         state.tools =
             [];
 
-        state.currentGenerationId =
-            null;
-
-        state.generationStatus =
-            "idle";
-
-        clearStreamRenderTimer();
-
         clearChatMessages();
 
         renderMessages(
@@ -1722,18 +1514,6 @@ async function openConversation(
         );
 
         removeAttachment();
-
-        /*
-            Depois de abrir uma conversa, o comportamento natural
-            é mostrar o final do histórico.
-        */
-
-        state.userNearBottom =
-            true;
-
-        scrollChatToBottom(
-            true
-        );
 
         if(activate){
 
@@ -1804,18 +1584,12 @@ async function sendCurrentMessage(){
 
     }
 
-    const displayPrompt =
-        prompt;
-
-    let requestPrompt =
-        prompt;
-
     if(
         state.selectedFileSupported &&
         state.selectedFileContent
     ){
 
-        requestPrompt =
+        prompt =
             buildPromptWithFileContext(
                 prompt
             );
@@ -1823,7 +1597,7 @@ async function sendCurrentMessage(){
     }
 
     if(
-        requestPrompt.length >
+        prompt.length >
         MAX_MESSAGE_LENGTH
     ){
 
@@ -1837,8 +1611,7 @@ async function sendCurrentMessage(){
     }
 
     await sendMessage(
-        requestPrompt,
-        displayPrompt
+        prompt
     );
 
 }
@@ -1851,8 +1624,7 @@ SEND MESSAGE
 */
 
 async function sendMessage(
-    prompt,
-    displayPrompt = prompt
+    prompt
 ){
 
     if(state.isSending){
@@ -1884,12 +1656,6 @@ async function sendMessage(
 
     }
 
-    const generation =
-        createGeneration();
-
-    const generationId =
-        generation.id;
-
     state.isSending =
         true;
 
@@ -1898,9 +1664,6 @@ async function sendMessage(
 
     state.generationCancelled =
         false;
-
-    state.generationStatus =
-        "preparing";
 
     state.currentAssistantContent =
         "";
@@ -1923,7 +1686,7 @@ async function sendMessage(
             "user",
 
         content:
-            displayPrompt,
+            prompt,
 
         createdAt:
             new Date().toISOString()
@@ -1935,21 +1698,10 @@ async function sendMessage(
     );
 
     appendMessage(
-        userMessage,
-        false
+        userMessage
     );
 
-    /*
-        Depois de enviar uma mensagem, colocamos o viewport
-        no final porque esta foi uma ação explícita do utilizador.
-    */
-
-    state.userNearBottom =
-        true;
-
-    scrollChatToBottom(
-        true
-    );
+    scrollChatToBottom();
 
     const assistantElement =
         createStreamingAssistantMessage();
@@ -1966,8 +1718,7 @@ async function sendMessage(
 
             await sendLiveMessage(
                 prompt,
-                assistantElement,
-                generationId
+                assistantElement
             );
 
         }
@@ -1975,8 +1726,7 @@ async function sendMessage(
 
             await sendStandardMessage(
                 prompt,
-                assistantElement,
-                generationId
+                assistantElement
             );
 
         }
@@ -1989,70 +1739,18 @@ async function sendMessage(
             error
         );
 
-        const stillCurrent =
-            isCurrentGeneration(
-                generationId
-            );
+        removeStreamingAssistantIfEmpty(
+            assistantElement
+        );
 
         if(
-            error?.name === "AbortError" ||
-            state.generationCancelled
+            !state.generationCancelled
         ){
 
-            /*
-                Não mostrar erro para uma interrupção
-                intencional.
-            */
-
-            if(
-                stillCurrent &&
-                state.currentAssistantContent.trim()
-            ){
-
-                finalizeInterruptedAssistant(
-                    assistantElement
-                );
-
-            }
-
-        }
-        else if(stillCurrent){
-
-            /*
-                Se já existe resposta parcial, mantemos.
-                Apenas informamos que a geração terminou com erro.
-            */
-
-            if(
-                state.currentAssistantContent.trim()
-            ){
-
-                setAssistantStatus(
-                    assistantElement,
-                    "A geração foi interrompida por um erro."
-                );
-
-                addAssistantMessageOnce(
-                    state.currentAssistantContent,
-                    {
-                        interrupted:
-                            true
-                    }
-                );
-
-            }
-            else{
-
-                removeStreamingAssistantIfEmpty(
-                    assistantElement
-                );
-
-                showErrorMessage(
-                    error?.message ||
-                    "Não foi possível processar a mensagem."
-                );
-
-            }
+            showErrorMessage(
+                error?.message ||
+                "Não foi possível processar a mensagem."
+            );
 
         }
 
@@ -2065,33 +1763,13 @@ async function sendMessage(
     }
     finally{
 
-        if(
-            !isCurrentGeneration(
-                generationId
-            )
-        ){
-
-            return;
-
-        }
-
-        clearStreamRenderTimer();
-
         state.isSending =
             false;
 
         state.isLive =
             false;
 
-        state.generationStatus =
-            state.generationCancelled
-                ? "stopped"
-                : "completed";
-
         state.liveAbortController =
-            null;
-
-        state.generationAbortController =
             null;
 
         state.generationStartedAt =
@@ -2112,19 +1790,7 @@ async function sendMessage(
 
         clearInputAfterSend();
 
-        /*
-            Só fazemos scroll final se o utilizador já estava
-            acompanhando o fim da conversa.
-        */
-
-        if(state.userNearBottom){
-
-            scrollChatToBottom();
-
-        }
-
-        state.currentGenerationId =
-            null;
+        scrollChatToBottom();
 
     }
 
@@ -2139,22 +1805,8 @@ STANDARD CHAT
 
 async function sendStandardMessage(
     prompt,
-    assistantElement,
-    generationId
+    assistantElement
 ){
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    const controller =
-        state.generationAbortController;
 
     const payload = {
 
@@ -2173,27 +1825,46 @@ async function sendStandardMessage(
 
         },
 
-        memory: [],
-
         mode:
-            "chat"
+            state.currentMode
 
     };
 
-    state.generationStatus =
-        "streaming";
+    const controller =
+        new AbortController();
 
-    /*
-        Mantemos o request normal, mas agora com AbortController.
-    */
+    state.liveAbortController =
+        controller;
 
-    const data =
-        await apiRequest(
-            "",
+    const token =
+        getAuthToken();
+
+    const headers = {
+
+        "Content-Type":
+            "application/json",
+
+        "Accept":
+            "text/event-stream"
+
+    };
+
+    if(token){
+
+        headers.Authorization =
+            `Bearer ${token}`;
+
+    }
+
+    const response =
+        await fetch(
+            API_BASE,
             {
 
                 method:
                     "POST",
+
+                headers,
 
                 body:
                     JSON.stringify(
@@ -2201,243 +1872,10 @@ async function sendStandardMessage(
                     ),
 
                 signal:
-                    controller?.signal
+                    controller.signal
 
             }
         );
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    if(
-        !data ||
-        data.success === false
-    ){
-
-        throw new Error(
-            data?.error ||
-            data?.message ||
-            "A Honey IA não conseguiu processar o pedido."
-        );
-
-    }
-
-    synchronizeConversation(
-        data.conversation
-    );
-
-    const response =
-        data.response ||
-        data.message?.assistant?.content ||
-        data.message?.content ||
-        "";
-
-    if(!response){
-
-        throw new Error(
-            "A Honey IA não devolveu uma resposta."
-        );
-
-    }
-
-    state.currentAssistantContent =
-        response;
-
-    renderAssistantContent(
-        assistantElement,
-        response,
-        {
-            final:
-                true
-        }
-    );
-
-    renderResponseMetadata(
-        assistantElement,
-        data
-    );
-
-    if(
-        Array.isArray(
-            data.artifacts
-        )
-    ){
-
-        renderArtifacts(
-            data.artifacts
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            data.tools
-        )
-    ){
-
-        renderTools(
-            data.tools
-        );
-
-    }
-
-    addAssistantMessageOnce(
-        response,
-        data
-    );
-
-    updateConversationInList(
-        data.conversation
-    );
-
-    renderHistory();
-
-    /*
-        Não forçamos scroll aqui.
-        O utilizador controla o viewport.
-    */
-
-}
-
-
-/*
-==========================================================
-LIVE CHAT
-==========================================================
-*/
-
-async function sendLiveMessage(
-    prompt,
-    assistantElement,
-    generationId
-){
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    state.isLive =
-        true;
-
-    state.generationStatus =
-        "streaming";
-
-    /*
-        Usamos o controller principal da geração.
-    */
-
-    state.liveAbortController =
-        state.generationAbortController;
-
-    const token =
-        getAuthToken();
-
-    let response;
-
-    try{
-
-        response =
-            await fetch(
-                `${API_BASE}/live`,
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        Accept:
-                            "text/event-stream",
-
-                        ...(token
-                            ? {
-                                Authorization:
-                                    `Bearer ${token}`
-                            }
-                            : {})
-
-                    },
-
-                    credentials:
-                        "include",
-
-                    body:
-                        JSON.stringify({
-
-                            prompt,
-
-                            conversationId:
-                                state.conversationId,
-
-                            agentId:
-                                state.agentId,
-
-                            workspaceContext: {
-
-                                workspace:
-                                    state.workspace
-
-                            },
-
-                            memory: [],
-
-                            mode:
-                                "live"
-
-                        }),
-
-                    signal:
-                        state.generationAbortController?.signal
-
-                }
-            );
-
-    }
-    catch(error){
-
-        if(
-            error?.name ===
-            "AbortError"
-        ){
-
-            state.generationCancelled =
-                true;
-
-            throw error;
-
-        }
-
-        throw new Error(
-            "Não foi possível estabelecer a ligação Live com a Honey IA."
-        );
-
-    }
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
 
     if(response.status === 401){
 
@@ -2472,7 +1910,7 @@ async function sendLiveMessage(
         catch(error){
 
             /*
-                Corpo de erro inválido ou inexistente.
+            Corpo de erro inválido.
             */
 
         }
@@ -2492,15 +1930,14 @@ async function sendLiveMessage(
     if(!response.body){
 
         throw new Error(
-            "O servidor não disponibilizou o stream Live."
+            "O servidor não disponibilizou o stream da Honey IA."
         );
 
     }
 
     await consumeSSEStream(
         response.body,
-        assistantElement,
-        generationId
+        assistantElement
     );
 
 }
@@ -2520,34 +1957,51 @@ function stopGeneration(){
 
     }
 
-    const element =
-        state.currentAssistantElement;
-
     state.generationCancelled =
         true;
 
-    state.generationStatus =
-        "stopping";
+    if(
+        state.liveAbortController
+    ){
 
-    abortCurrentGeneration(
-        true
-    );
+        try{
+
+            state.liveAbortController.abort();
+
+        }
+        catch(error){
+
+            console.warn(
+                "[HONEY CHAT] Abort error:",
+                error
+            );
+
+        }
+
+    }
+
+    const element =
+        state.currentAssistantElement;
 
     if(
         element &&
         state.currentAssistantContent.trim()
     ){
 
-        finalizeInterruptedAssistant(
-            element
+        addAssistantMessageOnce(
+            state.currentAssistantContent,
+            {
+                interrupted:
+                    true
+            }
+        );
+
+        setAssistantStatus(
+            element,
+            "Resposta interrompida."
         );
 
     }
-
-    /*
-        O finally de sendMessage() tratará o estado final.
-        Aqui atualizamos imediatamente a interface para o utilizador.
-    */
 
     setSendingState(
         false
@@ -2563,63 +2017,13 @@ function stopGeneration(){
 
 /*
 ==========================================================
-FINALIZE INTERRUPTED ASSISTANT
-==========================================================
-*/
-
-function finalizeInterruptedAssistant(
-    element
-){
-
-    if(!element){
-
-        return;
-
-    }
-
-    clearStreamRenderTimer();
-
-    if(
-        state.currentAssistantContent.trim()
-    ){
-
-        renderAssistantContent(
-            element,
-            state.currentAssistantContent,
-            {
-                final:
-                    true
-            }
-        );
-
-        addAssistantMessageOnce(
-            state.currentAssistantContent,
-            {
-                interrupted:
-                    true
-            }
-        );
-
-    }
-
-    setAssistantStatus(
-        element,
-        "Resposta interrompida."
-    );
-
-}
-
-
-/*
-==========================================================
 SSE STREAM
 ==========================================================
 */
 
 async function consumeSSEStream(
     body,
-    assistantElement,
-    generationId
+    assistantElement
 ){
 
     const reader =
@@ -2639,29 +2043,6 @@ async function consumeSSEStream(
     try{
 
         while(!streamFinished){
-
-            if(
-                !isCurrentGeneration(
-                    generationId
-                )
-            ){
-
-                try{
-
-                    await reader.cancel();
-
-                }
-                catch(error){
-
-                    /*
-                        Reader já cancelado.
-                    */
-
-                }
-
-                break;
-
-            }
 
             const {
                 value,
@@ -2690,7 +2071,7 @@ async function consumeSSEStream(
             ){
 
                 throw new Error(
-                    "O stream Live excedeu o limite permitido."
+                    "O stream da Honey IA excedeu o limite permitido."
                 );
 
             }
@@ -2708,24 +2089,10 @@ async function consumeSSEStream(
                 of events
             ){
 
-                if(
-                    !isCurrentGeneration(
-                        generationId
-                    )
-                ){
-
-                    streamFinished =
-                        true;
-
-                    break;
-
-                }
-
                 const finished =
                     processSSEEvent(
                         event,
-                        assistantElement,
-                        generationId
+                        assistantElement
                     );
 
                 if(finished){
@@ -2746,29 +2113,17 @@ async function consumeSSEStream(
 
         if(
             !streamFinished &&
-            isCurrentGeneration(
-                generationId
-            ) &&
             buffer.trim()
         ){
 
             processSSEEvent(
                 buffer,
-                assistantElement,
-                generationId
+                assistantElement
             );
 
         }
 
-        /*
-            Só consideramos stream vazio como erro se não houve
-            interrupção e a geração ainda pertence ao contexto atual.
-        */
-
         if(
-            isCurrentGeneration(
-                generationId
-            ) &&
             !state.generationCancelled &&
             !state.currentAssistantContent.trim()
         ){
@@ -2790,7 +2145,7 @@ async function consumeSSEStream(
         catch(error){
 
             /*
-                Reader já libertado.
+            Reader já libertado.
             */
 
         }
@@ -2808,19 +2163,8 @@ PROCESS SSE EVENT
 
 function processSSEEvent(
     rawEvent,
-    assistantElement,
-    generationId
+    assistantElement
 ){
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return true;
-
-    }
 
     if(
         typeof rawEvent !==
@@ -2837,8 +2181,7 @@ function processSSEEvent(
             /\r?\n/
         );
 
-    const dataLines =
-        [];
+    const dataLines = [];
 
     for(
         const line
@@ -2878,8 +2221,7 @@ function processSSEEvent(
     ){
 
         finalizeStreamingAssistant(
-            assistantElement,
-            generationId
+            assistantElement
         );
 
         return true;
@@ -2906,106 +2248,70 @@ function processSSEEvent(
 
     }
 
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
+    /*
+    ======================================================
+    UI BEHAVIOR V4.1
 
-        return true;
+    A Honey IA recebe normalmente eventos de conexão,
+    estado e processamento enviados pelo backend.
 
-    }
+    Esses eventos NÃO são apresentados ao utilizador.
 
-    if(
-        payload?.connected
-    ){
+    Não mostrar:
+    - A se conectar
+    - A preparar a resposta
+    - A pensar
+    - estados internos do modelo
 
-        setAssistantStatus(
-            assistantElement,
-            "A Honey IA está a preparar a resposta..."
-        );
-
-    }
-
-    if(
-        payload?.status &&
-        typeof payload.status ===
-            "string"
-    ){
-
-        setAssistantStatus(
-            assistantElement,
-            payload.status
-        );
-
-    }
-
-    if(
-        payload?.thinking === true
-    ){
-
-        state.generationStatus =
-            "thinking";
-
-        setAssistantStatus(
-            assistantElement,
-            "A Honey IA está a analisar..."
-        );
-
-    }
-
-    let receivedText =
-        false;
+    O utilizador vê diretamente a resposta à medida
+    que ela é produzida.
+    ======================================================
+    */
 
     if(
         typeof payload?.text ===
-            "string" &&
+        "string" &&
         payload.text
     ){
 
-        appendStreamText(
-            payload.text,
+        state.currentAssistantContent +=
+            payload.text;
+
+        renderAssistantContent(
             assistantElement,
-            generationId
+            state.currentAssistantContent
         );
-
-        receivedText =
-            true;
-
-    }
-
-    if(
-        typeof payload?.delta ===
-            "string" &&
-        payload.delta
-    ){
-
-        appendStreamText(
-            payload.delta,
-            assistantElement,
-            generationId
-        );
-
-        receivedText =
-            true;
-
-    }
-
-    if(receivedText){
-
-        state.generationStatus =
-            "streaming";
 
         setAssistantStatus(
             assistantElement,
             ""
         );
 
+        scrollChatToBottom();
+
+    }
+
+    if(
+        typeof payload?.delta ===
+        "string" &&
+        payload.delta
+    ){
+
+        state.currentAssistantContent +=
+            payload.delta;
+
+        renderAssistantContent(
+            assistantElement,
+            state.currentAssistantContent
+        );
+
+        scrollChatToBottom();
+
     }
 
     if(
         typeof payload?.response ===
-            "string" &&
+        "string" &&
         payload.response &&
         !state.currentAssistantContent
     ){
@@ -3013,9 +2319,9 @@ function processSSEEvent(
         state.currentAssistantContent =
             payload.response;
 
-        queueAssistantRender(
+        renderAssistantContent(
             assistantElement,
-            generationId
+            state.currentAssistantContent
         );
 
     }
@@ -3091,7 +2397,7 @@ function processSSEEvent(
 
         state.agentId =
             typeof payload.agent ===
-                "string"
+            "string"
                 ? payload.agent
                 : (
                     payload.agent.id ||
@@ -3124,11 +2430,7 @@ function processSSEEvent(
 
             renderAssistantContent(
                 assistantElement,
-                response,
-                {
-                    final:
-                        true
-                }
+                response
             );
 
             addAssistantMessageOnce(
@@ -3138,10 +2440,10 @@ function processSSEEvent(
 
         }
 
-        renderResponseMetadata(
-            assistantElement,
-            payload
-        );
+        /*
+        A latência, modelo e outros dados técnicos
+        não são mostrados durante ou depois da resposta.
+        */
 
         setAssistantStatus(
             assistantElement,
@@ -3165,266 +2467,21 @@ function processSSEEvent(
 
 /*
 ==========================================================
-STREAM TEXT BUFFER
-==========================================================
-*/
-
-function appendStreamText(
-    text,
-    assistantElement,
-    generationId
-){
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    if(
-        typeof text !==
-        "string" ||
-        !text
-    ){
-
-        return;
-
-    }
-
-    state.currentAssistantContent +=
-        text;
-
-    queueAssistantRender(
-        assistantElement,
-        generationId
-    );
-
-}
-
-
-/*
-==========================================================
-QUEUE ASSISTANT RENDER
-==========================================================
-*/
-
-function queueAssistantRender(
-    assistantElement,
-    generationId
-){
-
-    if(
-        !assistantElement ||
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    state.streamRenderRequested =
-        true;
-
-    state.streamRenderGenerationId =
-        generationId;
-
-    if(state.streamRenderQueued){
-
-        return;
-
-    }
-
-    const now =
-        performance.now();
-
-    const elapsed =
-        now -
-        state.streamLastRenderAt;
-
-    const renderNow =
-        elapsed >=
-        STREAM_RENDER_INTERVAL;
-
-    state.streamRenderQueued =
-        true;
-
-    if(renderNow){
-
-        requestAnimationFrame(
-            () => {
-
-                performQueuedAssistantRender(
-                    assistantElement,
-                    generationId
-                );
-
-            }
-        );
-
-        return;
-
-    }
-
-    const delay =
-        Math.max(
-            0,
-            STREAM_RENDER_INTERVAL -
-            elapsed
-        );
-
-    state.streamRenderTimer =
-        setTimeout(
-            () => {
-
-                state.streamRenderTimer =
-                    null;
-
-                requestAnimationFrame(
-                    () => {
-
-                        performQueuedAssistantRender(
-                            assistantElement,
-                            generationId
-                        );
-
-                    }
-                );
-
-            },
-            delay
-        );
-
-}
-
-
-function performQueuedAssistantRender(
-    assistantElement,
-    generationId
-){
-
-    state.streamRenderQueued =
-        false;
-
-    state.streamRenderRequested =
-        false;
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    if(
-        !state.currentAssistantContent
-    ){
-
-        return;
-
-    }
-
-    state.streamLastRenderAt =
-        performance.now();
-
-    renderAssistantContent(
-        assistantElement,
-        state.currentAssistantContent,
-        {
-            final:
-                false
-        }
-    );
-
-    state.streamHasRenderedContent =
-        true;
-
-    /*
-        Este é o ponto central do novo comportamento:
-        só acompanhamos o fim se o utilizador estiver no fim.
-    */
-
-    if(state.userNearBottom){
-
-        scrollChatToBottom();
-
-    }
-
-}
-
-
-function clearStreamRenderTimer(){
-
-    if(
-        state.streamRenderTimer
-    ){
-
-        clearTimeout(
-            state.streamRenderTimer
-        );
-
-        state.streamRenderTimer =
-            null;
-
-    }
-
-    state.streamRenderQueued =
-        false;
-
-    state.streamRenderRequested =
-        false;
-
-}
-
-
-/*
-==========================================================
 FINALIZE STREAM
 ==========================================================
 */
 
 function finalizeStreamingAssistant(
-    assistantElement,
-    generationId
+    assistantElement
 ){
-
-    if(
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    clearStreamRenderTimer();
 
     if(
         state.currentAssistantContent.trim()
     ){
 
-        /*
-            Renderização final:
-            aqui sim fazemos Markdown completo e
-            syntax highlighting.
-        */
-
         renderAssistantContent(
             assistantElement,
-            state.currentAssistantContent,
-            {
-                final:
-                    true
-            }
+            state.currentAssistantContent
         );
 
         addAssistantMessageOnce(
@@ -3434,21 +2491,12 @@ function finalizeStreamingAssistant(
 
     }
 
-    state.generationStatus =
-        "completed";
-
     setAssistantStatus(
         assistantElement,
         ""
     );
 
     renderHistory();
-
-    if(state.userNearBottom){
-
-        scrollChatToBottom();
-
-    }
 
 }
 
@@ -3488,25 +2536,11 @@ function addAssistantMessageOnce(
         normalized
     ){
 
-        /*
-            Atualizamos a flag interrupted se necessário,
-            sem criar uma segunda mensagem.
-        */
-
-        if(
-            metadata?.interrupted === true
-        ){
-
-            last.interrupted =
-                true;
-
-        }
-
         return;
 
     }
 
-    state.messages.push({
+    const message = {
 
         id:
             state.currentAssistantMessageId ||
@@ -3521,202 +2555,12 @@ function addAssistantMessageOnce(
         createdAt:
             new Date().toISOString(),
 
-        interrupted:
-            metadata?.interrupted === true
+        ...metadata
 
-    });
+    };
 
-}
-
-
-/*
-==========================================================
-CLIENT MESSAGE ID
-==========================================================
-*/
-
-function createClientMessageId(){
-
-    if(
-        typeof crypto !== "undefined" &&
-        typeof crypto.randomUUID ===
-            "function"
-    ){
-
-        return crypto.randomUUID();
-
-    }
-
-    return `honey-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-}
-
-
-/*
-==========================================================
-REFRESH CONVERSATION
-==========================================================
-*/
-
-async function refreshCurrentConversation(){
-
-    if(!state.conversationId){
-
-        return;
-
-    }
-
-    try{
-
-        const data =
-            await apiRequest(
-                `/conversations/${encodeURIComponent(
-                    state.conversationId
-                )}`
-            );
-
-        if(data?.conversation){
-
-            synchronizeConversation(
-                data.conversation
-            );
-
-        }
-
-        if(
-            Array.isArray(
-                data?.messages
-            )
-        ){
-
-            state.messages =
-                [...data.messages];
-
-        }
-
-        await loadConversations();
-
-    }
-    catch(error){
-
-        if(
-            error?.status ===
-            401
-        ){
-
-            redirectToLogin();
-
-        }
-        else{
-
-            console.warn(
-                "[HONEY CHAT] Conversation refresh failed:",
-                error
-            );
-
-        }
-
-    }
-
-}
-
-
-/*
-==========================================================
-CONVERSATION STATE
-==========================================================
-*/
-
-function synchronizeConversation(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    state.conversation =
-        conversation;
-
-    state.conversationId =
-        getConversationId(
-            conversation
-        );
-
-    state.agentId =
-        conversation.agentId ||
-        state.agentId;
-
-    state.workspace =
-        conversation.workspace ||
-        state.workspace;
-
-    updateConversationHeader(
-        conversation
-    );
-
-    updateConversationInList(
-        conversation
-    );
-
-}
-
-
-function addConversationToState(
-    conversation
-){
-
-    const id =
-        getConversationId(
-            conversation
-        );
-
-    if(!id){
-
-        return;
-
-    }
-
-    const index =
-        state.conversations.findIndex(
-            item =>
-                getConversationId(item) ===
-                id
-        );
-
-    if(index >= 0){
-
-        state.conversations[index] =
-            conversation;
-
-    }
-    else{
-
-        state.conversations.unshift(
-            conversation
-        );
-
-    }
-
-}
-
-
-function updateConversationInList(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    addConversationToState(
-        conversation
+    state.messages.push(
+        message
     );
 
 }
@@ -3724,167 +2568,9 @@ function updateConversationInList(
 
 /*
 ==========================================================
-HEADER
+ASSISTANT MESSAGE RENDERING
 ==========================================================
 */
-
-function updateConversationHeader(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    const title =
-        conversation.title ||
-        "Nova Conversa";
-
-    if(dom.conversationTitle){
-
-        dom.conversationTitle.textContent =
-            title;
-
-    }
-
-}
-
-
-/*
-==========================================================
-MESSAGE RENDERING
-==========================================================
-*/
-
-function clearChatMessages(){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    dom.chatMessages.innerHTML =
-        "";
-
-}
-
-
-function showWelcome(){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    if(dom.chatWelcome){
-
-        dom.chatMessages.appendChild(
-            dom.chatWelcome
-        );
-
-        dom.chatWelcome.style.display =
-            "";
-
-        return;
-
-    }
-
-    const welcome =
-        document.createElement(
-            "div"
-        );
-
-    welcome.className =
-        "welcome-message";
-
-    welcome.id =
-        "chatWelcome";
-
-    welcome.innerHTML = `
-
-        <div class="welcome-icon">
-            <span>🐝</span>
-        </div>
-
-        <h3>
-            Olá, sou a Honey IA
-        </h3>
-
-        <p>
-            Como posso ajudar hoje?
-        </p>
-
-    `;
-
-    dom.chatMessages.appendChild(
-        welcome
-    );
-
-    dom.chatWelcome =
-        welcome;
-
-}
-
-
-function hideWelcome(){
-
-    if(dom.chatWelcome){
-
-        dom.chatWelcome.style.display =
-            "none";
-
-    }
-
-}
-
-
-function renderMessages(
-    messages
-){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    clearChatMessages();
-
-    if(
-        !Array.isArray(messages) ||
-        !messages.length
-    ){
-
-        showWelcome();
-
-        return;
-
-    }
-
-    messages.forEach(
-        message => {
-
-            appendMessage(
-                message,
-                false
-            );
-
-        }
-    );
-
-    state.userNearBottom =
-        true;
-
-    scrollChatToBottom(
-        true
-    );
-
-}
-
 
 function appendMessage(
     message,
@@ -3913,7 +2599,7 @@ function appendMessage(
 
     const content =
         typeof message?.content ===
-            "string"
+        "string"
             ? message.content
             : "";
 
@@ -3945,6 +2631,16 @@ function appendMessage(
 
     }
 
+    /*
+    ======================================================
+    AVATAR
+
+    O utilizador continua com o indicador "U".
+
+    A Honey IA NÃO recebe mais o emoji 🐝 nas respostas.
+    ======================================================
+    */
+
     const avatar =
         document.createElement(
             "div"
@@ -3958,10 +2654,12 @@ function appendMessage(
         "true"
     );
 
-    avatar.textContent =
-        role === "user"
-            ? "U"
-            : "🐝";
+    if(role === "user"){
+
+        avatar.textContent =
+            "U";
+
+    }
 
     const body =
         document.createElement(
@@ -4002,41 +2700,18 @@ function appendMessage(
         contentElement
     );
 
-    const timestamp =
-        createMessageTimestamp(
-            message?.createdAt
-        );
+    /*
+    Não são adicionados timestamps ao corpo
+    das mensagens.
+    */
 
-    if(timestamp){
+    if(role === "user"){
 
-        body.appendChild(
-            timestamp
-        );
-
-    }
-
-    if(message?.interrupted){
-
-        const status =
-            document.createElement(
-                "div"
-            );
-
-        status.className =
-            "assistant-status";
-
-        status.textContent =
-            "Resposta interrompida.";
-
-        body.appendChild(
-            status
+        wrapper.appendChild(
+            avatar
         );
 
     }
-
-    wrapper.appendChild(
-        avatar
-    );
 
     wrapper.appendChild(
         body
@@ -4048,12 +2723,7 @@ function appendMessage(
 
     if(scroll){
 
-        state.userNearBottom =
-            true;
-
-        scrollChatToBottom(
-            true
-        );
+        scrollChatToBottom();
 
     }
 
@@ -4089,24 +2759,6 @@ function createStreamingAssistantMessage(){
     wrapper.dataset.role =
         "assistant";
 
-    if(state.currentGenerationId){
-
-        wrapper.dataset.generationId =
-            state.currentGenerationId;
-
-    }
-
-    const avatar =
-        document.createElement(
-            "div"
-        );
-
-    avatar.className =
-        "message-avatar";
-
-    avatar.textContent =
-        "🐝";
-
     const body =
         document.createElement(
             "div"
@@ -4123,39 +2775,22 @@ function createStreamingAssistantMessage(){
     content.className =
         "message-content";
 
+    /*
+    Indicador visual discreto de streaming.
+    Não existe abelha nem texto de estado.
+    */
+
     content.innerHTML = `
-
-        <div class="chat-thinking">
-
+        <div class="chat-thinking"
+             aria-hidden="true">
             <span></span>
             <span></span>
             <span></span>
-
         </div>
-
     `;
 
     body.appendChild(
         content
-    );
-
-    const status =
-        document.createElement(
-            "div"
-        );
-
-    status.className =
-        "assistant-status";
-
-    status.textContent =
-        "A Honey IA está a preparar a resposta...";
-
-    body.appendChild(
-        status
-    );
-
-    wrapper.appendChild(
-        avatar
     );
 
     wrapper.appendChild(
@@ -4166,17 +2801,7 @@ function createStreamingAssistantMessage(){
         wrapper
     );
 
-    /*
-        A criação da mensagem é consequência direta do envio
-        do utilizador, portanto podemos ir ao fim.
-    */
-
-    state.userNearBottom =
-        true;
-
-    scrollChatToBottom(
-        true
-    );
+    scrollChatToBottom();
 
     return wrapper;
 
@@ -4191,8 +2816,7 @@ ASSISTANT CONTENT
 
 function renderAssistantContent(
     element,
-    content,
-    options = {}
+    content
 ){
 
     if(!element){
@@ -4215,15 +2839,12 @@ function renderAssistantContent(
     if(!content){
 
         contentElement.innerHTML = `
-
-            <div class="chat-thinking">
-
+            <div class="chat-thinking"
+                 aria-hidden="true">
                 <span></span>
                 <span></span>
                 <span></span>
-
             </div>
-
         `;
 
         return;
@@ -4235,20 +2856,9 @@ function renderAssistantContent(
             content
         );
 
-    /*
-        Durante streaming evitamos o highlighting completo.
-        No final fazemos a operação completa.
-    */
-
-    if(
-        options.final === true
-    ){
-
-        highlightCode(
-            contentElement
-        );
-
-    }
+    highlightCode(
+        contentElement
+    );
 
 }
 
@@ -4270,42 +2880,24 @@ function setAssistantStatus(
 
     }
 
-    let statusElement =
-        element.querySelector(
+    /*
+    ======================================================
+    HONEY IA V4.1
+
+    Nenhum estado textual de geração é mostrado.
+
+    Esta função permanece para manter compatibilidade
+    com o restante do motor, mas apenas remove qualquer
+    elemento de status que possa ter sido criado por uma
+    versão anterior do chat.js.
+    ======================================================
+    */
+
+    element
+        .querySelector(
             ".assistant-status"
-        );
-
-    if(!status){
-
-        statusElement?.remove();
-
-        return;
-
-    }
-
-    if(!statusElement){
-
-        statusElement =
-            document.createElement(
-                "div"
-            );
-
-        statusElement.className =
-            "assistant-status";
-
-        const body =
-            element.querySelector(
-                ".message-body"
-            );
-
-        body?.appendChild(
-            statusElement
-        );
-
-    }
-
-    statusElement.textContent =
-        status;
+        )
+        ?.remove();
 
 }
 
@@ -4355,23 +2947,13 @@ function renderResponseMetadata(
 
     }
 
-    if(
-        Number.isFinite(
-            Number(
-                result.latency
-            )
-        )
-    ){
+    /*
+    ======================================================
+    LATENCY REMOVIDA
 
-        metadata.push(
-            `${Math.round(
-                Number(
-                    result.latency
-                )
-            )} ms`
-        );
-
-    }
+    O valor "xxx ms" não é apresentado ao utilizador.
+    ======================================================
+    */
 
     if(result.model){
 
@@ -4383,7 +2965,9 @@ function renderResponseMetadata(
 
     }
 
-    if(result.provider){
+    if(
+        result.provider
+    ){
 
         metadata.push(
             String(
@@ -4440,65 +3024,6 @@ function renderResponseMetadata(
     body.appendChild(
         meta
     );
-
-}
-
-
-/*
-==========================================================
-TIMESTAMP
-==========================================================
-*/
-
-function createMessageTimestamp(
-    value
-){
-
-    if(!value){
-
-        return null;
-
-    }
-
-    const date =
-        new Date(
-            value
-        );
-
-    if(
-        Number.isNaN(
-            date.getTime()
-        )
-    ){
-
-        return null;
-
-    }
-
-    const element =
-        document.createElement(
-            "time"
-        );
-
-    element.className =
-        "message-time";
-
-    element.dateTime =
-        date.toISOString();
-
-    element.textContent =
-        date.toLocaleTimeString(
-            "pt-PT",
-            {
-                hour:
-                    "2-digit",
-
-                minute:
-                    "2-digit"
-            }
-        );
-
-    return element;
 
 }
 
@@ -4632,7 +3157,7 @@ function highlightCode(
     if(
         !container ||
         typeof hljs ===
-            "undefined"
+        "undefined"
     ){
 
         return;
@@ -4648,21 +3173,9 @@ function highlightCode(
 
                 try{
 
-                    if(
-                        block.dataset.honeyHighlighted ===
-                        "true"
-                    ){
-
-                        return;
-
-                    }
-
                     hljs.highlightElement(
                         block
                     );
-
-                    block.dataset.honeyHighlighted =
-                        "true";
 
                 }
                 catch(error){
@@ -4933,19 +3446,362 @@ function renderArtifacts(
         }
     );
 
-    state.artifacts =
-        state.artifacts.slice(
-            -MAX_VISIBLE_ARTIFACTS
-        );
+    if(
+        state.artifacts.length >
+        MAX_VISIBLE_ARTIFACTS
+    ){
+
+        state.artifacts =
+            state.artifacts.slice(
+                -MAX_VISIBLE_ARTIFACTS
+            );
+
+    }
 
     renderArtifactCards();
+
+}/*
+==========================================================
+ARTIFACT CARDS
+==========================================================
+*/
+
+function renderArtifactCards(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    let container =
+        dom.chatMessages.querySelector(
+            ".chat-artifacts-container"
+        );
+
+    if(!state.artifacts.length){
+
+        container?.remove();
+
+        return;
+
+    }
+
+    if(!container){
+
+        container =
+            document.createElement(
+                "section"
+            );
+
+        container.className =
+            "chat-artifacts-container";
+
+        container.setAttribute(
+            "aria-label",
+            "Artefactos"
+        );
+
+        dom.chatMessages.appendChild(
+            container
+        );
+
+    }
+
+    container.innerHTML = "";
+
+    state.artifacts.forEach(
+        artifact => {
+
+            const card =
+                createArtifactCard(
+                    artifact
+                );
+
+            if(card){
+
+                container.appendChild(
+                    card
+                );
+
+            }
+
+        }
+    );
 
 }
 
 
 /*
 ==========================================================
-ARTIFACT NORMALIZATION
+CREATE ARTIFACT CARD
+==========================================================
+*/
+
+function createArtifactCard(
+    artifact
+){
+
+    if(!artifact){
+
+        return null;
+
+    }
+
+    const card =
+        document.createElement(
+            "article"
+        );
+
+    card.className =
+        "artifact-card";
+
+    const header =
+        document.createElement(
+            "div"
+        );
+
+    header.className =
+        "artifact-header";
+
+    const title =
+        document.createElement(
+            "div"
+        );
+
+    title.className =
+        "artifact-title";
+
+    title.textContent =
+        artifact.name ||
+        artifact.title ||
+        "Artefacto";
+
+    const type =
+        document.createElement(
+            "span"
+        );
+
+    type.className =
+        "artifact-type";
+
+    type.textContent =
+        artifact.type ||
+        artifact.language ||
+        "arquivo";
+
+    header.appendChild(
+        title
+    );
+
+    header.appendChild(
+        type
+    );
+
+    const body =
+        document.createElement(
+            "div"
+        );
+
+    body.className =
+        "artifact-body";
+
+    const description =
+        document.createElement(
+            "div"
+        );
+
+    description.className =
+        "artifact-description";
+
+    description.textContent =
+        artifact.description ||
+        "";
+
+    if(
+        description.textContent
+    ){
+
+        body.appendChild(
+            description
+        );
+
+    }
+
+    if(
+        artifact.content ||
+        artifact.code
+    ){
+
+        const code =
+            document.createElement(
+                "pre"
+            );
+
+        const codeElement =
+            document.createElement(
+                "code"
+            );
+
+        codeElement.textContent =
+            artifact.content ||
+            artifact.code ||
+            "";
+
+        code.appendChild(
+            codeElement
+        );
+
+        body.appendChild(
+            code
+        );
+
+        if(
+            typeof hljs !==
+            "undefined"
+        ){
+
+            try{
+
+                hljs.highlightElement(
+                    codeElement
+                );
+
+            }
+            catch(error){
+
+                console.warn(
+                    "[HONEY CHAT] Artifact highlight error:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+    actions.className =
+        "artifact-actions";
+
+    if(
+        artifact.content ||
+        artifact.code
+    ){
+
+        const previewButton =
+            document.createElement(
+                "button"
+            );
+
+        previewButton.type =
+            "button";
+
+        previewButton.className =
+            "artifact-action";
+
+        previewButton.textContent =
+            "Pré-visualizar";
+
+        previewButton.addEventListener(
+            "click",
+            () => {
+
+                previewArtifact(
+                    artifact
+                );
+
+            }
+        );
+
+        actions.appendChild(
+            previewButton
+        );
+
+    }
+
+    const copyButton =
+        document.createElement(
+            "button"
+        );
+
+    copyButton.type =
+        "button";
+
+    copyButton.className =
+        "artifact-action";
+
+    copyButton.textContent =
+        "Copiar";
+
+    copyButton.addEventListener(
+        "click",
+        async () => {
+
+            const content =
+                artifact.content ||
+                artifact.code ||
+                "";
+
+            if(!content){
+
+                return;
+
+            }
+
+            try{
+
+                await navigator.clipboard.writeText(
+                    content
+                );
+
+                showToast(
+                    "Conteúdo copiado.",
+                    "success"
+                );
+
+            }
+            catch(error){
+
+                showToast(
+                    "Não foi possível copiar o conteúdo.",
+                    "error"
+                );
+
+            }
+
+        }
+    );
+
+    actions.appendChild(
+        copyButton
+    );
+
+    body.appendChild(
+        actions
+    );
+
+    card.appendChild(
+        header
+    );
+
+    card.appendChild(
+        body
+    );
+
+    return card;
+
+}
+
+
+/*
+==========================================================
+NORMALIZE ARTIFACT
 ==========================================================
 */
 
@@ -4955,20 +3811,9 @@ function normalizeArtifact(
 
     if(
         typeof artifact !==
-        "object"
+        "object" ||
+        !artifact
     ){
-
-        return null;
-
-    }
-
-    const content =
-        typeof artifact.content ===
-            "string"
-            ? artifact.content
-            : "";
-
-    if(!content){
 
         return null;
 
@@ -4978,20 +3823,33 @@ function normalizeArtifact(
 
         ...artifact,
 
+        id:
+            artifact.id ||
+            artifact._id ||
+            createClientMessageId(),
+
         name:
             artifact.name ||
-            "Honey IA Result",
+            artifact.filename ||
+            artifact.title ||
+            "Artefacto",
 
-        content,
-
-        mime:
-            artifact.mime ||
+        type:
             artifact.type ||
-            "",
-
-        language:
+            artifact.mimeType ||
             artifact.language ||
-            ""
+            "text",
+
+        content:
+            typeof artifact.content ===
+            "string"
+                ? artifact.content
+                : (
+                    typeof artifact.code ===
+                    "string"
+                        ? artifact.code
+                        : ""
+                )
 
     };
 
@@ -5011,187 +3869,9 @@ function getArtifactKey(
     return String(
         artifact.id ||
         artifact._id ||
-        `${artifact.name || "artifact"}:${artifact.language || ""}:${String(
-            artifact.content || ""
-        ).slice(0, 120)}`
+        artifact.name ||
+        ""
     );
-
-}
-
-
-/*
-==========================================================
-ARTIFACT CARDS
-==========================================================
-*/
-
-function renderArtifactCards(){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    const wasNearBottom =
-        state.userNearBottom;
-
-    dom.chatMessages
-        .querySelectorAll(
-            ".chat-artifact"
-        )
-        .forEach(
-            element =>
-                element.remove()
-        );
-
-    state.artifacts.forEach(
-        artifact => {
-
-            const card =
-                document.createElement(
-                    "section"
-                );
-
-            card.className =
-                "chat-artifact";
-
-            const header =
-                document.createElement(
-                    "header"
-                );
-
-            header.className =
-                "chat-artifact-header";
-
-            const title =
-                document.createElement(
-                    "strong"
-                );
-
-            title.textContent =
-                artifact.name;
-
-            const actions =
-                document.createElement(
-                    "div"
-                );
-
-            actions.className =
-                "chat-artifact-actions";
-
-            const previewButton =
-                document.createElement(
-                    "button"
-                );
-
-            previewButton.type =
-                "button";
-
-            previewButton.innerHTML =
-                `<i class="fa-solid fa-eye"></i>`;
-
-            previewButton.title =
-                "Abrir Preview";
-
-            previewButton.addEventListener(
-                "click",
-                () => {
-
-                    openArtifactPreview(
-                        artifact
-                    );
-
-                }
-            );
-
-            const copyButton =
-                document.createElement(
-                    "button"
-                );
-
-            copyButton.type =
-                "button";
-
-            copyButton.innerHTML =
-                `<i class="fa-regular fa-copy"></i>`;
-
-            copyButton.title =
-                "Copiar";
-
-            copyButton.addEventListener(
-                "click",
-                async () => {
-
-                    await copyText(
-                        artifact.content
-                    );
-
-                    showToast(
-                        "Artifact copiado.",
-                        "success"
-                    );
-
-                }
-            );
-
-            actions.appendChild(
-                previewButton
-            );
-
-            actions.appendChild(
-                copyButton
-            );
-
-            header.appendChild(
-                title
-            );
-
-            header.appendChild(
-                actions
-            );
-
-            const description =
-                document.createElement(
-                    "div"
-                );
-
-            description.className =
-                "chat-artifact-description";
-
-            description.textContent =
-                artifact.language ||
-                artifact.mime ||
-                "Resultado gerado pela Honey IA";
-
-            card.appendChild(
-                header
-            );
-
-            card.appendChild(
-                description
-            );
-
-            dom.chatMessages.appendChild(
-                card
-            );
-
-        }
-    );
-
-    /*
-        A recriação dos artifacts não deve roubar o viewport
-        de quem está lendo conteúdo anterior.
-    */
-
-    state.userNearBottom =
-        wasNearBottom;
-
-    if(wasNearBottom){
-
-        scrollChatToBottom();
-
-    }
 
 }
 
@@ -5202,24 +3882,20 @@ ARTIFACT PREVIEW
 ==========================================================
 */
 
-function openArtifactPreview(
+function previewArtifact(
     artifact
 ){
 
-    if(
-        !dom.previewPane ||
-        !dom.previewIframe
-    ){
+    if(!artifact){
 
         return;
 
     }
 
     const content =
-        typeof artifact?.content ===
-            "string"
-            ? artifact.content
-            : "";
+        artifact.content ||
+        artifact.code ||
+        "";
 
     if(!content){
 
@@ -5227,132 +3903,84 @@ function openArtifactPreview(
 
     }
 
+    if(!dom.previewIframe){
+
+        showToast(
+            "A área de pré-visualização não está disponível.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    let html =
+        content;
+
     const type =
         String(
-            artifact?.mime ||
-            artifact?.type ||
+            artifact.type ||
+            artifact.mimeType ||
+            artifact.language ||
             ""
         ).toLowerCase();
 
-    let documentContent;
-
     if(
-        type.includes("html") ||
-        artifact?.language ===
-        "html"
+        !type.includes(
+            "html"
+        ) &&
+        !/<html[\s>]/i.test(
+            content
+        )
     ){
 
-        documentContent =
-            content;
+        if(
+            type.includes("css")
+        ){
 
-    }
-    else{
-
-        documentContent = `
-
+            html = `
 <!DOCTYPE html>
-
-<html lang="pt">
-
+<html lang="pt-PT">
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
+<meta name="viewport"
+      content="width=device-width,initial-scale=1">
 <style>
-
-*{
-    box-sizing:border-box;
-}
-
-body{
-
-    margin:0;
-
-    padding:24px;
-
-    background:#07080a;
-
-    color:#f4f4f5;
-
-    font-family:
-        Inter,
-        Arial,
-        sans-serif;
-
-}
-
-pre{
-
-    margin:0;
-
-    white-space:pre-wrap;
-
-    word-break:break-word;
-
-    line-height:1.65;
-
-}
-
+${content}
 </style>
-
 </head>
-
 <body>
-
-<pre>${escapeHTML(
-            content
-        )}</pre>
-
 </body>
-
 </html>
+            `;
 
-`;
+        }
+        else{
+
+            html = `
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1">
+</head>
+<body>
+<pre>${escapeHTML(content)}</pre>
+</body>
+</html>
+            `;
+
+        }
 
     }
-
-    dom.previewIframe.setAttribute(
-        "sandbox",
-        "allow-scripts"
-    );
 
     dom.previewIframe.srcdoc =
-        documentContent;
+        html;
 
-    dom.previewPane.classList.add(
-        "open"
+    dom.previewPane?.classList.add(
+        "active"
     );
-
-}
-
-
-function setupPreview(){
-
-    dom.btnClosePreview?.addEventListener(
-        "click",
-        closeArtifactPreview
-    );
-
-}
-
-
-function closeArtifactPreview(){
-
-    dom.previewPane?.classList.remove(
-        "open"
-    );
-
-    if(dom.previewIframe){
-
-        dom.previewIframe.srcdoc =
-            "";
-
-    }
 
 }
 
@@ -5368,9 +3996,10 @@ function renderTools(
 ){
 
     if(
-        !Array.isArray(tools) ||
-        !tools.length ||
-        !dom.chatMessages
+        !Array.isArray(
+            tools
+        ) ||
+        !tools.length
     ){
 
         return;
@@ -5393,30 +4022,30 @@ function renderTools(
                 id:
                     tool.id ||
                     tool._id ||
-                    createClientMessageId(),
-
-                name:
-                    tool.name ||
-                    tool.tool ||
-                    "Ferramenta",
-
-                success:
-                    tool.success !== false
+                    createClientMessageId()
 
             };
 
-            const index =
+            const existing =
                 state.tools.findIndex(
                     item =>
-                        String(item.id) ===
-                        String(normalized.id)
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            normalized.id
+                        )
                 );
 
-            if(index >= 0){
+            if(existing >= 0){
 
-                state.tools[index] =
+                state.tools[
+                    existing
+                ] =
                     {
-                        ...state.tools[index],
+                        ...state.tools[
+                            existing
+                        ],
                         ...normalized
                     };
 
@@ -5432,23 +4061,30 @@ function renderTools(
         }
     );
 
-    state.tools =
-        state.tools.slice(
-            -MAX_VISIBLE_TOOLS
-        );
+    if(
+        state.tools.length >
+        MAX_VISIBLE_TOOLS
+    ){
 
-    renderToolCards();
+        state.tools =
+            state.tools.slice(
+                -MAX_VISIBLE_TOOLS
+            );
+
+    }
+
+    renderToolActivity();
 
 }
 
 
 /*
 ==========================================================
-TOOL CARDS
+TOOL ACTIVITY
 ==========================================================
 */
 
-function renderToolCards(){
+function renderToolActivity(){
 
     if(!dom.chatMessages){
 
@@ -5456,249 +4092,961 @@ function renderToolCards(){
 
     }
 
-    const wasNearBottom =
-        state.userNearBottom;
+    let container =
+        dom.chatMessages.querySelector(
+            ".chat-tools-container"
+        );
+
+    if(!state.tools.length){
+
+        container?.remove();
+
+        return;
+
+    }
+
+    if(!container){
+
+        container =
+            document.createElement(
+                "section"
+            );
+
+        container.className =
+            "chat-tools-container";
+
+        container.setAttribute(
+            "aria-label",
+            "Atividade de ferramentas"
+        );
+
+        dom.chatMessages.appendChild(
+            container
+        );
+
+    }
+
+    container.innerHTML = "";
+
+    state.tools.forEach(
+        tool => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "chat-tool-item";
+
+            const name =
+                document.createElement(
+                    "span"
+                );
+
+            name.className =
+                "chat-tool-name";
+
+            name.textContent =
+                tool.name ||
+                tool.tool ||
+                tool.type ||
+                "Ferramenta";
+
+            const status =
+                document.createElement(
+                    "span"
+                );
+
+            status.className =
+                "chat-tool-status";
+
+            status.textContent =
+                normalizeToolStatus(
+                    tool
+                );
+
+            item.appendChild(
+                name
+            );
+
+            item.appendChild(
+                status
+            );
+
+            container.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+function normalizeToolStatus(
+    tool
+){
+
+    if(!tool){
+
+        return "";
+
+    }
+
+    if(
+        tool.error ||
+        tool.failed
+    ){
+
+        return "Falhou";
+
+    }
+
+    if(
+        tool.completed ||
+        tool.done ||
+        tool.status ===
+        "completed"
+    ){
+
+        return "Concluída";
+
+    }
+
+    if(
+        tool.running ||
+        tool.status ===
+        "running"
+    ){
+
+        return "Em execução";
+
+    }
+
+    return (
+        tool.status ||
+        ""
+    );
+
+}
+
+
+/*
+==========================================================
+LIVE MODE
+==========================================================
+*/
+
+async function sendLiveMessage(
+    prompt,
+    assistantElement
+){
+
+    state.isLive =
+        true;
+
+    const payload = {
+
+        prompt,
+
+        conversationId:
+            state.conversationId,
+
+        agentId:
+            state.agentId,
+
+        mode:
+            "live",
+
+        workspaceContext: {
+
+            workspace:
+                state.workspace
+
+        }
+
+    };
+
+    const controller =
+        new AbortController();
+
+    state.liveAbortController =
+        controller;
+
+    const token =
+        getAuthToken();
+
+    const headers = {
+
+        "Content-Type":
+            "application/json",
+
+        "Accept":
+            "text/event-stream"
+
+    };
+
+    if(token){
+
+        headers.Authorization =
+            `Bearer ${token}`;
+
+    }
+
+    const response =
+        await fetch(
+            API_BASE,
+            {
+
+                method:
+                    "POST",
+
+                headers,
+
+                body:
+                    JSON.stringify(
+                        payload
+                    ),
+
+                signal:
+                    controller.signal
+
+            }
+        );
+
+    if(response.status === 401){
+
+        const error =
+            new Error(
+                "Sessão expirada."
+            );
+
+        error.status =
+            401;
+
+        throw error;
+
+    }
+
+    if(!response.ok){
+
+        let message =
+            `Erro HTTP ${response.status}.`;
+
+        try{
+
+            const data =
+                await response.json();
+
+            message =
+                data?.error ||
+                data?.message ||
+                message;
+
+        }
+        catch(error){
+
+            /*
+            Resposta sem JSON.
+            */
+
+        }
+
+        const error =
+            new Error(
+                message
+            );
+
+        error.status =
+            response.status;
+
+        throw error;
+
+    }
+
+    if(!response.body){
+
+        throw new Error(
+            "O modo Live não recebeu um stream válido."
+        );
+
+    }
+
+    await consumeSSEStream(
+        response.body,
+        assistantElement
+    );
+
+}
+
+
+/*
+==========================================================
+CONVERSATION SYNCHRONIZATION
+==========================================================
+*/
+
+function synchronizeConversation(
+    conversation
+){
+
+    if(!conversation){
+
+        return;
+
+    }
+
+    state.conversation =
+        {
+            ...state.conversation,
+            ...conversation
+        };
+
+    const id =
+        getConversationId(
+            conversation
+        );
+
+    if(id){
+
+        state.conversationId =
+            id;
+
+    }
+
+    if(
+        conversation.agentId
+    ){
+
+        state.agentId =
+            conversation.agentId;
+
+    }
+
+    if(
+        conversation.workspace
+    ){
+
+        state.workspace =
+            conversation.workspace;
+
+    }
+
+    updateConversationHeader(
+        state.conversation
+    );
+
+    updateConversationInList(
+        conversation
+    );
+
+}
+
+
+/*
+==========================================================
+CONVERSATION LIST STATE
+==========================================================
+*/
+
+function addConversationToState(
+    conversation
+){
+
+    const id =
+        getConversationId(
+            conversation
+        );
+
+    if(!id){
+
+        return;
+
+    }
+
+    const index =
+        state.conversations.findIndex(
+            item =>
+                getConversationId(
+                    item
+                ) === id
+        );
+
+    if(index >= 0){
+
+        state.conversations[
+            index
+        ] =
+            {
+                ...state.conversations[
+                    index
+                ],
+                ...conversation
+            };
+
+    }
+    else{
+
+        state.conversations.unshift(
+            conversation
+        );
+
+    }
+
+}
+
+
+function updateConversationInList(
+    conversation
+){
+
+    if(!conversation){
+
+        return;
+
+    }
+
+    const id =
+        getConversationId(
+            conversation
+        );
+
+    if(!id){
+
+        return;
+
+    }
+
+    const index =
+        state.conversations.findIndex(
+            item =>
+                getConversationId(
+                    item
+                ) === id
+        );
+
+    if(index >= 0){
+
+        state.conversations[
+            index
+        ] =
+            {
+                ...state.conversations[
+                    index
+                ],
+                ...conversation
+            };
+
+    }
+    else{
+
+        state.conversations.unshift(
+            conversation
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+CONVERSATION HEADER
+==========================================================
+*/
+
+function updateConversationHeader(
+    conversation
+){
+
+    if(!conversation){
+
+        return;
+
+    }
+
+    const title =
+        conversation.title ||
+        conversation.name ||
+        "Nova Conversa";
+
+    if(dom.chatTitle){
+
+        dom.chatTitle.textContent =
+            title;
+
+    }
+
+    if(dom.chatContext){
+
+        dom.chatContext.dataset.conversationId =
+            state.conversationId ||
+            "";
+
+    }
+
+    if(dom.chatAgent){
+
+        dom.chatAgent.textContent =
+            formatAgentName(
+                conversation.agentId ||
+                state.agentId
+            );
+
+    }
+
+    /*
+    ======================================================
+    NÃO MOSTRAR ESTADO DE CONEXÃO
+
+    A Honey IA não exibe:
+    "A se conectar"
+    "Ligando..."
+    "Conectando..."
+    "Online"
+    ou estados técnicos equivalentes.
+    ======================================================
+    */
+
+    if(dom.chatStatus){
+
+        dom.chatStatus.textContent =
+            "";
+
+        dom.chatStatus.removeAttribute(
+            "data-status"
+        );
+
+        dom.chatStatus.classList.remove(
+            "active",
+            "connected",
+            "connecting",
+            "online",
+            "loading"
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+AGENT NAME
+==========================================================
+*/
+
+function formatAgentName(
+    agent
+){
+
+    if(!agent){
+
+        return "Honey IA";
+
+    }
+
+    const normalized =
+        String(
+            agent
+        ).trim();
+
+    if(
+        !normalized ||
+        normalized ===
+        "general"
+    ){
+
+        return "Honey IA";
+
+    }
+
+    return normalized;
+
+}
+
+
+/*
+==========================================================
+RENDER HISTORY
+==========================================================
+*/
+
+function renderHistory(){
+
+    if(!dom.historyList){
+
+        return;
+
+    }
+
+    dom.historyList.innerHTML =
+        "";
+
+    const query =
+        state.searchQuery
+            .trim()
+            .toLowerCase();
+
+    const conversations =
+        state.conversations.filter(
+            conversation => {
+
+                if(!query){
+
+                    return true;
+
+                }
+
+                const title =
+                    String(
+                        conversation.title ||
+                        conversation.name ||
+                        ""
+                    ).toLowerCase();
+
+                return title.includes(
+                    query
+                );
+
+            }
+        );
+
+    conversations.forEach(
+        conversation => {
+
+            const id =
+                getConversationId(
+                    conversation
+                );
+
+            if(!id){
+
+                return;
+
+            }
+
+            const item =
+                document.createElement(
+                    "button"
+                );
+
+            item.type =
+                "button";
+
+            item.className =
+                "history-item";
+
+            if(
+                String(
+                    state.conversationId
+                ) ===
+                String(
+                    id
+                )
+            ){
+
+                item.classList.add(
+                    "active"
+                );
+
+            }
+
+            const title =
+                document.createElement(
+                    "span"
+                );
+
+            title.className =
+                "history-item-title";
+
+            title.textContent =
+                conversation.title ||
+                conversation.name ||
+                "Nova Conversa";
+
+            item.appendChild(
+                title
+            );
+
+            item.addEventListener(
+                "click",
+                () => {
+
+                    openConversation(
+                        id
+                    );
+
+                }
+            );
+
+            dom.historyList.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+/*
+==========================================================
+SEARCH
+==========================================================
+*/
+
+function setupSearch(){
+
+    if(!dom.searchInput){
+
+        return;
+
+    }
+
+    dom.searchInput.addEventListener(
+        "input",
+        event => {
+
+            state.searchQuery =
+                event.target.value ||
+                "";
+
+            renderHistory();
+
+        }
+    );
+
+}
+
+
+/*
+==========================================================
+RENDER MESSAGES
+==========================================================
+*/
+
+function renderMessages(
+    messages
+){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    dom.chatMessages.innerHTML =
+        "";
+
+    if(
+        !Array.isArray(
+            messages
+        ) ||
+        !messages.length
+    ){
+
+        showWelcome();
+
+        return;
+
+    }
+
+    hideWelcome();
+
+    messages.forEach(
+        message => {
+
+            appendMessage(
+                message,
+                false
+            );
+
+        }
+    );
+
+    removeAllMessageTimeElements();
+
+    removeLegacyAssistantIndicators();
+
+    scrollChatToBottom(
+        false
+    );
+
+}
+
+
+/*
+==========================================================
+CLEAR CHAT
+==========================================================
+*/
+
+function clearChatMessages(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    dom.chatMessages.innerHTML =
+        "";
+
+    state.artifacts =
+        [];
+
+    state.tools =
+        [];
+
+}
+
+
+/*
+==========================================================
+WELCOME
+==========================================================
+*/
+
+function showWelcome(){
+
+    if(dom.chatWelcome){
+
+        dom.chatWelcome.hidden =
+            false;
+
+        dom.chatWelcome.style.display =
+            "";
+
+    }
+
+}
+
+
+function hideWelcome(){
+
+    if(dom.chatWelcome){
+
+        dom.chatWelcome.hidden =
+            true;
+
+        dom.chatWelcome.style.display =
+            "none";
+
+    }
+
+}
+
+
+/*
+==========================================================
+LEGACY UI CLEANUP
+==========================================================
+*/
+
+function removeLegacyAssistantIndicators(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    /*
+    Remove qualquer elemento antigo de:
+
+    - bee
+    - honey avatar
+    - connecting
+    - thinking text
+    - response time
+    - timestamps
+
+    Isto também torna a V4.1 compatível com mensagens
+    que já estavam no DOM antes da atualização.
+    */
 
     dom.chatMessages
         .querySelectorAll(
-            ".chat-tool-result"
+            ".message-time, " +
+            ".assistant-status, " +
+            ".connection-status, " +
+            ".connecting-status, " +
+            ".chat-connection-status, " +
+            ".response-time, " +
+            ".latency, " +
+            ".generation-time, " +
+            ".message-timestamp, " +
+            ".timestamp, " +
+            ".bee-avatar, " +
+            ".honey-avatar"
         )
         .forEach(
             element =>
                 element.remove()
         );
 
-    state.tools.forEach(
-        tool => {
-
-            const element =
-                document.createElement(
-                    "div"
-                );
-
-            element.className =
-                "chat-tool-result";
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-            icon.className =
-                tool.success
-                    ? "fa-solid fa-circle-check"
-                    : "fa-solid fa-circle-exclamation";
-
-            const text =
-                document.createElement(
-                    "span"
-                );
-
-            const status =
-                tool.success
-                    ? "Concluído"
-                    : "Falhou";
-
-            text.textContent =
-                `${tool.name} · ${status}`;
-
-            element.appendChild(
-                icon
-            );
-
-            element.appendChild(
-                text
-            );
-
-            dom.chatMessages.appendChild(
-                element
-            );
-
-        }
-    );
-
-    state.userNearBottom =
-        wasNearBottom;
-
-    if(wasNearBottom){
-
-        scrollChatToBottom();
-
-    }
-
 }
 
 
-/*
-==========================================================
-COPY
-==========================================================
-*/
+function removeAllMessageTimeElements(){
 
-async function copyText(
-    value
-){
-
-    const text =
-        String(
-            value || ""
-        );
-
-    if(!text){
-
-        return false;
-
-    }
-
-    try{
-
-        await navigator.clipboard.writeText(
-            text
-        );
-
-        return true;
-
-    }
-    catch(error){
-
-        try{
-
-            const textarea =
-                document.createElement(
-                    "textarea"
-                );
-
-            textarea.value =
-                text;
-
-            textarea.style.position =
-                "fixed";
-
-            textarea.style.opacity =
-                "0";
-
-            document.body.appendChild(
-                textarea
-            );
-
-            textarea.select();
-
-            document.execCommand(
-                "copy"
-            );
-
-            textarea.remove();
-
-            return true;
-
-        }
-        catch(fallbackError){
-
-            return false;
-
-        }
-
-    }
-
-}
-
-
-/*
-==========================================================
-ERROR
-==========================================================
-*/
-
-function showErrorMessage(
-    message
-){
-
-    const element =
-        document.createElement(
-            "div"
-        );
-
-    element.className =
-        "chat-error-message";
-
-    const icon =
-        document.createElement(
-            "i"
-        );
-
-    icon.className =
-        "fa-solid fa-circle-exclamation";
-
-    const text =
-        document.createElement(
-            "span"
-        );
-
-    text.textContent =
-        String(
-            message ||
-            "Ocorreu um erro."
-        );
-
-    element.appendChild(
-        icon
-    );
-
-    element.appendChild(
-        text
-    );
-
-    dom.chatMessages?.appendChild(
-        element
-    );
-
-    /*
-        Erro provocado diretamente pelo envio deve aparecer
-        imediatamente no final. Depois disso o utilizador
-        volta a controlar o viewport.
-    */
-
-    state.userNearBottom =
-        true;
-
-    scrollChatToBottom(
-        true
-    );
-
-}
-
-
-/*
-==========================================================
-STREAMING EMPTY STATE
-==========================================================
-*/
-
-function removeStreamingAssistantIfEmpty(
-    element
-){
-
-    if(!element){
+    if(!dom.chatMessages){
 
         return;
 
     }
 
-    if(
-        !state.currentAssistantContent
-            .trim()
-    ){
-
-        element.remove();
-
-    }
+    dom.chatMessages
+        .querySelectorAll(
+            "time.message-time, " +
+            ".message-time, " +
+            ".message-timestamp, " +
+            ".timestamp, " +
+            ".response-time, " +
+            ".latency, " +
+            ".generation-time"
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
 
 }
 
 
 /*
 ==========================================================
-INPUT STATE
+TIMESTAMP
+==========================================================
+*/
+
+function createMessageTimestamp(
+    value
+){
+
+    /*
+    ======================================================
+    DESATIVADO NA V4.1
+
+    Mantemos a função para compatibilidade com qualquer
+    código externo que possa chamá-la, mas ela nunca cria
+    elementos de tempo.
+
+    A interface da Honey IA não mostra horários nas
+    mensagens.
+    ======================================================
+    */
+
+    return null;
+
+}
+
+
+/*
+==========================================================
+SEND STATE
 ==========================================================
 */
 
@@ -5706,88 +5054,101 @@ function setSendingState(
     sending
 ){
 
+    state.isSending =
+        Boolean(
+            sending
+        );
+
+    if(dom.chatInput){
+
+        dom.chatInput.disabled =
+            Boolean(
+                sending
+            );
+
+    }
+
     if(dom.btnSend){
 
         dom.btnSend.disabled =
             false;
 
         dom.btnSend.classList.toggle(
-            "loading",
-            sending
+            "sending",
+            Boolean(
+                sending
+            )
         );
 
-        if(sending){
-
-            dom.btnSend.innerHTML = `
-
-                <i class="fa-solid fa-stop"></i>
-
-            `;
-
-            dom.btnSend.title =
-                "Parar geração";
-
-            dom.btnSend.setAttribute(
-                "aria-label",
-                "Parar geração"
-            );
-
-            dom.btnSend.setAttribute(
-                "data-state",
-                "generating"
-            );
-
-        }
-        else{
-
-            dom.btnSend.innerHTML = `
-
-                <i class="fa-solid fa-paper-plane"></i>
-
-            `;
-
-            dom.btnSend.title =
-                "Enviar mensagem";
-
-            dom.btnSend.setAttribute(
-                "aria-label",
-                "Enviar mensagem"
-            );
-
-            dom.btnSend.setAttribute(
-                "data-state",
-                "idle"
-            );
-
-        }
-
-    }
-
-    if(dom.chatInput){
-
-        dom.chatInput.disabled =
-            sending;
-
-    }
-
-    if(dom.btnAttach){
-
-        dom.btnAttach.disabled =
-            sending;
+        /*
+        O botão continua disponível visualmente para que
+        o utilizador possa interromper a geração através
+        da interface existente.
+        */
 
     }
 
     if(dom.btnVoice){
 
         dom.btnVoice.disabled =
-            sending;
+            Boolean(
+                sending
+            );
+
+    }
+
+    if(dom.btnAttach){
+
+        dom.btnAttach.disabled =
+            Boolean(
+                sending
+            );
+
+    }
+
+    if(dom.btnNewChat){
+
+        dom.btnNewChat.disabled =
+            Boolean(
+                sending
+            );
+
+    }
+
+    if(dom.btnNewConversation){
+
+        dom.btnNewConversation.disabled =
+            Boolean(
+                sending
+            );
 
     }
 
     /*
-        Não bloqueamos os botões de nova conversa.
-        O utilizador deve poder abandonar o contexto atual.
+    ======================================================
+    IMPORTANTE
+
+    Não atualizar dom.chatStatus com:
+
+    "A se conectar"
+    "A pensar"
+    "A preparar..."
+    "Gerando..."
+    "Processando..."
+
+    A interface permanece limpa.
+    ======================================================
     */
+
+    if(dom.chatStatus){
+
+        dom.chatStatus.textContent =
+            "";
+
+        dom.chatStatus.hidden =
+            true;
+
+    }
 
 }
 
@@ -5802,8 +5163,6 @@ function clearInputAfterSend(){
 
     if(!dom.chatInput){
 
-        removeAttachment();
-
         return;
 
     }
@@ -5812,11 +5171,413 @@ function clearInputAfterSend(){
         "";
 
     dom.chatInput.style.height =
-        "auto";
+        "";
 
     removeAttachment();
 
-    focusChatInput();
+}
+
+
+/*
+==========================================================
+SCROLL
+==========================================================
+*/
+
+function scrollChatToBottom(
+    force = true
+){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    /*
+    Só seguimos automaticamente o fim enquanto o utilizador
+    estiver próximo do fundo.
+
+    Assim a Honey não rouba o controlo do conteúdo.
+    */
+
+    if(
+        !force &&
+        !isUserNearChatBottom()
+    ){
+
+        return;
+
+    }
+
+    if(
+        state.userManuallyScrolledAway ===
+        true &&
+        force
+    ){
+
+        return;
+
+    }
+
+    dom.chatMessages.scrollTo({
+
+        top:
+            dom.chatMessages.scrollHeight,
+
+        behavior:
+            "smooth"
+
+    });
+
+}
+
+
+/*
+==========================================================
+USER NEAR BOTTOM
+==========================================================
+*/
+
+function isUserNearChatBottom(){
+
+    if(!dom.chatMessages){
+
+        return true;
+
+    }
+
+    const distance =
+        dom.chatMessages.scrollHeight -
+        dom.chatMessages.scrollTop -
+        dom.chatMessages.clientHeight;
+
+    return distance <= 120;
+
+}
+
+
+/*
+==========================================================
+SCROLL CONTROL
+==========================================================
+*/
+
+state.userManuallyScrolledAway =
+    false;
+
+function setupChatScrollControl(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    dom.chatMessages.addEventListener(
+        "scroll",
+        () => {
+
+            state.userManuallyScrolledAway =
+                !isUserNearChatBottom();
+
+        },
+        {
+            passive:
+                true
+        }
+    );
+
+}
+
+setupChatScrollControl();
+
+
+/*
+==========================================================
+REMOVE STREAMING ASSISTANT IF EMPTY
+==========================================================
+*/
+
+function removeStreamingAssistantIfEmpty(
+    element
+){
+
+    if(!element){
+
+        return;
+
+    }
+
+    if(
+        !state.currentAssistantContent.trim()
+    ){
+
+        element.remove();
+
+    }
+
+}
+
+
+/*
+==========================================================
+ERROR MESSAGE
+==========================================================
+*/
+
+function showErrorMessage(
+    message
+){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    const element =
+        document.createElement(
+            "article"
+        );
+
+    element.className =
+        "chat-message message-error";
+
+    const body =
+        document.createElement(
+            "div"
+        );
+
+    body.className =
+        "message-body";
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+    content.className =
+        "message-content";
+
+    content.textContent =
+        String(
+            message ||
+            "Ocorreu um erro."
+        );
+
+    body.appendChild(
+        content
+    );
+
+    element.appendChild(
+        body
+    );
+
+    dom.chatMessages.appendChild(
+        element
+    );
+
+    scrollChatToBottom();
+
+}
+
+
+/*
+==========================================================
+TOAST
+==========================================================
+*/
+
+function showToast(
+    message,
+    type = "info"
+){
+
+    if(
+        typeof window.showToast ===
+        "function"
+    ){
+
+        window.showToast(
+            message,
+            type
+        );
+
+        return;
+
+    }
+
+    let container =
+        document.getElementById(
+            "honeyToastContainer"
+        );
+
+    if(!container){
+
+        container =
+            document.createElement(
+                "div"
+            );
+
+        container.id =
+            "honeyToastContainer";
+
+        container.className =
+            "honey-toast-container";
+
+        document.body.appendChild(
+            container
+        );
+
+    }
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.className =
+        `honey-toast honey-toast-${type}`;
+
+    toast.textContent =
+        String(
+            message ||
+            ""
+        );
+
+    container.appendChild(
+        toast
+    );
+
+    requestAnimationFrame(
+        () => {
+
+            toast.classList.add(
+                "visible"
+            );
+
+        }
+    );
+
+    setTimeout(
+        () => {
+
+            toast.classList.remove(
+                "visible"
+            );
+
+            setTimeout(
+                () => {
+
+                    toast.remove();
+
+                },
+                250
+            );
+
+        },
+        2800
+    );
+
+}
+
+
+/*
+==========================================================
+API ERROR HANDLER
+==========================================================
+*/
+
+function handleApiError(
+    error,
+    fallbackMessage
+){
+
+    console.error(
+        "[HONEY CHAT]",
+        error
+    );
+
+    if(
+        error?.status ===
+        401
+    ){
+
+        redirectToLogin();
+
+        return;
+
+    }
+
+    showToast(
+        error?.message ||
+        fallbackMessage ||
+        "Ocorreu um erro.",
+        "error"
+    );
+
+}
+
+
+/*
+==========================================================
+CLIENT ID
+==========================================================
+*/
+
+function createClientMessageId(){
+
+    if(
+        typeof crypto !==
+        "undefined" &&
+        typeof crypto.randomUUID ===
+        "function"
+    ){
+
+        return crypto.randomUUID();
+
+    }
+
+    return (
+        "honey-" +
+        Date.now().toString(36) +
+        "-" +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+
+}
+
+
+/*
+==========================================================
+AUTHENTICATION UI
+==========================================================
+*/
+
+function updateAuthenticationUI(){
+
+    if(!state.authenticated){
+
+        return;
+
+    }
+
+    /*
+    Não mostrar indicadores técnicos de conexão.
+    */
+
+    if(dom.chatStatus){
+
+        dom.chatStatus.textContent =
+            "";
+
+        dom.chatStatus.hidden =
+            true;
+
+    }
 
 }
 
@@ -5833,36 +5594,17 @@ function setupAttachmentControls(){
         "click",
         () => {
 
-            if(
-                !state.isSending
-            ){
-
-                dom.fileInput?.click();
-
-            }
+            dom.fileInput?.click();
 
         }
     );
 
     dom.fileInput?.addEventListener(
         "change",
-        event => {
-
-            const file =
-                event.target.files?.[0];
-
-            if(file){
-
-                handleSelectedFile(
-                    file
-                );
-
-            }
-
-        }
+        handleFileSelection
     );
 
-    dom.btnRemoveAttachment?.addEventListener(
+    dom.fileRemove?.addEventListener(
         "click",
         removeAttachment
     );
@@ -5870,9 +5612,12 @@ function setupAttachmentControls(){
 }
 
 
-async function handleSelectedFile(
-    file
+async function handleFileSelection(
+    event
 ){
+
+    const file =
+        event.target?.files?.[0];
 
     if(!file){
 
@@ -5886,108 +5631,176 @@ async function handleSelectedFile(
     ){
 
         showToast(
-            "O ficheiro ultrapassa o limite de 1 MB.",
+            "O arquivo ultrapassa o limite permitido.",
             "error"
         );
 
-        resetFileInput();
+        removeAttachment();
 
         return;
 
     }
-
-    const extension =
-        getFileExtension(
-            file.name
-        );
 
     state.selectedFile =
         file;
 
-    state.selectedFileSupported =
-        SUPPORTED_TEXT_EXTENSIONS.includes(
-            extension
-        );
-
     state.selectedFileContent =
         "";
 
-    if(!state.selectedFileSupported){
-
-        updateAttachmentUI(
-            file.name,
-            "Ficheiro selecionado. Este formato não possui leitura direta."
+    state.selectedFileSupported =
+        isSupportedTextFile(
+            file
         );
 
-        showToast(
-            "Este tipo de ficheiro não possui leitura de conteúdo integrada.",
-            "warning"
-        );
+    if(
+        state.selectedFileSupported
+    ){
 
-        return;
+        try{
 
-    }
+            state.selectedFileContent =
+                await file.text();
 
-    try{
+        }
+        catch(error){
 
-        const content =
-            await file.text();
-
-        state.selectedFileContent =
-            content.slice(
-                0,
-                MAX_MESSAGE_LENGTH
+            console.error(
+                "[HONEY CHAT] File read error:",
+                error
             );
 
-        updateAttachmentUI(
-            file.name,
-            "Conteúdo pronto para análise."
-        );
+            state.selectedFileContent =
+                "";
 
-        showToast(
-            "Ficheiro anexado à próxima mensagem.",
-            "success"
-        );
+            state.selectedFileSupported =
+                false;
+
+        }
 
     }
-    catch(error){
 
-        console.error(
-            "[HONEY CHAT] File read error:",
-            error
-        );
-
-        state.selectedFileSupported =
-            false;
-
-        state.selectedFileContent =
-            "";
-
-        showToast(
-            "Não foi possível ler o ficheiro.",
-            "error"
-        );
-
-    }
+    updateAttachmentUI();
 
 }
 
 
-function updateAttachmentUI(
-    fileName,
-    description
+function isSupportedTextFile(
+    file
 ){
 
-    dom.attachmentBar?.classList.remove(
-        "hidden"
+    if(!file){
+
+        return false;
+
+    }
+
+    const name =
+        String(
+            file.name ||
+            ""
+        ).toLowerCase();
+
+    const extension =
+        name.includes(".")
+            ? name
+                .split(".")
+                .pop()
+            : "";
+
+    if(
+        SUPPORTED_TEXT_EXTENSIONS.includes(
+            extension
+        )
+    ){
+
+        return true;
+
+    }
+
+    const mime =
+        String(
+            file.type ||
+            ""
+        ).toLowerCase();
+
+    return (
+        mime.startsWith(
+            "text/"
+        ) ||
+        mime.includes(
+            "json"
+        ) ||
+        mime.includes(
+            "javascript"
+        ) ||
+        mime.includes(
+            "xml"
+        )
     );
 
-    if(dom.attachedFileName){
+}
 
-        dom.attachedFileName.textContent =
-            description
-                ? `${fileName} — ${description}`
-                : fileName;
+
+function buildPromptWithFileContext(
+    prompt
+){
+
+    if(
+        !state.selectedFileSupported ||
+        !state.selectedFileContent
+    ){
+
+        return prompt;
+
+    }
+
+    const file =
+        state.selectedFile;
+
+    const filename =
+        file?.name ||
+        "arquivo";
+
+    return `${prompt}
+
+[CONTEXTO DO ARQUIVO: ${filename}]
+\`\`\`
+${state.selectedFileContent}
+\`\`\`
+`;
+
+}
+
+
+function updateAttachmentUI(){
+
+    if(dom.fileName){
+
+        if(state.selectedFile){
+
+            dom.fileName.textContent =
+                state.selectedFile.name;
+
+            dom.fileName.hidden =
+                false;
+
+        }
+        else{
+
+            dom.fileName.textContent =
+                "";
+
+            dom.fileName.hidden =
+                true;
+
+        }
+
+    }
+
+    if(dom.fileRemove){
+
+        dom.fileRemove.hidden =
+            !state.selectedFile;
 
     }
 
@@ -6005,24 +5818,6 @@ function removeAttachment(){
     state.selectedFileSupported =
         false;
 
-    dom.attachmentBar?.classList.add(
-        "hidden"
-    );
-
-    if(dom.attachedFileName){
-
-        dom.attachedFileName.textContent =
-            "";
-
-    }
-
-    resetFileInput();
-
-}
-
-
-function resetFileInput(){
-
     if(dom.fileInput){
 
         dom.fileInput.value =
@@ -6030,90 +5825,7 @@ function resetFileInput(){
 
     }
 
-}
-
-
-function getFileExtension(
-    fileName
-){
-
-    const value =
-        String(
-            fileName || ""
-        ).toLowerCase();
-
-    const index =
-        value.lastIndexOf(
-            "."
-        );
-
-    if(index < 0){
-
-        return "";
-
-    }
-
-    return value
-        .slice(
-            index + 1
-        )
-        .trim();
-
-}
-
-
-function buildPromptWithFileContext(
-    prompt
-){
-
-    const file =
-        state.selectedFile;
-
-    if(
-        !file ||
-        !state.selectedFileContent
-    ){
-
-        return prompt;
-
-    }
-
-    const extension =
-        getFileExtension(
-            file.name
-        );
-
-    const availableLength =
-        Math.max(
-            0,
-            MAX_MESSAGE_LENGTH -
-            prompt.length -
-            1000
-        );
-
-    const content =
-        state.selectedFileContent.slice(
-            0,
-            availableLength
-        );
-
-    return `${prompt}
-
-[ANEXO PARA ANÁLISE]
-
-Nome: ${file.name}
-
-Tipo: ${file.type || extension || "texto"}
-
-Conteúdo:
-
-\`\`\`${extension}
-
-${content}
-
-\`\`\`
-
-[FIM DO ANEXO]`;
+    updateAttachmentUI();
 
 }
 
@@ -6141,12 +5853,6 @@ function startVoiceInput(){
 
     }
 
-    if(state.isSending){
-
-        return;
-
-    }
-
     if(state.voiceRecognition){
 
         try{
@@ -6157,17 +5863,13 @@ function startVoiceInput(){
         catch(error){
 
             /*
-                Recognition already stopped.
+            Reconhecimento já parado.
             */
 
         }
 
         state.voiceRecognition =
             null;
-
-        dom.btnVoice?.classList.remove(
-            "recording"
-        );
 
         return;
 
@@ -6176,10 +5878,8 @@ function startVoiceInput(){
     const recognition =
         new SpeechRecognition();
 
-    state.voiceRecognition =
-        recognition;
-
     recognition.lang =
+        document.documentElement.lang ||
         "pt-PT";
 
     recognition.interimResults =
@@ -6188,44 +5888,62 @@ function startVoiceInput(){
     recognition.continuous =
         false;
 
-    recognition.maxAlternatives =
-        1;
+    let finalTranscript =
+        "";
 
-    dom.btnVoice?.classList.add(
-        "recording"
-    );
+    recognition.onstart =
+        () => {
+
+            state.voiceRecognition =
+                recognition;
+
+            dom.btnVoice?.classList.add(
+                "active"
+            );
+
+        };
 
     recognition.onresult =
         event => {
 
-            let transcript =
+            let interim =
                 "";
 
             for(
-                let index = 0;
-                index <
-                    event.results.length;
+                let index = event.resultIndex;
+                index < event.results.length;
                 index++
             ){
 
-                transcript +=
-                    event.results[
-                        index
-                    ][0]?.transcript ||
+                const result =
+                    event.results[index];
+
+                const transcript =
+                    result[0]?.transcript ||
                     "";
+
+                if(result.isFinal){
+
+                    finalTranscript +=
+                        transcript;
+
+                }
+                else{
+
+                    interim +=
+                        transcript;
+
+                }
 
             }
 
-            transcript =
-                transcript.trim();
-
-            if(
-                dom.chatInput &&
-                transcript
-            ){
+            if(dom.chatInput){
 
                 dom.chatInput.value =
-                    transcript;
+                    (
+                        finalTranscript +
+                        interim
+                    ).trim();
 
                 autoResizeInput();
 
@@ -6234,20 +5952,20 @@ function startVoiceInput(){
         };
 
     recognition.onerror =
-        error => {
+        event => {
 
             console.warn(
-                "[HONEY CHAT] Voice error:",
-                error
+                "[HONEY CHAT] Voice recognition error:",
+                event.error
             );
 
             if(
-                error?.error !==
+                event.error !==
                 "aborted"
             ){
 
                 showToast(
-                    "Não foi possível utilizar a entrada de voz.",
+                    "Não foi possível reconhecer a voz.",
                     "error"
                 );
 
@@ -6258,12 +5976,12 @@ function startVoiceInput(){
     recognition.onend =
         () => {
 
-            dom.btnVoice?.classList.remove(
-                "recording"
-            );
-
             state.voiceRecognition =
                 null;
+
+            dom.btnVoice?.classList.remove(
+                "active"
+            );
 
             focusChatInput();
 
@@ -6276,94 +5994,40 @@ function startVoiceInput(){
     }
     catch(error){
 
-        dom.btnVoice?.classList.remove(
-            "recording"
+        console.error(
+            "[HONEY CHAT] Voice start error:",
+            error
         );
 
         state.voiceRecognition =
             null;
 
-    }
-
-}
-
-
-/*
-==========================================================
-SEARCH
-==========================================================
-*/
-
-function setupSearch(){
-
-    dom.globalSearch?.addEventListener(
-        "input",
-        () => {
-
-            state.searchQuery =
-                dom.globalSearch.value
-                    .trim()
-                    .toLowerCase();
-
-            if(state.searchQuery){
-
-                filterHistory(
-                    state.searchQuery
-                );
-
-            }
-            else{
-
-                renderHistory();
-
-            }
-
-        }
-    );
-
-}
-
-
-function filterHistory(
-    query
-){
-
-    if(!dom.historyContainer){
-
-        return;
-
-    }
-
-    const filtered =
-        state.conversations.filter(
-            conversation => {
-
-                const title =
-                    String(
-                        conversation.title ||
-                        ""
-                    ).toLowerCase();
-
-                const agent =
-                    String(
-                        conversation.agentId ||
-                        ""
-                    ).toLowerCase();
-
-                return (
-                    title.includes(
-                        query
-                    ) ||
-                    agent.includes(
-                        query
-                    )
-                );
-
-            }
+        dom.btnVoice?.classList.remove(
+            "active"
         );
 
-    renderHistory(
-        filtered
+    }
+
+}
+
+
+/*
+==========================================================
+PREVIEW
+==========================================================
+*/
+
+function setupPreview(){
+
+    if(!dom.previewIframe){
+
+        return;
+
+    }
+
+    dom.previewIframe.setAttribute(
+        "sandbox",
+        "allow-scripts allow-forms allow-modals"
     );
 
 }
@@ -6371,242 +6035,72 @@ function filterHistory(
 
 /*
 ==========================================================
-HISTORY
+RENDER HISTORY AFTER MESSAGE
 ==========================================================
 */
 
-function renderHistory(
-    conversations =
-        state.conversations
+function updateConversationTitleFromMessage(
+    prompt
 ){
-
-    if(!dom.historyContainer){
-
-        return;
-
-    }
 
     if(
-        !Array.isArray(
-            conversations
-        ) ||
-        !conversations.length
+        !state.conversation ||
+        !prompt
     ){
-
-        dom.historyContainer.innerHTML = `
-
-            <div class="empty-state">
-
-                <div class="empty-icon">
-
-                    <i class="fa-solid fa-comments"></i>
-
-                </div>
-
-                <h3>
-                    O seu histórico aparecerá aqui
-                </h3>
-
-                <p>
-                    As suas conversas serão guardadas automaticamente pela Honey IA.
-                </p>
-
-            </div>
-
-        `;
 
         return;
 
     }
 
-    const wrapper =
-        document.createElement(
-            "div"
-        );
+    const currentTitle =
+        String(
+            state.conversation.title ||
+            ""
+        ).trim();
 
-    wrapper.className =
-        "conversation-history-list";
+    if(
+        currentTitle &&
+        currentTitle !==
+        "Nova Conversa"
+    ){
 
-    conversations.forEach(
-        conversation => {
+        return;
 
-            const id =
-                getConversationId(
-                    conversation
-                );
+    }
 
-            if(!id){
+    const clean =
+        String(
+            prompt
+        )
+            .replace(
+                /\s+/g,
+                " "
+            )
+            .trim();
 
-                return;
+    if(!clean){
 
-            }
+        return;
 
-            const item =
-                document.createElement(
-                    "article"
-                );
+    }
 
-            item.className =
-                "conversation-history-item";
+    const title =
+        clean.length > 60
+            ? `${clean.slice(
+                0,
+                57
+            )}...`
+            : clean;
 
-            if(
-                id ===
-                state.conversationId
-            ){
+    state.conversation.title =
+        title;
 
-                item.classList.add(
-                    "active"
-                );
-
-            }
-
-            const content =
-                document.createElement(
-                    "div"
-                );
-
-            content.className =
-                "conversation-history-content";
-
-            const title =
-                document.createElement(
-                    "h3"
-                );
-
-            title.textContent =
-                conversation.title ||
-                "Nova Conversa";
-
-            const meta =
-                document.createElement(
-                    "span"
-                );
-
-            meta.textContent =
-                formatConversationDate(
-                    conversation.updatedAt ||
-                    conversation.createdAt
-                );
-
-            content.appendChild(
-                title
-            );
-
-            content.appendChild(
-                meta
-            );
-
-            const actions =
-                document.createElement(
-                    "div"
-                );
-
-            actions.className =
-                "conversation-history-actions";
-
-            const openButton =
-                document.createElement(
-                    "button"
-                );
-
-            openButton.type =
-                "button";
-
-            openButton.title =
-                "Abrir conversa";
-
-            openButton.setAttribute(
-                "aria-label",
-                "Abrir conversa"
-            );
-
-            openButton.innerHTML =
-                `<i class="fa-solid fa-arrow-right"></i>`;
-
-            openButton.addEventListener(
-                "click",
-                event => {
-
-                    event.stopPropagation();
-
-                    openConversation(
-                        id
-                    );
-
-                }
-            );
-
-            const deleteButton =
-                document.createElement(
-                    "button"
-                );
-
-            deleteButton.type =
-                "button";
-
-            deleteButton.title =
-                "Eliminar conversa";
-
-            deleteButton.setAttribute(
-                "aria-label",
-                "Eliminar conversa"
-            );
-
-            deleteButton.innerHTML =
-                `<i class="fa-solid fa-trash"></i>`;
-
-            deleteButton.addEventListener(
-                "click",
-                async event => {
-
-                    event.stopPropagation();
-
-                    await deleteConversation(
-                        id
-                    );
-
-                }
-            );
-
-            actions.appendChild(
-                openButton
-            );
-
-            actions.appendChild(
-                deleteButton
-            );
-
-            item.appendChild(
-                content
-            );
-
-            item.appendChild(
-                actions
-            );
-
-            item.addEventListener(
-                "click",
-                () => {
-
-                    openConversation(
-                        id
-                    );
-
-                }
-            );
-
-            wrapper.appendChild(
-                item
-            );
-
-        }
+    updateConversationInList(
+        state.conversation
     );
 
-    dom.historyContainer.innerHTML =
-        "";
-
-    dom.historyContainer.appendChild(
-        wrapper
+    updateConversationHeader(
+        state.conversation
     );
 
 }
@@ -6614,586 +6108,144 @@ function renderHistory(
 
 /*
 ==========================================================
-HISTORY DATE
+MESSAGE HISTORY
 ==========================================================
 */
 
-function formatConversationDate(
-    value
+function getMessageContent(
+    message
 ){
 
-    if(!value){
+    if(!message){
 
         return "";
 
     }
 
-    const date =
-        new Date(
-            value
-        );
-
     if(
-        Number.isNaN(
-            date.getTime()
-        )
+        typeof message.content ===
+        "string"
     ){
 
-        return "";
+        return message.content;
 
     }
-
-    return date.toLocaleString(
-        "pt-PT",
-        {
-
-            day:
-                "2-digit",
-
-            month:
-                "2-digit",
-
-            year:
-                "numeric",
-
-            hour:
-                "2-digit",
-
-            minute:
-                "2-digit"
-
-        }
-    );
-
-}
-
-
-/*
-==========================================================
-DELETE CONVERSATION
-==========================================================
-*/
-
-async function deleteConversation(
-    conversationId
-){
-
-    if(!conversationId){
-
-        return;
-
-    }
-
-    const confirmed =
-        window.confirm(
-            "Tem a certeza de que deseja eliminar esta conversa? Esta ação não pode ser desfeita."
-        );
-
-    if(!confirmed){
-
-        return;
-
-    }
-
-    /*
-        Se estiver eliminando a conversa atual durante geração,
-        interrompemos primeiro.
-    */
 
     if(
-        state.isSending &&
-        String(
-            state.conversationId
-        ) ===
-        String(
-            conversationId
-        )
+        typeof message.text ===
+        "string"
     ){
 
-        abortCurrentGeneration(
-            true
-        );
-
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
+        return message.text;
 
     }
-
-    try{
-
-        await apiRequest(
-            `/conversations/${encodeURIComponent(
-                conversationId
-            )}`,
-            {
-
-                method:
-                    "DELETE"
-
-            }
-        );
-
-        state.conversations =
-            state.conversations.filter(
-                conversation =>
-                    getConversationId(
-                        conversation
-                    ) !==
-                    conversationId
-            );
-
-        if(
-            state.conversationId ===
-            conversationId
-        ){
-
-            state.conversationId =
-                null;
-
-            state.conversation =
-                null;
-
-            resetConversationState();
-
-            clearChatMessages();
-
-            await ensureInitialConversation();
-
-        }
-
-        renderHistory();
-
-        showToast(
-            "Conversa eliminada.",
-            "success"
-        );
-
-    }
-    catch(error){
-
-        handleApiError(
-            error,
-            "Não foi possível eliminar a conversa."
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
-USER PROFILE
-==========================================================
-*/
-
-async function loadUserProfile(){
-
-    const userBox =
-        dom.userBox;
-
-    if(!userBox){
-
-        return;
-
-    }
-
-    try{
-
-        const token =
-            getAuthToken();
-
-        if(!token){
-
-            return;
-
-        }
-
-        const response =
-            await fetch(
-                "/api/auth/me",
-                {
-
-                    headers: {
-
-                        Authorization:
-                            `Bearer ${token}`,
-
-                        Accept:
-                            "application/json"
-
-                    },
-
-                    credentials:
-                        "include"
-
-                }
-            );
-
-        if(
-            response.status ===
-            401
-        ){
-
-            redirectToLogin();
-
-            return;
-
-        }
-
-        if(!response.ok){
-
-            return;
-
-        }
-
-        const data =
-            await response.json();
-
-        const user =
-            data?.user ||
-            data?.data?.user ||
-            data?.data ||
-            null;
-
-        if(!user){
-
-            return;
-
-        }
-
-        const firstName =
-            user.firstName ||
-            user.name ||
-            user.fullName ||
-            "Utilizador";
-
-        const lastName =
-            user.lastName ||
-            "";
-
-        const fullName =
-            `${firstName} ${lastName}`
-                .trim();
-
-        const avatar =
-            user.avatar ||
-            user.picture ||
-            null;
-
-        const plan =
-            user.planName ||
-            user.plan ||
-            "Plano Gratuito";
-
-        const strong =
-            userBox.querySelector(
-                "strong"
-            );
-
-        const small =
-            userBox.querySelector(
-                "small"
-            );
-
-        const avatarElement =
-            userBox.querySelector(
-                ".avatar"
-            );
-
-        if(strong){
-
-            strong.textContent =
-                fullName;
-
-        }
-
-        if(small){
-
-            small.textContent =
-                plan;
-
-        }
-
-        if(avatarElement){
-
-            if(avatar){
-
-                avatarElement.innerHTML =
-                    "";
-
-                const image =
-                    document.createElement(
-                        "img"
-                    );
-
-                image.src =
-                    String(
-                        avatar
-                    );
-
-                image.alt =
-                    "";
-
-                image.referrerPolicy =
-                    "no-referrer";
-
-                avatarElement.appendChild(
-                    image
-                );
-
-            }
-            else{
-
-                avatarElement.textContent =
-                    fullName
-                        .charAt(0)
-                        .toUpperCase();
-
-            }
-
-        }
-
-        if(dom.planBadge){
-
-            const strongPlan =
-                dom.planBadge.querySelector(
-                    "strong"
-                );
-
-            if(strongPlan){
-
-                strongPlan.textContent =
-                    plan;
-
-            }
-
-        }
-
-    }
-    catch(error){
-
-        console.warn(
-            "[HONEY CHAT] Profile load error:",
-            error
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
-SCROLL
-==========================================================
-*/
-
-function scrollChatToBottom(
-    force = false
-){
-
-    if(!dom.chatMessages){
-
-        return;
-
-    }
-
-    /*
-        Sem force, o scroll só acontece quando o utilizador
-        está acompanhando o final.
-    */
 
     if(
-        !force &&
-        !state.userNearBottom
+        typeof message.message ===
+        "string"
     ){
 
-        return;
+        return message.message;
 
     }
 
-    requestAnimationFrame(
-        () => {
-
-            if(!dom.chatMessages){
-
-                return;
-
-            }
-
-            dom.chatMessages.scrollTop =
-                dom.chatMessages.scrollHeight;
-
-            /*
-                Reavaliamos a posição depois do scroll.
-            */
-
-            state.userNearBottom =
-                true;
-
-        }
-    );
+    return "";
 
 }
 
 
 /*
 ==========================================================
-TOAST
+MESSAGE NORMALIZATION
 ==========================================================
 */
 
-function showToast(
-    message,
-    type = "info"
+function normalizeStoredMessage(
+    message
 ){
 
-    if(!dom.toastContainer){
+    if(!message){
 
-        return;
+        return null;
 
     }
 
-    const toast =
-        document.createElement(
-            "div"
+    const role =
+        normalizeMessageRole(
+            message.role ||
+            message.sender
         );
 
-    toast.className =
-        `toast toast-${type}`;
+    if(!role){
 
-    const iconMap = {
+        return null;
 
-        success:
-            "fa-circle-check",
+    }
 
-        error:
-            "fa-circle-exclamation",
+    const content =
+        getMessageContent(
+            message
+        );
 
-        warning:
-            "fa-triangle-exclamation",
+    if(!content){
 
-        info:
-            "fa-circle-info"
+        return null;
+
+    }
+
+    return {
+
+        ...message,
+
+        id:
+            message.id ||
+            message._id ||
+            createClientMessageId(),
+
+        role,
+
+        content
 
     };
 
-    const icon =
-        document.createElement(
-            "i"
-        );
-
-    icon.className =
-        `fa-solid ${
-            iconMap[type] ||
-            iconMap.info
-        }`;
-
-    const text =
-        document.createElement(
-            "span"
-        );
-
-    text.textContent =
-        String(
-            message || ""
-        );
-
-    toast.appendChild(
-        icon
-    );
-
-    toast.appendChild(
-        text
-    );
-
-    dom.toastContainer.appendChild(
-        toast
-    );
-
-    requestAnimationFrame(
-        () => {
-
-            toast.classList.add(
-                "show"
-            );
-
-        }
-    );
-
-    setTimeout(
-        () => {
-
-            toast.classList.remove(
-                "show"
-            );
-
-            setTimeout(
-                () => {
-
-                    toast.remove();
-
-                },
-                250
-            );
-
-        },
-        4000
-    );
-
 }
 
 
 /*
 ==========================================================
-API ERROR HANDLING
+EXPORT CHAT STATE
 ==========================================================
 */
 
-function handleApiError(
-    error,
-    fallback
-){
+function getChatState(){
 
-    console.error(
-        "[HONEY CHAT API ERROR]",
-        error
-    );
+    return {
 
-    if(
-        error?.name ===
-        "AbortError"
-    ){
+        conversationId:
+            state.conversationId,
 
-        return;
+        conversation:
+            state.conversation,
 
-    }
+        messages:
+            [...state.messages],
 
-    if(
-        error?.status ===
-        401
-    ){
+        agentId:
+            state.agentId,
 
-        redirectToLogin();
+        mode:
+            state.currentMode,
 
-        return;
+        workspace:
+            state.workspace,
 
-    }
+        isSending:
+            state.isSending,
 
-    showToast(
-        error?.message ||
-        fallback ||
-        "Ocorreu um erro.",
-        "error"
-    );
+        isLive:
+            state.isLive
+
+    };
 
 }
 
@@ -7204,197 +6256,107 @@ PUBLIC API
 ==========================================================
 */
 
-window.HoneyChat = {
+const HoneyChat = {
 
-    getState(){
+    init:
+        initializeChat,
 
-        return {
+    initialize:
+        initializeChat,
 
-            conversationId:
-                state.conversationId,
+    send:
+        sendMessage,
 
-            conversation:
-                state.conversation,
+    sendCurrentMessage,
 
-            messages:
-                [...state.messages],
+    stop:
+        stopGeneration,
 
-            mode:
-                state.currentMode,
+    newConversation:
+        createNewConversation,
 
-            agentId:
-                state.agentId,
+    createNewConversation,
 
-            workspace:
-                state.workspace,
+    openConversation,
 
-            isSending:
-                state.isSending,
+    setMode:
+        setChatMode,
 
-            authenticated:
-                state.authenticated,
+    getState:
+        getChatState,
 
-            artifacts:
-                [...state.artifacts],
+    focus:
+        focusChatInput,
 
-            tools:
-                [...state.tools],
-
-            generationStatus:
-                state.generationStatus,
-
-            userNearBottom:
-                state.userNearBottom
-
-        };
-
-    },
-
-
-    async newConversation(){
-
-        return createNewConversation();
-
-    },
-
-
-    async openConversation(
-        conversationId
-    ){
-
-        return openConversation(
-            conversationId
-        );
-
-    },
-
-
-    async refresh(){
-
-        await loadConversations();
-
-        if(state.conversationId){
-
-            await refreshCurrentConversation();
-
-        }
-
-    },
-
-
-    async send(
-        prompt
-    ){
-
-        const normalized =
-            typeof prompt ===
-                "string"
-                ? prompt.trim()
-                : "";
-
-        if(!normalized){
-
-            return;
-
-        }
-
-        if(
-            normalized.length >
-            MAX_MESSAGE_LENGTH
-        ){
-
-            showToast(
-                "A mensagem é demasiado longa.",
-                "error"
-            );
-
-            return;
-
-        }
-
-        return sendMessage(
-            normalized,
-            normalized
-        );
-
-    },
-
-
-    stop(){
-
-        stopGeneration();
-
-    },
-
-
-    setMode(
-        mode
-    ){
-
-        setChatMode(
-            mode
-        );
-
-    },
-
-
-    closePreview(){
-
-        closeArtifactPreview();
-
-    },
-
-
-    focus(){
-
-        focusChatInput();
-
-    },
-
-
-    getConversationId(){
-
-        return state.conversationId;
-
-    }
+    removeAttachment
 
 };
 
 
 /*
 ==========================================================
-DIAGNOSTICS
+GLOBAL EXPORT
 ==========================================================
 */
 
-console.info(
-    "[HONEY IA] Chat Engine V5.0 initialized."
-);
+window.HoneyChat =
+    HoneyChat;
 
-console.info(
-    "[HONEY IA] Persistent conversation history: backend controlled."
-);
 
-console.info(
-    "[HONEY IA] Artificial history age/quantity limits: disabled."
-);
+/*
+==========================================================
+AUTO INIT
+==========================================================
+*/
 
-console.info(
-    "[HONEY IA] Groq + Gemini orchestration compatible."
-);
+if(
+    document.readyState ===
+    "loading"
+){
 
-console.info(
-    "[HONEY IA] Live SSE + Stop Generation enabled."
-);
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
 
-console.info(
-    "[HONEY IA] User-controlled scroll enabled."
-);
+            initializeChat()
+                .catch(
+                    error => {
 
-console.info(
-    "[HONEY IA] Buffered streaming rendering enabled."
-);
+                        console.error(
+                            "[HONEY CHAT] Auto initialization failed:",
+                            error
+                        );
 
-console.info(
-    "[HONEY IA] Generation isolation enabled."
-);
+                    }
+                );
+
+        },
+        {
+            once:
+                true
+        }
+    );
+
+}
+else{
+
+    initializeChat()
+        .catch(
+            error => {
+
+                console.error(
+                    "[HONEY CHAT] Auto initialization failed:",
+                    error
+                );
+
+            }
+        );
+
+}
+
+
+/*
+==========================================================
+END HONEY CHAT ENGINE V4.1
+==========================================================
+*/
