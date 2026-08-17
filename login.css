@@ -4,7 +4,7 @@ HONEY IA
 AUTHENTICATION INTERFACE
 LOGIN CSS
 PREMIUM ENTERPRISE AUTHENTICATION
-V2.0
+V2.1
 ============================================================
 
 ARQUITETURA
@@ -13,6 +13,7 @@ ARQUITETURA
 • Interface criada dinamicamente pelo login.js
 • Google Authentication
 • Facebook Authentication
+• Google e Facebook com o mesmo peso visual
 • Sem email/password
 • Sem formulário de registo
 • Sem campos antigos
@@ -52,7 +53,7 @@ ROOT
         rgba(255,255,255,.05);
 
     --honey-auth-border-hover:
-        rgba(255,255,255,.14);
+        rgba(255,255,255,.15);
 
     --honey-auth-text:
         #f5f7fa;
@@ -748,6 +749,12 @@ SOCIAL BUTTON BASE
     border-radius:
         var(--honey-auth-button-radius);
 
+    /*
+    IMPORTANTE:
+    Google e Facebook usam a mesma superfície.
+    A identidade da rede fica no ícone.
+    */
+
     background:
         rgba(255,255,255,.045);
 
@@ -824,15 +831,23 @@ GOOGLE BUTTON
 
 /* ==========================================================
 FACEBOOK BUTTON
+==========================================================
+
+O Facebook NÃO deve parecer um botão azul separado.
+
+Ele é uma segunda opção de autenticação no mesmo nível
+visual do Google.
+
+Apenas o ícone mantém a identidade azul do Facebook.
 ========================================================== */
 
 .facebook-btn {
 
     background:
-        rgba(24,119,242,.09);
+        rgba(255,255,255,.045);
 
     border-color:
-        rgba(24,119,242,.20);
+        rgba(255,255,255,.10);
 
 }
 
@@ -840,17 +855,17 @@ FACEBOOK BUTTON
 .facebook-btn:hover:not(:disabled) {
 
     background:
-        rgba(24,119,242,.14);
+        rgba(255,255,255,.085);
 
     border-color:
-        rgba(24,119,242,.34);
+        rgba(255,255,255,.18);
 
     transform:
         translateY(-1px);
 
     box-shadow:
         0 10px 28px
-        rgba(24,119,242,.10);
+        rgba(0,0,0,.18);
 
 }
 
@@ -891,27 +906,42 @@ SOCIAL BUTTON ICON
 }
 
 
+/* ==========================================================
+GOOGLE ICON
+========================================================== */
+
 .google-icon {
 
     color:
-        #fff;
+        #ffffff;
 
 }
 
+
+.google-icon i {
+
+    font-size:
+        17px;
+
+}
+
+
+/* ==========================================================
+FACEBOOK ICON
+========================================================== */
 
 .facebook-icon {
 
     color:
-        #4f94ff;
+        var(--honey-auth-facebook);
 
 }
 
 
-.google-icon i,
 .facebook-icon i {
 
     font-size:
-        17px;
+        18px;
 
 }
 
@@ -925,6 +955,26 @@ SOCIAL BUTTON TEXT
 
     white-space:
         nowrap;
+
+}
+
+
+/* ==========================================================
+SOCIAL BUTTON HOVER ICON
+========================================================== */
+
+.google-btn:hover:not(:disabled) .google-icon {
+
+    transform:
+        scale(1.03);
+
+}
+
+
+.facebook-btn:hover:not(:disabled) .facebook-icon {
+
+    transform:
+        scale(1.03);
 
 }
 
