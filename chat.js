@@ -3987,18 +3987,7 @@ function appendMessage(
         contentElement
     );
 
-    const timestamp =
-        createMessageTimestamp(
-            message?.createdAt
-        );
-
-    if(timestamp){
-
-        body.appendChild(
-            timestamp
-        );
-
-    }
+    
 
     if(message?.interrupted){
 
@@ -4453,14 +4442,6 @@ function createMessageTimestamp(
         return null;
 
     }
-
-    const element =
-        document.createElement(
-            "time"
-        );
-
-    element.className =
-        "message-time";
 
     element.dateTime =
         date.toISOString();
