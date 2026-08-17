@@ -4465,18 +4465,6 @@ function createMessageTimestamp(
     element.dateTime =
         date.toISOString();
 
-    element.textContent =
-        date.toLocaleTimeString(
-            "pt-PT",
-            {
-                hour:
-                    "2-digit",
-
-                minute:
-                    "2-digit"
-            }
-        );
-
     return element;
 
 }
