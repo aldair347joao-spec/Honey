@@ -1,128 +1,134 @@
-<!DOCTYPE html><html lang="pt-PT"><head><meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="pt-PT">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<head>
 
-<title>Honey IA — Entrar</title>
+    <meta charset="UTF-8">
 
-<meta
-    name="description"
-    content="Entre na Honey IA Studio e aceda ao seu Workspace inteligente."
->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<meta
-    name="theme-color"
-    content="#07080a"
->
+    <title>Honey IA — Entrar</title>
 
-<meta
-    name="color-scheme"
-    content="dark"
->
+    <meta
+        name="description"
+        content="Entre na Honey IA Studio com a sua conta Google ou Facebook."
+    >
 
+    <meta
+        name="theme-color"
+        content="#07080a"
+    >
 
-<!-- ======================================================
-     FONTS
-====================================================== -->
+    <meta
+        name="color-scheme"
+        content="dark"
+    >
 
-<link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
->
+    <!-- ==================================================
+         FONTS
+    ================================================== -->
 
-<link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
->
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
 
-<link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
->
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
-<!-- ======================================================
-     FONT AWESOME
-====================================================== -->
+    <!-- ==================================================
+         FONT AWESOME
+    ================================================== -->
 
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 
+    <!-- ==================================================
+         HONEY IA GLOBAL STYLE
+    ================================================== -->
 
-<!-- ======================================================
-     HONEY IA GLOBAL STYLE
-====================================================== -->
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
-<link
-    rel="stylesheet"
-    href="style.css"
->
+    <!-- ==================================================
+         HONEY IA AUTH STYLE
+    ================================================== -->
 
+    <link
+        rel="stylesheet"
+        href="login.css"
+    >
 
-<!-- ======================================================
-     HONEY IA AUTH STYLE
-====================================================== -->
-
-<link
-    rel="stylesheet"
-    href="login.css"
->
-
-</head><body class="honey-auth-page"><!-- ======================================================
-     AUTH APPLICATION
-====================================================== -->
-
-<main
-    id="loginApp"
-    class="login-app"
-    aria-label="Autenticação Honey IA"
-></main>
+</head>
 
 
-<!-- ======================================================
-     LOGIN CONTROLLER
-====================================================== -->
+<body class="honey-auth-page">
 
-<script
-    type="module"
->
+    <!-- ==================================================
+         AUTH APPLICATION
+    ================================================== -->
 
-    import logincontroller from "./login.js";
+    <main
+        id="loginApp"
+        class="login-app"
+        aria-label="Entrar na Honey IA"
+    ></main>
 
 
-    /*
-    ======================================================
-    INITIALIZE HONEY IA AUTHENTICATION
-    ======================================================
-    */
+    <!-- ==================================================
+         LOGIN CONTROLLER
+    ================================================== -->
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        async () => {
+    <script type="module">
 
-            try {
+        import logincontroller from "./login.js";
 
-                await logincontroller.init();
+
+        /*
+        ==================================================
+        INITIALIZE HONEY IA AUTHENTICATION
+        ==================================================
+        */
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            async () => {
+
+                try {
+
+                    await logincontroller.init();
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "HONEY IA LOGIN INITIALIZATION ERROR:",
+                        error
+                    );
+
+                }
 
             }
+        );
 
-            catch (error) {
+    </script>
 
-                console.error(
-                    "HONEY IA LOGIN INITIALIZATION ERROR:",
-                    error
-                );
+</body>
 
-            }
-
-        }
-    );
-
-</script>
-
-</body></html>
+</html>
