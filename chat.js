@@ -2920,11 +2920,6 @@ function processSSEEvent(
         payload?.connected
     ){
 
-        setAssistantStatus(
-            assistantElement,
-            "A Honey IA está a preparar a resposta..."
-        );
-
     }
 
     if(
@@ -2946,11 +2941,6 @@ function processSSEEvent(
 
         state.generationStatus =
             "thinking";
-
-        setAssistantStatus(
-            assistantElement,
-            "A Honey IA está a analisar..."
-        );
 
     }
 
@@ -4091,6 +4081,14 @@ function createStreamingAssistantMessage(){
 
     }
 
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+    avatar.className =
+        "message-avatar";
+
     const body =
         document.createElement(
             "div"
@@ -4121,6 +4119,18 @@ function createStreamingAssistantMessage(){
 
     body.appendChild(
         content
+    );
+
+    const status =
+        document.createElement(
+            "div"
+        );
+
+    status.className =
+        "assistant-status";
+
+    body.appendChild(
+        status
     );
 
     wrapper.appendChild(
@@ -4418,6 +4428,58 @@ function renderResponseMetadata(
 TIMESTAMP
 ==========================================================
 */
+
+function createMessageTimestamp(
+    value
+){
+
+    if(!value){
+
+        return null;
+
+    }
+
+    const date =
+        new Date(
+            value
+        );
+
+    if(
+        Number.isNaN(
+            date.getTime()
+        )
+    ){
+
+        return null;
+
+    }
+
+    const element =
+        document.createElement(
+            "time"
+        );
+
+    element.className =
+        "message-time";
+
+    element.dateTime =
+        date.toISOString();
+
+    element.textContent =
+        date.toLocaleTimeString(
+            "pt-PT",
+            {
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit"
+            }
+        );
+
+    return element;
+
+}
 
 
 /*
