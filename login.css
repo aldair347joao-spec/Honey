@@ -1,42 +1,32 @@
 /*
 ============================================================
-HONEY IA OS
+HONEY IA
 AUTHENTICATION INTERFACE
-LOGIN CSS V2.0
+LOGIN CSS
+PREMIUM ENTERPRISE AUTHENTICATION
+V2.0
+============================================================
 
-PREMIUM ENTERPRISE AI AUTHENTICATION
-Compatible with:
+ARQUITETURA
 ------------------------------------------------------------
-• login.html
-• login.js
-• auth.js
-• style.css
-
-RESPONSIBILITIES
-------------------------------------------------------------
-• Login Application Shell
-• Authentication Background
-• Authentication Card
-• Honey IA Branding
-• Login / Register / Verify States
+• Compatível com novo login.html
+• Interface criada dinamicamente pelo login.js
 • Google Authentication
-• Form Fields
-• Password Fields
-• Primary Actions
-• Messages
-• Loading States
-• Footer
-• Responsive Authentication
-• Accessibility
+• Facebook Authentication
+• Sem email/password
+• Sem formulário de registo
+• Sem campos antigos
+• Visual alinhado ao Honey IA OS
+• Responsivo
+• Acessível
+• Premium / Enterprise
 ============================================================
 */
 
 
-/*
-============================================================
+/* ==========================================================
 ROOT
-============================================================
-*/
+========================================================== */
 
 :root {
 
@@ -49,14 +39,11 @@ ROOT
     --honey-auth-surface:
         #0d1016;
 
-    --honey-auth-surface-2:
-        #11151c;
-
     --honey-auth-card:
-        rgba(15,18,25,.96);
+        rgba(15,18,25,.94);
 
-    --honey-auth-card-soft:
-        rgba(20,23,31,.92);
+    --honey-auth-card-strong:
+        rgba(18,21,29,.97);
 
     --honey-auth-border:
         rgba(255,255,255,.08);
@@ -79,8 +66,8 @@ ROOT
     --honey-auth-subtle:
         #626a78;
 
-    --honey-auth-placeholder:
-        #565e6b;
+    --honey-auth-faint:
+        #454c58;
 
     --honey-auth-gold:
         #f59e0b;
@@ -91,11 +78,11 @@ ROOT
     --honey-auth-gold-soft:
         rgba(245,158,11,.10);
 
-    --honey-auth-gold-border:
-        rgba(245,158,11,.20);
-
     --honey-auth-blue:
         #4f8cff;
+
+    --honey-auth-facebook:
+        #1877f2;
 
     --honey-auth-success:
         #22c55e;
@@ -106,11 +93,8 @@ ROOT
     --honey-auth-radius:
         22px;
 
-    --honey-auth-input-radius:
-        12px;
-
     --honey-auth-button-radius:
-        12px;
+        13px;
 
     --honey-auth-content-width:
         460px;
@@ -118,11 +102,9 @@ ROOT
 }
 
 
-/*
-============================================================
-PAGE RESET
-============================================================
-*/
+/* ==========================================================
+GLOBAL RESET
+========================================================== */
 
 html,
 body {
@@ -136,16 +118,18 @@ body {
 }
 
 
-html {
+*,
+*::before,
+*::after {
 
-    background:
-        var(--honey-auth-bg);
-
-    color-scheme:
-        dark;
+    box-sizing: border-box;
 
 }
 
+
+/* ==========================================================
+PAGE
+========================================================== */
 
 body.honey-auth-page {
 
@@ -160,105 +144,69 @@ body.honey-auth-page {
     font-family:
         "Plus Jakarta Sans",
         "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
         sans-serif;
 
-    overflow-x:
-        hidden;
+    overflow-x: hidden;
 
     -webkit-font-smoothing:
         antialiased;
 
-    text-rendering:
-        optimizeLegibility;
+    -moz-osx-font-smoothing:
+        grayscale;
 
 }
 
 
-/*
-============================================================
-LOGIN APPLICATION
-============================================================
-*/
+/* ==========================================================
+APPLICATION ROOT
+========================================================== */
 
 .login-app {
 
-    position:
-        relative;
+    position: relative;
 
-    z-index:
-        1;
-
-    width:
-        100%;
-
-    min-height:
-        100vh;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    box-sizing:
-        border-box;
+    width: 100%;
+    min-height: 100vh;
 
 }
 
 
-/*
-============================================================
+/* ==========================================================
 AUTH WRAPPER
-
-The login.js may inject the authentication wrapper
-inside #loginApp.
-============================================================
-*/
+========================================================== */
 
 .honey-auth-wrapper {
 
-    position:
-        relative;
+    position: relative;
 
-    width:
-        100%;
+    width: 100%;
+    min-height: 100vh;
 
-    min-height:
-        100vh;
+    display: flex;
 
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    box-sizing:
-        border-box;
+    align-items: center;
+    justify-content: center;
 
     padding:
-        42px 20px;
+        40px 20px;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
     background:
 
         radial-gradient(
-            circle at 50% 0%,
-            rgba(245,158,11,.085),
-            transparent 34%
+            circle at 50% -10%,
+            rgba(245,158,11,.10),
+            transparent 36%
         ),
 
         radial-gradient(
             circle at 100% 100%,
-            rgba(79,140,255,.045),
-            transparent 32%
+            rgba(79,140,255,.055),
+            transparent 34%
         ),
 
         var(--honey-auth-bg);
@@ -266,48 +214,36 @@ inside #loginApp.
 }
 
 
-/*
-============================================================
+/* ==========================================================
 AUTH BACKGROUND
-============================================================
-*/
+========================================================== */
 
 .honey-auth-background {
 
-    position:
-        absolute;
+    position: absolute;
 
-    inset:
-        0;
+    inset: 0;
 
-    z-index:
-        0;
+    z-index: 0;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
-    pointer-events:
-        none;
+    pointer-events: none;
 
 }
 
 
-/*
-============================================================
-GRID
-============================================================
-*/
+/* ==========================================================
+BACKGROUND GRID
+========================================================== */
 
 .auth-grid {
 
-    position:
-        absolute;
+    position: absolute;
 
-    inset:
-        0;
+    inset: 0;
 
-    opacity:
-        .22;
+    opacity: .20;
 
     background-image:
 
@@ -329,47 +265,39 @@ GRID
         radial-gradient(
             ellipse at center,
             black 15%,
-            transparent 80%
+            transparent 78%
         );
 
     -webkit-mask-image:
         radial-gradient(
             ellipse at center,
             black 15%,
-            transparent 80%
+            transparent 78%
         );
 
 }
 
 
-/*
-============================================================
+/* ==========================================================
 BACKGROUND ORBS
-============================================================
-*/
+========================================================== */
 
 .auth-orb {
 
-    position:
-        absolute;
+    position: absolute;
 
-    width:
-        520px;
+    width: 520px;
+    height: 520px;
 
-    height:
-        520px;
-
-    border-radius:
-        50%;
+    border-radius: 50%;
 
     filter:
         blur(110px);
 
-    opacity:
-        .11;
+    opacity: .12;
 
-    pointer-events:
-        none;
+    transform:
+        translateZ(0);
 
 }
 
@@ -391,7 +319,7 @@ BACKGROUND ORBS
 .auth-orb-two {
 
     right:
-        -250px;
+        -240px;
 
     bottom:
         -300px;
@@ -402,28 +330,21 @@ BACKGROUND ORBS
 }
 
 
-/*
-============================================================
+/* ==========================================================
 AUTH CARD
-============================================================
-*/
+========================================================== */
 
 .honey-auth-card {
 
-    position:
-        relative;
+    position: relative;
 
-    z-index:
-        5;
+    z-index: 5;
 
     width:
         min(
             100%,
             var(--honey-auth-content-width)
         );
-
-    box-sizing:
-        border-box;
 
     padding:
         36px;
@@ -436,17 +357,16 @@ AUTH CARD
         var(--honey-auth-radius);
 
     background:
-
         linear-gradient(
             145deg,
-            rgba(20,23,31,.975),
-            rgba(9,11,16,.975)
+            rgba(20,23,31,.98),
+            rgba(9,11,16,.98)
         );
 
     box-shadow:
 
-        0 35px 100px
-        rgba(0,0,0,.58),
+        0 30px 90px
+        rgba(0,0,0,.55),
 
         0 0 0 1px
         rgba(255,255,255,.012),
@@ -455,10 +375,10 @@ AUTH CARD
         rgba(255,255,255,.035);
 
     backdrop-filter:
-        blur(26px);
+        blur(28px);
 
     -webkit-backdrop-filter:
-        blur(26px);
+        blur(28px);
 
     animation:
         honeyAuthCardIn .55s ease both;
@@ -466,18 +386,11 @@ AUTH CARD
 }
 
 
-/*
-============================================================
-CARD ANIMATION
-============================================================
-*/
-
 @keyframes honeyAuthCardIn {
 
     from {
 
-        opacity:
-            0;
+        opacity: 0;
 
         transform:
             translateY(18px)
@@ -487,8 +400,7 @@ CARD ANIMATION
 
     to {
 
-        opacity:
-            1;
+        opacity: 1;
 
         transform:
             translateY(0)
@@ -499,57 +411,50 @@ CARD ANIMATION
 }
 
 
-/*
-============================================================
+/* ==========================================================
 BRAND
-============================================================
-*/
+========================================================== */
 
 .auth-brand {
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
-
-    justify-content:
-        center;
+    align-items: center;
+    justify-content: center;
 
     gap:
         13px;
 
-    margin-bottom:
-        28px;
+    margin:
+        0 0 30px;
 
 }
 
 
+/* ==========================================================
+BRAND LOGO
+========================================================== */
+
 .auth-logo {
 
     width:
-        46px;
+        48px;
 
     height:
-        46px;
+        48px;
 
     flex:
-        0 0 46px;
+        0 0 48px;
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
-
-    justify-content:
-        center;
+    align-items: center;
+    justify-content: center;
 
     border-radius:
         14px;
 
     background:
-
         linear-gradient(
             135deg,
             #fbbf24,
@@ -568,13 +473,14 @@ BRAND
     box-shadow:
 
         0 10px 30px
-        rgba(245,158,11,.20),
-
-        inset 0 1px 0
-        rgba(255,255,255,.25);
+        rgba(245,158,11,.20);
 
 }
 
+
+/* ==========================================================
+BRAND TEXT
+========================================================== */
 
 .auth-brand-text {
 
@@ -601,6 +507,9 @@ BRAND
     line-height:
         1.1;
 
+    font-weight:
+        800;
+
     letter-spacing:
         -.025em;
 
@@ -610,7 +519,7 @@ BRAND
 .auth-brand-text p {
 
     margin:
-        4px 0 0;
+        5px 0 0;
 
     color:
         var(--honey-auth-muted);
@@ -622,10 +531,10 @@ BRAND
         1.4;
 
     font-weight:
-        700;
+        600;
 
     letter-spacing:
-        .055em;
+        .06em;
 
     text-transform:
         uppercase;
@@ -633,19 +542,82 @@ BRAND
 }
 
 
-/*
-============================================================
+/* ==========================================================
+AUTH HEADING
+========================================================== */
+
+.auth-heading {
+
+    margin:
+        0 0 26px;
+
+    text-align:
+        center;
+
+}
+
+
+.auth-heading h2 {
+
+    margin:
+        0;
+
+    color:
+        var(--honey-auth-text-strong);
+
+    font-size:
+        clamp(
+            25px,
+            5vw,
+            30px
+        );
+
+    line-height:
+        1.18;
+
+    font-weight:
+        800;
+
+    letter-spacing:
+        -.04em;
+
+}
+
+
+.auth-heading p {
+
+    max-width:
+        360px;
+
+    margin:
+        9px auto 0;
+
+    color:
+        var(--honey-auth-muted);
+
+    font-size:
+        13px;
+
+    line-height:
+        1.65;
+
+}
+
+
+/* ==========================================================
 AUTH MESSAGE
-============================================================
-*/
+========================================================== */
 
 .auth-message {
 
     display:
         none;
 
-    margin-bottom:
-        18px;
+    width:
+        100%;
+
+    margin:
+        0 0 18px;
 
     padding:
         12px 14px;
@@ -658,10 +630,10 @@ AUTH MESSAGE
         12px;
 
     font-size:
-        13px;
+        12px;
 
     line-height:
-        1.5;
+        1.55;
 
 }
 
@@ -717,74 +689,42 @@ AUTH MESSAGE
 }
 
 
-/*
-============================================================
-HEADING
-============================================================
-*/
+/* ==========================================================
+SOCIAL LOGIN CONTAINER
+========================================================== */
 
-.auth-heading {
+.auth-social-login {
 
-    margin-bottom:
-        24px;
+    width:
+        100%;
 
-}
+    display:
+        flex;
 
+    flex-direction:
+        column;
 
-.auth-heading h2 {
-
-    margin:
-        0;
-
-    color:
-        var(--honey-auth-text-strong);
-
-    font-size:
-        clamp(
-            24px,
-            5vw,
-            29px
-        );
-
-    line-height:
-        1.2;
-
-    letter-spacing:
-        -.035em;
+    gap:
+        12px;
 
 }
 
 
-.auth-heading p {
+/* ==========================================================
+SOCIAL BUTTON BASE
+========================================================== */
 
-    margin:
-        8px 0 0;
+.google-btn,
+.facebook-btn {
 
-    color:
-        var(--honey-auth-muted);
-
-    font-size:
-        13px;
-
-    line-height:
-        1.65;
-
-}
-
-
-/*
-============================================================
-GOOGLE BUTTON
-============================================================
-*/
-
-.google-btn {
+    position:
+        relative;
 
     width:
         100%;
 
     min-height:
-        50px;
+        52px;
 
     display:
         flex;
@@ -798,21 +738,21 @@ GOOGLE BUTTON
     gap:
         11px;
 
-    box-sizing:
-        border-box;
+    padding:
+        0 18px;
 
     border:
         1px solid
-        rgba(255,255,255,.11);
+        rgba(255,255,255,.10);
 
     border-radius:
-        var(--honey-auth-input-radius);
+        var(--honey-auth-button-radius);
 
     background:
         rgba(255,255,255,.045);
 
     color:
-        #f4f4f5;
+        #f5f5f5;
 
     font-family:
         inherit;
@@ -823,15 +763,35 @@ GOOGLE BUTTON
     font-weight:
         700;
 
+    line-height:
+        1;
+
     cursor:
         pointer;
 
     transition:
 
-        background .2s ease,
-        border-color .2s ease,
-        transform .2s ease,
-        box-shadow .2s ease;
+        background .20s ease,
+
+        border-color .20s ease,
+
+        box-shadow .20s ease,
+
+        transform .20s ease,
+
+        opacity .20s ease;
+
+}
+
+
+/* ==========================================================
+GOOGLE BUTTON
+========================================================== */
+
+.google-btn {
+
+    background:
+        rgba(255,255,255,.055);
 
 }
 
@@ -839,17 +799,17 @@ GOOGLE BUTTON
 .google-btn:hover:not(:disabled) {
 
     background:
-        rgba(255,255,255,.075);
+        rgba(255,255,255,.085);
 
     border-color:
-        rgba(255,255,255,.17);
+        rgba(255,255,255,.18);
 
     transform:
         translateY(-1px);
 
     box-shadow:
-        0 8px 24px
-        rgba(0,0,0,.16);
+        0 10px 28px
+        rgba(0,0,0,.18);
 
 }
 
@@ -862,42 +822,62 @@ GOOGLE BUTTON
 }
 
 
-.google-btn:focus-visible {
+/* ==========================================================
+FACEBOOK BUTTON
+========================================================== */
 
-    outline:
-        none;
+.facebook-btn {
+
+    background:
+        rgba(24,119,242,.09);
 
     border-color:
-        rgba(245,158,11,.55);
+        rgba(24,119,242,.20);
+
+}
+
+
+.facebook-btn:hover:not(:disabled) {
+
+    background:
+        rgba(24,119,242,.14);
+
+    border-color:
+        rgba(24,119,242,.34);
+
+    transform:
+        translateY(-1px);
 
     box-shadow:
-        0 0 0 3px
-        rgba(245,158,11,.10);
+        0 10px 28px
+        rgba(24,119,242,.10);
 
 }
 
 
-.google-btn:disabled {
+.facebook-btn:active:not(:disabled) {
 
-    opacity:
-        .55;
-
-    cursor:
-        not-allowed;
+    transform:
+        translateY(0);
 
 }
 
 
-.google-icon {
+/* ==========================================================
+SOCIAL BUTTON ICON
+========================================================== */
+
+.google-icon,
+.facebook-icon {
 
     width:
-        20px;
+        22px;
 
     height:
-        20px;
+        22px;
 
     flex:
-        0 0 20px;
+        0 0 22px;
 
     display:
         flex;
@@ -911,15 +891,37 @@ GOOGLE BUTTON
 }
 
 
-.google-icon i {
+.google-icon {
 
-    font-size:
-        16px;
+    color:
+        #fff;
 
 }
 
 
-.google-button-text {
+.facebook-icon {
+
+    color:
+        #4f94ff;
+
+}
+
+
+.google-icon i,
+.facebook-icon i {
+
+    font-size:
+        17px;
+
+}
+
+
+/* ==========================================================
+SOCIAL BUTTON TEXT
+========================================================== */
+
+.google-button-text,
+.facebook-button-text {
 
     white-space:
         nowrap;
@@ -927,11 +929,31 @@ GOOGLE BUTTON
 }
 
 
-/*
-============================================================
+/* ==========================================================
+DISABLED SOCIAL BUTTON
+========================================================== */
+
+.google-btn:disabled,
+.facebook-btn:disabled {
+
+    opacity:
+        .55;
+
+    cursor:
+        not-allowed;
+
+    transform:
+        none;
+
+    box-shadow:
+        none;
+
+}
+
+
+/* ==========================================================
 OFFICIAL GOOGLE BUTTON
-============================================================
-*/
+========================================================== */
 
 .google-official-button {
 
@@ -941,11 +963,9 @@ OFFICIAL GOOGLE BUTTON
 }
 
 
-/*
-============================================================
+/* ==========================================================
 DIVIDER
-============================================================
-*/
+========================================================== */
 
 .divider {
 
@@ -959,7 +979,7 @@ DIVIDER
         12px;
 
     margin:
-        22px 0;
+        23px 0;
 
     color:
         var(--honey-auth-subtle);
@@ -969,6 +989,9 @@ DIVIDER
 
     font-weight:
         600;
+
+    letter-spacing:
+        .03em;
 
 }
 
@@ -986,7 +1009,7 @@ DIVIDER
         1px;
 
     background:
-        rgba(255,255,255,.07);
+        rgba(255,255,255,.065);
 
 }
 
@@ -999,378 +1022,44 @@ DIVIDER
 }
 
 
-/*
-============================================================
-AUTH FIELD
-============================================================
-*/
-
-.auth-field {
-
-    margin-bottom:
-        16px;
-
-}
-
-
-.auth-field label {
-
-    display:
-        block;
-
-    margin-bottom:
-        7px;
-
-    color:
-        #cbd0d8;
-
-    font-size:
-        12px;
-
-    font-weight:
-        700;
-
-}
-
-
-.auth-input-wrapper {
-
-    position:
-        relative;
-
-    width:
-        100%;
-
-}
-
-
-.auth-input-wrapper > i {
-
-    position:
-        absolute;
-
-    left:
-        15px;
-
-    top:
-        50%;
-
-    z-index:
-        2;
-
-    transform:
-        translateY(-50%);
-
-    color:
-        #667080;
-
-    font-size:
-        14px;
-
-    pointer-events:
-        none;
-
-    transition:
-        color .2s ease;
-
-}
-
-
-.auth-input-wrapper input {
-
-    width:
-        100%;
-
-    min-height:
-        50px;
-
-    box-sizing:
-        border-box;
-
-    padding:
-        0 15px 0 43px;
-
-    border:
-        1px solid
-        rgba(255,255,255,.08);
-
-    border-radius:
-        var(--honey-auth-input-radius);
-
-    outline:
-        none;
-
-    background:
-        rgba(255,255,255,.035);
-
-    color:
-        #fff;
-
-    font-family:
-        inherit;
-
-    font-size:
-        13px;
-
-    transition:
-
-        border-color .2s ease,
-        background .2s ease,
-        box-shadow .2s ease;
-
-}
-
-
-.auth-input-wrapper input::placeholder {
-
-    color:
-        var(--honey-auth-placeholder);
-
-}
-
-
-.auth-input-wrapper input:hover {
-
-    border-color:
-        rgba(255,255,255,.13);
-
-}
-
-
-.auth-input-wrapper input:focus {
-
-    background:
-        rgba(255,255,255,.05);
-
-    border-color:
-        rgba(245,158,11,.55);
-
-    box-shadow:
-        0 0 0 3px
-        rgba(245,158,11,.08);
-
-}
-
-
-.auth-input-wrapper:focus-within > i {
-
-    color:
-        var(--honey-auth-gold);
-
-}
-
-
-/*
-============================================================
-REGISTER ROW
-============================================================
-*/
-
-.auth-row {
-
-    display:
-        grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap:
-        12px;
-
-}
-
-
-/*
-============================================================
-PASSWORD HINT
-============================================================
-*/
-
-.auth-password-hint {
-
-    display:
-        flex;
-
-    align-items:
-        flex-start;
-
-    gap:
-        8px;
+/* ==========================================================
+AUTH NOTE
+========================================================== */
+
+.auth-note {
 
     margin:
-        -5px 0 17px;
-
-    padding:
-        10px 11px;
-
-    box-sizing:
-        border-box;
-
-    border:
-        1px solid
-        rgba(245,158,11,.10);
-
-    border-radius:
-        10px;
-
-    background:
-        rgba(245,158,11,.055);
+        20px 0 0;
 
     color:
-        #a9a29a;
+        var(--honey-auth-subtle);
 
     font-size:
         10px;
 
     line-height:
-        1.5;
+        1.6;
+
+    text-align:
+        center;
 
 }
 
 
-.auth-password-hint i {
-
-    flex:
-        0 0 auto;
+.auth-note strong {
 
     color:
-        var(--honey-auth-gold);
-
-    margin-top:
-        2px;
-
-}
-
-
-/*
-============================================================
-PRIMARY AUTH BUTTON
-============================================================
-*/
-
-.auth-button {
-
-    width:
-        100%;
-
-    min-height:
-        51px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    gap:
-        9px;
-
-    margin-top:
-        5px;
-
-    box-sizing:
-        border-box;
-
-    border:
-        0;
-
-    border-radius:
-        var(--honey-auth-button-radius);
-
-    background:
-
-        linear-gradient(
-            135deg,
-            #fbbf24,
-            #f59e0b
-        );
-
-    color:
-        #17120a;
-
-    font-family:
-        inherit;
-
-    font-size:
-        13px;
+        #8b93a1;
 
     font-weight:
-        800;
-
-    cursor:
-        pointer;
-
-    box-shadow:
-        0 12px 30px
-        rgba(245,158,11,.14);
-
-    transition:
-
-        transform .2s ease,
-        box-shadow .2s ease,
-        filter .2s ease;
+        600;
 
 }
 
 
-.auth-button:hover:not(:disabled) {
-
-    transform:
-        translateY(-1px);
-
-    filter:
-        brightness(1.04);
-
-    box-shadow:
-        0 16px 36px
-        rgba(245,158,11,.20);
-
-}
-
-
-.auth-button:active:not(:disabled) {
-
-    transform:
-        translateY(0);
-
-}
-
-
-.auth-button:focus-visible {
-
-    outline:
-        none;
-
-    box-shadow:
-
-        0 0 0 3px
-        rgba(245,158,11,.18),
-
-        0 12px 30px
-        rgba(245,158,11,.14);
-
-}
-
-
-.auth-button:disabled {
-
-    opacity:
-        .65;
-
-    cursor:
-        not-allowed;
-
-}
-
-
-/*
-============================================================
+/* ==========================================================
 AUTH LINKS
-============================================================
-*/
+========================================================== */
 
 .auth-link {
 
@@ -1380,8 +1069,8 @@ AUTH LINKS
     width:
         100%;
 
-    margin-top:
-        17px;
+    margin:
+        17px 0 0;
 
     padding:
         0;
@@ -1411,7 +1100,7 @@ AUTH LINKS
         pointer;
 
     transition:
-        color .2s ease;
+        color .20s ease;
 
 }
 
@@ -1420,17 +1109,6 @@ AUTH LINKS
 
     color:
         #fff;
-
-}
-
-
-.auth-link:focus-visible {
-
-    outline:
-        none;
-
-    color:
-        var(--honey-auth-gold-light);
 
 }
 
@@ -1454,11 +1132,9 @@ AUTH LINKS
 }
 
 
-/*
-============================================================
-VERIFY EMAIL
-============================================================
-*/
+/* ==========================================================
+VERIFY / STATUS ICON
+========================================================== */
 
 .auth-verify-icon {
 
@@ -1496,18 +1172,12 @@ VERIFY EMAIL
     font-size:
         24px;
 
-    box-shadow:
-        0 12px 30px
-        rgba(245,158,11,.06);
-
 }
 
 
-/*
-============================================================
+/* ==========================================================
 SPINNER
-============================================================
-*/
+========================================================== */
 
 .auth-spinner {
 
@@ -1522,10 +1192,10 @@ SPINNER
 
     border:
         2px solid
-        rgba(0,0,0,.20);
+        rgba(255,255,255,.25);
 
     border-top-color:
-        rgba(0,0,0,.85);
+        #fff;
 
     border-radius:
         50%;
@@ -1548,11 +1218,32 @@ SPINNER
 }
 
 
-/*
-============================================================
-AUTH FOOTER
-============================================================
-*/
+/* ==========================================================
+LOADING STATE
+========================================================== */
+
+.auth-loading {
+
+    position:
+        relative;
+
+    pointer-events:
+        none;
+
+}
+
+
+.auth-loading .auth-spinner {
+
+    display:
+        inline-block;
+
+}
+
+
+/* ==========================================================
+FOOTER
+========================================================== */
 
 .auth-footer {
 
@@ -1565,8 +1256,8 @@ AUTH FOOTER
     gap:
         10px;
 
-    margin-top:
-        28px;
+    margin:
+        28px 0 0;
 
 }
 
@@ -1591,6 +1282,9 @@ AUTH FOOTER
         flex;
 
     align-items:
+        center;
+
+    justify-content:
         center;
 
     gap:
@@ -1622,67 +1316,71 @@ AUTH FOOTER
 }
 
 
-/*
-============================================================
-GENERIC FORM COMPATIBILITY
-============================================================
-*/
+/* ==========================================================
+SECURITY INDICATOR
+========================================================== */
 
-.login-app button,
-.login-app input,
-.login-app textarea,
-.login-app select {
+.auth-security {
 
-    font-family:
-        inherit;
+    display:
+        flex;
 
-}
+    align-items:
+        center;
 
+    justify-content:
+        center;
 
-.login-app button {
+    gap:
+        7px;
 
-    -webkit-tap-highlight-color:
-        transparent;
+    margin:
+        17px 0 0;
 
-}
+    color:
+        #4f5662;
 
+    font-size:
+        9px;
 
-.login-app input {
-
-    -webkit-appearance:
-        none;
-
-    appearance:
-        none;
+    font-weight:
+        600;
 
 }
 
 
-.login-app input:-webkit-autofill,
-.login-app input:-webkit-autofill:hover,
-.login-app input:-webkit-autofill:focus {
+.auth-security i {
 
-    -webkit-text-fill-color:
-        #fff;
+    color:
+        rgba(34,197,94,.70);
 
-    box-shadow:
-        0 0 0 1000px
-        #11151c
-        inset;
-
-    transition:
-        background-color
-        9999s
-        ease-out;
+    font-size:
+        9px;
 
 }
 
 
-/*
-============================================================
+/* ==========================================================
+FOCUS ACCESSIBILITY
+========================================================== */
+
+.google-btn:focus-visible,
+.facebook-btn:focus-visible,
+.auth-link:focus-visible {
+
+    outline:
+        2px solid
+        rgba(245,158,11,.75);
+
+    outline-offset:
+        3px;
+
+}
+
+
+/* ==========================================================
 SELECTION
-============================================================
-*/
+========================================================== */
 
 .honey-auth-page ::selection {
 
@@ -1695,18 +1393,13 @@ SELECTION
 }
 
 
-/*
-============================================================
+/* ==========================================================
 SCROLLBAR
-============================================================
-*/
+========================================================== */
 
 .honey-auth-page ::-webkit-scrollbar {
 
     width:
-        7px;
-
-    height:
         7px;
 
 }
@@ -1739,32 +1432,22 @@ SCROLLBAR
 }
 
 
-/*
-============================================================
+/* ==========================================================
 MOBILE
-============================================================
-*/
+========================================================== */
 
 @media (max-width: 600px) {
-
-    .login-app {
-
-        align-items:
-            flex-start;
-
-    }
-
 
     .honey-auth-wrapper {
 
         min-height:
-            100vh;
-
-        padding:
-            24px 14px;
+            100svh;
 
         align-items:
             flex-start;
+
+        padding:
+            24px 14px 30px;
 
     }
 
@@ -1773,9 +1456,6 @@ MOBILE
 
         width:
             100%;
-
-        max-width:
-            460px;
 
         padding:
             28px 20px;
@@ -1789,7 +1469,40 @@ MOBILE
     .auth-brand {
 
         margin-bottom:
-            24px;
+            26px;
+
+    }
+
+
+    .auth-logo {
+
+        width:
+            44px;
+
+        height:
+            44px;
+
+        flex-basis:
+            44px;
+
+        border-radius:
+            13px;
+
+    }
+
+
+    .auth-brand-text h1 {
+
+        font-size:
+            20px;
+
+    }
+
+
+    .auth-heading {
+
+        margin-bottom:
+            23px;
 
     }
 
@@ -1802,13 +1515,19 @@ MOBILE
     }
 
 
-    .auth-row {
+    .auth-heading p {
 
-        grid-template-columns:
-            1fr;
+        font-size:
+            12px;
 
-        gap:
-            0;
+    }
+
+
+    .google-btn,
+    .facebook-btn {
+
+        min-height:
+            50px;
 
     }
 
@@ -1816,36 +1535,31 @@ MOBILE
     .auth-orb {
 
         opacity:
-            .07;
+            .08;
 
     }
 
 
-    .auth-grid {
+    .auth-footer {
 
-        opacity:
-            .14;
-
-        background-size:
-            40px 40px;
+        margin-top:
+            24px;
 
     }
 
 }
 
 
-/*
-============================================================
+/* ==========================================================
 SMALL MOBILE
-============================================================
-*/
+========================================================== */
 
 @media (max-width: 380px) {
 
     .honey-auth-wrapper {
 
         padding:
-            14px 10px;
+            14px 10px 24px;
 
     }
 
@@ -1857,6 +1571,17 @@ SMALL MOBILE
 
         border-radius:
             17px;
+
+    }
+
+
+    .auth-brand {
+
+        gap:
+            10px;
+
+        margin-bottom:
+            23px;
 
     }
 
@@ -1873,10 +1598,10 @@ SMALL MOBILE
             42px;
 
         border-radius:
-            13px;
+            12px;
 
         font-size:
-            19px;
+            18px;
 
     }
 
@@ -1908,16 +1633,22 @@ SMALL MOBILE
     .auth-heading p {
 
         font-size:
-            12px;
+            11px;
 
     }
 
 
     .google-btn,
-    .auth-button {
+    .facebook-btn {
 
         min-height:
-            49px;
+            48px;
+
+        padding:
+            0 14px;
+
+        font-size:
+            12px;
 
     }
 
@@ -1929,21 +1660,27 @@ SMALL MOBILE
 
     }
 
+
+    .auth-security {
+
+        font-size:
+            8px;
+
+    }
+
 }
 
 
-/*
-============================================================
-VERY SMALL SCREENS
-============================================================
-*/
+/* ==========================================================
+VERY SMALL DEVICES
+========================================================== */
 
 @media (max-width: 320px) {
 
     .honey-auth-wrapper {
 
         padding:
-            10px 8px;
+            10px 8px 18px;
 
     }
 
@@ -1952,28 +1689,6 @@ VERY SMALL SCREENS
 
         padding:
             20px 14px;
-
-    }
-
-
-    .auth-brand {
-
-        gap:
-            9px;
-
-    }
-
-
-    .auth-logo {
-
-        width:
-            39px;
-
-        height:
-            39px;
-
-        flex-basis:
-            39px;
 
     }
 
@@ -1993,14 +1708,24 @@ VERY SMALL SCREENS
 
     }
 
+
+    .google-btn,
+    .facebook-btn {
+
+        min-height:
+            46px;
+
+        font-size:
+            11px;
+
+    }
+
 }
 
 
-/*
-============================================================
+/* ==========================================================
 REDUCED MOTION
-============================================================
-*/
+========================================================== */
 
 @media (prefers-reduced-motion: reduce) {
 
@@ -2021,9 +1746,7 @@ REDUCED MOTION
 
 
     .google-btn,
-    .auth-button,
-    .auth-input-wrapper input,
-    .auth-input-wrapper > i,
+    .facebook-btn,
     .auth-link {
 
         transition:
@@ -2034,31 +1757,22 @@ REDUCED MOTION
 }
 
 
-/*
-============================================================
+/* ==========================================================
 HIGH CONTRAST
-============================================================
-*/
+========================================================== */
 
 @media (prefers-contrast: more) {
 
     .honey-auth-card {
 
         border-color:
-            rgba(255,255,255,.18);
+            rgba(255,255,255,.20);
 
     }
 
 
-    .auth-input-wrapper input {
-
-        border-color:
-            rgba(255,255,255,.18);
-
-    }
-
-
-    .google-btn {
+    .google-btn,
+    .facebook-btn {
 
         border-color:
             rgba(255,255,255,.20);
@@ -2067,76 +1781,10 @@ HIGH CONTRAST
 
 
     .auth-heading p,
-    .auth-field label,
-    .auth-link {
+    .auth-brand-text p {
 
         color:
-            #b8bec8;
-
-    }
-
-}
-
-
-/*
-============================================================
-FOCUS ACCESSIBILITY
-============================================================
-*/
-
-.login-app button:focus-visible,
-.login-app input:focus-visible {
-
-    outline:
-        2px solid
-        rgba(245,158,11,.70);
-
-    outline-offset:
-        2px;
-
-}
-
-
-/*
-============================================================
-PRINT
-============================================================
-*/
-
-@media print {
-
-    .honey-auth-background,
-    .auth-grid,
-    .auth-orb {
-
-        display:
-            none;
-
-    }
-
-
-    body.honey-auth-page {
-
-        background:
-            #fff;
-
-        color:
-            #000;
-
-    }
-
-
-    .honey-auth-card {
-
-        box-shadow:
-            none;
-
-        border:
-            1px solid
-            #ccc;
-
-        background:
-            #fff;
+            #aeb5c0;
 
     }
 
