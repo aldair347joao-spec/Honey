@@ -3,15 +3,13 @@
 HONEY IA OS
 CHAT CSS
 PREMIUM AI WORKSPACE CHAT SYSTEM
-V3.0
+V2.1
 
 RESPONSIBILITIES
 ------------------------------------------------------------
 - Chat Workspace
-- Fixed Chat Header
-- Fixed Chat Context
-- Independent Message Scrolling
-- Fixed Composer
+- Chat Header
+- Chat Context
 - Welcome Screen
 - Messages
 - Markdown
@@ -19,6 +17,7 @@ RESPONSIBILITIES
 - Tables
 - Suggestions
 - Attachments
+- Composer
 - Voice
 - Send
 - Chat / Live Mode
@@ -28,7 +27,6 @@ RESPONSIBILITIES
 - Accessibility
 - Mobile Workspace
 - Long Response Navigation
-- Reading Optimisation
 ============================================================
 */
 
@@ -100,36 +98,23 @@ RESPONSIBILITIES
 
 /* =========================================================
    03. CHAT PANEL
-   FIXED HEADER / SCROLLING MESSAGES / FIXED COMPOSER
 ========================================================= */
 
 .chat-panel {
 
     position: relative;
 
-    display: grid;
+    display: flex;
 
-    /*
-       Three structural zones:
-
-       1. Header + context
-       2. Messages
-       3. Composer / attachment area
-
-       The middle row is the ONLY expandable/scrol­lable
-       region.
-    */
-
-    grid-template-rows:
-        auto
-        minmax(0, 1fr)
-        auto;
+    flex-direction: column;
 
     width: 100%;
     height: 100%;
 
     min-width: 0;
     min-height: 0;
+
+    flex: 1 1 0;
 
     overflow: hidden;
 
@@ -140,25 +125,6 @@ RESPONSIBILITIES
             transparent 18%
         ),
         var(--bg-deep);
-
-}
-
-
-/*
-   Header and context belong to the fixed top zone.
-   They never participate in message scrolling.
-*/
-
-.chat-panel > .chat-header,
-.chat-panel > .chat-context-bar {
-
-    position: relative;
-
-    flex: 0 0 auto;
-
-    min-width: 0;
-
-    z-index: 20;
 
 }
 
@@ -179,6 +145,8 @@ RESPONSIBILITIES
 
     gap: 20px;
 
+    flex: 0 0 auto;
+
     min-height: 78px;
 
     padding:
@@ -190,26 +158,15 @@ RESPONSIBILITIES
         var(--border-soft);
 
     background:
-        rgba(9,11,15,.96);
+        rgba(9,11,15,.92);
 
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 
-    z-index: 20;
-
-    /*
-       Prevents the header from visually blending
-       into the scrolling content.
-    */
-
-    isolation: isolate;
+    z-index: 10;
 
 }
 
-
-/* =========================================================
-   05. CHAT TITLE
-========================================================= */
 
 .chat-title-area {
 
@@ -323,7 +280,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   06. ONLINE INDICATOR
+   05. ONLINE INDICATOR
 ========================================================= */
 
 .chat-online-indicator {
@@ -345,7 +302,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   07. HEADER ACTIONS
+   06. HEADER ACTIONS
 ========================================================= */
 
 .chat-header-actions {
@@ -447,7 +404,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   08. MODE SWITCH
+   07. MODE SWITCH
 ========================================================= */
 
 .mode-switch {
@@ -554,8 +511,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   09. CHAT CONTEXT
-   FIXED WITH HEADER
+   08. CHAT CONTEXT
 ========================================================= */
 
 .chat-context-bar {
@@ -568,6 +524,8 @@ RESPONSIBILITIES
 
     gap: 15px;
 
+    flex: 0 0 auto;
+
     min-height: 42px;
 
     padding:
@@ -579,18 +537,11 @@ RESPONSIBILITIES
         var(--border-soft);
 
     background:
-        rgba(15,17,23,.96);
+        rgba(15,17,23,.62);
 
     color: var(--text-muted);
 
     font-size: 11px;
-
-    z-index: 19;
-
-    /*
-       The context bar is deliberately outside
-       .chat-messages.
-    */
 
 }
 
@@ -694,8 +645,8 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   10. MESSAGES AREA
-   THE ONLY VERTICAL SCROLLING REGION
+   09. MESSAGES AREA
+   DEFINITIVE LONG-RESPONSE SCROLL SYSTEM
 ========================================================= */
 
 .chat-messages {
@@ -704,19 +655,16 @@ RESPONSIBILITIES
 
     display: block;
 
-    /*
-       Critical:
+    flex: 1 1 0;
 
-       This row receives all remaining height.
-       Nothing outside this element scrolls vertically.
-    */
+    width: 100%;
+
+    height: 0;
 
     min-width: 0;
     min-height: 0;
 
-    width: 100%;
-
-    height: auto;
+    max-height: none;
 
     overflow-x: hidden;
 
@@ -743,21 +691,14 @@ RESPONSIBILITIES
         rgba(255,255,255,.16)
         transparent;
 
-    /*
-       Ensures that the content viewport itself,
-       not the entire chat panel, owns the scroll.
-    */
-
-    contain:
-        layout
-        paint;
-
 }
 
 
-/* =========================================================
-   SCROLLBAR
-========================================================= */
+/*
+============================================================
+SCROLLBAR
+============================================================
+*/
 
 .chat-messages::-webkit-scrollbar {
 
@@ -804,9 +745,11 @@ RESPONSIBILITIES
 }
 
 
-/* =========================================================
-   ACTIVE STREAMING
-========================================================= */
+/*
+============================================================
+DURING ACTIVE STREAMING
+============================================================
+*/
 
 .chat-messages.is-streaming {
 
@@ -817,8 +760,9 @@ RESPONSIBILITIES
 
 
 /*
-   Never allow children to establish a competing
-   vertical scrolling context.
+============================================================
+CHILDREN MUST NOT BREAK THE SCROLL CHAIN
+============================================================
 */
 
 .chat-messages > * {
@@ -829,7 +773,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   11. WELCOME
+   10. WELCOME
 ========================================================= */
 
 .welcome-message {
@@ -997,7 +941,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   12. WELCOME SUGGESTIONS
+   11. WELCOME SUGGESTIONS
 ========================================================= */
 
 .welcome-suggestions {
@@ -1196,7 +1140,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   13. CAPABILITIES
+   12. CAPABILITIES
 ========================================================= */
 
 .chat-capabilities {
@@ -1254,8 +1198,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   14. ATTACHMENT BAR
-   FIXED ABOVE COMPOSER
+   13. ATTACHMENT BAR
 ========================================================= */
 
 .attachment-bar {
@@ -1431,19 +1374,14 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   15. INPUT WRAPPER
-   FIXED BOTTOM ZONE
+   14. INPUT WRAPPER
 ========================================================= */
 
 .chat-input-wrapper {
 
     position: relative;
 
-    display: block;
-
     flex: 0 0 auto;
-
-    min-width: 0;
 
     padding:
         10px
@@ -1457,20 +1395,13 @@ RESPONSIBILITIES
             rgba(9,11,15,.96) 28%
         );
 
-    z-index: 15;
-
-    /*
-       Never allow the composer to become part
-       of the message scroll viewport.
-    */
-
-    overflow: visible;
+    z-index: 5;
 
 }
 
 
 /* =========================================================
-   16. INPUT AREA
+   15. INPUT AREA
 ========================================================= */
 
 .chat-input-area {
@@ -1545,7 +1476,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   17. INPUT ACTIONS
+   16. INPUT ACTIONS
 ========================================================= */
 
 .input-action {
@@ -1611,7 +1542,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   18. VOICE
+   17. VOICE STATES
 ========================================================= */
 
 #btnVoice {
@@ -1684,7 +1615,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   19. TEXTAREA
+   18. TEXTAREA
 ========================================================= */
 
 .chat-textarea-container {
@@ -1800,7 +1731,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   20. SEND BUTTON
+   19. SEND BUTTON
 ========================================================= */
 
 .send-button {
@@ -1880,7 +1811,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   21. GENERATION / STOP
+   20. GENERATION / STOP STATES
 ========================================================= */
 
 .chat-section.is-generating .send-button,
@@ -1907,95 +1838,14 @@ RESPONSIBILITIES
     color:
         #ff7070;
 
-}
-
-
-/*
-   Generation indicator:
-
-   Keep it visually minimal. No artificial timing,
-   no duration display and no bee animation.
-*/
-
-.chat-generating {
-
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 5px;
-
-    padding:
-        5px
-        0;
-
-    color:
-        var(--text-muted);
-
-    font-size: 11px;
-
-    line-height: 1.3;
-
-}
-
-
-.chat-generating span {
-
-    width: 5px;
-    height: 5px;
-
-    flex: 0 0 5px;
-
-    border-radius: 50%;
-
-    background:
-        var(--gold);
-
-    animation:
-        chatTyping 1.2s infinite ease-in-out;
-
-}
-
-
-.chat-generating span:nth-child(2) {
-
-    animation-delay: .15s;
-
-}
-
-
-.chat-generating span:nth-child(3) {
-
-    animation-delay: .3s;
-
-}
-
-
-@keyframes chatTyping {
-
-    0%,
-    60%,
-    100% {
-
-        opacity: .25;
-
-        transform: translateY(0);
-
-    }
-
-    30% {
-
-        opacity: 1;
-
-        transform: translateY(-3px);
-
-    }
+    border-color:
+        rgba(239,68,68,.18);
 
 }
 
 
 /* =========================================================
-   22. INPUT FOOTER
+   21. INPUT FOOTER
 ========================================================= */
 
 .chat-input-footer {
@@ -2099,7 +1949,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   23. PREVIEW PANE
+   22. PREVIEW PANE
 ========================================================= */
 
 .preview-pane {
@@ -2127,7 +1977,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   24. PREVIEW HEADER
+   23. PREVIEW HEADER
 ========================================================= */
 
 .preview-header {
@@ -2302,7 +2152,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   25. PREVIEW BODY
+   24. PREVIEW BODY
 ========================================================= */
 
 .preview-body {
@@ -2341,7 +2191,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   26. CHAT MESSAGE SYSTEM
+   25. CHAT MESSAGE SYSTEM
 ========================================================= */
 
 .chat-message {
@@ -2405,17 +2255,11 @@ RESPONSIBILITIES
 
     color: var(--text-soft);
 
-    /*
-       Comfortable default reading size.
-    */
-
     font-size:
-        var(--chat-font-size, 15.5px);
+        var(--chat-font-size, 15px);
 
     line-height:
-        var(--chat-line-height, 1.8);
-
-    font-weight: 400;
+        var(--chat-line-height, 1.75);
 
     overflow-wrap: anywhere;
 
@@ -2467,7 +2311,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   27. MESSAGE TYPOGRAPHY
+   26. MESSAGE TYPOGRAPHY
 ========================================================= */
 
 .message-content p {
@@ -2475,7 +2319,7 @@ RESPONSIBILITIES
     margin:
         0
         0
-        16px;
+        15px;
 
 }
 
@@ -2493,9 +2337,9 @@ RESPONSIBILITIES
 .message-content h4 {
 
     margin:
-        30px
+        28px
         0
-        13px;
+        12px;
 
     color:
         var(--text);
@@ -2524,28 +2368,28 @@ RESPONSIBILITIES
 
 .message-content h1 {
 
-    font-size: 27px;
+    font-size: 26px;
 
 }
 
 
 .message-content h2 {
 
-    font-size: 23px;
+    font-size: 22px;
 
 }
 
 
 .message-content h3 {
 
-    font-size: 19px;
+    font-size: 18px;
 
 }
 
 
 .message-content h4 {
 
-    font-size: 16px;
+    font-size: 15px;
 
 }
 
@@ -2554,11 +2398,11 @@ RESPONSIBILITIES
 .message-content ol {
 
     margin:
-        12px
+        11px
         0
-        18px;
+        17px;
 
-    padding-left: 27px;
+    padding-left: 26px;
 
 }
 
@@ -2568,16 +2412,16 @@ RESPONSIBILITIES
 .message-content ul ol,
 .message-content ol ul {
 
-    margin-top: 7px;
+    margin-top: 6px;
 
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 
 }
 
 
 .message-content li {
 
-    margin-bottom: 8px;
+    margin-bottom: 7px;
 
     padding-left: 2px;
 
@@ -2660,12 +2504,12 @@ RESPONSIBILITIES
 .message-content blockquote {
 
     margin:
-        19px
+        18px
         0;
 
     padding:
-        12px
-        17px;
+        11px
+        16px;
 
     border-left:
         3px solid
@@ -2694,7 +2538,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   28. INLINE CODE
+   27. INLINE CODE
 ========================================================= */
 
 .message-content code {
@@ -2729,7 +2573,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   29. CODE BLOCK
+   28. CODE BLOCK
 ========================================================= */
 
 .message-content pre {
@@ -2743,7 +2587,7 @@ RESPONSIBILITIES
     max-width: 100%;
 
     margin:
-        20px
+        19px
         0;
 
     padding:
@@ -2840,6 +2684,10 @@ RESPONSIBILITIES
 }
 
 
+/*
+   Highlight.js compatibility.
+*/
+
 .message-content pre code.hljs {
 
     padding: 0;
@@ -2850,7 +2698,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   30. TABLES
+   29. TABLES
 ========================================================= */
 
 .message-content table {
@@ -2864,7 +2712,7 @@ RESPONSIBILITIES
     max-width: 100%;
 
     margin:
-        20px
+        19px
         0;
 
     overflow-x: auto;
@@ -2897,8 +2745,8 @@ RESPONSIBILITIES
     min-width: 110px;
 
     padding:
-        11px
-        13px;
+        10px
+        12px;
 
     border-bottom:
         1px solid
@@ -2906,9 +2754,9 @@ RESPONSIBILITIES
 
     text-align: left;
 
-    font-size: 12.5px;
+    font-size: 12px;
 
-    line-height: 1.55;
+    line-height: 1.5;
 
     vertical-align: top;
 
@@ -2946,13 +2794,13 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   31. HORIZONTAL RULE
+   30. HORIZONTAL RULE
 ========================================================= */
 
 .message-content hr {
 
     margin:
-        27px
+        26px
         0;
 
     border: 0;
@@ -2965,7 +2813,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   32. IMAGES / MEDIA
+   31. IMAGES / MEDIA
 ========================================================= */
 
 .message-content img {
@@ -2976,7 +2824,7 @@ RESPONSIBILITIES
     height: auto;
 
     margin:
-        19px
+        18px
         0;
 
     border:
@@ -3000,7 +2848,7 @@ RESPONSIBILITIES
     max-width: 100%;
 
     margin:
-        19px
+        18px
         0;
 
     border-radius:
@@ -3008,6 +2856,87 @@ RESPONSIBILITIES
 
     background:
         #000;
+
+}
+
+
+/* =========================================================
+   32. GENERATION / STREAMING
+========================================================= */
+
+.chat-generating {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding:
+        5px
+        0;
+
+    color:
+        var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.3;
+
+}
+
+
+.chat-generating span {
+
+    width: 5px;
+    height: 5px;
+
+    flex: 0 0 5px;
+
+    border-radius: 50%;
+
+    background:
+        var(--gold);
+
+    animation:
+        chatTyping 1.2s infinite ease-in-out;
+
+}
+
+
+.chat-generating span:nth-child(2) {
+
+    animation-delay: .15s;
+
+}
+
+
+.chat-generating span:nth-child(3) {
+
+    animation-delay: .3s;
+
+}
+
+
+@keyframes chatTyping {
+
+    0%,
+    60%,
+    100% {
+
+        opacity: .25;
+
+        transform: translateY(0);
+
+    }
+
+    30% {
+
+        opacity: 1;
+
+        transform: translateY(-3px);
+
+    }
 
 }
 
@@ -3111,7 +3040,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   34. ACCESSIBILITY
+   34. ACCESSIBILITY / FOCUS
 ========================================================= */
 
 .chat-section button:focus-visible,
@@ -3208,7 +3137,7 @@ RESPONSIBILITIES
     .message-content {
 
         font-size:
-            var(--chat-font-size, 15.5px);
+            var(--chat-font-size, 15px);
 
     }
 
@@ -3310,8 +3239,6 @@ RESPONSIBILITIES
 
         min-height: 0;
 
-        overflow: hidden;
-
     }
 
 
@@ -3331,19 +3258,10 @@ RESPONSIBILITIES
 
     .chat-panel {
 
-        display: grid;
-
-        grid-template-rows:
-            auto
-            minmax(0, 1fr)
-            auto;
-
         width: 100%;
         height: 100%;
 
         min-height: 0;
-
-        overflow: hidden;
 
     }
 
@@ -3458,9 +3376,11 @@ RESPONSIBILITIES
 
     .chat-messages {
 
+        height: 0;
+
         min-height: 0;
 
-        height: auto;
+        max-height: none;
 
         padding:
             25px
@@ -3471,11 +3391,9 @@ RESPONSIBILITIES
 
         overflow-y: auto;
 
-        overscroll-behavior-y:
-            contain;
+        overscroll-behavior-y: contain;
 
-        -webkit-overflow-scrolling:
-            touch;
+        -webkit-overflow-scrolling: touch;
 
     }
 
@@ -3560,10 +3478,7 @@ RESPONSIBILITIES
         max-width: 96%;
 
         font-size:
-            15px;
-
-        line-height:
-            1.78;
+            var(--chat-font-size, 15px);
 
     }
 
@@ -3696,6 +3611,13 @@ RESPONSIBILITIES
     }
 
 
+    .mode-button span {
+
+        display: none;
+
+    }
+
+
     .chat-context-bar {
 
         min-height: 38px;
@@ -3726,9 +3648,9 @@ RESPONSIBILITIES
 
     .chat-messages {
 
-        min-height: 0;
+        height: 0;
 
-        height: auto;
+        min-height: 0;
 
         padding:
             20px
@@ -3739,8 +3661,7 @@ RESPONSIBILITIES
 
         overflow-y: auto;
 
-        -webkit-overflow-scrolling:
-            touch;
+        -webkit-overflow-scrolling: touch;
 
     }
 
@@ -3957,9 +3878,9 @@ RESPONSIBILITIES
 
         max-width: 98%;
 
-        font-size: 14.5px;
+        font-size: 14px;
 
-        line-height: 1.72;
+        line-height: 1.7;
 
     }
 
@@ -4081,9 +4002,9 @@ RESPONSIBILITIES
 
     .chat-messages {
 
-        min-height: 0;
+        height: 0;
 
-        height: auto;
+        min-height: 0;
 
         padding-left: 8px;
         padding-right: 8px;
@@ -4149,44 +4070,33 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   44. DEFINITIVE STRUCTURAL SCROLL SYSTEM
+   43.5. DEFINITIVE CHAT SCROLL OVERRIDE
+   HONEY IA — LONG RESPONSE NAVIGATION FIX
 ========================================================= */
 
 /*
-   IMPORTANT:
-
-   Do NOT reintroduce a flex-based height:0 hack here.
-
-   The chat panel is now a three-row grid:
-
-       HEADER / CONTEXT
-             ↓
-       MESSAGE VIEWPORT
-             ↓
-       COMPOSER
-
-   Only .chat-messages gets vertical scrolling.
+   Establishes a complete min-height:0 flex chain.
+   This prevents long AI responses from expanding
+   the entire application instead of scrolling inside
+   the messages viewport.
 */
 
-
-.chat-section {
-
-    min-width: 0 !important;
+.chat-section,
+.chat-layout,
+.chat-panel {
 
     min-height: 0 !important;
-
-    overflow: hidden !important;
 
 }
 
 
 .chat-layout {
 
-    min-width: 0 !important;
-
-    min-height: 0 !important;
+    flex: 1 1 0 !important;
 
     height: 100% !important;
+
+    min-height: 0 !important;
 
     overflow: hidden !important;
 
@@ -4195,18 +4105,15 @@ RESPONSIBILITIES
 
 .chat-panel {
 
-    display: grid !important;
+    display: flex !important;
 
-    grid-template-rows:
-        auto
-        minmax(0, 1fr)
-        auto !important;
+    flex-direction: column !important;
 
-    min-width: 0 !important;
-
-    min-height: 0 !important;
+    flex: 1 1 0 !important;
 
     height: 100% !important;
+
+    min-height: 0 !important;
 
     overflow: hidden !important;
 
@@ -4214,49 +4121,23 @@ RESPONSIBILITIES
 
 
 /*
-   Explicitly keep top controls outside
-   the scrolling viewport.
+   The message viewport is the ONLY vertical
+   scrolling surface for normal chat messages.
 */
 
-.chat-panel > .chat-header {
+.chat-messages {
 
-    grid-row: 1;
+    display: block !important;
 
-    min-height: 0;
+    flex: 1 1 0 !important;
 
-    overflow: hidden;
+    width: 100% !important;
 
-}
-
-
-.chat-panel > .chat-context-bar {
-
-    grid-row: 1;
-
-    /*
-       Context remains attached to the header zone.
-       Because both elements are outside .chat-messages,
-       neither scrolls with responses.
-    */
-
-}
-
-
-/*
-   Message viewport.
-*/
-
-.chat-panel > .chat-messages {
-
-    grid-row: 2;
+    height: 0 !important;
 
     min-width: 0 !important;
 
     min-height: 0 !important;
-
-    width: 100% !important;
-
-    height: auto !important;
 
     max-height: none !important;
 
@@ -4264,48 +4145,16 @@ RESPONSIBILITIES
 
     overflow-y: auto !important;
 
-    overscroll-behavior-y: contain !important;
+    overscroll-behavior-y: contain;
 
-    -webkit-overflow-scrolling: touch !important;
-
-}
-
-
-/*
-   Composer zone.
-
-   Everything here remains outside the message viewport.
-*/
-
-.chat-panel > .chat-input-wrapper {
-
-    grid-row: 3;
-
-    min-width: 0;
-
-    min-height: 0;
-
-    flex: none !important;
-
-    overflow: visible;
+    -webkit-overflow-scrolling: touch;
 
 }
 
 
 /*
-   If the attachment bar is a direct child of the
-   chat panel, keep it in the bottom zone as well.
-*/
-
-.chat-panel > .attachment-bar {
-
-    grid-row: 3;
-
-}
-
-
-/*
-   Messages must never become vertical scroll containers.
+   Messages themselves never become competing
+   vertical scroll containers.
 */
 
 .chat-message,
@@ -4313,18 +4162,22 @@ RESPONSIBILITIES
 .assistant-message,
 .user-message {
 
-    min-height: 0 !important;
+    min-height: 0;
 
-    max-height: none !important;
-
-    overflow: visible !important;
+    overflow: visible;
 
 }
 
 
+/*
+   AI response is allowed to grow naturally.
+   The parent .chat-messages controls navigation.
+*/
+
 .ai-message .message-content,
-.assistant-message .message-content,
-.user-message .message-content {
+.assistant-message .message-content {
+
+    height: auto !important;
 
     min-height: 0 !important;
 
@@ -4336,18 +4189,13 @@ RESPONSIBILITIES
 
 
 /*
-   Long content remains inside the horizontal bounds
-   of the message viewport.
+   Prevent response content from creating a
+   horizontal overflow on the entire workspace.
 */
 
 .message-content {
 
-    min-width: 0 !important;
-
-    max-width: min(
-        90%,
-        840px
-    );
+    min-width: 0;
 
     overflow-wrap: anywhere;
 
@@ -4355,8 +4203,8 @@ RESPONSIBILITIES
 
 
 /*
-   Code and tables have their own horizontal scrolling,
-   but NEVER create a vertical scrolling region.
+   Code blocks have independent horizontal
+   navigation while preserving vertical chat scroll.
 */
 
 .message-content pre {
@@ -4372,6 +4220,10 @@ RESPONSIBILITIES
 }
 
 
+/*
+   Tables also scroll horizontally by themselves.
+*/
+
 .message-content table {
 
     max-width: 100% !important;
@@ -4384,7 +4236,8 @@ RESPONSIBILITIES
 
 
 /*
-   Prevent technical strings from expanding the workspace.
+   Long unbroken URLs, identifiers and technical
+   strings cannot force the chat wider.
 */
 
 .message-content a,
@@ -4399,160 +4252,18 @@ RESPONSIBILITIES
 }
 
 
-/* =========================================================
-   45. HEADER VISIBILITY / LAYER PROTECTION
-========================================================= */
-
 /*
-   The following makes the top and bottom zones visually
-   independent from the scrolling content.
-
-   No JavaScript is required for this behavior.
+   Mobile keeps the exact same independent
+   vertical navigation model.
 */
-
-.chat-header,
-.chat-context-bar {
-
-    isolation: isolate;
-
-    backface-visibility: hidden;
-
-}
-
-
-.chat-input-wrapper {
-
-    isolation: isolate;
-
-    backface-visibility: hidden;
-
-}
-
-
-/*
-   The message viewport must never paint over
-   the fixed interface zones.
-*/
-
-.chat-messages {
-
-    position: relative;
-
-    z-index: 1;
-
-}
-
-
-.chat-header,
-.chat-context-bar {
-
-    z-index: 10;
-
-}
-
-
-.chat-input-wrapper {
-
-    z-index: 10;
-
-}
-
-
-/* =========================================================
-   46. REMOVE VISUAL GENERATION NOISE
-========================================================= */
-
-/*
-   These selectors intentionally remove only visual
-   presentation of legacy status/timing elements.
-
-   They do not alter JavaScript behavior.
-*/
-
-/*
-   Legacy duration/time labels.
-*/
-
-.chat-time,
-.message-time,
-.response-time,
-.generation-time,
-.chat-duration,
-.response-duration,
-.message-duration,
-[data-chat-time],
-[data-message-time],
-[data-response-time],
-[data-generation-time],
-[data-duration] {
-
-    display: none !important;
-
-}
-
-
-/*
-   Legacy connection/preparation labels.
-
-   Only elements carrying these known status classes/
-   attributes are affected.
-*/
-
-.chat-connecting,
-.chat-connection-status,
-.chat-preparing,
-.chat-preparation-status,
-.generation-time,
-.response-time-label,
-.connection-label,
-[data-connecting],
-[data-preparing],
-[data-generation-time] {
-
-    display: none !important;
-
-}
-
-
-/*
-   Legacy bee/loading visual elements.
-
-   The generic .bee selector is intentionally NOT hidden,
-   because unrelated interface elements could potentially
-   use that class.
-
-   These selectors target common chat-generation names.
-*/
-
-.chat-bee,
-.chat-loading-bee,
-.chat-generating-bee,
-.ai-bee,
-.response-bee,
-.generation-bee,
-[data-chat-bee],
-[data-generating-bee] {
-
-    display: none !important;
-
-}
-
-
-/* =========================================================
-   47. MOBILE STRUCTURAL PROTECTION
-========================================================= */
 
 @media (max-width: 820px) {
 
-    .chat-section,
-    .chat-layout,
-    .chat-panel {
-
-        min-width: 0 !important;
-
-        min-height: 0 !important;
+    .chat-layout {
 
         height: 100% !important;
+
+        min-height: 0 !important;
 
         overflow: hidden !important;
 
@@ -4561,38 +4272,30 @@ RESPONSIBILITIES
 
     .chat-panel {
 
-        display: grid !important;
+        height: 100% !important;
 
-        grid-template-rows:
-            auto
-            minmax(0, 1fr)
-            auto !important;
+        min-height: 0 !important;
+
+        overflow: hidden !important;
 
     }
 
 
-    .chat-panel > .chat-messages {
+    .chat-messages {
 
-        min-width: 0 !important;
+        flex: 1 1 0 !important;
+
+        height: 0 !important;
 
         min-height: 0 !important;
 
-        height: auto !important;
+        max-height: none !important;
 
         overflow-x: hidden !important;
 
         overflow-y: auto !important;
 
-        -webkit-overflow-scrolling: touch !important;
-
-    }
-
-
-    .chat-panel > .chat-header,
-    .chat-panel > .chat-context-bar,
-    .chat-panel > .chat-input-wrapper {
-
-        flex: none !important;
+        -webkit-overflow-scrolling: touch;
 
     }
 
@@ -4600,7 +4303,7 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   48. PRINT
+   44. PRINT
 ========================================================= */
 
 @media print {
@@ -4638,5 +4341,5 @@ RESPONSIBILITIES
 
 
 /* =========================================================
-   END OF HONEY IA CHAT CSS V3.0
+   END OF HONEY IA CHAT CSS V2.1
 ========================================================= */
