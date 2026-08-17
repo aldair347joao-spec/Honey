@@ -3,10 +3,41 @@
 HONEY IA OS
 AUTH MANAGER
 Frontend Session Controller
-JWT + MongoDB + Google Authentication
-V8.1
-Production Authentication Architecture
-Aligned with Login Controller V9.0
+JWT + MongoDB + Google + Facebook
+V9.0
+
+PRODUCTION AUTHENTICATION ARCHITECTURE
+
+AUTHENTICATION
+------------------------------------------
+• Google OAuth / Identity Services
+• Facebook Login
+• Automatic account creation
+• JWT session
+• MongoDB backend session
+• Persistent user state
+• Workspace authentication
+• Subscription / plan awareness
+
+NO LONGER USED
+------------------------------------------
+• Local registration
+• Email + password login
+• Password management
+• Email verification
+• Verification codes
+
+STORAGE
+------------------------------------------
+honey_token
+honey_user
+
+BACKEND
+------------------------------------------
+GET  /api/auth/me
+POST /api/auth/google
+POST /api/auth/facebook
+POST /api/auth/logout
 ==========================================
 */
 
@@ -42,6 +73,7 @@ class AuthManager {
         this.listeners = [];
 
 
+
         /*
         ==========================================
         SESSION INITIALIZATION
@@ -56,7 +88,15 @@ class AuthManager {
 
             this.loadSession();
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -65,9 +105,12 @@ class AuthManager {
     ==========================================
     */
 
+
     loadStoredUser(){
 
+
         try{
+
 
             const storedUser =
 
@@ -76,6 +119,7 @@ class AuthManager {
                     "honey_user"
 
                 );
+
 
 
             if(!storedUser){
@@ -87,6 +131,7 @@ class AuthManager {
             }
 
 
+
             const parsedUser =
 
                 JSON.parse(
@@ -94,6 +139,7 @@ class AuthManager {
                     storedUser
 
                 );
+
 
 
             if(
@@ -104,6 +150,7 @@ class AuthManager {
 
             ){
 
+
                 this.user =
 
                     this.normalizeUser(
@@ -112,9 +159,11 @@ class AuthManager {
 
                     );
 
+
             }
 
             else{
+
 
                 this.user = null;
 
@@ -125,11 +174,14 @@ class AuthManager {
 
                 );
 
+
             }
+
 
         }
 
         catch(error){
+
 
             console.error(
 
@@ -138,6 +190,7 @@ class AuthManager {
                 error
 
             );
+
 
 
             this.user = null;
@@ -149,9 +202,18 @@ class AuthManager {
 
             );
 
+
         }
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -160,37 +222,45 @@ class AuthManager {
     ==========================================
     */
 
+
     async loadSession(){
 
 
         /*
         --------------------------------------
-        SEM TOKEN
+        NO TOKEN
         --------------------------------------
         */
 
 
         if(!this.token){
 
+
             this.user = null;
+
 
             this.loading = false;
 
+
             this.notify();
 
+
             return null;
+
 
         }
 
 
+
         /*
         --------------------------------------
-        VALIDAR TOKEN NO BACKEND
+        VALIDATE TOKEN
         --------------------------------------
         */
 
 
         try{
+
 
             const response =
 
@@ -219,6 +289,7 @@ class AuthManager {
                 );
 
 
+
             const data =
 
                 await this.parseResponse(
@@ -228,9 +299,10 @@ class AuthManager {
                 );
 
 
+
             /*
             ----------------------------------
-            SESSÃO VÁLIDA
+            VALID SESSION
             ----------------------------------
             */
 
@@ -245,6 +317,7 @@ class AuthManager {
 
             ){
 
+
                 this.user =
 
                     this.normalizeUser(
@@ -254,23 +327,29 @@ class AuthManager {
                     );
 
 
+
                 this.saveUser();
+
 
 
                 this.loading = false;
 
 
+
                 this.notify();
+
 
 
                 return this.user;
 
+
             }
+
 
 
             /*
             ----------------------------------
-            TOKEN INVÁLIDO / EXPIRADO
+            INVALID SESSION
             ----------------------------------
             */
 
@@ -283,27 +362,34 @@ class AuthManager {
 
             ){
 
+
                 this.clearSession(false);
 
+
                 return null;
+
 
             }
 
 
+
             /*
             ----------------------------------
-            RESPOSTA INESPERADA
+            UNEXPECTED RESPONSE
             ----------------------------------
             */
 
 
             this.clearSession(false);
 
+
             return null;
+
 
         }
 
         catch(error){
+
 
             console.error(
 
@@ -314,43 +400,49 @@ class AuthManager {
             );
 
 
-            /*
-            ----------------------------------
-            FAIL CLOSED
-            ----------------------------------
-
-            Nunca considerar somente o
-            localStorage como autenticação válida.
-            ----------------------------------
-            */
-
 
             this.clearSession(false);
 
+
             return null;
 
+
         }
+
 
     }
 
 
+
+
+
+
+
+
+
     /*
     ==========================================
-    WAIT UNTIL AUTH IS READY
+    WAIT UNTIL AUTH READY
     ==========================================
     */
 
+
     async waitUntilReady(){
+
 
         if(this.sessionPromise){
 
+
             try{
 
+
                 await this.sessionPromise;
+
 
             }
 
             catch(error){
+
 
                 console.error(
 
@@ -360,14 +452,25 @@ class AuthManager {
 
                 );
 
+
             }
+
 
         }
 
 
+
         return this.user;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -376,7 +479,9 @@ class AuthManager {
     ==========================================
     */
 
+
     normalizeUser(user){
+
 
         if(
 
@@ -391,9 +496,12 @@ class AuthManager {
         }
 
 
+
         const normalized = {
 
+
             ...user,
+
 
 
             id:
@@ -405,6 +513,7 @@ class AuthManager {
                 null,
 
 
+
             firstName:
 
                 user.firstName ||
@@ -414,6 +523,7 @@ class AuthManager {
                 "",
 
 
+
             lastName:
 
                 user.lastName ||
@@ -421,6 +531,7 @@ class AuthManager {
                 user.apelido ||
 
                 "",
+
 
 
             email:
@@ -438,13 +549,17 @@ class AuthManager {
                     .toLowerCase(),
 
 
+
             avatar:
 
                 user.avatar ||
 
                 user.picture ||
 
+                user.profilePicture ||
+
                 null,
+
 
 
             plan:
@@ -456,11 +571,13 @@ class AuthManager {
                 "free",
 
 
+
             emailVerified:
 
                 user.emailVerified === true ||
 
                 user.emailVerificado === true,
+
 
 
             isActive:
@@ -470,6 +587,7 @@ class AuthManager {
                 user.isActive !== "false",
 
 
+
             googleId:
 
                 user.googleId ||
@@ -477,13 +595,51 @@ class AuthManager {
                 null,
 
 
+
+            facebookId:
+
+                user.facebookId ||
+
+                null,
+
+
+
             provider:
 
                 user.provider ||
 
-                "local"
+                "google"
 
         };
+
+
+
+        /*
+        --------------------------------------
+        NORMALIZE PROVIDER
+        --------------------------------------
+        */
+
+
+        normalized.provider =
+
+            String(
+
+                normalized.provider || "google"
+
+            )
+
+                .trim()
+
+                .toLowerCase();
+
+
+
+        /*
+        --------------------------------------
+        DISPLAY NAME
+        --------------------------------------
+        */
 
 
         normalized.name =
@@ -517,649 +673,18 @@ class AuthManager {
                 "Utilizador";
 
 
+
         return normalized;
 
-    }
-
-
-    /*
-    ==========================================
-    REGISTER
-    ==========================================
-    */
-
-    async register(data){
-
-        const payload = {
-
-            ...(data || {})
-
-        };
-
-
-        /*
-        --------------------------------------
-        NORMALIZAR CAMPOS
-        --------------------------------------
-        */
-
-
-        payload.firstName =
-
-            String(
-
-                payload.firstName ||
-
-                payload.nome ||
-
-                ""
-
-            )
-
-                .trim();
-
-
-        payload.lastName =
-
-            String(
-
-                payload.lastName ||
-
-                payload.apelido ||
-
-                ""
-
-            )
-
-                .trim();
-
-
-        payload.email =
-
-            String(
-
-                payload.email ||
-
-                ""
-
-            )
-
-                .trim()
-
-                .toLowerCase();
-
-
-        payload.password =
-
-            String(
-
-                payload.password ||
-
-                ""
-
-            );
-
-
-        if(
-
-            payload.confirmPassword !== undefined
-
-        ){
-
-            payload.confirmPassword =
-
-                String(
-
-                    payload.confirmPassword ||
-
-                    ""
-
-                );
-
-        }
-
-
-        /*
-        --------------------------------------
-        VALIDAÇÃO
-        --------------------------------------
-        */
-
-
-        if(
-
-            !payload.firstName ||
-
-            !payload.lastName ||
-
-            !payload.email ||
-
-            !payload.password
-
-        ){
-
-            throw new Error(
-
-                "Preencha todos os campos."
-
-            );
-
-        }
-
-
-        /*
-        --------------------------------------
-        REQUEST
-        --------------------------------------
-        */
-
-
-        const response =
-
-            await fetch(
-
-                "/api/auth/register",
-
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-
-                            "application/json",
-
-                        "Accept":
-
-                            "application/json"
-
-                    },
-
-                    body:
-
-                        JSON.stringify(
-
-                            payload
-
-                        ),
-
-                    credentials: "same-origin"
-
-                }
-
-            );
-
-
-        const result =
-
-            await this.parseResponse(
-
-                response
-
-            );
-
-
-        if(
-
-            !response.ok ||
-
-            !result.success
-
-        ){
-
-            throw new Error(
-
-                result.error ||
-
-                "Não foi possível criar a conta."
-
-            );
-
-        }
-
-
-        /*
-        --------------------------------------
-        NÃO CRIAR SESSÃO AUTOMÁTICA
-        --------------------------------------
-
-        O utilizador precisa confirmar
-        o email antes do primeiro login.
-        --------------------------------------
-        */
-
-
-        return result;
 
     }
 
 
-    /*
-    ==========================================
-    VERIFY EMAIL
-    ==========================================
-    */
 
-    async verifyEmail(data){
 
-        const payload = {
 
-            ...(data || {})
 
-        };
 
-
-        if(payload.email){
-
-            payload.email =
-
-                String(
-
-                    payload.email
-
-                )
-
-                    .trim()
-
-                    .toLowerCase();
-
-        }
-
-
-        if(payload.code){
-
-            payload.code =
-
-                String(
-
-                    payload.code
-
-                )
-
-                    .trim();
-
-        }
-
-
-        /*
-        --------------------------------------
-        COMPATIBILIDADE
-        --------------------------------------
-        */
-
-
-        if(
-
-            !payload.code &&
-
-            payload.codigo
-
-        ){
-
-            payload.code =
-
-                String(
-
-                    payload.codigo
-
-                )
-
-                    .trim();
-
-        }
-
-
-        const response =
-
-            await fetch(
-
-                "/api/auth/verify-email",
-
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-
-                            "application/json",
-
-                        "Accept":
-
-                            "application/json"
-
-                    },
-
-                    body:
-
-                        JSON.stringify(
-
-                            payload
-
-                        ),
-
-                    credentials: "same-origin"
-
-                }
-
-            );
-
-
-        const result =
-
-            await this.parseResponse(
-
-                response
-
-            );
-
-
-        if(
-
-            !response.ok ||
-
-            !result.success
-
-        ){
-
-            throw new Error(
-
-                result.error ||
-
-                "Não foi possível confirmar o email."
-
-            );
-
-        }
-
-
-        return result;
-
-    }
-
-
-    /*
-    ==========================================
-    RESEND VERIFICATION
-    ==========================================
-    */
-
-    async resendVerification(email){
-
-        const cleanEmail =
-
-            String(
-
-                email || ""
-
-            )
-
-                .trim()
-
-                .toLowerCase();
-
-
-        if(!cleanEmail){
-
-            throw new Error(
-
-                "Email de confirmação não encontrado."
-
-            );
-
-        }
-
-
-        const response =
-
-            await fetch(
-
-                "/api/auth/resend-verification",
-
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-
-                            "application/json",
-
-                        "Accept":
-
-                            "application/json"
-
-                    },
-
-                    body:
-
-                        JSON.stringify({
-
-                            email:
-
-                                cleanEmail
-
-                        }),
-
-                    credentials: "same-origin"
-
-                }
-
-            );
-
-
-        const result =
-
-            await this.parseResponse(
-
-                response
-
-            );
-
-
-        if(
-
-            !response.ok ||
-
-            !result.success
-
-        ){
-
-            throw new Error(
-
-                result.error ||
-
-                "Não foi possível reenviar o código."
-
-            );
-
-        }
-
-
-        return result;
-
-    }
-
-
-    /*
-    ==========================================
-    LOGIN
-    EMAIL + PASSWORD
-    ==========================================
-    */
-
-    async login(data){
-
-        const payload = {
-
-            ...(data || {})
-
-        };
-
-
-        payload.email =
-
-            String(
-
-                payload.email ||
-
-                ""
-
-            )
-
-                .trim()
-
-                .toLowerCase();
-
-
-        payload.password =
-
-            String(
-
-                payload.password ||
-
-                ""
-
-            );
-
-
-        if(
-
-            !payload.email ||
-
-            !payload.password
-
-        ){
-
-            throw new Error(
-
-                "Introduza o email e a palavra-passe."
-
-            );
-
-        }
-
-
-        const response =
-
-            await fetch(
-
-                "/api/auth/login",
-
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-
-                            "application/json",
-
-                        "Accept":
-
-                            "application/json"
-
-                    },
-
-                    body:
-
-                        JSON.stringify(
-
-                            payload
-
-                        ),
-
-                    credentials: "same-origin"
-
-                }
-
-            );
-
-
-        const result =
-
-            await this.parseResponse(
-
-                response
-
-            );
-
-
-        if(
-
-            !response.ok ||
-
-            !result.success
-
-        ){
-
-            throw new Error(
-
-                result.error ||
-
-                "Não foi possível realizar o login."
-
-            );
-
-        }
-
-
-        if(!result.token){
-
-            throw new Error(
-
-                "O servidor não devolveu um token de sessão."
-
-            );
-
-        }
-
-
-        this.setSession(
-
-            result.token,
-
-            result.user
-
-        );
-
-
-        /*
-        --------------------------------------
-        CONFIRMAR SESSÃO NO BACKEND
-        --------------------------------------
-        */
-
-
-        const verifiedUser =
-
-            await this.refreshUser();
-
-
-        if(
-
-            !verifiedUser ||
-
-            !this.isAuthenticated()
-
-        ){
-
-            throw new Error(
-
-                "A sessão não pôde ser confirmada."
-
-            );
-
-        }
-
-
-        return this.user;
-
-    }
 
 
     /*
@@ -1168,11 +693,13 @@ class AuthManager {
     ==========================================
     */
 
+
     async loginWithGoogle(
 
         credential
 
     ){
+
 
         if(
 
@@ -1182,13 +709,16 @@ class AuthManager {
 
         ){
 
+
             throw new Error(
 
                 "Credenciais do Google não encontradas."
 
             );
 
+
         }
+
 
 
         const response =
@@ -1228,6 +758,7 @@ class AuthManager {
             );
 
 
+
         const result =
 
             await this.parseResponse(
@@ -1235,6 +766,7 @@ class AuthManager {
                 response
 
             );
+
 
 
         if(
@@ -1245,6 +777,7 @@ class AuthManager {
 
         ){
 
+
             throw new Error(
 
                 result.error ||
@@ -1253,10 +786,13 @@ class AuthManager {
 
             );
 
+
         }
 
 
+
         if(!result.token){
+
 
             throw new Error(
 
@@ -1264,7 +800,16 @@ class AuthManager {
 
             );
 
+
         }
+
+
+
+        /*
+        --------------------------------------
+        CREATE SESSION
+        --------------------------------------
+        */
 
 
         this.setSession(
@@ -1276,9 +821,10 @@ class AuthManager {
         );
 
 
+
         /*
         --------------------------------------
-        CONFIRMAR SESSÃO GOOGLE
+        CONFIRM SESSION
         --------------------------------------
         */
 
@@ -1286,6 +832,7 @@ class AuthManager {
         const verifiedUser =
 
             await this.refreshUser();
+
 
 
         if(
@@ -1296,18 +843,29 @@ class AuthManager {
 
         ){
 
+
             throw new Error(
 
                 "A sessão Google não pôde ser confirmada."
 
             );
 
+
         }
+
 
 
         return this.user;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1316,11 +874,13 @@ class AuthManager {
     ==========================================
     */
 
+
     async googleLogin(
 
         credential
 
     ){
+
 
         return this.loginWithGoogle(
 
@@ -1328,7 +888,227 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    FACEBOOK LOGIN
+    ==========================================
+    */
+
+
+    async loginWithFacebook(
+
+        accessToken
+
+    ){
+
+
+        if(
+
+            !accessToken ||
+
+            typeof accessToken !== "string"
+
+        ){
+
+
+            throw new Error(
+
+                "Token do Facebook não encontrado."
+
+            );
+
+
+        }
+
+
+
+        const response =
+
+            await fetch(
+
+                "/api/auth/facebook",
+
+                {
+
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+
+                            "application/json",
+
+                        "Accept":
+
+                            "application/json"
+
+                    },
+
+                    body:
+
+                        JSON.stringify({
+
+                            accessToken
+
+                        }),
+
+                    credentials: "same-origin"
+
+                }
+
+            );
+
+
+
+        const result =
+
+            await this.parseResponse(
+
+                response
+
+            );
+
+
+
+        if(
+
+            !response.ok ||
+
+            !result.success
+
+        ){
+
+
+            throw new Error(
+
+                result.error ||
+
+                "Não foi possível entrar com o Facebook."
+
+            );
+
+
+        }
+
+
+
+        if(!result.token){
+
+
+            throw new Error(
+
+                "O servidor não devolveu um token Facebook válido."
+
+            );
+
+
+        }
+
+
+
+        /*
+        --------------------------------------
+        CREATE SESSION
+        --------------------------------------
+        */
+
+
+        this.setSession(
+
+            result.token,
+
+            result.user
+
+        );
+
+
+
+        /*
+        --------------------------------------
+        CONFIRM SESSION
+        --------------------------------------
+        */
+
+
+        const verifiedUser =
+
+            await this.refreshUser();
+
+
+
+        if(
+
+            !verifiedUser ||
+
+            !this.isAuthenticated()
+
+        ){
+
+
+            throw new Error(
+
+                "A sessão Facebook não pôde ser confirmada."
+
+            );
+
+
+        }
+
+
+
+        return this.user;
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    FACEBOOK LOGIN ALIAS
+    ==========================================
+    */
+
+
+    async facebookLogin(
+
+        accessToken
+
+    ){
+
+
+        return this.loginWithFacebook(
+
+            accessToken
+
+        );
+
+
+    }
+
+
+
+
+
+
+
 
 
     /*
@@ -1336,6 +1116,7 @@ class AuthManager {
     SET SESSION
     ==========================================
     */
+
 
     setSession(
 
@@ -1345,6 +1126,7 @@ class AuthManager {
 
     ){
 
+
         if(
 
             !token ||
@@ -1353,13 +1135,16 @@ class AuthManager {
 
         ){
 
+
             throw new Error(
 
                 "Token de autenticação inválido."
 
             );
 
+
         }
+
 
 
         const cleanToken =
@@ -1367,7 +1152,9 @@ class AuthManager {
             token.trim();
 
 
+
         if(!cleanToken){
+
 
             throw new Error(
 
@@ -1375,12 +1162,15 @@ class AuthManager {
 
             );
 
+
         }
+
 
 
         this.token =
 
             cleanToken;
+
 
 
         this.user =
@@ -1392,6 +1182,7 @@ class AuthManager {
             );
 
 
+
         localStorage.setItem(
 
             "honey_token",
@@ -1401,6 +1192,7 @@ class AuthManager {
         );
 
 
+
         if(this.user){
 
             this.saveUser();
@@ -1408,12 +1200,22 @@ class AuthManager {
         }
 
 
+
         this.loading = false;
+
 
 
         this.notify();
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1422,9 +1224,12 @@ class AuthManager {
     ==========================================
     */
 
+
     saveUser(){
 
+
         if(!this.user){
+
 
             localStorage.removeItem(
 
@@ -1432,9 +1237,12 @@ class AuthManager {
 
             );
 
+
             return;
 
+
         }
+
 
 
         localStorage.setItem(
@@ -1449,7 +1257,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1458,11 +1274,21 @@ class AuthManager {
     ==========================================
     */
 
+
     getToken(){
+
 
         return this.token;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1471,11 +1297,21 @@ class AuthManager {
     ==========================================
     */
 
+
     getUser(){
+
 
         return this.user;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1484,7 +1320,9 @@ class AuthManager {
     ==========================================
     */
 
+
     getPlan(){
+
 
         return (
 
@@ -1494,7 +1332,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1503,7 +1349,9 @@ class AuthManager {
     ==========================================
     */
 
+
     isAuthenticated(){
+
 
         return (
 
@@ -1515,7 +1363,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1524,11 +1380,21 @@ class AuthManager {
     ==========================================
     */
 
+
     isLoading(){
+
 
         return this.loading;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1537,16 +1403,21 @@ class AuthManager {
     ==========================================
     */
 
+
     async logout(){
+
 
         const currentToken =
 
             this.token;
 
 
+
         try{
 
+
             if(currentToken){
+
 
                 await fetch(
 
@@ -1574,11 +1445,14 @@ class AuthManager {
 
                 );
 
+
             }
+
 
         }
 
         catch(error){
+
 
             console.warn(
 
@@ -1588,15 +1462,97 @@ class AuthManager {
 
             );
 
+
         }
 
         finally{
 
+
+            /*
+            ----------------------------------
+            FACEBOOK LOGOUT
+            ----------------------------------
+            */
+
+
+            try{
+
+
+                if(
+
+                    window.FB &&
+
+                    typeof window.FB.getLoginStatus ===
+
+                        "function"
+
+                ){
+
+
+                    window.FB.getLoginStatus(
+
+                        response => {
+
+
+                            if(
+
+                                response?.status ===
+
+                                    "connected"
+
+                            ){
+
+
+                                window.FB.logout(
+
+                                    () => {}
+
+                                );
+
+
+                            }
+
+
+                        }
+
+                    );
+
+
+                }
+
+
+            }
+
+            catch(error){
+
+
+                console.warn(
+
+                    "FACEBOOK LOGOUT ERROR:",
+
+                    error
+
+                );
+
+
+            }
+
+
+
             this.clearSession();
+
 
         }
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1605,17 +1561,22 @@ class AuthManager {
     ==========================================
     */
 
+
     clearSession(
 
         notify = true
 
     ){
 
+
         this.user = null;
+
 
         this.token = null;
 
+
         this.loading = false;
+
 
 
         localStorage.removeItem(
@@ -1625,11 +1586,13 @@ class AuthManager {
         );
 
 
+
         localStorage.removeItem(
 
             "honey_user"
 
         );
+
 
 
         if(notify){
@@ -1638,7 +1601,15 @@ class AuthManager {
 
         }
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1647,20 +1618,28 @@ class AuthManager {
     ==========================================
     */
 
+
     async refreshUser(){
+
 
         if(!this.token){
 
+
             this.user = null;
+
 
             this.saveUser();
 
+
             return null;
+
 
         }
 
 
+
         try{
+
 
             const response =
 
@@ -1689,6 +1668,7 @@ class AuthManager {
                 );
 
 
+
             const data =
 
                 await this.parseResponse(
@@ -1696,6 +1676,14 @@ class AuthManager {
                     response
 
                 );
+
+
+
+            /*
+            ----------------------------------
+            VALID SESSION
+            ----------------------------------
+            */
 
 
             if(
@@ -1708,6 +1696,7 @@ class AuthManager {
 
             ){
 
+
                 this.user =
 
                     this.normalizeUser(
@@ -1717,23 +1706,29 @@ class AuthManager {
                     );
 
 
+
                 this.saveUser();
+
 
 
                 this.loading = false;
 
 
+
                 this.notify();
+
 
 
                 return this.user;
 
+
             }
+
 
 
             /*
             ----------------------------------
-            SESSÃO INVÁLIDA
+            INVALID SESSION
             ----------------------------------
             */
 
@@ -1746,27 +1741,27 @@ class AuthManager {
 
             ){
 
+
                 this.clearSession();
 
+
                 return null;
+
 
             }
 
 
-            /*
-            ----------------------------------
-            RESPOSTA INVÁLIDA
-            ----------------------------------
-            */
-
 
             this.clearSession();
 
+
             return null;
+
 
         }
 
         catch(error){
+
 
             console.error(
 
@@ -1777,13 +1772,24 @@ class AuthManager {
             );
 
 
+
             this.clearSession();
+
 
             return null;
 
+
         }
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1792,7 +1798,9 @@ class AuthManager {
     ==========================================
     */
 
+
     getAuthHeader(){
+
 
         if(!this.token){
 
@@ -1801,15 +1809,26 @@ class AuthManager {
         }
 
 
+
         return {
+
 
             "Authorization":
 
                 `Bearer ${this.token}`
 
+
         };
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -1817,6 +1836,7 @@ class AuthManager {
     AUTH FETCH
     ==========================================
     */
+
 
     async authFetch(
 
@@ -1826,13 +1846,17 @@ class AuthManager {
 
     ){
 
+
         const headers = {
+
 
             ...(options.headers || {}),
 
             ...this.getAuthHeader()
 
+
         };
+
 
 
         const response =
@@ -1858,20 +1882,29 @@ class AuthManager {
             );
 
 
+
         /*
         --------------------------------------
-        SESSÃO INVALIDADA PELO BACKEND
+        401
         --------------------------------------
         */
 
 
-        if(response.status === 401){
+        if(
+
+            response.status === 401
+
+        ){
+
 
             this.clearSession();
 
+
             return response;
 
+
         }
+
 
 
         /*
@@ -1879,33 +1912,36 @@ class AuthManager {
         403
         --------------------------------------
 
-        Um 403 pode significar:
-
-        - plano insuficiente
-        - permissão insuficiente
-        - sessão inválida
-
-        Portanto não devemos apagar
-        automaticamente a sessão em todo 403.
+        Não limpar automaticamente.
+        Pode significar plano/permissão.
         --------------------------------------
         */
 
 
-        if(response.status === 403){
+        if(
+
+            response.status === 403
+
+        ){
+
 
             let shouldClear = false;
 
 
+
             try{
+
 
                 const clone =
 
                     response.clone();
 
 
+
                 const data =
 
                     await clone.json();
+
 
 
                 const errorMessage =
@@ -1921,6 +1957,7 @@ class AuthManager {
                     )
 
                         .toLowerCase();
+
 
 
                 const sessionError =
@@ -1968,6 +2005,7 @@ class AuthManager {
                     );
 
 
+
                 const planError =
 
                     errorMessage.includes(
@@ -1989,6 +2027,7 @@ class AuthManager {
                     );
 
 
+
                 if(
 
                     sessionError &&
@@ -2001,9 +2040,11 @@ class AuthManager {
 
                 }
 
+
             }
 
             catch(error){
+
 
                 console.warn(
 
@@ -2013,7 +2054,9 @@ class AuthManager {
 
                 );
 
+
             }
+
 
 
             if(shouldClear){
@@ -2022,12 +2065,22 @@ class AuthManager {
 
             }
 
+
         }
+
 
 
         return response;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2036,13 +2089,16 @@ class AuthManager {
     ==========================================
     */
 
+
     async parseResponse(
 
         response
 
     ){
 
+
         try{
+
 
             const contentType =
 
@@ -2051,6 +2107,7 @@ class AuthManager {
                     "content-type"
 
                 ) || "";
+
 
 
             if(
@@ -2067,6 +2124,7 @@ class AuthManager {
 
             ){
 
+
                 return {
 
                     success: false,
@@ -2077,14 +2135,18 @@ class AuthManager {
 
                 };
 
+
             }
+
 
 
             return await response.json();
 
+
         }
 
         catch(error){
+
 
             console.error(
 
@@ -2093,6 +2155,7 @@ class AuthManager {
                 error
 
             );
+
 
 
             return {
@@ -2105,9 +2168,18 @@ class AuthManager {
 
             };
 
+
         }
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2116,7 +2188,9 @@ class AuthManager {
     ==========================================
     */
 
+
     subscribe(callback){
+
 
         if(
 
@@ -2126,7 +2200,9 @@ class AuthManager {
 
             return () => {};
 
+
         }
+
 
 
         this.listeners.push(
@@ -2136,7 +2212,9 @@ class AuthManager {
         );
 
 
+
         return () => {
+
 
             this.listeners =
 
@@ -2148,9 +2226,18 @@ class AuthManager {
 
                 );
 
+
         };
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2159,7 +2246,9 @@ class AuthManager {
     ==========================================
     */
 
+
     notify(){
+
 
         if(
 
@@ -2176,11 +2265,14 @@ class AuthManager {
         }
 
 
+
         this.listeners.forEach(
 
             callback => {
 
+
                 try{
+
 
                     callback(
 
@@ -2188,9 +2280,11 @@ class AuthManager {
 
                     );
 
+
                 }
 
                 catch(error){
+
 
                     console.error(
 
@@ -2200,13 +2294,23 @@ class AuthManager {
 
                     );
 
+
                 }
+
 
             }
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2215,21 +2319,20 @@ class AuthManager {
     ==========================================
     */
 
+
     requireAuth(
 
         redirect = "/"
 
     ){
 
-        if(
 
-            this.loading
-
-        ){
+        if(this.loading){
 
             return false;
 
         }
+
 
 
         if(
@@ -2238,19 +2341,31 @@ class AuthManager {
 
         ){
 
+
             window.location.href =
 
                 redirect;
 
 
+
             return false;
+
 
         }
 
 
+
         return true;
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2259,11 +2374,13 @@ class AuthManager {
     ==========================================
     */
 
+
     requirePlan(
 
         allowedPlans = []
 
     ){
+
 
         if(
 
@@ -2280,13 +2397,22 @@ class AuthManager {
         }
 
 
+
         return allowedPlans.includes(
 
             this.getPlan()
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2295,13 +2421,16 @@ class AuthManager {
     ==========================================
     */
 
+
     getDisplayName(){
+
 
         if(!this.user){
 
             return "Utilizador";
 
         }
+
 
 
         const firstName =
@@ -2311,6 +2440,7 @@ class AuthManager {
             "";
 
 
+
         const lastName =
 
             this.user.lastName ||
@@ -2318,11 +2448,13 @@ class AuthManager {
             "";
 
 
+
         const fullName =
 
             `${firstName} ${lastName}`
 
                 .trim();
+
 
 
         return (
@@ -2337,7 +2469,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2346,7 +2486,9 @@ class AuthManager {
     ==========================================
     */
 
+
     getAvatar(){
+
 
         return (
 
@@ -2356,7 +2498,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2365,7 +2515,9 @@ class AuthManager {
     ==========================================
     */
 
+
     getEmail(){
+
 
         return (
 
@@ -2375,7 +2527,15 @@ class AuthManager {
 
         );
 
+
     }
+
+
+
+
+
+
+
 
 
     /*
@@ -2384,7 +2544,9 @@ class AuthManager {
     ==========================================
     */
 
+
     getUserId(){
+
 
         return (
 
@@ -2396,9 +2558,105 @@ class AuthManager {
 
         );
 
+
     }
 
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    GET AUTH PROVIDER
+    ==========================================
+    */
+
+
+    getProvider(){
+
+
+        return (
+
+            this.user?.provider ||
+
+            null
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    IS GOOGLE USER
+    ==========================================
+    */
+
+
+    isGoogleUser(){
+
+
+        return (
+
+            this.getProvider() ===
+
+                "google"
+
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+    /*
+    ==========================================
+    IS FACEBOOK USER
+    ==========================================
+    */
+
+
+    isFacebookUser(){
+
+
+        return (
+
+            this.getProvider() ===
+
+                "facebook"
+
+        );
+
+
+    }
+
+
 }
+
+
+
+
+
+
+
 
 
 /*
@@ -2407,9 +2665,17 @@ GLOBAL AUTH INSTANCE
 ==========================================
 */
 
+
 const authmanager =
 
     new AuthManager();
+
+
+
+
+
+
+
 
 
 /*
@@ -2417,5 +2683,6 @@ const authmanager =
 EXPORT
 ==========================================
 */
+
 
 export default authmanager;
