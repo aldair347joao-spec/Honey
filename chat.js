@@ -2,9 +2,12 @@
 ==========================================================
 HONEY IA OS
 CHAT ENGINE
-V5.0
-PRODUCTION AI STUDIO CHAT ENGINE
+V6.0
+UNIVERSAL ARTIFACT PREVIEW ENGINE
+==========================================================
 
+CORE
+----------------------------------------------------------
 - JWT Authentication
 - Persistent MongoDB Conversations
 - Unlimited Persistent Conversation History
@@ -12,15 +15,30 @@ PRODUCTION AI STUDIO CHAT ENGINE
 - Groq + Gemini Compatible Backend
 - Markdown Rendering
 - Code Highlighting
-- SSE Streaming
+- SSE / JSON Streaming Compatible
 - Abort / Stop Generation
 - User Controlled Scroll
 - Buffered Streaming Rendering
 - Generation Isolation
 - File Context
-- Artifacts
-- Artifact Preview
-- Tool Activity
+- Universal Artifacts
+- Universal Artifact Preview
+- Live Artifact Editing
+- Code Editor
+- Visual Artifact Editing
+- Responsive Preview
+- Fullscreen Preview
+- Artifact Versioning
+- Version Compare
+- Version Restore
+- Universal Download
+- Project Download
+- Shareable Preview Links
+- Temporary Preview Links
+- Deployment Preparation
+- Vercel / Render Deployment Hooks
+- Secure Execution Sandbox Hooks
+- Integrated Terminal
 - Voice Input
 - User Profile
 - Subscription Awareness
@@ -29,6 +47,11 @@ PRODUCTION AI STUDIO CHAT ENGINE
 - Responsive Workspace
 - Secure HTML Rendering
 - Production Error Handling
+
+IMPORTANT
+----------------------------------------------------------
+The frontend never claims a deployment or code execution
+was successful unless the backend explicitly confirms it.
 ==========================================================
 */
 
@@ -57,18 +80,23 @@ const MAX_VISIBLE_ARTIFACTS = 100;
 
 const MAX_VISIBLE_TOOLS = 100;
 
-/*
-    Distância máxima do fim para considerar que
-    o utilizador ainda está acompanhando a resposta.
-*/
+const MAX_ARTIFACT_VERSIONS = 50;
+
+const MAX_EDITOR_SIZE = 2 * 1024 * 1024;
+
 const SCROLL_BOTTOM_THRESHOLD = 72;
 
-/*
-    Intervalo mínimo entre renders visuais do streaming.
-    O texto continua sendo acumulado imediatamente,
-    mas o DOM não é reconstruído a cada micro-chunk.
-*/
 const STREAM_RENDER_INTERVAL = 32;
+
+const PREVIEW_SHARE_PATH = "/preview";
+
+const PREVIEW_DEPLOY_ENDPOINT = "/artifacts/deploy";
+
+const PREVIEW_SHARE_ENDPOINT = "/artifacts/share";
+
+const PREVIEW_EXECUTE_ENDPOINT = "/artifacts/execute";
+
+const PREVIEW_VERSION_ENDPOINT = "/artifacts/versions";
 
 
 /*
@@ -82,8 +110,13 @@ const SUPPORTED_TEXT_EXTENSIONS = [
     "txt",
     "md",
     "markdown",
+
     "json",
+    "jsonl",
+
     "csv",
+    "tsv",
+
     "xml",
 
     "html",
@@ -100,27 +133,55 @@ const SUPPORTED_TEXT_EXTENSIONS = [
     "jsx",
 
     "py",
+    "pyw",
+
     "java",
 
     "c",
     "cpp",
+    "cc",
+
     "h",
     "hpp",
+
+    "cs",
+
+    "go",
+
+    "rs",
+
+    "php",
+
+    "rb",
+
+    "swift",
+
+    "kt",
+    "kts",
 
     "sql",
 
     "sh",
     "bash",
+    "zsh",
 
     "yaml",
     "yml",
+
+    "toml",
 
     "ini",
     "conf",
 
     "env",
 
-    "log"
+    "log",
+
+    "svg",
+
+    "vue",
+
+    "svelte"
 
 ];
 
@@ -214,17 +275,9 @@ const state = {
     generationStatus:
         "idle",
 
-    /*
-        Indica se o utilizador está próximo do fim.
-        O chat nunca deve forçar o scroll quando false.
-    */
     userNearBottom:
         true,
 
-    /*
-        Durante streaming, o conteúdo é acumulado aqui
-        e renderizado em ciclos controlados.
-    */
     streamRenderQueued:
         false,
 
@@ -237,17 +290,75 @@ const state = {
     streamRenderGenerationId:
         null,
 
-    /*
-        Evita renders concorrentes.
-    */
     streamRenderRequested:
         false,
 
-    /*
-        Guarda se já houve conteúdo efetivamente renderizado.
-    */
     streamHasRenderedContent:
-        false
+        false,
+
+    /*
+        UNIVERSAL PREVIEW
+    */
+
+    preview: {
+
+        open:
+            false,
+
+        artifactId:
+            null,
+
+        artifact:
+            null,
+
+        artifactType:
+            null,
+
+        activeFile:
+            null,
+
+        activeVersion:
+            null,
+
+        versions:
+            [],
+
+        mode:
+            "preview",
+
+        editorDirty:
+            false,
+
+        fullscreen:
+            false,
+
+        share:
+
+            null,
+
+        deploy:
+
+            null,
+
+        execution:
+
+            {
+
+                running:
+                    false,
+
+                language:
+                    null,
+
+                output:
+                    "",
+
+                error:
+                    null
+
+            }
+
+    }
 
 };
 
@@ -563,7 +674,8 @@ async function apiRequest(
                 {
                     ...options,
                     headers,
-                    credentials: "include"
+                    credentials:
+                        "include"
                 }
             );
 
@@ -822,11 +934,6 @@ CHAT CONTROLS
 
 function setupChatControls(){
 
-    /*
-        O botão usa um único listener.
-        O comportamento muda conforme state.isSending.
-    */
-
     dom.btnSend?.addEventListener(
         "click",
         handleSendButton
@@ -920,6 +1027,17 @@ function setupGlobalKeyboardShortcuts(){
 
             if(
                 event.key === "Escape" &&
+                state.preview.fullscreen
+            ){
+
+                exitPreviewFullscreen();
+
+                return;
+
+            }
+
+            if(
+                event.key === "Escape" &&
                 state.isSending
             ){
 
@@ -978,11 +1096,6 @@ function setupScrollTracking(){
         }
     );
 
-    /*
-        Quando o chat é aberto pela primeira vez,
-        consideramos que está no fim.
-    */
-
     state.userNearBottom =
         true;
 
@@ -1004,6 +1117,37 @@ function isChatNearBottom(){
 
     return distance <=
         SCROLL_BOTTOM_THRESHOLD;
+
+}
+
+
+function scrollChatToBottom(
+    force = false
+){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    if(
+        !force &&
+        !state.userNearBottom
+    ){
+
+        return;
+
+    }
+
+    requestAnimationFrame(
+        () => {
+
+            dom.chatMessages.scrollTop =
+                dom.chatMessages.scrollHeight;
+
+        }
+    );
 
 }
 
@@ -1404,6 +1548,126 @@ function abortCurrentGeneration(
 }
 
 
+function stopGeneration(){
+
+    if(!state.isSending){
+
+        return;
+
+    }
+
+    abortCurrentGeneration();
+
+}
+
+
+/*
+==========================================================
+STREAM RENDER TIMER
+==========================================================
+*/
+
+function clearStreamRenderTimer(){
+
+    if(state.streamRenderTimer){
+
+        clearTimeout(
+            state.streamRenderTimer
+        );
+
+    }
+
+    state.streamRenderTimer =
+        null;
+
+    state.streamRenderQueued =
+        false;
+
+}
+
+
+function requestStreamRender(
+    element,
+    generationId
+){
+
+    if(
+        !element ||
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    if(
+        state.streamRenderQueued
+    ){
+
+        return;
+
+    }
+
+    const now =
+        Date.now();
+
+    const elapsed =
+        now -
+        state.streamLastRenderAt;
+
+    const delay =
+        Math.max(
+            0,
+            STREAM_RENDER_INTERVAL -
+            elapsed
+        );
+
+    state.streamRenderQueued =
+        true;
+
+    state.streamRenderTimer =
+        setTimeout(
+            () => {
+
+                state.streamRenderTimer =
+                    null;
+
+                state.streamRenderQueued =
+                    false;
+
+                if(
+                    !isCurrentGeneration(
+                        generationId
+                    )
+                ){
+
+                    return;
+
+                }
+
+                state.streamLastRenderAt =
+                    Date.now();
+
+                renderAssistantContent(
+                    element,
+                    state.currentAssistantContent
+                );
+
+                if(state.userNearBottom){
+
+                    scrollChatToBottom();
+
+                }
+
+            },
+            delay
+        );
+
+}
+
+
 /*
 ==========================================================
 CREATE CONVERSATION
@@ -1413,12 +1677,6 @@ CREATE CONVERSATION
 async function createNewConversation(
     notify = true
 ){
-
-    /*
-        Criar uma nova conversa implica abandonar a geração
-        anterior. O utilizador deve poder mudar de contexto
-        sem ficar bloqueado.
-    */
 
     if(state.isSending){
 
@@ -1534,11 +1792,6 @@ async function createNewConversation(
 
 async function waitForAbortSettlement(){
 
-    /*
-        Não esperamos um tempo artificialmente longo.
-        Apenas permitimos que o event loop processe o abort.
-    */
-
     await new Promise(
         resolve =>
             setTimeout(
@@ -1605,6 +1858,8 @@ function resetConversationState(){
     state.streamHasRenderedContent =
         false;
 
+    resetPreviewState();
+
     removeAttachment();
 
 }
@@ -1626,12 +1881,6 @@ async function openConversation(
         return null;
 
     }
-
-    /*
-        Se o utilizador abrir outra conversa enquanto uma
-        resposta está sendo gerada, cancelamos a geração
-        anterior em vez de bloquear a navegação.
-    */
 
     if(
         state.isSending &&
@@ -1698,16 +1947,18 @@ async function openConversation(
             "main";
 
         state.artifacts =
-            [];
+            normalizeArtifactCollection(
+                data.artifacts ||
+                data.conversation.artifacts ||
+                []
+            );
 
         state.tools =
-            [];
-
-        state.currentGenerationId =
-            null;
-
-        state.generationStatus =
-            "idle";
+            Array.isArray(
+                data.tools
+            )
+                ? data.tools
+                : [];
 
         clearStreamRenderTimer();
 
@@ -1717,16 +1968,15 @@ async function openConversation(
             state.messages
         );
 
+        renderArtifacts(
+            state.artifacts
+        );
+
         updateConversationHeader(
             state.conversation
         );
 
         removeAttachment();
-
-        /*
-            Depois de abrir uma conversa, o comportamento natural
-            é mostrar o final do histórico.
-        */
 
         state.userNearBottom =
             true;
@@ -1779,7 +2029,7 @@ async function sendCurrentMessage(){
     const rawPrompt =
         dom.chatInput?.value || "";
 
-    let prompt =
+    const prompt =
         rawPrompt.trim();
 
     if(!prompt){
@@ -1939,11 +2189,6 @@ async function sendMessage(
         false
     );
 
-    /*
-        Depois de enviar uma mensagem, colocamos o viewport
-        no final porque esta foi uma ação explícita do utilizador.
-    */
-
     state.userNearBottom =
         true;
 
@@ -1999,11 +2244,6 @@ async function sendMessage(
             state.generationCancelled
         ){
 
-            /*
-                Não mostrar erro para uma interrupção
-                intencional.
-            */
-
             if(
                 stillCurrent &&
                 state.currentAssistantContent.trim()
@@ -2014,14 +2254,16 @@ async function sendMessage(
                 );
 
             }
+            else{
+
+                removeStreamingAssistantIfEmpty(
+                    assistantElement
+                );
+
+            }
 
         }
         else if(stillCurrent){
-
-            /*
-                Se já existe resposta parcial, mantemos.
-                Apenas informamos que a geração terminou com erro.
-            */
 
             if(
                 state.currentAssistantContent.trim()
@@ -2112,11 +2354,6 @@ async function sendMessage(
 
         clearInputAfterSend();
 
-        /*
-            Só fazemos scroll final se o utilizador já estava
-            acompanhando o fim da conversa.
-        */
-
         if(state.userNearBottom){
 
             scrollChatToBottom();
@@ -2169,7 +2406,26 @@ async function sendStandardMessage(
         workspaceContext: {
 
             workspace:
-                state.workspace
+                state.workspace,
+
+            artifacts:
+                state.artifacts.map(
+                    artifact => ({
+                        id:
+                            artifact.id ||
+                            artifact._id,
+
+                        name:
+                            artifact.name,
+
+                        type:
+                            artifact.artifactType ||
+                            artifact.type,
+
+                        language:
+                            artifact.language
+                    })
+                )
 
         },
 
@@ -2182,10 +2438,6 @@ async function sendStandardMessage(
 
     state.generationStatus =
         "streaming";
-
-    /*
-        Mantemos o request normal, mas agora com AbortController.
-    */
 
     const data =
         await apiRequest(
@@ -2259,10 +2511,10 @@ async function sendStandardMessage(
         }
     );
 
-    renderResponseMetadata(
-        assistantElement,
-        data
-    );
+    /*
+        We intentionally do not show latency/model/provider
+        metadata in the user chat UI.
+    */
 
     if(
         Array.isArray(
@@ -2299,10 +2551,578 @@ async function sendStandardMessage(
 
     renderHistory();
 
-    /*
-        Não forçamos scroll aqui.
-        O utilizador controla o viewport.
-    */
+}
+
+
+/*
+==========================================================
+LIVE MESSAGE
+==========================================================
+*/
+
+async function sendLiveMessage(
+    prompt,
+    assistantElement,
+    generationId
+){
+
+    const controller =
+        state.generationAbortController ||
+        new AbortController();
+
+    state.liveAbortController =
+        controller;
+
+    state.isLive =
+        true;
+
+    state.generationStatus =
+        "streaming";
+
+    const payload = {
+
+        prompt,
+
+        conversationId:
+            state.conversationId,
+
+        agentId:
+            state.agentId,
+
+        workspaceContext: {
+
+            workspace:
+                state.workspace
+
+        },
+
+        mode:
+            "live"
+
+    };
+
+    const response =
+        await fetch(
+            `${API_BASE}`,
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json",
+
+                    Accept:
+                        "text/event-stream, application/json",
+
+                    Authorization:
+                        `Bearer ${getAuthToken()}`
+
+                },
+
+                credentials:
+                    "include",
+
+                body:
+                    JSON.stringify(
+                        payload
+                    ),
+
+                signal:
+                    controller.signal
+
+            }
+        );
+
+    if(response.status === 401){
+
+        const error =
+            new Error(
+                "Sessão expirada."
+            );
+
+        error.status =
+            401;
+
+        throw error;
+
+    }
+
+    if(!response.ok){
+
+        let message =
+            `Erro HTTP ${response.status}.`;
+
+        try{
+
+            const data =
+                await response.json();
+
+            message =
+                data?.error ||
+                data?.message ||
+                message;
+
+        }
+        catch(error){
+
+            /*
+                Response was not JSON.
+            */
+
+        }
+
+        throw new Error(
+            message
+        );
+
+    }
+
+    const contentType =
+        response.headers.get(
+            "content-type"
+        ) || "";
+
+    if(
+        contentType.includes(
+            "text/event-stream"
+        )
+    ){
+
+        await consumeSSEStream(
+            response,
+            assistantElement,
+            generationId
+        );
+
+        return;
+
+    }
+
+    const data =
+        await response.json();
+
+    if(
+        data?.success === false
+    ){
+
+        throw new Error(
+            data?.error ||
+            data?.message ||
+            "A Honey IA não conseguiu processar o pedido."
+        );
+
+    }
+
+    synchronizeConversation(
+        data?.conversation
+    );
+
+    const text =
+        data?.response ||
+        data?.message?.assistant?.content ||
+        data?.message?.content ||
+        "";
+
+    if(text){
+
+        state.currentAssistantContent =
+            text;
+
+        renderAssistantContent(
+            assistantElement,
+            text,
+            {
+                final:
+                    true
+            }
+        );
+
+        addAssistantMessageOnce(
+            text,
+            data
+        );
+
+    }
+
+    if(
+        Array.isArray(
+            data?.artifacts
+        )
+    ){
+
+        renderArtifacts(
+            data.artifacts
+        );
+
+    }
+
+    if(
+        Array.isArray(
+            data?.tools
+        )
+    ){
+
+        renderTools(
+            data.tools
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+SSE STREAM
+==========================================================
+*/
+
+async function consumeSSEStream(
+    response,
+    assistantElement,
+    generationId
+){
+
+    if(!response.body){
+
+        throw new Error(
+            "O servidor não disponibilizou o fluxo de resposta."
+        );
+
+    }
+
+    const reader =
+        response.body.getReader();
+
+    const decoder =
+        new TextDecoder(
+            "utf-8"
+        );
+
+    let buffer =
+        "";
+
+    try{
+
+        while(true){
+
+            const result =
+                await reader.read();
+
+            if(result.done){
+
+                break;
+
+            }
+
+            if(
+                !isCurrentGeneration(
+                    generationId
+                )
+            ){
+
+                try{
+
+                    await reader.cancel();
+
+                }
+                catch(error){
+
+                    /*
+                        Reader already closed.
+                    */
+
+                }
+
+                return;
+
+            }
+
+            buffer +=
+                decoder.decode(
+                    result.value,
+                    {
+                        stream:
+                            true
+                    }
+                );
+
+            if(
+                buffer.length >
+                SSE_BUFFER_LIMIT
+            ){
+
+                throw new Error(
+                    "O fluxo de resposta ultrapassou o limite de segurança."
+                );
+
+            }
+
+            const chunks =
+                buffer.split(
+                    /\r?\n\r?\n/
+                );
+
+            buffer =
+                chunks.pop() || "";
+
+            for(
+                const chunk of chunks
+            ){
+
+                processSSEChunk(
+                    chunk,
+                    assistantElement,
+                    generationId
+                );
+
+            }
+
+        }
+
+        buffer +=
+            decoder.decode();
+
+        if(buffer.trim()){
+
+            processSSEChunk(
+                buffer,
+                assistantElement,
+                generationId
+            );
+
+        }
+
+    }
+    finally{
+
+        try{
+
+            reader.releaseLock();
+
+        }
+        catch(error){
+
+            /*
+                Reader already released.
+            */
+
+        }
+
+    }
+
+    if(
+        isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        renderAssistantContent(
+            assistantElement,
+            state.currentAssistantContent,
+            {
+                final:
+                    true
+            }
+        );
+
+        if(
+            state.currentAssistantContent.trim()
+        ){
+
+            addAssistantMessageOnce(
+                state.currentAssistantContent
+            );
+
+        }
+
+    }
+
+}
+
+
+function processSSEChunk(
+    chunk,
+    assistantElement,
+    generationId
+){
+
+    if(
+        !chunk ||
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    const lines =
+        chunk.split(
+            /\r?\n/
+        );
+
+    let eventName =
+        "";
+
+    let dataLines =
+        [];
+
+    lines.forEach(
+        line => {
+
+            if(
+                line.startsWith(
+                    "event:"
+                )
+            ){
+
+                eventName =
+                    line.slice(
+                        6
+                    ).trim();
+
+                return;
+
+            }
+
+            if(
+                line.startsWith(
+                    "data:"
+                )
+            ){
+
+                dataLines.push(
+                    line.slice(
+                        5
+                    ).trim()
+                );
+
+            }
+
+        }
+    );
+
+    if(!dataLines.length){
+
+        return;
+
+    }
+
+    const rawData =
+        dataLines.join(
+            "\n"
+        );
+
+    if(
+        rawData ===
+        "[DONE]"
+    ){
+
+        return;
+
+    }
+
+    let payload =
+        null;
+
+    try{
+
+        payload =
+            JSON.parse(
+                rawData
+            );
+
+    }
+    catch(error){
+
+        payload = {
+
+            text:
+                rawData
+
+        };
+
+    }
+
+    if(
+        eventName ===
+        "error" ||
+        payload?.error
+    ){
+
+        throw new Error(
+            payload?.error ||
+            payload?.message ||
+            "Erro durante o streaming."
+        );
+
+    }
+
+    const delta =
+        payload?.delta ??
+        payload?.text ??
+        payload?.content ??
+        payload?.token ??
+        payload?.response?.delta ??
+        "";
+
+    if(
+        typeof delta ===
+        "string" &&
+        delta
+    ){
+
+        state.currentAssistantContent +=
+            delta;
+
+        state.streamHasRenderedContent =
+            true;
+
+        requestStreamRender(
+            assistantElement,
+            generationId
+        );
+
+    }
+
+    if(
+        payload?.conversation
+    ){
+
+        synchronizeConversation(
+            payload.conversation
+        );
+
+    }
+
+    if(
+        Array.isArray(
+            payload?.artifacts
+        )
+    ){
+
+        renderArtifacts(
+            payload.artifacts
+        );
+
+    }
+
+    if(
+        Array.isArray(
+            payload?.tools
+        )
+    ){
+
+        renderTools(
+            payload.tools
+        );
+
+    }
 
 }
 
@@ -2341,11 +3161,6 @@ function addAssistantMessageOnce(
         ).trim() ===
         normalized
     ){
-
-        /*
-            Atualizamos a flag interrupted se necessário,
-            sem criar uma segunda mensagem.
-        */
 
         if(
             metadata?.interrupted === true
@@ -2447,6 +3262,19 @@ async function refreshCurrentConversation(){
 
             state.messages =
                 [...data.messages];
+
+        }
+
+        if(
+            Array.isArray(
+                data?.artifacts
+            )
+        ){
+
+            state.artifacts =
+                normalizeArtifactCollection(
+                    data.artifacts
+                );
 
         }
 
@@ -2851,8 +3679,6 @@ function appendMessage(
         contentElement
     );
 
-    
-
     if(message?.interrupted){
 
         const status =
@@ -2974,18 +3800,6 @@ function createStreamingAssistantMessage(){
         content
     );
 
-    const status =
-        document.createElement(
-            "div"
-        );
-
-    status.className =
-        "assistant-status";
-
-    body.appendChild(
-        status
-    );
-
     wrapper.appendChild(
         avatar
     );
@@ -2997,11 +3811,6 @@ function createStreamingAssistantMessage(){
     dom.chatMessages.appendChild(
         wrapper
     );
-
-    /*
-        A criação da mensagem é consequência direta do envio
-        do utilizador, portanto podemos ir ao fim.
-    */
 
     state.userNearBottom =
         true;
@@ -3066,11 +3875,6 @@ function renderAssistantContent(
         renderMarkdown(
             content
         );
-
-    /*
-        Durante streaming evitamos o highlighting completo.
-        No final fazemos a operação completa.
-    */
 
     if(
         options.final === true
@@ -3138,221 +3942,6 @@ function setAssistantStatus(
 
     statusElement.textContent =
         status;
-
-}
-
-
-/*
-==========================================================
-RESPONSE METADATA
-==========================================================
-*/
-
-function renderResponseMetadata(
-    element,
-    result
-){
-
-    if(
-        !element ||
-        !result
-    ){
-
-        return;
-
-    }
-
-    const metadata = [];
-
-    if(result.agent){
-
-        const agentName =
-            typeof result.agent ===
-                "string"
-                ? result.agent
-                : (
-                    result.agent.name ||
-                    result.agent.id ||
-                    result.agent._id ||
-                    ""
-                );
-
-        if(agentName){
-
-            metadata.push(
-                agentName
-            );
-
-        }
-
-    }
-
-    if(
-        Number.isFinite(
-            Number(
-                result.latency
-            )
-        )
-    ){
-
-        metadata.push(
-            `${Math.round(
-                Number(
-                    result.latency
-                )
-            )} ms`
-        );
-
-    }
-
-    if(result.model){
-
-        metadata.push(
-            String(
-                result.model
-            )
-        );
-
-    }
-
-    if(result.provider){
-
-        metadata.push(
-            String(
-                result.provider
-            )
-        );
-
-    }
-
-    if(result.interrupted){
-
-        metadata.push(
-            "interrompida"
-        );
-
-    }
-
-    if(!metadata.length){
-
-        return;
-
-    }
-
-    const body =
-        element.querySelector(
-            ".message-body"
-        );
-
-    if(!body){
-
-        return;
-
-    }
-
-    body
-        .querySelector(
-            ".message-meta"
-        )
-        ?.remove();
-
-    const meta =
-        document.createElement(
-            "div"
-        );
-
-    meta.className =
-        "message-meta";
-
-    meta.textContent =
-        metadata.join(
-            " · "
-        );
-
-    body.appendChild(
-        meta
-    );
-
-}
-
-
-/*
-==========================================================
-TIMESTAMP
-==========================================================
-*/
-
-function createMessageTimestamp(
-    value
-){
-
-    if(!value){
-
-        return null;
-
-    }
-
-    const date =
-        new Date(
-            value
-        );
-
-    if(
-        Number.isNaN(
-            date.getTime()
-        )
-    ){
-
-        return null;
-
-    }
-
-    element.dateTime =
-        date.toISOString();
-
-    return element;
-
-}
-
-
-/*
-==========================================================
-MESSAGE ROLE
-==========================================================
-*/
-
-function normalizeMessageRole(
-    role
-){
-
-    if(
-        typeof role !==
-        "string"
-    ){
-
-        return null;
-
-    }
-
-    const normalized =
-        role
-            .trim()
-            .toLowerCase();
-
-    if(
-        [
-            "user",
-            "assistant"
-        ].includes(
-            normalized
-        )
-    ){
-
-        return normalized;
-
-    }
-
-    return null;
 
 }
 
@@ -3492,102 +4081,134 @@ function highlightCode(
 }
 
 
-
-
 /*
 ==========================================================
-ARTIFACTS
+SAFE HTML
 ==========================================================
 */
 
-function renderArtifacts(
-    artifacts
+function sanitizeHTML(
+    html
 ){
 
     if(
-        !Array.isArray(
-            artifacts
-        ) ||
-        !artifacts.length ||
-        !dom.chatMessages
+        typeof DOMPurify !==
+        "undefined"
     ){
 
-        return;
+        return DOMPurify.sanitize(
+            html,
+            {
+
+                USE_PROFILES:
+                    {
+                        html:
+                            true
+                    },
+
+                ADD_TAGS:
+                    [
+                        "table",
+                        "thead",
+                        "tbody",
+                        "tr",
+                        "th",
+                        "td"
+                    ],
+
+                FORBID_TAGS:
+                    [
+                        "script",
+                        "object",
+                        "embed",
+                        "iframe"
+                    ]
+
+            }
+        );
 
     }
 
-    artifacts.forEach(
-        artifact => {
-
-            if(!artifact){
-
-                return;
-
-            }
-
-            const normalized =
-                normalizeArtifact(
-                    artifact
-                );
-
-            if(!normalized){
-
-                return;
-
-            }
-
-            const existingIndex =
-                state.artifacts.findIndex(
-                    item =>
-                        getArtifactKey(item) ===
-                        getArtifactKey(normalized)
-                );
-
-            if(existingIndex >= 0){
-
-                state.artifacts[
-                    existingIndex
-                ] =
-                    {
-                        ...state.artifacts[
-                            existingIndex
-                        ],
-                        ...normalized
-                    };
-
-            }
-            else{
-
-                state.artifacts.push(
-                    normalized
-                );
-
-            }
-
-        }
-    );
-
-    state.artifacts =
-        state.artifacts.slice(
-            -MAX_VISIBLE_ARTIFACTS
+    const template =
+        document.createElement(
+            "template"
         );
 
-    renderArtifactCards();
+    template.innerHTML =
+        String(
+            html || ""
+        );
+
+    template.content
+        .querySelectorAll(
+            "script,iframe,object,embed"
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
+
+    return template.innerHTML;
+
+}
+
+
+function escapeHTML(
+    value
+){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        String(
+            value || ""
+        );
+
+    return div.innerHTML;
 
 }
 
 
 /*
 ==========================================================
-ARTIFACT NORMALIZATION
+UNIVERSAL ARTIFACTS
 ==========================================================
 */
+
+function normalizeArtifactCollection(
+    artifacts
+){
+
+    if(
+        !Array.isArray(
+            artifacts
+        )
+    ){
+
+        return [];
+
+    }
+
+    return artifacts
+        .map(
+            normalizeArtifact
+        )
+        .filter(
+            Boolean
+        );
+
+}
+
 
 function normalizeArtifact(
     artifact
 ){
 
     if(
+        !artifact ||
         typeof artifact !==
         "object"
     ){
@@ -3600,19 +4221,43 @@ function normalizeArtifact(
         typeof artifact.content ===
             "string"
             ? artifact.content
-            : "";
+            : (
+                typeof artifact.code ===
+                    "string"
+                    ? artifact.code
+                    : ""
+            );
 
-    if(!content){
+    const files =
+        normalizeArtifactFiles(
+            artifact.files
+        );
 
-        return null;
-
-    }
+    const inferredType =
+        inferArtifactType(
+            {
+                ...artifact,
+                content,
+                files
+            }
+        );
 
     return {
 
         ...artifact,
 
+        id:
+            artifact.id ||
+            artifact._id ||
+            createClientMessageId(),
+
         name:
+            artifact.name ||
+            artifact.title ||
+            "Honey IA Result",
+
+        title:
+            artifact.title ||
             artifact.name ||
             "Honey IA Result",
 
@@ -3620,14 +4265,736 @@ function normalizeArtifact(
 
         mime:
             artifact.mime ||
-            artifact.type ||
+            artifact.mimeType ||
             "",
 
         language:
             artifact.language ||
-            ""
+            inferLanguage(
+                artifact,
+                content
+            ),
+
+        artifactType:
+            artifact.artifactType ||
+            artifact.category ||
+            inferredType,
+
+        type:
+            artifact.type ||
+            artifact.artifactType ||
+            inferredType,
+
+        files,
+
+        entryPoint:
+            artifact.entryPoint ||
+            inferEntryPoint(
+                files,
+                inferredType
+            ),
+
+        versions:
+            Array.isArray(
+                artifact.versions
+            )
+                ? artifact.versions
+                : [],
+
+        downloadable:
+            artifact.downloadable !==
+            false,
+
+        editable:
+            artifact.editable !==
+            false,
+
+        previewable:
+            artifact.previewable !==
+            false
 
     };
+
+}
+
+
+function normalizeArtifactFiles(
+    files
+){
+
+    if(
+        !Array.isArray(files)
+    ){
+
+        return [];
+
+    }
+
+    return files
+        .map(
+            file => {
+
+                if(
+                    typeof file ===
+                    "string"
+                ){
+
+                    return {
+
+                        name:
+                            file,
+
+                        path:
+                            file,
+
+                        content:
+                            "",
+
+                        language:
+                            inferLanguageFromFilename(
+                                file
+                            )
+
+                    };
+
+                }
+
+                if(
+                    !file ||
+                    typeof file !==
+                    "object"
+                ){
+
+                    return null;
+
+                }
+
+                return {
+
+                    ...file,
+
+                    name:
+                        file.name ||
+                        file.path ||
+                        "arquivo",
+
+                    path:
+                        file.path ||
+                        file.name ||
+                        "arquivo",
+
+                    content:
+                        typeof file.content ===
+                            "string"
+                            ? file.content
+                            : "",
+
+                    language:
+                        file.language ||
+                        inferLanguageFromFilename(
+                            file.name ||
+                            file.path ||
+                            ""
+                        )
+
+                };
+
+            }
+        )
+        .filter(
+            Boolean
+        );
+
+}
+
+
+function inferArtifactType(
+    artifact
+){
+
+    const explicit =
+        String(
+            artifact?.artifactType ||
+            artifact?.category ||
+            artifact?.type ||
+            ""
+        )
+        .toLowerCase()
+        .trim();
+
+    if(explicit){
+
+        if(
+            explicit.includes(
+                "presentation"
+            ) ||
+            explicit.includes(
+                "slide"
+            ) ||
+            explicit.includes(
+                "ppt"
+            )
+        ){
+
+            return "presentation";
+
+        }
+
+        if(
+            explicit.includes(
+                "spreadsheet"
+            ) ||
+            explicit.includes(
+                "excel"
+            ) ||
+            explicit.includes(
+                "xlsx"
+            )
+        ){
+
+            return "spreadsheet";
+
+        }
+
+        if(
+            explicit.includes(
+                "document"
+            ) ||
+            explicit.includes(
+                "docx"
+            ) ||
+            explicit.includes(
+                "word"
+            )
+        ){
+
+            return "document";
+
+        }
+
+        if(
+            explicit.includes(
+                "website"
+            ) ||
+            explicit.includes(
+                "web"
+            )
+        ){
+
+            return "website";
+
+        }
+
+        if(
+            explicit.includes(
+                "webapp"
+            ) ||
+            explicit.includes(
+                "application"
+            ) ||
+            explicit.includes(
+                "app"
+            )
+        ){
+
+            return "webapp";
+
+        }
+
+        if(
+            explicit.includes(
+                "image"
+            ) ||
+            explicit.includes(
+                "png"
+            ) ||
+            explicit.includes(
+                "jpg"
+            )
+        ){
+
+            return "image";
+
+        }
+
+        if(
+            explicit.includes(
+                "pdf"
+            )
+        ){
+
+            return "pdf";
+
+        }
+
+        if(
+            explicit.includes(
+                "chart"
+            ) ||
+            explicit.includes(
+                "graph"
+            )
+        ){
+
+            return "chart";
+
+        }
+
+        if(
+            explicit.includes(
+                "data"
+            ) ||
+            explicit.includes(
+                "dataset"
+            )
+        ){
+
+            return "data";
+
+        }
+
+        if(
+            explicit.includes(
+                "code"
+            ) ||
+            explicit.includes(
+                "script"
+            )
+        ){
+
+            return "code";
+
+        }
+
+    }
+
+    const mime =
+        String(
+            artifact?.mime ||
+            artifact?.mimeType ||
+            ""
+        ).toLowerCase();
+
+    if(
+        mime.includes(
+            "presentation"
+        ) ||
+        mime.includes(
+            "powerpoint"
+        )
+    ){
+
+        return "presentation";
+
+    }
+
+    if(
+        mime.includes(
+            "spreadsheet"
+        ) ||
+        mime.includes(
+            "excel"
+        )
+    ){
+
+        return "spreadsheet";
+
+    }
+
+    if(
+        mime.includes(
+            "pdf"
+        )
+    ){
+
+        return "pdf";
+
+    }
+
+    if(
+        mime.startsWith(
+            "image/"
+        )
+    ){
+
+        return "image";
+
+    }
+
+    const filename =
+        String(
+            artifact?.name ||
+            artifact?.title ||
+            artifact?.entryPoint ||
+            ""
+        ).toLowerCase();
+
+    if(
+        /\.(pptx?|odp)$/.test(
+            filename
+        )
+    ){
+
+        return "presentation";
+
+    }
+
+    if(
+        /\.(xlsx?|ods)$/.test(
+            filename
+        )
+    ){
+
+        return "spreadsheet";
+
+    }
+
+    if(
+        /\.pdf$/.test(
+            filename
+        )
+    ){
+
+        return "pdf";
+
+    }
+
+    if(
+        /\.(png|jpg|jpeg|gif|webp|svg)$/.test(
+            filename
+        )
+    ){
+
+        return "image";
+
+    }
+
+    const files =
+        artifact?.files || [];
+
+    const names =
+        files
+            .map(
+                file =>
+                    String(
+                        file?.name ||
+                        file?.path ||
+                        ""
+                    ).toLowerCase()
+            );
+
+    if(
+        names.some(
+            name =>
+                /(^|\/)index\.html?$/.test(
+                    name
+                )
+        )
+    ){
+
+        return "website";
+
+    }
+
+    if(
+        names.some(
+            name =>
+                /\.(xlsx?|ods)$/.test(
+                    name
+                )
+        )
+    ){
+
+        return "spreadsheet";
+
+    }
+
+    if(
+        names.some(
+            name =>
+                /\.(pptx?|odp)$/.test(
+                    name
+                )
+        )
+    ){
+
+        return "presentation";
+
+    }
+
+    if(
+        names.some(
+            name =>
+                /\.pdf$/.test(
+                    name
+                )
+        )
+    ){
+
+        return "pdf";
+
+    }
+
+    if(
+        names.some(
+            name =>
+                /\.(png|jpg|jpeg|gif|webp|svg)$/.test(
+                    name
+                )
+        )
+    ){
+
+        return "image";
+
+    }
+
+    const language =
+        String(
+            artifact?.language ||
+            ""
+        ).toLowerCase();
+
+    if(
+        [
+            "html",
+            "css",
+            "javascript",
+            "typescript",
+            "jsx",
+            "tsx",
+            "vue",
+            "svelte"
+        ].includes(
+            language
+        )
+    ){
+
+        return "website";
+
+    }
+
+    if(
+        language ||
+        artifact?.code
+    ){
+
+        return "code";
+
+    }
+
+    if(
+        typeof artifact?.content ===
+        "string"
+    ){
+
+        return "document";
+
+    }
+
+    return "generic";
+
+}
+
+
+function inferLanguage(
+    artifact,
+    content
+){
+
+    if(artifact?.language){
+
+        return String(
+            artifact.language
+        );
+
+    }
+
+    const name =
+        artifact?.name ||
+        artifact?.title ||
+        "";
+
+    return inferLanguageFromFilename(
+        name
+    ) || (
+        content.includes(
+            "<html"
+        )
+            ? "html"
+            : ""
+    );
+
+}
+
+
+function inferLanguageFromFilename(
+    filename
+){
+
+    const extension =
+        String(
+            filename || ""
+        )
+        .toLowerCase()
+        .split(
+            "."
+        )
+        .pop();
+
+    const map = {
+
+        html:
+            "html",
+
+        htm:
+            "html",
+
+        css:
+            "css",
+
+        js:
+            "javascript",
+
+        mjs:
+            "javascript",
+
+        cjs:
+            "javascript",
+
+        ts:
+            "typescript",
+
+        tsx:
+            "tsx",
+
+        jsx:
+            "jsx",
+
+        py:
+            "python",
+
+        java:
+            "java",
+
+        c:
+            "c",
+
+        cpp:
+            "cpp",
+
+        h:
+            "c",
+
+        hpp:
+            "cpp",
+
+        sql:
+            "sql",
+
+        json:
+            "json",
+
+        csv:
+            "csv",
+
+        xml:
+            "xml",
+
+        md:
+            "markdown",
+
+        yaml:
+            "yaml",
+
+        yml:
+            "yaml",
+
+        sh:
+            "shell",
+
+        bash:
+            "shell",
+
+        php:
+            "php",
+
+        go:
+            "go",
+
+        rs:
+            "rust",
+
+        rb:
+            "ruby",
+
+        vue:
+            "vue",
+
+        svelte:
+            "svelte"
+
+    };
+
+    return map[
+        extension
+    ] || "";
+
+}
+
+
+function inferEntryPoint(
+    files,
+    type
+){
+
+    if(!Array.isArray(files)){
+
+        return null;
+
+    }
+
+    const html =
+        files.find(
+            file =>
+                /(^|\/)index\.html?$/.test(
+                    String(
+                        file?.name ||
+                        file?.path ||
+                        ""
+                    ).toLowerCase()
+                )
+        );
+
+    if(html){
+
+        return html.name ||
+            html.path;
+
+    }
+
+    if(type === "website"){
+
+        const firstHtml =
+            files.find(
+                file =>
+                    /\.(html|htm)$/i.test(
+                        String(
+                            file?.name ||
+                            file?.path ||
+                            ""
+                        )
+                    )
+            );
+
+        return firstHtml?.name ||
+            firstHtml?.path ||
+            null;
+
+    }
+
+    return files[0]?.name ||
+        files[0]?.path ||
+        null;
 
 }
 
@@ -3659,6 +5026,4559 @@ ARTIFACT CARDS
 ==========================================================
 */
 
+function renderArtifactCards(){
+
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
+    dom.chatMessages
+        .querySelectorAll(
+            ".honey-artifact-card"
+        )
+        .forEach(
+            element =>
+                element.remove()
+        );
+
+    state.artifacts.forEach(
+        artifact => {
+
+            const card =
+                createArtifactCard(
+                    artifact
+                );
+
+            dom.chatMessages.appendChild(
+                card
+            );
+
+        }
+    );
+
+    if(state.userNearBottom){
+
+        scrollChatToBottom();
+
+    }
+
+}
+
+
+function createArtifactCard(
+    artifact
+){
+
+    const card =
+        document.createElement(
+            "article"
+        );
+
+    card.className =
+        "honey-artifact-card";
+
+    card.dataset.artifactId =
+        String(
+            artifact.id
+        );
+
+    const type =
+        getArtifactDisplayType(
+            artifact
+        );
+
+    const title =
+        document.createElement(
+            "h3"
+        );
+
+    title.textContent =
+        artifact.title ||
+        artifact.name;
+
+    const typeElement =
+        document.createElement(
+            "span"
+        );
+
+    typeElement.textContent =
+        type;
+
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+    actions.className =
+        "honey-artifact-actions";
+
+    const previewButton =
+        createButton(
+            "Abrir Preview",
+            "fa-solid fa-eye"
+        );
+
+    previewButton.addEventListener(
+        "click",
+        () => {
+
+            openArtifactPreview(
+                artifact
+            );
+
+        }
+    );
+
+    actions.appendChild(
+        previewButton
+    );
+
+    if(artifact.downloadable){
+
+        const downloadButton =
+            createButton(
+                "Baixar",
+                "fa-solid fa-download"
+            );
+
+        downloadButton.addEventListener(
+            "click",
+            () => {
+
+                downloadArtifact(
+                    artifact
+                );
+
+            }
+        );
+
+        actions.appendChild(
+            downloadButton
+        );
+
+    }
+
+    card.appendChild(
+        title
+    );
+
+    card.appendChild(
+        typeElement
+    );
+
+    card.appendChild(
+        actions
+    );
+
+    return card;
+
+}
+
+
+function getArtifactDisplayType(
+    artifact
+){
+
+    const type =
+        artifact?.artifactType ||
+        artifact?.type ||
+        "generic";
+
+    const labels = {
+
+        website:
+            "Website",
+
+        webapp:
+            "Web App",
+
+        presentation:
+            "Apresentação",
+
+        spreadsheet:
+            "Excel / Spreadsheet",
+
+        document:
+            "Documento",
+
+        chart:
+            "Gráfico",
+
+        image:
+            "Imagem",
+
+        pdf:
+            "PDF",
+
+        code:
+            "Código",
+
+        data:
+            "Dados",
+
+        generic:
+            "Artefacto"
+
+    };
+
+    return labels[
+        type
+    ] || "Artefacto";
+
+}
+
+
+/*
+==========================================================
+UNIVERSAL PREVIEW SETUP
+==========================================================
+*/
+
+function setupPreview(){
+
+    if(
+        dom.btnClosePreview
+    ){
+
+        dom.btnClosePreview.addEventListener(
+            "click",
+            closeArtifactPreview
+        );
+
+    }
+
+    if(
+        dom.previewIframe
+    ){
+
+        dom.previewIframe.setAttribute(
+            "title",
+            "Preview Honey IA"
+        );
+
+        dom.previewIframe.setAttribute(
+            "sandbox",
+            "allow-scripts allow-forms allow-modals allow-popups"
+        );
+
+    }
+
+    /*
+        Existing HTML may not contain a dedicated toolbar.
+        We create one only inside the preview pane.
+    */
+
+    if(dom.previewPane){
+
+        ensurePreviewShell();
+
+    }
+
+    window.addEventListener(
+        "message",
+        handlePreviewMessage
+    );
+
+}
+
+
+function ensurePreviewShell(){
+
+    if(
+        !dom.previewPane ||
+        dom.previewPane.querySelector(
+            ".honey-preview-shell"
+        )
+    ){
+
+        return;
+
+    }
+
+    const shell =
+        document.createElement(
+            "div"
+        );
+
+    shell.className =
+        "honey-preview-shell";
+
+    shell.innerHTML = `
+
+        <div class="honey-preview-toolbar">
+
+            <div class="honey-preview-title">
+                Preview
+            </div>
+
+            <div class="honey-preview-toolbar-actions">
+
+                <button
+                    type="button"
+                    data-preview-action="preview"
+                >
+                    Preview
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="edit"
+                >
+                    Editar
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="code"
+                >
+                    Código
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="terminal"
+                >
+                    Terminal
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="fullscreen"
+                >
+                    Ecrã inteiro
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="download"
+                >
+                    Baixar
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="share"
+                >
+                    Partilhar
+                </button>
+
+                <button
+                    type="button"
+                    data-preview-action="deploy"
+                >
+                    Publicar
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="honey-preview-versionbar">
+
+            <label>
+                Versão
+            </label>
+
+            <select
+                data-preview-version
+            ></select>
+
+            <button
+                type="button"
+                data-preview-action="compare"
+            >
+                Comparar
+            </button>
+
+            <button
+                type="button"
+                data-preview-action="restore"
+            >
+                Restaurar
+            </button>
+
+        </div>
+
+        <div class="honey-preview-workspace">
+
+            <div
+                class="honey-preview-editor"
+                data-preview-editor
+                hidden
+            >
+
+                <div class="honey-preview-files"></div>
+
+                <textarea
+                    data-preview-code
+                    spellcheck="false"
+                ></textarea>
+
+                <div class="honey-preview-editor-actions">
+
+                    <button
+                        type="button"
+                        data-preview-save
+                    >
+                        Guardar alterações
+                    </button>
+
+                    <button
+                        type="button"
+                        data-preview-cancel
+                    >
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div
+                class="honey-preview-render-area"
+                data-preview-render-area
+            ></div>
+
+            <div
+                class="honey-preview-terminal"
+                data-preview-terminal
+                hidden
+            >
+
+                <div
+                    class="honey-terminal-output"
+                    data-terminal-output
+                ></div>
+
+                <div class="honey-terminal-input-row">
+
+                    <span>
+                        $
+                    </span>
+
+                    <input
+                        type="text"
+                        data-terminal-input
+                        placeholder="python, node ou comando permitido..."
+                    />
+
+                    <button
+                        type="button"
+                        data-terminal-run
+                    >
+                        Executar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+    /*
+        We place the shell before the existing iframe.
+        The existing iframe remains available as a compatibility
+        fallback for the original index.html.
+    */
+
+    dom.previewPane.prepend(
+        shell
+    );
+
+    bindPreviewShell(
+        shell
+    );
+
+}
+
+
+function bindPreviewShell(
+    shell
+){
+
+    shell
+        .querySelectorAll(
+            "[data-preview-action]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        handlePreviewAction(
+                            button.dataset.previewAction
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    const versionSelect =
+        shell.querySelector(
+            "[data-preview-version]"
+        );
+
+    versionSelect?.addEventListener(
+        "change",
+        () => {
+
+            selectArtifactVersion(
+                versionSelect.value
+            );
+
+        }
+    );
+
+    shell
+        .querySelector(
+            "[data-preview-save]"
+        )
+        ?.addEventListener(
+            "click",
+            savePreviewEdits
+        );
+
+    shell
+        .querySelector(
+            "[data-preview-cancel]"
+        )
+        ?.addEventListener(
+            "click",
+            cancelPreviewEdits
+        );
+
+    shell
+        .querySelector(
+            "[data-terminal-run]"
+        )
+        ?.addEventListener(
+            "click",
+            runTerminalCommand
+        );
+
+    shell
+        .querySelector(
+            "[data-terminal-input]"
+        )
+        ?.addEventListener(
+            "keydown",
+            event => {
+
+                if(
+                    event.key === "Enter"
+                ){
+
+                    runTerminalCommand();
+
+                }
+
+            }
+        );
+
+}
+
+
+function getPreviewShell(){
+
+    return dom.previewPane?.querySelector(
+        ".honey-preview-shell"
+    ) || null;
+
+}
+
+
+function getPreviewElement(
+    selector
+){
+
+    return getPreviewShell()?.querySelector(
+        selector
+    ) || null;
+
+}
+
+
+/*
+==========================================================
+OPEN ARTIFACT PREVIEW
+==========================================================
+*/
+
+function openArtifactPreview(
+    artifact
+){
+
+    const normalized =
+        normalizeArtifact(
+            artifact
+        );
+
+    if(!normalized){
+
+        return;
+
+    }
+
+    state.preview.open =
+        true;
+
+    state.preview.artifactId =
+        normalized.id;
+
+    state.preview.artifact =
+        normalized;
+
+    state.preview.artifactType =
+        normalized.artifactType;
+
+    state.preview.mode =
+        "preview";
+
+    state.preview.editorDirty =
+        false;
+
+    state.preview.activeFile =
+        normalized.entryPoint ||
+        normalized.files?.[0]?.name ||
+        null;
+
+    state.preview.versions =
+        buildArtifactVersions(
+            normalized
+        );
+
+    state.preview.activeVersion =
+        state.preview.versions[
+            state.preview.versions.length - 1
+        ]?.id ||
+        null;
+
+    state.preview.share =
+        null;
+
+    state.preview.deploy =
+        null;
+
+    state.preview.execution =
+        {
+            running:
+                false,
+
+            language:
+                normalized.language ||
+                null,
+
+            output:
+                "",
+
+            error:
+                null
+
+        };
+
+    ensurePreviewShell();
+
+    if(dom.previewPane){
+
+        dom.previewPane.classList.add(
+            "open"
+        );
+
+        dom.previewPane.style.display =
+            "";
+
+    }
+
+    updatePreviewTitle();
+
+    renderPreviewVersions();
+
+    renderPreviewArtifact();
+
+    focusPreview();
+
+}
+
+
+/*
+==========================================================
+CLOSE PREVIEW
+==========================================================
+*/
+
+function closeArtifactPreview(){
+
+    state.preview.open =
+        false;
+
+    state.preview.artifact =
+        null;
+
+    state.preview.artifactId =
+        null;
+
+    state.preview.activeFile =
+        null;
+
+    state.preview.mode =
+        "preview";
+
+    state.preview.editorDirty =
+        false;
+
+    if(
+        state.preview.fullscreen
+    ){
+
+        exitPreviewFullscreen();
+
+    }
+
+    if(dom.previewPane){
+
+        dom.previewPane.classList.remove(
+            "open"
+        );
+
+        /*
+            Do not destroy the pane because index.html
+            already owns it.
+        */
+
+    }
+
+}
+
+
+function resetPreviewState(){
+
+    closeArtifactPreview();
+
+    state.preview.versions =
+        [];
+
+    state.preview.activeVersion =
+        null;
+
+}
+
+
+/*
+==========================================================
+PREVIEW TITLE
+==========================================================
+*/
+
+function updatePreviewTitle(){
+
+    const title =
+        getPreviewElement(
+            ".honey-preview-title"
+        );
+
+    if(!title){
+
+        return;
+
+    }
+
+    title.textContent =
+        state.preview.artifact?.title ||
+        "Preview";
+
+}
+
+
+/*
+==========================================================
+PREVIEW ACTIONS
+==========================================================
+*/
+
+function handlePreviewAction(
+    action
+){
+
+    if(!state.preview.artifact){
+
+        return;
+
+    }
+
+    switch(action){
+
+        case "preview":
+
+            setPreviewMode(
+                "preview"
+            );
+
+            break;
+
+        case "edit":
+
+            setPreviewMode(
+                "edit"
+            );
+
+            break;
+
+        case "code":
+
+            setPreviewMode(
+                "code"
+            );
+
+            break;
+
+        case "terminal":
+
+            setPreviewMode(
+                "terminal"
+            );
+
+            break;
+
+        case "fullscreen":
+
+            togglePreviewFullscreen();
+
+            break;
+
+        case "download":
+
+            downloadArtifact(
+                state.preview.artifact
+            );
+
+            break;
+
+        case "share":
+
+            shareArtifactPreview();
+
+            break;
+
+        case "deploy":
+
+            deployArtifact(
+                state.preview.artifact
+            );
+
+            break;
+
+        case "compare":
+
+            compareArtifactVersions();
+
+            break;
+
+        case "restore":
+
+            restoreSelectedVersion();
+
+            break;
+
+        default:
+
+            break;
+
+    }
+
+}
+
+
+function setPreviewMode(
+    mode
+){
+
+    state.preview.mode =
+        mode;
+
+    const editor =
+        getPreviewElement(
+            "[data-preview-editor]"
+        );
+
+    const renderArea =
+        getPreviewElement(
+            "[data-preview-render-area]"
+        );
+
+    const terminal =
+        getPreviewElement(
+            "[data-preview-terminal]"
+        );
+
+    if(editor){
+
+        editor.hidden =
+            !(
+                mode ===
+                "edit" ||
+                mode ===
+                "code"
+            );
+
+    }
+
+    if(renderArea){
+
+        renderArea.hidden =
+            mode ===
+            "terminal";
+
+    }
+
+    if(terminal){
+
+        terminal.hidden =
+            mode !==
+            "terminal";
+
+    }
+
+    if(
+        mode ===
+        "edit"
+    ){
+
+        renderPreviewEditor(
+            false
+        );
+
+        return;
+
+    }
+
+    if(
+        mode ===
+        "code"
+    ){
+
+        renderPreviewEditor(
+            true
+        );
+
+        return;
+
+    }
+
+    if(
+        mode ===
+        "terminal"
+    ){
+
+        renderTerminalOutput();
+
+        return;
+
+    }
+
+    renderPreviewArtifact();
+
+}
+
+
+/*
+==========================================================
+RENDER PREVIEW ARTIFACT
+==========================================================
+*/
+
+function renderPreviewArtifact(){
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    const renderArea =
+        getPreviewElement(
+            "[data-preview-render-area]"
+        );
+
+    if(!renderArea){
+
+        return;
+
+    }
+
+    renderArea.innerHTML =
+        "";
+
+    const version =
+        getActiveArtifactVersion();
+
+    const effectiveArtifact =
+        version?.artifact ||
+        artifact;
+
+    switch(
+        effectiveArtifact.artifactType
+    ){
+
+        case "website":
+
+        case "webapp":
+
+            renderWebsiteArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "presentation":
+
+            renderPresentationArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "spreadsheet":
+
+            renderSpreadsheetArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "document":
+
+            renderDocumentArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "chart":
+
+            renderChartArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "image":
+
+            renderImageArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "pdf":
+
+            renderPDFArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "code":
+
+            renderCodeArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        case "data":
+
+            renderDataArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+        default:
+
+            renderGenericArtifact(
+                effectiveArtifact,
+                renderArea
+            );
+
+            break;
+
+    }
+
+}
+
+
+/*
+==========================================================
+WEBSITE RENDERER
+==========================================================
+*/
+
+function renderWebsiteArtifact(
+    artifact,
+    container
+){
+
+    const files =
+        artifact.files?.length
+            ? artifact.files
+            : [
+                {
+
+                    name:
+                        artifact.entryPoint ||
+                        "index.html",
+
+                    content:
+                        artifact.content,
+
+                    language:
+                        "html"
+
+                }
+            ];
+
+    const entry =
+        files.find(
+            file =>
+                String(
+                    file.name ||
+                    file.path
+                ) ===
+                String(
+                    artifact.entryPoint
+                )
+        ) ||
+        files.find(
+            file =>
+                /(^|\/)index\.html?$/.test(
+                    String(
+                        file.name ||
+                        file.path ||
+                        ""
+                    ).toLowerCase()
+                )
+        ) ||
+        files.find(
+            file =>
+                /\.(html|htm)$/i.test(
+                    String(
+                        file.name ||
+                        file.path ||
+                        ""
+                    )
+                )
+        ) ||
+        files[0];
+
+    if(!entry){
+
+        renderEmptyPreview(
+            container,
+            "O projecto não possui um ficheiro de entrada."
+        );
+
+        return;
+
+    }
+
+    const iframe =
+        document.createElement(
+            "iframe"
+        );
+
+    iframe.className =
+        "honey-universal-preview-frame";
+
+    iframe.setAttribute(
+        "title",
+        artifact.title ||
+        "Website Preview"
+    );
+
+    iframe.setAttribute(
+        "sandbox",
+        "allow-scripts allow-forms allow-modals allow-popups"
+    );
+
+    iframe.srcdoc =
+        buildWebsiteDocument(
+            entry.content ||
+            artifact.content ||
+            "",
+            files
+        );
+
+    container.appendChild(
+        iframe
+    );
+
+    /*
+        Keep the original iframe synchronized when it exists.
+        This preserves compatibility with the current index.html.
+    */
+
+    if(dom.previewIframe){
+
+        dom.previewIframe.srcdoc =
+            iframe.srcdoc;
+
+        dom.previewIframe.style.display =
+            "none";
+
+    }
+
+}
+
+
+/*
+==========================================================
+WEBSITE DOCUMENT BUILDER
+==========================================================
+*/
+
+function buildWebsiteDocument(
+    entryHTML,
+    files
+){
+
+    let html =
+        String(
+            entryHTML || ""
+        );
+
+    /*
+        Replace local asset references with data/blob URLs
+        when the artifact provides inline content.
+    */
+
+    const fileMap =
+        new Map();
+
+    files.forEach(
+        file => {
+
+            const path =
+                normalizePath(
+                    file.path ||
+                    file.name ||
+                    ""
+                );
+
+            if(path){
+
+                fileMap.set(
+                    path,
+                    file
+                );
+
+                fileMap.set(
+                    normalizePath(
+                        file.name ||
+                        ""
+                    ),
+                    file
+                );
+
+            }
+
+        }
+    );
+
+    html =
+        injectInlineStyles(
+            html,
+            files
+        );
+
+    html =
+        injectInlineScripts(
+            html,
+            files
+        );
+
+    html =
+        injectLocalAssets(
+            html,
+            fileMap
+        );
+
+    return html;
+
+}
+
+
+function injectInlineStyles(
+    html,
+    files
+){
+
+    let output =
+        html;
+
+    const cssFiles =
+        files.filter(
+            file =>
+                /\.(css)$/i.test(
+                    String(
+                        file.name ||
+                        file.path ||
+                        ""
+                    )
+                )
+        );
+
+    cssFiles.forEach(
+        file => {
+
+            const name =
+                escapeRegExp(
+                    file.name ||
+                    file.path ||
+                    ""
+                );
+
+            const regex =
+                new RegExp(
+                    `<link[^>]+href=["'][^"']*${name}["'][^>]*>`,
+                    "gi"
+                );
+
+            output =
+                output.replace(
+                    regex,
+                    `<style>${file.content || ""}</style>`
+                );
+
+        }
+    );
+
+    return output;
+
+}
+
+
+function injectInlineScripts(
+    html,
+    files
+){
+
+    let output =
+        html;
+
+    const jsFiles =
+        files.filter(
+            file =>
+                /\.(js|mjs|cjs)$/i.test(
+                    String(
+                        file.name ||
+                        file.path ||
+                        ""
+                    )
+                )
+        );
+
+    jsFiles.forEach(
+        file => {
+
+            const name =
+                escapeRegExp(
+                    file.name ||
+                    file.path ||
+                    ""
+                );
+
+            const regex =
+                new RegExp(
+                    `<script[^>]+src=["'][^"']*${name}["'][^>]*>\\s*</script>`,
+                    "gi"
+                );
+
+            output =
+                output.replace(
+                    regex,
+                    `<script>${file.content || ""}</script>`
+                );
+
+        }
+    );
+
+    return output;
+
+}
+
+
+function injectLocalAssets(
+    html,
+    fileMap
+){
+
+    return html.replace(
+        /(?:src|href)=["']([^"']+)["']/gi,
+        (
+            full,
+            reference
+        ) => {
+
+            const normalized =
+                normalizePath(
+                    reference
+                );
+
+            const file =
+                fileMap.get(
+                    normalized
+                );
+
+            if(
+                !file ||
+                !file.content
+            ){
+
+                return full;
+
+            }
+
+            if(
+                /\.(css)$/i.test(
+                    normalized
+                ) ||
+                /\.(js|mjs|cjs)$/i.test(
+                    normalized
+                )
+            ){
+
+                return full;
+
+            }
+
+            const mime =
+                file.mime ||
+                guessMimeType(
+                    file.name ||
+                    reference
+                );
+
+            const encoded =
+                `data:${mime};base64,${base64Encode(
+                    file.content
+                )}`;
+
+            return full.replace(
+                reference,
+                encoded
+            );
+
+        }
+    );
+
+}
+
+
+function normalizePath(
+value
+){
+
+    return String(
+        value || ""
+    )
+        .replace(
+            /^\.\/+/,
+            ""
+        )
+        .replace(
+            /^\/+/,
+            ""
+        )
+        .replace(
+            /\\/g,
+            "/"
+        )
+        .trim();
+
+}
+
+
+function escapeRegExp(
+value
+){
+
+    return String(
+        value || ""
+    ).replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+    );
+
+}
+
+
+function base64Encode(
+value
+){
+
+    try{
+
+        return btoa(
+            unescape(
+                encodeURIComponent(
+                    String(
+                        value || ""
+                    )
+                )
+            )
+        );
+
+    }
+    catch(error){
+
+        return btoa(
+            String(
+                value || ""
+            )
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+PRESENTATION RENDERER
+==========================================================
+*/
+
+function renderPresentationArtifact(
+    artifact,
+    container
+){
+
+    if(
+        artifact.url ||
+        artifact.fileUrl ||
+        artifact.downloadUrl
+    ){
+
+        const url =
+            artifact.url ||
+            artifact.fileUrl ||
+            artifact.downloadUrl;
+
+        const iframe =
+            document.createElement(
+                "iframe"
+            );
+
+        iframe.className =
+            "honey-universal-preview-frame";
+
+        iframe.src =
+            url;
+
+        iframe.setAttribute(
+            "title",
+            "Apresentação"
+        );
+
+        container.appendChild(
+            iframe
+        );
+
+        return;
+
+    }
+
+    const slides =
+        artifact.slides ||
+        parseSlidesFromContent(
+            artifact.content
+        );
+
+    if(
+        Array.isArray(
+            slides
+        ) &&
+        slides.length
+    ){
+
+        renderSlideDeck(
+            slides,
+            container
+        );
+
+        return;
+
+    }
+
+    renderUnsupportedArtifact(
+        container,
+        "A apresentação foi criada, mas o backend ainda não disponibilizou um formato visualizável no navegador. O ficheiro pode ser baixado quando o URL do artefacto estiver disponível."
+    );
+
+}
+
+
+function parseSlidesFromContent(
+content
+){
+
+    if(
+        typeof content !==
+        "string"
+    ){
+
+        return [];
+
+    }
+
+    const sections =
+        content.split(
+            /\n-{3,}\n/
+        );
+
+    return sections.map(
+        section => {
+
+            const lines =
+                section
+                    .split(
+                        "\n"
+                    )
+                    .map(
+                        line =>
+                            line.trim()
+                    )
+                    .filter(
+                        Boolean
+                    );
+
+            if(!lines.length){
+
+                return null;
+
+            }
+
+            return {
+
+                title:
+                    lines[0],
+
+                content:
+                    lines
+                        .slice(
+                            1
+                        )
+                        .join(
+                            "\n"
+                        )
+
+            };
+
+        }
+    ).filter(
+        Boolean
+    );
+
+}
+
+
+function renderSlideDeck(
+slides,
+container
+){
+
+    const deck =
+        document.createElement(
+            "div"
+        );
+
+    deck.className =
+        "honey-slide-deck";
+
+    let current =
+        0;
+
+    const slide =
+        document.createElement(
+            "div"
+        );
+
+    slide.className =
+        "honey-slide";
+
+    const controls =
+        document.createElement(
+            "div"
+        );
+
+    controls.className =
+        "honey-slide-controls";
+
+    const previous =
+        createButton(
+            "Anterior",
+            "fa-solid fa-arrow-left"
+        );
+
+    const next =
+        createButton(
+            "Próximo",
+            "fa-solid fa-arrow-right"
+        );
+
+    const counter =
+        document.createElement(
+            "span"
+        );
+
+    function draw(){
+
+        const currentSlide =
+            slides[current];
+
+        slide.innerHTML = `
+
+            <h1>
+                ${escapeHTML(
+                    currentSlide.title ||
+                    ""
+                )}
+            </h1>
+
+            <div class="honey-slide-content">
+                ${renderMarkdown(
+                    currentSlide.content ||
+                    ""
+                )}
+            </div>
+
+        `;
+
+        counter.textContent =
+            `${current + 1} / ${slides.length}`;
+
+        previous.disabled =
+            current <= 0;
+
+        next.disabled =
+            current >=
+            slides.length - 1;
+
+    }
+
+    previous.addEventListener(
+        "click",
+        () => {
+
+            if(current > 0){
+
+                current -=
+                    1;
+
+                draw();
+
+            }
+
+        }
+    );
+
+    next.addEventListener(
+        "click",
+        () => {
+
+            if(
+                current <
+                slides.length - 1
+            ){
+
+                current +=
+                    1;
+
+                draw();
+
+            }
+
+        }
+    );
+
+    controls.appendChild(
+        previous
+    );
+
+    controls.appendChild(
+        counter
+    );
+
+    controls.appendChild(
+        next
+    );
+
+    deck.appendChild(
+        slide
+    );
+
+    deck.appendChild(
+        controls
+    );
+
+    container.appendChild(
+        deck
+    );
+
+    draw();
+
+}
+
+
+/*
+==========================================================
+SPREADSHEET RENDERER
+==========================================================
+*/
+
+function renderSpreadsheetArtifact(
+    artifact,
+    container
+){
+
+    if(
+        artifact.url ||
+        artifact.fileUrl ||
+        artifact.downloadUrl
+    ){
+
+        const iframe =
+            document.createElement(
+                "iframe"
+            );
+
+        iframe.className =
+            "honey-universal-preview-frame";
+
+        iframe.src =
+            artifact.url ||
+            artifact.fileUrl ||
+            artifact.downloadUrl;
+
+        iframe.setAttribute(
+            "title",
+            "Spreadsheet"
+        );
+
+        container.appendChild(
+            iframe
+        );
+
+        return;
+
+    }
+
+    let rows =
+        artifact.rows ||
+        null;
+
+    if(
+        !Array.isArray(rows)
+    ){
+
+        rows =
+            parseCSV(
+                artifact.content
+            );
+
+    }
+
+    if(
+        !Array.isArray(rows) ||
+        !rows.length
+    ){
+
+        renderUnsupportedArtifact(
+            container,
+            "A planilha foi criada, mas não há dados tabulares disponíveis para o Preview."
+        );
+
+        return;
+
+    }
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "honey-spreadsheet-wrapper";
+
+    const table =
+        document.createElement(
+            "table"
+        );
+
+    table.className =
+        "honey-spreadsheet";
+
+    rows.forEach(
+        (
+            row,
+            rowIndex
+        ) => {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            const cells =
+                Array.isArray(row)
+                    ? row
+                    : Object.values(
+                        row || {}
+                    );
+
+            cells.forEach(
+                value => {
+
+                    const cell =
+                        document.createElement(
+                            rowIndex === 0
+                                ? "th"
+                                : "td"
+                        );
+
+                    cell.textContent =
+                        String(
+                            value ??
+                            ""
+                        );
+
+                    tr.appendChild(
+                        cell
+                    );
+
+                }
+            );
+
+            table.appendChild(
+                tr
+            );
+
+        }
+    );
+
+    wrapper.appendChild(
+        table
+    );
+
+    container.appendChild(
+        wrapper
+    );
+
+}
+
+
+function parseCSV(
+content
+){
+
+    if(
+        typeof content !==
+        "string"
+    ){
+
+        return [];
+
+    }
+
+    return content
+        .split(
+            /\r?\n/
+        )
+        .filter(
+            line =>
+                line.trim()
+        )
+        .map(
+            line =>
+                parseCSVLine(
+                    line
+                )
+        );
+
+}
+
+
+function parseCSVLine(
+line
+){
+
+    const result =
+        [];
+
+    let current =
+        "";
+
+    let quoted =
+        false;
+
+    for(
+        let index = 0;
+        index < line.length;
+        index++
+    ){
+
+        const char =
+            line[index];
+
+        if(
+            char ===
+            '"'
+        ){
+
+            if(
+                quoted &&
+                line[index + 1] ===
+                '"'
+            ){
+
+                current +=
+                    '"';
+
+                index +=
+                    1;
+
+            }
+            else{
+
+                quoted =
+                    !quoted;
+
+            }
+
+        }
+        else if(
+            char === "," &&
+            !quoted
+        ){
+
+            result.push(
+                current
+            );
+
+            current =
+                "";
+
+        }
+        else{
+
+            current +=
+                char;
+
+        }
+
+    }
+
+    result.push(
+        current
+    );
+
+    return result;
+
+}
+
+
+/*
+==========================================================
+DOCUMENT RENDERER
+==========================================================
+*/
+
+function renderDocumentArtifact(
+    artifact,
+    container
+){
+
+    if(
+        artifact.url ||
+        artifact.fileUrl ||
+        artifact.downloadUrl
+    ){
+
+        const url =
+            artifact.url ||
+            artifact.fileUrl ||
+            artifact.downloadUrl;
+
+        const iframe =
+            document.createElement(
+                "iframe"
+            );
+
+        iframe.className =
+            "honey-universal-preview-frame";
+
+        iframe.src =
+            url;
+
+        iframe.setAttribute(
+            "title",
+            "Documento"
+        );
+
+        container.appendChild(
+            iframe
+        );
+
+        return;
+
+    }
+
+    const documentElement =
+        document.createElement(
+            "article"
+        );
+
+    documentElement.className =
+        "honey-document-preview";
+
+    documentElement.innerHTML =
+        renderMarkdown(
+            artifact.content ||
+            ""
+        );
+
+    container.appendChild(
+        documentElement
+    );
+
+}
+
+
+/*
+==========================================================
+CHART RENDERER
+==========================================================
+*/
+
+function renderChartArtifact(
+    artifact,
+    container
+){
+
+    if(
+        artifact.html
+    ){
+
+        const iframe =
+            document.createElement(
+                "iframe"
+            );
+
+        iframe.className =
+            "honey-universal-preview-frame";
+
+        iframe.sandbox =
+            "allow-scripts";
+
+        iframe.srcdoc =
+            artifact.html;
+
+        container.appendChild(
+            iframe
+        );
+
+        return;
+
+    }
+
+    const data =
+        artifact.data ||
+        artifact.chartData ||
+        null;
+
+    if(
+        typeof Chart !==
+        "undefined" &&
+        data
+    ){
+
+        const canvas =
+            document.createElement(
+                "canvas"
+            );
+
+        canvas.className =
+            "honey-chart-canvas";
+
+        container.appendChild(
+            canvas
+        );
+
+        try{
+
+            const config =
+                artifact.config ||
+                {
+
+                    type:
+                        "bar",
+
+                    data
+
+                };
+
+            new Chart(
+                canvas.getContext(
+                    "2d"
+                ),
+                config
+            );
+
+        }
+        catch(error){
+
+            console.warn(
+                "[HONEY CHAT] Chart rendering error:",
+                error
+            );
+
+            renderGenericArtifact(
+                artifact,
+                container
+            );
+
+        }
+
+        return;
+
+    }
+
+    renderGenericArtifact(
+        artifact,
+        container
+    );
+
+}
+
+
+/*
+==========================================================
+IMAGE RENDERER
+==========================================================
+*/
+
+function renderImageArtifact(
+    artifact,
+    container
+){
+
+    const image =
+        document.createElement(
+            "img"
+        );
+
+    image.className =
+        "honey-image-preview";
+
+    image.alt =
+        artifact.title ||
+        artifact.name ||
+        "Imagem gerada pela Honey IA";
+
+    const source =
+        artifact.url ||
+        artifact.fileUrl ||
+        artifact.downloadUrl ||
+        (
+            artifact.dataUrl ||
+            (
+                artifact.mime &&
+                artifact.content
+                    ? `data:${artifact.mime};base64,${artifact.content}`
+                    : ""
+            )
+        );
+
+    if(source){
+
+        image.src =
+            source;
+
+        container.appendChild(
+            image
+        );
+
+        return;
+
+    }
+
+    if(
+        artifact.content &&
+        /^data:image\//i.test(
+            artifact.content
+        )
+    ){
+
+        image.src =
+            artifact.content;
+
+        container.appendChild(
+            image
+        );
+
+        return;
+
+    }
+
+    renderUnsupportedArtifact(
+        container,
+        "A imagem foi criada, mas o Preview não recebeu uma fonte visual."
+    );
+
+}
+
+
+/*
+==========================================================
+PDF RENDERER
+==========================================================
+*/
+
+function renderPDFArtifact(
+    artifact,
+    container
+){
+
+    const source =
+        artifact.url ||
+        artifact.fileUrl ||
+        artifact.downloadUrl ||
+        (
+            artifact.content &&
+            /^data:application\/pdf/i.test(
+                artifact.content
+            )
+                ? artifact.content
+                : ""
+        );
+
+    if(!source){
+
+        renderUnsupportedArtifact(
+            container,
+            "O PDF foi criado, mas o Preview não recebeu o ficheiro ou URL do PDF."
+        );
+
+        return;
+
+    }
+
+    const iframe =
+        document.createElement(
+            "iframe"
+        );
+
+    iframe.className =
+        "honey-universal-preview-frame";
+
+    iframe.src =
+        source;
+
+    iframe.setAttribute(
+        "title",
+        "PDF"
+    );
+
+    container.appendChild(
+        iframe
+    );
+
+}
+
+
+/*
+==========================================================
+CODE RENDERER
+==========================================================
+*/
+
+function renderCodeArtifact(
+    artifact,
+    container
+){
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "honey-code-preview";
+
+    const pre =
+        document.createElement(
+            "pre"
+        );
+
+    const code =
+        document.createElement(
+            "code"
+        );
+
+    code.className =
+        artifact.language
+            ? `language-${artifact.language}`
+            : "";
+
+    code.textContent =
+        artifact.content ||
+        "";
+
+    pre.appendChild(
+        code
+    );
+
+    wrapper.appendChild(
+        pre
+    );
+
+    container.appendChild(
+        wrapper
+    );
+
+    highlightCode(
+        wrapper
+    );
+
+}
+
+
+/*
+==========================================================
+DATA RENDERER
+==========================================================
+*/
+
+function renderDataArtifact(
+    artifact,
+    container
+){
+
+    const content =
+        artifact.content ||
+        artifact.data ||
+        "";
+
+    if(
+        typeof content ===
+        "object"
+    ){
+
+        const pre =
+            document.createElement(
+                "pre"
+            );
+
+        pre.textContent =
+            JSON.stringify(
+                content,
+                null,
+                2
+            );
+
+        container.appendChild(
+            pre
+        );
+
+        return;
+
+    }
+
+    if(
+        artifact.mime ===
+        "text/csv" ||
+        /\.csv$/i.test(
+            artifact.name ||
+            ""
+        )
+    ){
+
+        renderSpreadsheetArtifact(
+            artifact,
+            container
+        );
+
+        return;
+
+    }
+
+    const pre =
+        document.createElement(
+            "pre"
+        );
+
+    pre.textContent =
+        String(
+            content
+        );
+
+    container.appendChild(
+        pre
+    );
+
+}
+
+
+/*
+==========================================================
+GENERIC RENDERER
+==========================================================
+*/
+
+function renderGenericArtifact(
+    artifact,
+    container
+){
+
+    if(
+        artifact.content
+    ){
+
+        const pre =
+            document.createElement(
+                "pre"
+            );
+
+        pre.textContent =
+            artifact.content;
+
+        container.appendChild(
+            pre
+        );
+
+        return;
+
+    }
+
+    renderUnsupportedArtifact(
+        container,
+        "Este artefacto foi recebido, mas ainda não possui um renderer específico no Preview."
+    );
+
+}
+
+
+function renderUnsupportedArtifact(
+    container,
+    message
+){
+
+    const element =
+        document.createElement(
+            "div"
+        );
+
+    element.className =
+        "honey-preview-message";
+
+    element.textContent =
+        message;
+
+    container.appendChild(
+        element
+    );
+
+}
+
+
+function renderEmptyPreview(
+    container,
+    message
+){
+
+    renderUnsupportedArtifact(
+        container,
+        message
+    );
+
+}
+
+
+/*
+==========================================================
+PREVIEW EDITOR
+==========================================================
+*/
+
+function renderPreviewEditor(
+    codeMode = false
+){
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    const editor =
+        getPreviewElement(
+            "[data-preview-editor]"
+        );
+
+    const textarea =
+        getPreviewElement(
+            "[data-preview-code]"
+        );
+
+    const filesContainer =
+        getPreviewElement(
+            ".honey-preview-files"
+        );
+
+    if(
+        !editor ||
+        !textarea
+    ){
+
+        return;
+
+    }
+
+    const files =
+        artifact.files?.length
+            ? artifact.files
+            : [
+                {
+
+                    name:
+                        artifact.entryPoint ||
+                        artifact.name,
+
+                    content:
+                        artifact.content,
+
+                    language:
+                        artifact.language
+
+                }
+            ];
+
+    filesContainer.innerHTML =
+        "";
+
+    files.forEach(
+        file => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.type =
+                "button";
+
+            button.textContent =
+                file.name ||
+                file.path;
+
+            button.classList.toggle(
+                "active",
+                String(
+                    file.name ||
+                    file.path
+                ) ===
+                String(
+                    state.preview.activeFile
+                )
+            );
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if(
+                        state.preview.editorDirty
+                    ){
+
+                        const confirmed =
+                            window.confirm(
+                                "Existem alterações não guardadas. Deseja mudar de ficheiro?"
+                            );
+
+                        if(!confirmed){
+
+                            return;
+
+                        }
+
+                    }
+
+                    state.preview.activeFile =
+                        file.name ||
+                        file.path;
+
+                    state.preview.editorDirty =
+                        false;
+
+                    loadActiveFileIntoEditor();
+
+                    renderPreviewEditor(
+                        codeMode
+                    );
+
+                }
+            );
+
+            filesContainer.appendChild(
+                button
+            );
+
+        }
+    );
+
+    loadActiveFileIntoEditor();
+
+}
+
+
+function loadActiveFileIntoEditor(){
+
+    const textarea =
+        getPreviewElement(
+            "[data-preview-code]"
+        );
+
+    if(!textarea){
+
+        return;
+
+    }
+
+    const file =
+        getActivePreviewFile();
+
+    if(!file){
+
+        textarea.value =
+            state.preview.artifact?.content ||
+            "";
+
+        return;
+
+    }
+
+    textarea.value =
+        file.content ||
+        "";
+
+    state.preview.editorDirty =
+        false;
+
+    textarea.oninput =
+        () => {
+
+            state.preview.editorDirty =
+                true;
+
+        };
+
+}
+
+
+function getActivePreviewFile(){
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return null;
+
+    }
+
+    return artifact.files?.find(
+        file =>
+            String(
+                file.name ||
+                file.path
+            ) ===
+            String(
+                state.preview.activeFile
+            )
+    ) || null;
+
+}
+
+
+/*
+==========================================================
+SAVE LIVE EDIT
+==========================================================
+*/
+
+async function savePreviewEdits(){
+
+    const artifact =
+        state.preview.artifact;
+
+    const textarea =
+        getPreviewElement(
+            "[data-preview-code]"
+        );
+
+    if(
+        !artifact ||
+        !textarea
+    ){
+
+        return;
+
+    }
+
+    const newContent =
+        textarea.value;
+
+    const file =
+        getActivePreviewFile();
+
+    if(file){
+
+        file.content =
+            newContent;
+
+    }
+    else{
+
+        artifact.content =
+            newContent;
+
+    }
+
+    artifact.updatedAt =
+        new Date().toISOString();
+
+    state.preview.editorDirty =
+        false;
+
+    /*
+        Local live update happens immediately.
+        Backend persistence is attempted only when an
+        artifact id is available.
+    */
+
+    await persistArtifactEdit(
+        artifact
+    );
+
+    createLocalArtifactVersion(
+        artifact,
+        "Edição manual"
+    );
+
+    renderPreviewVersions();
+
+    setPreviewMode(
+        "preview"
+    );
+
+    showToast(
+        "Alterações aplicadas ao Preview.",
+        "success"
+    );
+
+}
+
+
+async function persistArtifactEdit(
+    artifact
+){
+
+    if(!artifact?.id){
+
+        return;
+
+    }
+
+    try{
+
+        await apiRequest(
+            `/artifacts/${encodeURIComponent(
+                artifact.id
+            )}`,
+            {
+
+                method:
+                    "PATCH",
+
+                body:
+                    JSON.stringify({
+
+                        content:
+                            artifact.content,
+
+                        files:
+                            artifact.files,
+
+                        title:
+                            artifact.title
+
+                    })
+
+            }
+        );
+
+    }
+    catch(error){
+
+        /*
+            The local edit remains active even when the
+            optional persistence endpoint is unavailable.
+        */
+
+        console.warn(
+            "[HONEY CHAT] Artifact persistence unavailable:",
+            error
+        );
+
+    }
+
+}
+
+
+function cancelPreviewEdits(){
+
+    state.preview.editorDirty =
+        false;
+
+    setPreviewMode(
+        "preview"
+    );
+
+}
+
+
+/*
+==========================================================
+LIVE VISUAL EDITING
+==========================================================
+*/
+
+function applyVisualEdit(
+path,
+value
+){
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return false;
+
+    }
+
+    const file =
+        artifact.files?.find(
+            item =>
+                String(
+                    item.path ||
+                    item.name
+                ) ===
+                String(
+                    path
+                )
+        );
+
+    if(
+        file &&
+        typeof value ===
+        "string"
+    ){
+
+        file.content =
+            value;
+
+        state.preview.editorDirty =
+            true;
+
+        renderPreviewArtifact();
+
+        return true;
+
+    }
+
+    return false;
+
+}
+
+
+/*
+==========================================================
+PREVIEW FULLSCREEN
+==========================================================
+*/
+
+function togglePreviewFullscreen(){
+
+    if(
+        state.preview.fullscreen
+    ){
+
+        exitPreviewFullscreen();
+
+    }
+    else{
+
+        enterPreviewFullscreen();
+
+    }
+
+}
+
+
+async function enterPreviewFullscreen(){
+
+    const target =
+        dom.previewPane ||
+        getPreviewShell();
+
+    if(!target){
+
+        return;
+
+    }
+
+    try{
+
+        if(
+            target.requestFullscreen
+        ){
+
+            await target.requestFullscreen();
+
+            state.preview.fullscreen =
+                true;
+
+        }
+
+    }
+    catch(error){
+
+        console.warn(
+            "[HONEY CHAT] Fullscreen error:",
+            error
+        );
+
+        target.classList.add(
+            "honey-preview-fullscreen"
+        );
+
+        state.preview.fullscreen =
+            true;
+
+    }
+
+}
+
+
+function exitPreviewFullscreen(){
+
+    try{
+
+        if(
+            document.fullscreenElement &&
+            document.exitFullscreen
+        ){
+
+            document.exitFullscreen();
+
+        }
+
+    }
+    catch(error){
+
+        /*
+            Browser may already have exited fullscreen.
+        */
+
+    }
+
+    dom.previewPane?.classList.remove(
+        "honey-preview-fullscreen"
+    );
+
+    state.preview.fullscreen =
+        false;
+
+}
+
+
+document.addEventListener(
+    "fullscreenchange",
+    () => {
+
+        state.preview.fullscreen =
+            Boolean(
+                document.fullscreenElement
+            );
+
+    }
+);
+
+
+/*
+==========================================================
+VERSIONING
+==========================================================
+*/
+
+function buildArtifactVersions(
+artifact
+){
+
+    const existing =
+        Array.isArray(
+            artifact.versions
+        )
+            ? artifact.versions
+            : [];
+
+    const versions =
+        existing
+            .map(
+                normalizeArtifactVersion
+            )
+            .filter(
+                Boolean
+            );
+
+    if(!versions.length){
+
+        versions.push({
+
+            id:
+                "v1",
+
+            label:
+                "v1",
+
+            createdAt:
+                artifact.createdAt ||
+                new Date().toISOString(),
+
+            description:
+                "Versão inicial",
+
+            artifact:
+                cloneArtifact(
+                    artifact
+                )
+
+        });
+
+    }
+
+    return versions.slice(
+        -MAX_ARTIFACT_VERSIONS
+    );
+
+}
+
+
+function normalizeArtifactVersion(
+version
+){
+
+    if(
+        !version ||
+        typeof version !==
+        "object"
+    ){
+
+        return null;
+
+    }
+
+    const artifact =
+        normalizeArtifact(
+            version.artifact ||
+            version
+        );
+
+    if(!artifact){
+
+        return null;
+
+    }
+
+    return {
+
+        id:
+            String(
+                version.id ||
+                version._id ||
+                `v${Date.now()}`
+            ),
+
+        label:
+            version.label ||
+            version.name ||
+            "Versão",
+
+        createdAt:
+            version.createdAt ||
+            new Date().toISOString(),
+
+        description:
+            version.description ||
+            "",
+
+        artifact
+
+    };
+
+}
+
+
+function getActiveArtifactVersion(){
+
+    return state.preview.versions.find(
+        version =>
+            String(
+                version.id
+            ) ===
+            String(
+                state.preview.activeVersion
+            )
+    ) || null;
+
+}
+
+
+function createLocalArtifactVersion(
+artifact,
+description
+){
+
+    const nextNumber =
+        state.preview.versions.length +
+        1;
+
+    const version = {
+
+        id:
+            `v${nextNumber}`,
+
+        label:
+            `v${nextNumber}`,
+
+        createdAt:
+            new Date().toISOString(),
+
+        description:
+            description ||
+            "Nova versão",
+
+        artifact:
+            cloneArtifact(
+                artifact
+            )
+
+    };
+
+    state.preview.versions.push(
+        version
+    );
+
+    state.preview.versions =
+        state.preview.versions.slice(
+            -MAX_ARTIFACT_VERSIONS
+        );
+
+    state.preview.activeVersion =
+        version.id;
+
+    return version;
+
+}
+
+
+function selectArtifactVersion(
+versionId
+){
+
+    const version =
+        state.preview.versions.find(
+            item =>
+                String(
+                    item.id
+                ) ===
+                String(
+                    versionId
+                )
+        );
+
+    if(!version){
+
+        return;
+
+    }
+
+    state.preview.activeVersion =
+        version.id;
+
+    renderPreviewArtifact();
+
+}
+
+
+function renderPreviewVersions(){
+
+    const select =
+        getPreviewElement(
+            "[data-preview-version]"
+        );
+
+    if(!select){
+
+        return;
+
+    }
+
+    select.innerHTML =
+        "";
+
+    state.preview.versions.forEach(
+        version => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                version.id;
+
+            option.textContent =
+                version.label;
+
+            if(
+                version.id ===
+                state.preview.activeVersion
+            ){
+
+                option.selected =
+                    true;
+
+            }
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+}
+
+
+async function compareArtifactVersions(){
+
+    if(
+        state.preview.versions.length <
+        2
+    ){
+
+        showToast(
+            "Ainda não existem versões suficientes para comparar.",
+            "info"
+        );
+
+        return;
+
+    }
+
+    const currentIndex =
+        state.preview.versions.findIndex(
+            version =>
+                version.id ===
+                state.preview.activeVersion
+        );
+
+    const current =
+        state.preview.versions[
+            currentIndex
+        ];
+
+    const previous =
+        state.preview.versions[
+            Math.max(
+                0,
+                currentIndex - 1
+            )
+        ];
+
+    if(
+        !current ||
+        !previous ||
+        current === previous
+    ){
+
+        showToast(
+            "Não há uma versão anterior disponível.",
+            "info"
+        );
+
+        return;
+
+    }
+
+    renderVersionComparison(
+        previous,
+        current
+    );
+
+}
+
+
+function renderVersionComparison(
+left,
+right
+){
+
+    const renderArea =
+        getPreviewElement(
+            "[data-preview-render-area]"
+        );
+
+    if(!renderArea){
+
+        return;
+
+    }
+
+    renderArea.innerHTML = `
+
+        <div class="honey-version-comparison">
+
+            <div class="honey-version-column">
+
+                <header>
+                    ${escapeHTML(
+                        left.label
+                    )}
+                </header>
+
+                <pre></pre>
+
+            </div>
+
+            <div class="honey-version-column">
+
+                <header>
+                    ${escapeHTML(
+                        right.label
+                    )}
+                </header>
+
+                <pre></pre>
+
+            </div>
+
+        </div>
+
+    `;
+
+    const columns =
+        renderArea.querySelectorAll(
+            ".honey-version-column pre"
+        );
+
+    columns[0].textContent =
+        getArtifactText(
+            left.artifact
+        );
+
+    columns[1].textContent =
+        getArtifactText(
+            right.artifact
+        );
+
+}
+
+
+function restoreSelectedVersion(){
+
+    const version =
+        getActiveArtifactVersion();
+
+    if(!version){
+
+        return;
+
+    }
+
+    const confirmed =
+        window.confirm(
+            `Restaurar ${version.label}?`
+        );
+
+    if(!confirmed){
+
+        return;
+
+    }
+
+    state.preview.artifact =
+        cloneArtifact(
+            version.artifact
+        );
+
+    state.preview.artifactId =
+        state.preview.artifact.id;
+
+    state.preview.activeFile =
+        state.preview.artifact.entryPoint ||
+        state.preview.artifact.files?.[0]?.name ||
+        null;
+
+    state.preview.editorDirty =
+        false;
+
+    createLocalArtifactVersion(
+        state.preview.artifact,
+        `Restaurado de ${version.label}`
+    );
+
+    renderPreviewVersions();
+
+    renderPreviewArtifact();
+
+    showToast(
+        `${version.label} restaurada.`,
+        "success"
+    );
+
+}
+
+
+function cloneArtifact(
+artifact
+){
+
+    try{
+
+        return JSON.parse(
+            JSON.stringify(
+                artifact
+            )
+        );
+
+    }
+    catch(error){
+
+        return {
+            ...artifact
+        };
+
+    }
+
+}
+
+
+function getArtifactText(
+artifact
+){
+
+    if(
+        artifact?.content
+    ){
+
+        return String(
+            artifact.content
+        );
+
+    }
+
+    if(
+        artifact?.files
+    ){
+
+        return artifact.files
+            .map(
+                file =>
+                    `--- ${file.name || file.path} ---\n${file.content || ""}`
+            )
+            .join(
+                "\n\n"
+            );
+
+    }
+
+    return JSON.stringify(
+        artifact,
+        null,
+        2
+    );
+
+}
+
+
+/*
+==========================================================
+DOWNLOAD SYSTEM
+==========================================================
+*/
+
+async function downloadArtifact(
+artifact
+){
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    /*
+        Prefer an explicit backend-generated download URL.
+    */
+
+    if(
+        artifact.downloadUrl ||
+        artifact.fileUrl ||
+        artifact.url
+    ){
+
+        const url =
+            artifact.downloadUrl ||
+            artifact.fileUrl ||
+            artifact.url;
+
+        triggerBrowserDownload(
+            url,
+            artifact.name
+        );
+
+        return;
+
+    }
+
+    /*
+        Multiple-file projects need a backend ZIP endpoint
+        when ZIP generation is not already supplied.
+    */
+
+    if(
+        Array.isArray(
+            artifact.files
+        ) &&
+        artifact.files.length >
+        1
+    ){
+
+        await downloadArtifactProject(
+            artifact
+        );
+
+        return;
+
+    }
+
+    if(
+        artifact.content
+    ){
+
+        const mime =
+            artifact.mime ||
+            guessMimeType(
+                artifact.name
+            );
+
+        const blob =
+            new Blob(
+                [
+                    artifact.content
+                ],
+                {
+                    type:
+                        mime
+                }
+            );
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+        triggerBrowserDownload(
+            url,
+            artifact.name
+        );
+
+        setTimeout(
+            () =>
+                URL.revokeObjectURL(
+                    url
+                ),
+            5000
+        );
+
+        return;
+
+    }
+
+    showToast(
+        "Este artefacto ainda não possui um ficheiro disponível para download.",
+        "warning"
+    );
+
+}
+
+
+async function downloadArtifactProject(
+artifact
+){
+
+    if(
+        artifact.zipUrl
+    ){
+
+        triggerBrowserDownload(
+            artifact.zipUrl,
+            `${artifact.name || "honey-project"}.zip`
+        );
+
+        return;
+
+    }
+
+    if(!artifact.id){
+
+        showToast(
+            "Não foi possível preparar o projecto para download.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await apiRequest(
+                `/artifacts/${encodeURIComponent(
+                    artifact.id
+                )}/download`,
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            format:
+                                "zip"
+
+                        })
+
+                }
+            );
+
+        const url =
+            response?.downloadUrl ||
+            response?.url;
+
+        if(!url){
+
+            throw new Error(
+                "O servidor não devolveu o URL do projecto."
+            );
+
+        }
+
+        triggerBrowserDownload(
+            url,
+            `${artifact.name || "honey-project"}.zip`
+        );
+
+    }
+    catch(error){
+
+        handleApiError(
+            error,
+            "Não foi possível preparar o download do projecto."
+        );
+
+    }
+
+}
+
+
+function triggerBrowserDownload(
+url,
+filename
+){
+
+    if(!url){
+
+        return;
+
+    }
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+    link.href =
+        url;
+
+    if(filename){
+
+        link.download =
+            filename;
+
+    }
+
+    link.target =
+        "_blank";
+
+    link.rel =
+        "noopener noreferrer";
+
+    document.body.appendChild(
+        link
+    );
+
+    link.click();
+
+    link.remove();
+
+}
+
+
+/*
+==========================================================
+MIME TYPES
+==========================================================
+*/
+
+function guessMimeType(
+filename
+){
+
+    const name =
+        String(
+            filename || ""
+        ).toLowerCase();
+
+    if(
+        name.endsWith(
+            ".html"
+        )
+    ){
+
+        return "text/html";
+
+    }
+
+    if(
+        name.endsWith(
+            ".css"
+        )
+    ){
+
+        return "text/css";
+
+    }
+
+    if(
+        name.endsWith(
+            ".js"
+        )
+    ){
+
+        return "text/javascript";
+
+    }
+
+    if(
+        name.endsWith(
+            ".json"
+        )
+    ){
+
+        return "application/json";
+
+    }
+
+    if(
+        name.endsWith(
+            ".csv"
+        )
+    ){
+
+        return "text/csv";
+
+    }
+
+    if(
+        name.endsWith(
+            ".pdf"
+        )
+    ){
+
+        return "application/pdf";
+
+    }
+
+    if(
+        name.endsWith(
+            ".png"
+        )
+    ){
+
+        return "image/png";
+
+    }
+
+    if(
+        name.endsWith(
+            ".jpg" ||
+            ".jpeg"
+        )
+    ){
+
+        return "image/jpeg";
+
+    }
+
+    if(
+        name.endsWith(
+            ".svg"
+        )
+    ){
+
+        return "image/svg+xml";
+
+    }
+
+    return "application/octet-stream";
+
+}
+
+
+/*
+==========================================================
+SHARING
+==========================================================
+*/
+
+async function shareArtifactPreview(){
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    /*
+        If backend already provided a share URL,
+        use it directly.
+    */
+
+    if(
+        artifact.shareUrl
+    ){
+
+        await copyText(
+            artifact.shareUrl
+        );
+
+        showToast(
+            "Link do Preview copiado.",
+            "success"
+        );
+
+        return;
+
+    }
+
+    if(!artifact.id){
+
+        showToast(
+            "Este artefacto ainda não possui um identificador para partilha.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await apiRequest(
+                PREVIEW_SHARE_ENDPOINT,
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            artifactId:
+                                artifact.id,
+
+                            conversationId:
+                                state.conversationId,
+
+                            expiresIn:
+                                604800
+
+                        })
+
+                }
+            );
+
+        const shareId =
+            response?.shareId ||
+            response?.id ||
+            response?.previewId;
+
+        let url =
+            response?.url ||
+            response?.shareUrl ||
+            "";
+
+        if(
+            !url &&
+            shareId
+        ){
+
+            url =
+                `${window.location.origin}${PREVIEW_SHARE_PATH}/${encodeURIComponent(
+                    shareId
+                )}`;
+
+        }
+
+        if(!url){
+
+            throw new Error(
+                "O servidor não devolveu um link de partilha."
+            );
+
+        }
+
+        state.preview.share =
+            response;
+
+        await copyText(
+            url
+        );
+
+        showToast(
+            "Link temporário do Preview copiado.",
+            "success"
+        );
+
+    }
+    catch(error){
+
+        handleApiError(
+            error,
+            "Não foi possível criar o link de partilha."
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+DEPLOYMENT
+==========================================================
+*/
+
+async function deployArtifact(
+artifact,
+provider = null
+){
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    const selectedProvider =
+        provider ||
+        await chooseDeploymentProvider(
+            artifact
+        );
+
+    if(!selectedProvider){
+
+        return;
+
+    }
+
+    if(!artifact.id){
+
+        showToast(
+            "O artefacto ainda não possui um ID de projecto para publicação.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    try{
+
+        showToast(
+            `A preparar publicação na ${selectedProvider}...`,
+            "info"
+        );
+
+        const response =
+            await apiRequest(
+                PREVIEW_DEPLOY_ENDPOINT,
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            artifactId:
+                                artifact.id,
+
+                            conversationId:
+                                state.conversationId,
+
+                            provider:
+                                selectedProvider
+
+                        })
+
+                }
+            );
+
+        state.preview.deploy =
+            response;
+
+        const url =
+            response?.url ||
+            response?.deploymentUrl ||
+            response?.publicUrl;
+
+        if(
+            response?.success &&
+            url
+        ){
+
+            showDeploymentResult(
+                selectedProvider,
+                url
+            );
+
+            return;
+
+        }
+
+        if(
+            response?.success ===
+            false
+        ){
+
+            throw new Error(
+                response?.error ||
+                "A publicação não foi concluída."
+            );
+
+        }
+
+        showToast(
+            "A publicação foi iniciada. O servidor ainda não devolveu um URL público.",
+            "info"
+        );
+
+    }
+    catch(error){
+
+        handleApiError(
+            error,
+            `Não foi possível publicar na ${selectedProvider}.`
+        );
+
+    }
+
+}
+
+
+async function chooseDeploymentProvider(
+artifact
+){
+
+    const type =
+        artifact.artifactType;
+
+    if(
+        type !== "website" &&
+        type !== "webapp"
+    ){
+
+        showToast(
+            "A publicação directa está disponível para websites e aplicações web.",
+            "info"
+        );
+
+        return null;
+
+    }
+
+    const value =
+        window.prompt(
+            "Escolha a plataforma: vercel ou render",
+            "vercel"
+        );
+
+    if(!value){
+
+        return null;
+
+    }
+
+    const provider =
+        value
+            .trim()
+            .toLowerCase();
+
+    if(
+        ![
+            "vercel",
+            "render"
+        ].includes(
+            provider
+        )
+    ){
+
+        showToast(
+            "Plataforma inválida.",
+            "warning"
+        );
+
+        return null;
+
+    }
+
+    return provider;
+
+}
+
+
+function showDeploymentResult(
+provider,
+url
+){
+
+    const confirmed =
+        window.confirm(
+            `Publicado com sucesso na ${provider}.\n\nAbrir agora?`
+        );
+
+    if(
+        confirmed &&
+        url
+    ){
+
+        window.open(
+            url,
+            "_blank",
+            "noopener,noreferrer"
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+SANDBOX / TERMINAL
+==========================================================
+*/
+
+function renderTerminalOutput(){
+
+    const output =
+        getPreviewElement(
+            "[data-terminal-output]"
+        );
+
+    if(!output){
+
+        return;
+
+    }
+
+    output.textContent =
+        state.preview.execution.output ||
+        (
+            state.preview.execution.error
+                ? String(
+                    state.preview.execution.error
+                )
+                : "Terminal pronto."
+        );
+
+}
+
+
+async function runTerminalCommand(){
+
+    const input =
+        getPreviewElement(
+            "[data-terminal-input]"
+        );
+
+    if(!input){
+
+        return;
+
+    }
+
+    const command =
+        input.value.trim();
+
+    if(!command){
+
+        return;
+
+    }
+
+    const artifact =
+        state.preview.artifact;
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    const output =
+        getPreviewElement(
+            "[data-terminal-output]"
+        );
+
+    if(output){
+
+        output.textContent +=
+            `\n$ ${command}\n`;
+
+    }
+
+    input.value =
+        "";
+
+    state.preview.execution.running =
+        true;
+
+    try{
+
+        const response =
+            await apiRequest(
+                PREVIEW_EXECUTE_ENDPOINT,
+                {
+
+                    method:
+                        "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            artifactId:
+                                artifact.id,
+
+                            language:
+                                artifact.language,
+
+                            command,
+
+                            conversationId:
+                                state.conversationId
+
+                        })
+
+                }
+            );
+
+        state.preview.execution.output +=
+            `\n$ ${command}\n${
+                response?.output ||
+                ""
+            }`;
+
+        if(
+            response?.error
+        ){
+
+            state.preview.execution.error =
+                response.error;
+
+        }
+
+        renderTerminalOutput();
+
+    }
+    catch(error){
+
+        state.preview.execution.error =
+            error?.message ||
+            "Não foi possível executar o comando.";
+
+        renderTerminalOutput();
+
+    }
+    finally{
+
+        state.preview.execution.running =
+            false;
+
+    }
+
+}
+
+
+/*
+==========================================================
+PREVIEW MESSAGING
+==========================================================
+*/
+
+function handlePreviewMessage(
+event
+){
+
+    if(
+        !event ||
+        !event.data
+    ){
+
+        return;
+
+    }
+
+    const data =
+        event.data;
+
+    if(
+        typeof data !==
+        "object"
+    ){
+
+        return;
+
+    }
+
+    if(
+        data.type ===
+        "honey-preview-edit"
+    ){
+
+        applyVisualEdit(
+            data.path,
+            data.value
+        );
+
+    }
+
+    if(
+        data.type ===
+        "honey-preview-ready"
+    ){
+
+        /*
+            Preview iframe is ready.
+        */
+
+    }
+
+}
+
+
+/*
+==========================================================
+PREVIEW FOCUS
+==========================================================
+*/
+
+function focusPreview(){
+
+    if(!state.preview.open){
+
+        return;
+
+    }
+
+    setTimeout(
+        () => {
+
+            const area =
+                getPreviewElement(
+                    "[data-preview-render-area]"
+                );
+
+            area?.scrollTo?.(
+                {
+                    top:
+                        0,
+
+                    behavior:
+                        "instant"
+
+                }
+            );
+
+        },
+        20
+    );
+
+}
 
 
 /*
@@ -3668,7 +9588,7 @@ TOOLS
 */
 
 function renderTools(
-    tools
+tools
 ){
 
     if(
@@ -3745,12 +9665,6 @@ function renderTools(
 
 }
 
-
-/*
-==========================================================
-TOOL CARDS
-==========================================================
-*/
 
 function renderToolCards(){
 
@@ -3840,7 +9754,7 @@ COPY
 */
 
 async function copyText(
-    value
+value
 ){
 
     const text =
@@ -3914,7 +9828,7 @@ ERROR
 */
 
 function showErrorMessage(
-    message
+message
 ){
 
     const element =
@@ -3956,12 +9870,6 @@ function showErrorMessage(
         element
     );
 
-    /*
-        Erro provocado diretamente pelo envio deve aparecer
-        imediatamente no final. Depois disso o utilizador
-        volta a controlar o viewport.
-    */
-
     state.userNearBottom =
         true;
 
@@ -3974,12 +9882,47 @@ function showErrorMessage(
 
 /*
 ==========================================================
-STREAMING EMPTY STATE
+INTERRUPTED ASSISTANT
 ==========================================================
 */
 
+function finalizeInterruptedAssistant(
+element
+){
+
+    if(!element){
+
+        return;
+
+    }
+
+    renderAssistantContent(
+        element,
+        state.currentAssistantContent,
+        {
+            final:
+                true
+        }
+    );
+
+    setAssistantStatus(
+        element,
+        "Resposta interrompida."
+    );
+
+    addAssistantMessageOnce(
+        state.currentAssistantContent,
+        {
+            interrupted:
+                true
+        }
+    );
+
+}
+
+
 function removeStreamingAssistantIfEmpty(
-    element
+element
 ){
 
     if(!element){
@@ -4007,7 +9950,7 @@ INPUT STATE
 */
 
 function setSendingState(
-    sending
+sending
 ){
 
     if(dom.btnSend){
@@ -4087,11 +10030,6 @@ function setSendingState(
             sending;
 
     }
-
-    /*
-        Não bloqueamos os botões de nova conversa.
-        O utilizador deve poder abandonar o contexto atual.
-    */
 
 }
 
@@ -4292,6 +10230,281 @@ function startVoiceInput(){
 
     }
 
+}
+
+
+/*
+==========================================================
+ATTACHMENTS
+==========================================================
+*/
+
+function setupAttachmentControls(){
+
+    dom.btnAttach?.addEventListener(
+        "click",
+        () => {
+
+            if(state.isSending){
+
+                return;
+
+            }
+
+            dom.fileInput?.click();
+
+        }
+    );
+
+    dom.fileInput?.addEventListener(
+        "change",
+        handleFileSelection
+    );
+
+    dom.btnRemoveAttachment?.addEventListener(
+        "click",
+        removeAttachment
+    );
+
+}
+
+
+async function handleFileSelection(
+event
+){
+
+    const file =
+        event.target.files?.[0];
+
+    if(!file){
+
+        return;
+
+    }
+
+    if(
+        file.size >
+        MAX_FILE_SIZE
+    ){
+
+        showToast(
+            "O ficheiro ultrapassa o limite permitido.",
+            "error"
+        );
+
+        removeAttachment();
+
+        return;
+
+    }
+
+    state.selectedFile =
+        file;
+
+    state.selectedFileSupported =
+        isSupportedTextFile(
+            file.name
+        );
+
+    if(
+        state.selectedFileSupported
+    ){
+
+        try{
+
+            state.selectedFileContent =
+                await file.text();
+
+        }
+        catch(error){
+
+            state.selectedFileContent =
+                "";
+
+            state.selectedFileSupported =
+                false;
+
+        }
+
+    }
+    else{
+
+        state.selectedFileContent =
+            "";
+
+    }
+
+    if(dom.attachmentBar){
+
+        dom.attachmentBar.style.display =
+            "";
+
+    }
+
+    if(dom.attachedFileName){
+
+        dom.attachedFileName.textContent =
+            file.name;
+
+    }
+
+}
+
+
+function isSupportedTextFile(
+filename
+){
+
+    const extension =
+        String(
+            filename || ""
+        )
+        .toLowerCase()
+        .split(
+            "."
+        )
+        .pop();
+
+    return SUPPORTED_TEXT_EXTENSIONS.includes(
+        extension
+    );
+
+}
+
+
+function buildPromptWithFileContext(
+prompt
+){
+
+    const file =
+        state.selectedFile;
+
+    if(
+        !file ||
+        !state.selectedFileContent
+    ){
+
+        return prompt;
+
+    }
+
+    return `
+
+${prompt}
+
+CONTEXTO DO FICHEIRO ANEXADO
+Nome: ${file.name}
+Tipo: ${file.type || "desconhecido"}
+
+Conteúdo:
+
+\`\`\`
+${state.selectedFileContent}
+\`\`\`
+
+Utiliza este ficheiro como contexto para responder ao pedido.
+
+`.trim();
+
+}
+
+
+function removeAttachment(){
+
+    state.selectedFile =
+        null;
+
+    state.selectedFileContent =
+        "";
+
+    state.selectedFileSupported =
+        false;
+
+    if(dom.fileInput){
+
+        dom.fileInput.value =
+            "";
+
+    }
+
+    if(dom.attachmentBar){
+
+        dom.attachmentBar.style.display =
+            "none";
+
+    }
+
+    if(dom.attachedFileName){
+
+        dom.attachedFileName.textContent =
+            "";
+
+    }
+
+}
+
+
+/*
+==========================================================
+SEARCH
+==========================================================
+*/
+
+function setupSearch(){
+
+    if(!dom.globalSearch){
+
+        return;
+
+    }
+
+    dom.globalSearch.addEventListener(
+        "input",
+        event => {
+
+            state.searchQuery =
+                String(
+                    event.target.value ||
+                    ""
+                ).trim()
+                .toLowerCase();
+
+            renderHistory();
+
+        }
+    );
+
+}
+
+
+function getFilteredConversations(){
+
+    if(
+        !state.searchQuery
+    ){
+
+        return state.conversations;
+
+    }
+
+    return state.conversations.filter(
+        conversation => {
+
+            const title =
+                String(
+                    conversation?.title ||
+                    ""
+                ).toLowerCase();
+
+            return title.includes(
+                state.searchQuery
+            );
+
+        }
+    );
+
+}
+
 
 /*
 ==========================================================
@@ -4300,8 +10513,7 @@ HISTORY
 */
 
 function renderHistory(
-    conversations =
-        state.conversations
+conversations
 ){
 
     if(!dom.historyContainer){
@@ -4310,11 +10522,18 @@ function renderHistory(
 
     }
 
+    const source =
+        Array.isArray(
+            conversations
+        )
+            ? conversations
+            : getFilteredConversations();
+
     if(
         !Array.isArray(
-            conversations
+            source
         ) ||
-        !conversations.length
+        !source.length
     ){
 
         dom.historyContainer.innerHTML = `
@@ -4351,7 +10570,7 @@ function renderHistory(
     wrapper.className =
         "conversation-history-list";
 
-    conversations.forEach(
+    source.forEach(
         conversation => {
 
             const id =
@@ -4543,7 +10762,7 @@ HISTORY DATE
 */
 
 function formatConversationDate(
-    value
+value
 ){
 
     if(!value){
@@ -4599,7 +10818,7 @@ DELETE CONVERSATION
 */
 
 async function deleteConversation(
-    conversationId
+conversationId
 ){
 
     if(!conversationId){
@@ -4618,11 +10837,6 @@ async function deleteConversation(
         return;
 
     }
-
-    /*
-        Se estiver eliminando a conversa atual durante geração,
-        interrompemos primeiro.
-    */
 
     if(
         state.isSending &&
@@ -4916,13 +11130,65 @@ async function loadUserProfile(){
 
 /*
 ==========================================================
+BUTTON FACTORY
+==========================================================
+*/
+
+function createButton(
+label,
+iconClass
+){
+
+    const button =
+        document.createElement(
+            "button"
+        );
+
+    button.type =
+        "button";
+
+    if(iconClass){
+
+        const icon =
+            document.createElement(
+                "i"
+            );
+
+        icon.className =
+            iconClass;
+
+        button.appendChild(
+            icon
+        );
+
+    }
+
+    const text =
+        document.createElement(
+            "span"
+        );
+
+    text.textContent =
+        label;
+
+    button.appendChild(
+        text
+    );
+
+    return button;
+
+}
+
+
+/*
+==========================================================
 TOAST
 ==========================================================
 */
 
 function showToast(
-    message,
-    type = "info"
+message,
+type = "info"
 ){
 
     if(!dom.toastContainer){
@@ -5028,8 +11294,8 @@ API ERROR HANDLING
 */
 
 function handleApiError(
-    error,
-    fallback
+error,
+fallback
 ){
 
     console.error(
@@ -5113,7 +11379,36 @@ window.HoneyChat = {
                 state.generationStatus,
 
             userNearBottom:
-                state.userNearBottom
+                state.userNearBottom,
+
+            preview:
+                {
+
+                    open:
+                        state.preview.open,
+
+                    artifactId:
+                        state.preview.artifactId,
+
+                    artifactType:
+                        state.preview.artifactType,
+
+                    activeFile:
+                        state.preview.activeFile,
+
+                    activeVersion:
+                        state.preview.activeVersion,
+
+                    mode:
+                        state.preview.mode,
+
+                    fullscreen:
+                        state.preview.fullscreen,
+
+                    editorDirty:
+                        state.preview.editorDirty
+
+                }
 
         };
 
@@ -5214,6 +11509,67 @@ window.HoneyChat = {
     },
 
 
+    openPreview(
+        artifact
+    ){
+
+        openArtifactPreview(
+            artifact
+        );
+
+    },
+
+
+    editPreview(){
+
+        setPreviewMode(
+            "edit"
+        );
+
+    },
+
+
+    fullscreenPreview(){
+
+        togglePreviewFullscreen();
+
+    },
+
+
+    downloadPreview(){
+
+        if(
+            state.preview.artifact
+        ){
+
+            return downloadArtifact(
+                state.preview.artifact
+            );
+
+        }
+
+    },
+
+
+    sharePreview(){
+
+        return shareArtifactPreview();
+
+    },
+
+
+    deployPreview(
+        provider
+    ){
+
+        return deployArtifact(
+            state.preview.artifact,
+            provider
+        );
+
+    },
+
+
     focus(){
 
         focusChatInput();
@@ -5237,15 +11593,15 @@ DIAGNOSTICS
 */
 
 console.info(
-    "[HONEY IA] Chat Engine V5.0 initialized."
+    "[HONEY IA] Chat Engine V6.0 initialized."
 );
 
 console.info(
-    "[HONEY IA] Persistent conversation history: backend controlled."
+    "[HONEY IA] Persistent conversation history enabled."
 );
 
 console.info(
-    "[HONEY IA] Artificial history age/quantity limits: disabled."
+    "[HONEY IA] Artificial history age/quantity limits disabled."
 );
 
 console.info(
@@ -5253,7 +11609,7 @@ console.info(
 );
 
 console.info(
-    "[HONEY IA] Live SSE + Stop Generation enabled."
+    "[HONEY IA] Live / SSE / Stop Generation enabled."
 );
 
 console.info(
@@ -5266,4 +11622,28 @@ console.info(
 
 console.info(
     "[HONEY IA] Generation isolation enabled."
+);
+
+console.info(
+    "[HONEY IA] Universal Artifact Preview enabled."
+);
+
+console.info(
+    "[HONEY IA] Live Artifact Editing enabled."
+);
+
+console.info(
+    "[HONEY IA] Artifact Versioning enabled."
+);
+
+console.info(
+    "[HONEY IA] Fullscreen Preview enabled."
+);
+
+console.info(
+    "[HONEY IA] Download / Share / Deploy hooks enabled."
+);
+
+console.info(
+    "[HONEY IA] Secure Sandbox execution hooks enabled."
 );
