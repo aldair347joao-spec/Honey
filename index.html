@@ -2,2266 +2,706 @@
 <html lang="pt-PT">
 
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Honey IA Studio</title>
 
-<meta
-    name="description"
-    content="Honey IA - Plataforma inteligente empresarial com agentes de inteligência artificial."
->
+<meta name="description" content="Honey IA - Plataforma inteligente empresarial com agentes de inteligência artificial.">
+<meta name="theme-color" content="#07080a">
 
-<meta
-    name="theme-color"
-    content="#07080a"
->
-
-
-<!-- ======================================================
-     FONTS
-====================================================== -->
-
-<link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
->
-
-<link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
->
-
-<link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
->
-
-
-<!-- ======================================================
-     ICONS
-====================================================== -->
+    rel="stylesheet">
 
 <link
     rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
->
-
-
-<!-- ======================================================
-     MARKDOWN / CODE HIGHLIGHT
-====================================================== -->
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <link
     rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
->
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 
-
-<!-- ======================================================
-     HONEY IA STYLE
-====================================================== -->
-
-<link
-    rel="stylesheet"
-    href="style.css"
->
-
-<link
-    rel="stylesheet"
-    href="chat.css"
->
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chat.css">
 
 </head>
 
-
 <body>
 
-
-<!-- ==========================================================
-     APP LOADER
-========================================================== -->
+<!-- =========================================================
+     LOADER
+========================================================= -->
 
 <div
     id="appLoader"
     class="app-loader"
     aria-live="polite"
-    aria-label="A carregar Honey IA"
->
+    aria-label="A carregar Honey IA">
 
     <div class="loader-logo">
-
         <span>🐝</span>
-
-        <h2>
-            Honey IA
-        </h2>
-
+        <h2>Honey IA</h2>
     </div>
 
     <div class="loader-bar"></div>
-
 </div>
 
 
-<!-- ==========================================================
-     STUDIO APP
-========================================================== -->
+<!-- =========================================================
+     STUDIO
+========================================================= -->
 
 <div
     id="studioApp"
     class="studio"
-    style="display:none;"
->
-
-
-<!-- ======================================================
-     SIDEBAR OVERLAY
-====================================================== -->
-
-<div
-    id="sidebarOverlay"
-    class="sidebar-overlay"
-    aria-hidden="true"
-></div>
-
-
-<!-- ======================================================
-     SIDEBAR
-====================================================== -->
-
-<aside
-    id="sidebar"
-    class="sidebar"
-    aria-label="Navegação principal"
-    aria-hidden="true"
->
-
-
-    <div class="sidebar-header">
-
-
-        <div class="logo">
-
-            <div class="logo-mark">
-                🐝
-            </div>
-
-            <div>
-
-                <strong>
-                    Honey IA
-                </strong>
-
-                <small>
-                    Studio
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <button
-            id="btnCloseSidebar"
-            class="mobile-close"
-            type="button"
-            aria-label="Fechar menu"
-        >
-
-            <i class="fa-solid fa-xmark"></i>
-
-        </button>
-
-
-    </div>
-
-
-<!-- ==================================================
-     MAIN NAVIGATION
-=================================================== -->
-
-<nav
-    id="sidebarNav"
-    class="sidebar-nav"
-    aria-label="Menu principal"
->
-
-
-    <a
-        href="#dashboard"
-        data-target="dashboard"
-        class="nav-item active"
-    >
-
-        <i class="fa-solid fa-house"></i>
-
-        <span>
-            Dashboard
-        </span>
-
-    </a>
-
-
-    <a
-        href="#chat"
-        data-target="chat"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-comments"></i>
-
-        <span>
-            Chat IA
-        </span>
-
-    </a>
-
-
-    <a
-        href="agents.html"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-robot"></i>
-
-        <span>
-            Agentes IA
-        </span>
-
-    </a>
-
-
-    <a
-        href="#projects"
-        data-target="projects"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-folder-open"></i>
-
-        <span>
-            Projetos
-        </span>
-
-    </a>
-
-
-    <a
-        href="#history"
-        data-target="history"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-clock-rotate-left"></i>
-
-        <span>
-            Histórico
-        </span>
-
-    </a>
-
-
-    <a
-        href="#plans"
-        data-target="plans"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-crown"></i>
-
-        <span>
-            Planos
-        </span>
-
-    </a>
-
-
-    <a
-        href="#terms"
-        data-target="terms"
-        class="nav-item"
-    >
-
-        <i class="fa-solid fa-file-contract"></i>
-
-        <span>
-            Termos de Uso
-        </span>
-
-    </a>
-
-
-</nav>
-
-
-<!-- ==================================================
-     SIDEBAR USER + LOGOUT
-=================================================== -->
-
-<div class="sidebar-bottom">
-
+    style="display:none;">
 
     <div
-        id="userBox"
-        class="user-box"
-        role="button"
-        tabindex="0"
-        aria-label="Abrir perfil do utilizador"
-    >
-
-        <div class="avatar">
-            U
-        </div>
-
-
-        <div>
-
-            <strong>
-                Utilizador
-            </strong>
-
-            <small>
-                Plano Gratuito
-            </small>
-
-        </div>
-
-
+        id="sidebarOverlay"
+        class="sidebar-overlay"
+        aria-hidden="true">
     </div>
 
 
-    <button
-        id="logoutBtn"
-        class="sidebar-logout"
-        type="button"
-        aria-label="Terminar sessão"
-    >
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
-        <i class="fa-solid fa-right-from-bracket"></i>
+    <aside
+        id="sidebar"
+        class="sidebar"
+        aria-label="Navegação principal"
+        aria-hidden="true">
 
-        <span>
-            Logout
-        </span>
+        <div class="sidebar-header">
 
-    </button>
+            <div class="logo">
 
+                <div class="logo-mark">🐝</div>
 
-</div>
-
-</aside>
-
-
-<!-- ======================================================
-     MAIN CONTENT
-====================================================== -->
-
-<main class="main-content">
-
-
-<!-- ==================================================
-     TOP HEADER
-=================================================== -->
-
-<header class="top-header">
-
-
-    <button
-        id="btnMobileMenu"
-        class="mobile-menu"
-        type="button"
-        aria-label="Abrir menu"
-        aria-controls="sidebar"
-        aria-expanded="false"
-    >
-
-        <i class="fa-solid fa-bars"></i>
-
-    </button>
-
-
-    <div class="header-search">
-
-        <i class="fa-solid fa-magnifying-glass"></i>
-
-        <input
-            id="globalSearch"
-            type="search"
-            placeholder="Pesquisar no Studio..."
-            autocomplete="off"
-        >
-
-    </div>
-
-
-    <div class="header-actions">
-
-
-        <button
-            id="btnNotifications"
-            class="icon-button"
-            type="button"
-            aria-label="Notificações"
-        >
-
-            <i class="fa-solid fa-bell"></i>
-
-        </button>
-
-
-        <div
-            id="planBadge"
-            class="plan-badge"
-        >
-
-            <span>
-                Plano
-            </span>
-
-            <strong>
-                Gratuito
-            </strong>
-
-        </div>
-
-
-    </div>
-
-
-</header>
-
-
-<!-- ==================================================
-     DASHBOARD
-=================================================== -->
-
-<section
-    id="dashboard"
-    class="workspace-view dashboard-section"
->
-
-
-    <div id="dashboardContainer">
-
-
-        <div class="hero-dashboard">
-
-
-            <div class="hero-content">
-
-
-                <span class="hero-tag">
-                    🐝 Honey IA Studio
-                </span>
-
-
-                <h1>
-                    Transforme ideias em soluções com Inteligência Artificial
-                </h1>
-
-
-                <p>
-                    Crie projetos, analise documentos, desenvolva aplicações,
-                    gere conteúdos e trabalhe com agentes especializados.
-                </p>
-
-
-                <div class="hero-actions">
-
-
-                    <button
-                        id="btnCreateProject"
-                        class="primary-button"
-                        type="button"
-                    >
-
-                        <i class="fa-solid fa-sparkles"></i>
-
-                        Criar Projeto
-
-                    </button>
-
-
-                    <a
-                        id="btnExploreAgents"
-                        class="secondary-button"
-                        href="agents.html"
-                    >
-
-                        <i class="fa-solid fa-robot"></i>
-
-                        Explorar Agentes
-
-                    </a>
-
-
+                <div>
+                    <strong>Honey IA</strong>
+                    <small>Studio</small>
                 </div>
 
-
             </div>
 
+            <button
+                id="btnCloseSidebar"
+                class="mobile-close"
+                type="button"
+                aria-label="Fechar menu">
 
-            <div class="hero-visual">
+                <i class="fa-solid fa-xmark"></i>
 
-
-                <div class="ai-orb">
-
-                    <div class="orb-center">
-                        🐝
-                    </div>
-
-                </div>
-
-
-            </div>
-
+            </button>
 
         </div>
 
 
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     AGENTS
-=================================================== -->
-
-<section
-    id="agents"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Agentes IA
-            </h2>
-
-            <p>
-                Especialistas inteligentes para cada área.
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div
-        id="agentsContainer"
-        class="agents-grid"
-    ></div>
-
-
-    <div
-        id="agentStudioContainer"
-        class="agent-studio-container"
-    ></div>
-
-
-</section>
-
-
-<!-- ==================================================
-     PROJECTS
-=================================================== -->
-
-<section
-    id="projects"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Projetos
-            </h2>
-
-            <p>
-                Organize suas criações dentro do Workspace.
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <div
-        id="projectsContainer"
-        class="empty-state"
-    >
-
-        <div class="empty-icon">
-
-            <i class="fa-solid fa-folder-plus"></i>
-
-        </div>
-
-
-        <h3>
-            Nenhum projeto criado
-        </h3>
-
-
-        <p>
-            Comece criando um novo projeto com a Honey IA.
-        </p>
-
-
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     HISTORY
-=================================================== -->
-
-<section
-    id="history"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-
-        <div>
-
-            <h2>
-                Histórico
-            </h2>
-
-            <p>
-                Veja as conversas e trabalhos realizados.
-            </p>
-
-        </div>
-
-
-        <button
-            id="btnNewConversation"
-            class="secondary-button"
-            type="button"
-        >
-
-            <i class="fa-solid fa-plus"></i>
-
-            Nova conversa
-
-        </button>
-
-
-    </div>
-
-
-    <div
-        id="historyContainer"
-        class="history-container"
-    >
-
-
-        <div class="empty-state">
-
-
-            <div class="empty-icon">
+        <nav
+            id="sidebarNav"
+            class="sidebar-nav"
+            aria-label="Menu principal">
+
+            <a
+                href="#dashboard"
+                data-target="dashboard"
+                class="nav-item active">
+
+                <i class="fa-solid fa-house"></i>
+                <span>Dashboard</span>
+
+            </a>
+
+            <a
+                href="#chat"
+                data-target="chat"
+                class="nav-item">
 
                 <i class="fa-solid fa-comments"></i>
+                <span>Chat IA</span>
+
+            </a>
+
+            <a
+                href="agents.html"
+                class="nav-item">
+
+                <i class="fa-solid fa-robot"></i>
+                <span>Agentes IA</span>
+
+            </a>
+
+            <a
+                href="#projects"
+                data-target="projects"
+                class="nav-item">
+
+                <i class="fa-solid fa-folder-open"></i>
+                <span>Projetos</span>
+
+            </a>
+
+            <a
+                href="#history"
+                data-target="history"
+                class="nav-item">
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Histórico</span>
+
+            </a>
+
+            <a
+                href="#plans"
+                data-target="plans"
+                class="nav-item">
+
+                <i class="fa-solid fa-crown"></i>
+                <span>Planos</span>
+
+            </a>
+
+            <a
+                href="#terms"
+                data-target="terms"
+                class="nav-item">
+
+                <i class="fa-solid fa-file-contract"></i>
+                <span>Termos de Uso</span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div
+                id="userBox"
+                class="user-box"
+                role="button"
+                tabindex="0"
+                aria-label="Abrir perfil do utilizador">
+
+                <div class="avatar">U</div>
+
+                <div>
+                    <strong>Utilizador</strong>
+                    <small>Plano Gratuito</small>
+                </div>
 
             </div>
 
-
-            <h3>
-                O seu histórico aparecerá aqui
-            </h3>
-
-
-            <p>
-                As suas conversas serão guardadas automaticamente
-                pela Honey IA.
-            </p>
-
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     PLANS
-=================================================== -->
-
-<section
-    id="plans"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-
-        <div>
-
-            <h2>
-                Planos Honey IA
-            </h2>
-
-            <p>
-                Escolha o nível ideal para suas necessidades.
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div class="plans-grid">
-
-
-        <div class="plan-card">
-
-
-            <h3>
-                Gratuito
-            </h3>
-
-
-            <h4>
-                0 Kz
-            </h4>
-
-
-            <ul>
-
-                <li>
-                    Chat IA
-                </li>
-
-                <li>
-                    Análise básica
-                </li>
-
-                <li>
-                    1 projeto
-                </li>
-
-            </ul>
-
-
             <button
-                class="secondary-button"
+                id="logoutBtn"
+                class="sidebar-logout"
                 type="button"
-                disabled
-            >
+                aria-label="Terminar sessão">
 
-                Atual
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
 
             </button>
 
-
         </div>
 
-
-        <div class="plan-card featured">
-
-
-            <span class="featured-label">
-                Popular
-            </span>
+    </aside>
 
 
-            <h3>
-                Individual
-            </h3>
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main-content">
 
 
-            <h4>
-                15.000 Kz/mês
-            </h4>
+        <!-- =================================================
+             TOP HEADER
+        ================================================== -->
 
-
-            <ul>
-
-                <li>
-                    Agentes avançados
-                </li>
-
-                <li>
-                    Exportação
-                </li>
-
-                <li>
-                    Projetos ilimitados
-                </li>
-
-            </ul>
-
+        <header class="top-header">
 
             <button
-                class="primary-button"
+                id="btnMobileMenu"
+                class="mobile-menu"
                 type="button"
-            >
+                aria-label="Abrir menu"
+                aria-controls="sidebar"
+                aria-expanded="false">
 
-                Escolher Plano
+                <i class="fa-solid fa-bars"></i>
 
             </button>
 
-
-        </div>
-
-
-        <div class="plan-card">
-
-
-            <h3>
-                Business
-            </h3>
-
-
-            <h4>
-                400.000 Kz/mês
-            </h4>
-
-
-            <ul>
-
-                <li>
-                    Equipe empresarial
-                </li>
-
-                <li>
-                    Agentes personalizados
-                </li>
-
-                <li>
-                    Workspace completo
-                </li>
-
-            </ul>
-
-
-            <button
-                class="secondary-button"
-                type="button"
-            >
-
-                Contactar
-
-            </button>
-
-
-        </div>
-
-
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     TERMS
-=================================================== -->
-
-<section
-    id="terms"
-    class="workspace-view app-section"
-    style="display:none;"
->
-
-
-    <div class="section-header">
-
-
-        <div>
-
-            <h2>
-                Termos de Uso
-            </h2>
-
-            <p>
-                Informações sobre utilização da plataforma Honey IA.
-            </p>
-
-        </div>
-
-
-    </div>
-
-
-    <div
-        id="termsContainer"
-        class="terms-card"
-    >
-
-
-        <h3>
-            Utilização responsável
-        </h3>
-
-
-        <p>
-            A Honey IA é uma plataforma de inteligência artificial criada
-            para auxiliar utilizadores, empreendedores e empresas na criação,
-            análise e desenvolvimento de soluções digitais.
-        </p>
-
-
-        <h3>
-            Privacidade
-        </h3>
-
-
-        <p>
-            Os dados enviados para processamento devem respeitar as normas
-            de segurança e privacidade aplicáveis.
-        </p>
-
-
-        <h3>
-            Responsabilidade
-        </h3>
-
-
-        <p>
-            As respostas geradas pela inteligência artificial devem ser revistas
-            antes de serem utilizadas em decisões importantes.
-        </p>
-
-
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     CHAT IA
-=================================================== -->
-
-<section
-    id="chat"
-    class="workspace-view chat-section"
-    style="display:none;"
-    aria-label="Chat IA"
->
-
-
-    <div
-        id="chatLayout"
-        class="chat-layout"
-    >
-
-
-        <!-- ==================================================
-             CHAT PANEL
-        =================================================== -->
-
-        <div
-            id="chatPanel"
-            class="chat-panel"
-        >
-
-
-            <!-- ==================================================
-                 CHAT HEADER
-            =================================================== -->
-
-            <header class="chat-header">
-
-
-                <div class="chat-title-area">
-
-
-                    <div
-                        class="chat-agent-avatar"
-                        aria-hidden="true"
-                    >
-                        🐝
-                    </div>
-
-
-                    <div class="chat-agent-info">
-
-
-                        <div class="chat-agent-name-row">
-
-                            <h2>
-                                Honey IA
-                            </h2>
-
-                            <span
-                                class="chat-online-indicator"
-                                aria-label="Honey IA online"
-                                title="Honey IA online"
-                            ></span>
-
-                        </div>
-
-
-                        <span class="chat-agent-subtitle">
-                            Assistente inteligente
-                        </span>
-
-
-                    </div>
-
-
-                </div>
-
-
-                <div class="chat-header-actions">
-
-
-                    <button
-                        id="btnNewChat"
-                        class="chat-header-button"
-                        type="button"
-                        aria-label="Nova conversa"
-                        title="Nova conversa"
-                    >
-
-                        <i class="fa-solid fa-plus"></i>
-
-                        <span class="chat-button-label">
-                            Nova conversa
-                        </span>
-
-                    </button>
-
-
-                    <div
-                        class="mode-switch"
-                        role="group"
-                        aria-label="Modo da Honey IA"
-                    >
-
-
-                        <button
-                            id="btnChatMode"
-                            class="mode-button active"
-                            type="button"
-                            aria-pressed="true"
-                        >
-
-                            <i
-                                class="fa-solid fa-comment"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Chat
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="btnLiveMode"
-                            class="mode-button"
-                            type="button"
-                            aria-pressed="false"
-                        >
-
-                            <i
-                                class="fa-solid fa-microphone"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Live
-                            </span>
-
-                        </button>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </header>
-
-
-            <!-- ==================================================
-                 CHAT CONTEXT
-            =================================================== -->
-
-            <div
-                id="chatContextBar"
-                class="chat-context-bar"
-            >
-
-
-                <div class="chat-context-left">
-
-
-                    <div class="chat-context-agent">
-
-                        <span
-                            class="context-status"
-                            aria-hidden="true"
-                        ></span>
-
-                        <span>
-                            Honey IA
-                        </span>
-
-                    </div>
-
-
-                    <span
-                        class="chat-context-divider"
-                        aria-hidden="true"
-                    >
-                        /
-                    </span>
-
-
-                    <span class="chat-context-mode">
-                        AI Workspace
-                    </span>
-
-
-                </div>
-
-
-                <div class="chat-context-right">
-
-
-                    <span
-                        id="conversationTitle"
-                        class="conversation-title"
-                    >
-                        Nova Conversa
-                    </span>
-
-
-                </div>
-
+            <div class="header-search">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    id="globalSearch"
+                    type="search"
+                    placeholder="Pesquisar no Studio..."
+                    autocomplete="off">
 
             </div>
 
-
-            <!-- ==================================================
-                 CHAT MESSAGES
-            =================================================== -->
-
-            <div
-                id="chatMessages"
-                class="chat-messages"
-                role="log"
-                aria-live="polite"
-                aria-relevant="additions text"
-                aria-label="Mensagens da conversa"
-            >
-
-
-                <div
-                    id="chatWelcome"
-                    class="welcome-message"
-                >
-
-
-                    <div
-                        class="welcome-icon"
-                        aria-hidden="true"
-                    >
-                        🐝
-                    </div>
-
-
-                    <div class="welcome-badge">
-
-                        <span
-                            class="welcome-status-dot"
-                            aria-hidden="true"
-                        ></span>
-
-                        Honey IA online
-
-                    </div>
-
-
-                    <h3>
-                        Olá, sou a Honey IA
-                    </h3>
-
-
-                    <p class="welcome-description">
-                        O seu espaço inteligente para criar,
-                        analisar, desenvolver ideias e resolver problemas.
-                    </p>
-
-
-                    <div
-                        class="welcome-suggestions"
-                        aria-label="Sugestões"
-                    >
-
-
-                        <button
-                            type="button"
-                            class="suggestion-button"
-                            data-prompt="Ajuda-me a criar um novo projeto."
-                        >
-
-                            <span class="suggestion-icon">
-
-                                <i
-                                    class="fa-solid fa-lightbulb"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-
-                            <span class="suggestion-content">
-
-                                <strong>
-                                    Criar um projeto
-                                </strong>
-
-                                <small>
-                                    Transformar uma ideia em plano
-                                </small>
-
-                            </span>
-
-
-                            <i
-                                class="fa-solid fa-arrow-up-right-from-square suggestion-arrow"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="suggestion-button"
-                            data-prompt="Analisa este problema e apresenta uma solução."
-                        >
-
-                            <span class="suggestion-icon">
-
-                                <i
-                                    class="fa-solid fa-wand-magic-sparkles"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-
-                            <span class="suggestion-content">
-
-                                <strong>
-                                    Analisar um problema
-                                </strong>
-
-                                <small>
-                                    Encontrar causas e soluções
-                                </small>
-
-                            </span>
-
-
-                            <i
-                                class="fa-solid fa-arrow-up-right-from-square suggestion-arrow"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="suggestion-button"
-                            data-prompt="Ajuda-me a desenvolver uma ideia de negócio."
-                        >
-
-                            <span class="suggestion-icon">
-
-                                <i
-                                    class="fa-solid fa-chart-line"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </span>
-
-
-                            <span class="suggestion-content">
-
-                                <strong>
-                                    Desenvolver uma ideia
-                                </strong>
-
-                                <small>
-                                    Explorar oportunidades de negócio
-                                </small>
-
-                            </span>
-
-
-                            <i
-                                class="fa-solid fa-arrow-up-right-from-square suggestion-arrow"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         HONEY CAPABILITIES
-                    =================================================== -->
-
-                    <div
-                        class="chat-capabilities"
-                        aria-label="Capacidades da Honey IA"
-                    >
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-paperclip"
-                                aria-hidden="true"
-                            ></i>
-
-                            Ficheiros
-
-                        </span>
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-code"
-                                aria-hidden="true"
-                            ></i>
-
-                            Código
-
-                        </span>
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-file-powerpoint"
-                                aria-hidden="true"
-                            ></i>
-
-                            Slides
-
-                        </span>
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-table-cells"
-                                aria-hidden="true"
-                            ></i>
-
-                            Excel
-
-                        </span>
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-chart-column"
-                                aria-hidden="true"
-                            ></i>
-
-                            Gráficos
-
-                        </span>
-
-
-                        <span class="capability-item">
-
-                            <i
-                                class="fa-solid fa-display"
-                                aria-hidden="true"
-                            ></i>
-
-                            Preview
-
-                        </span>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </div>
-
-
-            <!-- ==================================================
-                 ATTACHMENT BAR
-            =================================================== -->
-
-            <div
-                id="attachment-bar"
-                class="attachment-bar hidden"
-                aria-live="polite"
-                aria-label="Ficheiro anexado"
-            >
-
-
-                <div class="attachment-info">
-
-
-                    <span
-                        class="attachment-icon"
-                        aria-hidden="true"
-                    >
-
-                        <i class="fa-solid fa-paperclip"></i>
-
-                    </span>
-
-
-                    <div class="attachment-details">
-
-
-                        <span class="attachment-label">
-                            Ficheiro anexado
-                        </span>
-
-
-                        <span
-                            id="attached-file-name"
-                            class="attachment-file-name"
-                        ></span>
-
-
-                    </div>
-
-
-                </div>
-
+            <div class="header-actions">
 
                 <button
-                    id="btn-remove-attachment"
-                    class="attachment-remove"
+                    id="btnNotifications"
+                    class="icon-button"
                     type="button"
-                    aria-label="Remover ficheiro"
-                    title="Remover ficheiro"
-                >
+                    aria-label="Notificações">
 
-                    <i
-                        class="fa-solid fa-xmark"
-                        aria-hidden="true"
-                    ></i>
+                    <i class="fa-solid fa-bell"></i>
 
                 </button>
 
+                <div id="planBadge" class="plan-badge">
+                    <span>Plano</span>
+                    <strong>Gratuito</strong>
+                </div>
 
             </div>
 
-
-            <!-- ==================================================
-                 CHAT INPUT
-            =================================================== -->
-
-            <div class="chat-input-wrapper">
+        </header>
 
 
-                <div
-                    class="chat-input-area"
-                    id="chatInputArea"
-                >
+        <!-- =================================================
+             DASHBOARD
+        ================================================== -->
 
+        <section
+            id="dashboard"
+            class="workspace-view dashboard-section">
 
-                    <button
-                        id="btnAttach"
-                        class="input-action"
-                        type="button"
-                        aria-label="Anexar ficheiro"
-                        title="Anexar ficheiro"
-                    >
+            <div id="dashboardContainer">
 
-                        <i
-                            class="fa-solid fa-paperclip"
-                            aria-hidden="true"
-                        ></i>
+                <div class="hero-dashboard">
 
-                    </button>
+                    <div class="hero-content">
 
-
-                    <input
-                        type="file"
-                        id="fileInput"
-                        hidden
-                        multiple="false"
-                    >
-
-
-                    <div class="chat-textarea-container">
-
-
-                        <textarea
-                            id="chatInput"
-                            placeholder="Escreva uma mensagem para a Honey IA..."
-                            rows="1"
-                            autocomplete="off"
-                            spellcheck="true"
-                            aria-label="Mensagem"
-                        ></textarea>
-
-
-                        <div
-                            class="chat-input-hint"
-                            aria-hidden="true"
-                        >
-                            Honey IA Workspace
-                        </div>
-
-
-                    </div>
-
-
-                    <button
-                        id="btnVoice"
-                        class="input-action"
-                        type="button"
-                        aria-label="Entrada de voz"
-                        title="Falar com a Honey IA"
-                    >
-
-                        <i
-                            class="fa-solid fa-microphone"
-                            aria-hidden="true"
-                        ></i>
-
-                    </button>
-
-
-                    <button
-                        id="btnSend"
-                        class="send-button"
-                        type="button"
-                        aria-label="Enviar mensagem"
-                        title="Enviar mensagem"
-                    >
-
-                        <i
-                            class="fa-solid fa-paper-plane"
-                            aria-hidden="true"
-                        ></i>
-
-                    </button>
-
-
-                </div>
-
-
-                <div class="chat-input-footer">
-
-
-                    <span class="chat-disclaimer">
-
-                        <i
-                            class="fa-solid fa-shield-halved"
-                            aria-hidden="true"
-                        ></i>
-
-                        A Honey IA pode cometer erros.
-                        Verifique informações importantes.
-
-                    </span>
-
-
-                    <span class="chat-shortcuts">
-
-                        <kbd>
-                            Enter
-                        </kbd>
-
-                        para enviar
-
-                        <span aria-hidden="true">
-                            ·
+                        <span class="hero-tag">
+                            🐝 Honey IA Studio
                         </span>
 
-                        <kbd>
-                            Shift
-                        </kbd>
-                        +
-                        <kbd>
-                            Enter
-                        </kbd>
+                        <h1>
+                            Transforme ideias em soluções com Inteligência Artificial
+                        </h1>
 
-                        nova linha
+                        <p>
+                            Crie projetos, analise documentos, desenvolva aplicações,
+                            gere conteúdos e trabalhe com agentes especializados.
+                        </p>
 
-                    </span>
+                        <div class="hero-actions">
 
+                            <button
+                                id="btnCreateProject"
+                                class="primary-button"
+                                type="button">
+
+                                <i class="fa-solid fa-sparkles"></i>
+                                Criar Projeto
+
+                            </button>
+
+                            <a
+                                id="btnExploreAgents"
+                                class="secondary-button"
+                                href="agents.html">
+
+                                <i class="fa-solid fa-robot"></i>
+                                Explorar Agentes
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <div class="hero-visual">
+
+                        <div class="ai-orb">
+                            <div class="orb-center">🐝</div>
+                        </div>
+
+                    </div>
 
                 </div>
-
 
             </div>
 
-
-        </div>
-
-
-        <!-- ==================================================
-             UNIVERSAL PREVIEW
-        =================================================== -->
-
-        <aside
-            id="preview-pane"
-            class="preview-pane"
-            aria-label="Preview Universal"
-            aria-hidden="false"
-        >
+        </section>
 
 
-            <!-- ==================================================
-                 PREVIEW HEADER
-            =================================================== -->
+        <!-- =================================================
+             AGENTS
+        ================================================== -->
 
-            <header
-                id="previewHeader"
-                class="preview-header"
-            >
+        <section
+            id="agents"
+            class="workspace-view app-section"
+            style="display:none;">
 
+            <div class="section-header">
 
-                <div class="preview-header-main">
-
-
-                    <div class="preview-title-area">
-
-
-                        <div
-                            id="previewTypeIcon"
-                            class="preview-icon"
-                            aria-hidden="true"
-                        >
-
-                            <i class="fa-solid fa-display"></i>
-
-                        </div>
-
-
-                        <div class="preview-heading">
-
-
-                            <div class="preview-title-row">
-
-
-                                <h3 id="previewTitleText">
-                                    Preview
-                                </h3>
-
-
-                                <span
-                                    id="previewArtifactType"
-                                    class="preview-artifact-type"
-                                >
-                                    Aguardando resultado
-                                </span>
-
-
-                            </div>
-
-
-                            <div
-                                id="previewStatus"
-                                class="preview-status"
-                                aria-live="polite"
-                            >
-
-                                <span
-                                    id="previewStatusDot"
-                                    class="preview-status-dot"
-                                    aria-hidden="true"
-                                ></span>
-
-                                <span id="previewStatusText">
-                                    Pronto
-                                </span>
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         PREVIEW HEADER ACTIONS
-                    =================================================== -->
-
-                    <div class="preview-header-actions">
-
-
-                        <button
-                            id="btnPreviewFullscreen"
-                            class="preview-icon-button"
-                            type="button"
-                            aria-label="Tela cheia"
-                            title="Tela cheia"
-                        >
-
-                            <i
-                                class="fa-solid fa-expand"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            id="btnPreviewShare"
-                            class="preview-icon-button"
-                            type="button"
-                            aria-label="Partilhar preview"
-                            title="Partilhar preview"
-                        >
-
-                            <i
-                                class="fa-solid fa-share-nodes"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            id="btn-close-preview"
-                            class="preview-close-button"
-                            type="button"
-                            aria-label="Fechar preview"
-                            title="Fechar preview"
-                        >
-
-                            <i
-                                class="fa-solid fa-xmark"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                    </div>
-
-
+                <div>
+                    <h2>Agentes IA</h2>
+                    <p>Especialistas inteligentes para cada área.</p>
                 </div>
 
-
-                <!-- ==================================================
-                     PREVIEW TOOLBAR
-                =================================================== -->
-
-                <div
-                    id="previewToolbar"
-                    class="preview-toolbar"
-                >
-
-
-                    <!-- ==================================================
-                         MAIN PREVIEW TABS
-                    ================================================== -->
-
-                    <div
-                        id="previewTabs"
-                        class="preview-tabs"
-                        role="tablist"
-                        aria-label="Ferramentas do Preview"
-                    >
-
-
-                        <button
-                            id="previewTabView"
-                            data-tab="preview"
-                            class="preview-tab-btn active"
-                            type="button"
-                            role="tab"
-                            aria-selected="true"
-                            aria-controls="previewViewContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-display"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Visualização
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabEdit"
-                            data-tab="edit"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewEditorContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-pen-to-square"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Editar
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabCode"
-                            data-tab="code"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewCodeContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-code"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Código
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabFiles"
-                            data-tab="files"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewFilesContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-folder-tree"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Ficheiros
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabTerminal"
-                            data-tab="terminal"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewTerminalContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-terminal"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Terminal
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabVersions"
-                            data-tab="versions"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewVersionsContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-code-branch"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Versões
-                            </span>
-
-                        </button>
-
-
-                        <button
-                            id="previewTabActions"
-                            data-tab="actions"
-                            class="preview-tab-btn"
-                            type="button"
-                            role="tab"
-                            aria-selected="false"
-                            aria-controls="previewActionsContent"
-                        >
-
-                            <i
-                                class="fa-solid fa-cloud-arrow-up"
-                                aria-hidden="true"
-                            ></i>
-
-                            <span>
-                                Exportar
-                            </span>
-
-                        </button>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         RESPONSIVE DEVICE CONTROLS
-                    ================================================== -->
-
-                    <div
-                        id="previewDeviceControls"
-                        class="preview-device-controls"
-                        aria-label="Tamanho do dispositivo"
-                    >
-
-
-                        <button
-                            data-device="mobile"
-                            class="device-btn"
-                            type="button"
-                            title="Telemóvel"
-                            aria-label="Preview em telemóvel"
-                        >
-
-                            <i
-                                class="fa-solid fa-mobile-screen-button"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            data-device="tablet"
-                            class="device-btn"
-                            type="button"
-                            title="Tablet"
-                            aria-label="Preview em tablet"
-                        >
-
-                            <i
-                                class="fa-solid fa-tablet-screen-button"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                        <button
-                            data-device="desktop"
-                            class="device-btn active"
-                            type="button"
-                            title="Computador"
-                            aria-label="Preview em computador"
-                        >
-
-                            <i
-                                class="fa-solid fa-desktop"
-                                aria-hidden="true"
-                            ></i>
-
-                        </button>
-
-
-                    </div>
-
-
-                </div>
-
-
-            </header>
-
-
-            <!-- ==================================================
-                 PREVIEW WORKSPACE
-            ================================================== -->
+            </div>
 
             <div
-                id="previewBodyContainer"
-                class="preview-body"
-            >
+                id="agentsContainer"
+                class="agents-grid">
+            </div>
+
+            <div
+                id="agentStudioContainer"
+                class="agent-studio-container">
+            </div>
+
+        </section>
 
 
-                <!-- ==================================================
-                     VISUALIZAÇÃO
-                ================================================== -->
+        <!-- =================================================
+             PROJECTS
+        ================================================== -->
 
-                <section
-                    id="previewViewContent"
-                    class="preview-view-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabView"
-                >
+        <section
+            id="projects"
+            class="workspace-view app-section"
+            style="display:none;">
+
+            <div class="section-header">
+
+                <div>
+                    <h2>Projetos</h2>
+                    <p>Organize suas criações dentro do Workspace.</p>
+                </div>
+
+            </div>
+
+            <div
+                id="projectsContainer"
+                class="empty-state">
+
+                <div class="empty-icon">
+                    <i class="fa-solid fa-folder-plus"></i>
+                </div>
+
+                <h3>Nenhum projeto criado</h3>
+
+                <p>
+                    Comece criando um novo projeto com a Honey IA.
+                </p>
+
+            </div>
+
+        </section>
 
 
-                    <!-- ==================================================
-                         EMPTY STATE
-                    ================================================== -->
+        <!-- =================================================
+             HISTORY
+        ================================================== -->
 
-                    <div
-                        id="previewEmptyState"
-                        class="preview-empty-state"
-                    >
+        <section
+            id="history"
+            class="workspace-view app-section"
+            style="display:none;">
+
+            <div class="section-header">
+
+                <div>
+                    <h2>Histórico</h2>
+                    <p>Veja as conversas e trabalhos realizados.</p>
+                </div>
+
+                <button
+                    id="btnNewConversation"
+                    class="secondary-button"
+                    type="button">
+
+                    <i class="fa-solid fa-plus"></i>
+                    Nova conversa
+
+                </button>
+
+            </div>
+
+            <div
+                id="historyContainer"
+                class="history-container">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+
+                    <h3>O seu histórico aparecerá aqui</h3>
+
+                    <p>
+                        As suas conversas serão guardadas automaticamente
+                        pela Honey IA.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
 
 
-                        <div class="preview-empty-icon">
+        <!-- =================================================
+             PLANS
+        ================================================== -->
 
-                            <i
-                                class="fa-solid fa-layer-group"
-                                aria-hidden="true"
-                            ></i>
+        <section
+            id="plans"
+            class="workspace-view app-section"
+            style="display:none;">
+
+            <div class="section-header">
+
+                <div>
+                    <h2>Planos Honey IA</h2>
+                    <p>Escolha o nível ideal para suas necessidades.</p>
+                </div>
+
+            </div>
+
+            <div class="plans-grid">
+
+                <div class="plan-card">
+
+                    <h3>Gratuito</h3>
+                    <h4>0 Kz</h4>
+
+                    <ul>
+                        <li>Chat IA</li>
+                        <li>Análise básica</li>
+                        <li>1 projeto</li>
+                    </ul>
+
+                    <button
+                        class="secondary-button"
+                        type="button"
+                        disabled>
+                        Atual
+                    </button>
+
+                </div>
+
+
+                <div class="plan-card featured">
+
+                    <span class="featured-label">Popular</span>
+
+                    <h3>Individual</h3>
+                    <h4>15.000 Kz/mês</h4>
+
+                    <ul>
+                        <li>Agentes avançados</li>
+                        <li>Exportação</li>
+                        <li>Projetos ilimitados</li>
+                    </ul>
+
+                    <button
+                        class="primary-button"
+                        type="button">
+                        Escolher Plano
+                    </button>
+
+                </div>
+
+
+                <div class="plan-card">
+
+                    <h3>Business</h3>
+                    <h4>400.000 Kz/mês</h4>
+
+                    <ul>
+                        <li>Equipe empresarial</li>
+                        <li>Agentes personalizados</li>
+                        <li>Workspace completo</li>
+                    </ul>
+
+                    <button
+                        class="secondary-button"
+                        type="button">
+                        Contactar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             TERMS
+        ================================================== -->
+
+        <section
+            id="terms"
+            class="workspace-view app-section"
+            style="display:none;">
+
+            <div class="section-header">
+
+                <div>
+                    <h2>Termos de Uso</h2>
+                    <p>
+                        Informações sobre utilização da plataforma Honey IA.
+                    </p>
+                </div>
+
+            </div>
+
+            <div
+                id="termsContainer"
+                class="terms-card">
+
+                <h3>Utilização responsável</h3>
+
+                <p>
+                    A Honey IA é uma plataforma de inteligência artificial
+                    criada para auxiliar utilizadores, empreendedores e
+                    empresas na criação, análise e desenvolvimento de
+                    soluções digitais.
+                </p>
+
+                <h3>Privacidade</h3>
+
+                <p>
+                    Os dados enviados para processamento devem respeitar
+                    as normas de segurança e privacidade aplicáveis.
+                </p>
+
+                <h3>Responsabilidade</h3>
+
+                <p>
+                    As respostas geradas pela inteligência artificial devem
+                    ser revistas antes de serem utilizadas em decisões
+                    importantes.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CHAT IA
+        ================================================== -->
+
+        <section
+            id="chat"
+            class="workspace-view chat-section"
+            style="display:none;"
+            aria-label="Chat IA">
+
+            <div
+                id="chatLayout"
+                class="chat-layout">
+
+
+                <!-- =============================================
+                     CHAT PANEL
+                ============================================== -->
+
+                <div
+                    id="chatPanel"
+                    class="chat-panel">
+
+
+                    <!-- CHAT HEADER -->
+
+                    <header class="chat-header">
+
+                        <div class="chat-title-area">
+
+                            <div
+                                class="chat-agent-avatar"
+                                aria-hidden="true">
+                                🐝
+                            </div>
+
+                            <div class="chat-agent-info">
+
+                                <div class="chat-agent-name-row">
+
+                                    <h2>Honey IA</h2>
+
+                                    <span
+                                        class="chat-online-indicator"
+                                        aria-label="Honey IA online"
+                                        title="Honey IA online">
+                                    </span>
+
+                                </div>
+
+                                <span class="chat-agent-subtitle">
+                                    Assistente inteligente
+                                </span>
+
+                            </div>
 
                         </div>
 
 
-                        <h4>
-                            O resultado aparecerá aqui
-                        </h4>
-
-
-                        <p>
-                            Peça à Honey IA para criar um site,
-                            aplicação, documento, apresentação,
-                            gráfico, tabela ou outro projeto.
-                        </p>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         UNIVERSAL IFRAME
-                    ================================================== -->
-
-                    <div
-                        id="previewFrameWrapper"
-                        class="preview-frame-wrapper"
-                    >
-
-
-                        <iframe
-                            id="live-preview-iframe"
-                            title="Live Preview"
-                            sandbox="allow-scripts allow-modals allow-forms allow-popups"
-                            class="live-preview-frame"
-                        ></iframe>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         DOCUMENT VIEWER
-                    ================================================== -->
-
-                    <div
-                        id="previewDocumentViewer"
-                        class="preview-document-viewer"
-                        hidden
-                    ></div>
-
-
-                    <!-- ==================================================
-                         SLIDES VIEWER
-                    ================================================== -->
-
-                    <div
-                        id="previewSlidesViewer"
-                        class="preview-slides-viewer"
-                        hidden
-                    >
-
-
-                        <div
-                            id="previewSlideStage"
-                            class="preview-slide-stage"
-                        ></div>
-
-
-                        <div
-                            id="previewSlidesControls"
-                            class="preview-slides-controls"
-                        >
-
+                        <div class="chat-header-actions">
 
                             <button
-                                id="btnPreviousSlide"
+                                id="btnNewChat"
+                                class="chat-header-button"
                                 type="button"
-                                class="preview-control-button"
-                                aria-label="Slide anterior"
-                            >
+                                aria-label="Nova conversa"
+                                title="Nova conversa">
 
-                                <i
-                                    class="fa-solid fa-chevron-left"
-                                    aria-hidden="true"
-                                ></i>
+                                <i class="fa-solid fa-plus"></i>
 
-                            </button>
-
-
-                            <span id="previewSlideCounter">
-                                0 / 0
-                            </span>
-
-
-                            <button
-                                id="btnNextSlide"
-                                type="button"
-                                class="preview-control-button"
-                                aria-label="Próximo slide"
-                            >
-
-                                <i
-                                    class="fa-solid fa-chevron-right"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-
-                            <button
-                                id="btnStartPresentation"
-                                type="button"
-                                class="preview-control-button"
-                                title="Iniciar apresentação"
-                            >
-
-                                <i
-                                    class="fa-solid fa-play"
-                                    aria-hidden="true"
-                                ></i>
-
-                                <span>
-                                    Apresentar
+                                <span class="chat-button-label">
+                                    Nova conversa
                                 </span>
 
                             </button>
 
 
-                        </div>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         DATA / SPREADSHEET VIEWER
-                    ================================================== -->
-
-                    <div
-                        id="previewDataViewer"
-                        class="preview-data-viewer"
-                        hidden
-                    >
-
-
-                        <div
-                            id="previewDataToolbar"
-                            class="preview-data-toolbar"
-                        >
-
-                            <span id="previewDataTitle">
-                                Dados
-                            </span>
-
-
-                            <div class="preview-data-actions">
+                            <div
+                                class="mode-switch"
+                                role="group"
+                                aria-label="Modo da Honey IA">
 
                                 <button
-                                    id="btnAddDataRow"
+                                    id="btnChatMode"
+                                    class="mode-button active"
                                     type="button"
-                                    class="preview-small-button"
-                                >
+                                    aria-pressed="true">
 
-                                    <i
-                                        class="fa-solid fa-plus"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    Linha
+                                    <i class="fa-solid fa-comment"></i>
+                                    <span>Chat</span>
 
                                 </button>
 
-
                                 <button
-                                    id="btnAddDataColumn"
+                                    id="btnLiveMode"
+                                    class="mode-button"
                                     type="button"
-                                    class="preview-small-button"
-                                >
+                                    aria-pressed="false">
 
-                                    <i
-                                        class="fa-solid fa-plus"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    Coluna
+                                    <i class="fa-solid fa-microphone"></i>
+                                    <span>Live</span>
 
                                 </button>
 
@@ -2269,1379 +709,1871 @@
 
                         </div>
 
-
-                        <div
-                            id="previewDataGrid"
-                            class="preview-data-grid"
-                        ></div>
+                    </header>
 
 
-                    </div>
-
-
-                    <!-- ==================================================
-                         IMAGE VIEWER
-                    ================================================== -->
+                    <!-- CHAT CONTEXT -->
 
                     <div
-                        id="previewImageViewer"
-                        class="preview-image-viewer"
-                        hidden
-                    >
+                        id="chatContextBar"
+                        class="chat-context-bar">
 
-                        <img
-                            id="previewImage"
-                            src=""
-                            alt="Resultado gerado pela Honey IA"
-                        >
+                        <div class="chat-context-left">
 
-                    </div>
+                            <div class="chat-context-agent">
 
+                                <span
+                                    class="context-status"
+                                    aria-hidden="true">
+                                </span>
 
-                    <!-- ==================================================
-                         PDF VIEWER
-                    ================================================== -->
+                                <span>Honey IA</span>
 
-                    <div
-                        id="previewPdfViewer"
-                        class="preview-pdf-viewer"
-                        hidden
-                    >
+                            </div>
 
-                        <iframe
-                            id="previewPdfFrame"
-                            title="Visualizador PDF"
-                        ></iframe>
+                            <span
+                                class="chat-context-divider"
+                                aria-hidden="true">
+                                /
+                            </span>
 
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     LIVE EDITOR
-                ================================================== -->
-
-                <section
-                    id="previewEditorContent"
-                    class="preview-editor-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabEdit"
-                    hidden
-                >
-
-
-                    <div class="preview-editor-header">
-
-
-                        <div>
-
-                            <strong>
-                                Live Edit
-                            </strong>
-
-                            <span>
-                                As alterações aparecem no Preview em tempo real.
+                            <span class="chat-context-mode">
+                                AI Workspace
                             </span>
 
                         </div>
 
+                        <div class="chat-context-right">
 
-                        <div class="preview-editor-actions">
-
-
-                            <button
-                                id="btnApplyLiveEdit"
-                                type="button"
-                                class="preview-primary-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-check"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Aplicar
-
-                            </button>
-
-
-                            <button
-                                id="btnResetLiveEdit"
-                                type="button"
-                                class="preview-secondary-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-rotate-left"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Repor
-
-                            </button>
-
+                            <span
+                                id="conversationTitle"
+                                class="conversation-title">
+                                Nova Conversa
+                            </span>
 
                         </div>
-
 
                     </div>
 
 
-                    <div class="preview-editor-layout">
+                    <!-- CHAT MESSAGES -->
+
+                    <div
+                        id="chatMessages"
+                        class="chat-messages"
+                        role="log"
+                        aria-live="polite"
+                        aria-relevant="additions text"
+                        aria-label="Mensagens da conversa">
 
 
-                        <div class="preview-editor-sidebar">
+                        <div
+                            id="chatWelcome"
+                            class="welcome-message">
 
-
-                            <div class="preview-editor-sidebar-title">
-                                Elementos
+                            <div
+                                class="welcome-icon"
+                                aria-hidden="true">
+                                🐝
                             </div>
+
+                            <div class="welcome-badge">
+
+                                <span
+                                    class="welcome-status-dot"
+                                    aria-hidden="true">
+                                </span>
+
+                                Honey IA online
+
+                            </div>
+
+                            <h3>Olá, sou a Honey IA</h3>
+
+                            <p class="welcome-description">
+                                O seu espaço inteligente para criar,
+                                analisar, desenvolver ideias e resolver
+                                problemas.
+                            </p>
 
 
                             <div
-                                id="previewElementTree"
-                                class="preview-element-tree"
-                            >
+                                class="welcome-suggestions"
+                                aria-label="Sugestões">
 
-                                <div class="preview-editor-empty">
-                                    Nenhum elemento editável disponível.
+
+                                <button
+                                    type="button"
+                                    class="suggestion-button"
+                                    data-prompt="Ajuda-me a criar um novo projeto.">
+
+                                    <span class="suggestion-icon">
+                                        <i class="fa-solid fa-lightbulb"></i>
+                                    </span>
+
+                                    <span class="suggestion-content">
+
+                                        <strong>
+                                            Criar um projeto
+                                        </strong>
+
+                                        <small>
+                                            Transformar uma ideia em plano
+                                        </small>
+
+                                    </span>
+
+                                    <i
+                                        class="fa-solid fa-arrow-up-right-from-square suggestion-arrow">
+                                    </i>
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="suggestion-button"
+                                    data-prompt="Analisa este problema e apresenta uma solução.">
+
+                                    <span class="suggestion-icon">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    </span>
+
+                                    <span class="suggestion-content">
+
+                                        <strong>
+                                            Analisar um problema
+                                        </strong>
+
+                                        <small>
+                                            Encontrar causas e soluções
+                                        </small>
+
+                                    </span>
+
+                                    <i
+                                        class="fa-solid fa-arrow-up-right-from-square suggestion-arrow">
+                                    </i>
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="suggestion-button"
+                                    data-prompt="Ajuda-me a desenvolver uma ideia de negócio.">
+
+                                    <span class="suggestion-icon">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </span>
+
+                                    <span class="suggestion-content">
+
+                                        <strong>
+                                            Desenvolver uma ideia
+                                        </strong>
+
+                                        <small>
+                                            Explorar oportunidades de negócio
+                                        </small>
+
+                                    </span>
+
+                                    <i
+                                        class="fa-solid fa-arrow-up-right-from-square suggestion-arrow">
+                                    </i>
+
+                                </button>
+
+                            </div>
+
+
+                            <!-- CAPABILITIES -->
+
+                            <div
+                                class="chat-capabilities"
+                                aria-label="Capacidades da Honey IA">
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-paperclip"></i>
+                                    Ficheiros
+                                </span>
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-code"></i>
+                                    Código
+                                </span>
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-file-powerpoint"></i>
+                                    Slides
+                                </span>
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-table-cells"></i>
+                                    Excel
+                                </span>
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-chart-column"></i>
+                                    Gráficos
+                                </span>
+
+                                <span class="capability-item">
+                                    <i class="fa-solid fa-display"></i>
+                                    Preview
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ATTACHMENT BAR -->
+
+                    <div
+                        id="attachment-bar"
+                        class="attachment-bar hidden"
+                        aria-live="polite"
+                        aria-label="Ficheiro anexado">
+
+                        <div class="attachment-info">
+
+                            <span
+                                class="attachment-icon"
+                                aria-hidden="true">
+
+                                <i class="fa-solid fa-paperclip"></i>
+
+                            </span>
+
+                            <div class="attachment-details">
+
+                                <span class="attachment-label">
+                                    Ficheiro anexado
+                                </span>
+
+                                <span
+                                    id="attached-file-name"
+                                    class="attachment-file-name">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <button
+                            id="btn-remove-attachment"
+                            class="attachment-remove"
+                            type="button"
+                            aria-label="Remover ficheiro"
+                            title="Remover ficheiro">
+
+                            <i class="fa-solid fa-xmark"></i>
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- INPUT -->
+
+                    <div class="chat-input-wrapper">
+
+                        <div
+                            class="chat-input-area"
+                            id="chatInputArea">
+
+                            <button
+                                id="btnAttach"
+                                class="input-action"
+                                type="button"
+                                aria-label="Anexar ficheiro"
+                                title="Anexar ficheiro">
+
+                                <i class="fa-solid fa-paperclip"></i>
+
+                            </button>
+
+                            <input
+                                type="file"
+                                id="fileInput"
+                                hidden
+                                multiple="false">
+
+
+                            <div class="chat-textarea-container">
+
+                                <textarea
+                                    id="chatInput"
+                                    placeholder="Escreva uma mensagem para a Honey IA..."
+                                    rows="1"
+                                    autocomplete="off"
+                                    spellcheck="true"
+                                    aria-label="Mensagem">
+                                </textarea>
+
+                                <div
+                                    class="chat-input-hint"
+                                    aria-hidden="true">
+                                    Honey IA Workspace
                                 </div>
 
                             </div>
 
 
+                            <button
+                                id="btnVoice"
+                                class="input-action"
+                                type="button"
+                                aria-label="Entrada de voz"
+                                title="Falar com a Honey IA">
+
+                                <i class="fa-solid fa-microphone"></i>
+
+                            </button>
+
+
+                            <button
+                                id="btnSend"
+                                class="send-button"
+                                type="button"
+                                aria-label="Enviar mensagem"
+                                title="Enviar mensagem">
+
+                                <i class="fa-solid fa-paper-plane"></i>
+
+                            </button>
+
                         </div>
 
 
-                        <div class="preview-editor-main">
+                        <div class="chat-input-footer">
+
+                            <span class="chat-disclaimer">
+
+                                <i class="fa-solid fa-shield-halved"></i>
+
+                                A Honey IA pode cometer erros.
+                                Verifique informações importantes.
+
+                            </span>
+
+                            <span class="chat-shortcuts">
+
+                                <kbd>Enter</kbd>
+                                para enviar
+
+                                <span aria-hidden="true">·</span>
+
+                                <kbd>Shift</kbd>
+                                +
+                                <kbd>Enter</kbd>
+                                nova linha
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
 
-                            <div class="preview-editor-field">
+                <!-- =================================================
+                     UNIVERSAL PREVIEW
+                ================================================== -->
+
+                <aside
+                    id="preview-pane"
+                    class="preview-pane"
+                    aria-label="Preview Universal"
+                    aria-hidden="false">
 
 
-                                <label for="previewLiveText">
-                                    Texto
-                                </label>
+                    <!-- PREVIEW HEADER -->
 
+                    <header
+                        id="previewHeader"
+                        class="preview-header">
 
-                                <textarea
-                                    id="previewLiveText"
-                                    placeholder="Selecione um elemento para editar..."
-                                    spellcheck="true"
-                                ></textarea>
+                        <div class="preview-header-main">
 
+                            <div class="preview-title-area">
+
+                                <div
+                                    id="previewTypeIcon"
+                                    class="preview-icon"
+                                    aria-hidden="true">
+
+                                    <i class="fa-solid fa-display"></i>
+
+                                </div>
+
+                                <div class="preview-heading">
+
+                                    <div class="preview-title-row">
+
+                                        <h3 id="previewTitleText">
+                                            Preview
+                                        </h3>
+
+                                        <span
+                                            id="previewArtifactType"
+                                            class="preview-artifact-type">
+                                            Aguardando resultado
+                                        </span>
+
+                                    </div>
+
+                                    <div
+                                        id="previewStatus"
+                                        class="preview-status"
+                                        aria-live="polite">
+
+                                        <span
+                                            id="previewStatusDot"
+                                            class="preview-status-dot">
+                                        </span>
+
+                                        <span id="previewStatusText">
+                                            Pronto
+                                        </span>
+
+                                    </div>
+
+                                </div>
 
                             </div>
 
 
-                            <div class="preview-editor-field">
+                            <div class="preview-header-actions">
 
+                                <button
+                                    id="btnPreviewFullscreen"
+                                    class="preview-icon-button"
+                                    type="button"
+                                    aria-label="Tela cheia"
+                                    title="Tela cheia">
 
-                                <label for="previewLiveColor">
-                                    Cor
-                                </label>
+                                    <i class="fa-solid fa-expand"></i>
 
+                                </button>
 
-                                <input
-                                    id="previewLiveColor"
-                                    type="color"
-                                    value="#ffffff"
-                                >
+                                <button
+                                    id="btnPreviewShare"
+                                    class="preview-icon-button"
+                                    type="button"
+                                    aria-label="Partilhar preview"
+                                    title="Partilhar preview">
 
+                                    <i class="fa-solid fa-share-nodes"></i>
 
-                            </div>
+                                </button>
 
+                                <button
+                                    id="btn-close-preview"
+                                    class="preview-close-button"
+                                    type="button"
+                                    aria-label="Fechar preview"
+                                    title="Fechar preview">
 
-                            <div class="preview-editor-field">
+                                    <i class="fa-solid fa-xmark"></i>
 
-
-                                <label for="previewLiveFormula">
-                                    Fórmula / Valor
-                                </label>
-
-
-                                <input
-                                    id="previewLiveFormula"
-                                    type="text"
-                                    placeholder="Valor ou fórmula"
-                                    autocomplete="off"
-                                >
-
-
-                            </div>
-
-
-                            <div class="preview-editor-field">
-
-
-                                <label for="previewLiveCss">
-                                    CSS / Estilo
-                                </label>
-
-
-                                <textarea
-                                    id="previewLiveCss"
-                                    class="preview-code-input"
-                                    placeholder="Ex.: color: #ffffff; font-size: 18px;"
-                                    spellcheck="false"
-                                ></textarea>
-
+                                </button>
 
                             </div>
 
-
                         </div>
 
 
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     CODE VIEWER / EDITOR
-                ================================================== -->
-
-                <section
-                    id="previewCodeContent"
-                    class="preview-code-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabCode"
-                    hidden
-                >
-
-
-                    <div class="preview-code-toolbar">
-
-
-                        <div class="preview-code-file-info">
-
-
-                            <i
-                                class="fa-solid fa-code"
-                                aria-hidden="true"
-                            ></i>
-
-
-                            <span id="previewCodeFileName">
-                                Código
-                            </span>
-
-
-                            <span
-                                id="previewCodeLanguage"
-                                class="preview-code-language"
-                            >
-                                —
-                            </span>
-
-
-                        </div>
-
-
-                        <div class="preview-code-actions">
-
-
-                            <button
-                                id="btnFormatCode"
-                                type="button"
-                                class="preview-small-button"
-                                title="Formatar código"
-                            >
-
-                                <i
-                                    class="fa-solid fa-wand-magic-sparkles"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Formatar
-
-                            </button>
-
-
-                            <button
-                                id="btnCopyCode"
-                                type="button"
-                                class="preview-small-button"
-                                title="Copiar código"
-                            >
-
-                                <i
-                                    class="fa-regular fa-copy"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Copiar
-
-                            </button>
-
-
-                            <button
-                                id="btnSaveCode"
-                                type="button"
-                                class="preview-primary-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-floppy-disk"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Guardar
-
-                            </button>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <div class="preview-code-editor-wrapper">
-
-
-                        <textarea
-                            id="previewCodeEditor"
-                            class="preview-code-editor"
-                            spellcheck="false"
-                            aria-label="Editor de código"
-                            placeholder="// O código gerado aparecerá aqui..."
-                        ></textarea>
-
-
-                        <pre
-                            id="previewCodeBlockContainer"
-                            class="preview-code-block-container"
-                            aria-hidden="true"
-                        ><code id="previewCodeBlock">Aguardando código...</code></pre>
-
-
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     FILE MANAGER
-                ================================================== -->
-
-                <section
-                    id="previewFilesContent"
-                    class="preview-files-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabFiles"
-                    hidden
-                >
-
-
-                    <div class="preview-files-header">
-
-
-                        <div>
-
-                            <strong>
-                                Ficheiros do projeto
-                            </strong>
-
-                            <span id="previewFilesCount">
-                                0 ficheiros
-                            </span>
-
-                        </div>
-
-
-                        <button
-                            id="btnDownloadProject"
-                            type="button"
-                            class="preview-primary-button"
-                        >
-
-                            <i
-                                class="fa-solid fa-file-zipper"
-                                aria-hidden="true"
-                            ></i>
-
-                            Baixar projeto
-
-                        </button>
-
-
-                    </div>
-
-
-                    <div
-                        id="previewFileTree"
-                        class="preview-file-tree"
-                    >
-
-
-                        <div class="preview-editor-empty">
-                            Nenhum ficheiro gerado.
-                        </div>
-
-
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     TERMINAL / SANDBOX
-                ================================================== -->
-
-                <section
-                    id="previewTerminalContent"
-                    class="preview-terminal-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabTerminal"
-                    hidden
-                >
-
-
-                    <div class="preview-terminal-header">
-
-
-                        <div class="preview-terminal-title">
-
-
-                            <span
-                                class="preview-terminal-status"
-                                aria-hidden="true"
-                            ></span>
-
-
-                            <strong>
-                                Terminal Honey IA
-                            </strong>
-
-
-                            <span id="previewRuntime">
-                                Sandbox
-                            </span>
-
-
-                        </div>
-
-
-                        <div class="preview-terminal-actions">
-
-
-                            <button
-                                id="btnClearTerminal"
-                                type="button"
-                                class="preview-small-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-eraser"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Limpar
-
-                            </button>
-
-
-                            <button
-                                id="btnRunCode"
-                                type="button"
-                                class="preview-run-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-play"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Executar
-
-                            </button>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <div
-                        id="previewTerminalOutput"
-                        class="preview-terminal-output"
-                        role="log"
-                        aria-live="polite"
-                    >
-
-                        <div class="preview-terminal-line system">
-                            <span>
-                                Honey IA Sandbox
-                            </span>
-                        </div>
-
-                        <div class="preview-terminal-line system">
-                            <span>
-                                Aguardando código para execução...
-                            </span>
-                        </div>
-
-                    </div>
-
-
-                    <div class="preview-terminal-input-row">
-
-
-                        <span class="preview-terminal-prompt">
-                            $
-                        </span>
-
-
-                        <input
-                            id="previewTerminalInput"
-                            type="text"
-                            placeholder="Digite um comando..."
-                            autocomplete="off"
-                            spellcheck="false"
-                            aria-label="Comando do terminal"
-                        >
-
-
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     VERSION HISTORY
-                ================================================== -->
-
-                <section
-                    id="previewVersionsContent"
-                    class="preview-versions-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabVersions"
-                    hidden
-                >
-
-
-                    <div class="preview-versions-header">
-
-
-                        <div>
-
-                            <strong>
-                                Histórico de versões
-                            </strong>
-
-                            <span>
-                                Compare ou restaure versões anteriores.
-                            </span>
-
-                        </div>
-
-
-                        <button
-                            id="btnCreateVersion"
-                            type="button"
-                            class="preview-primary-button"
-                        >
-
-                            <i
-                                class="fa-solid fa-code-branch"
-                                aria-hidden="true"
-                            ></i>
-
-                            Guardar versão
-
-                        </button>
-
-
-                    </div>
-
-
-                    <div
-                        id="previewVersionList"
-                        class="preview-version-list"
-                    >
-
-
-                        <div class="preview-version-empty">
-
-
-                            <i
-                                class="fa-solid fa-code-branch"
-                                aria-hidden="true"
-                            ></i>
-
-
-                            <strong>
-                                Nenhuma versão adicional
-                            </strong>
-
-
-                            <span>
-                                As alterações futuras aparecerão aqui.
-                            </span>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <div
-                        id="previewVersionCompare"
-                        class="preview-version-compare"
-                        hidden
-                    >
-
-
-                        <div class="preview-version-compare-header">
-
-                            <strong>
-                                Comparação
-                            </strong>
-
-
-                            <button
-                                id="btnCloseVersionCompare"
-                                type="button"
-                                class="preview-icon-button"
-                                aria-label="Fechar comparação"
-                            >
-
-                                <i
-                                    class="fa-solid fa-xmark"
-                                    aria-hidden="true"
-                                ></i>
-
-                            </button>
-
-                        </div>
-
+                        <!-- PREVIEW TOOLBAR -->
 
                         <div
-                            id="previewVersionCompareContent"
-                            class="preview-version-compare-content"
-                        ></div>
-
-
-                    </div>
-
-
-                </section>
-
-
-                <!-- ==================================================
-                     ACTIONS / EXPORT / DEPLOY
-                ================================================== -->
-
-                <section
-                    id="previewActionsContent"
-                    class="preview-actions-content"
-                    role="tabpanel"
-                    aria-labelledby="previewTabActions"
-                    hidden
-                >
-
-
-                    <div class="preview-actions-header">
-
-
-                        <div class="preview-actions-icon">
-
-                            <i
-                                class="fa-solid fa-rocket"
-                                aria-hidden="true"
-                            ></i>
-
-                        </div>
-
-
-                        <h4>
-                            Resultado pronto
-                        </h4>
-
-
-                        <p id="previewActionsDesc">
-                            Exporte, partilhe ou publique o resultado
-                            criado pela Honey IA.
-                        </p>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         EXPORT ACTIONS
-                    ================================================== -->
-
-                    <div class="preview-action-group">
-
-
-                        <div class="preview-action-group-title">
-
-                            <i
-                                class="fa-solid fa-download"
-                                aria-hidden="true"
-                            ></i>
-
-                            Exportar
-
-                        </div>
-
-
-                        <div class="preview-action-grid">
-
-
-                            <button
-                                id="btnDownloadAsset"
-                                type="button"
-                                class="preview-action-card"
-                            >
-
-                                <i
-                                    class="fa-solid fa-file-arrow-down"
-                                    aria-hidden="true"
-                                ></i>
-
-
-                                <strong>
-                                    Baixar resultado
-                                </strong>
-
-
-                                <span>
-                                    Formato adequado ao conteúdo
-                                </span>
-
-                            </button>
-
-
-                            <button
-                                id="btnDownloadAssetPdf"
-                                type="button"
-                                class="preview-action-card"
-                            >
-
-                                <i
-                                    class="fa-solid fa-file-pdf"
-                                    aria-hidden="true"
-                                ></i>
-
-
-                                <strong>
-                                    Exportar PDF
-                                </strong>
-
-
-                                <span>
-                                    Quando disponível
-                                </span>
-
-                            </button>
-
-
-                            <button
-                                id="btnDownloadAssetOffice"
-                                type="button"
-                                class="preview-action-card"
-                            >
-
-                                <i
-                                    class="fa-solid fa-file-export"
-                                    aria-hidden="true"
-                                ></i>
-
-
-                                <strong>
-                                    Exportar Office
-                                </strong>
-
-
-                                <span>
-                                    DOCX, XLSX ou PPTX
-                                </span>
-
-                            </button>
-
-
-                            <button
-                                id="btnDownloadAssetZip"
-                                type="button"
-                                class="preview-action-card"
-                            >
-
-                                <i
-                                    class="fa-solid fa-file-zipper"
-                                    aria-hidden="true"
-                                ></i>
-
-
-                                <strong>
-                                    Projeto ZIP
-                                </strong>
-
-
-                                <span>
-                                    Todos os ficheiros
-                                </span>
-
-                            </button>
-
-
-                        </div>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         SHARE
-                    ================================================== -->
-
-                    <div class="preview-action-group">
-
-
-                        <div class="preview-action-group-title">
-
-                            <i
-                                class="fa-solid fa-share-nodes"
-                                aria-hidden="true"
-                            ></i>
-
-                            Partilhar
-
-                        </div>
-
-
-                        <div class="preview-share-box">
-
-
-                            <div class="preview-share-url-wrapper">
-
-
-                                <input
-                                    id="previewShareUrl"
-                                    type="text"
-                                    readonly
-                                    placeholder="O link de partilha aparecerá aqui..."
-                                    aria-label="Link de partilha"
-                                >
+                            id="previewToolbar"
+                            class="preview-toolbar">
+
+                            <div
+                                id="previewTabs"
+                                class="preview-tabs"
+                                role="tablist"
+                                aria-label="Ferramentas do Preview">
 
 
                                 <button
-                                    id="btnCopyShareUrl"
+                                    id="previewTabView"
+                                    data-tab="preview"
+                                    class="preview-tab-btn active"
                                     type="button"
-                                    class="preview-small-button"
-                                    title="Copiar link"
-                                >
+                                    role="tab"
+                                    aria-selected="true"
+                                    aria-controls="previewViewContent">
 
-                                    <i
-                                        class="fa-regular fa-copy"
-                                        aria-hidden="true"
-                                    ></i>
-
-                                    Copiar
+                                    <i class="fa-solid fa-display"></i>
+                                    <span>Visualização</span>
 
                                 </button>
 
 
+                                <button
+                                    id="previewTabEdit"
+                                    data-tab="edit"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewEditorContent">
+
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <span>Editar</span>
+
+                                </button>
+
+
+                                <button
+                                    id="previewTabCode"
+                                    data-tab="code"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewCodeContent">
+
+                                    <i class="fa-solid fa-code"></i>
+                                    <span>Código</span>
+
+                                </button>
+
+
+                                <button
+                                    id="previewTabFiles"
+                                    data-tab="files"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewFilesContent">
+
+                                    <i class="fa-solid fa-folder-tree"></i>
+                                    <span>Ficheiros</span>
+
+                                </button>
+
+
+                                <button
+                                    id="previewTabTerminal"
+                                    data-tab="terminal"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewTerminalContent">
+
+                                    <i class="fa-solid fa-terminal"></i>
+                                    <span>Terminal</span>
+
+                                </button>
+
+
+                                <button
+                                    id="previewTabVersions"
+                                    data-tab="versions"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewVersionsContent">
+
+                                    <i class="fa-solid fa-code-branch"></i>
+                                    <span>Versões</span>
+
+                                </button>
+
+
+                                <button
+                                    id="previewTabActions"
+                                    data-tab="actions"
+                                    class="preview-tab-btn"
+                                    type="button"
+                                    role="tab"
+                                    aria-selected="false"
+                                    aria-controls="previewActionsContent">
+
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Exportar</span>
+
+                                </button>
+
                             </div>
 
 
-                            <div class="preview-share-options">
+                            <div
+                                id="previewDeviceControls"
+                                class="preview-device-controls"
+                                aria-label="Tamanho do dispositivo">
 
+                                <button
+                                    data-device="mobile"
+                                    class="device-btn"
+                                    type="button"
+                                    title="Telemóvel"
+                                    aria-label="Preview em telemóvel">
 
-                                <label>
+                                    <i class="fa-solid fa-mobile-screen-button"></i>
 
-                                    <input
-                                        id="previewSharePublic"
-                                        type="checkbox"
-                                        checked
-                                    >
+                                </button>
 
-                                    Qualquer pessoa com o link pode visualizar
+                                <button
+                                    data-device="tablet"
+                                    class="device-btn"
+                                    type="button"
+                                    title="Tablet"
+                                    aria-label="Preview em tablet">
 
-                                </label>
+                                    <i class="fa-solid fa-tablet-screen-button"></i>
 
+                                </button>
 
-                                <label>
+                                <button
+                                    data-device="desktop"
+                                    class="device-btn active"
+                                    type="button"
+                                    title="Computador"
+                                    aria-label="Preview em computador">
 
-                                    <input
-                                        id="previewShareTemporary"
-                                        type="checkbox"
-                                    >
+                                    <i class="fa-solid fa-desktop"></i>
 
-                                    Criar link temporário
-
-                                </label>
-
+                                </button>
 
                             </div>
 
-
-                            <button
-                                id="btnGenerateShareLink"
-                                type="button"
-                                class="preview-secondary-button"
-                            >
-
-                                <i
-                                    class="fa-solid fa-link"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Gerar link de partilha
-
-                            </button>
-
-
                         </div>
 
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         DEPLOY
-                    ================================================== -->
-
-                    <div class="preview-action-group">
+                    </header>
 
 
-                        <div class="preview-action-group-title">
-
-                            <i
-                                class="fa-solid fa-cloud-arrow-up"
-                                aria-hidden="true"
-                            ></i>
-
-                            Publicar
-
-                        </div>
-
-
-                        <div class="preview-deploy-grid">
-
-
-                            <button
-                                id="btnDeployVercel"
-                                type="button"
-                                class="preview-deploy-card"
-                            >
-
-                                <span class="preview-deploy-icon">
-                                    V
-                                </span>
-
-
-                                <strong>
-                                    Publicar na Vercel
-                                </strong>
-
-
-                                <span>
-                                    Deploy direto
-                                </span>
-
-                            </button>
-
-
-                            <button
-                                id="btnDeployRender"
-                                type="button"
-                                class="preview-deploy-card"
-                            >
-
-                                <span class="preview-deploy-icon">
-                                    R
-                                </span>
-
-
-                                <strong>
-                                    Publicar na Render
-                                </strong>
-
-
-                                <span>
-                                    Deploy direto
-                                </span>
-
-                            </button>
-
-
-                            <button
-                                id="btnDeployNetlify"
-                                type="button"
-                                class="preview-deploy-card"
-                            >
-
-                                <span class="preview-deploy-icon">
-                                    N
-                                </span>
-
-
-                                <strong>
-                                    Publicar na Netlify
-                                </strong>
-
-
-                                <span>
-                                    Deploy direto
-                                </span>
-
-                            </button>
-
-
-                        </div>
-
-
-                        <button
-                            id="btnDeployGuide"
-                            type="button"
-                            class="preview-guide-button"
-                        >
-
-                            <i
-                                class="fa-solid fa-book-open"
-                                aria-hidden="true"
-                            ></i>
-
-                            Ver guia de hospedagem
-
-                        </button>
-
-
-                    </div>
-
-
-                    <!-- ==================================================
-                         DEPLOY RESULT
+                    <!-- =================================================
+                         PREVIEW BODY
                     ================================================== -->
 
                     <div
-                        id="previewDeployResult"
-                        class="preview-deploy-result"
-                        hidden
-                    >
+                        id="previewBodyContainer"
+                        class="preview-body">
 
 
-                        <div class="preview-deploy-success-icon">
+                        <!-- VISUALIZAÇÃO -->
 
-                            <i
-                                class="fa-solid fa-circle-check"
-                                aria-hidden="true"
-                            ></i>
+                        <section
+                            id="previewViewContent"
+                            class="preview-view-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabView">
 
-                        </div>
+
+                            <div
+                                id="previewEmptyState"
+                                class="preview-empty-state">
+
+                                <div class="preview-empty-icon">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                </div>
+
+                                <h4>
+                                    O resultado aparecerá aqui
+                                </h4>
+
+                                <p>
+                                    Peça à Honey IA para criar um site,
+                                    aplicação, documento, apresentação,
+                                    gráfico, tabela ou outro projeto.
+                                </p>
+
+                            </div>
 
 
-                        <div>
+                            <div
+                                id="previewFrameWrapper"
+                                class="preview-frame-wrapper">
 
-                            <strong>
-                                Publicação concluída
-                            </strong>
+                                <iframe
+                                    id="live-preview-iframe"
+                                    title="Live Preview"
+                                    sandbox="allow-scripts allow-modals allow-forms allow-popups"
+                                    class="live-preview-frame">
+                                </iframe>
 
-                            <span id="previewDeployStatus">
-                                O projeto está online.
+                            </div>
+
+
+                            <div
+                                id="previewDocumentViewer"
+                                class="preview-document-viewer"
+                                hidden>
+                            </div>
+
+
+                            <div
+                                id="previewSlidesViewer"
+                                class="preview-slides-viewer"
+                                hidden>
+
+                                <div
+                                    id="previewSlideStage"
+                                    class="preview-slide-stage">
+                                </div>
+
+                                <div
+                                    id="previewSlidesControls"
+                                    class="preview-slides-controls">
+
+                                    <button
+                                        id="btnPreviousSlide"
+                                        type="button"
+                                        class="preview-control-button"
+                                        aria-label="Slide anterior">
+
+                                        <i class="fa-solid fa-chevron-left"></i>
+
+                                    </button>
+
+                                    <span id="previewSlideCounter">
+                                        0 / 0
+                                    </span>
+
+                                    <button
+                                        id="btnNextSlide"
+                                        type="button"
+                                        class="preview-control-button"
+                                        aria-label="Próximo slide">
+
+                                        <i class="fa-solid fa-chevron-right"></i>
+
+                                    </button>
+
+                                    <button
+                                        id="btnStartPresentation"
+                                        type="button"
+                                        class="preview-control-button"
+                                        title="Iniciar apresentação">
+
+                                        <i class="fa-solid fa-play"></i>
+                                        <span>Apresentar</span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- DATA -->
+
+                            <div
+                                id="previewDataViewer"
+                                class="preview-data-viewer"
+                                hidden>
+
+                                <div
+                                    id="previewDataToolbar"
+                                    class="preview-data-toolbar">
+
+                                    <span id="previewDataTitle">
+                                        Dados
+                                    </span>
+
+                                    <div class="preview-data-actions">
+
+                                        <button
+                                            id="btnAddDataRow"
+                                            type="button"
+                                            class="preview-small-button">
+
+                                            <i class="fa-solid fa-plus"></i>
+                                            Linha
+
+                                        </button>
+
+                                        <button
+                                            id="btnAddDataColumn"
+                                            type="button"
+                                            class="preview-small-button">
+
+                                            <i class="fa-solid fa-plus"></i>
+                                            Coluna
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    id="previewDataGrid"
+                                    class="preview-data-grid">
+                                </div>
+
+                            </div>
+
+
+                            <!-- IMAGE -->
+
+                            <div
+                                id="previewImageViewer"
+                                class="preview-image-viewer"
+                                hidden>
+
+                                <img
+                                    id="previewImage"
+                                    src=""
+                                    alt="Resultado gerado pela Honey IA">
+
+                            </div>
+
+
+                            <!-- PDF -->
+
+                            <div
+                                id="previewPdfViewer"
+                                class="preview-pdf-viewer"
+                                hidden>
+
+                                <iframe
+                                    id="previewPdfFrame"
+                                    title="Visualizador PDF">
+                                </iframe>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             EDITOR
+                        ================================================== -->
+
+                        <section
+                            id="previewEditorContent"
+                            class="preview-editor-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabEdit"
+                            hidden>
+
+                            <div class="preview-editor-header">
+
+                                <div>
+
+                                    <strong>Live Edit</strong>
+
+                                    <span>
+                                        As alterações aparecem no Preview em tempo real.
+                                    </span>
+
+                                </div>
+
+                                <div class="preview-editor-actions">
+
+                                    <button
+                                        id="btnApplyLiveEdit"
+                                        type="button"
+                                        class="preview-primary-button">
+
+                                        <i class="fa-solid fa-check"></i>
+                                        Aplicar
+
+                                    </button>
+
+                                    <button
+                                        id="btnResetLiveEdit"
+                                        type="button"
+                                        class="preview-secondary-button">
+
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                        Repor
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="preview-editor-layout">
+
+                                <div class="preview-editor-sidebar">
+
+                                    <div class="preview-editor-sidebar-title">
+                                        Elementos
+                                    </div>
+
+                                    <div
+                                        id="previewElementTree"
+                                        class="preview-element-tree">
+
+                                        <div class="preview-editor-empty">
+                                            Nenhum elemento editável disponível.
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="preview-editor-main">
+
+                                    <div class="preview-editor-field">
+
+                                        <label for="previewLiveText">
+                                            Texto
+                                        </label>
+
+                                        <textarea
+                                            id="previewLiveText"
+                                            placeholder="Selecione um elemento para editar..."
+                                            spellcheck="true">
+                                        </textarea>
+
+                                    </div>
+
+
+                                    <div class="preview-editor-field">
+
+                                        <label for="previewLiveColor">
+                                            Cor
+                                        </label>
+
+                                        <input
+                                            id="previewLiveColor"
+                                            type="color"
+                                            value="#ffffff">
+
+                                    </div>
+
+
+                                    <div class="preview-editor-field">
+
+                                        <label for="previewLiveFormula">
+                                            Fórmula / Valor
+                                        </label>
+
+                                        <input
+                                            id="previewLiveFormula"
+                                            type="text"
+                                            placeholder="Valor ou fórmula"
+                                            autocomplete="off">
+
+                                    </div>
+
+
+                                    <div class="preview-editor-field">
+
+                                        <label for="previewLiveCss">
+                                            CSS / Estilo
+                                        </label>
+
+                                        <textarea
+                                            id="previewLiveCss"
+                                            class="preview-code-input"
+                                            placeholder="Ex.: color: #ffffff; font-size: 18px;"
+                                            spellcheck="false">
+                                        </textarea>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             CODE
+                        ================================================== -->
+
+                        <section
+                            id="previewCodeContent"
+                            class="preview-code-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabCode"
+                            hidden>
+
+                            <div class="preview-code-toolbar">
+
+                                <div class="preview-code-file-info">
+
+                                    <i class="fa-solid fa-code"></i>
+
+                                    <span id="previewCodeFileName">
+                                        Código
+                                    </span>
+
+                                    <span
+                                        id="previewCodeLanguage"
+                                        class="preview-code-language">
+                                        —
+                                    </span>
+
+                                </div>
+
+                                <div class="preview-code-actions">
+
+                                    <button
+                                        id="btnFormatCode"
+                                        type="button"
+                                        class="preview-small-button">
+
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                        Formatar
+
+                                    </button>
+
+                                    <button
+                                        id="btnCopyCode"
+                                        type="button"
+                                        class="preview-small-button">
+
+                                        <i class="fa-regular fa-copy"></i>
+                                        Copiar
+
+                                    </button>
+
+                                    <button
+                                        id="btnSaveCode"
+                                        type="button"
+                                        class="preview-primary-button">
+
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        Guardar
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="preview-code-editor-wrapper">
+
+                                <textarea
+                                    id="previewCodeEditor"
+                                    class="preview-code-editor"
+                                    spellcheck="false"
+                                    aria-label="Editor de código"
+                                    placeholder="// O código gerado aparecerá aqui...">
+                                </textarea>
+
+                                <pre
+                                    id="previewCodeBlockContainer"
+                                    class="preview-code-block-container"
+                                    aria-hidden="true"><code id="previewCodeBlock">Aguardando código...</code></pre>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             FILES
+                        ================================================== -->
+
+                        <section
+                            id="previewFilesContent"
+                            class="preview-files-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabFiles"
+                            hidden>
+
+                            <div class="preview-files-header">
+
+                                <div>
+
+                                    <strong>
+                                        Ficheiros do projeto
+                                    </strong>
+
+                                    <span id="previewFilesCount">
+                                        0 ficheiros
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    id="btnDownloadProject"
+                                    type="button"
+                                    class="preview-primary-button">
+
+                                    <i class="fa-solid fa-file-zipper"></i>
+                                    Baixar projeto
+
+                                </button>
+
+                            </div>
+
+                            <div
+                                id="previewFileTree"
+                                class="preview-file-tree">
+
+                                <div class="preview-editor-empty">
+                                    Nenhum ficheiro gerado.
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             TERMINAL
+                        ================================================== -->
+
+                        <section
+                            id="previewTerminalContent"
+                            class="preview-terminal-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabTerminal"
+                            hidden>
+
+                            <div class="preview-terminal-header">
+
+                                <div class="preview-terminal-title">
+
+                                    <span class="preview-terminal-status"></span>
+
+                                    <strong>
+                                        Terminal Honey IA
+                                    </strong>
+
+                                    <span id="previewRuntime">
+                                        Sandbox
+                                    </span>
+
+                                </div>
+
+                                <div class="preview-terminal-actions">
+
+                                    <button
+                                        id="btnClearTerminal"
+                                        type="button"
+                                        class="preview-small-button">
+
+                                        <i class="fa-solid fa-eraser"></i>
+                                        Limpar
+
+                                    </button>
+
+                                    <button
+                                        id="btnRunCode"
+                                        type="button"
+                                        class="preview-run-button">
+
+                                        <i class="fa-solid fa-play"></i>
+                                        Executar
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                id="previewTerminalOutput"
+                                class="preview-terminal-output"
+                                role="log"
+                                aria-live="polite">
+
+                                <div class="preview-terminal-line system">
+                                    <span>Honey IA Sandbox</span>
+                                </div>
+
+                                <div class="preview-terminal-line system">
+                                    <span>
+                                        Aguardando código para execução...
+                                    </span>
+                                </div>
+
+                            </div>
+
+
+                            <div class="preview-terminal-input-row">
+
+                                <span class="preview-terminal-prompt">
+                                    $
+                                </span>
+
+                                <input
+                                    id="previewTerminalInput"
+                                    type="text"
+                                    placeholder="Digite um comando..."
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    aria-label="Comando do terminal">
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             VERSIONS
+                        ================================================== -->
+
+                        <section
+                            id="previewVersionsContent"
+                            class="preview-versions-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabVersions"
+                            hidden>
+
+                            <div class="preview-versions-header">
+
+                                <div>
+
+                                    <strong>
+                                        Histórico de versões
+                                    </strong>
+
+                                    <span>
+                                        Compare ou restaure versões anteriores.
+                                    </span>
+
+                                </div>
+
+                                <button
+                                    id="btnCreateVersion"
+                                    type="button"
+                                    class="preview-primary-button">
+
+                                    <i class="fa-solid fa-code-branch"></i>
+                                    Guardar versão
+
+                                </button>
+
+                            </div>
+
+
+                            <div
+                                id="previewVersionList"
+                                class="preview-version-list">
+
+                                <div class="preview-version-empty">
+
+                                    <i class="fa-solid fa-code-branch"></i>
+
+                                    <strong>
+                                        Nenhuma versão adicional
+                                    </strong>
+
+                                    <span>
+                                        As alterações futuras aparecerão aqui.
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                id="previewVersionCompare"
+                                class="preview-version-compare"
+                                hidden>
+
+                                <div class="preview-version-compare-header">
+
+                                    <strong>Comparação</strong>
+
+                                    <button
+                                        id="btnCloseVersionCompare"
+                                        type="button"
+                                        class="preview-icon-button"
+                                        aria-label="Fechar comparação">
+
+                                        <i class="fa-solid fa-xmark"></i>
+
+                                    </button>
+
+                                </div>
+
+                                <div
+                                    id="previewVersionCompareContent"
+                                    class="preview-version-compare-content">
+                                </div>
+
+                            </div>
+
+                        </section>
+
+
+                        <!-- =================================================
+                             ACTIONS
+                        ================================================== -->
+
+                        <section
+                            id="previewActionsContent"
+                            class="preview-actions-content"
+                            role="tabpanel"
+                            aria-labelledby="previewTabActions"
+                            hidden>
+
+
+                            <div class="preview-actions-header">
+
+                                <div class="preview-actions-icon">
+                                    <i class="fa-solid fa-rocket"></i>
+                                </div>
+
+                                <h4>Resultado pronto</h4>
+
+                                <p id="previewActionsDesc">
+                                    Exporte, partilhe ou publique o resultado
+                                    criado pela Honey IA.
+                                </p>
+
+                            </div>
+
+
+                            <!-- EXPORT -->
+
+                            <div class="preview-action-group">
+
+                                <div class="preview-action-group-title">
+
+                                    <i class="fa-solid fa-download"></i>
+                                    Exportar
+
+                                </div>
+
+
+                                <div class="preview-action-grid">
+
+                                    <button
+                                        id="btnDownloadAsset"
+                                        type="button"
+                                        class="preview-action-card">
+
+                                        <i class="fa-solid fa-file-arrow-down"></i>
+
+                                        <strong>
+                                            Baixar resultado
+                                        </strong>
+
+                                        <span>
+                                            Formato adequado ao conteúdo
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnDownloadAssetPdf"
+                                        type="button"
+                                        class="preview-action-card">
+
+                                        <i class="fa-solid fa-file-pdf"></i>
+
+                                        <strong>
+                                            Exportar PDF
+                                        </strong>
+
+                                        <span>
+                                            Quando disponível
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnDownloadAssetOffice"
+                                        type="button"
+                                        class="preview-action-card">
+
+                                        <i class="fa-solid fa-file-export"></i>
+
+                                        <strong>
+                                            Exportar Office
+                                        </strong>
+
+                                        <span>
+                                            DOCX, XLSX ou PPTX
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnDownloadAssetZip"
+                                        type="button"
+                                        class="preview-action-card">
+
+                                        <i class="fa-solid fa-file-zipper"></i>
+
+                                        <strong>
+                                            Projeto ZIP
+                                        </strong>
+
+                                        <span>
+                                            Todos os ficheiros
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- SHARE -->
+
+                            <div class="preview-action-group">
+
+                                <div class="preview-action-group-title">
+
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                    Partilhar
+
+                                </div>
+
+
+                                <div class="preview-share-box">
+
+                                    <div class="preview-share-url-wrapper">
+
+                                        <input
+                                            id="previewShareUrl"
+                                            type="text"
+                                            readonly
+                                            placeholder="O link de partilha aparecerá aqui..."
+                                            aria-label="Link de partilha">
+
+                                        <button
+                                            id="btnCopyShareUrl"
+                                            type="button"
+                                            class="preview-small-button">
+
+                                            <i class="fa-regular fa-copy"></i>
+                                            Copiar
+
+                                        </button>
+
+                                    </div>
+
+
+                                    <div class="preview-share-options">
+
+                                        <label>
+
+                                            <input
+                                                id="previewSharePublic"
+                                                type="checkbox"
+                                                checked>
+
+                                            Qualquer pessoa com o link pode visualizar
+
+                                        </label>
+
+
+                                        <label>
+
+                                            <input
+                                                id="previewShareTemporary"
+                                                type="checkbox">
+
+                                            Criar link temporário
+
+                                        </label>
+
+                                    </div>
+
+
+                                    <button
+                                        id="btnGenerateShareLink"
+                                        type="button"
+                                        class="preview-secondary-button">
+
+                                        <i class="fa-solid fa-link"></i>
+                                        Gerar link de partilha
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 DEPLOY
+                            ================================================== -->
+
+                            <div class="preview-action-group">
+
+                                <div class="preview-action-group-title">
+
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    Publicar
+
+                                </div>
+
+
+                                <div class="preview-deploy-grid">
+
+
+                                    <button
+                                        id="btnDeployVercel"
+                                        type="button"
+                                        class="preview-deploy-card"
+                                        data-deploy-provider="vercel">
+
+                                        <span class="preview-deploy-icon">
+                                            V
+                                        </span>
+
+                                        <strong>
+                                            Publicar na Vercel
+                                        </strong>
+
+                                        <span>
+                                            Deploy direto
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnDeployRender"
+                                        type="button"
+                                        class="preview-deploy-card"
+                                        data-deploy-provider="render">
+
+                                        <span class="preview-deploy-icon">
+                                            R
+                                        </span>
+
+                                        <strong>
+                                            Publicar na Render
+                                        </strong>
+
+                                        <span>
+                                            Deploy direto
+                                        </span>
+
+                                    </button>
+
+
+                                    <button
+                                        id="btnDeployNetlify"
+                                        type="button"
+                                        class="preview-deploy-card"
+                                        data-deploy-provider="netlify">
+
+                                        <span class="preview-deploy-icon">
+                                            N
+                                        </span>
+
+                                        <strong>
+                                            Publicar na Netlify
+                                        </strong>
+
+                                        <span>
+                                            Deploy direto
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+
+                                <button
+                                    id="btnDeployGuide"
+                                    type="button"
+                                    class="preview-guide-button">
+
+                                    <i class="fa-solid fa-book-open"></i>
+                                    Ver guia de hospedagem
+
+                                </button>
+
+                            </div>
+
+
+                            <!-- DEPLOY RESULT -->
+
+                            <div
+                                id="previewDeployResult"
+                                class="preview-deploy-result"
+                                hidden>
+
+                                <div class="preview-deploy-success-icon">
+
+                                    <i class="fa-solid fa-circle-check"></i>
+
+                                </div>
+
+
+                                <div>
+
+                                    <strong>
+                                        Publicação concluída
+                                    </strong>
+
+                                    <span id="previewDeployStatus">
+                                        O projeto está online.
+                                    </span>
+
+                                </div>
+
+
+                                <div class="preview-deploy-url">
+
+                                    <input
+                                        id="previewDeployUrl"
+                                        type="text"
+                                        readonly
+                                        aria-label="URL publicada">
+
+                                    <button
+                                        id="btnCopyDeployUrl"
+                                        type="button"
+                                        class="preview-small-button">
+
+                                        <i class="fa-regular fa-copy"></i>
+                                        Copiar
+
+                                    </button>
+
+                                </div>
+
+
+                                <a
+                                    id="btnOpenDeployUrl"
+                                    class="preview-primary-button"
+                                    href="#"
+                                    target="_blank"
+                                    rel="noopener noreferrer">
+
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    Abrir site
+
+                                </a>
+
+                            </div>
+
+                        </section>
+
+                    </div>
+
+
+                    <!-- PREVIEW FOOTER -->
+
+                    <footer
+                        id="previewFooter"
+                        class="preview-footer">
+
+                        <div class="preview-footer-left">
+
+                            <span
+                                id="previewFooterType"
+                                class="preview-footer-type">
+
+                                <i class="fa-solid fa-layer-group"></i>
+                                Preview Universal
+
+                            </span>
+
+                            <span
+                                id="previewFooterVersion"
+                                class="preview-footer-version">
+                                v1
                             </span>
 
                         </div>
 
 
-                        <div class="preview-deploy-url">
+                        <div class="preview-footer-right">
 
-                            <input
-                                id="previewDeployUrl"
-                                type="text"
-                                readonly
-                                aria-label="URL publicada"
-                            >
-
-
-                            <button
-                                id="btnCopyDeployUrl"
-                                type="button"
-                                class="preview-small-button"
-                            >
-
-                                <i
-                                    class="fa-regular fa-copy"
-                                    aria-hidden="true"
-                                ></i>
-
-                                Copiar
-
-                            </button>
+                            <span id="previewFooterInfo">
+                                Aguardando resultado
+                            </span>
 
                         </div>
 
+                    </footer>
 
-                        <a
-                            id="btnOpenDeployUrl"
-                            class="preview-primary-button"
-                            href="#"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-
-                            <i
-                                class="fa-solid fa-arrow-up-right-from-square"
-                                aria-hidden="true"
-                            ></i>
-
-                            Abrir site
-
-                        </a>
-
-
-                    </div>
-
-
-                </section>
-
+                </aside>
 
             </div>
 
-
-            <!-- ==================================================
-                 PREVIEW FOOTER
-            ================================================== -->
-
-            <footer
-                id="previewFooter"
-                class="preview-footer"
-            >
+        </section>
 
 
-                <div class="preview-footer-left">
+        <!-- =================================================
+             TOAST
+        ================================================== -->
 
+        <div
+            id="toastContainer"
+            class="toast-container"
+            aria-live="polite"
+            aria-atomic="true">
+        </div>
 
-                    <span
-                        id="previewFooterType"
-                        class="preview-footer-type"
-                    >
-
-                        <i
-                            class="fa-solid fa-layer-group"
-                            aria-hidden="true"
-                        ></i>
-
-                        Preview Universal
-
-                    </span>
-
-
-                    <span
-                        id="previewFooterVersion"
-                        class="preview-footer-version"
-                    >
-                        v1
-                    </span>
-
-
-                </div>
-
-
-                <div class="preview-footer-right">
-
-
-                    <span id="previewFooterInfo">
-                        Aguardando resultado
-                    </span>
-
-
-                </div>
-
-
-            </footer>
-
-
-        </aside>
-
-
-    </div>
-
-
-</section>
-
-
-<!-- ==================================================
-     GLOBAL TOASTS
-=================================================== -->
-
-<div
-    id="toastContainer"
-    class="toast-container"
-    aria-live="polite"
-    aria-atomic="true"
-></div>
-
-
-</main>
+    </main>
 
 </div>
 
 
-<!-- ==========================================================
-     JAVASCRIPT LIBRARIES
-========================================================== -->
+<!-- =========================================================
+     EXTERNAL LIBRARIES
+========================================================= -->
 
 <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"
-></script>
-
+    src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js">
+</script>
 
 <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
-></script>
+    src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js">
+</script>
 
 
-<!-- ==========================================================
+<!-- =========================================================
      HONEY IA MODULES
-========================================================== -->
+========================================================= -->
 
 <script
     type="module"
-    src="agents.js"
-></script>
-
-
-<script
-    type="module"
-    src="agents-ui.js"
-></script>
-
+    src="agents.js">
+</script>
 
 <script
     type="module"
-    src="agentstudio.js"
-></script>
-
-
-<script
-    type="module"
-    src="dashboard.js"
-></script>
-
+    src="agents-ui.js">
+</script>
 
 <script
     type="module"
-    src="chat.js"
-></script>
-
+    src="agentstudio.js">
+</script>
 
 <script
     type="module"
-    src="app.js"
-></script>
+    src="dashboard.js">
+</script>
+
+<script
+    type="module"
+    src="chat.js">
+</script>
+
+<script
+    type="module"
+    src="app.js">
+</script>
 
 
-<!-- ==========================================================
-     HONEY IA AUTHENTICATION
-     LOGOUT CONTROLLER
-========================================================== -->
+<!-- =========================================================
+     AUTH / LOGOUT
+========================================================= -->
 
 <script type="module">
 
-    import authmanager from "./auth.js";
+import authmanager from "./auth.js";
 
+document.addEventListener("DOMContentLoaded", () => {
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
+    const logoutBtn = document.getElementById("logoutBtn");
 
+    if (!logoutBtn) return;
 
-            const logoutBtn =
-                document.getElementById(
-                    "logoutBtn"
-                );
+    logoutBtn.addEventListener("click", async () => {
 
+        if (logoutBtn.disabled) return;
 
-            if(!logoutBtn){
+        logoutBtn.disabled = true;
+        logoutBtn.classList.add("loading");
 
-                return;
+        logoutBtn.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>A terminar sessão...</span>
+        `;
 
-            }
+        try {
 
+            await authmanager.logout();
 
-            logoutBtn.addEventListener(
-                "click",
-                async () => {
+        } catch (error) {
 
-
-                    if(logoutBtn.disabled){
-
-                        return;
-
-                    }
-
-
-                    logoutBtn.disabled = true;
-
-                    logoutBtn.classList.add(
-                        "loading"
-                    );
-
-
-                    logoutBtn.innerHTML = `
-
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-
-                        <span>
-                            A terminar sessão...
-                        </span>
-
-                    `;
-
-
-                    try{
-
-
-                        await authmanager.logout();
-
-
-                    }
-
-                    catch(error){
-
-
-                        console.warn(
-                            "HONEY IA LOGOUT ERROR:",
-                            error
-                        );
-
-
-                    }
-
-                    finally{
-
-
-                        window.location.replace(
-                            "login.html"
-                        );
-
-
-                    }
-
-
-                }
+            console.warn(
+                "HONEY IA LOGOUT ERROR:",
+                error
             );
 
+        } finally {
+
+            window.location.replace("login.html");
 
         }
-    );
+
+    });
+
+});
 
 </script>
 
 
-</body>
+<!-- =========================================================
+     HONEY IA UNIVERSAL PREVIEW / DEPLOY BRIDGE
+     
+     Este bloco NÃO executa deploy falso.
+     Apenas disponibiliza os providers ao sistema.
+     A publicação real será feita pela API/backend.
+========================================================= -->
 
+<script>
+
+window.HoneyPreview = window.HoneyPreview || {};
+
+window.HoneyPreview.deployProviders = {
+    vercel: {
+        id: "vercel",
+        name: "Vercel",
+        button: "btnDeployVercel"
+    },
+
+    render: {
+        id: "render",
+        name: "Render",
+        button: "btnDeployRender"
+    },
+
+    netlify: {
+        id: "netlify",
+        name: "Netlify",
+        button: "btnDeployNetlify"
+    }
+};
+
+
+/*
+ * Os botões ficam identificados para o módulo de Preview.
+ *
+ * O deploy NÃO é considerado concluído no frontend.
+ * O chat/preview deverá chamar o backend e só apresentar
+ * "Publicação concluída" quando receber uma resposta válida.
+ */
+
+window.HoneyPreview.getDeployProvider = function(button) {
+
+    if (!button) return null;
+
+    return (
+        button.dataset.deployProvider ||
+        null
+    );
+
+};
+
+</script>
+
+</body>
 </html>
