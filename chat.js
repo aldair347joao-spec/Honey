@@ -2,56 +2,55 @@
 ==========================================================
 HONEY IA OS
 CHAT ENGINE
-V6.0
-UNIVERSAL ARTIFACT PREVIEW ENGINE
-==========================================================
+V7.0
+PRODUCTION AI STUDIO CHAT ENGINE
 
 CORE
 ----------------------------------------------------------
 - JWT Authentication
 - Persistent MongoDB Conversations
-- Unlimited Persistent Conversation History
-- Smart Backend Context Management
+- Unlimited Conversation History
 - Groq + Gemini Compatible Backend
-- Markdown Rendering
-- Code Highlighting
-- SSE / JSON Streaming Compatible
+- JSON Response
+- SSE Streaming
+- NDJSON Streaming
+- Plain Text Streaming
 - Abort / Stop Generation
 - User Controlled Scroll
 - Buffered Streaming Rendering
 - Generation Isolation
 - File Context
-- Universal Artifacts
+- Voice Input
+- Markdown
+- Code Highlighting
+- Artifacts
 - Universal Artifact Preview
-- Live Artifact Editing
-- Code Editor
-- Visual Artifact Editing
-- Responsive Preview
-- Fullscreen Preview
-- Artifact Versioning
+- HTML / CSS / JS Preview
+- Text / Markdown Preview
+- JSON / CSV / SVG Preview
+- Editable Preview
+- Live Edit
+- Artifact Versions
 - Version Compare
 - Version Restore
-- Universal Download
-- Project Download
-- Shareable Preview Links
-- Temporary Preview Links
-- Deployment Preparation
-- Vercel / Render Deployment Hooks
-- Secure Execution Sandbox Hooks
-- Integrated Terminal
-- Voice Input
-- User Profile
-- Subscription Awareness
-- Search
+- Fullscreen Preview
+- Download Artifact
+- Share Preview
+- Deploy Integration Hooks
+- Tool Activity
 - Conversation Management
+- Search
 - Responsive Workspace
 - Secure HTML Rendering
 - Production Error Handling
 
 IMPORTANT
 ----------------------------------------------------------
-The frontend never claims a deployment or code execution
-was successful unless the backend explicitly confirms it.
+The frontend does not pretend to execute arbitrary Python,
+Node or backend code locally.
+
+Execution / deployment can be connected to backend endpoints
+when available.
 ==========================================================
 */
 
@@ -80,23 +79,11 @@ const MAX_VISIBLE_ARTIFACTS = 100;
 
 const MAX_VISIBLE_TOOLS = 100;
 
-const MAX_ARTIFACT_VERSIONS = 50;
-
-const MAX_EDITOR_SIZE = 2 * 1024 * 1024;
+const MAX_ARTIFACT_VERSIONS = 30;
 
 const SCROLL_BOTTOM_THRESHOLD = 72;
 
 const STREAM_RENDER_INTERVAL = 32;
-
-const PREVIEW_SHARE_PATH = "/preview";
-
-const PREVIEW_DEPLOY_ENDPOINT = "/artifacts/deploy";
-
-const PREVIEW_SHARE_ENDPOINT = "/artifacts/share";
-
-const PREVIEW_EXECUTE_ENDPOINT = "/artifacts/execute";
-
-const PREVIEW_VERSION_ENDPOINT = "/artifacts/versions";
 
 
 /*
@@ -112,8 +99,6 @@ const SUPPORTED_TEXT_EXTENSIONS = [
     "markdown",
 
     "json",
-    "jsonl",
-
     "csv",
     "tsv",
 
@@ -130,45 +115,25 @@ const SUPPORTED_TEXT_EXTENSIONS = [
 
     "ts",
     "tsx",
+
     "jsx",
 
     "py",
-    "pyw",
 
     "java",
 
     "c",
     "cpp",
-    "cc",
-
     "h",
     "hpp",
-
-    "cs",
-
-    "go",
-
-    "rs",
-
-    "php",
-
-    "rb",
-
-    "swift",
-
-    "kt",
-    "kts",
 
     "sql",
 
     "sh",
     "bash",
-    "zsh",
 
     "yaml",
     "yml",
-
-    "toml",
 
     "ini",
     "conf",
@@ -194,171 +159,95 @@ STATE
 
 const state = {
 
-    initialized:
-        false,
+    initialized: false,
 
-    authenticated:
-        false,
+    authenticated: false,
 
-    conversationId:
-        null,
+    conversationId: null,
 
-    conversation:
-        null,
+    conversation: null,
 
-    conversations:
-        [],
+    conversations: [],
 
-    messages:
-        [],
+    messages: [],
 
-    selectedFile:
-        null,
+    selectedFile: null,
 
-    selectedFileContent:
-        "",
+    selectedFileContent: "",
 
-    selectedFileSupported:
-        false,
+    selectedFileSupported: false,
 
-    isSending:
-        false,
+    isSending: false,
 
-    isLive:
-        false,
+    isLive: false,
 
-    generationStartedAt:
-        null,
+    generationStartedAt: null,
 
-    liveAbortController:
-        null,
+    liveAbortController: null,
 
-    generationAbortController:
-        null,
+    generationAbortController: null,
 
-    currentGenerationId:
-        null,
+    currentGenerationId: null,
 
-    currentAssistantElement:
-        null,
+    currentAssistantElement: null,
 
-    currentAssistantContent:
-        "",
+    currentAssistantContent: "",
 
-    currentAssistantMessageId:
-        null,
+    currentAssistantMessageId: null,
 
-    currentMode:
-        DEFAULT_MODE,
+    currentMode: DEFAULT_MODE,
 
-    agentId:
-        DEFAULT_AGENT,
+    agentId: DEFAULT_AGENT,
 
-    workspace:
-        "main",
+    workspace: "main",
 
-    artifacts:
-        [],
+    artifacts: [],
 
-    tools:
-        [],
+    tools: [],
 
-    voiceRecognition:
-        null,
+    voiceRecognition: null,
 
-    searchQuery:
-        "",
+    searchQuery: "",
 
-    generationCancelled:
-        false,
+    generationCancelled: false,
 
-    generationStatus:
-        "idle",
+    generationStatus: "idle",
 
-    userNearBottom:
-        true,
+    userNearBottom: true,
 
-    streamRenderQueued:
-        false,
+    streamRenderQueued: false,
 
-    streamRenderTimer:
-        null,
+    streamRenderTimer: null,
 
-    streamLastRenderAt:
-        0,
+    streamLastRenderAt: 0,
 
-    streamRenderGenerationId:
-        null,
+    streamRenderGenerationId: null,
 
-    streamRenderRequested:
-        false,
+    streamRenderRequested: false,
 
-    streamHasRenderedContent:
-        false,
+    streamHasRenderedContent: false,
 
-    /*
-        UNIVERSAL PREVIEW
-    */
+    streamReader: null,
 
-    preview: {
+    streamBuffer: "",
 
-        open:
-            false,
+    streamFormat: null,
 
-        artifactId:
-            null,
+    artifactVersions: {},
 
-        artifact:
-            null,
+    activeArtifactKey: null,
 
-        artifactType:
-            null,
+    previewArtifact: null,
 
-        activeFile:
-            null,
+    previewMode: "preview",
 
-        activeVersion:
-            null,
+    previewEditor: null,
 
-        versions:
-            [],
+    previewIframeReady: false,
 
-        mode:
-            "preview",
+    previewFullscreen: false,
 
-        editorDirty:
-            false,
-
-        fullscreen:
-            false,
-
-        share:
-
-            null,
-
-        deploy:
-
-            null,
-
-        execution:
-
-            {
-
-                running:
-                    false,
-
-                language:
-                    null,
-
-                output:
-                    "",
-
-                error:
-                    null
-
-            }
-
-    }
+    previewShareToken: null
 
 };
 
@@ -392,8 +281,7 @@ async function initializeChat(){
 
     }
 
-    state.initialized =
-        true;
+    state.initialized = true;
 
     cacheDOM();
 
@@ -527,8 +415,7 @@ AUTHENTICATION
 
 async function initializeAuthenticatedChat(){
 
-    const token =
-        getAuthToken();
+    const token = getAuthToken();
 
     if(!token){
 
@@ -538,8 +425,7 @@ async function initializeAuthenticatedChat(){
 
     }
 
-    state.authenticated =
-        true;
+    state.authenticated = true;
 
     try{
 
@@ -635,12 +521,12 @@ async function apiRequest(
     options = {}
 ){
 
-    const token =
-        getAuthToken();
+    const token = getAuthToken();
 
     const headers = {
 
         Accept:
+            options.accept ||
             "application/json",
 
         ...(options.headers || {})
@@ -653,6 +539,7 @@ async function apiRequest(
     ){
 
         headers["Content-Type"] =
+            headers["Content-Type"] ||
             "application/json";
 
     }
@@ -674,31 +561,14 @@ async function apiRequest(
                 {
                     ...options,
                     headers,
-                    credentials:
-                        "include"
+                    credentials: "include"
                 }
             );
 
     }
     catch(error){
 
-        if(
-            error?.name === "AbortError"
-        ){
-
-            throw error;
-
-        }
-
-        const networkError =
-            new Error(
-                "Não foi possível contactar o servidor da Honey IA."
-            );
-
-        networkError.cause =
-            error;
-
-        throw networkError;
+        throw error;
 
     }
 
@@ -709,20 +579,18 @@ async function apiRequest(
                 "Sessão expirada."
             );
 
-        error.status =
-            401;
+        error.status = 401;
 
         throw error;
 
     }
 
-    let data =
-        null;
-
     const contentType =
         response.headers.get(
             "content-type"
         ) || "";
+
+    let data = null;
 
     if(
         contentType.includes(
@@ -738,8 +606,7 @@ async function apiRequest(
         }
         catch(error){
 
-            data =
-                null;
+            data = null;
 
         }
 
@@ -771,6 +638,1010 @@ async function apiRequest(
 
 /*
 ==========================================================
+STREAM REQUEST
+==========================================================
+*/
+
+async function streamRequest(
+    endpoint,
+    payload,
+    signal,
+    onChunk
+){
+
+    const token =
+        getAuthToken();
+
+    const headers = {
+
+        Accept:
+            [
+                "text/event-stream",
+                "application/x-ndjson",
+                "application/json",
+                "text/plain"
+            ].join(", "),
+
+        "Content-Type":
+            "application/json"
+
+    };
+
+    if(token){
+
+        headers.Authorization =
+            `Bearer ${token}`;
+
+    }
+
+    const response =
+        await fetch(
+            `${API_BASE}${endpoint}`,
+            {
+
+                method:
+                    "POST",
+
+                headers,
+
+                credentials:
+                    "include",
+
+                body:
+                    JSON.stringify(
+                        payload
+                    ),
+
+                signal
+
+            }
+        );
+
+    if(response.status === 401){
+
+        const error =
+            new Error(
+                "Sessão expirada."
+            );
+
+        error.status = 401;
+
+        throw error;
+
+    }
+
+    if(!response.ok){
+
+        let message =
+            `Erro HTTP ${response.status}.`;
+
+        try{
+
+            const text =
+                await response.text();
+
+            if(text){
+
+                try{
+
+                    const parsed =
+                        JSON.parse(text);
+
+                    message =
+                        parsed?.error ||
+                        parsed?.message ||
+                        message;
+
+                }
+                catch(error){
+
+                    message =
+                        text.slice(
+                            0,
+                            500
+                        );
+
+                }
+
+            }
+
+        }
+        catch(error){
+
+            /*
+                Ignore body parsing errors.
+            */
+
+        }
+
+        const apiError =
+            new Error(
+                message
+            );
+
+        apiError.status =
+            response.status;
+
+        throw apiError;
+
+    }
+
+    const contentType =
+        (
+            response.headers.get(
+                "content-type"
+            ) || ""
+        ).toLowerCase();
+
+    if(
+        !response.body
+    ){
+
+        const text =
+            await response.text();
+
+        return {
+
+            streamed:
+                false,
+
+            data:
+                parsePossibleJSON(
+                    text
+                ),
+
+            text
+
+        };
+
+    }
+
+    if(
+        contentType.includes(
+            "application/json"
+        ) &&
+        !contentType.includes(
+            "text/event-stream"
+        )
+    ){
+
+        const data =
+            await response.json();
+
+        return {
+
+            streamed:
+                false,
+
+            data,
+
+            text:
+                extractResponseText(
+                    data
+                )
+
+        };
+
+    }
+
+    return consumeReadableStream(
+        response.body,
+        signal,
+        onChunk
+    );
+
+}
+
+
+/*
+==========================================================
+READABLE STREAM
+==========================================================
+*/
+
+async function consumeReadableStream(
+    body,
+    signal,
+    onChunk
+){
+
+    const reader =
+        body.getReader();
+
+    state.streamReader =
+        reader;
+
+    const decoder =
+        new TextDecoder(
+            "utf-8"
+        );
+
+    let buffer = "";
+
+    let fullText = "";
+
+    let finalData = null;
+
+    try{
+
+        while(true){
+
+            if(signal?.aborted){
+
+                try{
+
+                    await reader.cancel(
+                        "Honey IA generation stopped"
+                    );
+
+                }
+                catch(error){
+
+                    /*
+                        Stream may already be cancelled.
+                    */
+
+                }
+
+                break;
+
+            }
+
+            const {
+                done,
+                value
+            } =
+                await reader.read();
+
+            if(done){
+
+                break;
+
+            }
+
+            if(signal?.aborted){
+
+                break;
+
+            }
+
+            const chunk =
+                decoder.decode(
+                    value,
+                    {
+                        stream:
+                            true
+                    }
+                );
+
+            if(!chunk){
+
+                continue;
+
+            }
+
+            buffer += chunk;
+
+            if(
+                buffer.length >
+                SSE_BUFFER_LIMIT
+            ){
+
+                buffer =
+                    buffer.slice(
+                        -SSE_BUFFER_LIMIT
+                    );
+
+            }
+
+            const parsed =
+                parseStreamBuffer(
+                    buffer
+                );
+
+            buffer =
+                parsed.remaining;
+
+            for(
+                const item of parsed.items
+            ){
+
+                if(
+                    item.type ===
+                    "text"
+                ){
+
+                    fullText +=
+                        item.text;
+
+                    onChunk?.(
+                        item.text,
+                        null
+                    );
+
+                }
+
+                else if(
+                    item.type ===
+                    "data"
+                ){
+
+                    finalData =
+                        mergeStreamData(
+                            finalData,
+                            item.data
+                        );
+
+                    const extracted =
+                        extractDeltaText(
+                            item.data
+                        );
+
+                    if(extracted){
+
+                        fullText +=
+                            extracted;
+
+                        onChunk?.(
+                            extracted,
+                            item.data
+                        );
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        const remainingDecoded =
+            decoder.decode();
+
+        if(remainingDecoded){
+
+            buffer +=
+                remainingDecoded;
+
+        }
+
+        const finalParsed =
+            parseStreamBuffer(
+                buffer,
+                true
+            );
+
+        for(
+            const item of finalParsed.items
+        ){
+
+            if(
+                item.type ===
+                "text"
+            ){
+
+                fullText +=
+                    item.text;
+
+                onChunk?.(
+                    item.text,
+                    null
+                );
+
+            }
+
+            else if(
+                item.type ===
+                "data"
+            ){
+
+                finalData =
+                    mergeStreamData(
+                        finalData,
+                        item.data
+                    );
+
+                const extracted =
+                    extractDeltaText(
+                        item.data
+                    );
+
+                if(extracted){
+
+                    fullText +=
+                        extracted;
+
+                    onChunk?.(
+                        extracted,
+                        item.data
+                    );
+
+                }
+
+            }
+
+        }
+
+        return {
+
+            streamed:
+                true,
+
+            data:
+                finalData,
+
+            text:
+                fullText
+
+        };
+
+    }
+    finally{
+
+        state.streamReader =
+            null;
+
+    }
+
+}
+
+
+/*
+==========================================================
+STREAM PARSER
+==========================================================
+*/
+
+function parseStreamBuffer(
+    input,
+    flush = false
+){
+
+    let buffer =
+        String(
+            input || ""
+        );
+
+    const items = [];
+
+    /*
+        SSE
+        --------------------------------------------------
+        data: {...}
+
+        data: text
+
+        [DONE]
+    */
+
+    while(
+        buffer.includes("\n\n") ||
+        buffer.includes("\r\n\r\n")
+    ){
+
+        const separator =
+            buffer.includes(
+                "\r\n\r\n"
+            )
+                ? "\r\n\r\n"
+                : "\n\n";
+
+        const index =
+            buffer.indexOf(
+                separator
+            );
+
+        if(index < 0){
+
+            break;
+
+        }
+
+        const record =
+            buffer.slice(
+                0,
+                index
+            );
+
+        buffer =
+            buffer.slice(
+                index +
+                separator.length
+            );
+
+        parseStreamRecord(
+            record,
+            items
+        );
+
+    }
+
+    /*
+        NDJSON / line-based
+    */
+
+    const lines =
+        buffer.split(
+            /\r?\n/
+        );
+
+    if(
+        lines.length > 1
+    ){
+
+        const last =
+            lines.pop();
+
+        for(
+            const line of lines
+        ){
+
+            parseStreamLine(
+                line,
+                items
+            );
+
+        }
+
+        buffer =
+            last || "";
+
+    }
+
+    if(flush && buffer.trim()){
+
+        parseStreamRecord(
+            buffer,
+            items
+        );
+
+        buffer = "";
+
+    }
+
+    return {
+
+        items,
+
+        remaining:
+            buffer
+
+    };
+
+}
+
+
+function parseStreamRecord(
+    record,
+    items
+){
+
+    const normalized =
+        String(
+            record || ""
+        ).trim();
+
+    if(!normalized){
+
+        return;
+
+    }
+
+    const lines =
+        normalized.split(
+            /\r?\n/
+        );
+
+    const dataLines = [];
+
+    let hasSSE =
+        false;
+
+    for(
+        const line of lines
+    ){
+
+        if(
+            line.startsWith(
+                "data:"
+            )
+        ){
+
+            hasSSE = true;
+
+            dataLines.push(
+                line.slice(
+                    5
+                ).trimStart()
+            );
+
+        }
+
+    }
+
+    if(hasSSE){
+
+        const value =
+            dataLines.join(
+                "\n"
+            );
+
+        if(
+            value ===
+            "[DONE]"
+        ){
+
+            return;
+
+        }
+
+        parseStreamValue(
+            value,
+            items
+        );
+
+        return;
+
+    }
+
+    parseStreamValue(
+        normalized,
+        items
+    );
+
+}
+
+
+function parseStreamLine(
+    line,
+    items
+){
+
+    const normalized =
+        String(
+            line || ""
+        ).trim();
+
+    if(!normalized){
+
+        return;
+
+    }
+
+    if(
+        normalized.startsWith(
+            "data:"
+        )
+    ){
+
+        const value =
+            normalized
+                .slice(5)
+                .trim();
+
+        if(
+            value ===
+            "[DONE]"
+        ){
+
+            return;
+
+        }
+
+        parseStreamValue(
+            value,
+            items
+        );
+
+        return;
+
+    }
+
+    if(
+        normalized.startsWith(
+            "{"
+        )
+    ){
+
+        parseStreamValue(
+            normalized,
+            items
+        );
+
+        return;
+
+    }
+
+    items.push({
+
+        type:
+            "text",
+
+        text:
+            normalized
+
+    });
+
+}
+
+
+function parseStreamValue(
+    value,
+    items
+){
+
+    const text =
+        String(
+            value || ""
+        );
+
+    if(!text){
+
+        return;
+
+    }
+
+    try{
+
+        const data =
+            JSON.parse(
+                text
+            );
+
+        items.push({
+
+            type:
+                "data",
+
+            data
+
+        });
+
+    }
+    catch(error){
+
+        items.push({
+
+            type:
+                "text",
+
+            text
+
+        });
+
+    }
+
+}
+
+
+/*
+==========================================================
+STREAM DATA MERGE
+==========================================================
+*/
+
+function mergeStreamData(
+    previous,
+    next
+){
+
+    if(!next){
+
+        return previous;
+
+    }
+
+    if(!previous){
+
+        return next;
+
+    }
+
+    if(
+        typeof previous ===
+            "object" &&
+        typeof next ===
+            "object"
+    ){
+
+        return {
+
+            ...previous,
+            ...next
+
+        };
+
+    }
+
+    return next;
+
+}
+
+
+/*
+==========================================================
+EXTRACT DELTA
+==========================================================
+*/
+
+function extractDeltaText(
+    data
+){
+
+    if(
+        data === null ||
+        data === undefined
+    ){
+
+        return "";
+
+    }
+
+    if(
+        typeof data ===
+        "string"
+    ){
+
+        return data;
+
+    }
+
+    const candidates = [
+
+        data.delta,
+
+        data.text,
+
+        data.content,
+
+        data.token,
+
+        data.chunk,
+
+        data.response?.delta,
+
+        data.response?.text,
+
+        data.response?.content,
+
+        data.message?.delta,
+
+        data.message?.content,
+
+        data.message?.assistant?.content,
+
+        data.choices?.[0]?.delta?.content,
+
+        data.choices?.[0]?.message?.content
+
+    ];
+
+    for(
+        const value of candidates
+    ){
+
+        if(
+            typeof value ===
+            "string" &&
+            value
+        ){
+
+            return value;
+
+        }
+
+    }
+
+    return "";
+
+}
+
+
+/*
+==========================================================
+EXTRACT FINAL RESPONSE
+==========================================================
+*/
+
+function extractResponseText(
+    data
+){
+
+    if(!data){
+
+        return "";
+
+    }
+
+    if(
+        typeof data ===
+        "string"
+    ){
+
+        return data;
+
+    }
+
+    const candidates = [
+
+        data.response,
+
+        data.text,
+
+        data.content,
+
+        data.message?.assistant?.content,
+
+        data.message?.content,
+
+        data.assistant?.content,
+
+        data.result?.content,
+
+        data.result?.text,
+
+        data.data?.response,
+
+        data.data?.content,
+
+        data.data?.text
+
+    ];
+
+    for(
+        const value of candidates
+    ){
+
+        if(
+            typeof value ===
+            "string" &&
+            value.trim()
+        ){
+
+            return value;
+
+        }
+
+    }
+
+    return "";
+
+}
+
+
+function parsePossibleJSON(
+    text
+){
+
+    const value =
+        String(
+            text || ""
+        ).trim();
+
+    if(!value){
+
+        return null;
+
+    }
+
+    try{
+
+        return JSON.parse(
+            value
+        );
+
+    }
+    catch(error){
+
+        return null;
+
+    }
+
+}
+
+
+/*
+==========================================================
 NAVIGATION
 ==========================================================
 */
@@ -794,15 +1665,13 @@ function setupNavigation(){
                     const target =
                         item.dataset.target;
 
-                    if(!target){
+                    if(target){
 
-                        return;
+                        activateWorkspace(
+                            target
+                        );
 
                     }
-
-                    activateWorkspace(
-                        target
-                    );
 
                 }
             );
@@ -859,19 +1728,18 @@ function activateWorkspace(
     updateHash = true
 ){
 
-    const sections =
-        document.querySelectorAll(
+    document
+        .querySelectorAll(
             ".workspace-view"
+        )
+        .forEach(
+            section => {
+
+                section.style.display =
+                    "none";
+
+            }
         );
-
-    sections.forEach(
-        section => {
-
-            section.style.display =
-                "none";
-
-        }
-    );
 
     const targetSection =
         document.getElementById(
@@ -911,13 +1779,19 @@ function activateWorkspace(
 
     }
 
-    if(target === "history"){
+    if(
+        target ===
+        "history"
+    ){
 
         renderHistory();
 
     }
 
-    if(target === "chat"){
+    if(
+        target ===
+        "chat"
+    ){
 
         focusChatInput();
 
@@ -944,19 +1818,18 @@ function setupChatControls(){
         event => {
 
             if(
-                event.key === "Enter" &&
+                event.key ===
+                "Enter" &&
                 !event.shiftKey
             ){
 
                 event.preventDefault();
 
-                if(state.isSending){
+                if(!state.isSending){
 
-                    return;
+                    sendCurrentMessage();
 
                 }
-
-                sendCurrentMessage();
 
             }
 
@@ -1015,7 +1888,7 @@ function handleSendButton(){
 
 /*
 ==========================================================
-GLOBAL KEYBOARD SHORTCUTS
+KEYBOARD
 ==========================================================
 */
 
@@ -1026,20 +1899,12 @@ function setupGlobalKeyboardShortcuts(){
         event => {
 
             if(
-                event.key === "Escape" &&
-                state.preview.fullscreen
-            ){
-
-                exitPreviewFullscreen();
-
-                return;
-
-            }
-
-            if(
-                event.key === "Escape" &&
+                event.key ===
+                "Escape" &&
                 state.isSending
             ){
+
+                event.preventDefault();
 
                 stopGeneration();
 
@@ -1049,7 +1914,8 @@ function setupGlobalKeyboardShortcuts(){
 
             if(
                 event.ctrlKey &&
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ){
 
                 event.preventDefault();
@@ -1070,7 +1936,7 @@ function setupGlobalKeyboardShortcuts(){
 
 /*
 ==========================================================
-SCROLL TRACKING
+SCROLL
 ==========================================================
 */
 
@@ -1143,6 +2009,12 @@ function scrollChatToBottom(
     requestAnimationFrame(
         () => {
 
+            if(!dom.chatMessages){
+
+                return;
+
+            }
+
             dom.chatMessages.scrollTop =
                 dom.chatMessages.scrollHeight;
 
@@ -1170,7 +2042,8 @@ function autoResizeInput(){
         "auto";
 
     const maxHeight =
-        window.innerWidth <= 700
+        window.innerWidth <=
+        700
             ? 160
             : 240;
 
@@ -1227,13 +2100,10 @@ function setupSuggestions(){
                             button.dataset.prompt ||
                             "";
 
-                        if(!prompt){
-
-                            return;
-
-                        }
-
-                        if(dom.chatInput){
+                        if(
+                            dom.chatInput &&
+                            prompt
+                        ){
 
                             dom.chatInput.value =
                                 prompt;
@@ -1263,12 +2133,18 @@ function setupModeSwitch(){
 
     dom.btnChatMode?.addEventListener(
         "click",
-        () => setChatMode("chat")
+        () =>
+            setChatMode(
+                "chat"
+            )
     );
 
     dom.btnLiveMode?.addEventListener(
         "click",
-        () => setChatMode("live")
+        () =>
+            setChatMode(
+                "live"
+            )
     );
 
     setChatMode(
@@ -1278,10 +2154,13 @@ function setupModeSwitch(){
 }
 
 
-function setChatMode(mode){
+function setChatMode(
+    mode
+){
 
     state.currentMode =
-        mode === "live"
+        mode ===
+        "live"
             ? "live"
             : "chat";
 
@@ -1301,12 +2180,16 @@ function setChatMode(mode){
 
     dom.btnChatMode?.setAttribute(
         "aria-pressed",
-        String(!live)
+        String(
+            !live
+        )
     );
 
     dom.btnLiveMode?.setAttribute(
         "aria-pressed",
-        String(live)
+        String(
+            live
+        )
     );
 
     if(dom.chatInput){
@@ -1405,7 +2288,7 @@ function getConversationId(
 
 /*
 ==========================================================
-GENERATION CONTROL
+GENERATION
 ==========================================================
 */
 
@@ -1414,11 +2297,14 @@ function createGeneration(){
     const id =
         createClientMessageId();
 
+    const controller =
+        new AbortController();
+
     state.currentGenerationId =
         id;
 
     state.generationAbortController =
-        new AbortController();
+        controller;
 
     state.generationCancelled =
         false;
@@ -1441,14 +2327,16 @@ function createGeneration(){
     state.streamLastRenderAt =
         0;
 
+    state.streamBuffer =
+        "";
+
     clearStreamRenderTimer();
 
     return {
 
         id,
 
-        controller:
-            state.generationAbortController
+        controller
 
     };
 
@@ -1462,91 +2350,17 @@ function isCurrentGeneration(
     return Boolean(
         generationId &&
         state.currentGenerationId ===
-            generationId
+        generationId
     );
 
 }
 
 
-function invalidateCurrentGeneration(){
-
-    state.currentGenerationId =
-        null;
-
-    state.generationStatus =
-        "idle";
-
-    clearStreamRenderTimer();
-
-}
-
-
-function abortCurrentGeneration(
-    silent = false
-){
-
-    const controller =
-        state.generationAbortController;
-
-    if(controller){
-
-        try{
-
-            controller.abort();
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Abort error:",
-                error
-            );
-
-        }
-
-    }
-
-    if(
-        state.liveAbortController &&
-        state.liveAbortController !==
-            controller
-    ){
-
-        try{
-
-            state.liveAbortController.abort();
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Live abort error:",
-                error
-            );
-
-        }
-
-    }
-
-    state.generationCancelled =
-        true;
-
-    state.generationStatus =
-        "stopping";
-
-    clearStreamRenderTimer();
-
-    if(!silent){
-
-        showToast(
-            "Geração interrompida.",
-            "info"
-        );
-
-    }
-
-}
-
+/*
+==========================================================
+STOP GENERATION
+==========================================================
+*/
 
 function stopGeneration(){
 
@@ -1556,114 +2370,173 @@ function stopGeneration(){
 
     }
 
-    abortCurrentGeneration();
-
-}
-
-
-/*
-==========================================================
-STREAM RENDER TIMER
-==========================================================
-*/
-
-function clearStreamRenderTimer(){
-
-    if(state.streamRenderTimer){
-
-        clearTimeout(
-            state.streamRenderTimer
-        );
-
-    }
-
-    state.streamRenderTimer =
-        null;
-
-    state.streamRenderQueued =
-        false;
-
-}
-
-
-function requestStreamRender(
-    element,
-    generationId
-){
-
-    if(
-        !element ||
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    if(
-        state.streamRenderQueued
-    ){
-
-        return;
-
-    }
-
-    const now =
-        Date.now();
-
-    const elapsed =
-        now -
-        state.streamLastRenderAt;
-
-    const delay =
-        Math.max(
-            0,
-            STREAM_RENDER_INTERVAL -
-            elapsed
-        );
-
-    state.streamRenderQueued =
+    state.generationCancelled =
         true;
 
-    state.streamRenderTimer =
-        setTimeout(
-            () => {
+    state.generationStatus =
+        "stopping";
 
-                state.streamRenderTimer =
-                    null;
+    const generationId =
+        state.currentGenerationId;
 
-                state.streamRenderQueued =
-                    false;
+    const controller =
+        state.generationAbortController;
 
-                if(
-                    !isCurrentGeneration(
-                        generationId
-                    )
-                ){
+    /*
+        AbortController interrompe o fetch e o body stream.
+    */
 
-                    return;
+    if(controller){
 
-                }
+        try{
 
-                state.streamLastRenderAt =
-                    Date.now();
+            controller.abort(
+                "User stopped generation"
+            );
 
-                renderAssistantContent(
-                    element,
-                    state.currentAssistantContent
-                );
+        }
+        catch(error){
 
-                if(state.userNearBottom){
+            try{
 
-                    scrollChatToBottom();
+                controller.abort();
 
-                }
+            }
+            catch(ignore){
 
-            },
-            delay
+                /*
+                    Already aborted.
+                */
+
+            }
+
+        }
+
+    }
+
+    /*
+        Cancela também o reader se estiver ativo.
+    */
+
+    if(state.streamReader){
+
+        try{
+
+            state.streamReader.cancel(
+                "User stopped generation"
+            );
+
+        }
+        catch(error){
+
+            /*
+                Reader may already be released.
+            */
+
+        }
+
+    }
+
+    if(state.liveAbortController){
+
+        try{
+
+            state.liveAbortController.abort();
+
+        }
+        catch(error){
+
+            /*
+                Ignore.
+            */
+
+        }
+
+    }
+
+    clearStreamRenderTimer();
+
+    /*
+        Renderiza imediatamente o conteúdo já recebido.
+    */
+
+    if(
+        state.currentAssistantElement &&
+        state.currentAssistantContent
+    ){
+
+        renderAssistantContent(
+            state.currentAssistantElement,
+            state.currentAssistantContent,
+            {
+                final:
+                    true
+            }
         );
+
+        setAssistantStatus(
+            state.currentAssistantElement,
+            "Resposta interrompida."
+        );
+
+        addAssistantMessageOnce(
+            state.currentAssistantContent,
+            {
+                interrupted:
+                    true
+            }
+        );
+
+    }
+
+    state.isSending =
+        false;
+
+    state.isLive =
+        false;
+
+    setSendingState(
+        false
+    );
+
+    state.generationStatus =
+        "stopped";
+
+    state.generationStartedAt =
+        null;
+
+    state.generationAbortController =
+        null;
+
+    state.liveAbortController =
+        null;
+
+    state.currentAssistantElement =
+        null;
+
+    state.currentAssistantContent =
+        "";
+
+    state.currentAssistantMessageId =
+        null;
+
+    if(
+        generationId &&
+        state.currentGenerationId ===
+        generationId
+    ){
+
+        state.currentGenerationId =
+            null;
+
+    }
+
+    clearInputAfterSend();
+
+    showToast(
+        "Geração interrompida.",
+        "info"
+    );
 
 }
 
@@ -1680,21 +2553,7 @@ async function createNewConversation(
 
     if(state.isSending){
 
-        abortCurrentGeneration(
-            true
-        );
-
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
-
-        await waitForAbortSettlement();
+        stopGeneration();
 
     }
 
@@ -1790,22 +2649,9 @@ async function createNewConversation(
 }
 
 
-async function waitForAbortSettlement(){
-
-    await new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                0
-            )
-    );
-
-}
-
-
 /*
 ==========================================================
-RESET CONVERSATION STATE
+RESET
 ==========================================================
 */
 
@@ -1813,14 +2659,11 @@ function resetConversationState(){
 
     clearStreamRenderTimer();
 
-    state.messages =
-        [];
+    state.messages = [];
 
-    state.artifacts =
-        [];
+    state.artifacts = [];
 
-    state.tools =
-        [];
+    state.tools = [];
 
     state.currentAssistantElement =
         null;
@@ -1846,6 +2689,12 @@ function resetConversationState(){
     state.liveAbortController =
         null;
 
+    state.streamReader =
+        null;
+
+    state.streamBuffer =
+        "";
+
     state.streamRenderGenerationId =
         null;
 
@@ -1858,9 +2707,20 @@ function resetConversationState(){
     state.streamHasRenderedContent =
         false;
 
-    resetPreviewState();
+    state.artifactVersions =
+        {};
+
+    state.activeArtifactKey =
+        null;
+
+    state.previewArtifact =
+        null;
 
     removeAttachment();
+
+    closeArtifactPreview(
+        false
+    );
 
 }
 
@@ -1884,25 +2744,15 @@ async function openConversation(
 
     if(
         state.isSending &&
-        String(conversationId) !==
-        String(state.conversationId)
+        String(
+            conversationId
+        ) !==
+        String(
+            state.conversationId
+        )
     ){
 
-        abortCurrentGeneration(
-            true
-        );
-
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
-
-        await waitForAbortSettlement();
+        stopGeneration();
 
     }
 
@@ -1949,7 +2799,6 @@ async function openConversation(
         state.artifacts =
             normalizeArtifactCollection(
                 data.artifacts ||
-                data.conversation.artifacts ||
                 []
             );
 
@@ -1960,16 +2809,10 @@ async function openConversation(
                 ? data.tools
                 : [];
 
-        clearStreamRenderTimer();
-
         clearChatMessages();
 
         renderMessages(
             state.messages
-        );
-
-        renderArtifacts(
-            state.artifacts
         );
 
         updateConversationHeader(
@@ -2146,9 +2989,6 @@ async function sendMessage(
     state.generationStartedAt =
         Date.now();
 
-    state.generationCancelled =
-        false;
-
     state.generationStatus =
         "preparing";
 
@@ -2234,40 +3074,67 @@ async function sendMessage(
             error
         );
 
-        const stillCurrent =
-            isCurrentGeneration(
-                generationId
-            );
-
         if(
-            error?.name === "AbortError" ||
-            state.generationCancelled
+            error?.name ===
+            "AbortError" ||
+            state.generationCancelled ||
+            generation.controller.signal.aborted
         ){
 
+            /*
+                A interrupção intencional não é um erro.
+            */
+
             if(
-                stillCurrent &&
+                isCurrentGeneration(
+                    generationId
+                ) &&
                 state.currentAssistantContent.trim()
             ){
 
-                finalizeInterruptedAssistant(
-                    assistantElement
+                renderAssistantContent(
+                    assistantElement,
+                    state.currentAssistantContent,
+                    {
+                        final:
+                            true
+                    }
                 );
 
-            }
-            else{
+                setAssistantStatus(
+                    assistantElement,
+                    "Resposta interrompida."
+                );
 
-                removeStreamingAssistantIfEmpty(
-                    assistantElement
+                addAssistantMessageOnce(
+                    state.currentAssistantContent,
+                    {
+                        interrupted:
+                            true
+                    }
                 );
 
             }
 
         }
-        else if(stillCurrent){
+        else if(
+            isCurrentGeneration(
+                generationId
+            )
+        ){
 
             if(
                 state.currentAssistantContent.trim()
             ){
+
+                renderAssistantContent(
+                    assistantElement,
+                    state.currentAssistantContent,
+                    {
+                        final:
+                            true
+                    }
+                );
 
                 setAssistantStatus(
                     assistantElement,
@@ -2298,7 +3165,10 @@ async function sendMessage(
 
         }
 
-        if(error?.status === 401){
+        if(
+            error?.status ===
+            401
+        ){
 
             redirectToLogin();
 
@@ -2310,7 +3180,8 @@ async function sendMessage(
         if(
             !isCurrentGeneration(
                 generationId
-            )
+            ) &&
+            !generation.controller.signal.aborted
         ){
 
             return;
@@ -2319,49 +3190,64 @@ async function sendMessage(
 
         clearStreamRenderTimer();
 
-        state.isSending =
-            false;
+        /*
+            Se stopGeneration() já fez o cleanup,
+            não o repetimos de maneira destrutiva.
+        */
 
-        state.isLive =
-            false;
+        if(
+            isCurrentGeneration(
+                generationId
+            )
+        ){
 
-        state.generationStatus =
-            state.generationCancelled
-                ? "stopped"
-                : "completed";
+            state.isSending =
+                false;
 
-        state.liveAbortController =
-            null;
+            state.isLive =
+                false;
 
-        state.generationAbortController =
-            null;
+            state.generationStatus =
+                state.generationCancelled
+                    ? "stopped"
+                    : "completed";
 
-        state.generationStartedAt =
-            null;
+            state.liveAbortController =
+                null;
 
-        setSendingState(
-            false
-        );
+            state.generationAbortController =
+                null;
 
-        state.currentAssistantElement =
-            null;
+            state.generationStartedAt =
+                null;
 
-        state.currentAssistantContent =
-            "";
+            setSendingState(
+                false
+            );
 
-        state.currentAssistantMessageId =
-            null;
+            state.currentAssistantElement =
+                null;
 
-        clearInputAfterSend();
+            state.currentAssistantContent =
+                "";
 
-        if(state.userNearBottom){
+            state.currentAssistantMessageId =
+                null;
 
-            scrollChatToBottom();
+            clearInputAfterSend();
+
+            if(
+                state.userNearBottom
+            ){
+
+                scrollChatToBottom();
+
+            }
+
+            state.currentGenerationId =
+                null;
 
         }
-
-        state.currentGenerationId =
-            null;
 
     }
 
@@ -2393,6 +3279,14 @@ async function sendStandardMessage(
     const controller =
         state.generationAbortController;
 
+    if(!controller){
+
+        throw new Error(
+            "Controlador de geração indisponível."
+        );
+
+    }
+
     const payload = {
 
         prompt,
@@ -2406,26 +3300,7 @@ async function sendStandardMessage(
         workspaceContext: {
 
             workspace:
-                state.workspace,
-
-            artifacts:
-                state.artifacts.map(
-                    artifact => ({
-                        id:
-                            artifact.id ||
-                            artifact._id,
-
-                        name:
-                            artifact.name,
-
-                        type:
-                            artifact.artifactType ||
-                            artifact.type,
-
-                        language:
-                            artifact.language
-                    })
-                )
+                state.workspace
 
         },
 
@@ -2439,24 +3314,282 @@ async function sendStandardMessage(
     state.generationStatus =
         "streaming";
 
-    const data =
-        await apiRequest(
+    /*
+        IMPORTANTE:
+        O request recebe o MESMO AbortSignal usado pelo
+        botão Stop.
+    */
+
+    const result =
+        await streamRequest(
             "",
-            {
+            payload,
+            controller.signal,
+            (
+                delta,
+                metadata
+            ) => {
 
-                method:
-                    "POST",
+                if(
+                    !isCurrentGeneration(
+                        generationId
+                    )
+                ){
 
-                body:
-                    JSON.stringify(
-                        payload
-                    ),
+                    return;
 
-                signal:
-                    controller?.signal
+                }
+
+                if(
+                    controller.signal.aborted ||
+                    state.generationCancelled
+                ){
+
+                    return;
+
+                }
+
+                if(delta){
+
+                    appendAssistantDelta(
+                        assistantElement,
+                        delta,
+                        generationId
+                    );
+
+                }
+
+                if(
+                    metadata?.artifacts
+                ){
+
+                    renderArtifacts(
+                        metadata.artifacts
+                    );
+
+                }
+
+                if(
+                    metadata?.tools
+                ){
+
+                    renderTools(
+                        metadata.tools
+                    );
+
+                }
 
             }
         );
+
+    if(
+        !isCurrentGeneration(
+            generationId
+        ) &&
+        !controller.signal.aborted
+    ){
+
+        return;
+
+    }
+
+    if(
+        controller.signal.aborted ||
+        state.generationCancelled
+    ){
+
+        return;
+
+    }
+
+    /*
+        Backend pode ter devolvido JSON normal.
+    */
+
+    let response =
+        result?.text ||
+        "";
+
+    const data =
+        result?.data ||
+        null;
+
+    if(
+        !response &&
+        data
+    ){
+
+        response =
+            extractResponseText(
+                data
+            );
+
+    }
+
+    /*
+        Se o stream enviou deltas, state já possui o texto.
+    */
+
+    if(
+        !response &&
+        state.currentAssistantContent
+    ){
+
+        response =
+            state.currentAssistantContent;
+
+    }
+
+    if(!response){
+
+        throw new Error(
+            "A Honey IA não devolveu uma resposta."
+        );
+
+    }
+
+    /*
+        Se JSON contém uma resposta completa diferente
+        do acumulado, usamos a resposta final.
+    */
+
+    if(
+        data &&
+        !result?.streamed
+    ){
+
+        response =
+            extractResponseText(
+                data
+            ) ||
+            response;
+
+        state.currentAssistantContent =
+            response;
+
+        renderAssistantContent(
+            assistantElement,
+            response,
+            {
+                final:
+                    true
+            }
+        );
+
+    }
+    else{
+
+        flushAssistantRender(
+            assistantElement,
+            generationId,
+            true
+        );
+
+    }
+
+    synchronizeConversation(
+        data?.conversation
+    );
+
+    const artifacts =
+        data?.artifacts ||
+        [];
+
+    if(
+        Array.isArray(
+            artifacts
+        )
+    ){
+
+        renderArtifacts(
+            artifacts
+        );
+
+    }
+
+    if(
+        Array.isArray(
+            data?.tools
+        )
+    ){
+
+        renderTools(
+            data.tools
+        );
+
+    }
+
+    renderResponseMetadata(
+        assistantElement,
+        data
+    );
+
+    addAssistantMessageOnce(
+        response,
+        data || {}
+    );
+
+    updateConversationInList(
+        data?.conversation
+    );
+
+    renderHistory();
+
+    processArtifactsFromResponse(
+        data
+    );
+
+}
+
+
+/*
+==========================================================
+APPEND ASSISTANT DELTA
+==========================================================
+*/
+
+function appendAssistantDelta(
+    element,
+    delta,
+    generationId
+){
+
+    if(
+        !element ||
+        !delta ||
+        !isCurrentGeneration(
+            generationId
+        )
+    ){
+
+        return;
+
+    }
+
+    state.currentAssistantContent +=
+        delta;
+
+    state.streamHasRenderedContent =
+        true;
+
+    queueAssistantRender(
+        element,
+        generationId
+    );
+
+}
+
+
+/*
+==========================================================
+STREAM RENDER
+==========================================================
+*/
+
+function queueAssistantRender(
+    element,
+    generationId
+){
 
     if(
         !isCurrentGeneration(
@@ -2468,28 +3601,272 @@ async function sendStandardMessage(
 
     }
 
+    state.streamRenderRequested =
+        true;
+
+    if(state.streamRenderQueued){
+
+        return;
+
+    }
+
+    const now =
+        Date.now();
+
+    const elapsed =
+        now -
+        state.streamLastRenderAt;
+
+    const delay =
+        Math.max(
+            0,
+            STREAM_RENDER_INTERVAL -
+            elapsed
+        );
+
+    state.streamRenderQueued =
+        true;
+
+    state.streamRenderTimer =
+        setTimeout(
+            () => {
+
+                state.streamRenderTimer =
+                    null;
+
+                state.streamRenderQueued =
+                    false;
+
+                if(
+                    !isCurrentGeneration(
+                        generationId
+                    )
+                ){
+
+                    return;
+
+                }
+
+                flushAssistantRender(
+                    element,
+                    generationId,
+                    false
+                );
+
+            },
+            delay
+        );
+
+}
+
+
+function flushAssistantRender(
+    element,
+    generationId,
+    final = false
+){
+
     if(
-        !data ||
-        data.success === false
+        !element ||
+        !isCurrentGeneration(
+            generationId
+        )
     ){
 
-        throw new Error(
-            data?.error ||
-            data?.message ||
-            "A Honey IA não conseguiu processar o pedido."
+        return;
+
+    }
+
+    if(
+        !state.currentAssistantContent
+    ){
+
+        return;
+
+    }
+
+    renderAssistantContent(
+        element,
+        state.currentAssistantContent,
+        {
+            final
+        }
+    );
+
+    state.streamLastRenderAt =
+        Date.now();
+
+    state.streamRenderRequested =
+        false;
+
+    if(state.userNearBottom){
+
+        scrollChatToBottom();
+
+    }
+
+}
+
+
+function clearStreamRenderTimer(){
+
+    if(
+        state.streamRenderTimer
+    ){
+
+        clearTimeout(
+            state.streamRenderTimer
         );
 
     }
 
-    synchronizeConversation(
-        data.conversation
-    );
+    state.streamRenderTimer =
+        null;
 
-    const response =
-        data.response ||
-        data.message?.assistant?.content ||
-        data.message?.content ||
+    state.streamRenderQueued =
+        false;
+
+}
+
+
+/*
+==========================================================
+LIVE MESSAGE
+==========================================================
+*/
+
+async function sendLiveMessage(
+    prompt,
+    assistantElement,
+    generationId
+){
+
+    /*
+        Live continua usando o mesmo motor de streaming.
+        Se o backend tiver endpoint próprio /live,
+        pode utilizá-lo; caso contrário usamos /.
+    */
+
+    state.isLive =
+        true;
+
+    const controller =
+        state.generationAbortController;
+
+    state.liveAbortController =
+        controller;
+
+    const payload = {
+
+        prompt,
+
+        conversationId:
+            state.conversationId,
+
+        agentId:
+            state.agentId,
+
+        workspaceContext: {
+
+            workspace:
+                state.workspace
+
+        },
+
+        memory: [],
+
+        mode:
+            "live",
+
+        live:
+            true
+
+    };
+
+    state.generationStatus =
+        "streaming";
+
+    const result =
+        await streamRequest(
+            "/",
+            payload,
+            controller.signal,
+            (
+                delta,
+                metadata
+            ) => {
+
+                if(
+                    controller.signal.aborted ||
+                    state.generationCancelled
+                ){
+
+                    return;
+
+                }
+
+                if(
+                    isCurrentGeneration(
+                        generationId
+                    ) &&
+                    delta
+                ){
+
+                    appendAssistantDelta(
+                        assistantElement,
+                        delta,
+                        generationId
+                    );
+
+                }
+
+                if(
+                    metadata?.artifacts
+                ){
+
+                    renderArtifacts(
+                        metadata.artifacts
+                    );
+
+                }
+
+            }
+        );
+
+    if(
+        controller.signal.aborted ||
+        state.generationCancelled
+    ){
+
+        return;
+
+    }
+
+    let response =
+        result?.text ||
         "";
+
+    if(
+        !response &&
+        result?.data
+    ){
+
+        response =
+            extractResponseText(
+                result.data
+            );
+
+    }
+
+    if(
+        !response &&
+        state.currentAssistantContent
+    ){
+
+        response =
+            state.currentAssistantContent;
+
+    }
 
     if(!response){
 
@@ -2511,945 +3888,261 @@ async function sendStandardMessage(
         }
     );
 
-    /*
-        We intentionally do not show latency/model/provider
-        metadata in the user chat UI.
-    */
+    synchronizeConversation(
+        result?.data?.conversation
+    );
 
-    if(
-        Array.isArray(
-            data.artifacts
-        )
-    ){
-
-        renderArtifacts(
-            data.artifacts
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            data.tools
-        )
-    ){
-
-        renderTools(
-            data.tools
-        );
-
-    }
+    renderResponseMetadata(
+        assistantElement,
+        result?.data
+    );
 
     addAssistantMessageOnce(
         response,
-        data
+        result?.data || {}
     );
 
-    updateConversationInList(
-        data.conversation
+    processArtifactsFromResponse(
+        result?.data
     );
-
-    renderHistory();
 
 }
 
 
 /*
 ==========================================================
-LIVE MESSAGE
+ASSISTANT MESSAGE
 ==========================================================
 */
 
-async function sendLiveMessage(
-    prompt,
-    assistantElement,
-    generationId
-){
+function createStreamingAssistantMessage(){
 
-    const controller =
-        state.generationAbortController ||
-        new AbortController();
+    if(!dom.chatMessages){
 
-    state.liveAbortController =
-        controller;
+        return null;
 
-    state.isLive =
+    }
+
+    hideWelcome();
+
+    const wrapper =
+        document.createElement(
+            "article"
+        );
+
+    wrapper.className =
+        "chat-message message-assistant streaming-message";
+
+    wrapper.dataset.role =
+        "assistant";
+
+    if(state.currentGenerationId){
+
+        wrapper.dataset.generationId =
+            state.currentGenerationId;
+
+    }
+
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+    avatar.className =
+        "message-avatar";
+
+    const body =
+        document.createElement(
+            "div"
+        );
+
+    body.className =
+        "message-body";
+
+    const content =
+        document.createElement(
+            "div"
+        );
+
+    content.className =
+        "message-content";
+
+    content.innerHTML = `
+
+        <div class="chat-thinking">
+
+            <span></span>
+            <span></span>
+            <span></span>
+
+        </div>
+
+    `;
+
+    body.appendChild(
+        content
+    );
+
+    const status =
+        document.createElement(
+            "div"
+        );
+
+    status.className =
+        "assistant-status";
+
+    body.appendChild(
+        status
+    );
+
+    wrapper.appendChild(
+        avatar
+    );
+
+    wrapper.appendChild(
+        body
+    );
+
+    dom.chatMessages.appendChild(
+        wrapper
+    );
+
+    state.userNearBottom =
         true;
 
-    state.generationStatus =
-        "streaming";
-
-    const payload = {
-
-        prompt,
-
-        conversationId:
-            state.conversationId,
-
-        agentId:
-            state.agentId,
-
-        workspaceContext: {
-
-            workspace:
-                state.workspace
-
-        },
-
-        mode:
-            "live"
-
-    };
-
-    const response =
-        await fetch(
-            `${API_BASE}`,
-            {
-
-                method:
-                    "POST",
-
-                headers: {
-
-                    "Content-Type":
-                        "application/json",
-
-                    Accept:
-                        "text/event-stream, application/json",
-
-                    Authorization:
-                        `Bearer ${getAuthToken()}`
-
-                },
-
-                credentials:
-                    "include",
-
-                body:
-                    JSON.stringify(
-                        payload
-                    ),
-
-                signal:
-                    controller.signal
-
-            }
-        );
-
-    if(response.status === 401){
-
-        const error =
-            new Error(
-                "Sessão expirada."
-            );
-
-        error.status =
-            401;
-
-        throw error;
-
-    }
-
-    if(!response.ok){
-
-        let message =
-            `Erro HTTP ${response.status}.`;
-
-        try{
-
-            const data =
-                await response.json();
-
-            message =
-                data?.error ||
-                data?.message ||
-                message;
-
-        }
-        catch(error){
-
-            /*
-                Response was not JSON.
-            */
-
-        }
-
-        throw new Error(
-            message
-        );
-
-    }
-
-    const contentType =
-        response.headers.get(
-            "content-type"
-        ) || "";
-
-    if(
-        contentType.includes(
-            "text/event-stream"
-        )
-    ){
-
-        await consumeSSEStream(
-            response,
-            assistantElement,
-            generationId
-        );
-
-        return;
-
-    }
-
-    const data =
-        await response.json();
-
-    if(
-        data?.success === false
-    ){
-
-        throw new Error(
-            data?.error ||
-            data?.message ||
-            "A Honey IA não conseguiu processar o pedido."
-        );
-
-    }
-
-    synchronizeConversation(
-        data?.conversation
+    scrollChatToBottom(
+        true
     );
 
-    const text =
-        data?.response ||
-        data?.message?.assistant?.content ||
-        data?.message?.content ||
-        "";
-
-    if(text){
-
-        state.currentAssistantContent =
-            text;
-
-        renderAssistantContent(
-            assistantElement,
-            text,
-            {
-                final:
-                    true
-            }
-        );
-
-        addAssistantMessageOnce(
-            text,
-            data
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            data?.artifacts
-        )
-    ){
-
-        renderArtifacts(
-            data.artifacts
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            data?.tools
-        )
-    ){
-
-        renderTools(
-            data.tools
-        );
-
-    }
+    return wrapper;
 
 }
 
 
-/*
-==========================================================
-SSE STREAM
-==========================================================
-*/
-
-async function consumeSSEStream(
-    response,
-    assistantElement,
-    generationId
-){
-
-    if(!response.body){
-
-        throw new Error(
-            "O servidor não disponibilizou o fluxo de resposta."
-        );
-
-    }
-
-    const reader =
-        response.body.getReader();
-
-    const decoder =
-        new TextDecoder(
-            "utf-8"
-        );
-
-    let buffer =
-        "";
-
-    try{
-
-        while(true){
-
-            const result =
-                await reader.read();
-
-            if(result.done){
-
-                break;
-
-            }
-
-            if(
-                !isCurrentGeneration(
-                    generationId
-                )
-            ){
-
-                try{
-
-                    await reader.cancel();
-
-                }
-                catch(error){
-
-                    /*
-                        Reader already closed.
-                    */
-
-                }
-
-                return;
-
-            }
-
-            buffer +=
-                decoder.decode(
-                    result.value,
-                    {
-                        stream:
-                            true
-                    }
-                );
-
-            if(
-                buffer.length >
-                SSE_BUFFER_LIMIT
-            ){
-
-                throw new Error(
-                    "O fluxo de resposta ultrapassou o limite de segurança."
-                );
-
-            }
-
-            const chunks =
-                buffer.split(
-                    /\r?\n\r?\n/
-                );
-
-            buffer =
-                chunks.pop() || "";
-
-            for(
-                const chunk of chunks
-            ){
-
-                processSSEChunk(
-                    chunk,
-                    assistantElement,
-                    generationId
-                );
-
-            }
-
-        }
-
-        buffer +=
-            decoder.decode();
-
-        if(buffer.trim()){
-
-            processSSEChunk(
-                buffer,
-                assistantElement,
-                generationId
-            );
-
-        }
-
-    }
-    finally{
-
-        try{
-
-            reader.releaseLock();
-
-        }
-        catch(error){
-
-            /*
-                Reader already released.
-            */
-
-        }
-
-    }
-
-    if(
-        isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        renderAssistantContent(
-            assistantElement,
-            state.currentAssistantContent,
-            {
-                final:
-                    true
-            }
-        );
-
-        if(
-            state.currentAssistantContent.trim()
-        ){
-
-            addAssistantMessageOnce(
-                state.currentAssistantContent
-            );
-
-        }
-
-    }
-
-}
-
-
-function processSSEChunk(
-    chunk,
-    assistantElement,
-    generationId
-){
-
-    if(
-        !chunk ||
-        !isCurrentGeneration(
-            generationId
-        )
-    ){
-
-        return;
-
-    }
-
-    const lines =
-        chunk.split(
-            /\r?\n/
-        );
-
-    let eventName =
-        "";
-
-    let dataLines =
-        [];
-
-    lines.forEach(
-        line => {
-
-            if(
-                line.startsWith(
-                    "event:"
-                )
-            ){
-
-                eventName =
-                    line.slice(
-                        6
-                    ).trim();
-
-                return;
-
-            }
-
-            if(
-                line.startsWith(
-                    "data:"
-                )
-            ){
-
-                dataLines.push(
-                    line.slice(
-                        5
-                    ).trim()
-                );
-
-            }
-
-        }
-    );
-
-    if(!dataLines.length){
-
-        return;
-
-    }
-
-    const rawData =
-        dataLines.join(
-            "\n"
-        );
-
-    if(
-        rawData ===
-        "[DONE]"
-    ){
-
-        return;
-
-    }
-
-    let payload =
-        null;
-
-    try{
-
-        payload =
-            JSON.parse(
-                rawData
-            );
-
-    }
-    catch(error){
-
-        payload = {
-
-            text:
-                rawData
-
-        };
-
-    }
-
-    if(
-        eventName ===
-        "error" ||
-        payload?.error
-    ){
-
-        throw new Error(
-            payload?.error ||
-            payload?.message ||
-            "Erro durante o streaming."
-        );
-
-    }
-
-    const delta =
-        payload?.delta ??
-        payload?.text ??
-        payload?.content ??
-        payload?.token ??
-        payload?.response?.delta ??
-        "";
-
-    if(
-        typeof delta ===
-        "string" &&
-        delta
-    ){
-
-        state.currentAssistantContent +=
-            delta;
-
-        state.streamHasRenderedContent =
-            true;
-
-        requestStreamRender(
-            assistantElement,
-            generationId
-        );
-
-    }
-
-    if(
-        payload?.conversation
-    ){
-
-        synchronizeConversation(
-            payload.conversation
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            payload?.artifacts
-        )
-    ){
-
-        renderArtifacts(
-            payload.artifacts
-        );
-
-    }
-
-    if(
-        Array.isArray(
-            payload?.tools
-        )
-    ){
-
-        renderTools(
-            payload.tools
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
-ASSISTANT MESSAGE DEDUPLICATION
-==========================================================
-*/
-
-function addAssistantMessageOnce(
+function renderAssistantContent(
+    element,
     content,
-    metadata = {}
+    options = {}
 ){
 
-    const normalized =
-        String(
-            content || ""
-        ).trim();
-
-    if(!normalized){
+    if(!element){
 
         return;
 
     }
 
-    const last =
-        state.messages[
-            state.messages.length - 1
-        ];
+    const contentElement =
+        element.querySelector(
+            ".message-content"
+        );
+
+    if(!contentElement){
+
+        return;
+
+    }
+
+    if(!content){
+
+        contentElement.innerHTML = `
+
+            <div class="chat-thinking">
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    contentElement.innerHTML =
+        renderMarkdown(
+            content
+        );
 
     if(
-        last?.role === "assistant" &&
-        String(
-            last.content || ""
-        ).trim() ===
-        normalized
+        options.final ===
+        true
     ){
 
-        if(
-            metadata?.interrupted === true
-        ){
+        highlightCode(
+            contentElement
+        );
 
-            last.interrupted =
-                true;
+    }
 
-        }
+}
+
+
+function setAssistantStatus(
+    element,
+    status
+){
+
+    if(!element){
 
         return;
 
     }
 
-    state.messages.push({
+    let statusElement =
+        element.querySelector(
+            ".assistant-status"
+        );
 
-        id:
-            state.currentAssistantMessageId ||
-            createClientMessageId(),
+    if(!status){
 
-        role:
-            "assistant",
-
-        content:
-            normalized,
-
-        createdAt:
-            new Date().toISOString(),
-
-        interrupted:
-            metadata?.interrupted === true
-
-    });
-
-}
-
-
-/*
-==========================================================
-CLIENT MESSAGE ID
-==========================================================
-*/
-
-function createClientMessageId(){
-
-    if(
-        typeof crypto !== "undefined" &&
-        typeof crypto.randomUUID ===
-            "function"
-    ){
-
-        return crypto.randomUUID();
-
-    }
-
-    return `honey-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-}
-
-
-/*
-==========================================================
-REFRESH CONVERSATION
-==========================================================
-*/
-
-async function refreshCurrentConversation(){
-
-    if(!state.conversationId){
+        statusElement?.remove();
 
         return;
 
     }
 
-    try{
+    if(!statusElement){
 
-        const data =
-            await apiRequest(
-                `/conversations/${encodeURIComponent(
-                    state.conversationId
-                )}`
+        statusElement =
+            document.createElement(
+                "div"
             );
 
-        if(data?.conversation){
+        statusElement.className =
+            "assistant-status";
 
-            synchronizeConversation(
-                data.conversation
-            );
-
-        }
-
-        if(
-            Array.isArray(
-                data?.messages
+        element
+            .querySelector(
+                ".message-body"
             )
-        ){
-
-            state.messages =
-                [...data.messages];
-
-        }
-
-        if(
-            Array.isArray(
-                data?.artifacts
-            )
-        ){
-
-            state.artifacts =
-                normalizeArtifactCollection(
-                    data.artifacts
-                );
-
-        }
-
-        await loadConversations();
-
-    }
-    catch(error){
-
-        if(
-            error?.status ===
-            401
-        ){
-
-            redirectToLogin();
-
-        }
-        else{
-
-            console.warn(
-                "[HONEY CHAT] Conversation refresh failed:",
-                error
+            ?.appendChild(
+                statusElement
             );
 
-        }
-
     }
+
+    statusElement.textContent =
+        status;
 
 }
 
 
 /*
 ==========================================================
-CONVERSATION STATE
-==========================================================
-*/
-
-function synchronizeConversation(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    state.conversation =
-        conversation;
-
-    state.conversationId =
-        getConversationId(
-            conversation
-        );
-
-    state.agentId =
-        conversation.agentId ||
-        state.agentId;
-
-    state.workspace =
-        conversation.workspace ||
-        state.workspace;
-
-    updateConversationHeader(
-        conversation
-    );
-
-    updateConversationInList(
-        conversation
-    );
-
-}
-
-
-function addConversationToState(
-    conversation
-){
-
-    const id =
-        getConversationId(
-            conversation
-        );
-
-    if(!id){
-
-        return;
-
-    }
-
-    const index =
-        state.conversations.findIndex(
-            item =>
-                getConversationId(item) ===
-                id
-        );
-
-    if(index >= 0){
-
-        state.conversations[index] =
-            conversation;
-
-    }
-    else{
-
-        state.conversations.unshift(
-            conversation
-        );
-
-    }
-
-}
-
-
-function updateConversationInList(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    addConversationToState(
-        conversation
-    );
-
-}
-
-
-/*
-==========================================================
-HEADER
-==========================================================
-*/
-
-function updateConversationHeader(
-    conversation
-){
-
-    if(!conversation){
-
-        return;
-
-    }
-
-    const title =
-        conversation.title ||
-        "Nova Conversa";
-
-    if(dom.conversationTitle){
-
-        dom.conversationTitle.textContent =
-            title;
-
-    }
-
-}
-
-
-/*
-==========================================================
-MESSAGE RENDERING
+MESSAGE RENDER
 ==========================================================
 */
 
 function clearChatMessages(){
 
-    if(!dom.chatMessages){
+    if(dom.chatMessages){
 
-        return;
+        dom.chatMessages.innerHTML =
+            "";
 
     }
-
-    dom.chatMessages.innerHTML =
-        "";
 
 }
 
@@ -3537,7 +4230,9 @@ function renderMessages(
     clearChatMessages();
 
     if(
-        !Array.isArray(messages) ||
+        !Array.isArray(
+            messages
+        ) ||
         !messages.length
     ){
 
@@ -3595,7 +4290,7 @@ function appendMessage(
 
     const content =
         typeof message?.content ===
-            "string"
+        "string"
             ? message.content
             : "";
 
@@ -3634,11 +4329,6 @@ function appendMessage(
 
     avatar.className =
         "message-avatar";
-
-    avatar.setAttribute(
-        "aria-hidden",
-        "true"
-    );
 
     const body =
         document.createElement(
@@ -3728,220 +4418,38 @@ function appendMessage(
 
 /*
 ==========================================================
-STREAMING ASSISTANT
+ROLE
 ==========================================================
 */
 
-function createStreamingAssistantMessage(){
+function normalizeMessageRole(
+    role
+){
 
-    if(!dom.chatMessages){
+    if(
+        typeof role !==
+        "string"
+    ){
 
         return null;
 
     }
 
-    hideWelcome();
-
-    const wrapper =
-        document.createElement(
-            "article"
-        );
-
-    wrapper.className =
-        "chat-message message-assistant streaming-message";
-
-    wrapper.dataset.role =
-        "assistant";
-
-    if(state.currentGenerationId){
-
-        wrapper.dataset.generationId =
-            state.currentGenerationId;
-
-    }
-
-    const avatar =
-        document.createElement(
-            "div"
-        );
-
-    avatar.className =
-        "message-avatar";
-
-    const body =
-        document.createElement(
-            "div"
-        );
-
-    body.className =
-        "message-body";
-
-    const content =
-        document.createElement(
-            "div"
-        );
-
-    content.className =
-        "message-content";
-
-    content.innerHTML = `
-
-        <div class="chat-thinking">
-
-            <span></span>
-            <span></span>
-            <span></span>
-
-        </div>
-
-    `;
-
-    body.appendChild(
-        content
-    );
-
-    wrapper.appendChild(
-        avatar
-    );
-
-    wrapper.appendChild(
-        body
-    );
-
-    dom.chatMessages.appendChild(
-        wrapper
-    );
-
-    state.userNearBottom =
-        true;
-
-    scrollChatToBottom(
-        true
-    );
-
-    return wrapper;
-
-}
-
-
-/*
-==========================================================
-ASSISTANT CONTENT
-==========================================================
-*/
-
-function renderAssistantContent(
-    element,
-    content,
-    options = {}
-){
-
-    if(!element){
-
-        return;
-
-    }
-
-    const contentElement =
-        element.querySelector(
-            ".message-content"
-        );
-
-    if(!contentElement){
-
-        return;
-
-    }
-
-    if(!content){
-
-        contentElement.innerHTML = `
-
-            <div class="chat-thinking">
-
-                <span></span>
-                <span></span>
-                <span></span>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-    contentElement.innerHTML =
-        renderMarkdown(
-            content
-        );
+    const normalized =
+        role
+            .trim()
+            .toLowerCase();
 
     if(
-        options.final === true
+        normalized === "user" ||
+        normalized === "assistant"
     ){
 
-        highlightCode(
-            contentElement
-        );
+        return normalized;
 
     }
 
-}
-
-
-/*
-==========================================================
-ASSISTANT STATUS
-==========================================================
-*/
-
-function setAssistantStatus(
-    element,
-    status
-){
-
-    if(!element){
-
-        return;
-
-    }
-
-    let statusElement =
-        element.querySelector(
-            ".assistant-status"
-        );
-
-    if(!status){
-
-        statusElement?.remove();
-
-        return;
-
-    }
-
-    if(!statusElement){
-
-        statusElement =
-            document.createElement(
-                "div"
-            );
-
-        statusElement.className =
-            "assistant-status";
-
-        const body =
-            element.querySelector(
-                ".message-body"
-            );
-
-        body?.appendChild(
-            statusElement
-        );
-
-    }
-
-    statusElement.textContent =
-        status;
+    return null;
 
 }
 
@@ -3958,8 +4466,7 @@ function renderMarkdown(
 
     if(
         typeof content !==
-            "string" ||
-        !content
+        "string"
     ){
 
         return "";
@@ -4020,6 +4527,97 @@ function renderMarkdown(
 }
 
 
+function sanitizeHTML(
+    html
+){
+
+    if(
+        typeof DOMPurify !==
+        "undefined"
+    ){
+
+        return DOMPurify.sanitize(
+            html,
+            {
+
+                USE_PROFILES:
+                    {
+                        html:
+                            true
+                    }
+
+            }
+        );
+
+    }
+
+    /*
+        Fallback conservative.
+    */
+
+    const template =
+        document.createElement(
+            "template"
+        );
+
+    template.innerHTML =
+        html;
+
+    template.content
+        .querySelectorAll(
+            "script, iframe, object, embed, form"
+        )
+        .forEach(
+            node =>
+                node.remove()
+        );
+
+    template.content
+        .querySelectorAll(
+            "[onerror],[onclick],[onload],[onmouseover]"
+        )
+        .forEach(
+            node => {
+
+                [
+                    "onerror",
+                    "onclick",
+                    "onload",
+                    "onmouseover"
+                ].forEach(
+                    attr =>
+                        node.removeAttribute(
+                            attr
+                        )
+                );
+
+            }
+        );
+
+    return template.innerHTML;
+
+}
+
+
+function escapeHTML(
+    value
+){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.textContent =
+        String(
+            value || ""
+        );
+
+    return div.innerHTML;
+
+}
+
+
 /*
 ==========================================================
 CODE HIGHLIGHT
@@ -4033,7 +4631,7 @@ function highlightCode(
     if(
         !container ||
         typeof hljs ===
-            "undefined"
+        "undefined"
     ){
 
         return;
@@ -4083,100 +4681,199 @@ function highlightCode(
 
 /*
 ==========================================================
-SAFE HTML
+RESPONSE METADATA
 ==========================================================
 */
 
-function sanitizeHTML(
-    html
+function renderResponseMetadata(
+    element,
+    result
 ){
 
     if(
-        typeof DOMPurify !==
-        "undefined"
+        !element ||
+        !result
     ){
 
-        return DOMPurify.sanitize(
-            html,
-            {
+        return;
 
-                USE_PROFILES:
-                    {
-                        html:
-                            true
-                    },
+    }
 
-                ADD_TAGS:
-                    [
-                        "table",
-                        "thead",
-                        "tbody",
-                        "tr",
-                        "th",
-                        "td"
-                    ],
+    /*
+        We intentionally do not display latency/time
+        in the chat UI.
+    */
 
-                FORBID_TAGS:
-                    [
-                        "script",
-                        "object",
-                        "embed",
-                        "iframe"
-                    ]
+    const metadata = [];
 
-            }
+    if(result.agent){
+
+        const agentName =
+            typeof result.agent ===
+            "string"
+                ? result.agent
+                : (
+                    result.agent.name ||
+                    result.agent.id ||
+                    result.agent._id ||
+                    ""
+                );
+
+        if(agentName){
+
+            metadata.push(
+                agentName
+            );
+
+        }
+
+    }
+
+    if(result.model){
+
+        metadata.push(
+            String(
+                result.model
+            )
         );
 
     }
 
-    const template =
-        document.createElement(
-            "template"
+    if(result.provider){
+
+        metadata.push(
+            String(
+                result.provider
+            )
         );
 
-    template.innerHTML =
-        String(
-            html || ""
+    }
+
+    if(!metadata.length){
+
+        return;
+
+    }
+
+    const body =
+        element.querySelector(
+            ".message-body"
         );
 
-    template.content
-        .querySelectorAll(
-            "script,iframe,object,embed"
+    if(!body){
+
+        return;
+
+    }
+
+    body
+        .querySelector(
+            ".message-meta"
         )
-        .forEach(
-            element =>
-                element.remove()
-        );
+        ?.remove();
 
-    return template.innerHTML;
-
-}
-
-
-function escapeHTML(
-    value
-){
-
-    const div =
+    const meta =
         document.createElement(
             "div"
         );
 
-    div.textContent =
-        String(
-            value || ""
+    meta.className =
+        "message-meta";
+
+    meta.textContent =
+        metadata.join(
+            " · "
         );
 
-    return div.innerHTML;
+    body.appendChild(
+        meta
+    );
 
 }
 
 
 /*
 ==========================================================
-UNIVERSAL ARTIFACTS
+ARTIFACT NORMALIZATION
 ==========================================================
 */
+
+function normalizeArtifact(
+    artifact
+){
+
+    if(
+        !artifact ||
+        typeof artifact !==
+        "object"
+    ){
+
+        return null;
+
+    }
+
+    const content =
+        typeof artifact.content ===
+        "string"
+            ? artifact.content
+            : (
+                typeof artifact.code ===
+                "string"
+                    ? artifact.code
+                    : ""
+            );
+
+    if(!content){
+
+        return null;
+
+    }
+
+    return {
+
+        ...artifact,
+
+        id:
+            artifact.id ||
+            artifact._id ||
+            createClientMessageId(),
+
+        name:
+            artifact.name ||
+            artifact.filename ||
+            artifact.title ||
+            "Honey IA Result",
+
+        content,
+
+        mime:
+            normalizeMime(
+                artifact.mime ||
+                artifact.type ||
+                ""
+            ),
+
+        language:
+            normalizeLanguage(
+                artifact.language ||
+                artifact.lang ||
+                artifact.fileType ||
+                artifact.extension ||
+                ""
+            ),
+
+        editable:
+            artifact.editable !==
+            false,
+
+        createdAt:
+            artifact.createdAt ||
+            new Date().toISOString()
+
+    };
+
+}
+
 
 function normalizeArtifactCollection(
     artifacts
@@ -4198,650 +4895,122 @@ function normalizeArtifactCollection(
         )
         .filter(
             Boolean
-        );
-
-}
-
-
-function normalizeArtifact(
-    artifact
-){
-
-    if(
-        !artifact ||
-        typeof artifact !==
-        "object"
-    ){
-
-        return null;
-
-    }
-
-    const content =
-        typeof artifact.content ===
-            "string"
-            ? artifact.content
-            : (
-                typeof artifact.code ===
-                    "string"
-                    ? artifact.code
-                    : ""
-            );
-
-    const files =
-        normalizeArtifactFiles(
-            artifact.files
-        );
-
-    const inferredType =
-        inferArtifactType(
-            {
-                ...artifact,
-                content,
-                files
-            }
-        );
-
-    return {
-
-        ...artifact,
-
-        id:
-            artifact.id ||
-            artifact._id ||
-            createClientMessageId(),
-
-        name:
-            artifact.name ||
-            artifact.title ||
-            "Honey IA Result",
-
-        title:
-            artifact.title ||
-            artifact.name ||
-            "Honey IA Result",
-
-        content,
-
-        mime:
-            artifact.mime ||
-            artifact.mimeType ||
-            "",
-
-        language:
-            artifact.language ||
-            inferLanguage(
-                artifact,
-                content
-            ),
-
-        artifactType:
-            artifact.artifactType ||
-            artifact.category ||
-            inferredType,
-
-        type:
-            artifact.type ||
-            artifact.artifactType ||
-            inferredType,
-
-        files,
-
-        entryPoint:
-            artifact.entryPoint ||
-            inferEntryPoint(
-                files,
-                inferredType
-            ),
-
-        versions:
-            Array.isArray(
-                artifact.versions
-            )
-                ? artifact.versions
-                : [],
-
-        downloadable:
-            artifact.downloadable !==
-            false,
-
-        editable:
-            artifact.editable !==
-            false,
-
-        previewable:
-            artifact.previewable !==
-            false
-
-    };
-
-}
-
-
-function normalizeArtifactFiles(
-    files
-){
-
-    if(
-        !Array.isArray(files)
-    ){
-
-        return [];
-
-    }
-
-    return files
-        .map(
-            file => {
-
-                if(
-                    typeof file ===
-                    "string"
-                ){
-
-                    return {
-
-                        name:
-                            file,
-
-                        path:
-                            file,
-
-                        content:
-                            "",
-
-                        language:
-                            inferLanguageFromFilename(
-                                file
-                            )
-
-                    };
-
-                }
-
-                if(
-                    !file ||
-                    typeof file !==
-                    "object"
-                ){
-
-                    return null;
-
-                }
-
-                return {
-
-                    ...file,
-
-                    name:
-                        file.name ||
-                        file.path ||
-                        "arquivo",
-
-                    path:
-                        file.path ||
-                        file.name ||
-                        "arquivo",
-
-                    content:
-                        typeof file.content ===
-                            "string"
-                            ? file.content
-                            : "",
-
-                    language:
-                        file.language ||
-                        inferLanguageFromFilename(
-                            file.name ||
-                            file.path ||
-                            ""
-                        )
-
-                };
-
-            }
         )
-        .filter(
-            Boolean
+        .slice(
+            -MAX_VISIBLE_ARTIFACTS
         );
 
 }
 
 
-function inferArtifactType(
-    artifact
+function normalizeMime(
+    mime
 ){
 
-    const explicit =
+    const value =
         String(
-            artifact?.artifactType ||
-            artifact?.category ||
-            artifact?.type ||
+            mime || ""
+        )
+            .toLowerCase()
+            .trim();
+
+    if(!value){
+
+        return "";
+
+    }
+
+    if(
+        value ===
+        "text/html"
+    ){
+
+        return "text/html";
+
+    }
+
+    if(
+        value ===
+        "application/json"
+    ){
+
+        return "application/json";
+
+    }
+
+    if(
+        value.includes(
+            "javascript"
+        )
+    ){
+
+        return "text/javascript";
+
+    }
+
+    if(
+        value.includes(
+            "css"
+        )
+    ){
+
+        return "text/css";
+
+    }
+
+    if(
+        value.includes(
+            "csv"
+        )
+    ){
+
+        return "text/csv";
+
+    }
+
+    if(
+        value.includes(
+            "markdown"
+        )
+    ){
+
+        return "text/markdown";
+
+    }
+
+    if(
+        value.includes(
+            "svg"
+        )
+    ){
+
+        return "image/svg+xml";
+
+    }
+
+    return value;
+
+}
+
+
+function normalizeLanguage(
+language
+){
+
+    let value =
+        String(
+            language || ""
+        )
+            .toLowerCase()
+            .trim();
+
+    value =
+        value.replace(
+            /^\./,
             ""
-        )
-        .toLowerCase()
-        .trim();
-
-    if(explicit){
-
-        if(
-            explicit.includes(
-                "presentation"
-            ) ||
-            explicit.includes(
-                "slide"
-            ) ||
-            explicit.includes(
-                "ppt"
-            )
-        ){
-
-            return "presentation";
-
-        }
-
-        if(
-            explicit.includes(
-                "spreadsheet"
-            ) ||
-            explicit.includes(
-                "excel"
-            ) ||
-            explicit.includes(
-                "xlsx"
-            )
-        ){
-
-            return "spreadsheet";
-
-        }
-
-        if(
-            explicit.includes(
-                "document"
-            ) ||
-            explicit.includes(
-                "docx"
-            ) ||
-            explicit.includes(
-                "word"
-            )
-        ){
-
-            return "document";
-
-        }
-
-        if(
-            explicit.includes(
-                "website"
-            ) ||
-            explicit.includes(
-                "web"
-            )
-        ){
-
-            return "website";
-
-        }
-
-        if(
-            explicit.includes(
-                "webapp"
-            ) ||
-            explicit.includes(
-                "application"
-            ) ||
-            explicit.includes(
-                "app"
-            )
-        ){
-
-            return "webapp";
-
-        }
-
-        if(
-            explicit.includes(
-                "image"
-            ) ||
-            explicit.includes(
-                "png"
-            ) ||
-            explicit.includes(
-                "jpg"
-            )
-        ){
-
-            return "image";
-
-        }
-
-        if(
-            explicit.includes(
-                "pdf"
-            )
-        ){
-
-            return "pdf";
-
-        }
-
-        if(
-            explicit.includes(
-                "chart"
-            ) ||
-            explicit.includes(
-                "graph"
-            )
-        ){
-
-            return "chart";
-
-        }
-
-        if(
-            explicit.includes(
-                "data"
-            ) ||
-            explicit.includes(
-                "dataset"
-            )
-        ){
-
-            return "data";
-
-        }
-
-        if(
-            explicit.includes(
-                "code"
-            ) ||
-            explicit.includes(
-                "script"
-            )
-        ){
-
-            return "code";
-
-        }
-
-    }
-
-    const mime =
-        String(
-            artifact?.mime ||
-            artifact?.mimeType ||
-            ""
-        ).toLowerCase();
-
-    if(
-        mime.includes(
-            "presentation"
-        ) ||
-        mime.includes(
-            "powerpoint"
-        )
-    ){
-
-        return "presentation";
-
-    }
-
-    if(
-        mime.includes(
-            "spreadsheet"
-        ) ||
-        mime.includes(
-            "excel"
-        )
-    ){
-
-        return "spreadsheet";
-
-    }
-
-    if(
-        mime.includes(
-            "pdf"
-        )
-    ){
-
-        return "pdf";
-
-    }
-
-    if(
-        mime.startsWith(
-            "image/"
-        )
-    ){
-
-        return "image";
-
-    }
-
-    const filename =
-        String(
-            artifact?.name ||
-            artifact?.title ||
-            artifact?.entryPoint ||
-            ""
-        ).toLowerCase();
-
-    if(
-        /\.(pptx?|odp)$/.test(
-            filename
-        )
-    ){
-
-        return "presentation";
-
-    }
-
-    if(
-        /\.(xlsx?|ods)$/.test(
-            filename
-        )
-    ){
-
-        return "spreadsheet";
-
-    }
-
-    if(
-        /\.pdf$/.test(
-            filename
-        )
-    ){
-
-        return "pdf";
-
-    }
-
-    if(
-        /\.(png|jpg|jpeg|gif|webp|svg)$/.test(
-            filename
-        )
-    ){
-
-        return "image";
-
-    }
-
-    const files =
-        artifact?.files || [];
-
-    const names =
-        files
-            .map(
-                file =>
-                    String(
-                        file?.name ||
-                        file?.path ||
-                        ""
-                    ).toLowerCase()
-            );
-
-    if(
-        names.some(
-            name =>
-                /(^|\/)index\.html?$/.test(
-                    name
-                )
-        )
-    ){
-
-        return "website";
-
-    }
-
-    if(
-        names.some(
-            name =>
-                /\.(xlsx?|ods)$/.test(
-                    name
-                )
-        )
-    ){
-
-        return "spreadsheet";
-
-    }
-
-    if(
-        names.some(
-            name =>
-                /\.(pptx?|odp)$/.test(
-                    name
-                )
-        )
-    ){
-
-        return "presentation";
-
-    }
-
-    if(
-        names.some(
-            name =>
-                /\.pdf$/.test(
-                    name
-                )
-        )
-    ){
-
-        return "pdf";
-
-    }
-
-    if(
-        names.some(
-            name =>
-                /\.(png|jpg|jpeg|gif|webp|svg)$/.test(
-                    name
-                )
-        )
-    ){
-
-        return "image";
-
-    }
-
-    const language =
-        String(
-            artifact?.language ||
-            ""
-        ).toLowerCase();
-
-    if(
-        [
-            "html",
-            "css",
-            "javascript",
-            "typescript",
-            "jsx",
-            "tsx",
-            "vue",
-            "svelte"
-        ].includes(
-            language
-        )
-    ){
-
-        return "website";
-
-    }
-
-    if(
-        language ||
-        artifact?.code
-    ){
-
-        return "code";
-
-    }
-
-    if(
-        typeof artifact?.content ===
-        "string"
-    ){
-
-        return "document";
-
-    }
-
-    return "generic";
-
-}
-
-
-function inferLanguage(
-    artifact,
-    content
-){
-
-    if(artifact?.language){
-
-        return String(
-            artifact.language
         );
 
-    }
-
-    const name =
-        artifact?.name ||
-        artifact?.title ||
-        "";
-
-    return inferLanguageFromFilename(
-        name
-    ) || (
-        content.includes(
-            "<html"
-        )
-            ? "html"
-            : ""
-    );
-
-}
-
-
-function inferLanguageFromFilename(
-    filename
-){
-
-    const extension =
-        String(
-            filename || ""
-        )
-        .toLowerCase()
-        .split(
-            "."
-        )
-        .pop();
-
-    const map = {
+    const aliases = {
 
         html:
             "html",
@@ -4849,8 +5018,8 @@ function inferLanguageFromFilename(
         htm:
             "html",
 
-        css:
-            "css",
+        javascript:
+            "javascript",
 
         js:
             "javascript",
@@ -4861,17 +5030,44 @@ function inferLanguageFromFilename(
         cjs:
             "javascript",
 
-        ts:
+        typescript:
             "typescript",
 
-        tsx:
-            "tsx",
+        ts:
+            "typescript",
 
         jsx:
             "jsx",
 
+        tsx:
+            "tsx",
+
+        css:
+            "css",
+
+        python:
+            "python",
+
         py:
             "python",
+
+        json:
+            "json",
+
+        csv:
+            "csv",
+
+        md:
+            "markdown",
+
+        markdown:
+            "markdown",
+
+        svg:
+            "svg",
+
+        xml:
+            "xml",
 
         java:
             "java",
@@ -4882,119 +5078,19 @@ function inferLanguageFromFilename(
         cpp:
             "cpp",
 
-        h:
-            "c",
-
-        hpp:
-            "cpp",
-
         sql:
             "sql",
-
-        json:
-            "json",
-
-        csv:
-            "csv",
-
-        xml:
-            "xml",
-
-        md:
-            "markdown",
-
-        yaml:
-            "yaml",
-
-        yml:
-            "yaml",
 
         sh:
             "shell",
 
         bash:
-            "shell",
-
-        php:
-            "php",
-
-        go:
-            "go",
-
-        rs:
-            "rust",
-
-        rb:
-            "ruby",
-
-        vue:
-            "vue",
-
-        svelte:
-            "svelte"
+            "shell"
 
     };
 
-    return map[
-        extension
-    ] || "";
-
-}
-
-
-function inferEntryPoint(
-    files,
-    type
-){
-
-    if(!Array.isArray(files)){
-
-        return null;
-
-    }
-
-    const html =
-        files.find(
-            file =>
-                /(^|\/)index\.html?$/.test(
-                    String(
-                        file?.name ||
-                        file?.path ||
-                        ""
-                    ).toLowerCase()
-                )
-        );
-
-    if(html){
-
-        return html.name ||
-            html.path;
-
-    }
-
-    if(type === "website"){
-
-        const firstHtml =
-            files.find(
-                file =>
-                    /\.(html|htm)$/i.test(
-                        String(
-                            file?.name ||
-                            file?.path ||
-                            ""
-                        )
-                    )
-            );
-
-        return firstHtml?.name ||
-            firstHtml?.path ||
-            null;
-
-    }
-
-    return files[0]?.name ||
-        files[0]?.path ||
-        null;
+    return aliases[value] ||
+        value;
 
 }
 
@@ -5012,10 +5108,181 @@ function getArtifactKey(
     return String(
         artifact.id ||
         artifact._id ||
-        `${artifact.name || "artifact"}:${artifact.language || ""}:${String(
-            artifact.content || ""
-        ).slice(0, 120)}`
+        `${artifact.name || "artifact"}:${artifact.language || ""}`
     );
+
+}
+
+
+/*
+==========================================================
+ARTIFACT RESPONSE PROCESSING
+==========================================================
+*/
+
+function processArtifactsFromResponse(
+data
+){
+
+    if(!data){
+
+        return;
+
+    }
+
+    const candidates = [
+
+        data.artifacts,
+
+        data.artifact,
+
+        data.result?.artifacts,
+
+        data.message?.artifacts,
+
+        data.response?.artifacts
+
+    ];
+
+    for(
+        const candidate of candidates
+    ){
+
+        if(
+            Array.isArray(
+                candidate
+            )
+        ){
+
+            renderArtifacts(
+                candidate
+            );
+
+        }
+        else if(
+            candidate &&
+            typeof candidate ===
+            "object"
+        ){
+
+            renderArtifacts(
+                [candidate]
+            );
+
+        }
+
+    }
+
+    /*
+        Alguns backends devolvem o artefacto diretamente
+        como objeto da resposta.
+    */
+
+    if(
+        data.content &&
+        (
+            data.filename ||
+            data.fileName ||
+            data.mime ||
+            data.language ||
+            data.type
+        )
+    ){
+
+        renderArtifacts(
+            [data]
+        );
+
+    }
+
+}
+
+
+/*
+==========================================================
+ARTIFACTS
+==========================================================
+*/
+
+function renderArtifacts(
+    artifacts
+){
+
+    if(
+        !Array.isArray(
+            artifacts
+        ) ||
+        !artifacts.length
+    ){
+
+        return;
+
+    }
+
+    artifacts.forEach(
+        artifact => {
+
+            const normalized =
+                normalizeArtifact(
+                    artifact
+                );
+
+            if(!normalized){
+
+                return;
+
+            }
+
+            const key =
+                getArtifactKey(
+                    normalized
+                );
+
+            const existing =
+                state.artifacts.findIndex(
+                    item =>
+                        getArtifactKey(
+                            item
+                        ) ===
+                        key
+                );
+
+            if(existing >= 0){
+
+                state.artifacts[
+                    existing
+                ] = {
+
+                    ...state.artifacts[
+                        existing
+                    ],
+
+                    ...normalized
+
+                };
+
+            }
+            else{
+
+                state.artifacts.push(
+                    normalized
+                );
+
+            }
+
+            registerArtifactVersion(
+                normalized
+            );
+
+        }
+    );
+
+    state.artifacts =
+        state.artifacts.slice(
+            -MAX_VISIBLE_ARTIFACTS
+        );
+
+    renderArtifactCards();
 
 }
 
@@ -5043,13 +5310,101 @@ function renderArtifactCards(){
                 element.remove()
         );
 
+    if(
+        !state.artifacts.length
+    ){
+
+        return;
+
+    }
+
     state.artifacts.forEach(
         artifact => {
 
             const card =
-                createArtifactCard(
+                document.createElement(
+                    "article"
+                );
+
+            card.className =
+                "honey-artifact-card";
+
+            card.dataset.artifactKey =
+                getArtifactKey(
                     artifact
                 );
+
+            const header =
+                document.createElement(
+                    "div"
+                );
+
+            header.className =
+                "honey-artifact-header";
+
+            const title =
+                document.createElement(
+                    "strong"
+                );
+
+            title.textContent =
+                artifact.name;
+
+            const type =
+                document.createElement(
+                    "span"
+                );
+
+            type.textContent =
+                artifact.language ||
+                artifact.mime ||
+                "arquivo";
+
+            header.appendChild(
+                title
+            );
+
+            header.appendChild(
+                type
+            );
+
+            const actions =
+                document.createElement(
+                    "div"
+                );
+
+            actions.className =
+                "honey-artifact-actions";
+
+            actions.appendChild(
+                createArtifactButton(
+                    "Abrir Preview",
+                    "fa-eye",
+                    () =>
+                        openArtifactPreview(
+                            artifact
+                        )
+                )
+            );
+
+            actions.appendChild(
+                createArtifactButton(
+                    "Baixar",
+                    "fa-download",
+                    () =>
+                        downloadArtifact(
+                            artifact
+                        )
+                )
+            );
+
+            card.appendChild(
+                header
+            );
+
+            card.appendChild(
+                actions
+            );
 
             dom.chatMessages.appendChild(
                 card
@@ -5058,557 +5413,201 @@ function renderArtifactCards(){
         }
     );
 
-    if(state.userNearBottom){
-
-        scrollChatToBottom();
-
-    }
-
 }
 
 
-function createArtifactCard(
-    artifact
+function createArtifactButton(
+    title,
+    icon,
+    handler
 ){
 
-    const card =
+    const button =
         document.createElement(
-            "article"
+            "button"
         );
 
-    card.className =
-        "honey-artifact-card";
+    button.type =
+        "button";
 
-    card.dataset.artifactId =
-        String(
-            artifact.id
-        );
+    button.title =
+        title;
 
-    const type =
-        getArtifactDisplayType(
-            artifact
-        );
+    button.innerHTML =
+        `<i class="fa-solid ${icon}"></i>`;
 
-    const title =
-        document.createElement(
-            "h3"
-        );
-
-    title.textContent =
-        artifact.title ||
-        artifact.name;
-
-    const typeElement =
-        document.createElement(
-            "span"
-        );
-
-    typeElement.textContent =
-        type;
-
-    const actions =
-        document.createElement(
-            "div"
-        );
-
-    actions.className =
-        "honey-artifact-actions";
-
-    const previewButton =
-        createButton(
-            "Abrir Preview",
-            "fa-solid fa-eye"
-        );
-
-    previewButton.addEventListener(
+    button.addEventListener(
         "click",
-        () => {
-
-            openArtifactPreview(
-                artifact
-            );
-
-        }
+        handler
     );
 
-    actions.appendChild(
-        previewButton
-    );
-
-    if(artifact.downloadable){
-
-        const downloadButton =
-            createButton(
-                "Baixar",
-                "fa-solid fa-download"
-            );
-
-        downloadButton.addEventListener(
-            "click",
-            () => {
-
-                downloadArtifact(
-                    artifact
-                );
-
-            }
-        );
-
-        actions.appendChild(
-            downloadButton
-        );
-
-    }
-
-    card.appendChild(
-        title
-    );
-
-    card.appendChild(
-        typeElement
-    );
-
-    card.appendChild(
-        actions
-    );
-
-    return card;
-
-}
-
-
-function getArtifactDisplayType(
-    artifact
-){
-
-    const type =
-        artifact?.artifactType ||
-        artifact?.type ||
-        "generic";
-
-    const labels = {
-
-        website:
-            "Website",
-
-        webapp:
-            "Web App",
-
-        presentation:
-            "Apresentação",
-
-        spreadsheet:
-            "Excel / Spreadsheet",
-
-        document:
-            "Documento",
-
-        chart:
-            "Gráfico",
-
-        image:
-            "Imagem",
-
-        pdf:
-            "PDF",
-
-        code:
-            "Código",
-
-        data:
-            "Dados",
-
-        generic:
-            "Artefacto"
-
-    };
-
-    return labels[
-        type
-    ] || "Artefacto";
+    return button;
 
 }
 
 
 /*
 ==========================================================
-UNIVERSAL PREVIEW SETUP
+ARTIFACT VERSIONS
 ==========================================================
 */
 
-function setupPreview(){
+function registerArtifactVersion(
+    artifact
+){
+
+    const key =
+        getArtifactKey(
+            artifact
+        );
+
+    if(!key){
+
+        return;
+
+    }
 
     if(
-        dom.btnClosePreview
+        !state.artifactVersions[key]
     ){
 
-        dom.btnClosePreview.addEventListener(
-            "click",
-            closeArtifactPreview
-        );
+        state.artifactVersions[key] =
+            [];
 
     }
+
+    const versions =
+        state.artifactVersions[key];
+
+    const latest =
+        versions[
+            versions.length - 1
+        ];
 
     if(
-        dom.previewIframe
-    ){
-
-        dom.previewIframe.setAttribute(
-            "title",
-            "Preview Honey IA"
-        );
-
-        dom.previewIframe.setAttribute(
-            "sandbox",
-            "allow-scripts allow-forms allow-modals allow-popups"
-        );
-
-    }
-
-    /*
-        Existing HTML may not contain a dedicated toolbar.
-        We create one only inside the preview pane.
-    */
-
-    if(dom.previewPane){
-
-        ensurePreviewShell();
-
-    }
-
-    window.addEventListener(
-        "message",
-        handlePreviewMessage
-    );
-
-}
-
-
-function ensurePreviewShell(){
-
-    if(
-        !dom.previewPane ||
-        dom.previewPane.querySelector(
-            ".honey-preview-shell"
-        )
+        latest &&
+        latest.content ===
+        artifact.content
     ){
 
         return;
 
     }
 
-    const shell =
-        document.createElement(
-            "div"
+    versions.push({
+
+        id:
+            createClientMessageId(),
+
+        version:
+            versions.length + 1,
+
+        name:
+            artifact.name,
+
+        content:
+            artifact.content,
+
+        mime:
+            artifact.mime,
+
+        language:
+            artifact.language,
+
+        createdAt:
+            new Date().toISOString()
+
+    });
+
+    if(
+        versions.length >
+        MAX_ARTIFACT_VERSIONS
+    ){
+
+        versions.splice(
+            0,
+            versions.length -
+            MAX_ARTIFACT_VERSIONS
         );
 
-    shell.className =
-        "honey-preview-shell";
-
-    shell.innerHTML = `
-
-        <div class="honey-preview-toolbar">
-
-            <div class="honey-preview-title">
-                Preview
-            </div>
-
-            <div class="honey-preview-toolbar-actions">
-
-                <button
-                    type="button"
-                    data-preview-action="preview"
-                >
-                    Preview
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="edit"
-                >
-                    Editar
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="code"
-                >
-                    Código
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="terminal"
-                >
-                    Terminal
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="fullscreen"
-                >
-                    Ecrã inteiro
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="download"
-                >
-                    Baixar
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="share"
-                >
-                    Partilhar
-                </button>
-
-                <button
-                    type="button"
-                    data-preview-action="deploy"
-                >
-                    Publicar
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="honey-preview-versionbar">
-
-            <label>
-                Versão
-            </label>
-
-            <select
-                data-preview-version
-            ></select>
-
-            <button
-                type="button"
-                data-preview-action="compare"
-            >
-                Comparar
-            </button>
-
-            <button
-                type="button"
-                data-preview-action="restore"
-            >
-                Restaurar
-            </button>
-
-        </div>
-
-        <div class="honey-preview-workspace">
-
-            <div
-                class="honey-preview-editor"
-                data-preview-editor
-                hidden
-            >
-
-                <div class="honey-preview-files"></div>
-
-                <textarea
-                    data-preview-code
-                    spellcheck="false"
-                ></textarea>
-
-                <div class="honey-preview-editor-actions">
-
-                    <button
-                        type="button"
-                        data-preview-save
-                    >
-                        Guardar alterações
-                    </button>
-
-                    <button
-                        type="button"
-                        data-preview-cancel
-                    >
-                        Cancelar
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div
-                class="honey-preview-render-area"
-                data-preview-render-area
-            ></div>
-
-            <div
-                class="honey-preview-terminal"
-                data-preview-terminal
-                hidden
-            >
-
-                <div
-                    class="honey-terminal-output"
-                    data-terminal-output
-                ></div>
-
-                <div class="honey-terminal-input-row">
-
-                    <span>
-                        $
-                    </span>
-
-                    <input
-                        type="text"
-                        data-terminal-input
-                        placeholder="python, node ou comando permitido..."
-                    />
-
-                    <button
-                        type="button"
-                        data-terminal-run
-                    >
-                        Executar
-                    </button>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    `;
-
-    /*
-        We place the shell before the existing iframe.
-        The existing iframe remains available as a compatibility
-        fallback for the original index.html.
-    */
-
-    dom.previewPane.prepend(
-        shell
-    );
-
-    bindPreviewShell(
-        shell
-    );
+    }
 
 }
 
 
-function bindPreviewShell(
-    shell
+function getArtifactVersions(
+    artifact
 ){
 
-    shell
-        .querySelectorAll(
-            "[data-preview-action]"
-        )
-        .forEach(
-            button => {
+    if(!artifact){
 
-                button.addEventListener(
-                    "click",
-                    () => {
+        return [];
 
-                        handlePreviewAction(
-                            button.dataset.previewAction
-                        );
+    }
 
-                    }
-                );
-
-            }
-        );
-
-    const versionSelect =
-        shell.querySelector(
-            "[data-preview-version]"
-        );
-
-    versionSelect?.addEventListener(
-        "change",
-        () => {
-
-            selectArtifactVersion(
-                versionSelect.value
-            );
-
-        }
+    return (
+        state.artifactVersions[
+            getArtifactKey(
+                artifact
+            )
+        ] ||
+        []
     );
-
-    shell
-        .querySelector(
-            "[data-preview-save]"
-        )
-        ?.addEventListener(
-            "click",
-            savePreviewEdits
-        );
-
-    shell
-        .querySelector(
-            "[data-preview-cancel]"
-        )
-        ?.addEventListener(
-            "click",
-            cancelPreviewEdits
-        );
-
-    shell
-        .querySelector(
-            "[data-terminal-run]"
-        )
-        ?.addEventListener(
-            "click",
-            runTerminalCommand
-        );
-
-    shell
-        .querySelector(
-            "[data-terminal-input]"
-        )
-        ?.addEventListener(
-            "keydown",
-            event => {
-
-                if(
-                    event.key === "Enter"
-                ){
-
-                    runTerminalCommand();
-
-                }
-
-            }
-        );
-
-}
-
-
-function getPreviewShell(){
-
-    return dom.previewPane?.querySelector(
-        ".honey-preview-shell"
-    ) || null;
-
-}
-
-
-function getPreviewElement(
-    selector
-){
-
-    return getPreviewShell()?.querySelector(
-        selector
-    ) || null;
 
 }
 
 
 /*
 ==========================================================
-OPEN ARTIFACT PREVIEW
+PREVIEW SETUP
+==========================================================
+*/
+
+function setupPreview(){
+
+    dom.btnClosePreview?.addEventListener(
+        "click",
+        () =>
+            closeArtifactPreview()
+    );
+
+    if(dom.previewIframe){
+
+        dom.previewIframe.addEventListener(
+            "load",
+            () => {
+
+                state.previewIframeReady =
+                    true;
+
+            }
+        );
+
+    }
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if(
+                event.key ===
+                "Escape" &&
+                state.previewFullscreen
+            ){
+
+                exitPreviewFullscreen();
+
+            }
+
+        }
+    );
+
+}
+
+
+/*
+==========================================================
+OPEN PREVIEW
 ==========================================================
 */
 
@@ -5623,73 +5622,47 @@ function openArtifactPreview(
 
     if(!normalized){
 
+        showToast(
+            "Este resultado não pode ser visualizado.",
+            "warning"
+        );
+
         return;
 
     }
 
-    state.preview.open =
-        true;
-
-    state.preview.artifactId =
-        normalized.id;
-
-    state.preview.artifact =
+    state.previewArtifact =
         normalized;
 
-    state.preview.artifactType =
-        normalized.artifactType;
-
-    state.preview.mode =
-        "preview";
-
-    state.preview.editorDirty =
-        false;
-
-    state.preview.activeFile =
-        normalized.entryPoint ||
-        normalized.files?.[0]?.name ||
-        null;
-
-    state.preview.versions =
-        buildArtifactVersions(
+    state.activeArtifactKey =
+        getArtifactKey(
             normalized
         );
 
-    state.preview.activeVersion =
-        state.preview.versions[
-            state.preview.versions.length - 1
-        ]?.id ||
-        null;
+    state.previewMode =
+        "preview";
 
-    state.preview.share =
-        null;
+    if(
+        !dom.previewPane
+    ){
 
-    state.preview.deploy =
-        null;
+        createPreviewPaneFallback();
 
-    state.preview.execution =
-        {
-            running:
-                false,
+    }
 
-            language:
-                normalized.language ||
-                null,
+    renderPreviewShell();
 
-            output:
-                "",
+    renderPreviewArtifact(
+        normalized
+    );
 
-            error:
-                null
-
-        };
-
-    ensurePreviewShell();
-
-    if(dom.previewPane){
+    if(
+        dom.previewPane
+    ){
 
         dom.previewPane.classList.add(
-            "open"
+            "open",
+            "active"
         );
 
         dom.previewPane.style.display =
@@ -5697,307 +5670,279 @@ function openArtifactPreview(
 
     }
 
-    updatePreviewTitle();
-
-    renderPreviewVersions();
-
-    renderPreviewArtifact();
-
-    focusPreview();
-
 }
 
 
 /*
 ==========================================================
-CLOSE PREVIEW
+PREVIEW FALLBACK
 ==========================================================
 */
 
-function closeArtifactPreview(){
+function createPreviewPaneFallback(){
 
-    state.preview.open =
-        false;
-
-    state.preview.artifact =
-        null;
-
-    state.preview.artifactId =
-        null;
-
-    state.preview.activeFile =
-        null;
-
-    state.preview.mode =
-        "preview";
-
-    state.preview.editorDirty =
-        false;
-
-    if(
-        state.preview.fullscreen
-    ){
-
-        exitPreviewFullscreen();
-
-    }
-
-    if(dom.previewPane){
-
-        dom.previewPane.classList.remove(
-            "open"
+    const pane =
+        document.createElement(
+            "aside"
         );
 
-        /*
-            Do not destroy the pane because index.html
-            already owns it.
-        */
+    pane.id =
+        "preview-pane";
 
-    }
+    pane.className =
+        "honey-preview-pane";
 
-}
+    pane.innerHTML = `
 
+        <div class="honey-preview-header">
 
-function resetPreviewState(){
+            <div class="honey-preview-title"></div>
 
-    closeArtifactPreview();
+            <div class="honey-preview-actions"></div>
 
-    state.preview.versions =
-        [];
+        </div>
 
-    state.preview.activeVersion =
-        null;
+        <div class="honey-preview-body">
+
+            <iframe
+                id="live-preview-iframe"
+                title="Honey IA Preview"
+                sandbox="allow-scripts allow-forms"
+            ></iframe>
+
+        </div>
+
+    `;
+
+    document.body.appendChild(
+        pane
+    );
+
+    dom.previewPane =
+        pane;
+
+    dom.previewIframe =
+        pane.querySelector(
+            "#live-preview-iframe"
+        );
+
+    setupPreview();
 
 }
 
 
 /*
 ==========================================================
-PREVIEW TITLE
+PREVIEW SHELL
 ==========================================================
 */
 
-function updatePreviewTitle(){
+function renderPreviewShell(){
+
+    if(!dom.previewPane){
+
+        return;
+
+    }
+
+    let header =
+        dom.previewPane.querySelector(
+            ".honey-preview-header"
+        );
+
+    if(!header){
+
+        header =
+            document.createElement(
+                "div"
+            );
+
+        header.className =
+            "honey-preview-header";
+
+        dom.previewPane.prepend(
+            header
+        );
+
+    }
+
+    header.innerHTML = "";
 
     const title =
-        getPreviewElement(
-            ".honey-preview-title"
+        document.createElement(
+            "div"
         );
 
-    if(!title){
-
-        return;
-
-    }
+    title.className =
+        "honey-preview-title";
 
     title.textContent =
-        state.preview.artifact?.title ||
+        state.previewArtifact?.name ||
         "Preview";
 
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+    actions.className =
+        "honey-preview-actions";
+
+    actions.appendChild(
+        createPreviewButton(
+            "Preview",
+            "fa-eye",
+            () => {
+
+                state.previewMode =
+                    "preview";
+
+                renderPreviewArtifact(
+                    state.previewArtifact
+                );
+
+            }
+        )
+    );
+
+    if(
+        state.previewArtifact?.editable !==
+        false
+    ){
+
+        actions.appendChild(
+            createPreviewButton(
+                "Editar",
+                "fa-code",
+                () => {
+
+                    state.previewMode =
+                        "edit";
+
+                    renderPreviewEditor(
+                        state.previewArtifact
+                    );
+
+                }
+            )
+        );
+
+    }
+
+    actions.appendChild(
+        createPreviewButton(
+            "Tela cheia",
+            "fa-expand",
+            enterPreviewFullscreen
+        )
+    );
+
+    actions.appendChild(
+        createPreviewButton(
+            "Baixar",
+            "fa-download",
+            () =>
+                downloadArtifact(
+                    state.previewArtifact
+                )
+        )
+    );
+
+    actions.appendChild(
+        createPreviewButton(
+            "Partilhar",
+            "fa-share-nodes",
+            shareArtifactPreview
+        )
+    );
+
+    actions.appendChild(
+        createPreviewButton(
+            "Publicar",
+            "fa-cloud-arrow-up",
+            deployArtifact
+        )
+    );
+
+    actions.appendChild(
+        createPreviewButton(
+            "Fechar",
+            "fa-xmark",
+            () =>
+                closeArtifactPreview()
+        )
+    );
+
+    header.appendChild(
+        title
+    );
+
+    header.appendChild(
+        actions
+    );
+
+    renderVersionBar();
+
 }
 
 
-/*
-==========================================================
-PREVIEW ACTIONS
-==========================================================
-*/
-
-function handlePreviewAction(
-    action
+function createPreviewButton(
+    title,
+    icon,
+    handler
 ){
 
-    if(!state.preview.artifact){
-
-        return;
-
-    }
-
-    switch(action){
-
-        case "preview":
-
-            setPreviewMode(
-                "preview"
-            );
-
-            break;
-
-        case "edit":
-
-            setPreviewMode(
-                "edit"
-            );
-
-            break;
-
-        case "code":
-
-            setPreviewMode(
-                "code"
-            );
-
-            break;
-
-        case "terminal":
-
-            setPreviewMode(
-                "terminal"
-            );
-
-            break;
-
-        case "fullscreen":
-
-            togglePreviewFullscreen();
-
-            break;
-
-        case "download":
-
-            downloadArtifact(
-                state.preview.artifact
-            );
-
-            break;
-
-        case "share":
-
-            shareArtifactPreview();
-
-            break;
-
-        case "deploy":
-
-            deployArtifact(
-                state.preview.artifact
-            );
-
-            break;
-
-        case "compare":
-
-            compareArtifactVersions();
-
-            break;
-
-        case "restore":
-
-            restoreSelectedVersion();
-
-            break;
-
-        default:
-
-            break;
-
-    }
-
-}
-
-
-function setPreviewMode(
-    mode
-){
-
-    state.preview.mode =
-        mode;
-
-    const editor =
-        getPreviewElement(
-            "[data-preview-editor]"
+    const button =
+        document.createElement(
+            "button"
         );
 
-    const renderArea =
-        getPreviewElement(
-            "[data-preview-render-area]"
-        );
+    button.type =
+        "button";
 
-    const terminal =
-        getPreviewElement(
-            "[data-preview-terminal]"
-        );
+    button.title =
+        title;
 
-    if(editor){
+    button.setAttribute(
+        "aria-label",
+        title
+    );
 
-        editor.hidden =
-            !(
-                mode ===
-                "edit" ||
-                mode ===
-                "code"
-            );
+    button.innerHTML =
+        `<i class="fa-solid ${icon}"></i>`;
 
-    }
+    button.addEventListener(
+        "click",
+        handler
+    );
 
-    if(renderArea){
-
-        renderArea.hidden =
-            mode ===
-            "terminal";
-
-    }
-
-    if(terminal){
-
-        terminal.hidden =
-            mode !==
-            "terminal";
-
-    }
-
-    if(
-        mode ===
-        "edit"
-    ){
-
-        renderPreviewEditor(
-            false
-        );
-
-        return;
-
-    }
-
-    if(
-        mode ===
-        "code"
-    ){
-
-        renderPreviewEditor(
-            true
-        );
-
-        return;
-
-    }
-
-    if(
-        mode ===
-        "terminal"
-    ){
-
-        renderTerminalOutput();
-
-        return;
-
-    }
-
-    renderPreviewArtifact();
+    return button;
 
 }
 
 
 /*
 ==========================================================
-RENDER PREVIEW ARTIFACT
+VERSION BAR
 ==========================================================
 */
 
-function renderPreviewArtifact(){
+function renderVersionBar(){
+
+    if(!dom.previewPane){
+
+        return;
+
+    }
+
+    dom.previewPane
+        .querySelector(
+            ".honey-preview-version-bar"
+        )
+        ?.remove();
 
     const artifact =
-        state.preview.artifact;
+        state.previewArtifact;
 
     if(!artifact){
 
@@ -6005,866 +5950,220 @@ function renderPreviewArtifact(){
 
     }
 
-    const renderArea =
-        getPreviewElement(
-            "[data-preview-render-area]"
+    const versions =
+        getArtifactVersions(
+            artifact
         );
 
-    if(!renderArea){
+    if(!versions.length){
 
         return;
 
     }
 
-    renderArea.innerHTML =
-        "";
-
-    const version =
-        getActiveArtifactVersion();
-
-    const effectiveArtifact =
-        version?.artifact ||
-        artifact;
-
-    switch(
-        effectiveArtifact.artifactType
-    ){
-
-        case "website":
-
-        case "webapp":
-
-            renderWebsiteArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "presentation":
-
-            renderPresentationArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "spreadsheet":
-
-            renderSpreadsheetArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "document":
-
-            renderDocumentArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "chart":
-
-            renderChartArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "image":
-
-            renderImageArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "pdf":
-
-            renderPDFArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "code":
-
-            renderCodeArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        case "data":
-
-            renderDataArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-        default:
-
-            renderGenericArtifact(
-                effectiveArtifact,
-                renderArea
-            );
-
-            break;
-
-    }
-
-}
-
-
-/*
-==========================================================
-WEBSITE RENDERER
-==========================================================
-*/
-
-function renderWebsiteArtifact(
-    artifact,
-    container
-){
-
-    const files =
-        artifact.files?.length
-            ? artifact.files
-            : [
-                {
-
-                    name:
-                        artifact.entryPoint ||
-                        "index.html",
-
-                    content:
-                        artifact.content,
-
-                    language:
-                        "html"
-
-                }
-            ];
-
-    const entry =
-        files.find(
-            file =>
-                String(
-                    file.name ||
-                    file.path
-                ) ===
-                String(
-                    artifact.entryPoint
-                )
-        ) ||
-        files.find(
-            file =>
-                /(^|\/)index\.html?$/.test(
-                    String(
-                        file.name ||
-                        file.path ||
-                        ""
-                    ).toLowerCase()
-                )
-        ) ||
-        files.find(
-            file =>
-                /\.(html|htm)$/i.test(
-                    String(
-                        file.name ||
-                        file.path ||
-                        ""
-                    )
-                )
-        ) ||
-        files[0];
-
-    if(!entry){
-
-        renderEmptyPreview(
-            container,
-            "O projecto não possui um ficheiro de entrada."
-        );
-
-        return;
-
-    }
-
-    const iframe =
-        document.createElement(
-            "iframe"
-        );
-
-    iframe.className =
-        "honey-universal-preview-frame";
-
-    iframe.setAttribute(
-        "title",
-        artifact.title ||
-        "Website Preview"
-    );
-
-    iframe.setAttribute(
-        "sandbox",
-        "allow-scripts allow-forms allow-modals allow-popups"
-    );
-
-    iframe.srcdoc =
-        buildWebsiteDocument(
-            entry.content ||
-            artifact.content ||
-            "",
-            files
-        );
-
-    container.appendChild(
-        iframe
-    );
-
-    /*
-        Keep the original iframe synchronized when it exists.
-        This preserves compatibility with the current index.html.
-    */
-
-    if(dom.previewIframe){
-
-        dom.previewIframe.srcdoc =
-            iframe.srcdoc;
-
-        dom.previewIframe.style.display =
-            "none";
-
-    }
-
-}
-
-
-/*
-==========================================================
-WEBSITE DOCUMENT BUILDER
-==========================================================
-*/
-
-function buildWebsiteDocument(
-    entryHTML,
-    files
-){
-
-    let html =
-        String(
-            entryHTML || ""
-        );
-
-    /*
-        Replace local asset references with data/blob URLs
-        when the artifact provides inline content.
-    */
-
-    const fileMap =
-        new Map();
-
-    files.forEach(
-        file => {
-
-            const path =
-                normalizePath(
-                    file.path ||
-                    file.name ||
-                    ""
-                );
-
-            if(path){
-
-                fileMap.set(
-                    path,
-                    file
-                );
-
-                fileMap.set(
-                    normalizePath(
-                        file.name ||
-                        ""
-                    ),
-                    file
-                );
-
-            }
-
-        }
-    );
-
-    html =
-        injectInlineStyles(
-            html,
-            files
-        );
-
-    html =
-        injectInlineScripts(
-            html,
-            files
-        );
-
-    html =
-        injectLocalAssets(
-            html,
-            fileMap
-        );
-
-    return html;
-
-}
-
-
-function injectInlineStyles(
-    html,
-    files
-){
-
-    let output =
-        html;
-
-    const cssFiles =
-        files.filter(
-            file =>
-                /\.(css)$/i.test(
-                    String(
-                        file.name ||
-                        file.path ||
-                        ""
-                    )
-                )
-        );
-
-    cssFiles.forEach(
-        file => {
-
-            const name =
-                escapeRegExp(
-                    file.name ||
-                    file.path ||
-                    ""
-                );
-
-            const regex =
-                new RegExp(
-                    `<link[^>]+href=["'][^"']*${name}["'][^>]*>`,
-                    "gi"
-                );
-
-            output =
-                output.replace(
-                    regex,
-                    `<style>${file.content || ""}</style>`
-                );
-
-        }
-    );
-
-    return output;
-
-}
-
-
-function injectInlineScripts(
-    html,
-    files
-){
-
-    let output =
-        html;
-
-    const jsFiles =
-        files.filter(
-            file =>
-                /\.(js|mjs|cjs)$/i.test(
-                    String(
-                        file.name ||
-                        file.path ||
-                        ""
-                    )
-                )
-        );
-
-    jsFiles.forEach(
-        file => {
-
-            const name =
-                escapeRegExp(
-                    file.name ||
-                    file.path ||
-                    ""
-                );
-
-            const regex =
-                new RegExp(
-                    `<script[^>]+src=["'][^"']*${name}["'][^>]*>\\s*</script>`,
-                    "gi"
-                );
-
-            output =
-                output.replace(
-                    regex,
-                    `<script>${file.content || ""}</script>`
-                );
-
-        }
-    );
-
-    return output;
-
-}
-
-
-function injectLocalAssets(
-    html,
-    fileMap
-){
-
-    return html.replace(
-        /(?:src|href)=["']([^"']+)["']/gi,
-        (
-            full,
-            reference
-        ) => {
-
-            const normalized =
-                normalizePath(
-                    reference
-                );
-
-            const file =
-                fileMap.get(
-                    normalized
-                );
-
-            if(
-                !file ||
-                !file.content
-            ){
-
-                return full;
-
-            }
-
-            if(
-                /\.(css)$/i.test(
-                    normalized
-                ) ||
-                /\.(js|mjs|cjs)$/i.test(
-                    normalized
-                )
-            ){
-
-                return full;
-
-            }
-
-            const mime =
-                file.mime ||
-                guessMimeType(
-                    file.name ||
-                    reference
-                );
-
-            const encoded =
-                `data:${mime};base64,${base64Encode(
-                    file.content
-                )}`;
-
-            return full.replace(
-                reference,
-                encoded
-            );
-
-        }
-    );
-
-}
-
-
-function normalizePath(
-value
-){
-
-    return String(
-        value || ""
-    )
-        .replace(
-            /^\.\/+/,
-            ""
-        )
-        .replace(
-            /^\/+/,
-            ""
-        )
-        .replace(
-            /\\/g,
-            "/"
-        )
-        .trim();
-
-}
-
-
-function escapeRegExp(
-value
-){
-
-    return String(
-        value || ""
-    ).replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-    );
-
-}
-
-
-function base64Encode(
-value
-){
-
-    try{
-
-        return btoa(
-            unescape(
-                encodeURIComponent(
-                    String(
-                        value || ""
-                    )
-                )
-            )
-        );
-
-    }
-    catch(error){
-
-        return btoa(
-            String(
-                value || ""
-            )
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
-PRESENTATION RENDERER
-==========================================================
-*/
-
-function renderPresentationArtifact(
-    artifact,
-    container
-){
-
-    if(
-        artifact.url ||
-        artifact.fileUrl ||
-        artifact.downloadUrl
-    ){
-
-        const url =
-            artifact.url ||
-            artifact.fileUrl ||
-            artifact.downloadUrl;
-
-        const iframe =
-            document.createElement(
-                "iframe"
-            );
-
-        iframe.className =
-            "honey-universal-preview-frame";
-
-        iframe.src =
-            url;
-
-        iframe.setAttribute(
-            "title",
-            "Apresentação"
-        );
-
-        container.appendChild(
-            iframe
-        );
-
-        return;
-
-    }
-
-    const slides =
-        artifact.slides ||
-        parseSlidesFromContent(
-            artifact.content
-        );
-
-    if(
-        Array.isArray(
-            slides
-        ) &&
-        slides.length
-    ){
-
-        renderSlideDeck(
-            slides,
-            container
-        );
-
-        return;
-
-    }
-
-    renderUnsupportedArtifact(
-        container,
-        "A apresentação foi criada, mas o backend ainda não disponibilizou um formato visualizável no navegador. O ficheiro pode ser baixado quando o URL do artefacto estiver disponível."
-    );
-
-}
-
-
-function parseSlidesFromContent(
-content
-){
-
-    if(
-        typeof content !==
-        "string"
-    ){
-
-        return [];
-
-    }
-
-    const sections =
-        content.split(
-            /\n-{3,}\n/
-        );
-
-    return sections.map(
-        section => {
-
-            const lines =
-                section
-                    .split(
-                        "\n"
-                    )
-                    .map(
-                        line =>
-                            line.trim()
-                    )
-                    .filter(
-                        Boolean
-                    );
-
-            if(!lines.length){
-
-                return null;
-
-            }
-
-            return {
-
-                title:
-                    lines[0],
-
-                content:
-                    lines
-                        .slice(
-                            1
-                        )
-                        .join(
-                            "\n"
-                        )
-
-            };
-
-        }
-    ).filter(
-        Boolean
-    );
-
-}
-
-
-function renderSlideDeck(
-slides,
-container
-){
-
-    const deck =
+    const bar =
         document.createElement(
             "div"
         );
 
-    deck.className =
-        "honey-slide-deck";
+    bar.className =
+        "honey-preview-version-bar";
 
-    let current =
-        0;
-
-    const slide =
-        document.createElement(
-            "div"
-        );
-
-    slide.className =
-        "honey-slide";
-
-    const controls =
-        document.createElement(
-            "div"
-        );
-
-    controls.className =
-        "honey-slide-controls";
-
-    const previous =
-        createButton(
-            "Anterior",
-            "fa-solid fa-arrow-left"
-        );
-
-    const next =
-        createButton(
-            "Próximo",
-            "fa-solid fa-arrow-right"
-        );
-
-    const counter =
+    const label =
         document.createElement(
             "span"
         );
 
-    function draw(){
+    label.textContent =
+        "Versão:";
 
-        const currentSlide =
-            slides[current];
+    const select =
+        document.createElement(
+            "select"
+        );
 
-        slide.innerHTML = `
+    versions.forEach(
+        version => {
 
-            <h1>
-                ${escapeHTML(
-                    currentSlide.title ||
-                    ""
-                )}
-            </h1>
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-            <div class="honey-slide-content">
-                ${renderMarkdown(
-                    currentSlide.content ||
-                    ""
-                )}
-            </div>
+            option.value =
+                version.id;
 
-        `;
-
-        counter.textContent =
-            `${current + 1} / ${slides.length}`;
-
-        previous.disabled =
-            current <= 0;
-
-        next.disabled =
-            current >=
-            slides.length - 1;
-
-    }
-
-    previous.addEventListener(
-        "click",
-        () => {
-
-            if(current > 0){
-
-                current -=
-                    1;
-
-                draw();
-
-            }
-
-        }
-    );
-
-    next.addEventListener(
-        "click",
-        () => {
+            option.textContent =
+                `v${version.version}`;
 
             if(
-                current <
-                slides.length - 1
+                version.content ===
+                artifact.content
             ){
 
-                current +=
-                    1;
-
-                draw();
+                option.selected =
+                    true;
 
             }
+
+            select.appendChild(
+                option
+            );
 
         }
     );
 
-    controls.appendChild(
-        previous
+    select.addEventListener(
+        "change",
+        () => {
+
+            const selected =
+                versions.find(
+                    version =>
+                        version.id ===
+                        select.value
+                );
+
+            if(!selected){
+
+                return;
+
+            }
+
+            state.previewArtifact = {
+
+                ...artifact,
+
+                content:
+                    selected.content,
+
+                mime:
+                    selected.mime,
+
+                language:
+                    selected.language
+
+            };
+
+            renderPreviewArtifact(
+                state.previewArtifact
+            );
+
+        }
     );
 
-    controls.appendChild(
-        counter
+    const compare =
+        document.createElement(
+            "button"
+        );
+
+    compare.type =
+        "button";
+
+    compare.textContent =
+        "Comparar";
+
+    compare.addEventListener(
+        "click",
+        () =>
+            compareArtifactVersions(
+                artifact
+            )
     );
 
-    controls.appendChild(
-        next
+    const restore =
+        document.createElement(
+            "button"
+        );
+
+    restore.type =
+        "button";
+
+    restore.textContent =
+        "Reverter";
+
+    restore.addEventListener(
+        "click",
+        () =>
+            restoreArtifactVersion(
+                artifact,
+                select.value
+            )
     );
 
-    deck.appendChild(
-        slide
+    bar.appendChild(
+        label
     );
 
-    deck.appendChild(
-        controls
+    bar.appendChild(
+        select
     );
 
-    container.appendChild(
-        deck
+    bar.appendChild(
+        compare
     );
 
-    draw();
+    bar.appendChild(
+        restore
+    );
+
+    dom.previewPane.prepend(
+        bar
+    );
 
 }
 
 
 /*
 ==========================================================
-SPREADSHEET RENDERER
+RENDER PREVIEW
 ==========================================================
 */
 
-function renderSpreadsheetArtifact(
-    artifact,
-    container
+function renderPreviewArtifact(
+    artifact
 ){
 
+    if(!artifact){
+
+        return;
+
+    }
+
     if(
-        artifact.url ||
-        artifact.fileUrl ||
-        artifact.downloadUrl
+        state.previewMode ===
+        "edit"
+    ){
+
+        renderPreviewEditor(
+            artifact
+        );
+
+        return;
+
+    }
+
+    if(
+        !dom.previewPane
+    ){
+
+        return;
+
+    }
+
+    const body =
+        ensurePreviewBody();
+
+    body.innerHTML = "";
+
+    const type =
+        detectArtifactType(
+            artifact
+        );
+
+    if(
+        type ===
+        "html"
     ){
 
         const iframe =
@@ -6872,460 +6171,132 @@ function renderSpreadsheetArtifact(
                 "iframe"
             );
 
-        iframe.className =
-            "honey-universal-preview-frame";
+        iframe.id =
+            "live-preview-iframe";
 
-        iframe.src =
-            artifact.url ||
-            artifact.fileUrl ||
-            artifact.downloadUrl;
+        iframe.title =
+            artifact.name;
 
         iframe.setAttribute(
-            "title",
-            "Spreadsheet"
+            "sandbox",
+            "allow-scripts allow-forms allow-modals"
         );
 
-        container.appendChild(
-            iframe
-        );
-
-        return;
-
-    }
-
-    let rows =
-        artifact.rows ||
-        null;
-
-    if(
-        !Array.isArray(rows)
-    ){
-
-        rows =
-            parseCSV(
+        iframe.srcdoc =
+            buildHTMLPreviewDocument(
                 artifact.content
             );
 
-    }
-
-    if(
-        !Array.isArray(rows) ||
-        !rows.length
-    ){
-
-        renderUnsupportedArtifact(
-            container,
-            "A planilha foi criada, mas não há dados tabulares disponíveis para o Preview."
+        body.appendChild(
+            iframe
         );
+
+        dom.previewIframe =
+            iframe;
 
         return;
 
     }
 
-    const wrapper =
-        document.createElement(
-            "div"
-        );
-
-    wrapper.className =
-        "honey-spreadsheet-wrapper";
-
-    const table =
-        document.createElement(
-            "table"
-        );
-
-    table.className =
-        "honey-spreadsheet";
-
-    rows.forEach(
-        (
-            row,
-            rowIndex
-        ) => {
-
-            const tr =
-                document.createElement(
-                    "tr"
-                );
-
-            const cells =
-                Array.isArray(row)
-                    ? row
-                    : Object.values(
-                        row || {}
-                    );
-
-            cells.forEach(
-                value => {
-
-                    const cell =
-                        document.createElement(
-                            rowIndex === 0
-                                ? "th"
-                                : "td"
-                        );
-
-                    cell.textContent =
-                        String(
-                            value ??
-                            ""
-                        );
-
-                    tr.appendChild(
-                        cell
-                    );
-
-                }
-            );
-
-            table.appendChild(
-                tr
-            );
-
-        }
-    );
-
-    wrapper.appendChild(
-        table
-    );
-
-    container.appendChild(
-        wrapper
-    );
-
-}
-
-
-function parseCSV(
-content
-){
-
     if(
-        typeof content !==
-        "string"
+        type ===
+        "svg"
     ){
-
-        return [];
-
-    }
-
-    return content
-        .split(
-            /\r?\n/
-        )
-        .filter(
-            line =>
-                line.trim()
-        )
-        .map(
-            line =>
-                parseCSVLine(
-                    line
-                )
-        );
-
-}
-
-
-function parseCSVLine(
-line
-){
-
-    const result =
-        [];
-
-    let current =
-        "";
-
-    let quoted =
-        false;
-
-    for(
-        let index = 0;
-        index < line.length;
-        index++
-    ){
-
-        const char =
-            line[index];
-
-        if(
-            char ===
-            '"'
-        ){
-
-            if(
-                quoted &&
-                line[index + 1] ===
-                '"'
-            ){
-
-                current +=
-                    '"';
-
-                index +=
-                    1;
-
-            }
-            else{
-
-                quoted =
-                    !quoted;
-
-            }
-
-        }
-        else if(
-            char === "," &&
-            !quoted
-        ){
-
-            result.push(
-                current
-            );
-
-            current =
-                "";
-
-        }
-        else{
-
-            current +=
-                char;
-
-        }
-
-    }
-
-    result.push(
-        current
-    );
-
-    return result;
-
-}
-
-
-/*
-==========================================================
-DOCUMENT RENDERER
-==========================================================
-*/
-
-function renderDocumentArtifact(
-    artifact,
-    container
-){
-
-    if(
-        artifact.url ||
-        artifact.fileUrl ||
-        artifact.downloadUrl
-    ){
-
-        const url =
-            artifact.url ||
-            artifact.fileUrl ||
-            artifact.downloadUrl;
 
         const iframe =
             document.createElement(
                 "iframe"
             );
 
-        iframe.className =
-            "honey-universal-preview-frame";
-
-        iframe.src =
-            url;
+        iframe.title =
+            artifact.name;
 
         iframe.setAttribute(
-            "title",
-            "Documento"
-        );
-
-        container.appendChild(
-            iframe
-        );
-
-        return;
-
-    }
-
-    const documentElement =
-        document.createElement(
-            "article"
-        );
-
-    documentElement.className =
-        "honey-document-preview";
-
-    documentElement.innerHTML =
-        renderMarkdown(
-            artifact.content ||
+            "sandbox",
             ""
         );
 
-    container.appendChild(
-        documentElement
-    );
+        iframe.srcdoc = `
 
-}
+            <!doctype html>
 
+            <html>
 
-/*
-==========================================================
-CHART RENDERER
-==========================================================
-*/
+            <head>
 
-function renderChartArtifact(
-    artifact,
-    container
-){
+                <meta charset="utf-8">
 
-    if(
-        artifact.html
-    ){
+                <style>
 
-        const iframe =
-            document.createElement(
-                "iframe"
-            );
+                    html,body{
+                        margin:0;
+                        min-height:100%;
+                    }
 
-        iframe.className =
-            "honey-universal-preview-frame";
+                    body{
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        padding:40px;
+                        box-sizing:border-box;
+                    }
 
-        iframe.sandbox =
-            "allow-scripts";
+                    svg{
+                        max-width:100%;
+                        max-height:90vh;
+                    }
 
-        iframe.srcdoc =
-            artifact.html;
+                </style>
 
-        container.appendChild(
+            </head>
+
+            <body>
+
+                ${sanitizeSVG(
+                    artifact.content
+                )}
+
+            </body>
+
+            </html>
+
+        `;
+
+        body.appendChild(
             iframe
         );
 
+        dom.previewIframe =
+            iframe;
+
         return;
 
     }
 
-    const data =
-        artifact.data ||
-        artifact.chartData ||
-        null;
-
     if(
-        typeof Chart !==
-        "undefined" &&
-        data
+        type ===
+        "markdown"
     ){
 
-        const canvas =
+        const article =
             document.createElement(
-                "canvas"
+                "article"
             );
 
-        canvas.className =
-            "honey-chart-canvas";
+        article.className =
+            "honey-preview-document";
 
-        container.appendChild(
-            canvas
-        );
-
-        try{
-
-            const config =
-                artifact.config ||
-                {
-
-                    type:
-                        "bar",
-
-                    data
-
-                };
-
-            new Chart(
-                canvas.getContext(
-                    "2d"
-                ),
-                config
-            );
-
-        }
-        catch(error){
-
-            console.warn(
-                "[HONEY CHAT] Chart rendering error:",
-                error
-            );
-
-            renderGenericArtifact(
-                artifact,
-                container
-            );
-
-        }
-
-        return;
-
-    }
-
-    renderGenericArtifact(
-        artifact,
-        container
-    );
-
-}
-
-
-/*
-==========================================================
-IMAGE RENDERER
-==========================================================
-*/
-
-function renderImageArtifact(
-    artifact,
-    container
-){
-
-    const image =
-        document.createElement(
-            "img"
-        );
-
-    image.className =
-        "honey-image-preview";
-
-    image.alt =
-        artifact.title ||
-        artifact.name ||
-        "Imagem gerada pela Honey IA";
-
-    const source =
-        artifact.url ||
-        artifact.fileUrl ||
-        artifact.downloadUrl ||
-        (
-            artifact.dataUrl ||
-            (
-                artifact.mime &&
+        article.innerHTML =
+            renderMarkdown(
                 artifact.content
-                    ? `data:${artifact.mime};base64,${artifact.content}`
-                    : ""
-            )
+            );
+
+        highlightCode(
+            article
         );
 
-    if(source){
-
-        image.src =
-            source;
-
-        container.appendChild(
-            image
+        body.appendChild(
+            article
         );
 
         return;
@@ -7333,107 +6304,58 @@ function renderImageArtifact(
     }
 
     if(
-        artifact.content &&
-        /^data:image\//i.test(
-            artifact.content
-        )
+        type ===
+        "json"
     ){
 
-        image.src =
-            artifact.content;
+        const pre =
+            document.createElement(
+                "pre"
+            );
 
-        container.appendChild(
-            image
-        );
-
-        return;
-
-    }
-
-    renderUnsupportedArtifact(
-        container,
-        "A imagem foi criada, mas o Preview não recebeu uma fonte visual."
-    );
-
-}
-
-
-/*
-==========================================================
-PDF RENDERER
-==========================================================
-*/
-
-function renderPDFArtifact(
-    artifact,
-    container
-){
-
-    const source =
-        artifact.url ||
-        artifact.fileUrl ||
-        artifact.downloadUrl ||
-        (
-            artifact.content &&
-            /^data:application\/pdf/i.test(
+        pre.textContent =
+            formatJSON(
                 artifact.content
-            )
-                ? artifact.content
-                : ""
-        );
+            );
 
-    if(!source){
-
-        renderUnsupportedArtifact(
-            container,
-            "O PDF foi criado, mas o Preview não recebeu o ficheiro ou URL do PDF."
+        body.appendChild(
+            pre
         );
 
         return;
 
     }
 
-    const iframe =
-        document.createElement(
-            "iframe"
+    if(
+        type ===
+        "csv"
+    ){
+
+        const table =
+            renderCSVTable(
+                artifact.content
+            );
+
+        body.appendChild(
+            table
         );
 
-    iframe.className =
-        "honey-universal-preview-frame";
+        return;
 
-    iframe.src =
-        source;
+    }
 
-    iframe.setAttribute(
-        "title",
-        "PDF"
-    );
+    /*
+        CSS, JS, Python, Java, SQL, etc.
+        são mostrados como código no Preview.
+    */
 
-    container.appendChild(
-        iframe
-    );
-
-}
-
-
-/*
-==========================================================
-CODE RENDERER
-==========================================================
-*/
-
-function renderCodeArtifact(
-    artifact,
-    container
-){
-
-    const wrapper =
+    const codeWrapper =
         document.createElement(
             "div"
         );
 
-    wrapper.className =
-        "honey-code-preview";
+    codeWrapper.className =
+        "honey-preview-code";
 
     const pre =
         document.createElement(
@@ -7451,174 +6373,22 @@ function renderCodeArtifact(
             : "";
 
     code.textContent =
-        artifact.content ||
-        "";
+        artifact.content;
 
     pre.appendChild(
         code
     );
 
-    wrapper.appendChild(
+    codeWrapper.appendChild(
         pre
     );
 
-    container.appendChild(
-        wrapper
+    body.appendChild(
+        codeWrapper
     );
 
     highlightCode(
-        wrapper
-    );
-
-}
-
-
-/*
-==========================================================
-DATA RENDERER
-==========================================================
-*/
-
-function renderDataArtifact(
-    artifact,
-    container
-){
-
-    const content =
-        artifact.content ||
-        artifact.data ||
-        "";
-
-    if(
-        typeof content ===
-        "object"
-    ){
-
-        const pre =
-            document.createElement(
-                "pre"
-            );
-
-        pre.textContent =
-            JSON.stringify(
-                content,
-                null,
-                2
-            );
-
-        container.appendChild(
-            pre
-        );
-
-        return;
-
-    }
-
-    if(
-        artifact.mime ===
-        "text/csv" ||
-        /\.csv$/i.test(
-            artifact.name ||
-            ""
-        )
-    ){
-
-        renderSpreadsheetArtifact(
-            artifact,
-            container
-        );
-
-        return;
-
-    }
-
-    const pre =
-        document.createElement(
-            "pre"
-        );
-
-    pre.textContent =
-        String(
-            content
-        );
-
-    container.appendChild(
-        pre
-    );
-
-}
-
-
-/*
-==========================================================
-GENERIC RENDERER
-==========================================================
-*/
-
-function renderGenericArtifact(
-    artifact,
-    container
-){
-
-    if(
-        artifact.content
-    ){
-
-        const pre =
-            document.createElement(
-                "pre"
-            );
-
-        pre.textContent =
-            artifact.content;
-
-        container.appendChild(
-            pre
-        );
-
-        return;
-
-    }
-
-    renderUnsupportedArtifact(
-        container,
-        "Este artefacto foi recebido, mas ainda não possui um renderer específico no Preview."
-    );
-
-}
-
-
-function renderUnsupportedArtifact(
-    container,
-    message
-){
-
-    const element =
-        document.createElement(
-            "div"
-        );
-
-    element.className =
-        "honey-preview-message";
-
-    element.textContent =
-        message;
-
-    container.appendChild(
-        element
-    );
-
-}
-
-
-function renderEmptyPreview(
-    container,
-    message
-){
-
-    renderUnsupportedArtifact(
-        container,
-        message
+        codeWrapper
     );
 
 }
@@ -7631,336 +6401,579 @@ PREVIEW EDITOR
 */
 
 function renderPreviewEditor(
-    codeMode = false
+    artifact
 ){
 
-    const artifact =
-        state.preview.artifact;
-
-    if(!artifact){
+    if(!dom.previewPane){
 
         return;
 
     }
 
+    const body =
+        ensurePreviewBody();
+
+    body.innerHTML = "";
+
+    const layout =
+        document.createElement(
+            "div"
+        );
+
+    layout.className =
+        "honey-preview-editor";
+
     const editor =
-        getPreviewElement(
-            "[data-preview-editor]"
+        document.createElement(
+            "textarea"
         );
 
-    const textarea =
-        getPreviewElement(
-            "[data-preview-code]"
+    editor.className =
+        "honey-preview-editor-input";
+
+    editor.value =
+        artifact.content;
+
+    editor.spellcheck =
+        false;
+
+    const preview =
+        document.createElement(
+            "div"
         );
 
-    const filesContainer =
-        getPreviewElement(
-            ".honey-preview-files"
+    preview.className =
+        "honey-preview-editor-result";
+
+    layout.appendChild(
+        editor
+    );
+
+    layout.appendChild(
+        preview
+    );
+
+    body.appendChild(
+        layout
+    );
+
+    state.previewEditor =
+        editor;
+
+    const update =
+        debounce(
+            () => {
+
+                const content =
+                    editor.value;
+
+                const updated = {
+
+                    ...artifact,
+
+                    content
+
+                };
+
+                state.previewArtifact =
+                    updated;
+
+                updateArtifactInState(
+                    updated
+                );
+
+                renderInlineEditorResult(
+                    updated,
+                    preview
+                );
+
+            },
+            80
+        );
+
+    editor.addEventListener(
+        "input",
+        update
+    );
+
+    renderInlineEditorResult(
+        artifact,
+        preview
+    );
+
+}
+
+
+/*
+==========================================================
+INLINE EDIT RESULT
+==========================================================
+*/
+
+function renderInlineEditorResult(
+    artifact,
+    container
+){
+
+    container.innerHTML = "";
+
+    const type =
+        detectArtifactType(
+            artifact
         );
 
     if(
-        !editor ||
-        !textarea
+        type ===
+        "html"
     ){
 
-        return;
-
-    }
-
-    const files =
-        artifact.files?.length
-            ? artifact.files
-            : [
-                {
-
-                    name:
-                        artifact.entryPoint ||
-                        artifact.name,
-
-                    content:
-                        artifact.content,
-
-                    language:
-                        artifact.language
-
-                }
-            ];
-
-    filesContainer.innerHTML =
-        "";
-
-    files.forEach(
-        file => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.type =
-                "button";
-
-            button.textContent =
-                file.name ||
-                file.path;
-
-            button.classList.toggle(
-                "active",
-                String(
-                    file.name ||
-                    file.path
-                ) ===
-                String(
-                    state.preview.activeFile
-                )
+        const iframe =
+            document.createElement(
+                "iframe"
             );
 
-            button.addEventListener(
-                "click",
-                () => {
-
-                    if(
-                        state.preview.editorDirty
-                    ){
-
-                        const confirmed =
-                            window.confirm(
-                                "Existem alterações não guardadas. Deseja mudar de ficheiro?"
-                            );
-
-                        if(!confirmed){
-
-                            return;
-
-                        }
-
-                    }
-
-                    state.preview.activeFile =
-                        file.name ||
-                        file.path;
-
-                    state.preview.editorDirty =
-                        false;
-
-                    loadActiveFileIntoEditor();
-
-                    renderPreviewEditor(
-                        codeMode
-                    );
-
-                }
-            );
-
-            filesContainer.appendChild(
-                button
-            );
-
-        }
-    );
-
-    loadActiveFileIntoEditor();
-
-}
-
-
-function loadActiveFileIntoEditor(){
-
-    const textarea =
-        getPreviewElement(
-            "[data-preview-code]"
+        iframe.setAttribute(
+            "sandbox",
+            "allow-scripts allow-forms"
         );
 
-    if(!textarea){
+        iframe.srcdoc =
+            buildHTMLPreviewDocument(
+                artifact.content
+            );
+
+        container.appendChild(
+            iframe
+        );
 
         return;
 
     }
 
-    const file =
-        getActivePreviewFile();
+    if(
+        type ===
+        "markdown"
+    ){
 
-    if(!file){
+        container.innerHTML =
+            renderMarkdown(
+                artifact.content
+            );
 
-        textarea.value =
-            state.preview.artifact?.content ||
-            "";
+        highlightCode(
+            container
+        );
 
         return;
 
     }
 
-    textarea.value =
-        file.content ||
-        "";
+    if(
+        type ===
+        "json"
+    ){
 
-    state.preview.editorDirty =
-        false;
+        const pre =
+            document.createElement(
+                "pre"
+            );
 
-    textarea.oninput =
-        () => {
+        pre.textContent =
+            formatJSON(
+                artifact.content
+            );
 
-            state.preview.editorDirty =
-                true;
+        container.appendChild(
+            pre
+        );
 
-        };
+        return;
+
+    }
+
+    if(
+        type ===
+        "csv"
+    ){
+
+        container.appendChild(
+            renderCSVTable(
+                artifact.content
+            )
+        );
+
+        return;
+
+    }
+
+    const pre =
+        document.createElement(
+            "pre"
+        );
+
+    pre.textContent =
+        artifact.content;
+
+    container.appendChild(
+        pre
+    );
 
 }
 
 
-function getActivePreviewFile(){
+/*
+==========================================================
+UPDATE ARTIFACT
+==========================================================
+*/
 
-    const artifact =
-        state.preview.artifact;
+function updateArtifactInState(
+    artifact
+){
 
-    if(!artifact){
+    const key =
+        getArtifactKey(
+            artifact
+        );
+
+    const index =
+        state.artifacts.findIndex(
+            item =>
+                getArtifactKey(
+                    item
+                ) ===
+                key
+        );
+
+    if(index < 0){
+
+        state.artifacts.push(
+            artifact
+        );
+
+    }
+    else{
+
+        state.artifacts[index] =
+            artifact;
+
+    }
+
+}
+
+
+/*
+==========================================================
+PREVIEW BODY
+==========================================================
+*/
+
+function ensurePreviewBody(){
+
+    if(!dom.previewPane){
 
         return null;
 
     }
 
-    return artifact.files?.find(
-        file =>
-            String(
-                file.name ||
-                file.path
-            ) ===
-            String(
-                state.preview.activeFile
-            )
-    ) || null;
+    let body =
+        dom.previewPane.querySelector(
+            ".honey-preview-body"
+        );
+
+    if(!body){
+
+        body =
+            document.createElement(
+                "div"
+            );
+
+        body.className =
+            "honey-preview-body";
+
+        dom.previewPane.appendChild(
+            body
+        );
+
+    }
+
+    return body;
 
 }
 
 
 /*
 ==========================================================
-SAVE LIVE EDIT
+HTML PREVIEW
 ==========================================================
 */
 
-async function savePreviewEdits(){
+function buildHTMLPreviewDocument(
+content
+){
 
-    const artifact =
-        state.preview.artifact;
-
-    const textarea =
-        getPreviewElement(
-            "[data-preview-code]"
+    const raw =
+        String(
+            content || ""
         );
 
     if(
-        !artifact ||
-        !textarea
+        /<html[\s>]/i.test(
+            raw
+        )
     ){
 
-        return;
+        return injectPreviewSecurity(
+            raw
+        );
 
     }
 
-    const newContent =
-        textarea.value;
+    return `
 
-    const file =
-        getActivePreviewFile();
+        <!doctype html>
 
-    if(file){
+        <html lang="pt">
 
-        file.content =
-            newContent;
+        <head>
 
-    }
-    else{
+            <meta charset="UTF-8">
 
-        artifact.content =
-            newContent;
+            <meta
+                name="viewport"
+                content="width=device-width,initial-scale=1"
+            >
 
-    }
+        </head>
 
-    artifact.updatedAt =
-        new Date().toISOString();
+        <body>
 
-    state.preview.editorDirty =
-        false;
+            ${raw}
 
-    /*
-        Local live update happens immediately.
-        Backend persistence is attempted only when an
-        artifact id is available.
-    */
+        </body>
 
-    await persistArtifactEdit(
-        artifact
-    );
+        </html>
 
-    createLocalArtifactVersion(
-        artifact,
-        "Edição manual"
-    );
-
-    renderPreviewVersions();
-
-    setPreviewMode(
-        "preview"
-    );
-
-    showToast(
-        "Alterações aplicadas ao Preview.",
-        "success"
-    );
+    `;
 
 }
 
 
-async function persistArtifactEdit(
-    artifact
+function injectPreviewSecurity(
+html
 ){
 
-    if(!artifact?.id){
+    return String(
+        html
+    )
+        .replace(
+            /<head([^>]*)>/i,
+            `<head$1>
+                <meta charset="UTF-8">
+                <meta
+                    name="viewport"
+                    content="width=device-width,initial-scale=1"
+                >`
+        )
+        .replace(
+            /<script[^>]*src=["']([^"']+)["'][^>]*><\/script>/gi,
+            ""
+        );
 
-        return;
+}
+
+
+/*
+==========================================================
+ARTIFACT TYPE
+==========================================================
+*/
+
+function detectArtifactType(
+artifact
+){
+
+    const language =
+        normalizeLanguage(
+            artifact?.language
+        );
+
+    const mime =
+        normalizeMime(
+            artifact?.mime
+        );
+
+    const name =
+        String(
+            artifact?.name ||
+            ""
+        ).toLowerCase();
+
+    if(
+        language ===
+        "html" ||
+        mime ===
+        "text/html" ||
+        /\.(html?|htm)$/.test(
+            name
+        )
+    ){
+
+        return "html";
 
     }
 
-    try{
+    if(
+        language ===
+        "svg" ||
+        mime ===
+        "image/svg+xml" ||
+        /\.svg$/.test(
+            name
+        )
+    ){
 
-        await apiRequest(
-            `/artifacts/${encodeURIComponent(
-                artifact.id
-            )}`,
-            {
+        return "svg";
 
-                method:
-                    "PATCH",
+    }
 
-                body:
-                    JSON.stringify({
+    if(
+        language ===
+        "markdown" ||
+        mime ===
+        "text/markdown" ||
+        /\.(md|markdown)$/.test(
+            name
+        )
+    ){
 
-                        content:
-                            artifact.content,
+        return "markdown";
 
-                        files:
-                            artifact.files,
+    }
 
-                        title:
-                            artifact.title
+    if(
+        language ===
+        "json" ||
+        mime ===
+        "application/json" ||
+        /\.json$/.test(
+            name
+        )
+    ){
 
-                    })
+        return "json";
+
+    }
+
+    if(
+        language ===
+        "csv" ||
+        mime ===
+        "text/csv" ||
+        /\.csv$/.test(
+            name
+        )
+    ){
+
+        return "csv";
+
+    }
+
+    return "code";
+
+}
+
+
+/*
+==========================================================
+SVG SANITIZATION
+==========================================================
+*/
+
+function sanitizeSVG(
+svg
+){
+
+    const template =
+        document.createElement(
+            "template"
+        );
+
+    template.innerHTML =
+        String(
+            svg || ""
+        );
+
+    template.content
+        .querySelectorAll(
+            "script,foreignObject"
+        )
+        .forEach(
+            node =>
+                node.remove()
+        );
+
+    template.content
+        .querySelectorAll(
+            "*"
+        )
+        .forEach(
+            node => {
+
+                [...node.attributes]
+                    .forEach(
+                        attribute => {
+
+                            if(
+                                attribute.name
+                                    .toLowerCase()
+                                    .startsWith(
+                                        "on"
+                                    )
+                            ){
+
+                                node.removeAttribute(
+                                    attribute.name
+                                );
+
+                            }
+
+                        }
+                    );
 
             }
         );
 
+    return template.innerHTML;
+
+}
+
+
+/*
+==========================================================
+JSON
+==========================================================
+*/
+
+function formatJSON(
+content
+){
+
+    try{
+
+        return JSON.stringify(
+            JSON.parse(
+                content
+            ),
+            null,
+            2
+        );
+
     }
     catch(error){
 
-        /*
-            The local edit remains active even when the
-            optional persistence endpoint is unavailable.
-        */
-
-        console.warn(
-            "[HONEY CHAT] Artifact persistence unavailable:",
-            error
+        return String(
+            content || ""
         );
 
     }
@@ -7968,104 +6981,423 @@ async function persistArtifactEdit(
 }
 
 
-function cancelPreviewEdits(){
+/*
+==========================================================
+CSV
+==========================================================
+*/
 
-    state.preview.editorDirty =
-        false;
+function renderCSVTable(
+content
+){
 
-    setPreviewMode(
-        "preview"
+    const table =
+        document.createElement(
+            "table"
+        );
+
+    table.className =
+        "honey-preview-table";
+
+    const rows =
+        parseCSV(
+            content
+        );
+
+    if(!rows.length){
+
+        return table;
+
+    }
+
+    rows.forEach(
+        (row, rowIndex) => {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            row.forEach(
+                cell => {
+
+                    const element =
+                        document.createElement(
+                            rowIndex === 0
+                                ? "th"
+                                : "td"
+                        );
+
+                    element.textContent =
+                        cell;
+
+                    tr.appendChild(
+                        element
+                    );
+
+                }
+            );
+
+            table.appendChild(
+                tr
+            );
+
+        }
+    );
+
+    return table;
+
+}
+
+
+function parseCSV(
+content
+){
+
+    const rows = [];
+
+    let row = [];
+
+    let cell = "";
+
+    let quoted = false;
+
+    const text =
+        String(
+            content || ""
+        );
+
+    for(
+        let i = 0;
+        i < text.length;
+        i++
+    ){
+
+        const char =
+            text[i];
+
+        const next =
+            text[i + 1];
+
+        if(
+            char ===
+            '"' &&
+            quoted &&
+            next ===
+            '"'
+        ){
+
+            cell += '"';
+
+            i++;
+
+            continue;
+
+        }
+
+        if(
+            char ===
+            '"'
+        ){
+
+            quoted =
+                !quoted;
+
+            continue;
+
+        }
+
+        if(
+            char ===
+            "," &&
+            !quoted
+        ){
+
+            row.push(
+                cell
+            );
+
+            cell =
+                "";
+
+            continue;
+
+        }
+
+        if(
+            (
+                char ===
+                "\n" ||
+                char ===
+                "\r"
+            ) &&
+            !quoted
+        ){
+
+            if(
+                char ===
+                "\r" &&
+                next ===
+                "\n"
+            ){
+
+                i++;
+
+            }
+
+            row.push(
+                cell
+            );
+
+            rows.push(
+                row
+            );
+
+            row = [];
+
+            cell =
+                "";
+
+            continue;
+
+        }
+
+        cell +=
+            char;
+
+    }
+
+    if(
+        cell ||
+        row.length
+    ){
+
+        row.push(
+            cell
+        );
+
+        rows.push(
+            row
+        );
+
+    }
+
+    return rows;
+
+}
+
+
+/*
+==========================================================
+DOWNLOAD
+==========================================================
+*/
+
+function downloadArtifact(
+artifact
+){
+
+    if(!artifact){
+
+        return;
+
+    }
+
+    const content =
+        String(
+            artifact.content ||
+            ""
+        );
+
+    const mime =
+        artifact.mime ||
+        mimeFromArtifact(
+            artifact
+        );
+
+    const blob =
+        new Blob(
+            [content],
+            {
+                type:
+                    mime
+            }
+        );
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+    const anchor =
+        document.createElement(
+            "a"
+        );
+
+    anchor.href =
+        url;
+
+    anchor.download =
+        ensureArtifactFilename(
+            artifact
+        );
+
+    document.body.appendChild(
+        anchor
+    );
+
+    anchor.click();
+
+    anchor.remove();
+
+    setTimeout(
+        () =>
+            URL.revokeObjectURL(
+                url
+            ),
+        1000
     );
 
 }
 
 
-/*
-==========================================================
-LIVE VISUAL EDITING
-==========================================================
-*/
-
-function applyVisualEdit(
-path,
-value
+function ensureArtifactFilename(
+artifact
 ){
 
-    const artifact =
-        state.preview.artifact;
-
-    if(!artifact){
-
-        return false;
-
-    }
-
-    const file =
-        artifact.files?.find(
-            item =>
-                String(
-                    item.path ||
-                    item.name
-                ) ===
-                String(
-                    path
-                )
-        );
+    let name =
+        String(
+            artifact.name ||
+            "honey-result"
+        ).trim();
 
     if(
-        file &&
-        typeof value ===
-        "string"
+        /\.[a-z0-9]+$/i.test(
+            name
+        )
     ){
 
-        file.content =
-            value;
-
-        state.preview.editorDirty =
-            true;
-
-        renderPreviewArtifact();
-
-        return true;
+        return name;
 
     }
 
-    return false;
+    const extension =
+        extensionFromArtifact(
+            artifact
+        );
+
+    return `${name}.${extension}`;
+
+}
+
+
+function extensionFromArtifact(
+artifact
+){
+
+    const language =
+        normalizeLanguage(
+            artifact?.language
+        );
+
+    const map = {
+
+        html:
+            "html",
+
+        javascript:
+            "js",
+
+        typescript:
+            "ts",
+
+        jsx:
+            "jsx",
+
+        tsx:
+            "tsx",
+
+        css:
+            "css",
+
+        python:
+            "py",
+
+        java:
+            "java",
+
+        json:
+            "json",
+
+        csv:
+            "csv",
+
+        markdown:
+            "md",
+
+        svg:
+            "svg",
+
+        sql:
+            "sql",
+
+        shell:
+            "sh"
+
+    };
+
+    return map[language] ||
+        "txt";
+
+}
+
+
+function mimeFromArtifact(
+artifact
+){
+
+    const type =
+        detectArtifactType(
+            artifact
+        );
+
+    const map = {
+
+        html:
+            "text/html;charset=utf-8",
+
+        svg:
+            "image/svg+xml;charset=utf-8",
+
+        markdown:
+            "text/markdown;charset=utf-8",
+
+        json:
+            "application/json;charset=utf-8",
+
+        csv:
+            "text/csv;charset=utf-8",
+
+        code:
+            "text/plain;charset=utf-8"
+
+    };
+
+    return map[type] ||
+        "text/plain;charset=utf-8";
 
 }
 
 
 /*
 ==========================================================
-PREVIEW FULLSCREEN
+FULLSCREEN PREVIEW
 ==========================================================
 */
-
-function togglePreviewFullscreen(){
-
-    if(
-        state.preview.fullscreen
-    ){
-
-        exitPreviewFullscreen();
-
-    }
-    else{
-
-        enterPreviewFullscreen();
-
-    }
-
-}
-
 
 async function enterPreviewFullscreen(){
 
-    const target =
-        dom.previewPane ||
-        getPreviewShell();
-
-    if(!target){
+    if(!dom.previewPane){
 
         return;
 
@@ -8074,29 +7406,33 @@ async function enterPreviewFullscreen(){
     try{
 
         if(
-            target.requestFullscreen
+            dom.previewPane.requestFullscreen
         ){
 
-            await target.requestFullscreen();
+            await dom.previewPane.requestFullscreen();
 
-            state.preview.fullscreen =
+            state.previewFullscreen =
                 true;
 
+            return;
+
         }
+
+        dom.previewPane.classList.add(
+            "honey-preview-fullscreen"
+        );
+
+        state.previewFullscreen =
+            true;
 
     }
     catch(error){
 
-        console.warn(
-            "[HONEY CHAT] Fullscreen error:",
-            error
-        );
-
-        target.classList.add(
+        dom.previewPane.classList.add(
             "honey-preview-fullscreen"
         );
 
-        state.preview.fullscreen =
+        state.previewFullscreen =
             true;
 
     }
@@ -8104,16 +7440,15 @@ async function enterPreviewFullscreen(){
 }
 
 
-function exitPreviewFullscreen(){
+async function exitPreviewFullscreen(){
 
     try{
 
         if(
-            document.fullscreenElement &&
-            document.exitFullscreen
+            document.fullscreenElement
         ){
 
-            document.exitFullscreen();
+            await document.exitFullscreen();
 
         }
 
@@ -8121,7 +7456,7 @@ function exitPreviewFullscreen(){
     catch(error){
 
         /*
-            Browser may already have exited fullscreen.
+            Ignore.
         */
 
     }
@@ -8130,285 +7465,81 @@ function exitPreviewFullscreen(){
         "honey-preview-fullscreen"
     );
 
-    state.preview.fullscreen =
+    state.previewFullscreen =
         false;
 
 }
 
 
-document.addEventListener(
-    "fullscreenchange",
-    () => {
+/*
+==========================================================
+CLOSE PREVIEW
+==========================================================
+*/
 
-        state.preview.fullscreen =
-            Boolean(
-                document.fullscreenElement
-            );
+function closeArtifactPreview(
+notify = false
+){
+
+    if(
+        state.previewFullscreen
+    ){
+
+        exitPreviewFullscreen();
 
     }
-);
+
+    if(dom.previewPane){
+
+        dom.previewPane.classList.remove(
+            "open",
+            "active"
+        );
+
+        /*
+            Do not destroy pane so the preview can be reopened.
+        */
+
+    }
+
+    state.previewArtifact =
+        null;
+
+    state.activeArtifactKey =
+        null;
+
+    state.previewEditor =
+        null;
+
+    if(notify){
+
+        showToast(
+            "Preview fechado.",
+            "info"
+        );
+
+    }
+
+}
 
 
 /*
 ==========================================================
-VERSIONING
+VERSION COMPARE
 ==========================================================
 */
 
-function buildArtifactVersions(
+function compareArtifactVersions(
 artifact
 ){
 
-    const existing =
-        Array.isArray(
-            artifact.versions
-        )
-            ? artifact.versions
-            : [];
-
     const versions =
-        existing
-            .map(
-                normalizeArtifactVersion
-            )
-            .filter(
-                Boolean
-            );
-
-    if(!versions.length){
-
-        versions.push({
-
-            id:
-                "v1",
-
-            label:
-                "v1",
-
-            createdAt:
-                artifact.createdAt ||
-                new Date().toISOString(),
-
-            description:
-                "Versão inicial",
-
-            artifact:
-                cloneArtifact(
-                    artifact
-                )
-
-        });
-
-    }
-
-    return versions.slice(
-        -MAX_ARTIFACT_VERSIONS
-    );
-
-}
-
-
-function normalizeArtifactVersion(
-version
-){
+        getArtifactVersions(
+            artifact
+        );
 
     if(
-        !version ||
-        typeof version !==
-        "object"
-    ){
-
-        return null;
-
-    }
-
-    const artifact =
-        normalizeArtifact(
-            version.artifact ||
-            version
-        );
-
-    if(!artifact){
-
-        return null;
-
-    }
-
-    return {
-
-        id:
-            String(
-                version.id ||
-                version._id ||
-                `v${Date.now()}`
-            ),
-
-        label:
-            version.label ||
-            version.name ||
-            "Versão",
-
-        createdAt:
-            version.createdAt ||
-            new Date().toISOString(),
-
-        description:
-            version.description ||
-            "",
-
-        artifact
-
-    };
-
-}
-
-
-function getActiveArtifactVersion(){
-
-    return state.preview.versions.find(
-        version =>
-            String(
-                version.id
-            ) ===
-            String(
-                state.preview.activeVersion
-            )
-    ) || null;
-
-}
-
-
-function createLocalArtifactVersion(
-artifact,
-description
-){
-
-    const nextNumber =
-        state.preview.versions.length +
-        1;
-
-    const version = {
-
-        id:
-            `v${nextNumber}`,
-
-        label:
-            `v${nextNumber}`,
-
-        createdAt:
-            new Date().toISOString(),
-
-        description:
-            description ||
-            "Nova versão",
-
-        artifact:
-            cloneArtifact(
-                artifact
-            )
-
-    };
-
-    state.preview.versions.push(
-        version
-    );
-
-    state.preview.versions =
-        state.preview.versions.slice(
-            -MAX_ARTIFACT_VERSIONS
-        );
-
-    state.preview.activeVersion =
-        version.id;
-
-    return version;
-
-}
-
-
-function selectArtifactVersion(
-versionId
-){
-
-    const version =
-        state.preview.versions.find(
-            item =>
-                String(
-                    item.id
-                ) ===
-                String(
-                    versionId
-                )
-        );
-
-    if(!version){
-
-        return;
-
-    }
-
-    state.preview.activeVersion =
-        version.id;
-
-    renderPreviewArtifact();
-
-}
-
-
-function renderPreviewVersions(){
-
-    const select =
-        getPreviewElement(
-            "[data-preview-version]"
-        );
-
-    if(!select){
-
-        return;
-
-    }
-
-    select.innerHTML =
-        "";
-
-    state.preview.versions.forEach(
-        version => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                version.id;
-
-            option.textContent =
-                version.label;
-
-            if(
-                version.id ===
-                state.preview.activeVersion
-            ){
-
-                option.selected =
-                    true;
-
-            }
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
-
-}
-
-
-async function compareArtifactVersions(){
-
-    if(
-        state.preview.versions.length <
+        versions.length <
         2
     ){
 
@@ -8421,589 +7552,176 @@ async function compareArtifactVersions(){
 
     }
 
-    const currentIndex =
-        state.preview.versions.findIndex(
-            version =>
-                version.id ===
-                state.preview.activeVersion
-        );
-
     const current =
-        state.preview.versions[
-            currentIndex
+        versions[
+            versions.length - 1
         ];
 
     const previous =
-        state.preview.versions[
-            Math.max(
-                0,
-                currentIndex - 1
-            )
+        versions[
+            versions.length - 2
         ];
 
-    if(
-        !current ||
-        !previous ||
-        current === previous
-    ){
-
-        showToast(
-            "Não há uma versão anterior disponível.",
-            "info"
+    const container =
+        document.createElement(
+            "div"
         );
 
-        return;
+    container.className =
+        "honey-version-compare";
 
-    }
+    const left =
+        document.createElement(
+            "pre"
+        );
 
-    renderVersionComparison(
-        previous,
-        current
+    const right =
+        document.createElement(
+            "pre"
+        );
+
+    left.textContent =
+        previous.content;
+
+    right.textContent =
+        current.content;
+
+    container.appendChild(
+        createVersionPanel(
+            `v${previous.version}`,
+            left
+        )
+    );
+
+    container.appendChild(
+        createVersionPanel(
+            `v${current.version}`,
+            right
+        )
+    );
+
+    const body =
+        ensurePreviewBody();
+
+    body.innerHTML = "";
+
+    body.appendChild(
+        container
     );
 
 }
 
 
-function renderVersionComparison(
-left,
-right
+function createVersionPanel(
+title,
+content
 ){
 
-    const renderArea =
-        getPreviewElement(
-            "[data-preview-render-area]"
+    const panel =
+        document.createElement(
+            "section"
         );
 
-    if(!renderArea){
-
-        return;
-
-    }
-
-    renderArea.innerHTML = `
-
-        <div class="honey-version-comparison">
-
-            <div class="honey-version-column">
-
-                <header>
-                    ${escapeHTML(
-                        left.label
-                    )}
-                </header>
-
-                <pre></pre>
-
-            </div>
-
-            <div class="honey-version-column">
-
-                <header>
-                    ${escapeHTML(
-                        right.label
-                    )}
-                </header>
-
-                <pre></pre>
-
-            </div>
-
-        </div>
-
-    `;
-
-    const columns =
-        renderArea.querySelectorAll(
-            ".honey-version-column pre"
+    const heading =
+        document.createElement(
+            "h3"
         );
 
-    columns[0].textContent =
-        getArtifactText(
-            left.artifact
-        );
+    heading.textContent =
+        title;
 
-    columns[1].textContent =
-        getArtifactText(
-            right.artifact
-        );
+    panel.appendChild(
+        heading
+    );
+
+    panel.appendChild(
+        content
+    );
+
+    return panel;
 
 }
 
 
-function restoreSelectedVersion(){
+/*
+==========================================================
+RESTORE VERSION
+==========================================================
+*/
 
-    const version =
-        getActiveArtifactVersion();
+function restoreArtifactVersion(
+artifact,
+versionId
+){
 
-    if(!version){
+    const versions =
+        getArtifactVersions(
+            artifact
+        );
+
+    const selected =
+        versions.find(
+            version =>
+                version.id ===
+                versionId
+        );
+
+    if(!selected){
 
         return;
 
     }
 
-    const confirmed =
-        window.confirm(
-            `Restaurar ${version.label}?`
-        );
+    const restored = {
 
-    if(!confirmed){
+        ...artifact,
 
-        return;
+        content:
+            selected.content,
 
-    }
+        mime:
+            selected.mime,
 
-    state.preview.artifact =
-        cloneArtifact(
-            version.artifact
-        );
+        language:
+            selected.language
 
-    state.preview.artifactId =
-        state.preview.artifact.id;
+    };
 
-    state.preview.activeFile =
-        state.preview.artifact.entryPoint ||
-        state.preview.artifact.files?.[0]?.name ||
-        null;
-
-    state.preview.editorDirty =
-        false;
-
-    createLocalArtifactVersion(
-        state.preview.artifact,
-        `Restaurado de ${version.label}`
+    updateArtifactInState(
+        restored
     );
 
-    renderPreviewVersions();
+    state.previewArtifact =
+        restored;
 
-    renderPreviewArtifact();
+    registerArtifactVersion(
+        restored
+    );
+
+    renderVersionBar();
+
+    renderPreviewArtifact(
+        restored
+    );
 
     showToast(
-        `${version.label} restaurada.`,
+        `Versão v${selected.version} restaurada.`,
         "success"
     );
 
 }
 
 
-function cloneArtifact(
-artifact
-){
-
-    try{
-
-        return JSON.parse(
-            JSON.stringify(
-                artifact
-            )
-        );
-
-    }
-    catch(error){
-
-        return {
-            ...artifact
-        };
-
-    }
-
-}
-
-
-function getArtifactText(
-artifact
-){
-
-    if(
-        artifact?.content
-    ){
-
-        return String(
-            artifact.content
-        );
-
-    }
-
-    if(
-        artifact?.files
-    ){
-
-        return artifact.files
-            .map(
-                file =>
-                    `--- ${file.name || file.path} ---\n${file.content || ""}`
-            )
-            .join(
-                "\n\n"
-            );
-
-    }
-
-    return JSON.stringify(
-        artifact,
-        null,
-        2
-    );
-
-}
-
-
 /*
 ==========================================================
-DOWNLOAD SYSTEM
-==========================================================
-*/
-
-async function downloadArtifact(
-artifact
-){
-
-    if(!artifact){
-
-        return;
-
-    }
-
-    /*
-        Prefer an explicit backend-generated download URL.
-    */
-
-    if(
-        artifact.downloadUrl ||
-        artifact.fileUrl ||
-        artifact.url
-    ){
-
-        const url =
-            artifact.downloadUrl ||
-            artifact.fileUrl ||
-            artifact.url;
-
-        triggerBrowserDownload(
-            url,
-            artifact.name
-        );
-
-        return;
-
-    }
-
-    /*
-        Multiple-file projects need a backend ZIP endpoint
-        when ZIP generation is not already supplied.
-    */
-
-    if(
-        Array.isArray(
-            artifact.files
-        ) &&
-        artifact.files.length >
-        1
-    ){
-
-        await downloadArtifactProject(
-            artifact
-        );
-
-        return;
-
-    }
-
-    if(
-        artifact.content
-    ){
-
-        const mime =
-            artifact.mime ||
-            guessMimeType(
-                artifact.name
-            );
-
-        const blob =
-            new Blob(
-                [
-                    artifact.content
-                ],
-                {
-                    type:
-                        mime
-                }
-            );
-
-        const url =
-            URL.createObjectURL(
-                blob
-            );
-
-        triggerBrowserDownload(
-            url,
-            artifact.name
-        );
-
-        setTimeout(
-            () =>
-                URL.revokeObjectURL(
-                    url
-                ),
-            5000
-        );
-
-        return;
-
-    }
-
-    showToast(
-        "Este artefacto ainda não possui um ficheiro disponível para download.",
-        "warning"
-    );
-
-}
-
-
-async function downloadArtifactProject(
-artifact
-){
-
-    if(
-        artifact.zipUrl
-    ){
-
-        triggerBrowserDownload(
-            artifact.zipUrl,
-            `${artifact.name || "honey-project"}.zip`
-        );
-
-        return;
-
-    }
-
-    if(!artifact.id){
-
-        showToast(
-            "Não foi possível preparar o projecto para download.",
-            "warning"
-        );
-
-        return;
-
-    }
-
-    try{
-
-        const response =
-            await apiRequest(
-                `/artifacts/${encodeURIComponent(
-                    artifact.id
-                )}/download`,
-                {
-
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify({
-
-                            format:
-                                "zip"
-
-                        })
-
-                }
-            );
-
-        const url =
-            response?.downloadUrl ||
-            response?.url;
-
-        if(!url){
-
-            throw new Error(
-                "O servidor não devolveu o URL do projecto."
-            );
-
-        }
-
-        triggerBrowserDownload(
-            url,
-            `${artifact.name || "honey-project"}.zip`
-        );
-
-    }
-    catch(error){
-
-        handleApiError(
-            error,
-            "Não foi possível preparar o download do projecto."
-        );
-
-    }
-
-}
-
-
-function triggerBrowserDownload(
-url,
-filename
-){
-
-    if(!url){
-
-        return;
-
-    }
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-    link.href =
-        url;
-
-    if(filename){
-
-        link.download =
-            filename;
-
-    }
-
-    link.target =
-        "_blank";
-
-    link.rel =
-        "noopener noreferrer";
-
-    document.body.appendChild(
-        link
-    );
-
-    link.click();
-
-    link.remove();
-
-}
-
-
-/*
-==========================================================
-MIME TYPES
-==========================================================
-*/
-
-function guessMimeType(
-filename
-){
-
-    const name =
-        String(
-            filename || ""
-        ).toLowerCase();
-
-    if(
-        name.endsWith(
-            ".html"
-        )
-    ){
-
-        return "text/html";
-
-    }
-
-    if(
-        name.endsWith(
-            ".css"
-        )
-    ){
-
-        return "text/css";
-
-    }
-
-    if(
-        name.endsWith(
-            ".js"
-        )
-    ){
-
-        return "text/javascript";
-
-    }
-
-    if(
-        name.endsWith(
-            ".json"
-        )
-    ){
-
-        return "application/json";
-
-    }
-
-    if(
-        name.endsWith(
-            ".csv"
-        )
-    ){
-
-        return "text/csv";
-
-    }
-
-    if(
-        name.endsWith(
-            ".pdf"
-        )
-    ){
-
-        return "application/pdf";
-
-    }
-
-    if(
-        name.endsWith(
-            ".png"
-        )
-    ){
-
-        return "image/png";
-
-    }
-
-    if(
-        name.endsWith(
-            ".jpg" ||
-            ".jpeg"
-        )
-    ){
-
-        return "image/jpeg";
-
-    }
-
-    if(
-        name.endsWith(
-            ".svg"
-        )
-    ){
-
-        return "image/svg+xml";
-
-    }
-
-    return "application/octet-stream";
-
-}
-
-
-/*
-==========================================================
-SHARING
+SHARE PREVIEW
 ==========================================================
 */
 
 async function shareArtifactPreview(){
 
     const artifact =
-        state.preview.artifact;
+        state.previewArtifact;
 
     if(!artifact){
 
@@ -9012,43 +7730,17 @@ async function shareArtifactPreview(){
     }
 
     /*
-        If backend already provided a share URL,
-        use it directly.
+        Primeiro tenta o backend.
+        Se ainda não existir endpoint de partilha,
+        criamos uma partilha local temporária baseada no
+        conteúdo atual.
     */
 
-    if(
-        artifact.shareUrl
-    ){
-
-        await copyText(
-            artifact.shareUrl
-        );
-
-        showToast(
-            "Link do Preview copiado.",
-            "success"
-        );
-
-        return;
-
-    }
-
-    if(!artifact.id){
-
-        showToast(
-            "Este artefacto ainda não possui um identificador para partilha.",
-            "warning"
-        );
-
-        return;
-
-    }
-
     try{
 
-        const response =
+        const data =
             await apiRequest(
-                PREVIEW_SHARE_ENDPOINT,
+                "/preview/share",
                 {
 
                     method:
@@ -9057,162 +7749,38 @@ async function shareArtifactPreview(){
                     body:
                         JSON.stringify({
 
-                            artifactId:
-                                artifact.id,
-
                             conversationId:
                                 state.conversationId,
 
-                            expiresIn:
-                                604800
+                            artifact: {
+
+                                name:
+                                    artifact.name,
+
+                                content:
+                                    artifact.content,
+
+                                mime:
+                                    artifact.mime,
+
+                                language:
+                                    artifact.language
+
+                            }
 
                         })
 
                 }
             );
-
-        const shareId =
-            response?.shareId ||
-            response?.id ||
-            response?.previewId;
-
-        let url =
-            response?.url ||
-            response?.shareUrl ||
-            "";
-
-        if(
-            !url &&
-            shareId
-        ){
-
-            url =
-                `${window.location.origin}${PREVIEW_SHARE_PATH}/${encodeURIComponent(
-                    shareId
-                )}`;
-
-        }
-
-        if(!url){
-
-            throw new Error(
-                "O servidor não devolveu um link de partilha."
-            );
-
-        }
-
-        state.preview.share =
-            response;
-
-        await copyText(
-            url
-        );
-
-        showToast(
-            "Link temporário do Preview copiado.",
-            "success"
-        );
-
-    }
-    catch(error){
-
-        handleApiError(
-            error,
-            "Não foi possível criar o link de partilha."
-        );
-
-    }
-
-}
-
-
-/*
-==========================================================
-DEPLOYMENT
-==========================================================
-*/
-
-async function deployArtifact(
-artifact,
-provider = null
-){
-
-    if(!artifact){
-
-        return;
-
-    }
-
-    const selectedProvider =
-        provider ||
-        await chooseDeploymentProvider(
-            artifact
-        );
-
-    if(!selectedProvider){
-
-        return;
-
-    }
-
-    if(!artifact.id){
-
-        showToast(
-            "O artefacto ainda não possui um ID de projecto para publicação.",
-            "warning"
-        );
-
-        return;
-
-    }
-
-    try{
-
-        showToast(
-            `A preparar publicação na ${selectedProvider}...`,
-            "info"
-        );
-
-        const response =
-            await apiRequest(
-                PREVIEW_DEPLOY_ENDPOINT,
-                {
-
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify({
-
-                            artifactId:
-                                artifact.id,
-
-                            conversationId:
-                                state.conversationId,
-
-                            provider:
-                                selectedProvider
-
-                        })
-
-                }
-            );
-
-        state.preview.deploy =
-            response;
 
         const url =
-            response?.url ||
-            response?.deploymentUrl ||
-            response?.publicUrl;
+            data?.url ||
+            data?.shareUrl ||
+            data?.previewUrl;
 
-        if(
-            response?.success &&
-            url
-        ){
+        if(url){
 
-            showDeploymentResult(
-                selectedProvider,
+            await copyShareURL(
                 url
             );
 
@@ -9220,29 +7788,58 @@ provider = null
 
         }
 
-        if(
-            response?.success ===
-            false
-        ){
+    }
+    catch(error){
 
-            throw new Error(
-                response?.error ||
-                "A publicação não foi concluída."
+        /*
+            Endpoint may not exist yet.
+            Use local fallback.
+        */
+
+        console.info(
+            "[HONEY PREVIEW] Share API unavailable; using local preview."
+        );
+
+    }
+
+    const payload = {
+
+        name:
+            artifact.name,
+
+        mime:
+            artifact.mime,
+
+        language:
+            artifact.language,
+
+        content:
+            artifact.content
+
+    };
+
+    try{
+
+        const encoded =
+            base64EncodeUnicode(
+                JSON.stringify(
+                    payload
+                )
             );
 
-        }
+        const url =
+            `${window.location.origin}${window.location.pathname}#preview=${encoded}`;
 
-        showToast(
-            "A publicação foi iniciada. O servidor ainda não devolveu um URL público.",
-            "info"
+        await copyShareURL(
+            url
         );
 
     }
     catch(error){
 
-        handleApiError(
-            error,
-            `Não foi possível publicar na ${selectedProvider}.`
+        showToast(
+            "Não foi possível criar a partilha.",
+            "error"
         );
 
     }
@@ -9250,149 +7847,69 @@ provider = null
 }
 
 
-async function chooseDeploymentProvider(
-artifact
-){
-
-    const type =
-        artifact.artifactType;
-
-    if(
-        type !== "website" &&
-        type !== "webapp"
-    ){
-
-        showToast(
-            "A publicação directa está disponível para websites e aplicações web.",
-            "info"
-        );
-
-        return null;
-
-    }
-
-    const value =
-        window.prompt(
-            "Escolha a plataforma: vercel ou render",
-            "vercel"
-        );
-
-    if(!value){
-
-        return null;
-
-    }
-
-    const provider =
-        value
-            .trim()
-            .toLowerCase();
-
-    if(
-        ![
-            "vercel",
-            "render"
-        ].includes(
-            provider
-        )
-    ){
-
-        showToast(
-            "Plataforma inválida.",
-            "warning"
-        );
-
-        return null;
-
-    }
-
-    return provider;
-
-}
-
-
-function showDeploymentResult(
-provider,
+async function copyShareURL(
 url
 ){
 
-    const confirmed =
-        window.confirm(
-            `Publicado com sucesso na ${provider}.\n\nAbrir agora?`
+    const copied =
+        await copyText(
+            url
         );
 
     if(
-        confirmed &&
-        url
+        copied
     ){
 
-        window.open(
-            url,
-            "_blank",
-            "noopener,noreferrer"
+        showToast(
+            "Link do Preview copiado.",
+            "success"
         );
 
     }
+    else{
+
+        showToast(
+            "Link gerado: " + url,
+            "info"
+        );
+
+    }
+
+}
+
+
+function base64EncodeUnicode(
+value
+){
+
+    return btoa(
+        encodeURIComponent(
+            value
+        ).replace(
+            /%([0-9A-F]{2})/g,
+            (_, p1) =>
+                String.fromCharCode(
+                    parseInt(
+                        p1,
+                        16
+                    )
+                )
+        )
+    );
 
 }
 
 
 /*
 ==========================================================
-SANDBOX / TERMINAL
+DEPLOY
 ==========================================================
 */
 
-function renderTerminalOutput(){
-
-    const output =
-        getPreviewElement(
-            "[data-terminal-output]"
-        );
-
-    if(!output){
-
-        return;
-
-    }
-
-    output.textContent =
-        state.preview.execution.output ||
-        (
-            state.preview.execution.error
-                ? String(
-                    state.preview.execution.error
-                )
-                : "Terminal pronto."
-        );
-
-}
-
-
-async function runTerminalCommand(){
-
-    const input =
-        getPreviewElement(
-            "[data-terminal-input]"
-        );
-
-    if(!input){
-
-        return;
-
-    }
-
-    const command =
-        input.value.trim();
-
-    if(!command){
-
-        return;
-
-    }
+async function deployArtifact(){
 
     const artifact =
-        state.preview.artifact;
+        state.previewArtifact;
 
     if(!artifact){
 
@@ -9400,29 +7917,16 @@ async function runTerminalCommand(){
 
     }
 
-    const output =
-        getPreviewElement(
-            "[data-terminal-output]"
-        );
-
-    if(output){
-
-        output.textContent +=
-            `\n$ ${command}\n`;
-
-    }
-
-    input.value =
-        "";
-
-    state.preview.execution.running =
-        true;
+    showToast(
+        "A preparar publicação...",
+        "info"
+    );
 
     try{
 
-        const response =
+        const data =
             await apiRequest(
-                PREVIEW_EXECUTE_ENDPOINT,
+                "/preview/deploy",
                 {
 
                     method:
@@ -9431,152 +7935,79 @@ async function runTerminalCommand(){
                     body:
                         JSON.stringify({
 
-                            artifactId:
-                                artifact.id,
-
-                            language:
-                                artifact.language,
-
-                            command,
-
                             conversationId:
-                                state.conversationId
+                                state.conversationId,
+
+                            artifact: {
+
+                                name:
+                                    artifact.name,
+
+                                content:
+                                    artifact.content,
+
+                                mime:
+                                    artifact.mime,
+
+                                language:
+                                    artifact.language
+
+                            }
 
                         })
 
                 }
             );
 
-        state.preview.execution.output +=
-            `\n$ ${command}\n${
-                response?.output ||
-                ""
-            }`;
+        const url =
+            data?.url ||
+            data?.deployUrl ||
+            data?.deploymentUrl;
 
-        if(
-            response?.error
-        ){
+        if(url){
 
-            state.preview.execution.error =
-                response.error;
+            const open =
+                window.confirm(
+                    "O projeto foi publicado. Deseja abrir o endereço público?"
+                );
+
+            if(open){
+
+                window.open(
+                    url,
+                    "_blank",
+                    "noopener,noreferrer"
+                );
+
+            }
+
+            return;
 
         }
 
-        renderTerminalOutput();
+        showToast(
+            "O serviço de publicação não devolveu um endereço.",
+            "warning"
+        );
 
     }
     catch(error){
 
-        state.preview.execution.error =
-            error?.message ||
-            "Não foi possível executar o comando.";
+        /*
+            Não fingimos que o deploy funcionou.
+        */
 
-        renderTerminalOutput();
+        showToast(
+            "O deploy ainda precisa de uma integração de publicação no backend.",
+            "warning"
+        );
 
-    }
-    finally{
-
-        state.preview.execution.running =
-            false;
-
-    }
-
-}
-
-
-/*
-==========================================================
-PREVIEW MESSAGING
-==========================================================
-*/
-
-function handlePreviewMessage(
-event
-){
-
-    if(
-        !event ||
-        !event.data
-    ){
-
-        return;
-
-    }
-
-    const data =
-        event.data;
-
-    if(
-        typeof data !==
-        "object"
-    ){
-
-        return;
-
-    }
-
-    if(
-        data.type ===
-        "honey-preview-edit"
-    ){
-
-        applyVisualEdit(
-            data.path,
-            data.value
+        console.warn(
+            "[HONEY PREVIEW] Deploy:",
+            error
         );
 
     }
-
-    if(
-        data.type ===
-        "honey-preview-ready"
-    ){
-
-        /*
-            Preview iframe is ready.
-        */
-
-    }
-
-}
-
-
-/*
-==========================================================
-PREVIEW FOCUS
-==========================================================
-*/
-
-function focusPreview(){
-
-    if(!state.preview.open){
-
-        return;
-
-    }
-
-    setTimeout(
-        () => {
-
-            const area =
-                getPreviewElement(
-                    "[data-preview-render-area]"
-                );
-
-            area?.scrollTo?.(
-                {
-                    top:
-                        0,
-
-                    behavior:
-                        "instant"
-
-                }
-            );
-
-        },
-        20
-    );
 
 }
 
@@ -9592,9 +8023,9 @@ tools
 ){
 
     if(
-        !Array.isArray(tools) ||
-        !tools.length ||
-        !dom.chatMessages
+        !Array.isArray(
+            tools
+        )
     ){
 
         return;
@@ -9632,17 +8063,23 @@ tools
             const index =
                 state.tools.findIndex(
                     item =>
-                        String(item.id) ===
-                        String(normalized.id)
+                        String(
+                            item.id
+                        ) ===
+                        String(
+                            normalized.id
+                        )
                 );
 
             if(index >= 0){
 
-                state.tools[index] =
-                    {
-                        ...state.tools[index],
-                        ...normalized
-                    };
+                state.tools[index] = {
+
+                    ...state.tools[index],
+
+                    ...normalized
+
+                };
 
             }
             else{
@@ -9674,7 +8111,7 @@ function renderToolCards(){
 
     }
 
-    const wasNearBottom =
+    const nearBottom =
         state.userNearBottom;
 
     dom.chatMessages
@@ -9712,13 +8149,12 @@ function renderToolCards(){
                     "span"
                 );
 
-            const status =
-                tool.success
-                    ? "Concluído"
-                    : "Falhou";
-
             text.textContent =
-                `${tool.name} · ${status}`;
+                `${tool.name} · ${
+                    tool.success
+                        ? "Concluído"
+                        : "Falhou"
+                }`;
 
             element.appendChild(
                 icon
@@ -9736,9 +8172,9 @@ function renderToolCards(){
     );
 
     state.userNearBottom =
-        wasNearBottom;
+        nearBottom;
 
-    if(wasNearBottom){
+    if(nearBottom){
 
         scrollChatToBottom();
 
@@ -9831,6 +8267,12 @@ function showErrorMessage(
 message
 ){
 
+    if(!dom.chatMessages){
+
+        return;
+
+    }
+
     const element =
         document.createElement(
             "div"
@@ -9866,7 +8308,7 @@ message
         text
     );
 
-    dom.chatMessages?.appendChild(
+    dom.chatMessages.appendChild(
         element
     );
 
@@ -9882,44 +8324,9 @@ message
 
 /*
 ==========================================================
-INTERRUPTED ASSISTANT
+EMPTY STREAM
 ==========================================================
 */
-
-function finalizeInterruptedAssistant(
-element
-){
-
-    if(!element){
-
-        return;
-
-    }
-
-    renderAssistantContent(
-        element,
-        state.currentAssistantContent,
-        {
-            final:
-                true
-        }
-    );
-
-    setAssistantStatus(
-        element,
-        "Resposta interrompida."
-    );
-
-    addAssistantMessageOnce(
-        state.currentAssistantContent,
-        {
-            interrupted:
-                true
-        }
-    );
-
-}
-
 
 function removeStreamingAssistantIfEmpty(
 element
@@ -9932,8 +8339,7 @@ element
     }
 
     if(
-        !state.currentAssistantContent
-            .trim()
+        !state.currentAssistantContent.trim()
     ){
 
         element.remove();
@@ -9965,11 +8371,8 @@ sending
 
         if(sending){
 
-            dom.btnSend.innerHTML = `
-
-                <i class="fa-solid fa-stop"></i>
-
-            `;
+            dom.btnSend.innerHTML =
+                `<i class="fa-solid fa-stop"></i>`;
 
             dom.btnSend.title =
                 "Parar geração";
@@ -9987,11 +8390,8 @@ sending
         }
         else{
 
-            dom.btnSend.innerHTML = `
-
-                <i class="fa-solid fa-paper-plane"></i>
-
-            `;
+            dom.btnSend.innerHTML =
+                `<i class="fa-solid fa-paper-plane"></i>`;
 
             dom.btnSend.title =
                 "Enviar mensagem";
@@ -10010,10 +8410,18 @@ sending
 
     }
 
+    /*
+        NÃO desativamos o input durante a geração.
+        Isto evita sensação de bloqueio e mantém o workspace
+        responsivo.
+
+        O botão Send transforma-se em Stop.
+    */
+
     if(dom.chatInput){
 
         dom.chatInput.disabled =
-            sending;
+            false;
 
     }
 
@@ -10042,30 +8450,24 @@ CLEAR INPUT
 
 function clearInputAfterSend(){
 
-    if(!dom.chatInput){
+    if(dom.chatInput){
 
-        removeAttachment();
+        dom.chatInput.value =
+            "";
 
-        return;
+        dom.chatInput.style.height =
+            "auto";
 
     }
 
-    dom.chatInput.value =
-        "";
-
-    dom.chatInput.style.height =
-        "auto";
-
     removeAttachment();
-
-    focusChatInput();
 
 }
 
 
 /*
 ==========================================================
-VOICE INPUT
+VOICE
 ==========================================================
 */
 
@@ -10102,7 +8504,7 @@ function startVoiceInput(){
         catch(error){
 
             /*
-                Recognition already stopped.
+                Already stopped.
             */
 
         }
@@ -10149,14 +8551,13 @@ function startVoiceInput(){
             for(
                 let index = 0;
                 index <
-                    event.results.length;
+                event.results.length;
                 index++
             ){
 
                 transcript +=
-                    event.results[
-                        index
-                    ][0]?.transcript ||
+                    event.results[index][0]
+                        ?.transcript ||
                     "";
 
             }
@@ -10179,15 +8580,15 @@ function startVoiceInput(){
         };
 
     recognition.onerror =
-        error => {
+        event => {
 
             console.warn(
                 "[HONEY CHAT] Voice error:",
-                error
+                event
             );
 
             if(
-                error?.error !==
+                event?.error !==
                 "aborted"
             ){
 
@@ -10298,113 +8699,89 @@ event
 
     }
 
+    const extension =
+        getFileExtension(
+            file.name
+        );
+
+    const supported =
+        SUPPORTED_TEXT_EXTENSIONS.includes(
+            extension
+        );
+
     state.selectedFile =
         file;
 
     state.selectedFileSupported =
-        isSupportedTextFile(
-            file.name
-        );
+        supported;
 
     if(
-        state.selectedFileSupported
+        !supported
     ){
-
-        try{
-
-            state.selectedFileContent =
-                await file.text();
-
-        }
-        catch(error){
-
-            state.selectedFileContent =
-                "";
-
-            state.selectedFileSupported =
-                false;
-
-        }
-
-    }
-    else{
 
         state.selectedFileContent =
             "";
 
+        updateAttachmentUI();
+
+        showToast(
+            "O ficheiro foi anexado, mas o seu formato não pode ser lido diretamente pelo chat.",
+            "warning"
+        );
+
+        return;
+
     }
 
-    if(dom.attachmentBar){
+    try{
+
+        state.selectedFileContent =
+            await file.text();
+
+        updateAttachmentUI();
+
+        showToast(
+            "Ficheiro anexado.",
+            "success"
+        );
+
+    }
+    catch(error){
+
+        removeAttachment();
+
+        showToast(
+            "Não foi possível ler o ficheiro.",
+            "error"
+        );
+
+    }
+
+}
+
+
+function updateAttachmentUI(){
+
+    if(
+        dom.attachmentBar
+    ){
 
         dom.attachmentBar.style.display =
+            state.selectedFile
+                ? ""
+                : "none";
+
+    }
+
+    if(
+        dom.attachedFileName
+    ){
+
+        dom.attachedFileName.textContent =
+            state.selectedFile?.name ||
             "";
 
     }
-
-    if(dom.attachedFileName){
-
-        dom.attachedFileName.textContent =
-            file.name;
-
-    }
-
-}
-
-
-function isSupportedTextFile(
-filename
-){
-
-    const extension =
-        String(
-            filename || ""
-        )
-        .toLowerCase()
-        .split(
-            "."
-        )
-        .pop();
-
-    return SUPPORTED_TEXT_EXTENSIONS.includes(
-        extension
-    );
-
-}
-
-
-function buildPromptWithFileContext(
-prompt
-){
-
-    const file =
-        state.selectedFile;
-
-    if(
-        !file ||
-        !state.selectedFileContent
-    ){
-
-        return prompt;
-
-    }
-
-    return `
-
-${prompt}
-
-CONTEXTO DO FICHEIRO ANEXADO
-Nome: ${file.name}
-Tipo: ${file.type || "desconhecido"}
-
-Conteúdo:
-
-\`\`\`
-${state.selectedFileContent}
-\`\`\`
-
-Utiliza este ficheiro como contexto para responder ao pedido.
-
-`.trim();
 
 }
 
@@ -10427,19 +8804,62 @@ function removeAttachment(){
 
     }
 
-    if(dom.attachmentBar){
+    updateAttachmentUI();
 
-        dom.attachmentBar.style.display =
-            "none";
+}
 
-    }
 
-    if(dom.attachedFileName){
+function getFileExtension(
+filename
+){
 
-        dom.attachedFileName.textContent =
-            "";
+    const name =
+        String(
+            filename ||
+            ""
+        ).toLowerCase();
 
-    }
+    const parts =
+        name.split(
+            "."
+        );
+
+    return parts.length >
+        1
+        ? parts.pop()
+        : "";
+
+}
+
+
+function buildPromptWithFileContext(
+prompt
+){
+
+    const filename =
+        state.selectedFile?.name ||
+        "ficheiro";
+
+    return `
+
+${prompt}
+
+==================================================
+FICHEIRO ANEXADO
+==================================================
+
+Nome:
+${filename}
+
+Conteúdo:
+--------------------------------------------------
+${state.selectedFileContent}
+--------------------------------------------------
+
+Use o conteúdo do ficheiro como contexto da solicitação.
+Não invente conteúdo que não esteja presente no ficheiro.
+
+`;
 
 }
 
@@ -10452,13 +8872,7 @@ SEARCH
 
 function setupSearch(){
 
-    if(!dom.globalSearch){
-
-        return;
-
-    }
-
-    dom.globalSearch.addEventListener(
+    dom.globalSearch?.addEventListener(
         "input",
         event => {
 
@@ -10466,8 +8880,7 @@ function setupSearch(){
                 String(
                     event.target.value ||
                     ""
-                ).trim()
-                .toLowerCase();
+                ).trim().toLowerCase();
 
             renderHistory();
 
@@ -10477,30 +8890,28 @@ function setupSearch(){
 }
 
 
-function getFilteredConversations(){
+function filterConversations(
+conversations
+){
 
     if(
         !state.searchQuery
     ){
 
-        return state.conversations;
+        return conversations;
 
     }
 
-    return state.conversations.filter(
-        conversation => {
-
-            const title =
-                String(
-                    conversation?.title ||
-                    ""
-                ).toLowerCase();
-
-            return title.includes(
-                state.searchQuery
-            );
-
-        }
+    return conversations.filter(
+        conversation =>
+            String(
+                conversation.title ||
+                ""
+            )
+                .toLowerCase()
+                .includes(
+                    state.searchQuery
+                )
     );
 
 }
@@ -10513,7 +8924,8 @@ HISTORY
 */
 
 function renderHistory(
-conversations
+conversations =
+        state.conversations
 ){
 
     if(!dom.historyContainer){
@@ -10522,19 +8934,16 @@ conversations
 
     }
 
-    const source =
-        Array.isArray(
-            conversations
-        )
-            ? conversations
-            : getFilteredConversations();
+    const filtered =
+        filterConversations(
+            Array.isArray(
+                conversations
+            )
+                ? conversations
+                : []
+        );
 
-    if(
-        !Array.isArray(
-            source
-        ) ||
-        !source.length
-    ){
+    if(!filtered.length){
 
         dom.historyContainer.innerHTML = `
 
@@ -10547,7 +8956,11 @@ conversations
                 </div>
 
                 <h3>
-                    O seu histórico aparecerá aqui
+                    ${
+                        state.searchQuery
+                            ? "Nenhuma conversa encontrada"
+                            : "O seu histórico aparecerá aqui"
+                    }
                 </h3>
 
                 <p>
@@ -10570,7 +8983,7 @@ conversations
     wrapper.className =
         "conversation-history-list";
 
-    source.forEach(
+    filtered.forEach(
         conversation => {
 
             const id =
@@ -10658,11 +9071,6 @@ conversations
             openButton.title =
                 "Abrir conversa";
 
-            openButton.setAttribute(
-                "aria-label",
-                "Abrir conversa"
-            );
-
             openButton.innerHTML =
                 `<i class="fa-solid fa-arrow-right"></i>`;
 
@@ -10689,11 +9097,6 @@ conversations
 
             deleteButton.title =
                 "Eliminar conversa";
-
-            deleteButton.setAttribute(
-                "aria-label",
-                "Eliminar conversa"
-            );
 
             deleteButton.innerHTML =
                 `<i class="fa-solid fa-trash"></i>`;
@@ -10729,13 +9132,10 @@ conversations
 
             item.addEventListener(
                 "click",
-                () => {
-
+                () =>
                     openConversation(
                         id
-                    );
-
-                }
+                    )
             );
 
             wrapper.appendChild(
@@ -10754,12 +9154,6 @@ conversations
 
 }
 
-
-/*
-==========================================================
-HISTORY DATE
-==========================================================
-*/
 
 function formatConversationDate(
 value
@@ -10848,19 +9242,7 @@ conversationId
         )
     ){
 
-        abortCurrentGeneration(
-            true
-        );
-
-        state.isSending =
-            false;
-
-        state.isLive =
-            false;
-
-        setSendingState(
-            false
-        );
+        stopGeneration();
 
     }
 
@@ -10884,12 +9266,18 @@ conversationId
                     getConversationId(
                         conversation
                     ) !==
-                    conversationId
+                    String(
+                        conversationId
+                    )
             );
 
         if(
-            state.conversationId ===
-            conversationId
+            String(
+                state.conversationId
+            ) ===
+            String(
+                conversationId
+            )
         ){
 
             state.conversationId =
@@ -10934,10 +9322,7 @@ USER PROFILE
 
 async function loadUserProfile(){
 
-    const userBox =
-        dom.userBox;
-
-    if(!userBox){
+    if(!dom.userBox){
 
         return;
 
@@ -11032,17 +9417,17 @@ async function loadUserProfile(){
             "Plano Gratuito";
 
         const strong =
-            userBox.querySelector(
+            dom.userBox.querySelector(
                 "strong"
             );
 
         const small =
-            userBox.querySelector(
+            dom.userBox.querySelector(
                 "small"
             );
 
         const avatarElement =
-            userBox.querySelector(
+            dom.userBox.querySelector(
                 ".avatar"
             );
 
@@ -11130,52 +9515,265 @@ async function loadUserProfile(){
 
 /*
 ==========================================================
-BUTTON FACTORY
+CONVERSATION STATE
 ==========================================================
 */
 
-function createButton(
-label,
-iconClass
+function synchronizeConversation(
+conversation
 ){
 
-    const button =
-        document.createElement(
-            "button"
+    if(!conversation){
+
+        return;
+
+    }
+
+    state.conversation =
+        conversation;
+
+    state.conversationId =
+        getConversationId(
+            conversation
         );
 
-    button.type =
-        "button";
+    state.agentId =
+        conversation.agentId ||
+        state.agentId;
 
-    if(iconClass){
+    state.workspace =
+        conversation.workspace ||
+        state.workspace;
 
-        const icon =
-            document.createElement(
-                "i"
-            );
+    updateConversationHeader(
+        conversation
+    );
 
-        icon.className =
-            iconClass;
+    updateConversationInList(
+        conversation
+    );
 
-        button.appendChild(
-            icon
+}
+
+
+function updateConversationHeader(
+conversation
+){
+
+    if(
+        dom.conversationTitle &&
+        conversation
+    ){
+
+        dom.conversationTitle.textContent =
+            conversation.title ||
+            "Nova Conversa";
+
+    }
+
+}
+
+
+function addConversationToState(
+conversation
+){
+
+    const id =
+        getConversationId(
+            conversation
+        );
+
+    if(!id){
+
+        return;
+
+    }
+
+    const index =
+        state.conversations.findIndex(
+            item =>
+                getConversationId(
+                    item
+                ) ===
+                id
+        );
+
+    if(index >= 0){
+
+        state.conversations[index] =
+            conversation;
+
+    }
+    else{
+
+        state.conversations.unshift(
+            conversation
         );
 
     }
 
-    const text =
-        document.createElement(
-            "span"
+}
+
+
+function updateConversationInList(
+conversation
+){
+
+    if(conversation){
+
+        addConversationToState(
+            conversation
         );
 
-    text.textContent =
-        label;
+    }
 
-    button.appendChild(
-        text
+}
+
+
+/*
+==========================================================
+REFRESH
+==========================================================
+*/
+
+async function refreshCurrentConversation(){
+
+    if(!state.conversationId){
+
+        return;
+
+    }
+
+    try{
+
+        const data =
+            await apiRequest(
+                `/conversations/${encodeURIComponent(
+                    state.conversationId
+                )}`
+            );
+
+        if(data?.conversation){
+
+            synchronizeConversation(
+                data.conversation
+            );
+
+        }
+
+        if(
+            Array.isArray(
+                data?.messages
+            )
+        ){
+
+            state.messages =
+                [...data.messages];
+
+        }
+
+    }
+    catch(error){
+
+        if(
+            error?.status ===
+            401
+        ){
+
+            redirectToLogin();
+
+        }
+        else{
+
+            console.warn(
+                "[HONEY CHAT] Refresh failed:",
+                error
+            );
+
+        }
+
+    }
+
+}
+
+
+/*
+==========================================================
+DEBOUNCE
+==========================================================
+*/
+
+function debounce(
+callback,
+delay
+){
+
+    let timer =
+        null;
+
+    return function(...args){
+
+        clearTimeout(
+            timer
+        );
+
+        timer =
+            setTimeout(
+                () =>
+                    callback.apply(
+                        this,
+                        args
+                    ),
+                delay
+            );
+
+    };
+
+}
+
+
+/*
+==========================================================
+API ERROR
+==========================================================
+*/
+
+function handleApiError(
+error,
+fallback
+){
+
+    console.error(
+        "[HONEY CHAT API ERROR]",
+        error
     );
 
-    return button;
+    if(
+        error?.name ===
+        "AbortError"
+    ){
+
+        return;
+
+    }
+
+    if(
+        error?.status ===
+        401
+    ){
+
+        redirectToLogin();
+
+        return;
+
+    }
+
+    showToast(
+        error?.message ||
+        fallback ||
+        "Ocorreu um erro.",
+        "error"
+    );
 
 }
 
@@ -11289,46 +9887,26 @@ type = "info"
 
 /*
 ==========================================================
-API ERROR HANDLING
+UTILITY
 ==========================================================
 */
 
-function handleApiError(
-error,
-fallback
-){
-
-    console.error(
-        "[HONEY CHAT API ERROR]",
-        error
-    );
+function createClientMessageId(){
 
     if(
-        error?.name ===
-        "AbortError"
+        typeof crypto !==
+        "undefined" &&
+        typeof crypto.randomUUID ===
+        "function"
     ){
 
-        return;
+        return crypto.randomUUID();
 
     }
 
-    if(
-        error?.status ===
-        401
-    ){
-
-        redirectToLogin();
-
-        return;
-
-    }
-
-    showToast(
-        error?.message ||
-        fallback ||
-        "Ocorreu um erro.",
-        "error"
-    );
+    return `honey-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}`;
 
 }
 
@@ -11381,34 +9959,11 @@ window.HoneyChat = {
             userNearBottom:
                 state.userNearBottom,
 
-            preview:
-                {
+            previewArtifact:
+                state.previewArtifact,
 
-                    open:
-                        state.preview.open,
-
-                    artifactId:
-                        state.preview.artifactId,
-
-                    artifactType:
-                        state.preview.artifactType,
-
-                    activeFile:
-                        state.preview.activeFile,
-
-                    activeVersion:
-                        state.preview.activeVersion,
-
-                    mode:
-                        state.preview.mode,
-
-                    fullscreen:
-                        state.preview.fullscreen,
-
-                    editorDirty:
-                        state.preview.editorDirty
-
-                }
+            previewMode:
+                state.previewMode
 
         };
 
@@ -11452,7 +10007,7 @@ window.HoneyChat = {
 
         const normalized =
             typeof prompt ===
-                "string"
+            "string"
                 ? prompt.trim()
                 : "";
 
@@ -11520,51 +10075,12 @@ window.HoneyChat = {
     },
 
 
-    editPreview(){
-
-        setPreviewMode(
-            "edit"
-        );
-
-    },
-
-
-    fullscreenPreview(){
-
-        togglePreviewFullscreen();
-
-    },
-
-
-    downloadPreview(){
-
-        if(
-            state.preview.artifact
-        ){
-
-            return downloadArtifact(
-                state.preview.artifact
-            );
-
-        }
-
-    },
-
-
-    sharePreview(){
-
-        return shareArtifactPreview();
-
-    },
-
-
-    deployPreview(
-        provider
+    downloadArtifact(
+        artifact
     ){
 
-        return deployArtifact(
-            state.preview.artifact,
-            provider
+        downloadArtifact(
+            artifact
         );
 
     },
@@ -11593,57 +10109,33 @@ DIAGNOSTICS
 */
 
 console.info(
-    "[HONEY IA] Chat Engine V6.0 initialized."
+    "[HONEY IA] Chat Engine V7.0 initialized."
 );
 
 console.info(
-    "[HONEY IA] Persistent conversation history enabled."
+    "[HONEY IA] JSON + SSE + NDJSON + text streaming enabled."
 );
 
 console.info(
-    "[HONEY IA] Artificial history age/quantity limits disabled."
+    "[HONEY IA] AbortController generation control enabled."
 );
 
 console.info(
-    "[HONEY IA] Groq + Gemini orchestration compatible."
+    "[HONEY IA] User controlled scroll enabled."
 );
 
 console.info(
-    "[HONEY IA] Live / SSE / Stop Generation enabled."
+    "[HONEY IA] Universal artifact preview enabled."
 );
 
 console.info(
-    "[HONEY IA] User-controlled scroll enabled."
+    "[HONEY IA] Live artifact editing enabled."
 );
 
 console.info(
-    "[HONEY IA] Buffered streaming rendering enabled."
+    "[HONEY IA] Artifact versioning enabled."
 );
 
 console.info(
-    "[HONEY IA] Generation isolation enabled."
-);
-
-console.info(
-    "[HONEY IA] Universal Artifact Preview enabled."
-);
-
-console.info(
-    "[HONEY IA] Live Artifact Editing enabled."
-);
-
-console.info(
-    "[HONEY IA] Artifact Versioning enabled."
-);
-
-console.info(
-    "[HONEY IA] Fullscreen Preview enabled."
-);
-
-console.info(
-    "[HONEY IA] Download / Share / Deploy hooks enabled."
-);
-
-console.info(
-    "[HONEY IA] Secure Sandbox execution hooks enabled."
+    "[HONEY IA] Fullscreen / download / share / deploy hooks enabled."
 );
