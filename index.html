@@ -662,6 +662,25 @@
 
                         <div class="chat-header-actions">
 
+
+                            <!-- ABRIR PREVIEW -->
+
+                            <button
+                                id="btnOpenPreview"
+                                class="chat-header-button preview-open-button"
+                                type="button"
+                                aria-label="Abrir Preview"
+                                title="Abrir Preview">
+
+                                <i class="fa-solid fa-display"></i>
+
+                                <span class="chat-button-label">
+                                    Preview
+                                </span>
+
+                            </button>
+
+
                             <button
                                 id="btnNewChat"
                                 class="chat-header-button"
@@ -1363,8 +1382,6 @@
                         class="preview-body">
 
 
-                        <!-- VISUALIZAÇÃO -->
-
                         <section
                             id="previewViewContent"
                             class="preview-view-content"
@@ -1468,8 +1485,6 @@
                             </div>
 
 
-                            <!-- DATA -->
-
                             <div
                                 id="previewDataViewer"
                                 class="preview-data-viewer"
@@ -1517,8 +1532,6 @@
                             </div>
 
 
-                            <!-- IMAGE -->
-
                             <div
                                 id="previewImageViewer"
                                 class="preview-image-viewer"
@@ -1531,8 +1544,6 @@
 
                             </div>
 
-
-                            <!-- PDF -->
 
                             <div
                                 id="previewPdfViewer"
@@ -1549,9 +1560,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             EDITOR
-                        ================================================== -->
+                        <!-- EDITOR -->
 
                         <section
                             id="previewEditorContent"
@@ -1688,9 +1697,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             CODE
-                        ================================================== -->
+                        <!-- CODE -->
 
                         <section
                             id="previewCodeContent"
@@ -1774,9 +1781,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             FILES
-                        ================================================== -->
+                        <!-- FILES -->
 
                         <section
                             id="previewFilesContent"
@@ -1824,9 +1829,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             TERMINAL
-                        ================================================== -->
+                        <!-- TERMINAL -->
 
                         <section
                             id="previewTerminalContent"
@@ -1916,9 +1919,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             VERSIONS
-                        ================================================== -->
+                        <!-- VERSIONS -->
 
                         <section
                             id="previewVersionsContent"
@@ -2006,9 +2007,7 @@
                         </section>
 
 
-                        <!-- =================================================
-                             ACTIONS
-                        ================================================== -->
+                        <!-- ACTIONS -->
 
                         <section
                             id="previewActionsContent"
@@ -2033,8 +2032,6 @@
 
                             </div>
 
-
-                            <!-- EXPORT -->
 
                             <div class="preview-action-group">
 
@@ -2124,8 +2121,6 @@
                             </div>
 
 
-                            <!-- SHARE -->
-
                             <div class="preview-action-group">
 
                                 <div class="preview-action-group-title">
@@ -2202,10 +2197,6 @@
                             </div>
 
 
-                            <!-- =================================================
-                                 DEPLOY
-                            ================================================== -->
-
                             <div class="preview-action-group">
 
                                 <div class="preview-action-group-title">
@@ -2217,7 +2208,6 @@
 
 
                                 <div class="preview-deploy-grid">
-
 
                                     <button
                                         id="btnDeployVercel"
@@ -2296,8 +2286,6 @@
 
                             </div>
 
-
-                            <!-- DEPLOY RESULT -->
 
                             <div
                                 id="previewDeployResult"
@@ -2522,18 +2510,213 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 <!-- =========================================================
-     HONEY IA UNIVERSAL PREVIEW / DEPLOY BRIDGE
-     
-     Este bloco NÃO executa deploy falso.
-     Apenas disponibiliza os providers ao sistema.
-     A publicação real será feita pela API/backend.
+     HONEY IA PREVIEW WINDOW CONTROLLER
 ========================================================= -->
 
 <script>
 
-window.HoneyPreview = window.HoneyPreview || {};
+document.addEventListener("DOMContentLoaded", () => {
+
+    const chatLayout =
+        document.getElementById("chatLayout");
+
+    const previewPane =
+        document.getElementById("preview-pane");
+
+    const btnOpenPreview =
+        document.getElementById("btnOpenPreview");
+
+    const btnPreviewFullscreen =
+        document.getElementById("btnPreviewFullscreen");
+
+    const btnClosePreview =
+        document.getElementById("btn-close-preview");
+
+
+    if (
+        !chatLayout ||
+        !previewPane
+    ) {
+        return;
+    }
+
+
+    /*
+     * Abre o Preview em tela inteira.
+     */
+
+    const openPreviewFullscreen = () => {
+
+        chatLayout.classList.add(
+            "preview-fullscreen"
+        );
+
+        previewPane.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+
+        if (btnPreviewFullscreen) {
+
+            btnPreviewFullscreen.innerHTML = `
+                <i class="fa-solid fa-compress"></i>
+            `;
+
+            btnPreviewFullscreen.setAttribute(
+                "aria-label",
+                "Sair da tela cheia"
+            );
+
+            btnPreviewFullscreen.setAttribute(
+                "title",
+                "Sair da tela cheia"
+            );
+
+        }
+
+    };
+
+
+    /*
+     * Fecha o Preview e devolve o utilizador
+     * à conversa.
+     *
+     * O conteúdo do Preview NÃO é apagado.
+     */
+
+    const closePreview = () => {
+
+        chatLayout.classList.remove(
+            "preview-fullscreen"
+        );
+
+        previewPane.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+
+        if (btnPreviewFullscreen) {
+
+            btnPreviewFullscreen.innerHTML = `
+                <i class="fa-solid fa-expand"></i>
+            `;
+
+            btnPreviewFullscreen.setAttribute(
+                "aria-label",
+                "Tela cheia"
+            );
+
+            btnPreviewFullscreen.setAttribute(
+                "title",
+                "Tela cheia"
+            );
+
+        }
+
+    };
+
+
+    /*
+     * Abre novamente o Preview.
+     */
+
+    if (btnOpenPreview) {
+
+        btnOpenPreview.addEventListener(
+            "click",
+            openPreviewFullscreen
+        );
+
+    }
+
+
+    /*
+     * Alterna entre Preview normal e tela inteira.
+     */
+
+    if (btnPreviewFullscreen) {
+
+        btnPreviewFullscreen.addEventListener(
+            "click",
+            () => {
+
+                const isFullscreen =
+                    chatLayout.classList.contains(
+                        "preview-fullscreen"
+                    );
+
+                if (isFullscreen) {
+
+                    closePreview();
+
+                } else {
+
+                    openPreviewFullscreen();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+     * Botão X:
+     * fecha completamente o Preview.
+     */
+
+    if (btnClosePreview) {
+
+        btnClosePreview.addEventListener(
+            "click",
+            closePreview
+        );
+
+    }
+
+
+    /*
+     * ESC também fecha a tela inteira.
+     */
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (
+                event.key === "Escape" &&
+                chatLayout.classList.contains(
+                    "preview-fullscreen"
+                )
+            ) {
+
+                closePreview();
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+
+<!-- =========================================================
+     HONEY IA UNIVERSAL PREVIEW / DEPLOY BRIDGE
+========================================================= -->
+
+<script>
+
+window.HoneyPreview =
+    window.HoneyPreview || {};
+
 
 window.HoneyPreview.deployProviders = {
+
     vercel: {
         id: "vercel",
         name: "Vercel",
@@ -2551,27 +2734,23 @@ window.HoneyPreview.deployProviders = {
         name: "Netlify",
         button: "btnDeployNetlify"
     }
-};
-
-
-/*
- * Os botões ficam identificados para o módulo de Preview.
- *
- * O deploy NÃO é considerado concluído no frontend.
- * O chat/preview deverá chamar o backend e só apresentar
- * "Publicação concluída" quando receber uma resposta válida.
- */
-
-window.HoneyPreview.getDeployProvider = function(button) {
-
-    if (!button) return null;
-
-    return (
-        button.dataset.deployProvider ||
-        null
-    );
 
 };
+
+
+window.HoneyPreview.getDeployProvider =
+    function(button) {
+
+        if (!button) {
+            return null;
+        }
+
+        return (
+            button.dataset.deployProvider ||
+            null
+        );
+
+    };
 
 </script>
 
