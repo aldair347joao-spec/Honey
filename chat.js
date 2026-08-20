@@ -5565,11 +5565,27 @@ PREVIEW SETUP
 
 function setupPreview(){
 
+    /*
+    ======================================================
+    FECHAR PREVIEW
+    ======================================================
+    */
+
     dom.btnClosePreview?.addEventListener(
         "click",
-        () =>
-            closeArtifactPreview()
+        () => {
+
+            closeArtifactPreview();
+
+        }
     );
+
+
+    /*
+    ======================================================
+    IFRAME READY
+    ======================================================
+    */
 
     if(dom.previewIframe){
 
@@ -5585,22 +5601,66 @@ function setupPreview(){
 
     }
 
-    document.addEventListener(
-        "keydown",
-        event => {
 
-            if(
-                event.key ===
-                "Escape" &&
-                state.previewFullscreen
-            ){
+    /*
+    ======================================================
+    ESC
+    ======================================================
+    */
 
-                exitPreviewFullscreen();
+    if(!state.previewKeyboardBound){
+
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                /*
+                ------------------------------------------
+                ESC DO FULLSCREEN
+                ------------------------------------------
+                */
+
+                if(
+                    event.key === "Escape" &&
+                    state.previewFullscreen
+                ){
+
+                    event.preventDefault();
+
+                    exitPreviewFullscreen();
+
+                    return;
+
+                }
+
+
+                /*
+                ------------------------------------------
+                ESC DO PREVIEW
+                ------------------------------------------
+                */
+
+                if(
+                    event.key === "Escape" &&
+                    dom.previewPane &&
+                    dom.previewPane.classList.contains(
+                        "open"
+                    )
+                ){
+
+                    event.preventDefault();
+
+                    closeArtifactPreview();
+
+                }
 
             }
+        );
 
-        }
-    );
+        state.previewKeyboardBound =
+            true;
+
+    }
 
 }
 
@@ -5608,6 +5668,7 @@ function setupPreview(){
 /*
 ==========================================================
 OPEN PREVIEW
+UNIVERSAL FULLSCREEN OVERLAY
 ==========================================================
 */
 
@@ -5615,10 +5676,17 @@ function openArtifactPreview(
     artifact
 ){
 
+    /*
+    ======================================================
+    NORMALIZA ARTIFACT
+    ======================================================
+    */
+
     const normalized =
         normalizeArtifact(
             artifact
         );
+
 
     if(!normalized){
 
@@ -5631,6 +5699,13 @@ function openArtifactPreview(
 
     }
 
+
+    /*
+    ======================================================
+    GUARDA O ARTIFACT ACTIVO
+    ======================================================
+    */
+
     state.previewArtifact =
         normalized;
 
@@ -5642,33 +5717,203 @@ function openArtifactPreview(
     state.previewMode =
         "preview";
 
-    if(
-        !dom.previewPane
-    ){
+
+    /*
+    ======================================================
+    GARANTE QUE O PREVIEW EXISTE
+    ======================================================
+    */
+
+    if(!dom.previewPane){
 
         createPreviewPaneFallback();
 
     }
 
+
+    if(!dom.previewPane){
+
+        console.error(
+            "Honey IA: preview pane não pôde ser criado."
+        );
+
+        return;
+
+    }
+
+
+    /*
+    ======================================================
+    IMPORTANTE
+    ======================================================
+
+    O PREVIEW NÃO DEVE PARTICIPAR DO LAYOUT DO CHAT.
+
+    Ele funciona como uma camada independente sobre
+    toda a aplicação.
+
+    ======================================================
+    */
+
+
+    /*
+    ------------------------------------------------------
+    REMOVE QUALQUER ESTADO DE SPLIT / DOCK
+    ------------------------------------------------------
+    */
+
+    dom.previewPane.classList.remove(
+        "split",
+        "side",
+        "docked",
+        "embedded",
+        "active"
+    );
+
+
+    /*
+    ------------------------------------------------------
+    MARCA COMO OVERLAY
+    ------------------------------------------------------
+    */
+
+    dom.previewPane.classList.add(
+        "open",
+        "honey-preview-overlay"
+    );
+
+
+    /*
+    ------------------------------------------------------
+    FORÇA POSICIONAMENTO FORA DO LAYOUT DO CHAT
+    ------------------------------------------------------
+    */
+
+    Object.assign(
+        dom.previewPane.style,
+        {
+
+            position:
+                "fixed",
+
+            top:
+                "0",
+
+            right:
+                "0",
+
+            bottom:
+                "0",
+
+            left:
+                "0",
+
+            width:
+                "100vw",
+
+            height:
+                "100vh",
+
+            minWidth:
+                "100vw",
+
+            minHeight:
+                "100vh",
+
+            maxWidth:
+                "100vw",
+
+            maxHeight:
+                "100vh",
+
+            margin:
+                "0",
+
+            padding:
+                "0",
+
+            display:
+                "flex",
+
+            flexDirection:
+                "column",
+
+            zIndex:
+                "99999"
+
+        }
+    );
+
+
+    /*
+    ======================================================
+    MARCA O DOCUMENTO COMO PREVIEW ABERTO
+    ======================================================
+    */
+
+    document.documentElement.classList.add(
+        "honey-preview-open"
+    );
+
+    document.body.classList.add(
+        "honey-preview-open"
+    );
+
+
+    /*
+    ======================================================
+    RENDER SHELL
+    ======================================================
+    */
+
     renderPreviewShell();
+
+
+    /*
+    ======================================================
+    RENDER ARTIFACT
+    ======================================================
+    */
 
     renderPreviewArtifact(
         normalized
     );
 
-    if(
-        dom.previewPane
-    ){
 
-        dom.previewPane.classList.add(
-            "open",
-            "active"
-        );
+    /*
+    ======================================================
+    MOSTRA O PREVIEW
+    ======================================================
+    */
 
-        dom.previewPane.style.display =
-            "";
+    dom.previewPane.style.display =
+        "flex";
 
-    }
+
+    /*
+    ======================================================
+    FOCO
+    ======================================================
+    */
+
+    requestAnimationFrame(
+        () => {
+
+            try{
+
+                dom.previewPane.focus();
+
+            }catch(error){
+
+                console.warn(
+                    "Honey IA Preview focus:",
+                    error
+                );
+
+            }
+
+        }
+    );
 
 }
 
@@ -5676,55 +5921,186 @@ function openArtifactPreview(
 /*
 ==========================================================
 PREVIEW FALLBACK
+UNIVERSAL FULLSCREEN OVERLAY
 ==========================================================
 */
 
 function createPreviewPaneFallback(){
+
+    /*
+    ======================================================
+    CRIA CONTAINER PRINCIPAL
+    ======================================================
+    */
 
     const pane =
         document.createElement(
             "aside"
         );
 
+
     pane.id =
         "preview-pane";
 
+
     pane.className =
-        "honey-preview-pane";
+        "honey-preview-pane honey-preview-overlay";
+
+
+    pane.setAttribute(
+        "role",
+        "dialog"
+    );
+
+
+    pane.setAttribute(
+        "aria-modal",
+        "true"
+    );
+
+
+    pane.setAttribute(
+        "tabindex",
+        "-1"
+    );
+
+
+    /*
+    ======================================================
+    ESTRUTURA
+    ======================================================
+    */
 
     pane.innerHTML = `
 
         <div class="honey-preview-header">
 
-            <div class="honey-preview-title"></div>
+            <div class="honey-preview-title">
+                Preview
+            </div>
 
             <div class="honey-preview-actions"></div>
 
         </div>
+
 
         <div class="honey-preview-body">
 
             <iframe
                 id="live-preview-iframe"
                 title="Honey IA Preview"
-                sandbox="allow-scripts allow-forms"
+                sandbox="allow-scripts allow-forms allow-modals"
             ></iframe>
 
         </div>
 
     `;
 
+
+    /*
+    ======================================================
+    IMPORTANTE
+
+    O PREVIEW É INSERIDO DIRECTAMENTE NO BODY.
+
+    NÃO É INSERIDO DENTRO DO CHAT.
+    NÃO É INSERIDO DENTRO DO CHAT PANEL.
+    NÃO É INSERIDO DENTRO DO COMPOSER.
+
+    ======================================================
+    */
+
     document.body.appendChild(
         pane
     );
 
+
+    /*
+    ======================================================
+    ESTADO INICIAL
+    ======================================================
+    */
+
+    Object.assign(
+        pane.style,
+        {
+
+            position:
+                "fixed",
+
+            top:
+                "0",
+
+            right:
+                "0",
+
+            bottom:
+                "0",
+
+            left:
+                "0",
+
+            width:
+                "100vw",
+
+            height:
+                "100vh",
+
+            minWidth:
+                "100vw",
+
+            minHeight:
+                "100vh",
+
+            maxWidth:
+                "100vw",
+
+            maxHeight:
+                "100vh",
+
+            margin:
+                "0",
+
+            padding:
+                "0",
+
+            display:
+                "none",
+
+            flexDirection:
+                "column",
+
+            zIndex:
+                "99999",
+
+            boxSizing:
+                "border-box"
+
+        }
+    );
+
+
+    /*
+    ======================================================
+    GUARDA DOM
+    ======================================================
+    */
+
     dom.previewPane =
         pane;
+
 
     dom.previewIframe =
         pane.querySelector(
             "#live-preview-iframe"
         );
+
+
+    /*
+    ======================================================
+    INICIALIZA EVENTOS
+    ======================================================
+    */
 
     setupPreview();
 
@@ -5734,6 +6110,7 @@ function createPreviewPaneFallback(){
 /*
 ==========================================================
 PREVIEW SHELL
+UNIVERSAL FULLSCREEN
 ==========================================================
 */
 
@@ -5745,10 +6122,18 @@ function renderPreviewShell(){
 
     }
 
+
+    /*
+    ======================================================
+    HEADER
+    ======================================================
+    */
+
     let header =
         dom.previewPane.querySelector(
             ".honey-preview-header"
         );
+
 
     if(!header){
 
@@ -5766,29 +6151,62 @@ function renderPreviewShell(){
 
     }
 
-    header.innerHTML = "";
+
+    /*
+    ======================================================
+    LIMPA HEADER
+    ======================================================
+    */
+
+    header.innerHTML =
+        "";
+
+
+    /*
+    ======================================================
+    TÍTULO
+    ======================================================
+    */
 
     const title =
         document.createElement(
             "div"
         );
 
+
     title.className =
         "honey-preview-title";
+
 
     title.textContent =
         state.previewArtifact?.name ||
         "Preview";
+
+
+    /*
+    ======================================================
+    ACÇÕES
+    ======================================================
+    */
 
     const actions =
         document.createElement(
             "div"
         );
 
+
     actions.className =
         "honey-preview-actions";
 
+
+    /*
+    ======================================================
+    BOTÃO PREVIEW
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Preview",
             "fa-eye",
@@ -5803,7 +6221,15 @@ function renderPreviewShell(){
 
             }
         )
+
     );
+
+
+    /*
+    ======================================================
+    BOTÃO EDITAR
+    ======================================================
+    */
 
     if(
         state.previewArtifact?.editable !==
@@ -5811,6 +6237,7 @@ function renderPreviewShell(){
     ){
 
         actions.appendChild(
+
             createPreviewButton(
                 "Editar",
                 "fa-code",
@@ -5825,19 +6252,37 @@ function renderPreviewShell(){
 
                 }
             )
+
         );
 
     }
 
+
+    /*
+    ======================================================
+    TELA CHEIA
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Tela cheia",
             "fa-expand",
             enterPreviewFullscreen
         )
+
     );
 
+
+    /*
+    ======================================================
+    DOWNLOAD
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Baixar",
             "fa-download",
@@ -5846,77 +6291,88 @@ function renderPreviewShell(){
                     state.previewArtifact
                 )
         )
+
     );
 
+
+    /*
+    ======================================================
+    PARTILHAR
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Partilhar",
             "fa-share-nodes",
             shareArtifactPreview
         )
+
     );
 
+
+    /*
+    ======================================================
+    PUBLICAR
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Publicar",
             "fa-cloud-arrow-up",
             deployArtifact
         )
+
     );
 
+
+    /*
+    ======================================================
+    FECHAR
+    ======================================================
+    */
+
     actions.appendChild(
+
         createPreviewButton(
             "Fechar",
             "fa-xmark",
-            () =>
-                closeArtifactPreview()
+            () => {
+
+                closeArtifactPreview();
+
+            }
         )
+
     );
+
+
+    /*
+    ======================================================
+    MONTA HEADER
+    ======================================================
+    */
 
     header.appendChild(
         title
     );
+
 
     header.appendChild(
         actions
     );
 
+
+    /*
+    ======================================================
+    VERSION BAR
+    ======================================================
+    */
+
     renderVersionBar();
-
-}
-
-
-function createPreviewButton(
-    title,
-    icon,
-    handler
-){
-
-    const button =
-        document.createElement(
-            "button"
-        );
-
-    button.type =
-        "button";
-
-    button.title =
-        title;
-
-    button.setAttribute(
-        "aria-label",
-        title
-    );
-
-    button.innerHTML =
-        `<i class="fa-solid ${icon}"></i>`;
-
-    button.addEventListener(
-        "click",
-        handler
-    );
-
-    return button;
 
 }
 
@@ -5935,14 +6391,23 @@ function renderVersionBar(){
 
     }
 
+
+    /*
+    ======================================================
+    REMOVE BARRA ANTERIOR
+    ======================================================
+    */
+
     dom.previewPane
         .querySelector(
             ".honey-preview-version-bar"
         )
         ?.remove();
 
+
     const artifact =
         state.previewArtifact;
+
 
     if(!artifact){
 
@@ -5950,10 +6415,18 @@ function renderVersionBar(){
 
     }
 
+
+    /*
+    ======================================================
+    VERSÕES
+    ======================================================
+    */
+
     const versions =
         getArtifactVersions(
             artifact
         );
+
 
     if(!versions.length){
 
@@ -5961,26 +6434,50 @@ function renderVersionBar(){
 
     }
 
+
+    /*
+    ======================================================
+    CRIA BARRA
+    ======================================================
+    */
+
     const bar =
         document.createElement(
             "div"
         );
 
+
     bar.className =
         "honey-preview-version-bar";
+
+
+    /*
+    ======================================================
+    LABEL
+    ======================================================
+    */
 
     const label =
         document.createElement(
             "span"
         );
 
+
     label.textContent =
         "Versão:";
+
+
+    /*
+    ======================================================
+    SELECT
+    ======================================================
+    */
 
     const select =
         document.createElement(
             "select"
         );
+
 
     versions.forEach(
         version => {
@@ -5990,11 +6487,14 @@ function renderVersionBar(){
                     "option"
                 );
 
+
             option.value =
                 version.id;
 
+
             option.textContent =
                 `v${version.version}`;
+
 
             if(
                 version.content ===
@@ -6006,12 +6506,20 @@ function renderVersionBar(){
 
             }
 
+
             select.appendChild(
                 option
             );
 
         }
     );
+
+
+    /*
+    ======================================================
+    TROCA DE VERSÃO
+    ======================================================
+    */
 
     select.addEventListener(
         "change",
@@ -6024,11 +6532,13 @@ function renderVersionBar(){
                         select.value
                 );
 
+
             if(!selected){
 
                 return;
 
             }
+
 
             state.previewArtifact = {
 
@@ -6045,6 +6555,7 @@ function renderVersionBar(){
 
             };
 
+
             renderPreviewArtifact(
                 state.previewArtifact
             );
@@ -6052,60 +6563,105 @@ function renderVersionBar(){
         }
     );
 
+
+    /*
+    ======================================================
+    COMPARAR
+    ======================================================
+    */
+
     const compare =
         document.createElement(
             "button"
         );
 
+
     compare.type =
         "button";
+
 
     compare.textContent =
         "Comparar";
 
+
     compare.addEventListener(
         "click",
-        () =>
+        event => {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
             compareArtifactVersions(
                 artifact
-            )
+            );
+
+        }
     );
+
+
+    /*
+    ======================================================
+    REVERTER
+    ======================================================
+    */
 
     const restore =
         document.createElement(
             "button"
         );
 
+
     restore.type =
         "button";
+
 
     restore.textContent =
         "Reverter";
 
+
     restore.addEventListener(
         "click",
-        () =>
+        event => {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
             restoreArtifactVersion(
                 artifact,
                 select.value
-            )
+            );
+
+        }
     );
+
+
+    /*
+    ======================================================
+    MONTA BARRA
+    ======================================================
+    */
 
     bar.appendChild(
         label
     );
 
+
     bar.appendChild(
         select
     );
+
 
     bar.appendChild(
         compare
     );
 
+
     bar.appendChild(
         restore
     );
+
 
     dom.previewPane.prepend(
         bar
@@ -6117,6 +6673,7 @@ function renderVersionBar(){
 /*
 ==========================================================
 RENDER PREVIEW
+UNIVERSAL ARTIFACT RENDERER
 ==========================================================
 */
 
@@ -6129,6 +6686,13 @@ function renderPreviewArtifact(
         return;
 
     }
+
+
+    /*
+    ======================================================
+    EDITOR
+    ======================================================
+    */
 
     if(
         state.previewMode ===
@@ -6143,23 +6707,58 @@ function renderPreviewArtifact(
 
     }
 
-    if(
-        !dom.previewPane
-    ){
+
+    /*
+    ======================================================
+    PREVIEW PANE
+    ======================================================
+    */
+
+    if(!dom.previewPane){
 
         return;
 
     }
 
+
     const body =
         ensurePreviewBody();
 
-    body.innerHTML = "";
+
+    if(!body){
+
+        return;
+
+    }
+
+
+    /*
+    ======================================================
+    LIMPA CONTEÚDO
+    ======================================================
+    */
+
+    body.innerHTML =
+        "";
+
+
+    /*
+    ======================================================
+    DETECTA TIPO
+    ======================================================
+    */
 
     const type =
         detectArtifactType(
             artifact
         );
+
+
+    /*
+    ======================================================
+    HTML
+    ======================================================
+    */
 
     if(
         type ===
@@ -6171,32 +6770,68 @@ function renderPreviewArtifact(
                 "iframe"
             );
 
+
         iframe.id =
             "live-preview-iframe";
 
+
         iframe.title =
-            artifact.name;
+            artifact.name ||
+            "Honey IA Preview";
+
 
         iframe.setAttribute(
             "sandbox",
             "allow-scripts allow-forms allow-modals"
         );
 
+
+        iframe.setAttribute(
+            "loading",
+            "eager"
+        );
+
+
         iframe.srcdoc =
             buildHTMLPreviewDocument(
                 artifact.content
             );
 
+
         body.appendChild(
             iframe
         );
 
+
         dom.previewIframe =
             iframe;
+
+
+        state.previewIframeReady =
+            false;
+
+
+        iframe.addEventListener(
+            "load",
+            () => {
+
+                state.previewIframeReady =
+                    true;
+
+            }
+        );
+
 
         return;
 
     }
+
+
+    /*
+    ======================================================
+    SVG
+    ======================================================
+    */
 
     if(
         type ===
@@ -6208,13 +6843,17 @@ function renderPreviewArtifact(
                 "iframe"
             );
 
+
         iframe.title =
-            artifact.name;
+            artifact.name ||
+            "SVG Preview";
+
 
         iframe.setAttribute(
             "sandbox",
             ""
         );
+
 
         iframe.srcdoc = `
 
@@ -6226,24 +6865,45 @@ function renderPreviewArtifact(
 
                 <meta charset="utf-8">
 
+                <meta
+                    name="viewport"
+                    content="width=device-width,initial-scale=1"
+                >
+
                 <style>
 
-                    html,body{
+                    html,
+                    body{
+
                         margin:0;
+                        width:100%;
                         min-height:100%;
+                        background:#fff;
+
                     }
 
                     body{
+
                         display:flex;
                         align-items:center;
                         justify-content:center;
+
                         padding:40px;
+
                         box-sizing:border-box;
+
                     }
 
                     svg{
+
+                        display:block;
+
+                        width:auto;
+                        height:auto;
+
                         max-width:100%;
                         max-height:90vh;
+
                     }
 
                 </style>
@@ -6262,16 +6922,26 @@ function renderPreviewArtifact(
 
         `;
 
+
         body.appendChild(
             iframe
         );
 
+
         dom.previewIframe =
             iframe;
+
 
         return;
 
     }
+
+
+    /*
+    ======================================================
+    MARKDOWN
+    ======================================================
+    */
 
     if(
         type ===
@@ -6283,25 +6953,37 @@ function renderPreviewArtifact(
                 "article"
             );
 
+
         article.className =
             "honey-preview-document";
+
 
         article.innerHTML =
             renderMarkdown(
                 artifact.content
             );
 
+
         highlightCode(
             article
         );
+
 
         body.appendChild(
             article
         );
 
+
         return;
 
     }
+
+
+    /*
+    ======================================================
+    JSON
+    ======================================================
+    */
 
     if(
         type ===
@@ -6313,18 +6995,28 @@ function renderPreviewArtifact(
                 "pre"
             );
 
+
         pre.textContent =
             formatJSON(
                 artifact.content
             );
 
+
         body.appendChild(
             pre
         );
 
+
         return;
 
     }
+
+
+    /*
+    ======================================================
+    CSV
+    ======================================================
+    */
 
     if(
         type ===
@@ -6336,17 +7028,21 @@ function renderPreviewArtifact(
                 artifact.content
             );
 
+
         body.appendChild(
             table
         );
+
 
         return;
 
     }
 
+
     /*
-        CSS, JS, Python, Java, SQL, etc.
-        são mostrados como código no Preview.
+    ======================================================
+    CÓDIGO
+    ======================================================
     */
 
     const codeWrapper =
@@ -6354,38 +7050,47 @@ function renderPreviewArtifact(
             "div"
         );
 
+
     codeWrapper.className =
         "honey-preview-code";
+
 
     const pre =
         document.createElement(
             "pre"
         );
 
+
     const code =
         document.createElement(
             "code"
         );
+
 
     code.className =
         artifact.language
             ? `language-${artifact.language}`
             : "";
 
+
     code.textContent =
         artifact.content;
+
 
     pre.appendChild(
         code
     );
 
+
     codeWrapper.appendChild(
         pre
     );
 
+
     body.appendChild(
         codeWrapper
     );
+
 
     highlightCode(
         codeWrapper
@@ -6410,55 +7115,120 @@ function renderPreviewEditor(
 
     }
 
+
     const body =
         ensurePreviewBody();
 
-    body.innerHTML = "";
+
+    if(!body){
+
+        return;
+
+    }
+
+
+    /*
+    ======================================================
+    LIMPA
+    ======================================================
+    */
+
+    body.innerHTML =
+        "";
+
+
+    /*
+    ======================================================
+    LAYOUT
+    ======================================================
+    */
 
     const layout =
         document.createElement(
             "div"
         );
 
+
     layout.className =
         "honey-preview-editor";
+
+
+    /*
+    ======================================================
+    EDITOR
+    ======================================================
+    */
 
     const editor =
         document.createElement(
             "textarea"
         );
 
+
     editor.className =
         "honey-preview-editor-input";
+
 
     editor.value =
         artifact.content;
 
+
     editor.spellcheck =
         false;
+
+
+    /*
+    ======================================================
+    RESULTADO
+    ======================================================
+    */
 
     const preview =
         document.createElement(
             "div"
         );
 
+
     preview.className =
         "honey-preview-editor-result";
+
+
+    /*
+    ======================================================
+    MONTA EDITOR
+    ======================================================
+    */
 
     layout.appendChild(
         editor
     );
 
+
     layout.appendChild(
         preview
     );
+
 
     body.appendChild(
         layout
     );
 
+
+    /*
+    ======================================================
+    GUARDA EDITOR
+    ======================================================
+    */
+
     state.previewEditor =
         editor;
+
+
+    /*
+    ======================================================
+    UPDATE
+    ======================================================
+    */
 
     const update =
         debounce(
@@ -6466,6 +7236,7 @@ function renderPreviewEditor(
 
                 const content =
                     editor.value;
+
 
                 const updated = {
 
@@ -6475,12 +7246,15 @@ function renderPreviewEditor(
 
                 };
 
+
                 state.previewArtifact =
                     updated;
+
 
                 updateArtifactInState(
                     updated
                 );
+
 
                 renderInlineEditorResult(
                     updated,
@@ -6491,10 +7265,24 @@ function renderPreviewEditor(
             80
         );
 
+
+    /*
+    ======================================================
+    INPUT
+    ======================================================
+    */
+
     editor.addEventListener(
         "input",
         update
     );
+
+
+    /*
+    ======================================================
+    PRIMEIRO RENDER
+    ======================================================
+    */
 
     renderInlineEditorResult(
         artifact,
@@ -7478,29 +8266,66 @@ CLOSE PREVIEW
 */
 
 function closeArtifactPreview(
-notify = false
+    notify = false
 ){
 
-    if(
-        state.previewFullscreen
-    ){
-
-        exitPreviewFullscreen();
-
-    }
+    /*
+     * O Preview é um overlay independente.
+     * Fechar o Preview NÃO deve:
+     *
+     * - alterar o layout do Chat
+     * - esconder o Chat
+     * - alterar a largura do Chat
+     * - alterar a posição do composer
+     * - alterar o cabeçalho
+     * - remover elementos do Chat
+     */
 
     if(dom.previewPane){
 
         dom.previewPane.classList.remove(
             "open",
-            "active"
+            "active",
+            "fullscreen"
         );
 
         /*
-            Do not destroy pane so the preview can be reopened.
-        */
+         * Mantemos o Preview no DOM para poder
+         * reabri-lo rapidamente.
+         */
+
+        dom.previewPane.style.display =
+            "none";
+
+        dom.previewPane.style.position =
+            "";
+
+        dom.previewPane.style.inset =
+            "";
+
+        dom.previewPane.style.width =
+            "";
+
+        dom.previewPane.style.height =
+            "";
+
+        dom.previewPane.style.maxWidth =
+            "";
+
+        dom.previewPane.style.maxHeight =
+            "";
+
+        dom.previewPane.style.zIndex =
+            "";
 
     }
+
+    /*
+     * Limpa apenas o estado relacionado ao Preview.
+     */
+
+    state.previewFullscreen =
+        false;
 
     state.previewArtifact =
         null;
@@ -7510,6 +8335,33 @@ notify = false
 
     state.previewEditor =
         null;
+
+    state.previewIframeReady =
+        false;
+
+    /*
+     * Remove apenas as classes globais usadas
+     * pelo overlay do Preview.
+     *
+     * Nenhuma classe do Chat é alterada.
+     */
+
+    document.documentElement.classList.remove(
+        "honey-preview-open"
+    );
+
+    document.body.classList.remove(
+        "honey-preview-open"
+    );
+
+    /*
+     * Não chamamos:
+     *
+     * exitPreviewFullscreen()
+     *
+     * porque o Preview já é tratado como fullscreen
+     * através do próprio overlay.
+     */
 
     if(notify){
 
@@ -7522,7 +8374,147 @@ notify = false
 
 }
 
+/*
+==========================================================
+PREVIEW FULLSCREEN
+==========================================================
+*/
 
+/*
+ * Abre o Preview como uma camada independente,
+ * ocupando toda a viewport.
+ *
+ * IMPORTANTE:
+ * Não altera a estrutura, largura ou posição do Chat.
+ */
+
+function enterPreviewFullscreen(){
+
+    if(!dom.previewPane){
+
+        return;
+
+    }
+
+    state.previewFullscreen =
+        true;
+
+    dom.previewPane.classList.add(
+        "open",
+        "active",
+        "fullscreen"
+    );
+
+    dom.previewPane.style.display =
+        "flex";
+
+    dom.previewPane.style.position =
+        "fixed";
+
+    dom.previewPane.style.top =
+        "0";
+
+    dom.previewPane.style.right =
+        "0";
+
+    dom.previewPane.style.bottom =
+        "0";
+
+    dom.previewPane.style.left =
+        "0";
+
+    dom.previewPane.style.width =
+        "100vw";
+
+    dom.previewPane.style.height =
+        "100vh";
+
+    dom.previewPane.style.maxWidth =
+        "100vw";
+
+    dom.previewPane.style.maxHeight =
+        "100vh";
+
+    dom.previewPane.style.zIndex =
+        "99999";
+
+    document.documentElement.classList.add(
+        "honey-preview-open"
+    );
+
+    document.body.classList.add(
+        "honey-preview-open"
+    );
+
+}
+
+
+/*
+ * Sai do modo fullscreen do Preview.
+ *
+ * Não altera absolutamente nada no Chat.
+ */
+
+function exitPreviewFullscreen(){
+
+    if(!dom.previewPane){
+
+        state.previewFullscreen =
+            false;
+
+        return;
+
+    }
+
+    state.previewFullscreen =
+        false;
+
+    dom.previewPane.classList.remove(
+        "fullscreen"
+    );
+
+    dom.previewPane.style.display =
+        "none";
+
+    dom.previewPane.style.position =
+        "";
+
+    dom.previewPane.style.top =
+        "";
+
+    dom.previewPane.style.right =
+        "";
+
+    dom.previewPane.style.bottom =
+        "";
+
+    dom.previewPane.style.left =
+        "";
+
+    dom.previewPane.style.width =
+        "";
+
+    dom.previewPane.style.height =
+        "";
+
+    dom.previewPane.style.maxWidth =
+        "";
+
+    dom.previewPane.style.maxHeight =
+        "";
+
+    dom.previewPane.style.zIndex =
+        "";
+
+    document.documentElement.classList.remove(
+        "honey-preview-open"
+    );
+
+    document.body.classList.remove(
+        "honey-preview-open"
+    );
+
+}
 /*
 ==========================================================
 VERSION COMPARE
