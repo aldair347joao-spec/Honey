@@ -1,58 +1,51 @@
 import "dotenv/config";
 
-import crypto from "node:crypto";
-
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import compression from "compression";
-import rateLimit from "express-rate-limit";
+import app from "./app.js";
 
 import {
     connectDatabase,
-    isDatabaseConnected,
-    getDatabaseInfo
+    disconnectDatabase,
+    isDatabaseConnected
 } from "./database.js";
+
+import config from "./config.js";
+
+import logger from "./logger.js";
 
 
 /*
 ============================================================
 HONEY PAY
-BACKEND API
+SERVER
 V1.0.0
 ============================================================
 
-ARQUIVO PRINCIPAL DO SERVIDOR
+PONTO DE ENTRADA DA APLICAÇÃO
 
 RESPONSABILIDADES
 ------------------------------------------------------------
-- Inicialização da aplicação
-- Conexão com MongoDB Atlas
-- Segurança HTTP
-- CORS
-- Compression
-- Rate limiting
-- Request IDs
-- Health check
-- Tratamento de erros
-- Graceful shutdown
+- Carregar configuração
+- Conectar ao MongoDB
+- Iniciar o servidor HTTP
+- Encerrar o servidor corretamente
+- Encerrar a conexão com MongoDB
+- Tratar erros fatais de processo
 
-ARQUITETURA ATUAL
-------------------------------------------------------------
+A configuração do Express está em:
 
-GitHub
-   │
-   ▼
-Render
-   │
-   ▼
-server.js
-   │
-   ▼
-database.js
-   │
-   ▼
-MongoDB Atlas
+    app.js
+
+A conexão MongoDB está em:
+
+    database.js
+
+A configuração global está em:
+
+    config.js
+
+Os logs estão em:
+
+    logger.js
 
 ============================================================
 */
@@ -60,500 +53,20 @@ MongoDB Atlas
 
 /*
 ============================================================
-APPLICATION CONFIGURATION
-============================================================
-*/
-
-const NODE_ENV =
-    process.env.NODE_ENV || "development";
-
-const PORT =
-    Number(process.env.PORT) || 10000;
-
-const CORS_ORIGIN =
-    process.env.CORS_ORIGIN || "*";
-
-const MAX_JSON_SIZE =
-    process.env.MAX_JSON_SIZE || "1mb";
-
-const MAX_URLENCODED_SIZE =
-    process.env.MAX_URLENCODED_SIZE || "1mb";
-
-
-/*
-============================================================
-EXPRESS APPLICATION
-============================================================
-*/
-
-const app = express();
-
-app.disable("x-powered-by");
-
-app.set("trust proxy", 1);
-
-
-/*
-============================================================
-REQUEST ID
-============================================================
-
-Cada requisição recebe um identificador único.
-
-Será utilizado posteriormente para:
-
-- auditoria
-- logs
-- suporte
-- segurança
-- investigação de erros
-============================================================
-*/
-
-app.use(
-    (req, res, next) => {
-
-        const receivedRequestId =
-            req.headers["x-request-id"];
-
-        const validRequestId =
-            typeof receivedRequestId === "string" &&
-            receivedRequestId.length > 0 &&
-            receivedRequestId.length <= 128;
-
-        req.requestId =
-            validRequestId
-                ? receivedRequestId
-                : crypto.randomUUID();
-
-        res.setHeader(
-            "X-Request-ID",
-            req.requestId
-        );
-
-        next();
-    }
-);
-
-
-/*
-============================================================
-SECURITY HEADERS
-============================================================
-*/
-
-app.use(
-    helmet({
-        contentSecurityPolicy: false,
-        crossOriginEmbedderPolicy: false
-    })
-);
-
-
-/*
-============================================================
-CORS
-============================================================
-*/
-
-app.use(
-    cors({
-        origin: (
-            origin,
-            callback
-        ) => {
-
-            /*
-            ------------------------------------------------
-            Permite requisições sem Origin.
-
-            Isto é necessário para:
-            - health checks
-            - servidores
-            - ferramentas HTTP
-            ------------------------------------------------
-            */
-
-            if (!origin) {
-                return callback(
-                    null,
-                    true
-                );
-            }
-
-
-            /*
-            ------------------------------------------------
-            Durante desenvolvimento podemos utilizar "*".
-            ------------------------------------------------
-            */
-
-            if (
-                CORS_ORIGIN === "*"
-            ) {
-                return callback(
-                    null,
-                    true
-                );
-            }
-
-
-            /*
-            ------------------------------------------------
-            Permite várias origens separadas por vírgula.
-            ------------------------------------------------
-            */
-
-            const allowedOrigins =
-                CORS_ORIGIN
-                    .split(",")
-                    .map(
-                        (item) =>
-                            item.trim()
-                    )
-                    .filter(Boolean);
-
-
-            if (
-                allowedOrigins.includes(
-                    origin
-                )
-            ) {
-                return callback(
-                    null,
-                    true
-                );
-            }
-
-
-            return callback(
-                new Error(
-                    "Origem não autorizada pelo CORS."
-                )
-            );
-        },
-
-        credentials: true,
-
-        methods: [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS"
-        ],
-
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-            "X-Request-ID"
-        ]
-    })
-);
-
-
-/*
-============================================================
-COMPRESSION
-============================================================
-*/
-
-app.use(
-    compression()
-);
-
-
-/*
-============================================================
-REQUEST BODY PARSING
-============================================================
-*/
-
-app.use(
-    express.json({
-        limit: MAX_JSON_SIZE
-    })
-);
-
-app.use(
-    express.urlencoded({
-        extended: true,
-        limit: MAX_URLENCODED_SIZE
-    })
-);
-
-
-/*
-============================================================
-GLOBAL RATE LIMIT
-============================================================
-
-Este é apenas o limite global.
-
-Posteriormente teremos limites específicos para:
-
-- registro
-- login
-- recuperação de conta
-- criação de cobrança
-- upload de comprovativos
-- checkout
-- WhatsApp
-- webhooks
-
-============================================================
-*/
-
-const globalRateLimiter =
-    rateLimit({
-        windowMs:
-            15 * 60 * 1000,
-
-        limit: 300,
-
-        standardHeaders:
-            "draft-8",
-
-        legacyHeaders:
-            false,
-
-        message: {
-            success: false,
-
-            error: {
-                code:
-                    "RATE_LIMIT_EXCEEDED",
-
-                message:
-                    "Muitas solicitações. Aguarde alguns minutos e tente novamente."
-            }
-        }
-    });
-
-app.use(
-    globalRateLimiter
-);
-
-
-/*
-============================================================
-ROOT ENDPOINT
-============================================================
-*/
-
-app.get(
-    "/",
-    (req, res) => {
-
-        return res.status(200).json({
-
-            success: true,
-
-            service:
-                "Honey Pay API",
-
-            version:
-                "1.0.0",
-
-            status:
-                "online",
-
-            environment:
-                NODE_ENV,
-
-            message:
-                "Honey Pay API está online.",
-
-            timestamp:
-                new Date().toISOString(),
-
-            requestId:
-                req.requestId
-        });
-    }
-);
-
-
-/*
-============================================================
-HEALTH CHECK
-============================================================
-
-Este endpoint será utilizado pelo:
-
-- Render
-- monitorização
-- testes
-- diagnóstico
-
-Agora o health check verifica realmente o MongoDB.
-============================================================
-*/
-
-app.get(
-    "/api/v1/health",
-    (req, res) => {
-
-        const databaseInfo =
-            getDatabaseInfo();
-
-        const healthy =
-            isDatabaseConnected();
-
-
-        return res
-            .status(
-                healthy
-                    ? 200
-                    : 503
-            )
-            .json({
-
-                success:
-                    healthy,
-
-                service:
-                    "honey-pay",
-
-                version:
-                    "1.0.0",
-
-                status:
-                    healthy
-                        ? "healthy"
-                        : "degraded",
-
-                database: {
-                    connected:
-                        databaseInfo.connected,
-
-                    state:
-                        databaseInfo.state,
-
-                    name:
-                        databaseInfo.name,
-
-                    host:
-                        databaseInfo.host
-                },
-
-                environment:
-                    NODE_ENV,
-
-                timestamp:
-                    new Date().toISOString(),
-
-                requestId:
-                    req.requestId
-            });
-    }
-);
-
-
-/*
-============================================================
-404 HANDLER
-============================================================
-*/
-
-app.use(
-    (req, res) => {
-
-        return res.status(404).json({
-
-            success: false,
-
-            error: {
-
-                code:
-                    "ROUTE_NOT_FOUND",
-
-                message:
-                    "A rota solicitada não existe."
-            },
-
-            requestId:
-                req.requestId
-        });
-    }
-);
-
-
-/*
-============================================================
-GLOBAL ERROR HANDLER
-============================================================
-*/
-
-app.use(
-    (
-        error,
-        req,
-        res,
-        next
-    ) => {
-
-        console.error(
-            "[HONEY PAY ERROR]",
-            {
-                message:
-                    error.message,
-
-                method:
-                    req.method,
-
-                path:
-                    req.originalUrl,
-
-                requestId:
-                    req.requestId
-            }
-        );
-
-
-        if (
-            res.headersSent
-        ) {
-            return next(error);
-        }
-
-
-        const production =
-            NODE_ENV ===
-            "production";
-
-
-        return res.status(500).json({
-
-            success: false,
-
-            error: {
-
-                code:
-                    "INTERNAL_SERVER_ERROR",
-
-                message:
-                    production
-                        ? "Ocorreu um erro interno."
-                        : error.message
-            },
-
-            requestId:
-                req.requestId
-        });
-    }
-);
-
-
-/*
-============================================================
-SERVER STARTUP
+SERVER STATE
 ============================================================
 */
 
 let server = null;
 
+let shuttingDown = false;
+
+
+/*
+============================================================
+START SERVER
+============================================================
+*/
 
 async function startServer() {
 
@@ -561,8 +74,24 @@ async function startServer() {
 
         /*
         ----------------------------------------------------
-        PRIMEIRO:
-        conectar ao MongoDB.
+        1. VALIDAR CONFIGURAÇÃO ESSENCIAL
+        ----------------------------------------------------
+        */
+
+        if (
+            config.app.isProduction &&
+            !config.database.uri
+        ) {
+
+            throw new Error(
+                "MONGODB_URI não está configurada."
+            );
+        }
+
+
+        /*
+        ----------------------------------------------------
+        2. CONECTAR AO MONGODB
         ----------------------------------------------------
         */
 
@@ -571,69 +100,173 @@ async function startServer() {
 
         /*
         ----------------------------------------------------
-        SEGUNDO:
-        iniciar HTTP.
+        3. INICIAR HTTP SERVER
         ----------------------------------------------------
         */
 
         server =
             app.listen(
-                PORT,
-                "0.0.0.0",
-                () => {
-
-                    console.log(
-                        "=================================================="
-                    );
-
-                    console.log(
-                        "HONEY PAY API"
-                    );
-
-                    console.log(
-                        "=================================================="
-                    );
-
-                    console.log(
-                        `Status: ONLINE`
-                    );
-
-                    console.log(
-                        `Environment: ${NODE_ENV}`
-                    );
-
-                    console.log(
-                        `Port: ${PORT}`
-                    );
-
-                    console.log(
-                        `Database: ${
-                            isDatabaseConnected()
-                                ? "CONNECTED"
-                                : "DISCONNECTED"
-                        }`
-                    );
-
-                    console.log(
-                        `URL: http://localhost:${PORT}`
-                    );
-
-                    console.log(
-                        "=================================================="
-                    );
-                }
+                config.app.port,
+                "0.0.0.0"
             );
+
+
+        /*
+        ----------------------------------------------------
+        SERVER LISTENING
+        ----------------------------------------------------
+        */
+
+        server.on(
+            "listening",
+            () => {
+
+                logger.info(
+                    {
+
+                        port:
+                            config.app.port,
+
+                        environment:
+                            config.app.environment,
+
+                        database:
+                            isDatabaseConnected()
+                                ? "connected"
+                                : "disconnected",
+
+                        publicUrl:
+                            config.app.publicUrl
+                    },
+
+                    "Honey Pay server started"
+                );
+
+
+                console.log(
+                    ""
+                );
+
+                console.log(
+                    "=================================================="
+                );
+
+                console.log(
+                    "HONEY PAY"
+                );
+
+                console.log(
+                    "=================================================="
+                );
+
+                console.log(
+                    `Status: ONLINE`
+                );
+
+                console.log(
+                    `Environment: ${
+                        config.app.environment
+                    }`
+                );
+
+                console.log(
+                    `Port: ${
+                        config.app.port
+                    }`
+                );
+
+                console.log(
+                    `MongoDB: ${
+                        isDatabaseConnected()
+                            ? "CONNECTED"
+                            : "DISCONNECTED"
+                    }`
+                );
+
+                console.log(
+                    `URL: ${
+                        config.app.publicUrl
+                    }`
+                );
+
+                console.log(
+                    "=================================================="
+                );
+
+                console.log(
+                    ""
+                );
+            }
+        );
+
+
+        /*
+        ----------------------------------------------------
+        SERVER ERROR
+        ----------------------------------------------------
+        */
+
+        server.on(
+            "error",
+            (error) => {
+
+                logger.error(
+                    {
+                        error
+                    },
+
+                    "HTTP server error"
+                );
+
+
+                /*
+                --------------------------------------------
+                Porta já utilizada.
+                --------------------------------------------
+                */
+
+                if (
+                    error.code ===
+                    "EADDRINUSE"
+                ) {
+
+                    logger.fatal(
+                        {
+                            port:
+                                config.app.port
+                        },
+
+                        "Port already in use"
+                    );
+
+                    process.exit(1);
+                }
+            }
+        );
 
     }
 
     catch (error) {
+
+        logger.fatal(
+            {
+                error
+            },
+
+            "Honey Pay failed to start"
+        );
+
+
+        console.error(
+            ""
+        );
 
         console.error(
             "=================================================="
         );
 
         console.error(
-            "HONEY PAY NÃO CONSEGUIU INICIAR"
+            "HONEY PAY — FALHA AO INICIAR"
         );
 
         console.error(
@@ -648,6 +281,11 @@ async function startServer() {
             "=================================================="
         );
 
+        console.error(
+            ""
+        );
+
+
         process.exit(1);
     }
 }
@@ -657,106 +295,178 @@ async function startServer() {
 ============================================================
 GRACEFUL SHUTDOWN
 ============================================================
+
+O Render envia SIGTERM quando precisa reiniciar ou
+encerrar o serviço.
+
+Precisamos fechar:
+
+1. HTTP server
+2. MongoDB
+
+antes de terminar o processo.
+============================================================
 */
 
 async function shutdown(
     signal
 ) {
 
+    if (
+        shuttingDown
+    ) {
+
+        return;
+    }
+
+
+    shuttingDown =
+        true;
+
+
+    logger.info(
+        {
+            signal
+        },
+
+        "Shutdown initiated"
+    );
+
+
     console.log(
         `[SERVER] ${signal} recebido.`
     );
 
 
-    if (!server) {
+    /*
+    --------------------------------------------------------
+    Caso o servidor HTTP ainda não tenha iniciado.
+    --------------------------------------------------------
+    */
+
+    if (
+        !server
+    ) {
+
+        try {
+
+            await disconnectDatabase();
+
+        }
+
+        catch (error) {
+
+            logger.error(
+                {
+                    error
+                },
+
+                "Database disconnect failed"
+            );
+        }
+
 
         process.exit(0);
 
+        return;
     }
 
 
-    server.close(
-        async () => {
+    /*
+    --------------------------------------------------------
+    Fechar novas conexões HTTP.
+    --------------------------------------------------------
+    */
 
-            try {
+    await new Promise(
+        (
+            resolve
+        ) => {
 
-                const {
-                    disconnectDatabase
-                } = await import(
-                    "./database.js"
-                );
+            server.close(
+                () => {
 
+                    logger.info(
+                        "HTTP server closed"
+                    );
 
-                await disconnectDatabase();
-
-
-                console.log(
-                    "[SERVER] MongoDB desconectado."
-                );
-
-                console.log(
-                    "[SERVER] Honey Pay encerrado corretamente."
-                );
-
-
-                process.exit(0);
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "[SERVER] Erro durante shutdown:",
-                    error.message
-                );
-
-                process.exit(1);
-            }
+                    resolve();
+                }
+            );
         }
     );
 
 
     /*
     --------------------------------------------------------
-    Segurança contra processo preso.
+    Fechar MongoDB.
     --------------------------------------------------------
     */
 
-    setTimeout(
-        () => {
+    try {
 
-            console.error(
-                "[SERVER] Encerramento forçado."
-            );
+        await disconnectDatabase();
 
-            process.exit(1);
 
-        },
-        10000
-    ).unref();
+        logger.info(
+            "MongoDB connection closed"
+        );
+
+    }
+
+    catch (error) {
+
+        logger.error(
+            {
+                error
+            },
+
+            "MongoDB shutdown error"
+        );
+
+    }
+
+
+    console.log(
+        "[SERVER] Honey Pay encerrado corretamente."
+    );
+
+
+    process.exit(0);
 }
 
 
+/*
+============================================================
+SIGNAL HANDLERS
+============================================================
+*/
+
 process.once(
     "SIGTERM",
-    () =>
+    () => {
+
         shutdown(
             "SIGTERM"
-        )
+        );
+    }
 );
+
 
 process.once(
     "SIGINT",
-    () =>
+    () => {
+
         shutdown(
             "SIGINT"
-        )
+        );
+    }
 );
 
 
 /*
 ============================================================
-PROCESS ERROR HANDLERS
+UNHANDLED PROMISE REJECTION
 ============================================================
 */
 
@@ -764,28 +474,52 @@ process.on(
     "unhandledRejection",
     (reason) => {
 
-        console.error(
-            "[PROCESS] Unhandled Promise Rejection:",
-            reason
+        logger.error(
+            {
+                reason
+            },
+
+            "Unhandled Promise Rejection"
         );
     }
 );
 
 
+/*
+============================================================
+UNCAUGHT EXCEPTION
+============================================================
+*/
+
 process.on(
     "uncaughtException",
-    (error) => {
+    async (
+        error
+    ) => {
 
-        console.error(
-            "[PROCESS] Uncaught Exception:",
-            error
+        logger.fatal(
+            {
+                error
+            },
+
+            "Uncaught Exception"
         );
 
-        shutdown(
+
+        await shutdown(
             "uncaughtException"
         );
     }
 );
+
+
+/*
+============================================================
+START
+============================================================
+*/
+
+startServer();
 
 
 /*
@@ -795,12 +529,3 @@ EXPORT
 */
 
 export default app;
-
-
-/*
-============================================================
-START APPLICATION
-============================================================
-*/
-
-startServer();
