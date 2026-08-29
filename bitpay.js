@@ -2,50 +2,53 @@
 ============================================================
 HONEY PAY
 BITPAY GATEWAY CLIENT
-V1.0.0
+V1.1.0
+PRODUCTION PAYMENT INFRASTRUCTURE
 ============================================================
 
-INTEGRAÇÃO OFICIAL DO HONEY PAY COM BITPAY
-
-------------------------------------------------------------
 RESPONSABILIDADES
 ------------------------------------------------------------
 
-- Comunicação segura com a API BitPay
-- Autenticação através de BITPAY_SECRET_KEY
-- Suporte sandbox / produção
-- Criação de Payment Intents
-- Consulta de Payment Intents
-- Criação de Payment Links
-- Consulta de Payment Links
-- Gestão de Mandates
-- Criação de instruções de débito
-- Gestão de Webhook Endpoints
-- Tratamento normalizado de erros
-- Timeout de comunicação
-- Nunca expor a API key nas respostas
+• Comunicação server-side com BitPay Angola
+• Autenticação segura através de BITPAY_SECRET_KEY
+• Sandbox / Production
+• Payment Intents
+• Checkout Sessions
+• Payment Links
+• Refunds
+• Mandates
+• Debit Instructions
+• Webhook Endpoints
+• Idempotency-Key
+• Timeout de requests
+• Normalização de erros
+• Nunca expor secrets
+• Nunca ativar subscriptions diretamente
 
-------------------------------------------------------------
-ENVIRONMENT
+SEGURANÇA
 ------------------------------------------------------------
 
-BITPAY_SECRET_KEY
-BITPAY_ENV
-BITPAY_API_URL
+A BITPAY_SECRET_KEY:
 
-------------------------------------------------------------
+✓ fica exclusivamente no backend
+✓ vem de process.env
+✓ nunca é devolvida ao frontend
+✓ nunca é incluída em logs
+✓ nunca é incluída em erros
+
 IMPORTANTE
 ------------------------------------------------------------
 
 Este módulo NÃO:
 
-- ativa subscrições;
-- confirma pagamentos;
-- altera invoices;
-- altera planos;
-- processa webhooks.
+✗ ativa subscriptions
+✗ confirma pagamentos
+✗ processa webhooks
+✗ decide se um cliente tem PRO
+✗ altera Subscription
+✗ confia em success_url
 
-Essas responsabilidades pertencem aos serviços próprios.
+Essas responsabilidades pertencem aos módulos superiores.
 
 ============================================================
 */
@@ -53,11 +56,11 @@ Essas responsabilidades pertencem aos serviços próprios.
 
 /*
 ============================================================
-CONSTANTS
+CONFIGURATION
 ============================================================
 */
 
-const DEFAULT_API_URL =
+const SANDBOX_API_URL =
     "https://api-sandbox.bitpay.ao/v1";
 
 
@@ -65,7 +68,7 @@ const PRODUCTION_API_URL =
     "https://api.bitpay.ao/v1";
 
 
-const REQUEST_TIMEOUT =
+const DEFAULT_TIMEOUT_MS =
     30_000;
 
 
@@ -81,40 +84,37 @@ ENVIRONMENT
 
 const BITPAY_SECRET_KEY =
     String(
-        process.env.BITPAY_SECRET_KEY ||
-        ""
+        process.env.BITPAY_SECRET_KEY || ""
     ).trim();
 
 
 const BITPAY_ENV =
     String(
-        process.env.BITPAY_ENV ||
-        "sandbox"
+        process.env.BITPAY_ENV || "sandbox"
     )
         .trim()
         .toLowerCase();
 
 
-const configuredApiUrl =
+const CONFIGURED_API_URL =
     String(
-        process.env.BITPAY_API_URL ||
-        ""
+        process.env.BITPAY_API_URL || ""
     ).trim();
 
 
 /*
 ============================================================
-VALIDATE CONFIGURATION
+API URL
 ============================================================
 */
 
 function getApiUrl() {
 
     if (
-        configuredApiUrl
+        CONFIGURED_API_URL
     ) {
 
-        return configuredApiUrl
+        return CONFIGURED_API_URL
             .replace(
                 /\/+$/,
                 ""
@@ -131,13 +131,64 @@ function getApiUrl() {
     }
 
 
-    return DEFAULT_API_URL;
+    return SANDBOX_API_URL;
 }
 
 
 /*
 ============================================================
-CONFIGURATION STATUS
+CONFIG VALIDATION
+============================================================
+*/
+
+function validateConfiguration() {
+
+    if (
+        !BITPAY_SECRET_KEY
+    ) {
+
+        const error =
+            new Error(
+                "BITPAY_SECRET_KEY não está configurada."
+            );
+
+        error.code =
+            "BITPAY_NOT_CONFIGURED";
+
+        error.statusCode =
+            500;
+
+        throw error;
+    }
+
+
+    if (
+        BITPAY_ENV !== "sandbox" &&
+        BITPAY_ENV !== "production"
+    ) {
+
+        const error =
+            new Error(
+                "BITPAY_ENV deve ser 'sandbox' ou 'production'."
+            );
+
+        error.code =
+            "BITPAY_INVALID_ENVIRONMENT";
+
+        error.statusCode =
+            500;
+
+        throw error;
+    }
+
+
+    return true;
+}
+
+
+/*
+============================================================
+SAFE CONFIGURATION
 ============================================================
 */
 
@@ -167,64 +218,6 @@ export function getBitPayConfig() {
 
 /*
 ============================================================
-ASSERT CONFIGURATION
-============================================================
-*/
-
-function assertConfigured() {
-
-    if (
-        !BITPAY_SECRET_KEY
-    ) {
-
-        const error =
-            new Error(
-                "BITPAY_SECRET_KEY não está configurada."
-            );
-
-
-        error.code =
-            "BITPAY_NOT_CONFIGURED";
-
-
-        error.statusCode =
-            500;
-
-
-        throw error;
-    }
-
-
-    if (
-        ![
-            "sandbox",
-            "production"
-        ].includes(
-            BITPAY_ENV
-        )
-    ) {
-
-        const error =
-            new Error(
-                "BITPAY_ENV inválido. Use sandbox ou production."
-            );
-
-
-        error.code =
-            "BITPAY_INVALID_ENVIRONMENT";
-
-
-        error.statusCode =
-            500;
-
-
-        throw error;
-    }
-}
-
-
-/*
-============================================================
 URL BUILDER
 ============================================================
 */
@@ -235,14 +228,9 @@ function buildUrl(
 
 ) {
 
-    const baseUrl =
-        getApiUrl();
-
-
     const normalizedPath =
         String(
-            path ||
-            ""
+            path || ""
         )
             .replace(
                 /^\/+/,
@@ -250,13 +238,74 @@ function buildUrl(
             );
 
 
-    return `${baseUrl}/${normalizedPath}`;
+    return `${getApiUrl()}/${normalizedPath}`;
 }
 
 
 /*
 ============================================================
-SAFE JSON
+IDEMPOTENCY KEY
+============================================================
+
+A chave deve ser estável para retries.
+
+Exemplo:
+
+subscription_abc123
+
+Se o mesmo pedido for repetido com a
+mesma chave, o BitPay evita uma
+segunda cobrança.
+
+============================================================
+*/
+
+function createIdempotencyKey(
+
+    suppliedKey = null
+
+) {
+
+    if (
+        suppliedKey !== null &&
+        suppliedKey !== undefined
+    ) {
+
+        const normalized =
+            String(
+                suppliedKey
+            ).trim();
+
+
+        if (
+            normalized
+        ) {
+
+            return normalized;
+        }
+    }
+
+
+    if (
+        typeof crypto !==
+        "undefined" &&
+        typeof crypto.randomUUID ===
+        "function"
+    ) {
+
+        return crypto.randomUUID();
+    }
+
+
+    return `honey_${Date.now()}_${Math.random()
+        .toString(36)
+        .slice(2, 14)}`;
+}
+
+
+/*
+============================================================
+RESPONSE PARSER
 ============================================================
 */
 
@@ -288,18 +337,17 @@ async function parseResponseBody(
 
     catch {
 
-        return text
-            .slice(
-                0,
-                MAX_ERROR_BODY_LENGTH
-            );
+        return text.slice(
+            0,
+            MAX_ERROR_BODY_LENGTH
+        );
     }
 }
 
 
 /*
 ============================================================
-ERROR
+BITPAY ERROR
 ============================================================
 */
 
@@ -311,7 +359,9 @@ function createBitPayError(
 
     code,
 
-    details = null
+    details = null,
+
+    requestId = null
 
 ) {
 
@@ -342,13 +392,22 @@ function createBitPayError(
     }
 
 
+    if (
+        requestId
+    ) {
+
+        error.requestId =
+            requestId;
+    }
+
+
     return error;
 }
 
 
 /*
 ============================================================
-HTTP REQUEST
+REQUEST
 ============================================================
 */
 
@@ -360,19 +419,23 @@ export async function bitPayRequest(
 
 ) {
 
-    assertConfigured();
+    validateConfiguration();
 
 
     const {
 
         method = "GET",
 
-        body = undefined,
+        body,
 
         headers = {},
 
         timeout =
-            REQUEST_TIMEOUT
+            DEFAULT_TIMEOUT_MS,
+
+        idempotencyKey = null,
+
+        financialOperation = false
 
     } =
         options;
@@ -411,15 +474,46 @@ export async function bitPayRequest(
         };
 
 
+        /*
+        ----------------------------------------------------
+        CONTENT TYPE
+        ----------------------------------------------------
+        */
+
         if (
-            body !==
-            undefined
+            body !== undefined
         ) {
 
             requestHeaders[
                 "Content-Type"
             ] =
                 "application/json";
+        }
+
+
+        /*
+        ----------------------------------------------------
+        IDEMPOTENCY
+        ----------------------------------------------------
+
+        Obrigatória nas operações financeiras
+        de criação.
+
+        ----------------------------------------------------
+        */
+
+        if (
+            financialOperation &&
+            method.toUpperCase() ===
+            "POST"
+        ) {
+
+            requestHeaders[
+                "Idempotency-Key"
+            ] =
+                createIdempotencyKey(
+                    idempotencyKey
+                );
         }
 
 
@@ -432,17 +526,15 @@ export async function bitPayRequest(
 
                 {
 
-                    method,
+                    method:
+                        method.toUpperCase(),
 
                     headers:
                         requestHeaders,
 
                     body:
-                        body ===
-                        undefined
-
+                        body === undefined
                             ? undefined
-
                             : JSON.stringify(
                                 body
                             ),
@@ -461,54 +553,87 @@ export async function bitPayRequest(
             );
 
 
+        /*
+        ----------------------------------------------------
+        SUCCESS
+        ----------------------------------------------------
+        */
+
         if (
-            !response.ok
+            response.ok
         ) {
 
-            const message =
-
-                typeof data ===
-                "object" &&
-                data !== null &&
-
-                (
-                    data.message ||
-                    data.error ||
-                    data.detail
-                )
-
-                    ? (
-
-                        data.message ||
-                        data.error ||
-                        data.detail
-
-                    )
-
-                    : `BitPay respondeu com HTTP ${response.status}.`;
-
-
-            throw createBitPayError(
-
-                message,
-
-                response.status,
-
-                "BITPAY_API_ERROR",
-
-                data
-
-            );
+            return data;
         }
 
 
-        return data;
+        /*
+        ----------------------------------------------------
+        ERROR FORMAT
+        ----------------------------------------------------
+        */
+
+        const apiError =
+            data &&
+            typeof data ===
+            "object" &&
+            data.error
+                ? data.error
+                : null;
+
+
+        const message =
+            apiError?.message ||
+            (
+                typeof data ===
+                "object" &&
+                data !== null
+                    ? (
+                        data.message ||
+                        data.detail ||
+                        data.error
+                    )
+                    : null
+            ) ||
+            `BitPay respondeu com HTTP ${response.status}.`;
+
+
+        const code =
+            apiError?.code ||
+            "BITPAY_API_ERROR";
+
+
+        const requestId =
+            apiError?.request_id ||
+            data?.request_id ||
+            null;
+
+
+        throw createBitPayError(
+
+            message,
+
+            response.status,
+
+            code,
+
+            data,
+
+            requestId
+
+        );
 
     }
 
     catch (
         error
     ) {
+
+        /*
+        ----------------------------------------------------
+        TIMEOUT
+        ----------------------------------------------------
+        */
 
         if (
             error?.name ===
@@ -527,6 +652,12 @@ export async function bitPayRequest(
         }
 
 
+        /*
+        ----------------------------------------------------
+        ALREADY NORMALIZED
+        ----------------------------------------------------
+        */
+
         if (
             error?.name ===
             "BitPayError"
@@ -535,6 +666,12 @@ export async function bitPayRequest(
             throw error;
         }
 
+
+        /*
+        ----------------------------------------------------
+        CONNECTION FAILURE
+        ----------------------------------------------------
+        */
 
         throw createBitPayError(
 
@@ -553,6 +690,7 @@ export async function bitPayRequest(
             }
 
         );
+
     }
 
     finally {
@@ -575,11 +713,17 @@ PAYMENT INTENTS
 ------------------------------------------------------------
 CREATE PAYMENT INTENT
 ------------------------------------------------------------
+
+Idempotency-Key obrigatória.
+
+============================================================
 */
 
 export async function createPaymentIntent(
 
-    data
+    data,
+
+    options = {}
 
 ) {
 
@@ -611,7 +755,13 @@ export async function createPaymentIntent(
                 "POST",
 
             body:
-                data
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
 
         }
 
@@ -666,6 +816,51 @@ export async function getPaymentIntent(
 
 /*
 ------------------------------------------------------------
+CANCEL PAYMENT INTENT
+------------------------------------------------------------
+*/
+
+export async function cancelPaymentIntent(
+
+    paymentIntentId
+
+) {
+
+    if (
+        !paymentIntentId
+    ) {
+
+        throw createBitPayError(
+
+            "paymentIntentId é obrigatório.",
+
+            400,
+
+            "PAYMENT_INTENT_ID_REQUIRED"
+
+        );
+    }
+
+
+    return bitPayRequest(
+
+        `/payment_intents/${encodeURIComponent(
+            paymentIntentId
+        )}/cancel`,
+
+        {
+
+            method:
+                "POST"
+
+        }
+
+    );
+}
+
+
+/*
+------------------------------------------------------------
 LIST PAYMENT INTENTS
 ------------------------------------------------------------
 */
@@ -691,12 +886,9 @@ export async function listPaymentIntents(
     ) {
 
         if (
-            value !==
-            undefined &&
-            value !==
-            null &&
-            value !==
-            ""
+            value !== undefined &&
+            value !== null &&
+            value !== ""
         ) {
 
             searchParams.set(
@@ -737,6 +929,122 @@ export async function listPaymentIntents(
 
 /*
 ============================================================
+CHECKOUT SESSIONS
+============================================================
+*/
+
+
+/*
+------------------------------------------------------------
+CREATE CHECKOUT SESSION
+------------------------------------------------------------
+
+O cliente será redirecionado para o
+checkout hospedado do BitPay.
+
+A confirmação verdadeira continuará
+a ser feita por webhook.
+
+============================================================
+*/
+
+export async function createCheckoutSession(
+
+    data,
+
+    options = {}
+
+) {
+
+    if (
+        !data ||
+        typeof data !==
+        "object"
+    ) {
+
+        throw createBitPayError(
+
+            "Os dados da Checkout Session são obrigatórios.",
+
+            400,
+
+            "INVALID_CHECKOUT_SESSION_DATA"
+
+        );
+    }
+
+
+    return bitPayRequest(
+
+        "/checkout/sessions",
+
+        {
+
+            method:
+                "POST",
+
+            body:
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
+
+        }
+
+    );
+}
+
+
+/*
+------------------------------------------------------------
+GET CHECKOUT SESSION
+------------------------------------------------------------
+*/
+
+export async function getCheckoutSession(
+
+    sessionId
+
+) {
+
+    if (
+        !sessionId
+    ) {
+
+        throw createBitPayError(
+
+            "sessionId é obrigatório.",
+
+            400,
+
+            "CHECKOUT_SESSION_ID_REQUIRED"
+
+        );
+    }
+
+
+    return bitPayRequest(
+
+        `/checkout/sessions/${encodeURIComponent(
+            sessionId
+        )}`,
+
+        {
+
+            method:
+                "GET"
+
+        }
+
+    );
+}
+
+
+/*
+============================================================
 PAYMENT LINKS
 ============================================================
 */
@@ -750,7 +1058,9 @@ CREATE PAYMENT LINK
 
 export async function createPaymentLink(
 
-    data
+    data,
+
+    options = {}
 
 ) {
 
@@ -782,7 +1092,13 @@ export async function createPaymentLink(
                 "POST",
 
             body:
-                data
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
 
         }
 
@@ -837,63 +1153,145 @@ export async function getPaymentLink(
 
 /*
 ------------------------------------------------------------
-LIST PAYMENT LINKS
+DELETE PAYMENT LINK
 ------------------------------------------------------------
 */
 
-export async function listPaymentLinks(
+export async function deletePaymentLink(
 
-    query = {}
+    paymentLinkId
 
 ) {
 
-    const searchParams =
-        new URLSearchParams();
-
-
-    for (
-        const [
-            key,
-            value
-        ]
-        of Object.entries(
-            query
-        )
+    if (
+        !paymentLinkId
     ) {
 
-        if (
-            value !==
-            undefined &&
-            value !==
-            null &&
-            value !==
-            ""
-        ) {
+        throw createBitPayError(
 
-            searchParams.set(
+            "paymentLinkId é obrigatório.",
 
-                key,
+            400,
 
-                String(
-                    value
-                )
+            "PAYMENT_LINK_ID_REQUIRED"
 
-            );
-        }
+        );
     }
-
-
-    const queryString =
-        searchParams.toString();
 
 
     return bitPayRequest(
 
-        `/payment_links${
-            queryString
-                ? `?${queryString}`
-                : ""
-        }`,
+        `/payment_links/${encodeURIComponent(
+            paymentLinkId
+        )}`,
+
+        {
+
+            method:
+                "DELETE"
+
+        }
+
+    );
+}
+
+
+/*
+============================================================
+REFUNDS
+============================================================
+*/
+
+
+/*
+------------------------------------------------------------
+CREATE REFUND
+------------------------------------------------------------
+*/
+
+export async function createRefund(
+
+    data,
+
+    options = {}
+
+) {
+
+    if (
+        !data ||
+        typeof data !==
+        "object"
+    ) {
+
+        throw createBitPayError(
+
+            "Os dados do reembolso são obrigatórios.",
+
+            400,
+
+            "INVALID_REFUND_DATA"
+
+        );
+    }
+
+
+    return bitPayRequest(
+
+        "/refunds",
+
+        {
+
+            method:
+                "POST",
+
+            body:
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
+
+        }
+
+    );
+}
+
+
+/*
+------------------------------------------------------------
+GET REFUND
+------------------------------------------------------------
+*/
+
+export async function getRefund(
+
+    refundId
+
+) {
+
+    if (
+        !refundId
+    ) {
+
+        throw createBitPayError(
+
+            "refundId é obrigatório.",
+
+            400,
+
+            "REFUND_ID_REQUIRED"
+
+        );
+    }
+
+
+    return bitPayRequest(
+
+        `/refunds/${encodeURIComponent(
+            refundId
+        )}`,
 
         {
 
@@ -917,11 +1315,20 @@ MANDATES
 ------------------------------------------------------------
 CREATE MANDATE
 ------------------------------------------------------------
+
+A estrutura exata do payload é responsabilidade
+do módulo de subscrição.
+
+Este cliente apenas envia o objeto.
+
+============================================================
 */
 
 export async function createMandate(
 
-    data
+    data,
+
+    options = {}
 
 ) {
 
@@ -953,7 +1360,13 @@ export async function createMandate(
                 "POST",
 
             body:
-                data
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
 
         }
 
@@ -1033,12 +1446,9 @@ export async function listMandates(
     ) {
 
         if (
-            value !==
-            undefined &&
-            value !==
-            null &&
-            value !==
-            ""
+            value !== undefined &&
+            value !== null &&
+            value !== ""
         ) {
 
             searchParams.set(
@@ -1092,7 +1502,9 @@ CREATE DEBIT INSTRUCTION
 
 export async function createDebitInstruction(
 
-    data
+    data,
+
+    options = {}
 
 ) {
 
@@ -1124,7 +1536,13 @@ export async function createDebitInstruction(
                 "POST",
 
             body:
-                data
+                data,
+
+            idempotencyKey:
+                options.idempotencyKey,
+
+            financialOperation:
+                true
 
         }
 
@@ -1188,6 +1606,13 @@ WEBHOOK ENDPOINTS
 ------------------------------------------------------------
 CREATE WEBHOOK ENDPOINT
 ------------------------------------------------------------
+
+A resposta contém o secret whsec_...
+que deverá ser guardado no Render.
+
+NUNCA devolver este secret ao frontend.
+
+============================================================
 */
 
 export async function createWebhookEndpoint(
@@ -1283,9 +1708,7 @@ LIST WEBHOOK ENDPOINTS
 ------------------------------------------------------------
 */
 
-export async function listWebhookEndpoints(
-
-) {
+export async function listWebhookEndpoints() {
 
     return bitPayRequest(
 
@@ -1349,72 +1772,66 @@ export async function deleteWebhookEndpoint(
 
 /*
 ============================================================
-HEALTH / CONNECTION TEST
+PAYMENT METHODS
 ============================================================
 */
 
-export async function testBitPayConnection(
+export async function listPaymentMethods() {
 
-) {
+    return bitPayRequest(
 
-    assertConfigured();
+        "/payment_methods",
 
+        {
 
-    try {
+            method:
+                "GET"
 
-        /*
-        ----------------------------------------------------
-        A listagem de Payment Intents é utilizada apenas
-        como teste autenticado da conexão.
+        }
 
-        Não criamos pagamentos reais aqui.
-        ----------------------------------------------------
-        */
-
-        const result =
-            await listPaymentIntents({
-
-                limit:
-                    1
-
-            });
-
-
-        return {
-
-            connected:
-                true,
-
-            environment:
-                BITPAY_ENV,
-
-            apiUrl:
-                getApiUrl(),
-
-            result
-
-        };
-
-    }
-
-    catch (
-        error
-    ) {
-
-        throw error;
-    }
+    );
 }
 
 
 /*
 ============================================================
-SANITIZE CONFIG
+CONNECTION TEST
 ============================================================
 */
 
-export function getSafeBitPayConfig(
+export async function testBitPayConnection() {
 
-) {
+    validateConfiguration();
+
+
+    const paymentMethods =
+        await listPaymentMethods();
+
+
+    return {
+
+        connected:
+            true,
+
+        environment:
+            BITPAY_ENV,
+
+        apiUrl:
+            getApiUrl(),
+
+        paymentMethods
+
+    };
+}
+
+
+/*
+============================================================
+SAFE CONFIG
+============================================================
+*/
+
+export function getSafeBitPayConfig() {
 
     return {
 
@@ -1435,7 +1852,7 @@ export function getSafeBitPayConfig(
 
 /*
 ============================================================
-EXPORT
+DEFAULT EXPORT
 ============================================================
 */
 
@@ -1451,13 +1868,23 @@ export default {
 
     getPaymentIntent,
 
+    cancelPaymentIntent,
+
     listPaymentIntents,
+
+    createCheckoutSession,
+
+    getCheckoutSession,
 
     createPaymentLink,
 
     getPaymentLink,
 
-    listPaymentLinks,
+    deletePaymentLink,
+
+    createRefund,
+
+    getRefund,
 
     createMandate,
 
@@ -1476,6 +1903,8 @@ export default {
     listWebhookEndpoints,
 
     deleteWebhookEndpoint,
+
+    listPaymentMethods,
 
     testBitPayConnection
 
