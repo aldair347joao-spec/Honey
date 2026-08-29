@@ -1,1213 +1,630 @@
 /*
 ============================================================
 HONEY PAY
-AUTH SERVICE
+API ROUTES
 V1.0.0
 ============================================================
 
-AUTENTICAÇÃO REAL DA PLATAFORMA
+ROTAS PRINCIPAIS DA API
 
 ------------------------------------------------------------
-RESPONSABILIDADES
+PUBLIC
 ------------------------------------------------------------
 
-- Registo de comerciantes
-- Login
-- JWT
-- Criação automática da Subscription FREE
-- Verificação de email duplicado
-- Geração de slug
-- Proteção de password
-- Atualização do último login
-- Dados públicos seguros
-- Logout lógico através da aplicação cliente
+GET  /api/health
+POST /api/auth/register
+POST /api/auth/login
+
+------------------------------------------------------------
+AUTHENTICATED
+------------------------------------------------------------
+
+GET  /api/auth/me
+GET  /api/auth/plan
+POST /api/auth/change-password
 
 ------------------------------------------------------------
 IMPORTANTE
 ------------------------------------------------------------
 
-A password NUNCA é armazenada em texto puro.
+Este router NÃO possui fallback 404 próprio.
 
-O JWT não contém password nem dados sensíveis.
+O fallback global é tratado pelo server.js depois de
+todos os routers da API serem executados.
 
 ============================================================
 */
 
-import {
-    Merchant,
-    Subscription
-} from "./models.js";
+import express from "express";
 
 
 import {
-    hashPassword,
-    comparePassword,
-    normalizeEmail,
-    normalizePhone,
-    createAccessToken
-} from "./security.js";
+    registerMerchant,
+    loginMerchant,
+    getAuthenticatedProfile,
+    changeMerchantPassword
+} from "./auth.js";
 
 
 import {
-    validateRegistrationInput,
-    validateLoginInput,
-    sanitizeRegistrationInput
-} from "./validators.js";
+    authenticateRequest
+} from "./middleware.js";
 
 
 import {
-    slugify,
-    appendSlugSuffix,
-    publicMerchant
+    successResponse,
+    errorResponse,
+    normalizeError
 } from "./utils.js";
 
 
 import {
-    PLAN_FREE
+    getPlanSummary
 } from "./plans.js";
 
 
 import {
-    logSecurityEvent
-} from "./logger.js";
+    getDatabaseStatus
+} from "./database.js";
 
 
 /*
 ============================================================
-CONSTANTES
+ROUTER
 ============================================================
 */
 
-const JWT_EXPIRES_IN =
-    "7d";
+const router =
+    express.Router();
 
 
 /*
 ============================================================
-CREATE UNIQUE SLUG
+HEALTH CHECK
+============================================================
+
+GET /api/health
+
 ============================================================
 */
 
-async function createUniqueSlug(
-    businessName
-) {
+router.get(
+    "/health",
+    async (
+        req,
+        res
+    ) => {
 
-    let baseSlug =
-        slugify(
-            businessName
-        );
+        try {
 
-
-    /*
-    --------------------------------------------------------
-    Fallback caso o nome contenha apenas caracteres que
-    não possam ser transformados num slug.
-    --------------------------------------------------------
-    */
-
-    if (
-        !baseSlug
-    ) {
-
-        baseSlug =
-            "loja";
-    }
+            const database =
+                getDatabaseStatus();
 
 
-    /*
-    --------------------------------------------------------
-    Primeira tentativa:
-    --------------------------------------------------------
-    */
-
-    const existing =
-        await Merchant
-            .findOne({
-                slug:
-                    baseSlug
-            })
-            .select(
-                "_id"
-            )
-            .lean();
+            const operational =
+                database?.connected ===
+                true;
 
 
-    if (
-        !existing
-    ) {
+            return successResponse(
 
-        return baseSlug;
-    }
+                res,
 
+                {
 
-    /*
-    --------------------------------------------------------
-    Se já existir, adicionamos um sufixo aleatório.
-    --------------------------------------------------------
-    */
+                    service:
+                        "Honey Pay API",
 
-    for (
-        let attempt = 0;
-        attempt < 10;
-        attempt++
-    ) {
+                    version:
+                        "1.0.0",
 
-        const candidate =
-            appendSlugSuffix(
-                baseSlug
+                    status:
+                        operational
+                            ? "operational"
+                            : "degraded",
+
+                    database,
+
+                    timestamp:
+                        new Date()
+                            .toISOString()
+                }
+            );
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                "[API HEALTH ERROR]",
+                error
             );
 
 
-        const duplicate =
-            await Merchant
-                .findOne({
-                    slug:
-                        candidate
-                })
-                .select(
-                    "_id"
-                )
-                .lean();
+            const normalized =
+                normalizeError(
+                    error
+                );
 
 
-        if (
-            !duplicate
-        ) {
+            return errorResponse(
 
-            return candidate;
+                res,
+
+                normalized.statusCode,
+
+                normalized.code,
+
+                normalized.message
+            );
         }
     }
-
-
-    /*
-    --------------------------------------------------------
-    Fallback final.
-    --------------------------------------------------------
-    */
-
-    return appendSlugSuffix(
-        baseSlug
-    );
-}
-
-
-/*
-============================================================
-CREATE JWT PAYLOAD
-============================================================
-*/
-
-function buildAuthPayload(
-    merchant
-) {
-
-    return {
-
-        merchantId:
-            merchant._id.toString(),
-
-        email:
-            merchant.email,
-
-        type:
-            "merchant"
-    };
-}
-
-
-/*
-============================================================
-AUTH RESPONSE
-============================================================
-*/
-
-function buildAuthResponse(
-    merchant,
-    token,
-    subscription
-) {
-
-    return {
-
-        token,
-
-        tokenType:
-            "Bearer",
-
-        expiresIn:
-            JWT_EXPIRES_IN,
-
-        merchant:
-            publicMerchant(
-                merchant
-            ),
-
-        subscription: {
-
-            plan:
-                subscription?.plan ||
-                PLAN_FREE,
-
-            status:
-                subscription?.status ||
-                "active",
-
-            monthlyPriceKz:
-                subscription?.monthlyPriceKz ||
-                0
-        }
-    };
-}
+);
 
 
 /*
 ============================================================
 REGISTER
 ============================================================
+
+POST /api/auth/register
+
+============================================================
 */
 
-export async function registerMerchant(
-    input
-) {
-
-    /*
-    --------------------------------------------------------
-    Validar antes de qualquer operação.
-    --------------------------------------------------------
-    */
-
-    const validationErrors =
-        validateRegistrationInput(
-            input
-        );
-
-
-    if (
-        validationErrors.length
-    ) {
-
-        const error =
-            new Error(
-                "Dados de registo inválidos."
-            );
-
-
-        error.code =
-            "VALIDATION_ERROR";
-
-
-        error.statusCode =
-            400;
-
-
-        error.details =
-            validationErrors;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Sanitizar dados.
-    --------------------------------------------------------
-    */
-
-    const data =
-        sanitizeRegistrationInput(
-            input
-        );
-
-
-    const email =
-        normalizeEmail(
-            data.email
-        );
-
-
-    const phone =
-        normalizePhone(
-            data.phone
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Verificar email existente.
-
-    Esta verificação é apenas uma camada de UX.
-
-    O índice unique do MongoDB continua a ser a proteção
-    definitiva contra concorrência.
-    --------------------------------------------------------
-    */
-
-    const existingMerchant =
-        await Merchant
-            .findOne({
-                email
-            })
-            .select(
-                "_id"
-            )
-            .lean();
-
-
-    if (
-        existingMerchant
-    ) {
-
-        const error =
-            new Error(
-                "Este email já está registado."
-            );
-
-
-        error.code =
-            "EMAIL_ALREADY_EXISTS";
-
-
-        error.statusCode =
-            409;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Criar slug.
-    --------------------------------------------------------
-    */
-
-    const slug =
-        await createUniqueSlug(
-            data.businessName
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Hash da password.
-    --------------------------------------------------------
-    */
-
-    const passwordHash =
-        await hashPassword(
-            data.password
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Criar comerciante.
-    --------------------------------------------------------
-    */
-
-    let merchant;
-
-
-    try {
-
-        merchant =
-            await Merchant.create({
-
-                name:
-                    data.name,
-
-                businessName:
-                    data.businessName,
-
-                slug,
-
-                email,
-
-                passwordHash,
-
-                phone,
-
-                whatsappNumber:
-                    phone,
-
-                whatsappConnected:
-                    false,
-
-                country:
-                    "AO",
-
-                currency:
-                    "AOA",
-
-                invoiceCount:
-                    0,
-
-                freeInvoiceCount:
-                    0,
-
-                status:
-                    "active",
-
-                emailVerified:
-                    false
-            });
-
-    }
-
-    catch (error) {
-
-        /*
-        ----------------------------------------------------
-        Race condition de email/slug.
-        ----------------------------------------------------
-        */
-
-        if (
-            error?.code ===
-            11000
-        ) {
-
-            const duplicateField =
-                Object.keys(
-                    error.keyPattern ||
-                    {}
-                )[0];
-
-
-            const duplicateError =
-                new Error(
-
-                    duplicateField ===
-                    "email"
-
-                        ? "Este email já está registado."
-
-                        : "O nome da loja já está em utilização."
+router.post(
+    "/auth/register",
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const result =
+                await registerMerchant(
+                    req.body
                 );
 
 
-            duplicateError.code =
-                duplicateField ===
-                "email"
+            return successResponse(
 
-                    ? "EMAIL_ALREADY_EXISTS"
+                res,
 
-                    : "SLUG_ALREADY_EXISTS";
+                result,
 
+                201
+            );
 
-            duplicateError.statusCode =
-                409;
-
-
-            throw duplicateError;
         }
 
+        catch (
+            error
+        ) {
 
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Criar Subscription FREE automaticamente.
-    --------------------------------------------------------
-    */
-
-    let subscription;
+            console.error(
+                "[AUTH REGISTER ERROR]",
+                error
+            );
 
 
-    try {
-
-        subscription =
-            await Subscription.create({
-
-                merchantId:
-                    merchant._id,
-
-                plan:
-                    PLAN_FREE,
-
-                status:
-                    "active",
-
-                monthlyPriceKz:
-                    0,
-
-                currentPeriodStart:
-                    null,
-
-                currentPeriodEnd:
-                    null,
-
-                autoRenew:
-                    false,
-
-                activatedAt:
-                    new Date()
-            });
-
-    }
-
-    catch (error) {
-
-        /*
-        ----------------------------------------------------
-        Se a subscription falhar, apagamos o comerciante
-        recém-criado para não deixar uma conta incompleta.
-        ----------------------------------------------------
-        */
-
-        await Merchant
-            .deleteOne({
-                _id:
-                    merchant._id
-            });
+            const normalized =
+                normalizeError(
+                    error
+                );
 
 
-        throw error;
-    }
+            return errorResponse(
 
+                res,
 
-    /*
-    --------------------------------------------------------
-    Gerar token.
-    --------------------------------------------------------
-    */
+                normalized.statusCode,
 
-    const token =
-        createAccessToken(
-            buildAuthPayload(
-                merchant
-            ),
-            {
-                expiresIn:
-                    JWT_EXPIRES_IN
-            }
-        );
+                normalized.code,
 
+                normalized.message,
 
-    logSecurityEvent(
-        "merchant_registered",
-        {
-
-            merchantId:
-                merchant._id.toString(),
-
-            ip:
+                error?.details ||
                 null
+            );
         }
-    );
-
-
-    return buildAuthResponse(
-        merchant,
-        token,
-        subscription
-    );
-}
+    }
+);
 
 
 /*
 ============================================================
 LOGIN
 ============================================================
+
+POST /api/auth/login
+
+============================================================
 */
 
-export async function loginMerchant(
-    input,
-    securityContext = {}
-) {
+router.post(
+    "/auth/login",
+    async (
+        req,
+        res
+    ) => {
 
-    /*
-    --------------------------------------------------------
-    Validar input.
-    --------------------------------------------------------
-    */
+        try {
 
-    const validationErrors =
-        validateLoginInput(
-            input
-        );
+            const result =
+                await loginMerchant(
+
+                    req.body,
+
+                    {
+
+                        ip:
+                            req.ip,
+
+                        userAgent:
+                            req.get(
+                                "user-agent"
+                            )
+                    }
+                );
 
 
-    if (
-        validationErrors.length
-    ) {
+            return successResponse(
 
-        const error =
-            new Error(
-                "Dados de login inválidos."
+                res,
+
+                result
             );
 
-
-        error.code =
-            "VALIDATION_ERROR";
-
-
-        error.statusCode =
-            400;
-
-
-        error.details =
-            validationErrors;
-
-
-        throw error;
-    }
-
-
-    const email =
-        normalizeEmail(
-            input.email
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Password é usada diretamente e nunca é normalizada,
-    pois qualquer alteração mudaria a password.
-    --------------------------------------------------------
-    */
-
-    const password =
-        input.password;
-
-
-    /*
-    --------------------------------------------------------
-    Carregar passwordHash explicitamente porque o schema
-    possui select:false.
-    --------------------------------------------------------
-    */
-
-    const merchant =
-        await Merchant
-            .findOne({
-                email
-            })
-            .select(
-                "+passwordHash"
-            );
-
-
-    /*
-    --------------------------------------------------------
-    Não revelamos se o email existe.
-
-    Isso reduz enumeração de contas.
-    --------------------------------------------------------
-    */
-
-    if (
-        !merchant
-    ) {
-
-        logSecurityEvent(
-            "login_failed",
-            {
-
-                reason:
-                    "invalid_credentials",
-
-                ip:
-                    securityContext.ip ||
-                    null
-            }
-        );
-
-
-        const error =
-            new Error(
-                "Email ou password incorretos."
-            );
-
-
-        error.code =
-            "INVALID_CREDENTIALS";
-
-
-        error.statusCode =
-            401;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Verificar password.
-    --------------------------------------------------------
-    */
-
-    const passwordValid =
-        await comparePassword(
-            password,
-            merchant.passwordHash
-        );
-
-
-    if (
-        !passwordValid
-    ) {
-
-        logSecurityEvent(
-            "login_failed",
-            {
-
-                merchantId:
-                    merchant._id.toString(),
-
-                reason:
-                    "invalid_password",
-
-                ip:
-                    securityContext.ip ||
-                    null
-            }
-        );
-
-
-        const error =
-            new Error(
-                "Email ou password incorretos."
-            );
-
-
-        error.code =
-            "INVALID_CREDENTIALS";
-
-
-        error.statusCode =
-            401;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Verificar estado da conta.
-    --------------------------------------------------------
-    */
-
-    if (
-        merchant.status !==
-        "active"
-    ) {
-
-        const error =
-            new Error(
-                "Esta conta não está ativa."
-            );
-
-
-        error.code =
-            "ACCOUNT_INACTIVE";
-
-
-        error.statusCode =
-            403;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Atualizar último login.
-    --------------------------------------------------------
-    */
-
-    merchant.lastLoginAt =
-        new Date();
-
-
-    await merchant.save();
-
-
-    /*
-    --------------------------------------------------------
-    Carregar subscription.
-    --------------------------------------------------------
-    */
-
-    let subscription =
-        await Subscription
-            .findOne({
-                merchantId:
-                    merchant._id
-            });
-
-
-    /*
-    --------------------------------------------------------
-    Compatibilidade com contas que eventualmente não
-    tenham subscription.
-    --------------------------------------------------------
-    */
-
-    if (
-        !subscription
-    ) {
-
-        subscription =
-            await Subscription.create({
-
-                merchantId:
-                    merchant._id,
-
-                plan:
-                    PLAN_FREE,
-
-                status:
-                    "active",
-
-                monthlyPriceKz:
-                    0,
-
-                autoRenew:
-                    false,
-
-                activatedAt:
-                    new Date()
-            });
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Gerar novo token.
-    --------------------------------------------------------
-    */
-
-    const token =
-        createAccessToken(
-            buildAuthPayload(
-                merchant
-            ),
-            {
-                expiresIn:
-                    JWT_EXPIRES_IN
-            }
-        );
-
-
-    logSecurityEvent(
-        "merchant_login",
-        {
-
-            merchantId:
-                merchant._id.toString(),
-
-            ip:
-                securityContext.ip ||
-                null
         }
-    );
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                "[AUTH LOGIN ERROR]",
+                error
+            );
 
 
-    return buildAuthResponse(
-        merchant,
-        token,
-        subscription
-    );
-}
+            const normalized =
+                normalizeError(
+                    error
+                );
+
+
+            return errorResponse(
+
+                res,
+
+                normalized.statusCode,
+
+                normalized.code,
+
+                normalized.message,
+
+                error?.details ||
+                null
+            );
+        }
+    }
+);
 
 
 /*
 ============================================================
-GET AUTHENTICATED PROFILE
+AUTHENTICATED PROFILE
+============================================================
+
+GET /api/auth/me
+
 ============================================================
 */
 
-export async function getAuthenticatedProfile(
-    merchantId
-) {
+router.get(
+    "/auth/me",
 
-    const merchant =
-        await Merchant
-            .findById(
-                merchantId
-            )
-            .lean();
+    authenticateRequest,
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const result =
+                await getAuthenticatedProfile(
+
+                    req.auth.merchantId
+                );
 
 
-    if (
-        !merchant
-    ) {
+            return successResponse(
 
-        const error =
-            new Error(
-                "Conta não encontrada."
+                res,
+
+                result
+            );
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                "[AUTH PROFILE ERROR]",
+                error
             );
 
 
-        error.code =
-            "ACCOUNT_NOT_FOUND";
+            const normalized =
+                normalizeError(
+                    error
+                );
 
 
-        error.statusCode =
-            404;
+            return errorResponse(
 
+                res,
 
-        throw error;
-    }
+                normalized.statusCode,
 
+                normalized.code,
 
-    const subscription =
-        await Subscription
-            .findOne({
-                merchantId:
-                    merchant._id
-            })
-            .lean();
-
-
-    return {
-
-        merchant:
-            publicMerchant(
-                merchant
-            ),
-
-        subscription: {
-
-            plan:
-                subscription?.plan ||
-                PLAN_FREE,
-
-            status:
-                subscription?.status ||
-                "active",
-
-            monthlyPriceKz:
-                subscription?.monthlyPriceKz ||
-                0,
-
-            currentPeriodStart:
-                subscription?.currentPeriodStart ||
-                null,
-
-            currentPeriodEnd:
-                subscription?.currentPeriodEnd ||
-                null
+                normalized.message
+            );
         }
-    };
-}
+    }
+);
+
+
+/*
+============================================================
+PLAN SUMMARY
+============================================================
+
+GET /api/auth/plan
+
+============================================================
+*/
+
+router.get(
+    "/auth/plan",
+
+    authenticateRequest,
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const result =
+                await getPlanSummary(
+
+                    req.auth.merchantId
+                );
+
+
+            return successResponse(
+
+                res,
+
+                result
+            );
+
+        }
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                "[AUTH PLAN ERROR]",
+                error
+            );
+
+
+            const normalized =
+                normalizeError(
+                    error
+                );
+
+
+            return errorResponse(
+
+                res,
+
+                normalized.statusCode,
+
+                normalized.code,
+
+                normalized.message
+            );
+        }
+    }
+);
 
 
 /*
 ============================================================
 CHANGE PASSWORD
-============================================================*/
+============================================================
 
-export async function changeMerchantPassword(
-    merchantId,
-    currentPassword,
-    newPassword
-) {
+POST /api/auth/change-password
 
-    if (
-        typeof currentPassword !==
-        "string" ||
-        !currentPassword
-    ) {
+============================================================
+*/
 
-        const error =
-            new Error(
-                "Password atual é obrigatória."
+router.post(
+    "/auth/change-password",
+
+    authenticateRequest,
+
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            const body =
+                req.body &&
+                typeof req.body ===
+                    "object" &&
+                !Array.isArray(
+                    req.body
+                )
+
+                    ? req.body
+
+                    : {};
+
+
+            const currentPassword =
+                body.currentPassword;
+
+
+            const newPassword =
+                body.newPassword;
+
+
+            if (
+                typeof currentPassword !==
+                "string" ||
+                typeof newPassword !==
+                "string"
+            ) {
+
+                const error =
+                    new Error(
+                        "A password atual e a nova password são obrigatórias."
+                    );
+
+
+                error.code =
+                    "INVALID_PASSWORD_REQUEST";
+
+
+                error.statusCode =
+                    400;
+
+
+                throw error;
+            }
+
+
+            const result =
+                await changeMerchantPassword(
+
+                    req.auth.merchantId,
+
+                    currentPassword,
+
+                    newPassword
+                );
+
+
+            return successResponse(
+
+                res,
+
+                result
             );
 
-
-        error.code =
-            "CURRENT_PASSWORD_REQUIRED";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    if (
-        typeof newPassword !==
-        "string" ||
-        newPassword.length <
-        8
-    ) {
-
-        const error =
-            new Error(
-                "A nova password deve possuir pelo menos 8 caracteres."
-            );
-
-
-        error.code =
-            "INVALID_NEW_PASSWORD";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    if (
-        newPassword.length >
-        128
-    ) {
-
-        const error =
-            new Error(
-                "A nova password é demasiado longa."
-            );
-
-
-        error.code =
-            "INVALID_NEW_PASSWORD";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    const merchant =
-        await Merchant
-            .findById(
-                merchantId
-            )
-            .select(
-                "+passwordHash"
-            );
-
-
-    if (
-        !merchant
-    ) {
-
-        const error =
-            new Error(
-                "Conta não encontrada."
-            );
-
-
-        error.code =
-            "ACCOUNT_NOT_FOUND";
-
-
-        error.statusCode =
-            404;
-
-
-        throw error;
-    }
-
-
-    const currentPasswordValid =
-        await comparePassword(
-            currentPassword,
-            merchant.passwordHash
-        );
-
-
-    if (
-        !currentPasswordValid
-    ) {
-
-        const error =
-            new Error(
-                "A password atual está incorreta."
-            );
-
-
-        error.code =
-            "INVALID_CURRENT_PASSWORD";
-
-
-        error.statusCode =
-            401;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Impedir que a nova password seja exatamente igual à
-    atual.
-    --------------------------------------------------------
-    */
-
-    const samePassword =
-        await comparePassword(
-            newPassword,
-            merchant.passwordHash
-        );
-
-
-    if (
-        samePassword
-    ) {
-
-        const error =
-            new Error(
-                "A nova password deve ser diferente da atual."
-            );
-
-
-        error.code =
-            "PASSWORD_UNCHANGED";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    merchant.passwordHash =
-        await hashPassword(
-            newPassword
-        );
-
-
-    await merchant.save();
-
-
-    logSecurityEvent(
-        "password_changed",
-        {
-
-            merchantId:
-                merchant._id.toString(),
-
-            ip:
-                null
         }
-    );
+
+        catch (
+            error
+        ) {
+
+            console.error(
+                "[AUTH CHANGE PASSWORD ERROR]",
+                error
+            );
 
 
-    return {
+            const normalized =
+                normalizeError(
+                    error
+                );
 
-        success:
-            true
-    };
-}
+
+            return errorResponse(
+
+                res,
+
+                normalized.statusCode,
+
+                normalized.code,
+
+                normalized.message
+            );
+        }
+    }
+);
+
+
+/*
+============================================================
+ROUTER ERROR HANDLER
+============================================================
+
+Trata erros lançados dentro deste router.
+
+Não existe fallback 404 aqui.
+
+============================================================
+*/
+
+router.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
+
+        console.error(
+            "[API ROUTES ERROR]",
+            error
+        );
+
+
+        if (
+            res.headersSent
+        ) {
+
+            return next(
+                error
+            );
+        }
+
+
+        const normalized =
+            normalizeError(
+                error
+            );
+
+
+        return errorResponse(
+
+            res,
+
+            normalized.statusCode,
+
+            normalized.code,
+
+            normalized.message
+        );
+    }
+);
 
 
 /*
@@ -1216,13 +633,4 @@ EXPORT
 ============================================================
 */
 
-export default {
-
-    registerMerchant,
-
-    loginMerchant,
-
-    getAuthenticatedProfile,
-
-    changeMerchantPassword
-};
+export default router;
