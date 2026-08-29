@@ -2,13 +2,14 @@
 ============================================================
 HONEY PAY
 MONGOOSE MODELS
-V1.0.1
+V1.1.0
 ============================================================
 
 MODELOS PRINCIPAIS DA PLATAFORMA
 
 ------------------------------------------------------------
 MODELOS
+------------------------------------------------------------
 
 - Merchant
 - BankAccount
@@ -19,6 +20,7 @@ MODELOS
 
 ------------------------------------------------------------
 ARQUITETURA
+------------------------------------------------------------
 
 MongoDB
    ↓
@@ -29,6 +31,20 @@ Models
 Services
    ↓
 API Routes
+
+------------------------------------------------------------
+PAYMENT FLOW
+------------------------------------------------------------
+
+Invoice
+   ↓
+Payment submitted
+   ↓
+pending_review
+   ↓
+confirmed / rejected
+   ↓
+Invoice paid / pending
 
 ============================================================
 */
@@ -59,6 +75,7 @@ const merchantSchema =
         {
 
             name: {
+
                 type:
                     String,
 
@@ -74,6 +91,7 @@ const merchantSchema =
 
 
             email: {
+
                 type:
                     String,
 
@@ -95,6 +113,7 @@ const merchantSchema =
 
 
             passwordHash: {
+
                 type:
                     String,
 
@@ -107,6 +126,7 @@ const merchantSchema =
 
 
             phone: {
+
                 type:
                     String,
 
@@ -122,6 +142,7 @@ const merchantSchema =
 
 
             businessName: {
+
                 type:
                     String,
 
@@ -137,14 +158,20 @@ const merchantSchema =
 
 
             accountStatus: {
+
                 type:
                     String,
 
                 enum: [
+
                     "active",
+
                     "suspended",
+
                     "blocked",
+
                     "pending"
+
                 ],
 
                 default:
@@ -153,12 +180,16 @@ const merchantSchema =
 
 
             role: {
+
                 type:
                     String,
 
                 enum: [
+
                     "merchant",
+
                     "admin"
+
                 ],
 
                 default:
@@ -169,13 +200,18 @@ const merchantSchema =
             subscription: {
 
                 plan: {
+
                     type:
                         String,
 
                     enum: [
+
                         "free",
+
                         "pro",
+
                         "business"
+
                     ],
 
                     default:
@@ -184,15 +220,22 @@ const merchantSchema =
 
 
                 status: {
+
                     type:
                         String,
 
                     enum: [
+
                         "active",
+
                         "inactive",
+
                         "past_due",
+
                         "cancelled",
+
                         "trial"
+
                     ],
 
                     default:
@@ -201,6 +244,7 @@ const merchantSchema =
 
 
                 startedAt: {
+
                     type:
                         Date,
 
@@ -210,16 +254,19 @@ const merchantSchema =
 
 
                 expiresAt: {
+
                     type:
                         Date,
 
                     default:
                         null
                 }
+
             },
 
 
             lastLoginAt: {
+
                 type:
                     Date,
 
@@ -229,6 +276,7 @@ const merchantSchema =
 
 
             lastLoginIp: {
+
                 type:
                     String,
 
@@ -250,37 +298,23 @@ const merchantSchema =
 
 
 merchantSchema.index(
+
     {
         email:
             1
     },
+
     {
         unique:
             true
     }
+
 );
 
 
 /*
 ============================================================
 BANK ACCOUNT
-============================================================
-
-Modelo definitivo utilizado pela plataforma.
-
-Compatibilidade com o serviço:
-
-- merchantId
-- bankName
-- accountName
-- iban
-- ibanLast4
-- accountNumber
-- accountType
-- isActive
-- isPrimary
-- displayOrder
-
 ============================================================
 */
 
@@ -394,11 +428,17 @@ const bankAccountSchema =
                     String,
 
                 enum: [
+
                     "bank",
+
                     "iban",
+
                     "current",
+
                     "savings",
+
                     "business"
+
                 ],
 
                 default:
@@ -487,24 +527,32 @@ const bankAccountSchema =
 
 
 bankAccountSchema.index(
+
     {
+
         merchantId:
             1,
 
         isActive:
             1
+
     }
+
 );
 
 
 bankAccountSchema.index(
+
     {
+
         merchantId:
             1,
 
         isPrimary:
             1
+
     }
+
 );
 
 
@@ -685,6 +733,12 @@ const invoiceSchema =
             },
 
 
+            /*
+            ------------------------------------------------
+            INVOICE STATUS
+            ------------------------------------------------
+            */
+
             status: {
 
                 type:
@@ -696,6 +750,8 @@ const invoiceSchema =
 
                     "pending",
 
+                    "payment_submitted",
+
                     "paid",
 
                     "expired",
@@ -703,6 +759,7 @@ const invoiceSchema =
                     "cancelled",
 
                     "failed"
+
                 ],
 
                 default:
@@ -717,6 +774,9 @@ const invoiceSchema =
 
                 type:
                     String,
+
+                trim:
+                    true,
 
                 default:
                     null
@@ -749,6 +809,16 @@ const invoiceSchema =
             },
 
 
+            expiredAt: {
+
+                type:
+                    Date,
+
+                default:
+                    null
+            },
+
+
             paidAt: {
 
                 type:
@@ -766,6 +836,257 @@ const invoiceSchema =
 
                 default:
                     null
+            },
+
+
+            /*
+            ------------------------------------------------
+            PAYMENT INFORMATION
+            ------------------------------------------------
+            */
+
+            payment: {
+
+                paymentId: {
+
+                    type:
+                        Schema.Types.ObjectId,
+
+                    ref:
+                        "Payment",
+
+                    default:
+                        null
+                },
+
+
+                method: {
+
+                    type:
+                        String,
+
+                    default:
+                        null
+                },
+
+
+                bankAccountId: {
+
+                    type:
+                        Schema.Types.ObjectId,
+
+                    ref:
+                        "BankAccount",
+
+                    default:
+                        null
+                },
+
+
+                submittedAt: {
+
+                    type:
+                        Date,
+
+                    default:
+                        null
+                },
+
+
+                confirmedAt: {
+
+                    type:
+                        Date,
+
+                    default:
+                        null
+                }
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            RECEIPT INFORMATION
+            ------------------------------------------------
+            */
+
+            receipt: {
+
+                status: {
+
+                    type:
+                        String,
+
+                    enum: [
+
+                        "none",
+
+                        "submitted",
+
+                        "verified",
+
+                        "rejected"
+
+                    ],
+
+                    default:
+                        "none"
+                },
+
+
+                fileId: {
+
+                    type:
+                        Schema.Types.ObjectId,
+
+                    default:
+                        null
+                },
+
+
+                originalName: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        255,
+
+                    default:
+                        null
+                },
+
+
+                mimeType: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        120,
+
+                    default:
+                        null
+                },
+
+
+                size: {
+
+                    type:
+                        Number,
+
+                    min:
+                        0,
+
+                    default:
+                        null
+                },
+
+
+                sha256: {
+
+                    type:
+                        String,
+
+                    lowercase:
+                        true,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        64,
+
+                    default:
+                        null
+                },
+
+
+                submittedAt: {
+
+                    type:
+                        Date,
+
+                    default:
+                        null
+                }
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            FRAUD PROTECTION
+            ------------------------------------------------
+            */
+
+            fraudProtection: {
+
+                verificationStatus: {
+
+                    type:
+                        String,
+
+                    enum: [
+
+                        "pending",
+
+                        "verified",
+
+                        "rejected"
+
+                    ],
+
+                    default:
+                        "pending"
+                },
+
+
+                duplicateDetected: {
+
+                    type:
+                        Boolean,
+
+                    default:
+                        false
+                },
+
+
+                riskScore: {
+
+                    type:
+                        Number,
+
+                    min:
+                        0,
+
+                    max:
+                        100,
+
+                    default:
+                        0
+                },
+
+
+                verificationAttempts: {
+
+                    type:
+                        Number,
+
+                    min:
+                        0,
+
+                    default:
+                        0
+                }
+
             },
 
 
@@ -792,24 +1113,44 @@ const invoiceSchema =
 
 
 invoiceSchema.index(
+
     {
+
         merchantId:
             1,
 
         createdAt:
             -1
+
     }
+
 );
 
 
 invoiceSchema.index(
+
     {
+
         merchantId:
             1,
 
         status:
             1
+
     }
+
+);
+
+
+invoiceSchema.index(
+
+    {
+
+        "receipt.sha256":
+            1
+
+    }
+
 );
 
 
@@ -856,6 +1197,22 @@ const paymentSchema =
             },
 
 
+            bankAccountId: {
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "BankAccount",
+
+                required:
+                    true,
+
+                index:
+                    true
+            },
+
+
             amount: {
 
                 type:
@@ -877,10 +1234,32 @@ const paymentSchema =
                 uppercase:
                     true,
 
+                trim:
+                    true,
+
                 default:
-                    "AOA"
+                    "AOA",
+
+                maxlength:
+                    10
             },
 
+
+            /*
+            ------------------------------------------------
+            PAYMENT STATUS
+            ------------------------------------------------
+
+            pending_review
+                ↓
+            confirmed
+
+            pending_review
+                ↓
+            rejected
+
+            ------------------------------------------------
+            */
 
             status: {
 
@@ -889,17 +1268,16 @@ const paymentSchema =
 
                 enum: [
 
-                    "pending",
+                    "pending_review",
 
                     "confirmed",
 
-                    "failed",
+                    "rejected"
 
-                    "refunded"
                 ],
 
                 default:
-                    "pending",
+                    "pending_review",
 
                 index:
                     true
@@ -911,12 +1289,293 @@ const paymentSchema =
                 type:
                     String,
 
+                trim:
+                    true,
+
+                default:
+                    "bank_transfer"
+            },
+
+
+            /*
+            ------------------------------------------------
+            PAYER
+            ------------------------------------------------
+            */
+
+            payer: {
+
+                name: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        180,
+
+                    default:
+                        ""
+                },
+
+
+                phone: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        40,
+
+                    default:
+                        ""
+                },
+
+
+                reference: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        180,
+
+                    default:
+                        ""
+                }
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            RECEIPT
+            ------------------------------------------------
+            */
+
+            receipt: {
+
+                originalName: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        255,
+
+                    default:
+                        "receipt"
+                },
+
+
+                mimeType: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        120,
+
+                    default:
+                        null
+                },
+
+
+                size: {
+
+                    type:
+                        Number,
+
+                    min:
+                        0,
+
+                    default:
+                        0
+                },
+
+
+                sha256: {
+
+                    type:
+                        String,
+
+                    lowercase:
+                        true,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        64,
+
+                    default:
+                        null
+                },
+
+
+                storagePath: {
+
+                    type:
+                        String,
+
+                    trim:
+                        true,
+
+                    maxlength:
+                        1000,
+
+                    default:
+                        null
+                },
+
+
+                uploadedAt: {
+
+                    type:
+                        Date,
+
+                    default:
+                        null
+                }
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            VERIFICATION
+            ------------------------------------------------
+            */
+
+            verification: {
+
+                status: {
+
+                    type:
+                        String,
+
+                    enum: [
+
+                        "pending",
+
+                        "confirmed",
+
+                        "rejected"
+
+                    ],
+
+                    default:
+                        "pending"
+                },
+
+
+                duplicateDetected: {
+
+                    type:
+                        Boolean,
+
+                    default:
+                        false
+                },
+
+
+                riskScore: {
+
+                    type:
+                        Number,
+
+                    min:
+                        0,
+
+                    max:
+                        100,
+
+                    default:
+                        0
+                },
+
+
+                notes: {
+
+                    type:
+                        [
+                            String
+                        ],
+
+                    default:
+                        []
+                }
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            TIMELINE
+            ------------------------------------------------
+            */
+
+            submittedAt: {
+
+                type:
+                    Date,
+
+                default:
+                    Date.now,
+
+                index:
+                    true
+            },
+
+
+            confirmedAt: {
+
+                type:
+                    Date,
+
                 default:
                     null
             },
 
 
-            transactionReference: {
+            confirmedBy: {
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Merchant",
+
+                default:
+                    null
+            },
+
+
+            rejectedAt: {
+
+                type:
+                    Date,
+
+                default:
+                    null
+            },
+
+
+            rejectionReason: {
 
                 type:
                     String,
@@ -925,17 +1584,45 @@ const paymentSchema =
                     true,
 
                 maxlength:
-                    180,
+                    1000,
 
                 default:
                     null
             },
 
 
-            paidAt: {
+            /*
+            ------------------------------------------------
+            REQUEST CONTEXT
+            ------------------------------------------------
+            */
+
+            ip: {
 
                 type:
-                    Date,
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    120,
+
+                default:
+                    null
+            },
+
+
+            userAgent: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    1000,
 
                 default:
                     null
@@ -964,14 +1651,100 @@ const paymentSchema =
     );
 
 
+/*
+============================================================
+PAYMENT INDEXES
+============================================================
+*/
+
 paymentSchema.index(
+
     {
+
         merchantId:
             1,
 
         createdAt:
             -1
+
     }
+
+);
+
+
+paymentSchema.index(
+
+    {
+
+        merchantId:
+            1,
+
+        status:
+            1
+
+    }
+
+);
+
+
+paymentSchema.index(
+
+    {
+
+        invoiceId:
+            1,
+
+        status:
+            1
+
+    }
+
+);
+
+
+/*
+============================================================
+HONEY SHIELD
+DUPLICATE RECEIPT PROTECTION
+============================================================
+
+O mesmo SHA-256 não pode ser reutilizado pelo mesmo
+comerciante.
+
+O índice parcial ignora pagamentos que ainda não possuem
+comprovativo/hash.
+
+============================================================
+*/
+
+paymentSchema.index(
+
+    {
+
+        merchantId:
+            1,
+
+        "receipt.sha256":
+            1
+
+    },
+
+    {
+
+        unique:
+            true,
+
+        partialFilterExpression: {
+
+            "receipt.sha256":
+                {
+                    $type:
+                        "string"
+                }
+        }
+
+    }
+
 );
 
 
@@ -1027,7 +1800,10 @@ const receiptSchema =
                     "Payment",
 
                 default:
-                    null
+                    null,
+
+                index:
+                    true
             },
 
 
@@ -1089,6 +1865,54 @@ const receiptSchema =
             },
 
 
+            sha256: {
+
+                type:
+                    String,
+
+                lowercase:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    64,
+
+                default:
+                    null
+            },
+
+
+            size: {
+
+                type:
+                    Number,
+
+                min:
+                    0,
+
+                default:
+                    null
+            },
+
+
+            storagePath: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    1000,
+
+                default:
+                    null
+            },
+
+
             status: {
 
                 type:
@@ -1101,6 +1925,7 @@ const receiptSchema =
                     "approved",
 
                     "rejected"
+
                 ],
 
                 default:
@@ -1131,6 +1956,21 @@ const receiptSchema =
                 "receipts"
         }
     );
+
+
+receiptSchema.index(
+
+    {
+
+        merchantId:
+            1,
+
+        createdAt:
+            -1
+
+    }
+
+);
 
 
 /*
@@ -1175,6 +2015,7 @@ const subscriptionSchema =
                     "pro",
 
                     "business"
+
                 ],
 
                 default:
@@ -1198,6 +2039,7 @@ const subscriptionSchema =
                     "cancelled",
 
                     "trial"
+
                 ],
 
                 default:
@@ -1266,48 +2108,66 @@ MODEL REGISTRATION
 const Merchant =
     mongoose.models.Merchant ||
     mongoose.model(
+
         "Merchant",
+
         merchantSchema
+
     );
 
 
 const BankAccount =
     mongoose.models.BankAccount ||
     mongoose.model(
+
         "BankAccount",
+
         bankAccountSchema
+
     );
 
 
 const Invoice =
     mongoose.models.Invoice ||
     mongoose.model(
+
         "Invoice",
+
         invoiceSchema
+
     );
 
 
 const Payment =
     mongoose.models.Payment ||
     mongoose.model(
+
         "Payment",
+
         paymentSchema
+
     );
 
 
 const Receipt =
     mongoose.models.Receipt ||
     mongoose.model(
+
         "Receipt",
+
         receiptSchema
+
     );
 
 
 const Subscription =
     mongoose.models.Subscription ||
     mongoose.model(
+
         "Subscription",
+
         subscriptionSchema
+
     );
 
 
