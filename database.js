@@ -1,48 +1,71 @@
-import mongoose from "mongoose";
-
 /*
 ============================================================
 HONEY PAY
-DATABASE CONNECTION
+DATABASE
 V1.0.0
 ============================================================
 
+CAMADA CENTRAL DE DATABASE
+
+------------------------------------------------------------
 RESPONSABILIDADES
 ------------------------------------------------------------
-- Conectar ao MongoDB Atlas
-- Manter uma conexão estável
-- Configurar parâmetros seguros do Mongoose
-- Expor o estado da conexão
-- Encerrar a conexão corretamente
 
-IMPORTANTE
+- Conectar ao MongoDB
+- Manter uma única conexão Mongoose
+- Validar configuração
+- Expor estado da conexão
+- Encerrar conexão corretamente
+- Fornecer informações seguras de diagnóstico
+- Compatibilidade com Render
+- Compatibilidade com MongoDB Atlas
+
 ------------------------------------------------------------
-Este arquivo não cria modelos nem coleções.
-
-Os modelos serão adicionados posteriormente e utilizarão
-esta conexão central.
-
-ARQUITETURA
+SEGURANÇA
 ------------------------------------------------------------
 
-Honey Pay
-    │
-    ▼
-database.js
-    │
-    ▼
-MongoDB Atlas
+Nunca expõe:
+
+- MongoDB URI
+- Password
+- Username
+- JWT secret
+- Connection string
+
 ============================================================
 */
+
+import mongoose from "mongoose";
 
 
 /*
 ============================================================
-DATABASE STATE
+ENVIRONMENT
 ============================================================
 */
 
-let connected = false;
+const MONGODB_URI =
+    process.env.MONGODB_URI ||
+    "";
+
+
+const MONGODB_DB_NAME =
+    process.env.MONGODB_DB_NAME ||
+    "honey_pay";
+
+
+/*
+============================================================
+STATE
+============================================================
+*/
+
+let connectionPromise =
+    null;
+
+
+let shuttingDown =
+    false;
 
 
 /*
@@ -59,80 +82,156 @@ mongoose.set(
 
 /*
 ============================================================
-CONNECTION EVENTS
+CONNECTION OPTIONS
 ============================================================
 */
 
-mongoose.connection.on(
-    "connected",
-    () => {
+const connectionOptions = {
 
-        connected = true;
+    dbName:
+        MONGODB_DB_NAME,
 
-        console.log(
-            "[DATABASE] MongoDB conectado com sucesso."
-        );
+    serverSelectionTimeoutMS:
+        10000,
+
+    connectTimeoutMS:
+        10000,
+
+    socketTimeoutMS:
+        45000,
+
+    maxPoolSize:
+        10,
+
+    minPoolSize:
+        0,
+
+    retryWrites:
+        true,
+
+    retryReads:
+        true,
+
+    family:
+        4
+};
+
+
+/*
+============================================================
+VALIDATE DATABASE CONFIG
+============================================================
+*/
+
+function validateDatabaseConfig() {
+
+    if (
+        !MONGODB_URI ||
+        typeof MONGODB_URI !==
+        "string"
+    ) {
+
+        const error =
+            new Error(
+                "MONGODB_URI não está configurada."
+            );
+
+
+        error.code =
+            "DATABASE_CONFIGURATION_ERROR";
+
+
+        error.statusCode =
+            500;
+
+
+        throw error;
     }
-);
 
 
-mongoose.connection.on(
-    "disconnected",
-    () => {
+    if (
+        !MONGODB_URI.startsWith(
+            "mongodb://"
+        ) &&
+        !MONGODB_URI.startsWith(
+            "mongodb+srv://"
+        )
+    ) {
 
-        connected = false;
+        const error =
+            new Error(
+                "MONGODB_URI possui um formato inválido."
+            );
 
-        console.warn(
-            "[DATABASE] MongoDB foi desconectado."
-        );
+
+        error.code =
+            "DATABASE_CONFIGURATION_ERROR";
+
+
+        error.statusCode =
+            500;
+
+
+        throw error;
     }
-);
 
 
-mongoose.connection.on(
-    "reconnected",
-    () => {
+    if (
+        !MONGODB_DB_NAME ||
+        typeof MONGODB_DB_NAME !==
+        "string"
+    ) {
 
-        connected = true;
+        const error =
+            new Error(
+                "MONGODB_DB_NAME não está configurado corretamente."
+            );
 
-        console.log(
-            "[DATABASE] MongoDB reconectado."
-        );
+
+        error.code =
+            "DATABASE_CONFIGURATION_ERROR";
+
+
+        error.statusCode =
+            500;
+
+
+        throw error;
     }
-);
-
-
-mongoose.connection.on(
-    "error",
-    (error) => {
-
-        connected = false;
-
-        console.error(
-            "[DATABASE] Erro de conexão:",
-            error.message
-        );
-    }
-);
+}
 
 
 /*
 ============================================================
 CONNECT DATABASE
 ============================================================
+
+Garante que toda a aplicação utiliza a mesma conexão.
+
+============================================================
 */
 
 export async function connectDatabase() {
 
+    if (
+        shuttingDown
+    ) {
+
+        throw new Error(
+            "A aplicação está em processo de encerramento."
+        );
+    }
+
+
     /*
     --------------------------------------------------------
-    Evita abrir múltiplas conexões desnecessárias.
+    Já conectado
     --------------------------------------------------------
     */
 
     if (
-        connected &&
-        mongoose.connection.readyState === 1
+        mongoose.connection.readyState ===
+        1
     ) {
 
         return mongoose.connection;
@@ -141,148 +240,61 @@ export async function connectDatabase() {
 
     /*
     --------------------------------------------------------
-    Obtém a URI através das variáveis de ambiente.
-    --------------------------------------------------------
-    */
-
-    const mongoURI =
-        process.env.MONGODB_URI;
-
-
-    /*
-    --------------------------------------------------------
-    A aplicação não deve iniciar sem uma URI válida.
+    Conexão já em andamento
     --------------------------------------------------------
     */
 
     if (
-        !mongoURI ||
-        typeof mongoURI !== "string" ||
-        mongoURI.trim().length === 0
+        connectionPromise
     ) {
 
-        throw new Error(
-            "MONGODB_URI não está configurada."
-        );
+        return connectionPromise;
     }
 
 
-    /*
-    --------------------------------------------------------
-    Conexão com MongoDB Atlas.
-    --------------------------------------------------------
-    */
+    validateDatabaseConfig();
 
-    await mongoose.connect(
-        mongoURI,
-        {
-            serverSelectionTimeoutMS: 10000,
 
-            connectTimeoutMS: 10000,
-
-            socketTimeoutMS: 45000,
-
-            maxPoolSize: 10,
-
-            minPoolSize: 2,
-
-            retryWrites: true,
-
-            family: 4
-        }
+    console.log(
+        "[DATABASE] Connecting to MongoDB..."
     );
 
 
-    connected = true;
+    connectionPromise =
+        mongoose
+            .connect(
+                MONGODB_URI,
+                connectionOptions
+            )
+            .then(
+                connection => {
+
+                    console.log(
+                        `[DATABASE] MongoDB connected: ${connection.connection.name}`
+                    );
 
 
-    return mongoose.connection;
-}
+                    return connection;
+                }
+            )
+            .catch(
+                error => {
+
+                    connectionPromise =
+                        null;
 
 
-/*
-============================================================
-DATABASE STATUS
-============================================================
-*/
-
-export function isDatabaseConnected() {
-
-    return (
-        connected &&
-        mongoose.connection.readyState === 1
-    );
-}
+                    console.error(
+                        "[DATABASE] MongoDB connection failed."
+                    );
 
 
-/*
-============================================================
-DATABASE READY STATE
-============================================================
-
-Estados Mongoose:
-
-0 = disconnected
-1 = connected
-2 = connecting
-3 = disconnecting
-============================================================
-*/
-
-export function getDatabaseState() {
-
-    const state =
-        mongoose.connection.readyState;
+                    throw error;
+                }
+            );
 
 
-    switch (state) {
-
-        case 0:
-            return "disconnected";
-
-        case 1:
-            return "connected";
-
-        case 2:
-            return "connecting";
-
-        case 3:
-            return "disconnecting";
-
-        default:
-            return "unknown";
-    }
-}
-
-
-/*
-============================================================
-DATABASE CONNECTION INFORMATION
-============================================================
-
-Nunca retornamos a URI ou credenciais.
-
-Apenas informações seguras para health checks,
-monitorização e diagnóstico.
-============================================================
-*/
-
-export function getDatabaseInfo() {
-
-    return {
-
-        connected:
-            isDatabaseConnected(),
-
-        state:
-            getDatabaseState(),
-
-        name:
-            mongoose.connection.name || null,
-
-        host:
-            mongoose.connection.host || null
-    };
+    return connectionPromise;
 }
 
 
@@ -295,69 +307,219 @@ DISCONNECT DATABASE
 export async function disconnectDatabase() {
 
     if (
-        mongoose.connection.readyState === 0
+        mongoose.connection.readyState ===
+        0
     ) {
 
-        connected = false;
+        connectionPromise =
+            null;
+
 
         return;
     }
 
 
+    console.log(
+        "[DATABASE] Closing MongoDB connection..."
+    );
+
+
     await mongoose.disconnect();
 
 
-    connected = false;
+    connectionPromise =
+        null;
+
+
+    console.log(
+        "[DATABASE] MongoDB connection closed."
+    );
 }
 
 
 /*
 ============================================================
-WAIT FOR DATABASE
+COMPATIBILITY ALIAS
 ============================================================
 
-Útil posteriormente para operações que precisam garantir
-que a base de dados está disponível antes de continuar.
+Alguns componentes antigos da aplicação utilizam
+closeDatabase().
+
+Mantemos a função para que a transição da arquitetura
+não quebre o servidor.
+
 ============================================================
 */
 
-export async function waitForDatabase(
-    timeout = 10000
-) {
+export async function closeDatabase() {
+
+    return disconnectDatabase();
+}
+
+
+/*
+============================================================
+DATABASE STATUS
+============================================================
+*/
+
+export function getDatabaseStatus() {
+
+    const state =
+        mongoose.connection.readyState;
+
+
+    let status =
+        "disconnected";
+
 
     if (
-        isDatabaseConnected()
+        state ===
+        1
     ) {
 
-        return true;
+        status =
+            "connected";
+    }
+
+    else if (
+        state ===
+        2
+    ) {
+
+        status =
+            "connecting";
+    }
+
+    else if (
+        state ===
+        3
+    ) {
+
+        status =
+            "disconnecting";
     }
 
 
-    const start =
-        Date.now();
+    return {
+
+        connected:
+            state ===
+            1,
+
+        status,
+
+        readyState:
+            state,
+
+        database:
+            mongoose.connection.name ||
+            MONGODB_DB_NAME
+    };
+}
 
 
-    while (
-        Date.now() - start < timeout
-    ) {
+/*
+============================================================
+COMPATIBILITY
+============================================================
+*/
 
-        if (
-            isDatabaseConnected()
-        ) {
+export function getDatabaseInfo() {
 
-            return true;
-        }
+    return getDatabaseStatus();
+}
 
 
-        await new Promise(
-            (resolve) =>
-                setTimeout(
-                    resolve,
-                    100
-                )
+export function getDatabaseState() {
+
+    return mongoose.connection.readyState;
+}
+
+
+export function isDatabaseConnected() {
+
+    return (
+        mongoose.connection.readyState ===
+        1
+    );
+}
+
+
+/*
+============================================================
+MONGOOSE CONNECTION EVENTS
+============================================================
+*/
+
+mongoose.connection.on(
+    "connected",
+    () => {
+
+        console.log(
+            "[DATABASE] MongoDB connection established."
         );
     }
+);
 
 
-    return false;
+mongoose.connection.on(
+    "error",
+    error => {
+
+        console.error(
+            "[DATABASE] MongoDB error:",
+            error
+        );
+    }
+);
+
+
+mongoose.connection.on(
+    "disconnected",
+    () => {
+
+        console.warn(
+            "[DATABASE] MongoDB disconnected."
+        );
+    }
+);
+
+
+/*
+============================================================
+GRACEFUL SHUTDOWN STATE
+============================================================
+*/
+
+export function markDatabaseShuttingDown() {
+
+    shuttingDown =
+        true;
 }
+
+
+/*
+============================================================
+EXPORT DEFAULT
+============================================================
+*/
+
+export default {
+
+    connectDatabase,
+
+    disconnectDatabase,
+
+    closeDatabase,
+
+    getDatabaseStatus,
+
+    getDatabaseInfo,
+
+    getDatabaseState,
+
+    isDatabaseConnected,
+
+    markDatabaseShuttingDown
+};
