@@ -2,110 +2,68 @@
 ============================================================
 HONEY PAY
 BANK ACCOUNTS SERVICE
-V1.0.0
+V1.0.1
 ============================================================
 
-GESTÃO REAL DAS CONTAS BANCÁRIAS DO COMERCIANTE
-
-------------------------------------------------------------
 RESPONSABILIDADES
-------------------------------------------------------------
 
 - Criar contas bancárias
 - Listar contas do comerciante
-- Consultar uma conta
-- Atualizar uma conta
+- Consultar conta individual
+- Atualizar conta
 - Ativar / desativar conta
 - Definir conta principal
 - Remover conta
-- Validar IBAN
-- Evitar duplicação de IBAN
-- Preparar contas para o checkout público
-- Isolar completamente os dados entre comerciantes
-
-------------------------------------------------------------
-DADOS SUPORTADOS
-------------------------------------------------------------
-
-- Nome do banco
-- Nome da conta
-- Titular
-- IBAN
-- Número da conta opcional
-- Moeda
-- Estado ativo
-- Conta principal
-- Ordem de apresentação
-
-------------------------------------------------------------
-SEGURANÇA
-------------------------------------------------------------
-
-O IBAN completo é armazenado no banco de dados, mas nunca
-é exposto desnecessariamente no checkout ou em respostas
-públicas.
-
-O comerciante só pode manipular as próprias contas.
+- Garantir isolamento por merchantId
+- Normalizar IBAN
+- Nunca devolver informação desnecessariamente sensível
 
 ============================================================
 */
 
-import crypto from "node:crypto";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 
 
 import {
-    getDatabase
-} from "./database.js";
+    BankAccount
+} from "./models.js";
 
 
 /*
 ============================================================
-COLLECTION
+CONSTANTES
 ============================================================
 */
 
-const COLLECTION =
-    "bankAccounts";
-
-
-/*
-============================================================
-SUPPORTED CURRENCIES
-============================================================
-*/
-
-const ALLOWED_CURRENCIES =
-    new Set([
-
-        "AOA",
-        "USD",
-        "EUR"
-
-    ]);
-
-
-/*
-============================================================
-LIMITS
-============================================================
-*/
-
-const MAX_ACCOUNTS_PER_MERCHANT =
+const MAX_BANK_ACCOUNTS =
     20;
 
 
+const ALLOWED_ACCOUNT_TYPES = [
+
+    "bank",
+
+    "iban",
+
+    "current",
+
+    "savings",
+
+    "business"
+
+];
+
+
 /*
 ============================================================
-ERROR FACTORY
+ERROR HELPER
 ============================================================
 */
 
 function createError(
     message,
     code,
-    statusCode = 400,
-    details = null
+    statusCode
 ) {
 
     const error =
@@ -122,107 +80,154 @@ function createError(
         statusCode;
 
 
-    if (
-        details !==
-        null
-    ) {
-
-        error.details =
-            details;
-    }
-
-
     return error;
 }
 
 
 /*
 ============================================================
-OBJECT ID
+MERCHANT ID VALIDATION
 ============================================================
 */
 
-function normalizeObjectId(
-    value,
-    code,
-    message
+function validateMerchantId(
+    merchantId
 ) {
 
     if (
-        value instanceof ObjectId
-    ) {
-
-        return value;
-    }
-
-
-    if (
-        typeof value !==
-        "string"
-    ) {
-
-        throw createError(
-            message,
-            code
-        );
-    }
-
-
-    const normalized =
-        value.trim();
-
-
-    if (
-        !ObjectId.isValid(
-            normalized
+        !merchantId ||
+        !mongoose.Types.ObjectId.isValid(
+            merchantId
         )
     ) {
 
         throw createError(
-            message,
-            code
+
+            "Identificador de comerciante inválido.",
+
+            "INVALID_MERCHANT_ID",
+
+            400
         );
     }
 
 
-    return new ObjectId(
-        normalized
+    return new mongoose.Types.ObjectId(
+        merchantId
     );
 }
 
 
 /*
 ============================================================
-STRING
+ACCOUNT ID VALIDATION
 ============================================================
 */
 
-function cleanString(
-    value,
-    maxLength
+function validateAccountId(
+    accountId
 ) {
 
     if (
-        value ===
-        null ||
-        value ===
-        undefined
+        !accountId ||
+        !mongoose.Types.ObjectId.isValid(
+            accountId
+        )
+    ) {
+
+        throw createError(
+
+            "Identificador de conta bancária inválido.",
+
+            "INVALID_BANK_ACCOUNT_ID",
+
+            400
+        );
+    }
+
+
+    return new mongoose.Types.ObjectId(
+        accountId
+    );
+}
+
+
+/*
+============================================================
+NORMALIZE IBAN
+============================================================
+*/
+
+function normalizeIban(
+    iban
+) {
+
+    if (
+        typeof iban !==
+        "string"
     ) {
 
         return "";
     }
 
 
-    return String(
-        value
-    )
-        .normalize(
-            "NFKC"
-        )
+    return iban
         .replace(
-            /[\u0000-\u001F\u007F]/g,
+            /\s+/g,
             ""
         )
+        .trim()
+        .toUpperCase();
+}
+
+
+/*
+============================================================
+IBAN LAST FOUR
+============================================================
+*/
+
+function getIbanLast4(
+    iban
+) {
+
+    if (
+        !iban ||
+        iban.length <
+        4
+    ) {
+
+        return null;
+    }
+
+
+    return iban.slice(
+        -4
+    );
+}
+
+
+/*
+============================================================
+NORMALIZE STRING
+============================================================
+*/
+
+function normalizeString(
+    value,
+    maxLength
+) {
+
+    if (
+        typeof value !==
+        "string"
+    ) {
+
+        return "";
+    }
+
+
+    return value
         .trim()
         .slice(
             0,
@@ -233,278 +238,37 @@ function cleanString(
 
 /*
 ============================================================
-IBAN NORMALIZATION
+SANITIZE BANK ACCOUNT
 ============================================================
 */
 
-function normalizeIBAN(
-    iban
-) {
-
-    return cleanString(
-        iban,
-        64
-    )
-        .replace(
-            /\s+/g,
-            ""
-        )
-        .toUpperCase();
-}
-
-
-/*
-============================================================
-IBAN CHECKSUM
-============================================================
-*/
-
-function validateIBANChecksum(
-    iban
+function sanitizeBankAccount(
+    account
 ) {
 
     if (
-        typeof iban !==
-        "string"
-    ) {
-
-        return false;
-    }
-
-
-    if (
-        !/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(
-            iban
-        )
-    ) {
-
-        return false;
-    }
-
-
-    if (
-        iban.length <
-        15 ||
-        iban.length >
-        34
-    ) {
-
-        return false;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    IBAN MOD-97
-
-    Não usamos Number() porque o valor pode ultrapassar
-    o limite seguro de inteiros JavaScript.
-    --------------------------------------------------------
-    */
-
-    const rearranged =
-        iban.slice(
-            4
-        ) +
-        iban.slice(
-            0,
-            4
-        );
-
-
-    let remainder =
-        0;
-
-
-    for (
-        const character
-        of rearranged
-    ) {
-
-        let numeric;
-
-
-        if (
-            character >=
-            "0" &&
-            character <=
-            "9"
-        ) {
-
-            numeric =
-                character.charCodeAt(
-                    0
-                ) -
-                48;
-
-        }
-
-        else {
-
-            numeric =
-                character.charCodeAt(
-                    0
-                ) -
-                55;
-        }
-
-
-        remainder =
-            (
-                remainder *
-                10 +
-                numeric
-            ) %
-            97;
-    }
-
-
-    return remainder ===
-        1;
-}
-
-
-/*
-============================================================
-IBAN VALIDATION
-============================================================
-*/
-
-function validateIBAN(
-    iban
-) {
-
-    const normalized =
-        normalizeIBAN(
-            iban
-        );
-
-
-    if (
-        !normalized
-    ) {
-
-        throw createError(
-            "O IBAN é obrigatório.",
-            "IBAN_REQUIRED"
-        );
-    }
-
-
-    if (
-        normalized.length >
-        34
-    ) {
-
-        throw createError(
-            "O IBAN informado é demasiado longo.",
-            "INVALID_IBAN"
-        );
-    }
-
-
-    if (
-        !validateIBANChecksum(
-            normalized
-        )
-    ) {
-
-        throw createError(
-            "O IBAN informado não é válido.",
-            "INVALID_IBAN"
-        );
-    }
-
-
-    return normalized;
-}
-
-
-/*
-============================================================
-IBAN MASK
-============================================================
-*/
-
-function maskIBAN(
-    iban
-) {
-
-    if (
-        !iban
+        !account
     ) {
 
         return null;
     }
 
 
-    if (
-        iban.length <=
-        8
-    ) {
-
-        return "••••";
-    }
-
-
-    return (
-
-        iban.slice(
-            0,
-            4
-        ) +
-
-        "••••••••" +
-
-        iban.slice(
-            -4
-        )
-
-    );
-}
-
-
-/*
-============================================================
-PUBLIC ACCOUNT ID
-============================================================
-*/
-
-function generatePublicAccountId() {
-
-    return crypto
-        .randomBytes(
-            16
-        )
-        .toString(
-            "hex"
-        );
-}
-
-
-/*
-============================================================
-PUBLIC RESPONSE
-============================================================
-
-Resposta destinada ao checkout.
-
-O IBAN continua disponível para o cliente porque ele precisa
-efetuar a transferência.
-
-Dados internos do comerciante nunca são expostos.
-
-============================================================
-*/
-
-function toPublicAccount(
-    account
-) {
-
     return {
 
         id:
-            account.publicId,
+            account._id
+                ? String(
+                    account._id
+                )
+                : null,
+
+        merchantId:
+            account.merchantId
+                ? String(
+                    account.merchantId
+                )
+                : null,
 
         bankName:
             account.bankName,
@@ -512,72 +276,24 @@ function toPublicAccount(
         accountName:
             account.accountName,
 
-        holderName:
-            account.holderName,
-
         iban:
             account.iban,
+
+        ibanLast4:
+            account.ibanLast4,
+
+        accountNumber:
+            account.accountNumber,
+
+        accountType:
+            account.accountType,
 
         currency:
             account.currency,
 
-        isPrimary:
+        isActive:
             Boolean(
-                account.isPrimary
-            ),
-
-        displayOrder:
-            Number(
-                account.displayOrder ||
-                0
-            )
-    };
-}
-
-
-/*
-============================================================
-PRIVATE RESPONSE
-============================================================
-*/
-
-function toPrivateAccount(
-    account
-) {
-
-    return {
-
-        id:
-            String(
-                account._id
-            ),
-
-        publicId:
-            account.publicId,
-
-        bankName:
-            account.bankName,
-
-        accountName:
-            account.accountName,
-
-        holderName:
-            account.holderName,
-
-        iban:
-            account.iban,
-
-        ibanMasked:
-            maskIBAN(
-                account.iban
-            ),
-
-        currency:
-            account.currency,
-
-        active:
-            Boolean(
-                account.active
+                account.isActive
             ),
 
         isPrimary:
@@ -611,51 +327,80 @@ export async function createBankAccount(
     data = {}
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
+    const existingCount =
+        await BankAccount.countDocuments(
+            {
+                merchantId:
+                    merchantObjectId
+            }
+        );
+
+
+    if (
+        existingCount >=
+        MAX_BANK_ACCOUNTS
+    ) {
+
+        throw createError(
+
+            "O comerciante atingiu o limite de contas bancárias.",
+
+            "BANK_ACCOUNT_LIMIT_REACHED",
+
+            400
+        );
+    }
+
+
     const bankName =
-        cleanString(
+        normalizeString(
             data.bankName,
-            120
+            160
         );
 
 
     const accountName =
-        cleanString(
+        normalizeString(
             data.accountName,
-            120
-        );
-
-
-    const holderName =
-        cleanString(
-            data.holderName,
             160
         );
 
 
     const iban =
-        validateIBAN(
+        normalizeIban(
             data.iban
         );
 
 
+    const accountNumber =
+        normalizeString(
+            data.accountNumber,
+            80
+        );
+
+
+    const accountType =
+        normalizeString(
+            data.accountType ||
+            "bank",
+            30
+        )
+        .toLowerCase();
+
+
     const currency =
-        cleanString(
+        normalizeString(
             data.currency ||
             "AOA",
-            3
+            10
         )
-            .toUpperCase();
+        .toUpperCase();
 
 
     if (
@@ -663,8 +408,12 @@ export async function createBankAccount(
     ) {
 
         throw createError(
+
             "O nome do banco é obrigatório.",
-            "BANK_NAME_REQUIRED"
+
+            "BANK_NAME_REQUIRED",
+
+            400
         );
     }
 
@@ -674,92 +423,82 @@ export async function createBankAccount(
     ) {
 
         throw createError(
+
             "O nome da conta é obrigatório.",
-            "ACCOUNT_NAME_REQUIRED"
+
+            "ACCOUNT_NAME_REQUIRED",
+
+            400
         );
     }
 
 
     if (
-        !holderName
+        !iban
     ) {
 
         throw createError(
-            "O titular da conta é obrigatório.",
-            "ACCOUNT_HOLDER_REQUIRED"
+
+            "O IBAN é obrigatório.",
+
+            "IBAN_REQUIRED",
+
+            400
         );
     }
 
 
     if (
-        !ALLOWED_CURRENCIES.has(
-            currency
+        !ALLOWED_ACCOUNT_TYPES.includes(
+            accountType
         )
     ) {
 
         throw createError(
-            "A moeda selecionada não é suportada.",
-            "UNSUPPORTED_CURRENCY"
+
+            "Tipo de conta bancária inválido.",
+
+            "INVALID_ACCOUNT_TYPE",
+
+            400
         );
     }
-
-
-    const db =
-        await getDatabase();
-
-
-    /*
-    --------------------------------------------------------
-    Limite de contas
-    --------------------------------------------------------
-    */
-
-    const accountCount =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .countDocuments(
-                {
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
 
 
     if (
-        accountCount >=
-        MAX_ACCOUNTS_PER_MERCHANT
+        !/^[A-Z]{2}[0-9A-Z]{8,76}$/.test(
+            iban
+        )
     ) {
 
         throw createError(
-            "O comerciante atingiu o limite de 20 contas bancárias.",
-            "BANK_ACCOUNT_LIMIT_REACHED",
-            409
+
+            "O IBAN fornecido possui um formato inválido.",
+
+            "INVALID_IBAN",
+
+            400
         );
     }
 
 
     /*
     --------------------------------------------------------
-    Não permitir IBAN duplicado para o mesmo comerciante.
+    Evitar duplicação da mesma conta
     --------------------------------------------------------
     */
 
     const duplicate =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOne(
-                {
+        await BankAccount.findOne(
+            {
 
-                    merchantId:
-                        normalizedMerchantId,
+                merchantId:
+                    merchantObjectId,
 
-                    iban
-                }
-            );
+                iban
+            }
+        )
+        .lean();
 
 
     if (
@@ -767,8 +506,11 @@ export async function createBankAccount(
     ) {
 
         throw createError(
+
             "Esta conta bancária já está cadastrada.",
+
             "BANK_ACCOUNT_ALREADY_EXISTS",
+
             409
         );
     }
@@ -776,137 +518,93 @@ export async function createBankAccount(
 
     /*
     --------------------------------------------------------
-    Se for a primeira conta, ela será automaticamente
-    principal.
+    Primeira conta torna-se principal automaticamente
     --------------------------------------------------------
     */
 
-    const isFirstAccount =
-        accountCount ===
-        0;
-
-
-    const requestedPrimary =
-        data.isPrimary ===
-        true;
-
-
-    const isPrimary =
-        isFirstAccount ||
-        requestedPrimary;
-
-
-    /*
-    --------------------------------------------------------
-    Se esta conta for principal, remover principalidade
-    das outras.
-    --------------------------------------------------------
-    */
-
-    const now =
-        new Date();
+    const shouldBePrimary =
+        existingCount ===
+        0
+        ? true
+        : Boolean(
+            data.isPrimary
+        );
 
 
     if (
-        isPrimary
+        shouldBePrimary
     ) {
 
-        await db
-            .collection(
-                COLLECTION
-            )
-            .updateMany(
+        await BankAccount.updateMany(
 
-                {
+            {
+                merchantId:
+                    merchantObjectId
+            },
 
-                    merchantId:
-                        normalizedMerchantId,
-
+            {
+                $set: {
                     isPrimary:
-                        true
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            isPrimary:
-                                false,
-
-                            updatedAt:
-                                now
-                        }
+                        false
                 }
-            );
+            }
+        );
     }
 
 
-    const displayOrder =
-        Number.isInteger(
-            data.displayOrder
-        ) &&
-        data.displayOrder >=
-        0
+    const account =
+        await BankAccount.create(
 
-            ? Math.min(
-                data.displayOrder,
-                999
-            )
+            {
 
-            : accountCount;
+                merchantId:
+                    merchantObjectId,
 
+                bankName,
 
-    const document = {
+                accountName,
 
-        merchantId:
-            normalizedMerchantId,
+                iban,
 
-        publicId:
-            generatePublicAccountId(),
+                ibanLast4:
+                    getIbanLast4(
+                        iban
+                    ),
 
-        bankName,
+                accountNumber:
+                    accountNumber ||
+                    null,
 
-        accountName,
+                accountType,
 
-        holderName,
+                currency,
 
-        iban,
+                isActive:
+                    data.isActive !==
+                    false,
 
-        currency,
+                isPrimary:
+                    shouldBePrimary,
 
-        active:
-            data.active !==
-            false,
-
-        isPrimary,
-
-        displayOrder,
-
-        createdAt:
-            now,
-
-        updatedAt:
-            now
-    };
-
-
-    const result =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .insertOne(
-                document
-            );
+                displayOrder:
+                    Number.isFinite(
+                        Number(
+                            data.displayOrder
+                        )
+                    )
+                        ? Math.max(
+                            0,
+                            Number(
+                                data.displayOrder
+                            )
+                        )
+                        : existingCount
+            }
+        );
 
 
-    document._id =
-        result.insertedId;
-
-
-    return toPrivateAccount(
-        document
+    return sanitizeBankAccount(
+        account
     );
 }
 
@@ -922,49 +620,39 @@ export async function listBankAccounts(
     options = {}
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
-    const db =
-        await getDatabase();
-
-
-    const filter = {
+    const query = {
 
         merchantId:
-            normalizedMerchantId
+            merchantObjectId
     };
 
 
     if (
-        options.activeOnly ===
-        true
+        typeof options.isActive !==
+        "undefined"
     ) {
 
-        filter.active =
-            true;
+        query.isActive =
+            options.isActive ===
+            true ||
+            options.isActive ===
+            "true";
     }
 
 
     const accounts =
-        await db
-            .collection(
-                COLLECTION
-            )
+        await BankAccount
             .find(
-                filter
+                query
             )
             .sort(
                 {
-
                     isPrimary:
                         -1,
 
@@ -975,19 +663,12 @@ export async function listBankAccounts(
                         1
                 }
             )
-            .toArray();
+            .lean();
 
 
-    return {
-
-        items:
-            accounts.map(
-                toPrivateAccount
-            ),
-
-        total:
-            accounts.length
-    };
+    return accounts.map(
+        sanitizeBankAccount
+    );
 }
 
 
@@ -1002,47 +683,32 @@ export async function getBankAccount(
     accountId
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
-    const normalizedAccountId =
-        normalizeObjectId(
-
-            accountId,
-
-            "INVALID_BANK_ACCOUNT_ID",
-
-            "Identificador da conta bancária inválido."
+    const accountObjectId =
+        validateAccountId(
+            accountId
         );
-
-
-    const db =
-        await getDatabase();
 
 
     const account =
-        await db
-            .collection(
-                COLLECTION
-            )
+        await BankAccount
             .findOne(
+
                 {
 
                     _id:
-                        normalizedAccountId,
+                        accountObjectId,
 
                     merchantId:
-                        normalizedMerchantId
+                        merchantObjectId
                 }
-            );
+            )
+            .lean();
 
 
     if (
@@ -1050,14 +716,17 @@ export async function getBankAccount(
     ) {
 
         throw createError(
+
             "Conta bancária não encontrada.",
+
             "BANK_ACCOUNT_NOT_FOUND",
+
             404
         );
     }
 
 
-    return toPrivateAccount(
+    return sanitizeBankAccount(
         account
     );
 }
@@ -1075,513 +744,554 @@ export async function updateBankAccount(
     data = {}
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
-    const normalizedAccountId =
-        normalizeObjectId(
-
-            accountId,
-
-            "INVALID_BANK_ACCOUNT_ID",
-
-            "Identificador da conta bancária inválido."
+    const accountObjectId =
+        validateAccountId(
+            accountId
         );
 
 
-    const db =
-        await getDatabase();
+    const account =
+        await BankAccount.findOne(
+            {
 
+                _id:
+                    accountObjectId,
 
-    const existing =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
+                merchantId:
+                    merchantObjectId
+            }
+        );
 
 
     if (
-        !existing
+        !account
     ) {
 
         throw createError(
+
             "Conta bancária não encontrada.",
+
             "BANK_ACCOUNT_NOT_FOUND",
+
             404
         );
     }
 
 
-    const update =
-        {};
-
-
     if (
-        data.bankName !==
-        undefined
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "bankName"
+        )
     ) {
 
-        const bankName =
-            cleanString(
+        const value =
+            normalizeString(
                 data.bankName,
-                120
-            );
-
-
-        if (
-            !bankName
-        ) {
-
-            throw createError(
-                "O nome do banco é obrigatório.",
-                "BANK_NAME_REQUIRED"
-            );
-        }
-
-
-        update.bankName =
-            bankName;
-    }
-
-
-    if (
-        data.accountName !==
-        undefined
-    ) {
-
-        const accountName =
-            cleanString(
-                data.accountName,
-                120
-            );
-
-
-        if (
-            !accountName
-        ) {
-
-            throw createError(
-                "O nome da conta é obrigatório.",
-                "ACCOUNT_NAME_REQUIRED"
-            );
-        }
-
-
-        update.accountName =
-            accountName;
-    }
-
-
-    if (
-        data.holderName !==
-        undefined
-    ) {
-
-        const holderName =
-            cleanString(
-                data.holderName,
                 160
             );
 
 
         if (
-            !holderName
+            !value
         ) {
 
             throw createError(
-                "O titular da conta é obrigatório.",
-                "ACCOUNT_HOLDER_REQUIRED"
+
+                "O nome do banco é obrigatório.",
+
+                "BANK_NAME_REQUIRED",
+
+                400
             );
         }
 
 
-        update.holderName =
-            holderName;
+        account.bankName =
+            value;
     }
 
 
     if (
-        data.currency !==
-        undefined
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "accountName"
+        )
     ) {
 
-        const currency =
-            cleanString(
-                data.currency,
-                3
-            )
-                .toUpperCase();
+        const value =
+            normalizeString(
+                data.accountName,
+                160
+            );
 
 
         if (
-            !ALLOWED_CURRENCIES.has(
-                currency
-            )
+            !value
         ) {
 
             throw createError(
-                "A moeda selecionada não é suportada.",
-                "UNSUPPORTED_CURRENCY"
+
+                "O nome da conta é obrigatório.",
+
+                "ACCOUNT_NAME_REQUIRED",
+
+                400
             );
         }
 
 
-        update.currency =
-            currency;
+        account.accountName =
+            value;
     }
 
 
     if (
-        data.iban !==
-        undefined
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "iban"
+        )
     ) {
 
-        const newIban =
-            validateIBAN(
+        const iban =
+            normalizeIban(
                 data.iban
             );
 
 
         if (
-            newIban !==
-            existing.iban
+            !iban
         ) {
 
-            const duplicate =
-                await db
-                    .collection(
-                        COLLECTION
-                    )
-                    .findOne(
-                        {
+            throw createError(
 
-                            merchantId:
-                                normalizedMerchantId,
+                "O IBAN é obrigatório.",
 
-                            iban:
-                                newIban,
+                "IBAN_REQUIRED",
 
-                            _id:
-                                {
-                                    $ne:
-                                        normalizedAccountId
-                                }
-                        }
-                    );
-
-
-            if (
-                duplicate
-            ) {
-
-                throw createError(
-                    "Esta conta bancária já está cadastrada.",
-                    "BANK_ACCOUNT_ALREADY_EXISTS",
-                    409
-                );
-            }
+                400
+            );
         }
 
 
-        update.iban =
-            newIban;
-    }
+        if (
+            !/^[A-Z]{2}[0-9A-Z]{8,76}$/.test(
+                iban
+            )
+        ) {
+
+            throw createError(
+
+                "O IBAN fornecido possui um formato inválido.",
+
+                "INVALID_IBAN",
+
+                400
+            );
+        }
 
 
-    if (
-        data.active !==
-        undefined
-    ) {
+        const duplicate =
+            await BankAccount.findOne(
 
-        update.active =
-            Boolean(
-                data.active
+                {
+
+                    merchantId:
+                        merchantObjectId,
+
+                    iban,
+
+                    _id:
+                        {
+                            $ne:
+                                accountObjectId
+                        }
+                }
+            )
+            .lean();
+
+
+        if (
+            duplicate
+        ) {
+
+            throw createError(
+
+                "Esta conta bancária já está cadastrada.",
+
+                "BANK_ACCOUNT_ALREADY_EXISTS",
+
+                409
+            );
+        }
+
+
+        account.iban =
+            iban;
+
+
+        account.ibanLast4 =
+            getIbanLast4(
+                iban
             );
     }
 
 
     if (
-        data.displayOrder !==
-        undefined
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "accountNumber"
+        )
     ) {
 
-        const order =
+        account.accountNumber =
+            normalizeString(
+                data.accountNumber,
+                80
+            ) ||
+            null;
+    }
+
+
+    if (
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "accountType"
+        )
+    ) {
+
+        const accountType =
+            normalizeString(
+                data.accountType,
+                30
+            )
+            .toLowerCase();
+
+
+        if (
+            !ALLOWED_ACCOUNT_TYPES.includes(
+                accountType
+            )
+        ) {
+
+            throw createError(
+
+                "Tipo de conta bancária inválido.",
+
+                "INVALID_ACCOUNT_TYPE",
+
+                400
+            );
+        }
+
+
+        account.accountType =
+            accountType;
+    }
+
+
+    if (
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "currency"
+        )
+    ) {
+
+        const currency =
+            normalizeString(
+                data.currency,
+                10
+            )
+            .toUpperCase();
+
+
+        if (
+            !currency
+        ) {
+
+            throw createError(
+
+                "A moeda da conta é obrigatória.",
+
+                "CURRENCY_REQUIRED",
+
+                400
+            );
+        }
+
+
+        account.currency =
+            currency;
+    }
+
+
+    if (
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "displayOrder"
+        )
+    ) {
+
+        const displayOrder =
             Number(
                 data.displayOrder
             );
 
 
         if (
-            !Number.isInteger(
-                order
+            !Number.isFinite(
+                displayOrder
             ) ||
-            order < 0
+            displayOrder <
+            0
         ) {
 
             throw createError(
-                "A ordem de apresentação é inválida.",
-                "INVALID_DISPLAY_ORDER"
+
+                "displayOrder inválido.",
+
+                "INVALID_DISPLAY_ORDER",
+
+                400
             );
         }
 
 
-        update.displayOrder =
-            Math.min(
-                order,
-                999
-            );
+        account.displayOrder =
+            displayOrder;
     }
 
 
-    const wantsPrimary =
-        data.isPrimary ===
-        true;
-
-
-    const wantsNonPrimary =
-        data.isPrimary ===
-        false;
-
-
-    const now =
-        new Date();
-
-
     if (
-        wantsPrimary
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "isActive"
+        )
     ) {
 
-        await db
-            .collection(
-                COLLECTION
-            )
-            .updateMany(
-
-                {
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    _id:
-                        {
-                            $ne:
-                                normalizedAccountId
-                        },
-
-                    isPrimary:
-                        true
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            isPrimary:
-                                false,
-
-                            updatedAt:
-                                now
-                        }
-                }
-            );
-
-
-        update.isPrimary =
+        account.isActive =
+            data.isActive ===
             true;
     }
 
 
     if (
-        wantsNonPrimary
+        Object.prototype.hasOwnProperty.call(
+            data,
+            "isPrimary"
+        ) &&
+        data.isPrimary ===
+        true
     ) {
 
-        /*
-        ----------------------------------------------------
-        Uma conta pode deixar de ser principal somente se
-        outra conta ativa assumir a função.
-        ----------------------------------------------------
-        */
+        await BankAccount.updateMany(
 
-        if (
-            existing.isPrimary
-        ) {
+            {
 
-            const replacement =
-                await db
-                    .collection(
-                        COLLECTION
-                    )
-                    .findOne(
-                        {
+                merchantId:
+                    merchantObjectId,
 
-                            merchantId:
-                                normalizedMerchantId,
-
-                            _id:
-                                {
-                                    $ne:
-                                        normalizedAccountId
-                                },
-
-                            active:
-                                true
-                        },
-
-                        {
-
-                            sort:
-                                {
-
-                                    displayOrder:
-                                        1,
-
-                                    createdAt:
-                                        1
-                                }
-                        }
-                    );
-
-
-            if (
-                !replacement
-            ) {
-
-                throw createError(
-                    "É necessário manter pelo menos uma conta ativa como principal.",
-                    "PRIMARY_ACCOUNT_REQUIRED",
-                    409
-                );
-            }
-
-
-            await db
-                .collection(
-                    COLLECTION
-                )
-                .updateOne(
-
+                _id:
                     {
-
-                        _id:
-                            replacement._id,
-
-                        merchantId:
-                            normalizedMerchantId
-                    },
-
-                    {
-
-                        $set:
-                            {
-
-                                isPrimary:
-                                    true,
-
-                                updatedAt:
-                                    now
-                            }
+                        $ne:
+                            accountObjectId
                     }
-                );
-        }
+            },
 
+            {
 
-        update.isPrimary =
-            false;
-    }
+                $set: {
 
-
-    if (
-        Object.keys(
-            update
-        ).length ===
-        0
-    ) {
-
-        return toPrivateAccount(
-            existing
-        );
-    }
-
-
-    update.updatedAt =
-        now;
-
-
-    const result =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                },
-
-                {
-
-                    $set:
-                        update
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
+                    isPrimary:
+                        false
                 }
-            );
-
-
-    const updated =
-        result?.value ||
-        result;
-
-
-    if (
-        !updated
-    ) {
-
-        throw createError(
-            "Não foi possível atualizar a conta bancária.",
-            "BANK_ACCOUNT_UPDATE_FAILED",
-            500
+            }
         );
+
+
+        account.isPrimary =
+            true;
     }
 
 
-    return toPrivateAccount(
-        updated
+    await account.save();
+
+
+    /*
+    --------------------------------------------------------
+    Garantir que existe uma conta principal ativa quando
+    possível.
+    --------------------------------------------------------
+    */
+
+    if (
+        account.isPrimary &&
+        !account.isActive
+    ) {
+
+        account.isPrimary =
+            false;
+
+
+        await account.save();
+    }
+
+
+    return sanitizeBankAccount(
+        account
     );
 }
 
 
 /*
 ============================================================
-SET PRIMARY ACCOUNT
+SET ACTIVE STATUS
+============================================================
+*/
+
+export async function setBankAccountStatus(
+    merchantId,
+    accountId,
+    isActive
+) {
+
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
+        );
+
+
+    const accountObjectId =
+        validateAccountId(
+            accountId
+        );
+
+
+    const account =
+        await BankAccount.findOne(
+            {
+
+                _id:
+                    accountObjectId,
+
+                merchantId:
+                    merchantObjectId
+            }
+        );
+
+
+    if (
+        !account
+    ) {
+
+        throw createError(
+
+            "Conta bancária não encontrada.",
+
+            "BANK_ACCOUNT_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    const active =
+        isActive ===
+        true ||
+        isActive ===
+        "true";
+
+
+    account.isActive =
+        active;
+
+
+    /*
+    --------------------------------------------------------
+    Uma conta inativa não pode continuar como principal.
+    --------------------------------------------------------
+    */
+
+    if (
+        !active
+    ) {
+
+        account.isPrimary =
+            false;
+    }
+
+
+    await account.save();
+
+
+    /*
+    --------------------------------------------------------
+    Se a conta principal foi desativada, escolher outra
+    conta ativa automaticamente.
+    --------------------------------------------------------
+    */
+
+    if (
+        !active
+    ) {
+
+        const replacement =
+            await BankAccount
+                .findOne(
+                    {
+
+                        merchantId:
+                            merchantObjectId,
+
+                        isActive:
+                            true,
+
+                        _id:
+                            {
+                                $ne:
+                                    accountObjectId
+                            }
+                    }
+                )
+                .sort(
+                    {
+                        displayOrder:
+                            1,
+
+                        createdAt:
+                            1
+                    }
+                );
+
+
+        if (
+            replacement
+        ) {
+
+            replacement.isPrimary =
+                true;
+
+
+            await replacement.save();
+        }
+    }
+
+
+    return sanitizeBankAccount(
+        account
+    );
+}
+
+
+/*
+============================================================
+SET PRIMARY
 ============================================================
 */
 
@@ -1590,232 +1300,29 @@ export async function setPrimaryBankAccount(
     accountId
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
-    const normalizedAccountId =
-        normalizeObjectId(
-
-            accountId,
-
-            "INVALID_BANK_ACCOUNT_ID",
-
-            "Identificador da conta bancária inválido."
+    const accountObjectId =
+        validateAccountId(
+            accountId
         );
-
-
-    const db =
-        await getDatabase();
 
 
     const account =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        !account
-    ) {
-
-        throw createError(
-            "Conta bancária não encontrada.",
-            "BANK_ACCOUNT_NOT_FOUND",
-            404
-        );
-    }
-
-
-    if (
-        !account.active
-    ) {
-
-        throw createError(
-            "Uma conta desativada não pode ser definida como principal.",
-            "INACTIVE_ACCOUNT_CANNOT_BE_PRIMARY",
-            409
-        );
-    }
-
-
-    const now =
-        new Date();
-
-
-    await db
-        .collection(
-            COLLECTION
-        )
-        .updateMany(
-
+        await BankAccount.findOne(
             {
-
-                merchantId:
-                    normalizedMerchantId,
-
-                isPrimary:
-                    true,
 
                 _id:
-                    {
-                        $ne:
-                            normalizedAccountId
-                    }
-            },
+                    accountObjectId,
 
-            {
-
-                $set:
-                    {
-
-                        isPrimary:
-                            false,
-
-                        updatedAt:
-                            now
-                    }
+                merchantId:
+                    merchantObjectId
             }
         );
-
-
-    const result =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            isPrimary:
-                                true,
-
-                            updatedAt:
-                                now
-                        }
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
-                }
-            );
-
-
-    const updated =
-        result?.value ||
-        result;
-
-
-    if (
-        !updated
-    ) {
-
-        throw createError(
-            "Não foi possível definir a conta principal.",
-            "PRIMARY_ACCOUNT_UPDATE_FAILED",
-            500
-        );
-    }
-
-
-    return toPrivateAccount(
-        updated
-    );
-}
-
-
-/*
-============================================================
-TOGGLE ACCOUNT
-============================================================
-*/
-
-export async function setBankAccountStatus(
-    merchantId,
-    accountId,
-    active
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedAccountId =
-        normalizeObjectId(
-
-            accountId,
-
-            "INVALID_BANK_ACCOUNT_ID",
-
-            "Identificador da conta bancária inválido."
-        );
-
-
-    const desiredStatus =
-        Boolean(
-            active
-        );
-
-
-    const db =
-        await getDatabase();
-
-
-    const account =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
 
 
     if (
@@ -1823,235 +1330,59 @@ export async function setBankAccountStatus(
     ) {
 
         throw createError(
+
             "Conta bancária não encontrada.",
+
             "BANK_ACCOUNT_NOT_FOUND",
+
             404
         );
     }
 
 
     if (
-        account.active ===
-        desiredStatus
-    ) {
-
-        return toPrivateAccount(
-            account
-        );
-    }
-
-
-    const now =
-        new Date();
-
-
-    /*
-    --------------------------------------------------------
-    DESATIVAR
-    --------------------------------------------------------
-    */
-
-    if (
-        desiredStatus ===
-        false
-    ) {
-
-        if (
-            account.isPrimary
-        ) {
-
-            const replacement =
-                await db
-                    .collection(
-                        COLLECTION
-                    )
-                    .findOne(
-                        {
-
-                            merchantId:
-                                normalizedMerchantId,
-
-                            _id:
-                                {
-                                    $ne:
-                                        normalizedAccountId
-                                },
-
-                            active:
-                                true
-                        },
-
-                        {
-
-                            sort:
-                                {
-
-                                    displayOrder:
-                                        1,
-
-                                    createdAt:
-                                        1
-                                }
-                        }
-                    );
-
-
-            if (
-                !replacement
-            ) {
-
-                throw createError(
-                    "Não é possível desativar a única conta ativa do comerciante.",
-                    "LAST_ACTIVE_ACCOUNT",
-                    409
-                );
-            }
-
-
-            await db
-                .collection(
-                    COLLECTION
-                )
-                .updateOne(
-
-                    {
-
-                        _id:
-                            replacement._id,
-
-                        merchantId:
-                            normalizedMerchantId
-                    },
-
-                    {
-
-                        $set:
-                            {
-
-                                isPrimary:
-                                    true,
-
-                                updatedAt:
-                                    now
-                            }
-                    }
-                );
-        }
-
-
-        const result =
-            await db
-                .collection(
-                    COLLECTION
-                )
-                .findOneAndUpdate(
-
-                    {
-
-                        _id:
-                            normalizedAccountId,
-
-                        merchantId:
-                            normalizedMerchantId
-                    },
-
-                    {
-
-                        $set:
-                            {
-
-                                active:
-                                    false,
-
-                                isPrimary:
-                                    false,
-
-                                updatedAt:
-                                    now
-                            }
-                    },
-
-                    {
-
-                        returnDocument:
-                            "after"
-                    }
-                );
-
-
-        const updated =
-            result?.value ||
-            result;
-
-
-        return toPrivateAccount(
-            updated
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    ATIVAR
-    --------------------------------------------------------
-    */
-
-    const result =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            active:
-                                true,
-
-                            updatedAt:
-                                now
-                        }
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
-                }
-            );
-
-
-    const updated =
-        result?.value ||
-        result;
-
-
-    if (
-        !updated
+        !account.isActive
     ) {
 
         throw createError(
-            "Não foi possível ativar a conta bancária.",
-            "BANK_ACCOUNT_ACTIVATION_FAILED",
-            500
+
+            "Uma conta bancária inativa não pode ser definida como principal.",
+
+            "INACTIVE_BANK_ACCOUNT",
+
+            400
         );
     }
 
 
-    return toPrivateAccount(
-        updated
+    await BankAccount.updateMany(
+
+        {
+
+            merchantId:
+                merchantObjectId
+        },
+
+        {
+
+            $set: {
+
+                isPrimary:
+                    false
+            }
+        }
+    );
+
+
+    account.isPrimary =
+        true;
+
+
+    await account.save();
+
+
+    return sanitizeBankAccount(
+        account
     );
 }
 
@@ -2067,47 +1398,29 @@ export async function deleteBankAccount(
     accountId
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
 
 
-    const normalizedAccountId =
-        normalizeObjectId(
-
-            accountId,
-
-            "INVALID_BANK_ACCOUNT_ID",
-
-            "Identificador da conta bancária inválido."
+    const accountObjectId =
+        validateAccountId(
+            accountId
         );
-
-
-    const db =
-        await getDatabase();
 
 
     const account =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .findOne(
-                {
+        await BankAccount.findOne(
+            {
 
-                    _id:
-                        normalizedAccountId,
+                _id:
+                    accountObjectId,
 
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
+                merchantId:
+                    merchantObjectId
+            }
+        );
 
 
     if (
@@ -2115,105 +1428,63 @@ export async function deleteBankAccount(
     ) {
 
         throw createError(
+
             "Conta bancária não encontrada.",
+
             "BANK_ACCOUNT_NOT_FOUND",
+
             404
         );
     }
 
 
-    const accountCount =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .countDocuments(
-                {
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        accountCount <=
-        1
-    ) {
-
-        throw createError(
-            "O comerciante precisa manter pelo menos uma conta bancária cadastrada.",
-            "LAST_BANK_ACCOUNT",
-            409
+    const wasPrimary =
+        Boolean(
+            account.isPrimary
         );
-    }
 
 
-    const result =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .deleteOne(
-                {
+    await BankAccount.deleteOne(
+        {
+            _id:
+                accountObjectId,
 
-                    _id:
-                        normalizedAccountId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        result.deletedCount !==
-        1
-    ) {
-
-        throw createError(
-            "Não foi possível remover a conta bancária.",
-            "BANK_ACCOUNT_DELETE_FAILED",
-            500
-        );
-    }
+            merchantId:
+                merchantObjectId
+        }
+    );
 
 
     /*
     --------------------------------------------------------
-    Se removemos a principal, escolher outra conta ativa.
+    Se removemos a principal, escolher outra ativa.
     --------------------------------------------------------
     */
 
     if (
-        account.isPrimary
+        wasPrimary
     ) {
 
         const replacement =
-            await db
-                .collection(
-                    COLLECTION
-                )
+            await BankAccount
                 .findOne(
                     {
 
                         merchantId:
-                            normalizedMerchantId,
+                            merchantObjectId,
 
-                        active:
+                        isActive:
                             true
-                    },
-
+                    }
+                )
+                .sort(
                     {
 
-                        sort:
-                            {
+                        displayOrder:
+                            1,
 
-                                displayOrder:
-                                    1,
-
-                                createdAt:
-                                    1
-                            }
+                        createdAt:
+                            1
                     }
                 );
 
@@ -2222,34 +1493,11 @@ export async function deleteBankAccount(
             replacement
         ) {
 
-            await db
-                .collection(
-                    COLLECTION
-                )
-                .updateOne(
+            replacement.isPrimary =
+                true;
 
-                    {
 
-                        _id:
-                            replacement._id,
-
-                        merchantId:
-                            normalizedMerchantId
-                    },
-
-                    {
-
-                        $set:
-                            {
-
-                                isPrimary:
-                                    true,
-
-                                updatedAt:
-                                    new Date()
-                            }
-                    }
-                );
+            await replacement.save();
         }
     }
 
@@ -2259,9 +1507,9 @@ export async function deleteBankAccount(
         deleted:
             true,
 
-        id:
+        accountId:
             String(
-                normalizedAccountId
+                accountObjectId
             )
     };
 }
@@ -2269,147 +1517,47 @@ export async function deleteBankAccount(
 
 /*
 ============================================================
-PUBLIC CHECKOUT ACCOUNTS
-============================================================
-
-Retorna somente contas ativas.
-
+GET PRIMARY BANK ACCOUNT
 ============================================================
 */
 
-export async function getPublicBankAccounts(
+export async function getPrimaryBankAccount(
     merchantId
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
+    const merchantObjectId =
+        validateMerchantId(
+            merchantId
         );
-
-
-    const db =
-        await getDatabase();
-
-
-    const accounts =
-        await db
-            .collection(
-                COLLECTION
-            )
-            .find(
-                {
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                }
-            )
-            .sort(
-                {
-
-                    isPrimary:
-                        -1,
-
-                    displayOrder:
-                        1,
-
-                    createdAt:
-                        1
-                }
-            )
-            .toArray();
-
-
-    return accounts.map(
-        toPublicAccount
-    );
-}
-
-
-/*
-============================================================
-GET ACCOUNT BY PUBLIC ID
-============================================================
-*/
-
-export async function getPublicBankAccount(
-    merchantId,
-    publicId
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedPublicId =
-        cleanString(
-            publicId,
-            100
-        );
-
-
-    if (
-        !normalizedPublicId
-    ) {
-
-        throw createError(
-            "Conta bancária inválida.",
-            "INVALID_BANK_ACCOUNT"
-        );
-    }
-
-
-    const db =
-        await getDatabase();
 
 
     const account =
-        await db
-            .collection(
-                COLLECTION
-            )
+        await BankAccount
             .findOne(
                 {
 
                     merchantId:
-                        normalizedMerchantId,
+                        merchantObjectId,
 
-                    publicId:
-                        normalizedPublicId,
+                    isActive:
+                        true,
 
-                    active:
+                    isPrimary:
                         true
                 }
-            );
+            )
+            .lean();
 
 
     if (
         !account
     ) {
 
-        throw createError(
-            "Conta bancária não encontrada.",
-            "BANK_ACCOUNT_NOT_FOUND",
-            404
-        );
+        return null;
     }
 
 
-    return toPublicAccount(
+    return sanitizeBankAccount(
         account
     );
 }
@@ -2417,93 +1565,7 @@ export async function getPublicBankAccount(
 
 /*
 ============================================================
-INDEXES
-============================================================
-*/
-
-export async function ensureBankAccountIndexes() {
-
-    const db =
-        await getDatabase();
-
-
-    const collection =
-        db.collection(
-            COLLECTION
-        );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            iban:
-                1
-        },
-
-        {
-
-            unique:
-                true
-        }
-    );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            active:
-                1,
-
-            isPrimary:
-                -1,
-
-            displayOrder:
-                1
-        }
-    );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            publicId:
-                1
-        },
-
-        {
-
-            unique:
-                true
-        }
-    );
-
-
-    return {
-
-        collection:
-            COLLECTION,
-
-        indexes:
-            "ready"
-    };
-}
-
-
-/*
-============================================================
-EXPORT
+EXPORTS
 ============================================================
 */
 
@@ -2517,15 +1579,12 @@ export default {
 
     updateBankAccount,
 
-    setPrimaryBankAccount,
-
     setBankAccountStatus,
+
+    setPrimaryBankAccount,
 
     deleteBankAccount,
 
-    getPublicBankAccounts,
+    getPrimaryBankAccount
 
-    getPublicBankAccount,
-
-    ensureBankAccountIndexes
 };
