@@ -2,7 +2,7 @@
 ============================================================
 HONEY PAY
 PROOF SERVICE
-V1.1.0
+V1.2.0
 ============================================================
 
 SERVIÇO DE COMPROVATIVOS
@@ -18,27 +18,43 @@ RESPONSABILIDADES
 - Consultar comprovativos
 - Validar propriedade do comerciante
 - Atualizar estado de verificação
-- Manter integridade do fluxo Payment → Invoice
+- Manter integridade Payment → Invoice
 - Impedir acesso entre comerciantes
+- Fornecer API de serviço compatível com proof-routes.js
 
 ------------------------------------------------------------
 FLUXO
 ------------------------------------------------------------
 
-Receipt
+Cliente
+   ↓
+Payment
+   ↓
+Proof / Receipt
    ↓
 SHA-256
    ↓
 Duplicate Check
    ↓
-Payment
+Merchant Review
    ↓
-Invoice
-   ↓
-Verification
+Approved / Rejected
+
+============================================================
+
+IMPORTANTE
+
+Este arquivo NÃO utiliza BitPay.
+
+BitPay é exclusivamente utilizado para a subscrição
+da plataforma Honey Pay.
+
+Os comprovativos deste arquivo pertencem aos pagamentos
+realizados pelos clientes dos comerciantes.
 
 ============================================================
 */
+
 
 import crypto from "node:crypto";
 
@@ -122,10 +138,12 @@ function createError(
 
         error.details =
             details;
+
     }
 
 
     return error;
+
 }
 
 
@@ -168,7 +186,9 @@ function assertObjectId(
             400
 
         );
+
     }
+
 }
 
 
@@ -199,6 +219,7 @@ export function calculateProofSha256(
             400
 
         );
+
     }
 
 
@@ -215,6 +236,7 @@ export function calculateProofSha256(
         .digest(
             "hex"
         );
+
 }
 
 
@@ -243,6 +265,7 @@ export function validateProofFile(
             400
 
         );
+
     }
 
 
@@ -261,6 +284,7 @@ export function validateProofFile(
             400
 
         );
+
     }
 
 
@@ -290,6 +314,7 @@ export function validateProofFile(
             400
 
         );
+
     }
 
 
@@ -307,6 +332,7 @@ export function validateProofFile(
             413
 
         );
+
     }
 
 
@@ -325,6 +351,7 @@ export function validateProofFile(
             415
 
         );
+
     }
 
 
@@ -338,6 +365,7 @@ export function validateProofFile(
             )
 
     };
+
 }
 
 
@@ -383,6 +411,7 @@ export async function findDuplicateProof(
             400
 
         );
+
     }
 
 
@@ -412,6 +441,7 @@ export async function findDuplicateProof(
 
 
     return duplicate;
+
 }
 
 
@@ -485,6 +515,7 @@ export async function getProofByPayment(
             404
 
         );
+
     }
 
 
@@ -501,6 +532,7 @@ export async function getProofByPayment(
             404
 
         );
+
     }
 
 
@@ -577,6 +609,7 @@ export async function getProofByPayment(
             payment.rejectionReason
 
     };
+
 }
 
 
@@ -585,10 +618,7 @@ export async function getProofByPayment(
 CREATE RECEIPT RECORD
 ============================================================
 
-Este método cria um registo separado em Receipt quando o
-fluxo de armazenamento precisar de uma entidade própria.
-
-O Payment continua sendo a fonte do estado financeiro.
+Cria o Receipt e liga o comprovativo ao Payment e Invoice.
 
 ============================================================
 */
@@ -678,6 +708,7 @@ export async function createProofRecord(
             404
 
         );
+
     }
 
 
@@ -711,6 +742,7 @@ export async function createProofRecord(
             404
 
         );
+
     }
 
 
@@ -768,12 +800,13 @@ export async function createProofRecord(
             409
 
         );
+
     }
 
 
     /*
     --------------------------------------------------------
-    CREATE RECEIPT
+    RECEIPT
     --------------------------------------------------------
     */
 
@@ -799,6 +832,7 @@ export async function createProofRecord(
                     String(
 
                         file.originalname ||
+                        file.originalName ||
                         "receipt"
 
                     )
@@ -809,7 +843,8 @@ export async function createProofRecord(
                         ),
 
                 mimeType:
-                    file.mimetype,
+                    file.mimetype ||
+                    file.mimeType,
 
                 sha256:
                     validated.sha256,
@@ -848,10 +883,12 @@ export async function createProofRecord(
                 409
 
             );
+
         }
 
 
         throw error;
+
     }
 
 
@@ -886,6 +923,34 @@ export async function createProofRecord(
 
             uploadedAt:
                 receipt.createdAt
+
+        };
+
+
+    /*
+    --------------------------------------------------------
+    SUBMISSION STATE
+    --------------------------------------------------------
+    */
+
+    payment.submittedAt =
+        payment.submittedAt ||
+        receipt.createdAt;
+
+
+    payment.verification =
+        {
+
+            ...(
+                payment.verification ||
+                {}
+            ),
+
+            status:
+                "pending",
+
+            duplicateDetected:
+                false
 
         };
 
@@ -968,6 +1033,128 @@ export async function createProofRecord(
         }
 
     };
+
+}
+
+
+/*
+============================================================
+SUBMIT PAYMENT PROOF
+============================================================
+
+Interface utilizada pelo proof-routes.js.
+
+Aceita:
+
+submitPaymentProof(
+    merchantId,
+    paymentId,
+    file,
+    metadata
+)
+
+============================================================
+*/
+
+export async function submitPaymentProof(
+
+    merchantId,
+
+    paymentId,
+
+    file,
+
+    metadata = {}
+
+) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+
+    );
+
+
+    assertObjectId(
+
+        paymentId,
+
+        "paymentId",
+
+        "INVALID_PAYMENT_ID"
+
+    );
+
+
+    const payment =
+        await Payment.findOne({
+
+            _id:
+                paymentId,
+
+            merchantId
+
+        })
+
+        .select(
+            "_id invoiceId merchantId"
+        )
+
+        .lean();
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado.",
+
+            "PAYMENT_NOT_FOUND",
+
+            404
+
+        );
+
+    }
+
+
+    if (
+        !payment.invoiceId
+    ) {
+
+        throw createError(
+
+            "O pagamento não possui uma fatura associada.",
+
+            "INVOICE_NOT_FOUND",
+
+            404
+
+        );
+
+    }
+
+
+    return createProofRecord(
+
+        merchantId,
+
+        payment.invoiceId,
+
+        paymentId,
+
+        file,
+
+        metadata
+
+    );
+
 }
 
 
@@ -1025,6 +1212,7 @@ export async function verifyProof(
             400
 
         );
+
     }
 
 
@@ -1052,6 +1240,7 @@ export async function verifyProof(
             404
 
         );
+
     }
 
 
@@ -1069,6 +1258,7 @@ export async function verifyProof(
             404
 
         );
+
     }
 
 
@@ -1096,7 +1286,20 @@ export async function verifyProof(
             404
 
         );
+
     }
+
+
+    const reviewerId =
+        options.reviewerId ||
+        options.reviewedBy ||
+        null;
+
+
+    const notes =
+        options.notes ||
+        options.note ||
+        null;
 
 
     if (
@@ -1118,21 +1321,52 @@ export async function verifyProof(
                     false,
 
                 notes:
-                    Array.isArray(
+                    notes
+                        ? [
 
-                        payment
-                            .verification
-                            ?.notes
+                            notes
 
-                    )
+                        ]
 
-                        ? payment
-                            .verification
-                            .notes
+                        : (
 
-                        : []
+                            Array.isArray(
+
+                                payment
+                                    .verification
+                                    ?.notes
+
+                            )
+
+                                ? payment
+                                    .verification
+                                    .notes
+
+                                : []
+
+                        )
 
             };
+
+
+        payment.status =
+            "confirmed";
+
+
+        payment.confirmedAt =
+            new Date();
+
+
+        payment.confirmedBy =
+            reviewerId;
+
+
+        payment.rejectedAt =
+            null;
+
+
+        payment.rejectionReason =
+            null;
 
 
         await payment.save();
@@ -1172,12 +1406,6 @@ export async function verifyProof(
         await invoice.save();
 
 
-        /*
-        ----------------------------------------------------
-        Receipt
-        ----------------------------------------------------
-        */
-
         await Receipt.updateMany(
 
             {
@@ -1202,7 +1430,6 @@ export async function verifyProof(
 
         );
 
-
     }
 
     else {
@@ -1222,21 +1449,52 @@ export async function verifyProof(
                     false,
 
                 notes:
-                    Array.isArray(
+                    notes
+                        ? [
 
-                        payment
-                            .verification
-                            ?.notes
+                            notes
 
-                    )
+                        ]
 
-                        ? payment
-                            .verification
-                            .notes
+                        : (
 
-                        : []
+                            Array.isArray(
+
+                                payment
+                                    .verification
+                                    ?.notes
+
+                            )
+
+                                ? payment
+                                    .verification
+                                    .notes
+
+                                : []
+
+                        )
 
             };
+
+
+        payment.status =
+            "rejected";
+
+
+        payment.rejectedAt =
+            new Date();
+
+
+        payment.rejectionReason =
+            notes;
+
+
+        payment.confirmedAt =
+            null;
+
+
+        payment.confirmedBy =
+            null;
 
 
         await payment.save();
@@ -1315,7 +1573,12 @@ export async function verifyProof(
                 payment._id.toString(),
 
             invoiceId:
-                payment.invoiceId.toString()
+                payment.invoiceId.toString(),
+
+            reviewerId:
+                reviewerId
+                    ? reviewerId.toString()
+                    : null
 
         }
 
@@ -1330,12 +1593,13 @@ export async function verifyProof(
         invoiceId:
             payment.invoiceId,
 
-        verification:
+        status:
+            payment.status,
 
+        verification:
             payment.verification,
 
         receiptStatus:
-
             invoice
                 .receipt
                 ?.status ||
@@ -1343,6 +1607,44 @@ export async function verifyProof(
             null
 
     };
+
+}
+
+
+/*
+============================================================
+REVIEW PAYMENT PROOF
+============================================================
+
+Interface utilizada pelo proof-routes.js.
+
+============================================================
+*/
+
+export async function reviewPaymentProof(
+
+    merchantId,
+
+    paymentId,
+
+    approved,
+
+    options = {}
+
+) {
+
+    return verifyProof(
+
+        merchantId,
+
+        paymentId,
+
+        approved,
+
+        options
+
+    );
+
 }
 
 
@@ -1390,7 +1692,9 @@ export async function getProof(
 
             merchantId
 
-        }).lean();
+        })
+
+        .lean();
 
 
     if (
@@ -1406,6 +1710,7 @@ export async function getProof(
             404
 
         );
+
     }
 
 
@@ -1448,6 +1753,36 @@ export async function getProof(
             receipt.updatedAt
 
     };
+
+}
+
+
+/*
+============================================================
+GET MERCHANT PROOF
+============================================================
+
+Interface utilizada pelo proof-routes.js.
+
+============================================================
+*/
+
+export async function getMerchantProof(
+
+    merchantId,
+
+    proofId
+
+) {
+
+    return getProof(
+
+        merchantId,
+
+        proofId
+
+    );
+
 }
 
 
@@ -1476,48 +1811,60 @@ export async function listProofs(
     );
 
 
-    const page =
-        Math.max(
-
-            1,
-
-            Math.floor(
-
-                Number(
-
-                    options.page ||
-                    1
-
-                )
-
-            )
-
+    const pageNumber =
+        Number(
+            options.page ||
+            1
         );
 
 
-    const limit =
-        Math.min(
+    const limitNumber =
+        Number(
+            options.limit ||
+            20
+        );
 
-            100,
 
-            Math.max(
+    const page =
+        Number.isFinite(
+            pageNumber
+        )
+
+            ? Math.max(
 
                 1,
 
                 Math.floor(
+                    pageNumber
+                )
 
-                    Number(
+            )
 
-                        options.limit ||
-                        20
+            : 1;
 
+
+    const limit =
+        Number.isFinite(
+            limitNumber
+        )
+
+            ? Math.min(
+
+                100,
+
+                Math.max(
+
+                    1,
+
+                    Math.floor(
+                        limitNumber
                     )
 
                 )
 
             )
 
-        );
+            : 20;
 
 
     const filter = {
@@ -1560,11 +1907,13 @@ export async function listProofs(
                 400
 
             );
+
         }
 
 
         filter.status =
             status;
+
     }
 
 
@@ -1585,6 +1934,7 @@ export async function listProofs(
 
         filter.paymentId =
             options.paymentId;
+
     }
 
 
@@ -1605,6 +1955,7 @@ export async function listProofs(
 
         filter.invoiceId =
             options.invoiceId;
+
     }
 
 
@@ -1658,6 +2009,7 @@ export async function listProofs(
     return {
 
         items:
+
             receipts.map(
 
                 receipt => ({
@@ -1721,12 +2073,42 @@ export async function listProofs(
         }
 
     };
+
 }
 
 
 /*
 ============================================================
-EXPORT
+LIST MERCHANT PROOFS
+============================================================
+
+Interface utilizada pelo proof-routes.js.
+
+============================================================
+*/
+
+export async function listMerchantProofs(
+
+    merchantId,
+
+    options = {}
+
+) {
+
+    return listProofs(
+
+        merchantId,
+
+        options
+
+    );
+
+}
+
+
+/*
+============================================================
+DEFAULT EXPORT
 ============================================================
 */
 
@@ -1742,10 +2124,18 @@ export default {
 
     createProofRecord,
 
+    submitPaymentProof,
+
     verifyProof,
+
+    reviewPaymentProof,
 
     getProof,
 
-    listProofs
+    getMerchantProof,
+
+    listProofs,
+
+    listMerchantProofs
 
 };
