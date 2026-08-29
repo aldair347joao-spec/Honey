@@ -1,147 +1,105 @@
 /*
 ============================================================
 HONEY PAY
-PAYMENT PROOF SERVICE
-V1.0.0
+PROOF SERVICE
+V1.1.0
 ============================================================
 
-GESTÃO REAL DE COMPROVATIVOS DE PAGAMENTO
+SERVIÇO DE COMPROVATIVOS
 
 ------------------------------------------------------------
 RESPONSABILIDADES
 ------------------------------------------------------------
 
-- Receber comprovativos enviados pelo cliente
-- Validar ficheiros
-- Limitar tamanho
-- Validar MIME type
-- Validar extensão
-- Guardar ficheiros no MongoDB GridFS
-- Associar comprovativo à fatura
-- Impedir múltiplos comprovativos ativos
-- Criar fingerprint SHA-256
-- Detectar reutilização do mesmo ficheiro
-- Registar IP e User-Agent
-- Atualizar estado da fatura
-- Permitir revisão futura
-- Permitir rejeição
-- Permitir consulta segura pelo comerciante
-- Preparar o Escudo Antifraude
+- Validar comprovativos
+- Calcular SHA-256
+- Verificar duplicação
+- Associar comprovativo ao pagamento
+- Consultar comprovativos
+- Validar propriedade do comerciante
+- Atualizar estado de verificação
+- Manter integridade do fluxo Payment → Invoice
+- Impedir acesso entre comerciantes
 
 ------------------------------------------------------------
-ARMAZENAMENTO
+FLUXO
 ------------------------------------------------------------
 
-MongoDB Atlas
-GridFS
-
-Não utiliza filesystem local do Render.
-
-------------------------------------------------------------
-FORMATOS ACEITES
-------------------------------------------------------------
-
-JPEG
-PNG
-WEBP
-PDF
-
-------------------------------------------------------------
-LIMITE
-------------------------------------------------------------
-
-10 MB por comprovativo
+Receipt
+   ↓
+SHA-256
+   ↓
+Duplicate Check
+   ↓
+Payment
+   ↓
+Invoice
+   ↓
+Verification
 
 ============================================================
 */
 
 import crypto from "node:crypto";
-import {
-    ObjectId,
-    GridFSBucket
-} from "mongodb";
 
 
 import {
-    getDatabase
-} from "./database.js";
+    Invoice,
+    Payment,
+    Receipt
+} from "./models.js";
 
 
 import {
-    markProofSubmitted,
-    markInvoiceUnderReview,
-    getPublicInvoice
-} from "./invoice.js";
+    validateObjectId
+} from "./validators.js";
+
+
+import {
+    logSecurityEvent
+} from "./logger.js";
 
 
 /*
 ============================================================
-CONFIGURAÇÃO
+CONSTANTS
 ============================================================
 */
 
-const PROOF_COLLECTION =
-    "paymentProofs";
+const MAX_PROOF_SIZE =
+    10 * 1024 * 1024;
 
 
-const BUCKET_NAME =
-    "paymentProofFiles";
-
-
-const MAX_FILE_SIZE =
-    10 *
-    1024 *
-    1024;
-
-
-const MIN_FILE_SIZE =
-    100;
-
-
-const MAX_PROOFS_PER_INVOICE =
-    5;
-
-
-const ALLOWED_MIME_TYPES =
-    Object.freeze({
-
-        "image/jpeg":
-            "jpg",
-
-        "image/png":
-            "png",
-
-        "image/webp":
-            "webp",
-
-        "application/pdf":
-            "pdf"
-    });
-
-
-const ALLOWED_EXTENSIONS =
+const ALLOWED_PROOF_TYPES =
     new Set([
 
-        "jpg",
-        "jpeg",
-        "png",
-        "webp",
-        "pdf"
+        "image/jpeg",
+
+        "image/png",
+
+        "image/webp",
+
+        "application/pdf"
 
     ]);
 
 
 /*
 ============================================================
-ERROR
+ERROR FACTORY
 ============================================================
 */
 
 function createError(
+
     message,
+
     code,
+
     statusCode = 400,
+
     details = null
+
 ) {
 
     const error =
@@ -159,8 +117,7 @@ function createError(
 
 
     if (
-        details !==
-        null
+        details !== null
     ) {
 
         error.details =
@@ -174,158 +131,44 @@ function createError(
 
 /*
 ============================================================
-ID NORMALIZATION
+OBJECT ID
 ============================================================
 */
 
-function normalizeObjectId(
+function assertObjectId(
+
     value,
-    code = "INVALID_ID",
-    message = "Identificador inválido."
+
+    field,
+
+    code
+
 ) {
 
+    const validation =
+        validateObjectId(
+
+            value,
+
+            field
+
+        );
+
+
     if (
-        value instanceof ObjectId
-    ) {
-
-        return value;
-    }
-
-
-    if (
-        typeof value !==
-        "string"
+        validation
     ) {
 
         throw createError(
-            message,
-            code
+
+            validation.message,
+
+            code,
+
+            400
+
         );
     }
-
-
-    const normalized =
-        value.trim();
-
-
-    if (
-        !ObjectId.isValid(
-            normalized
-        )
-    ) {
-
-        throw createError(
-            message,
-            code
-        );
-    }
-
-
-    return new ObjectId(
-        normalized
-    );
-}
-
-
-/*
-============================================================
-TEXT NORMALIZATION
-============================================================
-*/
-
-function cleanString(
-    value,
-    maxLength = 500
-) {
-
-    if (
-        value ===
-        null ||
-        value ===
-        undefined
-    ) {
-
-        return "";
-    }
-
-
-    return String(
-        value
-    )
-        .normalize(
-            "NFKC"
-        )
-        .replace(
-            /[\u0000-\u001F\u007F]/g,
-            ""
-        )
-        .trim()
-        .slice(
-            0,
-            maxLength
-        );
-}
-
-
-/*
-============================================================
-EXTENSION
-============================================================
-*/
-
-function getExtension(
-    filename
-) {
-
-    const cleanName =
-        cleanString(
-            filename,
-            255
-        )
-            .toLowerCase();
-
-
-    const lastDot =
-        cleanName.lastIndexOf(
-            "."
-        );
-
-
-    if (
-        lastDot ===
-        -1
-    ) {
-
-        return "";
-    }
-
-
-    return cleanName
-        .slice(
-            lastDot + 1
-        )
-        .replace(
-            /[^a-z0-9]/g,
-            ""
-        );
-}
-
-
-/*
-============================================================
-MIME NORMALIZATION
-============================================================
-*/
-
-function normalizeMime(
-    mimeType
-) {
-
-    return cleanString(
-        mimeType,
-        100
-    )
-        .toLowerCase();
 }
 
 
@@ -335,17 +178,40 @@ SHA-256
 ============================================================
 */
 
-function calculateHash(
+export function calculateProofSha256(
+
     buffer
+
 ) {
 
+    if (
+        !Buffer.isBuffer(
+            buffer
+        )
+    ) {
+
+        throw createError(
+
+            "O conteúdo do comprovativo deve ser um Buffer.",
+
+            "INVALID_PROOF_BUFFER",
+
+            400
+
+        );
+    }
+
+
     return crypto
+
         .createHash(
             "sha256"
         )
+
         .update(
             buffer
         )
+
         .digest(
             "hex"
         );
@@ -354,149 +220,14 @@ function calculateHash(
 
 /*
 ============================================================
-RANDOM STORAGE NAME
+VALIDATE PROOF
 ============================================================
 */
 
-function generateStorageName(
-    extension
-) {
+export function validateProofFile(
 
-    const random =
-        crypto
-            .randomBytes(
-                24
-            )
-            .toString(
-                "hex"
-            );
-
-
-    return `${random}.${extension}`;
-}
-
-
-/*
-============================================================
-BASIC FILE SIGNATURE VALIDATION
-============================================================
-
-Não confiamos apenas no MIME enviado pelo navegador.
-
-O conteúdo inicial do ficheiro também é verificado.
-
-============================================================
-*/
-
-function detectFileSignature(
-    buffer
-) {
-
-    if (
-        !Buffer.isBuffer(
-            buffer
-        ) ||
-        buffer.length <
-        4
-    ) {
-
-        return "unknown";
-    }
-
-
-    /*
-    JPEG
-    FF D8 FF
-    */
-
-    if (
-        buffer[0] === 0xFF &&
-        buffer[1] === 0xD8 &&
-        buffer[2] === 0xFF
-    ) {
-
-        return "image/jpeg";
-    }
-
-
-    /*
-    PNG
-    89 50 4E 47 0D 0A 1A 0A
-    */
-
-    if (
-        buffer.length >=
-        8 &&
-        buffer[0] === 0x89 &&
-        buffer[1] === 0x50 &&
-        buffer[2] === 0x4E &&
-        buffer[3] === 0x47 &&
-        buffer[4] === 0x0D &&
-        buffer[5] === 0x0A &&
-        buffer[6] === 0x1A &&
-        buffer[7] === 0x0A
-    ) {
-
-        return "image/png";
-    }
-
-
-    /*
-    WEBP
-    RIFF....WEBP
-    */
-
-    if (
-        buffer.length >=
-        12 &&
-        buffer.toString(
-            "ascii",
-            0,
-            4
-        ) ===
-        "RIFF" &&
-        buffer.toString(
-            "ascii",
-            8,
-            12
-        ) ===
-        "WEBP"
-    ) {
-
-        return "image/webp";
-    }
-
-
-    /*
-    PDF
-    %PDF
-    */
-
-    if (
-        buffer.toString(
-            "ascii",
-            0,
-            4
-        ) ===
-        "%PDF"
-    ) {
-
-        return "application/pdf";
-    }
-
-
-    return "unknown";
-}
-
-
-/*
-============================================================
-FILE VALIDATION
-============================================================
-*/
-
-function validateFile(
     file
+
 ) {
 
     if (
@@ -504,8 +235,13 @@ function validateFile(
     ) {
 
         throw createError(
-            "Nenhum comprovativo foi enviado.",
-            "PROOF_FILE_REQUIRED"
+
+            "É necessário enviar um comprovativo.",
+
+            "PROOF_REQUIRED",
+
+            400
+
         );
     }
 
@@ -517,576 +253,449 @@ function validateFile(
     ) {
 
         throw createError(
-            "O ficheiro enviado é inválido.",
-            "INVALID_PROOF_FILE"
+
+            "O comprovativo enviado é inválido.",
+
+            "INVALID_PROOF_FILE",
+
+            400
+
         );
     }
 
 
     const size =
-        file.buffer.length;
+        Number(
+
+            file.size ??
+            file.buffer.length
+
+        );
 
 
     if (
-        size <
-        MIN_FILE_SIZE
+        !Number.isFinite(
+            size
+        ) ||
+        size <=
+        0
     ) {
 
         throw createError(
-            "O comprovativo enviado está vazio ou é demasiado pequeno.",
-            "PROOF_FILE_TOO_SMALL"
+
+            "O comprovativo está vazio.",
+
+            "INVALID_PROOF_SIZE",
+
+            400
+
         );
     }
 
 
     if (
         size >
-        MAX_FILE_SIZE
+        MAX_PROOF_SIZE
     ) {
 
         throw createError(
+
             "O comprovativo não pode ultrapassar 10 MB.",
-            "PROOF_FILE_TOO_LARGE",
+
+            "PROOF_TOO_LARGE",
+
             413
+
         );
     }
 
 
-    const mimeType =
-        normalizeMime(
+    if (
+        !ALLOWED_PROOF_TYPES.has(
             file.mimetype
-        );
-
-
-    const extension =
-        getExtension(
-            file.originalname
-        );
-
-
-    if (
-        !ALLOWED_MIME_TYPES[
-            mimeType
-        ]
-    ) {
-
-        throw createError(
-            "Formato de comprovativo não suportado. Envie JPG, PNG, WEBP ou PDF.",
-            "PROOF_FILE_TYPE_NOT_ALLOWED",
-            415
-        );
-    }
-
-
-    if (
-        !ALLOWED_EXTENSIONS.has(
-            extension
         )
     ) {
 
         throw createError(
-            "A extensão do comprovativo não é permitida.",
-            "PROOF_FILE_EXTENSION_NOT_ALLOWED",
+
+            "Formato de comprovativo não suportado.",
+
+            "INVALID_PROOF_TYPE",
+
             415
+
         );
-    }
-
-
-    const detectedType =
-        detectFileSignature(
-            file.buffer
-        );
-
-
-    /*
-    --------------------------------------------------------
-    JPEG/JPG
-    --------------------------------------------------------
-    */
-
-    if (
-        mimeType ===
-        "image/jpeg"
-    ) {
-
-        if (
-            detectedType !==
-            "image/jpeg"
-        ) {
-
-            throw createError(
-                "O conteúdo do ficheiro não corresponde a uma imagem JPEG válida.",
-                "PROOF_FILE_SIGNATURE_MISMATCH",
-                415
-            );
-        }
-    }
-
-
-    /*
-    --------------------------------------------------------
-    PNG
-    --------------------------------------------------------
-    */
-
-    if (
-        mimeType ===
-        "image/png"
-    ) {
-
-        if (
-            detectedType !==
-            "image/png"
-        ) {
-
-            throw createError(
-                "O conteúdo do ficheiro não corresponde a uma imagem PNG válida.",
-                "PROOF_FILE_SIGNATURE_MISMATCH",
-                415
-            );
-        }
-    }
-
-
-    /*
-    --------------------------------------------------------
-    WEBP
-    --------------------------------------------------------
-    */
-
-    if (
-        mimeType ===
-        "image/webp"
-    ) {
-
-        if (
-            detectedType !==
-            "image/webp"
-        ) {
-
-            throw createError(
-                "O conteúdo do ficheiro não corresponde a uma imagem WEBP válida.",
-                "PROOF_FILE_SIGNATURE_MISMATCH",
-                415
-            );
-        }
-    }
-
-
-    /*
-    --------------------------------------------------------
-    PDF
-    --------------------------------------------------------
-    */
-
-    if (
-        mimeType ===
-        "application/pdf"
-    ) {
-
-        if (
-            detectedType !==
-            "application/pdf"
-        ) {
-
-            throw createError(
-                "O conteúdo do ficheiro não corresponde a um PDF válido.",
-                "PROOF_FILE_SIGNATURE_MISMATCH",
-                415
-            );
-        }
     }
 
 
     return {
 
-        mimeType,
-
-        extension,
-
         size,
 
-        detectedType
+        sha256:
+            calculateProofSha256(
+                file.buffer
+            )
+
     };
 }
 
 
 /*
 ============================================================
-GRIDFS
+FIND DUPLICATE
 ============================================================
 */
 
-function getGridFSBucket(
-    db
+export async function findDuplicateProof(
+
+    merchantId,
+
+    sha256
+
 ) {
 
-    return new GridFSBucket(
-        db,
-        {
+    assertObjectId(
 
-            bucketName:
-                BUCKET_NAME
-        }
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+
     );
-}
-
-
-/*
-============================================================
-UPLOAD BUFFER TO GRIDFS
-============================================================
-*/
-
-function uploadBufferToGridFS(
-    bucket,
-    buffer,
-    filename,
-    metadata
-) {
-
-    return new Promise(
-        (
-            resolve,
-            reject
-        ) => {
-
-            const uploadStream =
-                bucket.openUploadStream(
-                    filename,
-                    {
-
-                        metadata,
-
-                        contentType:
-                            metadata.contentType
-                    }
-                );
-
-
-            uploadStream.on(
-                "error",
-                reject
-            );
-
-
-            uploadStream.on(
-                "finish",
-                () => {
-
-                    resolve(
-                        uploadStream.id
-                    );
-                }
-            );
-
-
-            uploadStream.end(
-                buffer
-            );
-        }
-    );
-}
-
-
-/*
-============================================================
-DELETE GRIDFS FILE
-============================================================
-*/
-
-async function deleteGridFSFile(
-    bucket,
-    fileId
-) {
-
-    if (
-        !fileId
-    ) {
-
-        return;
-    }
-
-
-    try {
-
-        await bucket.delete(
-            fileId
-        );
-
-    }
-
-    catch (
-        error
-    ) {
-
-        /*
-        ----------------------------------------------------
-        Se o ficheiro já não existir, não interrompemos a
-        operação principal.
-        ----------------------------------------------------
-        */
-
-        if (
-            error?.codeName ===
-            "FileNotFound"
-        ) {
-
-            return;
-        }
-
-
-        throw error;
-    }
-}
-
-
-/*
-============================================================
-FIND INVOICE BY PUBLIC TOKEN
-============================================================
-*/
-
-async function getInvoiceForProof(
-    publicToken
-) {
-
-    const invoice =
-        await getPublicInvoice(
-            publicToken
-        );
-
-
-    return invoice;
-}
-
-
-/*
-============================================================
-CHECK EXISTING ACTIVE PROOF
-============================================================
-*/
-
-async function findActiveProof(
-    db,
-    invoiceId
-) {
-
-    return db
-        .collection(
-            PROOF_COLLECTION
-        )
-        .findOne(
-
-            {
-
-                invoiceId,
-
-                active:
-                    true
-            },
-
-            {
-
-                sort:
-                    {
-                        createdAt:
-                            -1
-                    }
-            }
-        );
-}
-
-
-/*
-============================================================
-COUNT PROOFS
-============================================================
-*/
-
-async function countInvoiceProofs(
-    db,
-    invoiceId
-) {
-
-    return db
-        .collection(
-            PROOF_COLLECTION
-        )
-        .countDocuments(
-            {
-                invoiceId
-            }
-        );
-}
-
-
-/*
-============================================================
-DUPLICATE FINGERPRINT
-============================================================
-
-O mesmo ficheiro não deve ser reutilizado em várias
-faturas.
-
-Isto é uma primeira camada do Escudo Antifraude.
-
-============================================================
-*/
-
-async function findFingerprintReuse(
-    db,
-    fingerprint,
-    merchantId
-) {
-
-    return db
-        .collection(
-            PROOF_COLLECTION
-        )
-        .findOne(
-
-            {
-
-                fingerprint,
-
-                merchantId,
-
-                active:
-                    true
-            },
-
-            {
-
-                projection:
-                    {
-
-                        _id:
-                            1,
-
-                        invoiceId:
-                            1,
-
-                        createdAt:
-                            1
-                    }
-            }
-        );
-}
-
-
-/*
-============================================================
-CREATE PROOF
-============================================================
-
-Entrada esperada:
-
-{
-    publicToken,
-    file: {
-        buffer,
-        originalname,
-        mimetype
-    },
-    ip,
-    userAgent
-}
-
-============================================================
-*/
-
-export async function createPaymentProof(
-    data = {}
-) {
-
-    const publicToken =
-        cleanString(
-            data.publicToken,
-            200
-        );
 
 
     if (
-        !publicToken
+        typeof sha256 !==
+        "string" ||
+        !/^[a-f0-9]{64}$/i.test(
+            sha256
+        )
     ) {
 
         throw createError(
-            "Link de pagamento inválido.",
-            "INVALID_PAYMENT_LINK"
+
+            "SHA-256 do comprovativo inválido.",
+
+            "INVALID_PROOF_HASH",
+
+            400
+
         );
     }
 
 
-    const file =
-        data.file;
+    const normalizedHash =
+        sha256.toLowerCase();
 
 
-    const validation =
-        validateFile(
+    const duplicate =
+        await Payment
+
+            .findOne({
+
+                merchantId,
+
+                "receipt.sha256":
+                    normalizedHash
+
+            })
+
+            .select(
+
+                "_id invoiceId status receipt.sha256 createdAt"
+
+            )
+
+            .lean();
+
+
+    return duplicate;
+}
+
+
+/*
+============================================================
+GET PROOF BY PAYMENT
+============================================================
+*/
+
+export async function getProofByPayment(
+
+    merchantId,
+
+    paymentId
+
+) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+
+    );
+
+
+    assertObjectId(
+
+        paymentId,
+
+        "paymentId",
+
+        "INVALID_PAYMENT_ID"
+
+    );
+
+
+    const payment =
+        await Payment
+
+            .findOne({
+
+                _id:
+                    paymentId,
+
+                merchantId
+
+            })
+
+            .select(
+
+                "_id merchantId invoiceId bankAccountId status amount currency payer receipt verification submittedAt confirmedAt confirmedBy rejectedAt rejectionReason createdAt updatedAt"
+
+            )
+
+            .lean();
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado.",
+
+            "PAYMENT_NOT_FOUND",
+
+            404
+
+        );
+    }
+
+
+    if (
+        !payment.receipt
+    ) {
+
+        throw createError(
+
+            "Este pagamento não possui comprovativo.",
+
+            "PROOF_NOT_FOUND",
+
+            404
+
+        );
+    }
+
+
+    return {
+
+        paymentId:
+            payment._id,
+
+        invoiceId:
+            payment.invoiceId,
+
+        merchantId:
+            payment.merchantId,
+
+        status:
+            payment.status,
+
+        amount:
+            payment.amount,
+
+        currency:
+            payment.currency,
+
+        receipt: {
+
+            originalName:
+                payment
+                    .receipt
+                    .originalName,
+
+            mimeType:
+                payment
+                    .receipt
+                    .mimeType,
+
+            size:
+                payment
+                    .receipt
+                    .size,
+
+            sha256:
+                payment
+                    .receipt
+                    .sha256,
+
+            storagePath:
+                payment
+                    .receipt
+                    .storagePath,
+
+            uploadedAt:
+                payment
+                    .receipt
+                    .uploadedAt
+
+        },
+
+        verification:
+            payment.verification,
+
+        submittedAt:
+            payment.submittedAt,
+
+        confirmedAt:
+            payment.confirmedAt,
+
+        confirmedBy:
+            payment.confirmedBy,
+
+        rejectedAt:
+            payment.rejectedAt,
+
+        rejectionReason:
+            payment.rejectionReason
+
+    };
+}
+
+
+/*
+============================================================
+CREATE RECEIPT RECORD
+============================================================
+
+Este método cria um registo separado em Receipt quando o
+fluxo de armazenamento precisar de uma entidade própria.
+
+O Payment continua sendo a fonte do estado financeiro.
+
+============================================================
+*/
+
+export async function createProofRecord(
+
+    merchantId,
+
+    invoiceId,
+
+    paymentId,
+
+    file,
+
+    metadata = {}
+
+) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+
+    );
+
+
+    assertObjectId(
+
+        invoiceId,
+
+        "invoiceId",
+
+        "INVALID_INVOICE_ID"
+
+    );
+
+
+    assertObjectId(
+
+        paymentId,
+
+        "paymentId",
+
+        "INVALID_PAYMENT_ID"
+
+    );
+
+
+    const validated =
+        validateProofFile(
             file
         );
 
 
     /*
     --------------------------------------------------------
-    Obter fatura através do token público.
+    PAYMENT
     --------------------------------------------------------
     */
 
-    const publicInvoice =
-        await getInvoiceForProof(
-            publicToken
+    const payment =
+        await Payment.findOne({
+
+            _id:
+                paymentId,
+
+            merchantId,
+
+            invoiceId
+
+        });
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado para este comprovativo.",
+
+            "PAYMENT_NOT_FOUND",
+
+            404
+
         );
-
-
-    const invoiceId =
-        normalizeObjectId(
-
-            publicInvoice.id,
-
-            "INVALID_INVOICE_ID",
-
-            "Fatura inválida."
-        );
-
-
-    const merchantId =
-        normalizeObjectId(
-
-            publicInvoice.merchantId ||
-            null,
-
-            "INVALID_MERCHANT_ID",
-
-            "Comerciante inválido."
-        );
+    }
 
 
     /*
     --------------------------------------------------------
-    O checkout público não devolve merchantId.
-
-    Para manter a função segura, fazemos uma segunda consulta
-    diretamente no banco através do invoiceId.
+    INVOICE
     --------------------------------------------------------
     */
 
-    const db =
-        await getDatabase();
-
-
     const invoice =
-        await db
-            .collection(
-                "invoices"
-            )
-            .findOne(
-                {
-                    _id:
-                        invoiceId
-                }
-            );
+        await Invoice.findOne({
+
+            _id:
+                invoiceId,
+
+            merchantId
+
+        });
 
 
     if (
@@ -1094,617 +703,708 @@ export async function createPaymentProof(
     ) {
 
         throw createError(
-            "Fatura não encontrada.",
+
+            "Fatura não encontrada para este comprovativo.",
+
             "INVOICE_NOT_FOUND",
+
             404
-        );
-    }
 
-
-    const actualMerchantId =
-        invoice.merchantId;
-
-
-    /*
-    --------------------------------------------------------
-    Estados que aceitam comprovativo.
-    --------------------------------------------------------
-    */
-
-    const acceptedStatuses =
-        new Set([
-
-            "PENDING",
-            "REJECTED"
-
-        ]);
-
-
-    if (
-        !acceptedStatuses.has(
-            invoice.status
-        )
-    ) {
-
-        if (
-            invoice.status ===
-            "PAID"
-        ) {
-
-            throw createError(
-                "Esta fatura já foi paga.",
-                "INVOICE_ALREADY_PAID",
-                409
-            );
-        }
-
-
-        if (
-            invoice.status ===
-            "CANCELLED"
-        ) {
-
-            throw createError(
-                "Esta fatura foi cancelada.",
-                "INVOICE_CANCELLED",
-                409
-            );
-        }
-
-
-        if (
-            invoice.status ===
-            "EXPIRED"
-        ) {
-
-            throw createError(
-                "Esta fatura expirou.",
-                "INVOICE_EXPIRED",
-                409
-            );
-        }
-
-
-        throw createError(
-            "Esta fatura não está disponível para receber um comprovativo.",
-            "INVOICE_PROOF_NOT_ALLOWED",
-            409
         );
     }
 
 
     /*
     --------------------------------------------------------
-    Verificar expiração.
+    DUPLICATE
     --------------------------------------------------------
     */
 
-    if (
-        invoice.expirationAt &&
-        new Date(
-            invoice.expirationAt
-        ).getTime() <=
-        Date.now()
-    ) {
+    const duplicate =
+        await findDuplicateProof(
 
-        await db
-            .collection(
-                "invoices"
-            )
-            .updateOne(
+            merchantId,
 
-                {
+            validated.sha256
 
-                    _id:
-                        invoice._id,
-
-                    status:
-                        {
-                            $in:
-                                [
-                                    "PENDING",
-                                    "REJECTED"
-                                ]
-                        }
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            status:
-                                "EXPIRED",
-
-                            updatedAt:
-                                new Date()
-                        }
-                }
-            );
-
-
-        throw createError(
-            "Esta fatura expirou.",
-            "INVOICE_EXPIRED",
-            409
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Limite de comprovativos.
-    --------------------------------------------------------
-    */
-
-    const proofCount =
-        await countInvoiceProofs(
-
-            db,
-
-            invoice._id
         );
 
 
     if (
-        proofCount >=
-        MAX_PROOFS_PER_INVOICE
+        duplicate &&
+        duplicate._id.toString() !==
+        payment._id.toString()
     ) {
 
-        throw createError(
-            "Esta fatura atingiu o limite de comprovativos enviados.",
-            "PROOF_LIMIT_REACHED",
-            409
-        );
-    }
+        logSecurityEvent(
 
-
-    /*
-    --------------------------------------------------------
-    Não permitir dois comprovativos ativos simultaneamente.
-    --------------------------------------------------------
-    */
-
-    const activeProof =
-        await findActiveProof(
-
-            db,
-
-            invoice._id
-        );
-
-
-    if (
-        activeProof
-    ) {
-
-        throw createError(
-            "Já existe um comprovativo em análise para esta fatura.",
-            "ACTIVE_PROOF_EXISTS",
-            409
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Fingerprint.
-    --------------------------------------------------------
-    */
-
-    const fingerprint =
-        calculateHash(
-            file.buffer
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Verificar reutilização do ficheiro.
-    --------------------------------------------------------
-    */
-
-    const reusedProof =
-        await findFingerprintReuse(
-
-            db,
-
-            fingerprint,
-
-            actualMerchantId
-        );
-
-
-    if (
-        reusedProof
-    ) {
-
-        throw createError(
-
-            "Este comprovativo já foi utilizado noutra fatura e não pode ser reutilizado.",
-
-            "PROOF_REUSE_DETECTED",
-
-            409,
+            "duplicate_proof_detected",
 
             {
 
-                protection:
-                    "ANTI_FRAUD_REUSE_BLOCK",
+                merchantId:
+                    merchantId.toString(),
 
-                relatedInvoiceId:
-                    String(
-                        reusedProof.invoiceId
-                    )
+                invoiceId:
+                    invoiceId.toString(),
+
+                paymentId:
+                    paymentId.toString(),
+
+                duplicatePaymentId:
+                    duplicate._id.toString()
+
             }
+
+        );
+
+
+        throw createError(
+
+            "Este comprovativo já foi utilizado.",
+
+            "DUPLICATE_PROOF",
+
+            409
+
         );
     }
 
 
     /*
     --------------------------------------------------------
-    Nome seguro para armazenamento.
+    CREATE RECEIPT
     --------------------------------------------------------
     */
 
-    const storageExtension =
-        ALLOWED_MIME_TYPES[
-            validation.mimeType
-        ];
-
-
-    const storageName =
-        generateStorageName(
-            storageExtension
-        );
-
-
-    const bucket =
-        getGridFSBucket(
-            db
-        );
-
-
-    const now =
-        new Date();
-
-
-    let gridFsId =
-        null;
+    let receipt;
 
 
     try {
 
-        /*
-        ----------------------------------------------------
-        Guardar ficheiro no GridFS.
-        ----------------------------------------------------
-        */
+        receipt =
+            await Receipt.create({
 
-        gridFsId =
-            await uploadBufferToGridFS(
+                merchantId,
 
-                bucket,
+                invoiceId,
 
-                file.buffer,
+                paymentId,
 
-                storageName,
+                fileId:
+                    metadata.fileId ||
+                    null,
 
-                {
+                fileName:
+                    String(
 
-                    contentType:
-                        validation.mimeType,
+                        file.originalname ||
+                        "receipt"
 
-                    originalName:
-                        cleanString(
-                            file.originalname,
+                    )
+                        .trim()
+                        .slice(
+                            0,
                             255
                         ),
 
-                    merchantId:
-                        actualMerchantId,
+                mimeType:
+                    file.mimetype,
 
-                    invoiceId:
-                        invoice._id,
+                sha256:
+                    validated.sha256,
 
-                    fingerprint
-                }
-            );
+                size:
+                    validated.size,
 
-
-        /*
-        ----------------------------------------------------
-        Criar documento de controlo.
-        ----------------------------------------------------
-        */
-
-        const proofDocument = {
-
-            invoiceId:
-                invoice._id,
-
-            merchantId:
-                actualMerchantId,
-
-            fileId:
-                gridFsId,
-
-            storageName,
-
-            originalName:
-                cleanString(
-                    file.originalname,
-                    255
-                ),
-
-            mimeType:
-                validation.mimeType,
-
-            extension:
-                validation.extension,
-
-            size:
-                validation.size,
-
-            fingerprint,
-
-            status:
-                "SUBMITTED",
-
-            active:
-                true,
-
-            submittedAt:
-                now,
-
-            createdAt:
-                now,
-
-            updatedAt:
-                now,
-
-            submittedIp:
-                cleanString(
-                    data.ip,
-                    100
-                ) ||
-                null,
-
-            submittedUserAgent:
-                cleanString(
-                    data.userAgent,
-                    500
-                ) ||
-                null,
-
-            review: {
+                storagePath:
+                    metadata.storagePath ||
+                    null,
 
                 status:
-                    "PENDING",
+                    "pending",
 
-                reviewedAt:
-                    null,
+                metadata
 
-                reviewedBy:
-                    null,
+            });
 
-                reason:
-                    null
-            }
-        };
-
-
-        const insertResult =
-            await db
-                .collection(
-                    PROOF_COLLECTION
-                )
-                .insertOne(
-                    proofDocument
-                );
-
-
-        proofDocument._id =
-            insertResult.insertedId;
-
-
-        /*
-        ----------------------------------------------------
-        Atualizar estado da fatura.
-        ----------------------------------------------------
-        */
-
-        try {
-
-            await markProofSubmitted(
-                invoice._id
-            );
-
-        }
-
-        catch (
-            invoiceError
-        ) {
-
-            /*
-            ------------------------------------------------
-            Rollback.
-
-            Se a fatura não puder receber o comprovativo,
-            eliminamos o ficheiro e o documento criado.
-            ------------------------------------------------
-            */
-
-            await db
-                .collection(
-                    PROOF_COLLECTION
-                )
-                .deleteOne(
-                    {
-                        _id:
-                            proofDocument._id
-                    }
-                );
-
-
-            await deleteGridFSFile(
-
-                bucket,
-
-                gridFsId
-            );
-
-
-            throw invoiceError;
-        }
-
-
-        return {
-
-            id:
-                String(
-                    proofDocument._id
-                ),
-
-            invoiceId:
-                String(
-                    proofDocument.invoiceId
-                ),
-
-            status:
-                proofDocument.status,
-
-            filename:
-                proofDocument.originalName,
-
-            mimeType:
-                proofDocument.mimeType,
-
-            size:
-                proofDocument.size,
-
-            submittedAt:
-                proofDocument.submittedAt,
-
-            security: {
-
-                fingerprint:
-                    fingerprint,
-
-                reuseCheck:
-                    "PASSED",
-
-                storage:
-                    "MONGODB_GRIDFS"
-            }
-        };
     }
 
     catch (
         error
     ) {
 
-        /*
-        ----------------------------------------------------
-        Se o ficheiro foi criado mas a operação posterior
-        falhou, fazemos limpeza.
-        ----------------------------------------------------
-        */
-
         if (
-            gridFsId
+            error?.code ===
+            11000
         ) {
 
-            try {
+            throw createError(
 
-                await deleteGridFSFile(
+                "Este comprovativo já foi registado.",
 
-                    bucket,
+                "DUPLICATE_PROOF",
 
-                    gridFsId
-                );
+                409
 
-            }
-
-            catch (
-                cleanupError
-            ) {
-
-                console.error(
-                    "[HONEY PAY] Proof cleanup failed:",
-                    cleanupError
-                );
-            }
+            );
         }
 
 
         throw error;
     }
+
+
+    /*
+    --------------------------------------------------------
+    LINK PAYMENT
+    --------------------------------------------------------
+    */
+
+    payment.receipt =
+        {
+
+            ...(
+                payment.receipt ||
+                {}
+            ),
+
+            originalName:
+                receipt.fileName,
+
+            mimeType:
+                receipt.mimeType,
+
+            size:
+                receipt.size,
+
+            sha256:
+                receipt.sha256,
+
+            storagePath:
+                receipt.storagePath,
+
+            uploadedAt:
+                receipt.createdAt
+
+        };
+
+
+    await payment.save();
+
+
+    /*
+    --------------------------------------------------------
+    LINK INVOICE
+    --------------------------------------------------------
+    */
+
+    invoice.receipt =
+        {
+
+            ...(
+                invoice.receipt ||
+                {}
+            ),
+
+            status:
+                "submitted",
+
+            fileId:
+                receipt.fileId,
+
+            originalName:
+                receipt.fileName,
+
+            mimeType:
+                receipt.mimeType,
+
+            size:
+                receipt.size,
+
+            sha256:
+                receipt.sha256,
+
+            submittedAt:
+                receipt.createdAt
+
+        };
+
+
+    await invoice.save();
+
+
+    return {
+
+        receipt: {
+
+            id:
+                receipt._id,
+
+            paymentId:
+                receipt.paymentId,
+
+            invoiceId:
+                receipt.invoiceId,
+
+            status:
+                receipt.status,
+
+            fileName:
+                receipt.fileName,
+
+            mimeType:
+                receipt.mimeType,
+
+            size:
+                receipt.size,
+
+            sha256:
+                receipt.sha256,
+
+            createdAt:
+                receipt.createdAt
+
+        }
+
+    };
 }
 
 
 /*
 ============================================================
-GET PROOF FOR MERCHANT
+VERIFY PROOF
 ============================================================
 */
 
-export async function getPaymentProof(
+export async function verifyProof(
+
     merchantId,
-    proofId
+
+    paymentId,
+
+    approved,
+
+    options = {}
+
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
+    assertObjectId(
 
-            merchantId,
+        merchantId,
 
-            "INVALID_MERCHANT_ID",
+        "merchantId",
 
-            "Identificador do comerciante inválido."
-        );
+        "INVALID_MERCHANT_ID"
 
-
-    const normalizedProofId =
-        normalizeObjectId(
-
-            proofId,
-
-            "INVALID_PROOF_ID",
-
-            "Identificador do comprovativo inválido."
-        );
+    );
 
 
-    const db =
-        await getDatabase();
+    assertObjectId(
 
+        paymentId,
 
-    const proof =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOne(
-                {
+        "paymentId",
 
-                    _id:
-                        normalizedProofId,
+        "INVALID_PAYMENT_ID"
 
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
+    );
 
 
     if (
-        !proof
+        typeof approved !==
+        "boolean"
     ) {
 
         throw createError(
-            "Comprovativo não encontrado.",
-            "PROOF_NOT_FOUND",
+
+            "O estado de verificação é inválido.",
+
+            "INVALID_VERIFICATION_STATUS",
+
+            400
+
+        );
+    }
+
+
+    const payment =
+        await Payment.findOne({
+
+            _id:
+                paymentId,
+
+            merchantId
+
+        });
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado.",
+
+            "PAYMENT_NOT_FOUND",
+
             404
+
+        );
+    }
+
+
+    if (
+        !payment.receipt ||
+        !payment.receipt.sha256
+    ) {
+
+        throw createError(
+
+            "Este pagamento não possui um comprovativo válido.",
+
+            "PROOF_NOT_FOUND",
+
+            404
+
+        );
+    }
+
+
+    const invoice =
+        await Invoice.findOne({
+
+            _id:
+                payment.invoiceId,
+
+            merchantId
+
+        });
+
+
+    if (
+        !invoice
+    ) {
+
+        throw createError(
+
+            "Fatura associada não encontrada.",
+
+            "INVOICE_NOT_FOUND",
+
+            404
+
+        );
+    }
+
+
+    if (
+        approved
+    ) {
+
+        payment.verification =
+            {
+
+                ...(
+                    payment.verification ||
+                    {}
+                ),
+
+                status:
+                    "confirmed",
+
+                duplicateDetected:
+                    false,
+
+                notes:
+                    Array.isArray(
+
+                        payment
+                            .verification
+                            ?.notes
+
+                    )
+
+                        ? payment
+                            .verification
+                            .notes
+
+                        : []
+
+            };
+
+
+        await payment.save();
+
+
+        invoice.receipt =
+            {
+
+                ...(
+                    invoice.receipt ||
+                    {}
+                ),
+
+                status:
+                    "verified"
+
+            };
+
+
+        invoice.fraudProtection =
+            {
+
+                ...(
+                    invoice.fraudProtection ||
+                    {}
+                ),
+
+                verificationStatus:
+                    "verified",
+
+                duplicateDetected:
+                    false
+
+            };
+
+
+        await invoice.save();
+
+
+        /*
+        ----------------------------------------------------
+        Receipt
+        ----------------------------------------------------
+        */
+
+        await Receipt.updateMany(
+
+            {
+
+                merchantId,
+
+                paymentId:
+                    payment._id
+
+            },
+
+            {
+
+                $set: {
+
+                    status:
+                        "approved"
+
+                }
+
+            }
+
+        );
+
+
+    }
+
+    else {
+
+        payment.verification =
+            {
+
+                ...(
+                    payment.verification ||
+                    {}
+                ),
+
+                status:
+                    "rejected",
+
+                duplicateDetected:
+                    false,
+
+                notes:
+                    Array.isArray(
+
+                        payment
+                            .verification
+                            ?.notes
+
+                    )
+
+                        ? payment
+                            .verification
+                            .notes
+
+                        : []
+
+            };
+
+
+        await payment.save();
+
+
+        invoice.receipt =
+            {
+
+                ...(
+                    invoice.receipt ||
+                    {}
+                ),
+
+                status:
+                    "rejected"
+
+            };
+
+
+        invoice.fraudProtection =
+            {
+
+                ...(
+                    invoice.fraudProtection ||
+                    {}
+                ),
+
+                verificationStatus:
+                    "rejected"
+
+            };
+
+
+        await invoice.save();
+
+
+        await Receipt.updateMany(
+
+            {
+
+                merchantId,
+
+                paymentId:
+                    payment._id
+
+            },
+
+            {
+
+                $set: {
+
+                    status:
+                        "rejected"
+
+                }
+
+            }
+
+        );
+
+    }
+
+
+    logSecurityEvent(
+
+        approved
+            ? "proof_verified"
+            : "proof_rejected",
+
+        {
+
+            merchantId:
+                merchantId.toString(),
+
+            paymentId:
+                payment._id.toString(),
+
+            invoiceId:
+                payment.invoiceId.toString()
+
+        }
+
+    );
+
+
+    return {
+
+        paymentId:
+            payment._id,
+
+        invoiceId:
+            payment.invoiceId,
+
+        verification:
+
+            payment.verification,
+
+        receiptStatus:
+
+            invoice
+                .receipt
+                ?.status ||
+
+            null
+
+    };
+}
+
+
+/*
+============================================================
+GET PROOF BY ID
+============================================================
+*/
+
+export async function getProof(
+
+    merchantId,
+
+    proofId
+
+) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+
+    );
+
+
+    assertObjectId(
+
+        proofId,
+
+        "proofId",
+
+        "INVALID_PROOF_ID"
+
+    );
+
+
+    const receipt =
+        await Receipt.findOne({
+
+            _id:
+                proofId,
+
+            merchantId
+
+        }).lean();
+
+
+    if (
+        !receipt
+    ) {
+
+        throw createError(
+
+            "Comprovativo não encontrado.",
+
+            "PROOF_NOT_FOUND",
+
+            404
+
         );
     }
 
@@ -1712,1278 +1412,314 @@ export async function getPaymentProof(
     return {
 
         id:
-            String(
-                proof._id
-            ),
+            receipt._id,
+
+        merchantId:
+            receipt.merchantId,
 
         invoiceId:
-            String(
-                proof.invoiceId
-            ),
+            receipt.invoiceId,
 
-        status:
-            proof.status,
+        paymentId:
+            receipt.paymentId,
 
-        originalName:
-            proof.originalName,
+        fileName:
+            receipt.fileName,
 
         mimeType:
-            proof.mimeType,
-
-        extension:
-            proof.extension,
+            receipt.mimeType,
 
         size:
-            proof.size,
+            receipt.size,
 
-        submittedAt:
-            proof.submittedAt,
+        sha256:
+            receipt.sha256,
+
+        storagePath:
+            receipt.storagePath,
+
+        status:
+            receipt.status,
 
         createdAt:
-            proof.createdAt,
+            receipt.createdAt,
 
         updatedAt:
-            proof.updatedAt,
+            receipt.updatedAt
 
-        review:
-            proof.review || {
-
-                status:
-                    "PENDING",
-
-                reviewedAt:
-                    null,
-
-                reviewedBy:
-                    null,
-
-                reason:
-                    null
-            },
-
-        fraud: {
-
-            fingerprint:
-                proof.fingerprint,
-
-            active:
-                proof.active
-        }
     };
 }
 
 
 /*
 ============================================================
-LIST PROOFS FOR INVOICE
+LIST PROOFS
 ============================================================
 */
 
-export async function listInvoiceProofs(
+export async function listProofs(
+
     merchantId,
-    invoiceId
+
+    options = {}
+
 ) {
 
-    const normalizedMerchantId =
-        normalizeObjectId(
+    assertObjectId(
 
-            merchantId,
+        merchantId,
 
-            "INVALID_MERCHANT_ID",
+        "merchantId",
 
-            "Identificador do comerciante inválido."
+        "INVALID_MERCHANT_ID"
+
+    );
+
+
+    const page =
+        Math.max(
+
+            1,
+
+            Math.floor(
+
+                Number(
+
+                    options.page ||
+                    1
+
+                )
+
+            )
+
         );
 
 
-    const normalizedInvoiceId =
-        normalizeObjectId(
+    const limit =
+        Math.min(
 
-            invoiceId,
+            100,
 
-            "INVALID_INVOICE_ID",
+            Math.max(
 
-            "Identificador da fatura inválido."
+                1,
+
+                Math.floor(
+
+                    Number(
+
+                        options.limit ||
+                        20
+
+                    )
+
+                )
+
+            )
+
         );
 
 
-    const db =
-        await getDatabase();
+    const filter = {
+
+        merchantId
+
+    };
 
 
-    const documents =
-        await db
-            .collection(
-                PROOF_COLLECTION
+    if (
+        options.status
+    ) {
+
+        const status =
+            String(
+
+                options.status
+
             )
-            .find(
-                {
+                .trim()
+                .toLowerCase();
 
-                    merchantId:
-                        normalizedMerchantId,
 
-                    invoiceId:
-                        normalizedInvoiceId
-                }
+        if (
+            ![
+                "pending",
+                "approved",
+                "rejected"
+            ].includes(
+                status
             )
-            .sort(
-                {
+        ) {
+
+            throw createError(
+
+                "Estado de comprovativo inválido.",
+
+                "INVALID_PROOF_STATUS",
+
+                400
+
+            );
+        }
+
+
+        filter.status =
+            status;
+    }
+
+
+    if (
+        options.paymentId
+    ) {
+
+        assertObjectId(
+
+            options.paymentId,
+
+            "paymentId",
+
+            "INVALID_PAYMENT_ID"
+
+        );
+
+
+        filter.paymentId =
+            options.paymentId;
+    }
+
+
+    if (
+        options.invoiceId
+    ) {
+
+        assertObjectId(
+
+            options.invoiceId,
+
+            "invoiceId",
+
+            "INVALID_INVOICE_ID"
+
+        );
+
+
+        filter.invoiceId =
+            options.invoiceId;
+    }
+
+
+    const skip =
+        (
+            page -
+            1
+        ) *
+        limit;
+
+
+    const [
+
+        receipts,
+
+        total
+
+    ] =
+        await Promise.all([
+
+            Receipt
+
+                .find(
+                    filter
+                )
+
+                .sort({
 
                     createdAt:
                         -1
-                }
+
+                })
+
+                .skip(
+                    skip
+                )
+
+                .limit(
+                    limit
+                )
+
+                .lean(),
+
+            Receipt.countDocuments(
+                filter
             )
-            .toArray();
+
+        ]);
 
 
     return {
 
         items:
-            documents.map(
-                proof => ({
+            receipts.map(
+
+                receipt => ({
 
                     id:
-                        String(
-                            proof._id
-                        ),
+                        receipt._id,
 
                     invoiceId:
-                        String(
-                            proof.invoiceId
-                        ),
+                        receipt.invoiceId,
 
-                    status:
-                        proof.status,
+                    paymentId:
+                        receipt.paymentId,
 
-                    originalName:
-                        proof.originalName,
+                    fileName:
+                        receipt.fileName,
 
                     mimeType:
-                        proof.mimeType,
-
-                    extension:
-                        proof.extension,
+                        receipt.mimeType,
 
                     size:
-                        proof.size,
+                        receipt.size,
 
-                    submittedAt:
-                        proof.submittedAt,
+                    sha256:
+                        receipt.sha256,
+
+                    status:
+                        receipt.status,
 
                     createdAt:
-                        proof.createdAt,
+                        receipt.createdAt,
 
-                    review:
-                        proof.review || {
+                    updatedAt:
+                        receipt.updatedAt
 
-                            status:
-                                "PENDING"
-                        },
-
-                    active:
-                        proof.active
                 })
+
             ),
 
-        total:
-            documents.length
-    };
-}
+        pagination: {
 
+            page,
 
-/*
-============================================================
-DOWNLOAD / STREAM PROOF
-============================================================
+            limit,
 
-Retorna o stream para a rota HTTP.
+            total,
 
-A autorização deve ser feita pelo merchantId.
+            totalPages:
+                Math.max(
 
-============================================================
-*/
+                    1,
 
-export async function getPaymentProofStream(
-    merchantId,
-    proofId
-) {
+                    Math.ceil(
 
-    const normalizedMerchantId =
-        normalizeObjectId(
+                        total /
+                        limit
 
-            merchantId,
+                    )
 
-            "INVALID_MERCHANT_ID",
+                )
 
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedProofId =
-        normalizeObjectId(
-
-            proofId,
-
-            "INVALID_PROOF_ID",
-
-            "Identificador do comprovativo inválido."
-        );
-
-
-    const db =
-        await getDatabase();
-
-
-    const proof =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedProofId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        !proof
-    ) {
-
-        throw createError(
-            "Comprovativo não encontrado.",
-            "PROOF_NOT_FOUND",
-            404
-        );
-    }
-
-
-    const bucket =
-        getGridFSBucket(
-            db
-        );
-
-
-    return {
-
-        stream:
-            bucket.openDownloadStream(
-                proof.fileId
-            ),
-
-        mimeType:
-            proof.mimeType,
-
-        filename:
-            proof.originalName,
-
-        size:
-            proof.size,
-
-        proof
-    };
-}
-
-
-/*
-============================================================
-MARK PROOF UNDER REVIEW
-============================================================
-*/
-
-export async function reviewPaymentProof(
-    merchantId,
-    proofId,
-    options = {}
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedProofId =
-        normalizeObjectId(
-
-            proofId,
-
-            "INVALID_PROOF_ID",
-
-            "Identificador do comprovativo inválido."
-        );
-
-
-    const db =
-        await getDatabase();
-
-
-    const proof =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedProofId,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                }
-            );
-
-
-    if (
-        !proof
-    ) {
-
-        throw createError(
-            "Comprovativo não encontrado.",
-            "PROOF_NOT_FOUND",
-            404
-        );
-    }
-
-
-    if (
-        proof.status ===
-        "APPROVED"
-    ) {
-
-        return getPaymentProof(
-
-            normalizedMerchantId,
-
-            normalizedProofId
-        );
-    }
-
-
-    if (
-        proof.status ===
-        "REJECTED"
-    ) {
-
-        throw createError(
-            "Este comprovativo já foi rejeitado.",
-            "PROOF_ALREADY_REJECTED",
-            409
-        );
-    }
-
-
-    const invoice =
-        await db
-            .collection(
-                "invoices"
-            )
-            .findOne(
-                {
-                    _id:
-                        proof.invoiceId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        !invoice
-    ) {
-
-        throw createError(
-            "A fatura associada ao comprovativo não foi encontrada.",
-            "INVOICE_NOT_FOUND",
-            404
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Colocar fatura em revisão.
-    --------------------------------------------------------
-    */
-
-    if (
-        invoice.status ===
-        "PROOF_SUBMITTED"
-    ) {
-
-        await markInvoiceUnderReview(
-            invoice._id
-        );
-    }
-
-
-    const now =
-        new Date();
-
-
-    const reviewer =
-        cleanString(
-            options.reviewer,
-            200
-        ) ||
-        "merchant";
-
-
-    const result =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        proof._id,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            status:
-                                "UNDER_REVIEW",
-
-                            updatedAt:
-                                now,
-
-                            review: {
-
-                                status:
-                                    "UNDER_REVIEW",
-
-                                reviewedAt:
-                                    now,
-
-                                reviewedBy:
-                                    reviewer,
-
-                                reason:
-                                    null
-                            }
-                        }
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
-                }
-            );
-
-
-    const updated =
-        result?.value ||
-        result;
-
-
-    if (
-        !updated
-    ) {
-
-        throw createError(
-            "Não foi possível colocar o comprovativo em revisão.",
-            "PROOF_REVIEW_FAILED",
-            500
-        );
-    }
-
-
-    return getPaymentProof(
-
-        normalizedMerchantId,
-
-        normalizedProofId
-    );
-}
-
-
-/*
-============================================================
-REJECT PAYMENT PROOF
-============================================================
-*/
-
-export async function rejectPaymentProof(
-    merchantId,
-    proofId,
-    reason
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedProofId =
-        normalizeObjectId(
-
-            proofId,
-
-            "INVALID_PROOF_ID",
-
-            "Identificador do comprovativo inválido."
-        );
-
-
-    const rejectionReason =
-        cleanString(
-            reason,
-            1000
-        );
-
-
-    if (
-        !rejectionReason
-    ) {
-
-        throw createError(
-            "É obrigatório informar o motivo da rejeição.",
-            "REJECTION_REASON_REQUIRED"
-        );
-    }
-
-
-    const db =
-        await getDatabase();
-
-
-    const proof =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedProofId,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                }
-            );
-
-
-    if (
-        !proof
-    ) {
-
-        throw createError(
-            "Comprovativo não encontrado.",
-            "PROOF_NOT_FOUND",
-            404
-        );
-    }
-
-
-    if (
-        proof.status ===
-        "APPROVED"
-    ) {
-
-        throw createError(
-            "Um comprovativo aprovado não pode ser rejeitado.",
-            "APPROVED_PROOF_CANNOT_BE_REJECTED",
-            409
-        );
-    }
-
-
-    const now =
-        new Date();
-
-
-    const result =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        proof._id,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            status:
-                                "REJECTED",
-
-                            active:
-                                false,
-
-                            updatedAt:
-                                now,
-
-                            review: {
-
-                                status:
-                                    "REJECTED",
-
-                                reviewedAt:
-                                    now,
-
-                                reviewedBy:
-                                    "merchant",
-
-                                reason:
-                                    rejectionReason
-                            }
-                        }
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
-                }
-            );
-
-
-    const rejected =
-        result?.value ||
-        result;
-
-
-    if (
-        !rejected
-    ) {
-
-        throw createError(
-            "Não foi possível rejeitar o comprovativo.",
-            "PROOF_REJECTION_FAILED",
-            500
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    A fatura volta para PENDING.
-
-    Isto permite ao cliente enviar um novo comprovativo
-    depois de corrigir o pagamento.
-    --------------------------------------------------------
-    */
-
-    await db
-        .collection(
-            "invoices"
-        )
-        .updateOne(
-
-            {
-
-                _id:
-                    proof.invoiceId,
-
-                merchantId:
-                    normalizedMerchantId
-            },
-
-            {
-
-                $set:
-                    {
-
-                        status:
-                            "REJECTED",
-
-                        updatedAt:
-                            now,
-
-                        updatedBy:
-                            "merchant"
-                    }
-            }
-        );
-
-
-    return getPaymentProof(
-
-        normalizedMerchantId,
-
-        normalizedProofId
-    );
-}
-
-
-/*
-============================================================
-APPROVE PAYMENT PROOF
-============================================================
-
-IMPORTANTE:
-
-Aprovar o comprovativo NÃO significa confiar cegamente
-no ficheiro.
-
-A confirmação deve ocorrer através do fluxo de pagamento.
-
-Nesta V1, a aprovação final chama markInvoicePaid.
-
-============================================================
-*/
-
-export async function approvePaymentProof(
-    merchantId,
-    proofId,
-    options = {}
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const normalizedProofId =
-        normalizeObjectId(
-
-            proofId,
-
-            "INVALID_PROOF_ID",
-
-            "Identificador do comprovativo inválido."
-        );
-
-
-    const db =
-        await getDatabase();
-
-
-    const proof =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOne(
-                {
-
-                    _id:
-                        normalizedProofId,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                }
-            );
-
-
-    if (
-        !proof
-    ) {
-
-        throw createError(
-            "Comprovativo não encontrado.",
-            "PROOF_NOT_FOUND",
-            404
-        );
-    }
-
-
-    if (
-        proof.status ===
-        "REJECTED"
-    ) {
-
-        throw createError(
-            "Este comprovativo já foi rejeitado.",
-            "PROOF_ALREADY_REJECTED",
-            409
-        );
-    }
-
-
-    if (
-        proof.status ===
-        "APPROVED"
-    ) {
-
-        return getPaymentProof(
-
-            normalizedMerchantId,
-
-            normalizedProofId
-        );
-    }
-
-
-    const invoice =
-        await db
-            .collection(
-                "invoices"
-            )
-            .findOne(
-                {
-
-                    _id:
-                        proof.invoiceId,
-
-                    merchantId:
-                        normalizedMerchantId
-                }
-            );
-
-
-    if (
-        !invoice
-    ) {
-
-        throw createError(
-            "A fatura associada não foi encontrada.",
-            "INVOICE_NOT_FOUND",
-            404
-        );
-    }
-
-
-    if (
-        invoice.status ===
-        "CANCELLED"
-    ) {
-
-        throw createError(
-            "A fatura foi cancelada.",
-            "INVOICE_CANCELLED",
-            409
-        );
-    }
-
-
-    if (
-        invoice.status ===
-        "PAID"
-    ) {
-
-        throw createError(
-            "A fatura já está marcada como paga.",
-            "INVOICE_ALREADY_PAID",
-            409
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Confirmar pagamento através do serviço de faturas.
-    --------------------------------------------------------
-    */
-
-    const {
-        markInvoicePaid
-    } =
-        await import(
-            "./invoice.js"
-        );
-
-
-    await markInvoicePaid(
-
-        invoice._id,
-
-        {
-
-            updatedBy:
-                "merchant",
-
-            paymentReference:
-                options.paymentReference ||
-                null
         }
-    );
 
-
-    const now =
-        new Date();
-
-
-    const result =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .findOneAndUpdate(
-
-                {
-
-                    _id:
-                        proof._id,
-
-                    merchantId:
-                        normalizedMerchantId,
-
-                    active:
-                        true
-                },
-
-                {
-
-                    $set:
-                        {
-
-                            status:
-                                "APPROVED",
-
-                            active:
-                                true,
-
-                            updatedAt:
-                                now,
-
-                            review: {
-
-                                status:
-                                    "APPROVED",
-
-                                reviewedAt:
-                                    now,
-
-                                reviewedBy:
-                                    "merchant",
-
-                                reason:
-                                    null
-                            }
-                        }
-                },
-
-                {
-
-                    returnDocument:
-                        "after"
-                }
-            );
-
-
-    const approved =
-        result?.value ||
-        result;
-
-
-    if (
-        !approved
-    ) {
-
-        throw createError(
-            "O pagamento foi confirmado, mas o comprovativo não pôde ser atualizado.",
-            "PROOF_APPROVAL_UPDATE_FAILED",
-            500
-        );
-    }
-
-
-    return getPaymentProof(
-
-        normalizedMerchantId,
-
-        normalizedProofId
-    );
-}
-
-
-/*
-============================================================
-ANTI-FRAUD STATISTICS
-============================================================
-*/
-
-export async function getProofSecurityStatistics(
-    merchantId
-) {
-
-    const normalizedMerchantId =
-        normalizeObjectId(
-
-            merchantId,
-
-            "INVALID_MERCHANT_ID",
-
-            "Identificador do comerciante inválido."
-        );
-
-
-    const db =
-        await getDatabase();
-
-
-    const result =
-        await db
-            .collection(
-                PROOF_COLLECTION
-            )
-            .aggregate(
-                [
-
-                    {
-                        $match:
-                            {
-
-                                merchantId:
-                                    normalizedMerchantId
-                            }
-                    },
-
-                    {
-                        $group:
-                            {
-
-                                _id:
-                                    null,
-
-                                total:
-                                    {
-                                        $sum:
-                                            1
-                                    },
-
-                                submitted:
-                                    {
-                                        $sum:
-                                            {
-                                                $cond:
-                                                    [
-                                                        {
-                                                            $eq:
-                                                                [
-                                                                    "$status",
-                                                                    "SUBMITTED"
-                                                                ]
-                                                        },
-                                                        1,
-                                                        0
-                                                    ]
-                                            }
-                                    },
-
-                                underReview:
-                                    {
-                                        $sum:
-                                            {
-                                                $cond:
-                                                    [
-                                                        {
-                                                            $eq:
-                                                                [
-                                                                    "$status",
-                                                                    "UNDER_REVIEW"
-                                                                ]
-                                                        },
-                                                        1,
-                                                        0
-                                                    ]
-                                            }
-                                    },
-
-                                approved:
-                                    {
-                                        $sum:
-                                            {
-                                                $cond:
-                                                    [
-                                                        {
-                                                            $eq:
-                                                                [
-                                                                    "$status",
-                                                                    "APPROVED"
-                                                                ]
-                                                        },
-                                                        1,
-                                                        0
-                                                    ]
-                                            }
-                                    },
-
-                                rejected:
-                                    {
-                                        $sum:
-                                            {
-                                                $cond:
-                                                    [
-                                                        {
-                                                            $eq:
-                                                                [
-                                                                    "$status",
-                                                                    "REJECTED"
-                                                                ]
-                                                        },
-                                                        1,
-                                                        0
-                                                    ]
-                                            }
-                                    }
-                            }
-                    }
-                ]
-            )
-            .toArray();
-
-
-    return (
-
-        result[0] ||
-
-        {
-
-            total:
-                0,
-
-            submitted:
-                0,
-
-            underReview:
-                0,
-
-            approved:
-                0,
-
-            rejected:
-                0
-        }
-    );
-}
-
-
-/*
-============================================================
-INDEXES
-============================================================
-*/
-
-export async function ensureProofIndexes() {
-
-    const db =
-        await getDatabase();
-
-
-    const collection =
-        db.collection(
-            PROOF_COLLECTION
-        );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            invoiceId:
-                1,
-
-            createdAt:
-                -1
-        }
-    );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            fingerprint:
-                1
-        }
-    );
-
-
-    await collection.createIndex(
-
-        {
-
-            merchantId:
-                1,
-
-            active:
-                1,
-
-            createdAt:
-                -1
-        }
-    );
-
-
-    await collection.createIndex(
-
-        {
-
-            invoiceId:
-                1,
-
-            active:
-                1
-        }
-    );
-
-
-    return {
-
-        collection:
-            PROOF_COLLECTION,
-
-        gridFsBucket:
-            BUCKET_NAME,
-
-        indexes:
-            "ready"
     };
 }
 
@@ -2996,21 +1732,20 @@ EXPORT
 
 export default {
 
-    createPaymentProof,
+    calculateProofSha256,
 
-    getPaymentProof,
+    validateProofFile,
 
-    listInvoiceProofs,
+    findDuplicateProof,
 
-    getPaymentProofStream,
+    getProofByPayment,
 
-    reviewPaymentProof,
+    createProofRecord,
 
-    rejectPaymentProof,
+    verifyProof,
 
-    approvePaymentProof,
+    getProof,
 
-    getProofSecurityStatistics,
+    listProofs
 
-    ensureProofIndexes
 };
