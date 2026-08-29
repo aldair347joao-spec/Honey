@@ -2,7 +2,7 @@
 ============================================================
 HONEY PAY
 MAIN SERVER
-V1.0.0
+V1.1.0
 ============================================================
 
 SERVIDOR PRINCIPAL DA HONEY PAY
@@ -18,6 +18,11 @@ Express
    ├── CORS
    │
    ├── Rate Limiting
+   │
+   ├── FRONTEND
+   │     ├── index.html
+   │     ├── style.css
+   │     └── app.js
    │
    ├── API Routes
    │
@@ -40,17 +45,56 @@ Compatível com:
 - MongoDB Atlas
 - Node.js ES Modules
 
+------------------------------------------------------------
+FRONTEND
+------------------------------------------------------------
+
+O frontend está na raiz do projeto:
+
+Honey/
+├── index.html
+├── style.css
+├── app.js
+└── server.js
+
+O Express serve esses arquivos diretamente.
+
+------------------------------------------------------------
+PAGAMENTOS
+------------------------------------------------------------
+
+BITPAY é utilizado exclusivamente para:
+
+Honey Pay
+    ↓
+Subscrição do plano
+    ↓
+BitPay
+    ↓
+Pagamento da plataforma
+
+Os pagamentos entre:
+
+Comerciante
+    ↓
+Cliente do comerciante
+
+não passam pelo BitPay.
+
+Esses pagamentos são tratados pela própria Honey Pay
+através das contas bancárias, transferências,
+comprovativos e faturas configurados pelo comerciante.
+
 ============================================================
 */
 
 import express from "express";
-
 import cors from "cors";
-
 import helmet from "helmet";
-
 import rateLimit from "express-rate-limit";
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import router from "./routes.js";
 
@@ -63,12 +107,46 @@ import checkoutRouter
 import proofRouter
     from "./proof-routes.js";
 
-
 import {
     connectDatabase,
     closeDatabase,
     getDatabaseStatus
 } from "./database.js";
+
+
+/*
+============================================================
+PATHS
+============================================================
+*/
+
+const __filename =
+    fileURLToPath(
+        import.meta.url
+    );
+
+const __dirname =
+    path.dirname(
+        __filename
+    );
+
+
+/*
+============================================================
+FRONTEND DIRECTORY
+============================================================
+
+Como o index.html está na raiz do projeto, usamos o próprio
+diretório onde server.js está localizado.
+
+Isso evita problemas relacionados ao diretório de execução
+do Render.
+
+============================================================
+*/
+
+const FRONTEND_DIR =
+    __dirname;
 
 
 /*
@@ -111,9 +189,6 @@ TRUST PROXY
 
 Render fica atrás de proxy.
 
-Isso permite que req.ip represente corretamente o cliente
-quando o proxy estiver configurado.
-
 ============================================================
 */
 
@@ -137,7 +212,6 @@ app.disable(
 app.use(
     helmet(
         {
-
             contentSecurityPolicy:
                 false,
 
@@ -160,11 +234,8 @@ function getAllowedOrigins() {
         process.env.CORS_ORIGINS ||
         "";
 
-
     return raw
-        .split(
-            ","
-        )
+        .split(",")
         .map(
             origin =>
                 origin.trim()
@@ -189,15 +260,9 @@ app.use(
             ) {
 
                 /*
-                --------------------------------------------
-                Requests sem Origin:
-
-                - curl
-                - health checks
-                - servidores
-                - aplicações server-to-server
-
-                --------------------------------------------
+                ------------------------------------------------
+                Requests sem Origin
+                ------------------------------------------------
                 */
 
                 if (
@@ -212,14 +277,9 @@ app.use(
 
 
                 /*
-                --------------------------------------------
-                Se não existir CORS_ORIGINS configurado,
-                permitir durante a inicialização da V1.
-
-                Em produção recomenda-se configurar:
-
-                CORS_ORIGINS=https://teudominio.com
-                --------------------------------------------
+                ------------------------------------------------
+                Sem CORS_ORIGINS configurado
+                ------------------------------------------------
                 */
 
                 if (
@@ -233,6 +293,12 @@ app.use(
                     );
                 }
 
+
+                /*
+                ------------------------------------------------
+                Origem autorizada
+                ------------------------------------------------
+                */
 
                 if (
                     allowedOrigins.includes(
@@ -254,8 +320,10 @@ app.use(
                 );
             },
 
+
             credentials:
                 true,
+
 
             methods: [
 
@@ -275,6 +343,7 @@ app.use(
 
             ],
 
+
             allowedHeaders: [
 
                 "Content-Type",
@@ -288,6 +357,7 @@ app.use(
                 "X-Requested-With"
 
             ]
+
         }
     )
 );
@@ -296,14 +366,6 @@ app.use(
 /*
 ============================================================
 BODY PARSING
-============================================================
-
-O tamanho foi definido para permitir dados de checkout e
-operações normais sem transformar a API num endpoint de
-upload ilimitado.
-
-Uploads grandes devem utilizar armazenamento próprio.
-
 ============================================================
 */
 
@@ -316,6 +378,7 @@ app.use(
 
             strict:
                 true
+
         }
     )
 );
@@ -330,6 +393,7 @@ app.use(
 
             limit:
                 "2mb"
+
         }
     )
 );
@@ -338,11 +402,6 @@ app.use(
 /*
 ============================================================
 REQUEST ID
-============================================================
-
-Cada request recebe um identificador para facilitar
-diagnóstico no Render.
-
 ============================================================
 */
 
@@ -379,15 +438,6 @@ app.use(
 ============================================================
 PUBLIC RATE LIMITER
 ============================================================
-
-Protege principalmente:
-
-- login
-- register
-- checkout
-- comprovativos
-
-============================================================
 */
 
 const publicRateLimiter =
@@ -418,6 +468,7 @@ const publicRateLimiter =
 
                 message:
                     "Demasiados pedidos. Tente novamente mais tarde."
+
             },
 
             skip(
@@ -429,6 +480,7 @@ const publicRateLimiter =
                     "/health"
                 );
             }
+
         }
     );
 
@@ -468,47 +520,15 @@ app.use(
                 console.log(
 
                     `[HTTP] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms ${req.requestId}`
+
                 );
+
             }
         );
 
 
         next();
-    }
-);
 
-
-/*
-============================================================
-ROOT
-============================================================
-*/
-
-app.get(
-    "/",
-    (
-        req,
-        res
-    ) => {
-
-        return res.status(
-            200
-        ).json(
-            {
-
-                success:
-                    true,
-
-                service:
-                    "Honey Pay API",
-
-                version:
-                    "1.0.0",
-
-                status:
-                    "operational"
-            }
-        );
     }
 );
 
@@ -553,7 +573,7 @@ app.get(
                             "Honey Pay API",
 
                         version:
-                            "1.0.0",
+                            "1.1.0",
 
                         status:
                             healthy
@@ -565,8 +585,10 @@ app.get(
                         timestamp:
                             new Date()
                                 .toISOString()
+
                     }
                 );
+
         }
 
         catch (
@@ -593,7 +615,7 @@ app.get(
                             "Honey Pay API",
 
                         version:
-                            "1.0.0",
+                            "1.1.0",
 
                         status:
                             "degraded",
@@ -603,14 +625,18 @@ app.get(
 
                                 connected:
                                     false
+
                             },
 
                         timestamp:
                             new Date()
                                 .toISOString()
+
                     }
                 );
+
         }
+
     }
 );
 
@@ -620,6 +646,7 @@ app.get(
 API ROUTES
 ============================================================
 */
+
 
 /*
 ------------------------------------------------------------
@@ -701,8 +728,88 @@ app.use(
                     requestId:
                         req.requestId ||
                         null
+
                 }
             );
+
+    }
+);
+
+
+/*
+============================================================
+FRONTEND STATIC FILES
+============================================================
+
+IMPORTANTE:
+
+Esta é a parte que faltava.
+
+O Express passa a servir:
+
+/
+    → index.html
+
+/style.css
+    → style.css
+
+/app.js
+    → app.js
+
+e qualquer outro recurso estático existente na raiz.
+
+============================================================
+*/
+
+app.use(
+    express.static(
+        FRONTEND_DIR,
+        {
+
+            index:
+                "index.html",
+
+            extensions:
+                [
+                    "html"
+                ],
+
+            fallthrough:
+                true
+
+        }
+    )
+);
+
+
+/*
+============================================================
+FRONTEND ROOT
+============================================================
+
+Garantia explícita de que:
+
+GET /
+
+entrega o index.html.
+
+============================================================
+*/
+
+app.get(
+    "/",
+    (
+        req,
+        res
+    ) => {
+
+        return res.sendFile(
+            path.join(
+                FRONTEND_DIR,
+                "index.html"
+            )
+        );
+
     }
 );
 
@@ -738,8 +845,10 @@ app.use(
                     requestId:
                         req.requestId ||
                         null
+
                 }
             );
+
     }
 );
 
@@ -775,7 +884,9 @@ app.use(
                     req.originalUrl,
 
                 error
+
             }
+
         );
 
 
@@ -786,12 +897,13 @@ app.use(
             return next(
                 error
             );
+
         }
 
 
         /*
         ----------------------------------------------------
-        Erros conhecidos de payload JSON.
+        INVALID JSON
         ----------------------------------------------------
         */
 
@@ -819,14 +931,16 @@ app.use(
                         requestId:
                             req.requestId ||
                             null
+
                     }
                 );
+
         }
 
 
         /*
         ----------------------------------------------------
-        Payload demasiado grande.
+        PAYLOAD TOO LARGE
         ----------------------------------------------------
         */
 
@@ -854,8 +968,10 @@ app.use(
                         requestId:
                             req.requestId ||
                             null
+
                     }
                 );
+
         }
 
 
@@ -889,21 +1005,16 @@ app.use(
                         requestId:
                             req.requestId ||
                             null
+
                     }
                 );
+
         }
 
 
         /*
         ----------------------------------------------------
-        Erro genérico.
-
-        Nunca enviar:
-        - stack
-        - caminho de ficheiros
-        - queries
-        - connection strings
-        - detalhes MongoDB
+        GENERIC ERROR
         ----------------------------------------------------
         */
 
@@ -927,7 +1038,7 @@ app.use(
 
                     message:
                         NODE_ENV ===
-                            "production"
+                        "production"
 
                             ? "Ocorreu um erro interno no servidor."
 
@@ -939,8 +1050,10 @@ app.use(
                     requestId:
                         req.requestId ||
                         null
+
                 }
             );
+
     }
 );
 
@@ -958,9 +1071,13 @@ function cryptoRandomId() {
         Date.now()
             .toString(
                 36
-            ) +
+            )
 
-        "-" +
+        +
+
+        "-"
+
+        +
 
         Math.random()
             .toString(
@@ -970,13 +1087,15 @@ function cryptoRandomId() {
                 2,
                 12
             )
+
     );
+
 }
 
 
 /*
 ============================================================
-SERVER START
+SERVER
 ============================================================
 */
 
@@ -986,7 +1105,7 @@ let server =
 
 /*
 ============================================================
-START
+START SERVER
 ============================================================
 */
 
@@ -1001,6 +1120,19 @@ async function startServer() {
 
         console.log(
             `[HONEY PAY] Environment: ${NODE_ENV}`
+        );
+
+
+        console.log(
+            `[HONEY PAY] Frontend directory: ${FRONTEND_DIR}`
+        );
+
+
+        console.log(
+            `[HONEY PAY] Frontend entry: ${path.join(
+                FRONTEND_DIR,
+                "index.html"
+            )}`
         );
 
 
@@ -1020,7 +1152,7 @@ async function startServer() {
 
         /*
         ----------------------------------------------------
-        HTTP
+        HTTP SERVER
         ----------------------------------------------------
         */
 
@@ -1034,15 +1166,34 @@ async function startServer() {
                 () => {
 
                     console.log(
-                        `[HONEY PAY] API listening on ${HOST}:${PORT}`
+
+                        `[HONEY PAY] Server listening on ${HOST}:${PORT}`
+
                     );
+
+
+                    console.log(
+                        "[HONEY PAY] Frontend available at /"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] API available at /api"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Health available at /health"
+                    );
+
                 }
+
             );
 
 
         /*
         ----------------------------------------------------
-        Server errors
+        SERVER ERRORS
         ----------------------------------------------------
         */
 
@@ -1054,8 +1205,10 @@ async function startServer() {
                     "[HONEY PAY] HTTP server error:",
                     error
                 );
+
             }
         );
+
     }
 
     catch (
@@ -1071,7 +1224,9 @@ async function startServer() {
         process.exit(
             1
         );
+
     }
+
 }
 
 
@@ -1094,6 +1249,7 @@ async function shutdown(
     ) {
 
         return;
+
     }
 
 
@@ -1110,7 +1266,7 @@ async function shutdown(
 
         /*
         ----------------------------------------------------
-        Parar de aceitar novas conexões.
+        STOP HTTP
         ----------------------------------------------------
         */
 
@@ -1125,16 +1281,19 @@ async function shutdown(
                         () => {
 
                             resolve();
+
                         }
                     );
+
                 }
             );
+
         }
 
 
         /*
         ----------------------------------------------------
-        Fechar MongoDB.
+        CLOSE DATABASE
         ----------------------------------------------------
         */
 
@@ -1149,6 +1308,7 @@ async function shutdown(
         process.exit(
             0
         );
+
     }
 
     catch (
@@ -1164,7 +1324,9 @@ async function shutdown(
         process.exit(
             1
         );
+
     }
+
 }
 
 
@@ -1181,6 +1343,7 @@ process.on(
         shutdown(
             "SIGTERM"
         );
+
     }
 );
 
@@ -1192,6 +1355,7 @@ process.on(
         shutdown(
             "SIGINT"
         );
+
     }
 );
 
@@ -1210,6 +1374,7 @@ process.on(
             "[HONEY PAY] Unhandled promise rejection:",
             error
         );
+
     }
 );
 
@@ -1233,6 +1398,7 @@ process.on(
         shutdown(
             "UNCAUGHT_EXCEPTION"
         );
+
     }
 );
 
