@@ -1,8 +1,8 @@
 /*
 ============================================================
 HONEY PAY
-PUBLIC CHECKOUT ROUTES
-V1.0.0
+CHECKOUT ROUTES
+V1.0.1
 ============================================================
 
 ROTAS PÚBLICAS DO CHECKOUT
@@ -11,38 +11,19 @@ ROTAS PÚBLICAS DO CHECKOUT
 PUBLIC
 ------------------------------------------------------------
 
-GET /api/pay/:publicToken
+GET  /api/checkout/:publicToken
+POST /api/checkout/:publicToken/payment-intent
+GET  /api/checkout/:publicToken/payment/:paymentId
 
 ------------------------------------------------------------
-OBJETIVO
+INTERNAL
 ------------------------------------------------------------
 
-Permitir que qualquer cliente abra um link de pagamento
-Honey Pay e veja:
+A confirmação de pagamento NÃO é exposta através de uma
+rota pública.
 
-- comerciante;
-- descrição;
-- valor;
-- moeda;
-- estado da fatura;
-- prazo;
-- contas bancárias disponíveis;
-- instruções para pagamento.
-
-------------------------------------------------------------
-SEGURANÇA
-------------------------------------------------------------
-
-- Não exige autenticação do comprador.
-- Não aceita valor enviado pelo cliente.
-- Não aceita merchantId para decidir qual fatura mostrar.
-- A fatura é localizada exclusivamente através do token.
-- Somente dados públicos são devolvidos.
-- Não são devolvidos documentos MongoDB.
-- Não são devolvidos dados administrativos.
-- Não são devolvidos dados de outras faturas.
-- Cache público é desativado.
-- O endpoint não revela detalhes internos do banco.
+A confirmação deve ser executada pelo fluxo interno
+autorizado da plataforma.
 
 ============================================================
 */
@@ -51,14 +32,16 @@ import express from "express";
 
 
 import {
-    getPublicCheckout
+    getPublicCheckout,
+    createPaymentIntent,
+    getPublicPaymentStatus
 } from "./checkout.js";
 
 
 import {
+    successResponse,
     errorResponse,
-    normalizeError,
-    successResponse
+    normalizeError
 } from "./utils.js";
 
 
@@ -74,189 +57,11 @@ const router =
 
 /*
 ============================================================
-SECURITY HEADERS
-============================================================
-*/
-
-function applyCheckoutSecurityHeaders(
-    res
-) {
-
-    /*
-    --------------------------------------------------------
-    O checkout contém informações específicas de uma fatura.
-    Não queremos que proxies armazenem uma resposta pública
-    reutilizável.
-    --------------------------------------------------------
-    */
-
-    res.setHeader(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, private"
-    );
-
-
-    res.setHeader(
-        "Pragma",
-        "no-cache"
-    );
-
-
-    res.setHeader(
-        "Expires",
-        "0"
-    );
-
-
-    res.setHeader(
-        "X-Content-Type-Options",
-        "nosniff"
-    );
-
-
-    res.setHeader(
-        "Referrer-Policy",
-        "strict-origin-when-cross-origin"
-    );
-
-
-    res.setHeader(
-        "X-Frame-Options",
-        "SAMEORIGIN"
-    );
-
-
-    res.setHeader(
-        "Permissions-Policy",
-        "camera=(), microphone=(), geolocation=()"
-    );
-}
-
-
-/*
-============================================================
-TOKEN VALIDATION
-============================================================
-*/
-
-function normalizeCheckoutToken(
-    value
-) {
-
-    if (
-        typeof value !==
-        "string"
-    ) {
-
-        const error =
-            new Error(
-                "Link de pagamento inválido."
-            );
-
-
-        error.code =
-            "INVALID_CHECKOUT_TOKEN";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    const token =
-        value.trim();
-
-
-    if (
-        !token
-    ) {
-
-        const error =
-            new Error(
-                "Link de pagamento inválido."
-            );
-
-
-        error.code =
-            "INVALID_CHECKOUT_TOKEN";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    O token gerado pelo checkout utiliza somente caracteres
-    URL-safe.
-    --------------------------------------------------------
-    */
-
-    if (
-        !/^[A-Za-z0-9_-]+$/.test(
-            token
-        )
-    ) {
-
-        const error =
-            new Error(
-                "Link de pagamento inválido."
-            );
-
-
-        error.code =
-            "INVALID_CHECKOUT_TOKEN";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    if (
-        token.length >
-        200
-    ) {
-
-        const error =
-            new Error(
-                "Link de pagamento inválido."
-            );
-
-
-        error.code =
-            "INVALID_CHECKOUT_TOKEN";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    return token;
-}
-
-
-/*
-============================================================
 ERROR RESPONSE
 ============================================================
 */
 
-function sendCheckoutError(
+function handleRouteError(
     res,
     error
 ) {
@@ -266,13 +71,6 @@ function sendCheckoutError(
             error
         );
 
-
-    /*
-    --------------------------------------------------------
-    Nunca enviar stack trace, error object ou detalhes
-    internos para o comprador.
-    --------------------------------------------------------
-    */
 
     return errorResponse(
 
@@ -284,6 +82,7 @@ function sendCheckoutError(
 
         normalized.message,
 
+        error.details ||
         null
     );
 }
@@ -294,35 +93,38 @@ function sendCheckoutError(
 GET PUBLIC CHECKOUT
 ============================================================
 
-GET /api/pay/:publicToken
+GET
+
+/api/checkout/:publicToken
+
+Retorna somente os dados necessários para o cliente
+visualizar e efetuar o pagamento.
+
+Não exige autenticação.
 
 ============================================================
 */
 
 router.get(
-    "/pay/:publicToken",
+
+    "/:publicToken",
 
     async (
         req,
         res
     ) => {
 
-        applyCheckoutSecurityHeaders(
-            res
-        );
-
-
         try {
 
-            const token =
-                normalizeCheckoutToken(
-                    req.params.publicToken
-                );
+            const {
+                publicToken
+            } =
+                req.params;
 
 
-            const checkout =
+            const result =
                 await getPublicCheckout(
-                    token
+                    publicToken
                 );
 
 
@@ -330,15 +132,13 @@ router.get(
 
                 res,
 
-                checkout
+                result
             );
         }
 
-        catch (
-            error
-        ) {
+        catch (error) {
 
-            return sendCheckoutError(
+            return handleRouteError(
 
                 res,
 
@@ -351,63 +151,67 @@ router.get(
 
 /*
 ============================================================
-HEAD CHECKOUT
+CREATE PAYMENT INTENT
 ============================================================
 
-Permite verificar se o link existe sem transferir o corpo
-completo da resposta.
+POST
+
+/api/checkout/:publicToken/payment-intent
+
+Cria uma intenção de pagamento para a fatura.
+
+Não confirma o pagamento.
 
 ============================================================
 */
 
-router.head(
-    "/pay/:publicToken",
+router.post(
+
+    "/:publicToken/payment-intent",
 
     async (
         req,
         res
     ) => {
 
-        applyCheckoutSecurityHeaders(
-            res
-        );
-
-
         try {
 
-            const token =
-                normalizeCheckoutToken(
-                    req.params.publicToken
+            const {
+                publicToken
+            } =
+                req.params;
+
+
+            const result =
+                await createPaymentIntent(
+
+                    publicToken,
+
+                    req.body ||
+                    {}
                 );
 
 
-            await getPublicCheckout(
-                token
+            return successResponse(
+
+                res,
+
+                result,
+
+                result.created
+                    ? 201
+                    : 200
             );
-
-
-            return res
-                .status(
-                    200
-                )
-                .end();
         }
 
-        catch (
-            error
-        ) {
+        catch (error) {
 
-            const normalized =
-                normalizeError(
-                    error
-                );
+            return handleRouteError(
 
+                res,
 
-            return res
-                .status(
-                    normalized.statusCode
-                )
-                .end();
+                error
+            );
         }
     }
 );
@@ -415,20 +219,82 @@ router.head(
 
 /*
 ============================================================
-404 FALLBACK
+GET PAYMENT STATUS
+============================================================
+
+GET
+
+/api/checkout/:publicToken/payment/:paymentId
+
+Permite ao cliente consultar o estado do pagamento
+associado à sua fatura pública.
+
 ============================================================
 */
 
-router.use(
-    (
+router.get(
+
+    "/:publicToken/payment/:paymentId",
+
+    async (
         req,
         res
     ) => {
 
-        applyCheckoutSecurityHeaders(
-            res
-        );
+        try {
 
+            const {
+
+                publicToken,
+
+                paymentId
+
+            } =
+                req.params;
+
+
+            const result =
+                await getPublicPaymentStatus(
+
+                    publicToken,
+
+                    paymentId
+                );
+
+
+            return successResponse(
+
+                res,
+
+                result
+            );
+        }
+
+        catch (error) {
+
+            return handleRouteError(
+
+                res,
+
+                error
+            );
+        }
+    }
+);
+
+
+/*
+============================================================
+404 CHECKOUT FALLBACK
+============================================================
+*/
+
+router.use(
+
+    (
+        req,
+        res
+    ) => {
 
         return errorResponse(
 
@@ -438,7 +304,7 @@ router.use(
 
             "CHECKOUT_ROUTE_NOT_FOUND",
 
-            "O checkout solicitado não existe."
+            "A rota de checkout solicitada não existe."
         );
     }
 );
@@ -446,11 +312,15 @@ router.use(
 
 /*
 ============================================================
-GLOBAL ERROR HANDLER
+ROUTE ERROR HANDLER
+============================================================
+
+Erros inesperados não devem expor stack trace ao cliente.
 ============================================================
 */
 
 router.use(
+
     (
         error,
         req,
@@ -460,7 +330,7 @@ router.use(
 
         console.error(
 
-            "[HONEY PAY CHECKOUT ERROR]",
+            "[CHECKOUT API ERROR]",
 
             error
         );
@@ -476,12 +346,7 @@ router.use(
         }
 
 
-        applyCheckoutSecurityHeaders(
-            res
-        );
-
-
-        return sendCheckoutError(
+        return handleRouteError(
 
             res,
 
