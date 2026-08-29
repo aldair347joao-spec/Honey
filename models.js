@@ -1,77 +1,50 @@
-import mongoose from "mongoose";
-
 /*
 ============================================================
 HONEY PAY
-DATABASE MODELS
-V1.0.0
+MONGOOSE MODELS
+V1.0.1
 ============================================================
 
-MODELOS DA PRIMEIRA VERSÃO
+MODELOS PRINCIPAIS DA PLATAFORMA
 
 ------------------------------------------------------------
-Merchant
-------------------------------------------------------------
-Representa o comerciante/dono da conta.
+MODELOS
+
+- Merchant
+- BankAccount
+- Invoice
+- Payment
+- Receipt
+- Subscription
 
 ------------------------------------------------------------
-BankAccount
-------------------------------------------------------------
-Permite ao comerciante cadastrar várias contas bancárias.
+ARQUITETURA
 
-------------------------------------------------------------
-Invoice
-------------------------------------------------------------
-Representa uma cobrança/fatura.
-
-------------------------------------------------------------
-Payment
-------------------------------------------------------------
-Representa uma tentativa/pagamento associado à cobrança.
-
-------------------------------------------------------------
-Receipt
-------------------------------------------------------------
-Representa o comprovativo enviado pelo cliente.
-
-------------------------------------------------------------
-Customer
-------------------------------------------------------------
-Representa o comprador final quando o comerciante desejar
-guardar os seus dados.
-
-------------------------------------------------------------
-Subscription
-------------------------------------------------------------
-Representa o plano do comerciante.
+MongoDB
+   ↓
+Mongoose
+   ↓
+Models
+   ↓
+Services
+   ↓
+API Routes
 
 ============================================================
 */
 
+import mongoose from "mongoose";
+
 
 /*
 ============================================================
-HELPERS
+SCHEMA HELPERS
 ============================================================
 */
 
 const {
-    Schema,
-    model,
-    models
+    Schema
 } = mongoose;
-
-
-/*
-============================================================
-COMMON OPTIONS
-============================================================
-*/
-
-const timestamps = {
-    createdAt: true,
-    updatedAt: true
-};
 
 
 /*
@@ -86,157 +59,206 @@ const merchantSchema =
         {
 
             name: {
-                type: String,
-                required: true,
-                trim: true,
-                minlength: 2,
-                maxlength: 120
-            },
+                type:
+                    String,
 
+                required:
+                    true,
 
-            businessName: {
-                type: String,
-                required: true,
-                trim: true,
-                minlength: 2,
-                maxlength: 150
-            },
+                trim:
+                    true,
 
-
-            slug: {
-                type: String,
-                required: true,
-                unique: true,
-                lowercase: true,
-                trim: true,
-                minlength: 2,
-                maxlength: 100,
-                index: true
+                maxlength:
+                    120
             },
 
 
             email: {
-                type: String,
-                required: true,
-                unique: true,
-                lowercase: true,
-                trim: true,
-                index: true
+                type:
+                    String,
+
+                required:
+                    true,
+
+                unique:
+                    true,
+
+                lowercase:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    180
             },
 
 
             passwordHash: {
-                type: String,
-                required: true,
-                select: false
+                type:
+                    String,
+
+                required:
+                    true,
+
+                select:
+                    false
             },
 
 
             phone: {
-                type: String,
-                trim: true,
-                maxlength: 30
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    40,
+
+                default:
+                    null
             },
 
 
-            whatsappNumber: {
-                type: String,
-                trim: true,
-                maxlength: 30
+            businessName: {
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    180,
+
+                default:
+                    null
             },
 
 
-            whatsappConnected: {
-                type: Boolean,
-                default: false
-            },
+            accountStatus: {
+                type:
+                    String,
 
-
-            logoUrl: {
-                type: String,
-                trim: true,
-                maxlength: 1000
-            },
-
-
-            description: {
-                type: String,
-                trim: true,
-                maxlength: 500
-            },
-
-
-            address: {
-                type: String,
-                trim: true,
-                maxlength: 300
-            },
-
-
-            city: {
-                type: String,
-                trim: true,
-                maxlength: 100
-            },
-
-
-            country: {
-                type: String,
-                default: "AO",
-                trim: true,
-                maxlength: 2
-            },
-
-
-            currency: {
-                type: String,
-                default: "AOA",
-                enum: [
-                    "AOA"
-                ]
-            },
-
-
-            invoiceCount: {
-                type: Number,
-                default: 0,
-                min: 0
-            },
-
-
-            freeInvoiceCount: {
-                type: Number,
-                default: 0,
-                min: 0
-            },
-
-
-            status: {
-                type: String,
                 enum: [
                     "active",
                     "suspended",
-                    "deleted"
+                    "blocked",
+                    "pending"
                 ],
-                default: "active",
-                index: true
+
+                default:
+                    "active"
             },
 
 
-            emailVerified: {
-                type: Boolean,
-                default: false
+            role: {
+                type:
+                    String,
+
+                enum: [
+                    "merchant",
+                    "admin"
+                ],
+
+                default:
+                    "merchant"
+            },
+
+
+            subscription: {
+
+                plan: {
+                    type:
+                        String,
+
+                    enum: [
+                        "free",
+                        "pro",
+                        "business"
+                    ],
+
+                    default:
+                        "free"
+                },
+
+
+                status: {
+                    type:
+                        String,
+
+                    enum: [
+                        "active",
+                        "inactive",
+                        "past_due",
+                        "cancelled",
+                        "trial"
+                    ],
+
+                    default:
+                        "active"
+                },
+
+
+                startedAt: {
+                    type:
+                        Date,
+
+                    default:
+                        Date.now
+                },
+
+
+                expiresAt: {
+                    type:
+                        Date,
+
+                    default:
+                        null
+                }
             },
 
 
             lastLoginAt: {
-                type: Date,
-                default: null
+                type:
+                    Date,
+
+                default:
+                    null
+            },
+
+
+            lastLoginIp: {
+                type:
+                    String,
+
+                default:
+                    null
             }
+
         },
 
-        timestamps
+        {
+
+            timestamps:
+                true,
+
+            collection:
+                "merchants"
+        }
     );
+
+
+merchantSchema.index(
+    {
+        email:
+            1
+    },
+    {
+        unique:
+            true
+    }
+);
 
 
 /*
@@ -244,16 +266,21 @@ const merchantSchema =
 BANK ACCOUNT
 ============================================================
 
-Um comerciante pode possuir várias contas.
+Modelo definitivo utilizado pela plataforma.
 
-Exemplos:
+Compatibilidade com o serviço:
 
-Banco A
-Banco B
-Banco C
+- merchantId
+- bankName
+- accountName
+- iban
+- ibanLast4
+- accountNumber
+- accountType
+- isActive
+- isPrimary
+- displayOrder
 
-O checkout permitirá ao comprador escolher qual conta
-utilizar para efetuar o pagamento.
 ============================================================
 */
 
@@ -263,102 +290,227 @@ const bankAccountSchema =
         {
 
             merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Merchant",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             bankName: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 120
+
+                type:
+                    String,
+
+                required:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    160
             },
 
 
             accountName: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 150
+
+                type:
+                    String,
+
+                required:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    160
             },
 
 
             iban: {
-                type: String,
-                required: true,
-                trim: true,
-                select: false
+
+                type:
+                    String,
+
+                required:
+                    true,
+
+                trim:
+                    true,
+
+                uppercase:
+                    true,
+
+                maxlength:
+                    80
             },
 
 
             ibanLast4: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 4
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    4,
+
+                default:
+                    null
             },
 
 
             accountNumber: {
-                type: String,
-                trim: true,
-                select: false,
-                maxlength: 100
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    80,
+
+                default:
+                    null
             },
 
 
             accountType: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
                     "bank",
-                    "mobile_money",
-                    "other"
+                    "iban",
+                    "current",
+                    "savings",
+                    "business"
                 ],
-                default: "bank"
+
+                default:
+                    "bank"
+            },
+
+
+            currency: {
+
+                type:
+                    String,
+
+                uppercase:
+                    true,
+
+                trim:
+                    true,
+
+                default:
+                    "AOA",
+
+                maxlength:
+                    10
             },
 
 
             isActive: {
-                type: Boolean,
-                default: true,
-                index: true
+
+                type:
+                    Boolean,
+
+                default:
+                    true,
+
+                index:
+                    true
+            },
+
+
+            isPrimary: {
+
+                type:
+                    Boolean,
+
+                default:
+                    false,
+
+                index:
+                    true
             },
 
 
             displayOrder: {
-                type: Number,
-                default: 0
+
+                type:
+                    Number,
+
+                default:
+                    0,
+
+                min:
+                    0
+            },
+
+
+            metadata: {
+
+                type:
+                    Schema.Types.Mixed,
+
+                default:
+                    {}
             }
+
         },
 
-        timestamps
+        {
+
+            timestamps:
+                true,
+
+            collection:
+                "bankAccounts"
+        }
     );
 
 
-bankAccountSchema.index({
-    merchantId: 1,
-    isActive: 1,
-    displayOrder: 1
-});
+bankAccountSchema.index(
+    {
+        merchantId:
+            1,
+
+        isActive:
+            1
+    }
+);
+
+
+bankAccountSchema.index(
+    {
+        merchantId:
+            1,
+
+        isPrimary:
+            1
+    }
+);
 
 
 /*
 ============================================================
 INVOICE
-============================================================
-
-Uma cobrança criada pelo comerciante.
-
-O link público será baseado no publicId.
-
-Exemplo:
-
-/pay/HNY-7F4K2P
-
-Não utilizamos o ObjectId diretamente no link público.
 ============================================================
 */
 
@@ -368,225 +520,302 @@ const invoiceSchema =
         {
 
             merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                index: true
-            },
 
+                type:
+                    Schema.Types.ObjectId,
 
-            publicId: {
-                type: String,
-                required: true,
-                unique: true,
-                trim: true,
-                index: true
+                ref:
+                    "Merchant",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             invoiceNumber: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 80
+
+                type:
+                    String,
+
+                required:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    80
             },
 
 
-            customerId: {
-                type: Schema.Types.ObjectId,
-                ref: "Customer",
-                default: null,
-                index: true
+            publicId: {
+
+                type:
+                    String,
+
+                required:
+                    true,
+
+                unique:
+                    true,
+
+                index:
+                    true,
+
+                trim:
+                    true
+            },
+
+
+            publicToken: {
+
+                type:
+                    String,
+
+                unique:
+                    true,
+
+                sparse:
+                    true,
+
+                index:
+                    true,
+
+                trim:
+                    true
             },
 
 
             customerName: {
-                type: String,
-                trim: true,
-                maxlength: 150
-            },
 
+                type:
+                    String,
 
-            customerPhone: {
-                type: String,
-                trim: true,
-                maxlength: 30
+                trim:
+                    true,
+
+                maxlength:
+                    180,
+
+                default:
+                    null
             },
 
 
             customerEmail: {
-                type: String,
-                trim: true,
-                maxlength: 200
+
+                type:
+                    String,
+
+                lowercase:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    180,
+
+                default:
+                    null
+            },
+
+
+            customerPhone: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    40,
+
+                default:
+                    null
             },
 
 
             description: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 500
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    1000,
+
+                default:
+                    null
             },
 
 
             amount: {
-                type: Number,
-                required: true,
-                min: 1
+
+                type:
+                    Number,
+
+                required:
+                    true,
+
+                min:
+                    0
             },
 
 
             currency: {
-                type: String,
-                default: "AOA",
-                enum: [
-                    "AOA"
-                ]
-            },
 
+                type:
+                    String,
 
-            selectedBankAccountId: {
-                type: Schema.Types.ObjectId,
-                ref: "BankAccount",
-                default: null
-            },
+                uppercase:
+                    true,
 
+                default:
+                    "AOA",
 
-            paymentMethod: {
-                type: String,
-                enum: [
-                    "bank_transfer",
-                    "cash",
-                    "other"
-                ],
-                default: "bank_transfer"
+                maxlength:
+                    10
             },
 
 
             status: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
+
                     "draft",
+
                     "pending",
-                    "receipt_submitted",
-                    "under_review",
+
                     "paid",
-                    "rejected",
+
                     "expired",
-                    "cancelled"
+
+                    "cancelled",
+
+                    "failed"
                 ],
-                default: "pending",
-                index: true
+
+                default:
+                    "pending",
+
+                index:
+                    true
+            },
+
+
+            paymentMethod: {
+
+                type:
+                    String,
+
+                default:
+                    null
+            },
+
+
+            bankAccountId: {
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "BankAccount",
+
+                default:
+                    null
             },
 
 
             expiresAt: {
-                type: Date,
-                default: null,
-                index: true
+
+                type:
+                    Date,
+
+                default:
+                    null,
+
+                index:
+                    true
             },
 
 
             paidAt: {
-                type: Date,
-                default: null
+
+                type:
+                    Date,
+
+                default:
+                    null
             },
 
 
             cancelledAt: {
-                type: Date,
-                default: null
+
+                type:
+                    Date,
+
+                default:
+                    null
             },
 
 
             metadata: {
-                type: Schema.Types.Mixed,
-                default: {}
+
+                type:
+                    Schema.Types.Mixed,
+
+                default:
+                    {}
             }
+
         },
-
-        timestamps
-    );
-
-
-invoiceSchema.index({
-    merchantId: 1,
-    createdAt: -1
-});
-
-
-invoiceSchema.index({
-    merchantId: 1,
-    status: 1,
-    createdAt: -1
-});
-
-
-/*
-============================================================
-CUSTOMER
-============================================================
-*/
-
-const customerSchema =
-    new Schema(
 
         {
 
-            merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                index: true
-            },
+            timestamps:
+                true,
 
-
-            name: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 150
-            },
-
-
-            phone: {
-                type: String,
-                trim: true,
-                maxlength: 30
-            },
-
-
-            email: {
-                type: String,
-                trim: true,
-                maxlength: 200
-            }
-        },
-
-        timestamps
+            collection:
+                "invoices"
+        }
     );
 
 
-customerSchema.index({
-    merchantId: 1,
-    phone: 1
-});
+invoiceSchema.index(
+    {
+        merchantId:
+            1,
+
+        createdAt:
+            -1
+    }
+);
+
+
+invoiceSchema.index(
+    {
+        merchantId:
+            1,
+
+        status:
+            1
+    }
+);
 
 
 /*
 ============================================================
 PAYMENT
-============================================================
-
-Representa a tentativa de pagamento.
-
-IMPORTANTE:
-
-A criação deste documento NÃO significa que o dinheiro
-foi confirmado.
-
-A confirmação somente ocorrerá depois do processo de
-verificação definido pelo Honey Shield.
 ============================================================
 */
 
@@ -596,113 +825,159 @@ const paymentSchema =
         {
 
             merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Merchant",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             invoiceId: {
-                type: Schema.Types.ObjectId,
-                ref: "Invoice",
-                required: true,
-                index: true
-            },
 
+                type:
+                    Schema.Types.ObjectId,
 
-            bankAccountId: {
-                type: Schema.Types.ObjectId,
-                ref: "BankAccount",
-                default: null
+                ref:
+                    "Invoice",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             amount: {
-                type: Number,
-                required: true,
-                min: 1
+
+                type:
+                    Number,
+
+                required:
+                    true,
+
+                min:
+                    0
             },
 
 
             currency: {
-                type: String,
-                default: "AOA",
-                enum: [
+
+                type:
+                    String,
+
+                uppercase:
+                    true,
+
+                default:
                     "AOA"
-                ]
             },
 
 
             status: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
-                    "submitted",
-                    "processing",
+
+                    "pending",
+
                     "confirmed",
-                    "rejected",
-                    "cancelled"
+
+                    "failed",
+
+                    "refunded"
                 ],
-                default: "submitted",
-                index: true
+
+                default:
+                    "pending",
+
+                index:
+                    true
             },
 
 
-            submittedAt: {
-                type: Date,
-                default: Date.now
+            method: {
+
+                type:
+                    String,
+
+                default:
+                    null
             },
 
 
-            confirmedAt: {
-                type: Date,
-                default: null
+            transactionReference: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    180,
+
+                default:
+                    null
             },
 
 
-            rejectedAt: {
-                type: Date,
-                default: null
+            paidAt: {
+
+                type:
+                    Date,
+
+                default:
+                    null
             },
 
 
-            rejectionReason: {
-                type: String,
-                trim: true,
-                maxlength: 500
+            metadata: {
+
+                type:
+                    Schema.Types.Mixed,
+
+                default:
+                    {}
             }
+
         },
 
-        timestamps
+        {
+
+            timestamps:
+                true,
+
+            collection:
+                "payments"
+        }
     );
 
 
-paymentSchema.index({
-    merchantId: 1,
-    createdAt: -1
-});
+paymentSchema.index(
+    {
+        merchantId:
+            1,
 
-
-paymentSchema.index({
-    invoiceId: 1,
-    createdAt: -1
-});
+        createdAt:
+            -1
+    }
+);
 
 
 /*
 ============================================================
 RECEIPT
-============================================================
-
-Comprovativo enviado pelo comprador.
-
-O sistema guarda um hash criptográfico do arquivo.
-
-Esse hash será fundamental para detectar:
-
-- mesmo arquivo enviado novamente
-- reutilização de comprovativo
-- tentativa de fraude
 ============================================================
 */
 
@@ -712,135 +987,150 @@ const receiptSchema =
         {
 
             merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Merchant",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             invoiceId: {
-                type: Schema.Types.ObjectId,
-                ref: "Invoice",
-                required: true,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Invoice",
+
+                required:
+                    true,
+
+                index:
+                    true
             },
 
 
             paymentId: {
-                type: Schema.Types.ObjectId,
-                ref: "Payment",
-                default: null,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Payment",
+
+                default:
+                    null
             },
 
 
-            originalFileName: {
-                type: String,
-                trim: true,
-                maxlength: 255
+            receiptNumber: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    100,
+
+                default:
+                    null
+            },
+
+
+            fileId: {
+
+                type:
+                    Schema.Types.ObjectId,
+
+                default:
+                    null
+            },
+
+
+            fileName: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    255,
+
+                default:
+                    null
             },
 
 
             mimeType: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 100
-            },
 
+                type:
+                    String,
 
-            fileSize: {
-                type: Number,
-                required: true,
-                min: 1
-            },
+                trim:
+                    true,
 
+                maxlength:
+                    120,
 
-            storagePath: {
-                type: String,
-                required: true,
-                trim: true,
-                maxlength: 1000,
-                select: false
-            },
-
-
-            fileHash: {
-                type: String,
-                required: true,
-                trim: true,
-                lowercase: true,
-                index: true
+                default:
+                    null
             },
 
 
             status: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
-                    "uploaded",
-                    "processing",
-                    "accepted",
-                    "rejected",
-                    "duplicate",
-                    "fraud_suspected"
+
+                    "pending",
+
+                    "approved",
+
+                    "rejected"
                 ],
-                default: "uploaded",
-                index: true
+
+                default:
+                    "pending",
+
+                index:
+                    true
             },
 
 
-            verificationScore: {
-                type: Number,
-                min: 0,
-                max: 100,
-                default: null
-            },
+            metadata: {
 
+                type:
+                    Schema.Types.Mixed,
 
-            verificationNotes: {
-                type: String,
-                trim: true,
-                maxlength: 2000
-            },
-
-
-            submittedIpHash: {
-                type: String,
-                trim: true,
-                maxlength: 128,
-                select: false
-            },
-
-
-            verifiedAt: {
-                type: Date,
-                default: null
+                default:
+                    {}
             }
+
         },
 
-        timestamps
+        {
+
+            timestamps:
+                true,
+
+            collection:
+                "receipts"
+        }
     );
-
-
-/*
-------------------------------------------------------------
-O mesmo hash não pode ser aceite repetidamente.
-
-O índice permite encontrar rapidamente um comprovativo
-já conhecido.
-------------------------------------------------------------
-*/
-
-receiptSchema.index({
-    merchantId: 1,
-    fileHash: 1
-});
-
-
-receiptSchema.index({
-    fileHash: 1
-});
 
 
 /*
@@ -855,145 +1145,193 @@ const subscriptionSchema =
         {
 
             merchantId: {
-                type: Schema.Types.ObjectId,
-                ref: "Merchant",
-                required: true,
-                unique: true,
-                index: true
+
+                type:
+                    Schema.Types.ObjectId,
+
+                ref:
+                    "Merchant",
+
+                required:
+                    true,
+
+                unique:
+                    true,
+
+                index:
+                    true
             },
 
 
             plan: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
+
                     "free",
-                    "pro"
+
+                    "pro",
+
+                    "business"
                 ],
-                default: "free",
-                index: true
+
+                default:
+                    "free"
             },
 
 
             status: {
-                type: String,
+
+                type:
+                    String,
+
                 enum: [
+
                     "active",
+
+                    "inactive",
+
                     "past_due",
+
                     "cancelled",
-                    "expired"
+
+                    "trial"
                 ],
-                default: "active",
-                index: true
+
+                default:
+                    "active"
             },
 
 
-            monthlyPriceKz: {
-                type: Number,
-                default: 0,
-                min: 0
+            startedAt: {
+
+                type:
+                    Date,
+
+                default:
+                    Date.now
             },
 
 
-            currentPeriodStart: {
-                type: Date,
-                default: null
-            },
+            expiresAt: {
 
+                type:
+                    Date,
 
-            currentPeriodEnd: {
-                type: Date,
-                default: null
-            },
-
-
-            autoRenew: {
-                type: Boolean,
-                default: true
-            },
-
-
-            activatedAt: {
-                type: Date,
-                default: null
+                default:
+                    null
             },
 
 
             cancelledAt: {
-                type: Date,
-                default: null
+
+                type:
+                    Date,
+
+                default:
+                    null
+            },
+
+
+            metadata: {
+
+                type:
+                    Schema.Types.Mixed,
+
+                default:
+                    {}
             }
+
         },
 
-        timestamps
+        {
+
+            timestamps:
+                true,
+
+            collection:
+                "subscriptions"
+        }
     );
 
 
 /*
 ============================================================
-EXPORT MODELS
-============================================================
-
-Utilizamos models existentes quando o processo for
-recarregado, evitando o erro:
-
-OverwriteModelError
+MODEL REGISTRATION
 ============================================================
 */
 
-export const Merchant =
-    models.Merchant ||
-    model(
+const Merchant =
+    mongoose.models.Merchant ||
+    mongoose.model(
         "Merchant",
         merchantSchema
     );
 
 
-export const BankAccount =
-    models.BankAccount ||
-    model(
+const BankAccount =
+    mongoose.models.BankAccount ||
+    mongoose.model(
         "BankAccount",
         bankAccountSchema
     );
 
 
-export const Customer =
-    models.Customer ||
-    model(
-        "Customer",
-        customerSchema
-    );
-
-
-export const Invoice =
-    models.Invoice ||
-    model(
+const Invoice =
+    mongoose.models.Invoice ||
+    mongoose.model(
         "Invoice",
         invoiceSchema
     );
 
 
-export const Payment =
-    models.Payment ||
-    model(
+const Payment =
+    mongoose.models.Payment ||
+    mongoose.model(
         "Payment",
         paymentSchema
     );
 
 
-export const Receipt =
-    models.Receipt ||
-    model(
+const Receipt =
+    mongoose.models.Receipt ||
+    mongoose.model(
         "Receipt",
         receiptSchema
     );
 
 
-export const Subscription =
-    models.Subscription ||
-    model(
+const Subscription =
+    mongoose.models.Subscription ||
+    mongoose.model(
         "Subscription",
         subscriptionSchema
     );
+
+
+/*
+============================================================
+EXPORTS
+============================================================
+*/
+
+export {
+
+    Merchant,
+
+    BankAccount,
+
+    Invoice,
+
+    Payment,
+
+    Receipt,
+
+    Subscription
+
+};
 
 
 /*
@@ -1008,8 +1346,6 @@ export default {
 
     BankAccount,
 
-    Customer,
-
     Invoice,
 
     Payment,
@@ -1017,4 +1353,5 @@ export default {
     Receipt,
 
     Subscription
+
 };
