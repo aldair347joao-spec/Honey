@@ -2,40 +2,35 @@
 ============================================================
 HONEY PAY
 FRONTEND APPLICATION
-V1.0.0
+V2.0.0
+OPERATIONAL MERCHANT CONSOLE
 ============================================================
 
 RESPONSABILIDADES
 ------------------------------------------------------------
 
-- Inicialização da aplicação
-- Autenticação da sessão
-- Comunicação segura com /api
-- Navegação SPA
+- Sessão JWT
 - Perfil do comerciante
-- Plano/subscrição
+- Dashboard real
+- Faturas
+- Criação de faturas
+- Cancelamento de faturas
 - Contas bancárias
 - Comprovativos
-- Dashboard
-- Logout
-- Estados de carregamento
+- Aprovação/rejeição de comprovativos
+- Plano e subscrição
+- Checkout público
+- Navegação SPA
+- Modais
 - Toasts
+- Estados de carregamento
 - Tratamento de erros
-- Proteção contra respostas inválidas
-
-SEGURANÇA
-------------------------------------------------------------
-
-- Nenhuma chave BitPay no frontend
-- Nenhum segredo do servidor no frontend
-- Apenas chamadas para /api
-- Token somente para autenticação
-- Todas as operações financeiras continuam no backend
+- Segurança de apresentação
 
 SEPARAÇÃO FINANCEIRA
 ------------------------------------------------------------
 
-HONEY PAY SUBSCRIPTION
+SUBSCRIÇÃO HONEY PAY
     Comerciante
         ↓
     Honey Pay
@@ -47,7 +42,7 @@ HONEY PAY SUBSCRIPTION
 PAGAMENTO DO CLIENTE DO COMERCIANTE
     Cliente
         ↓
-    Checkout Honey Pay
+    Fatura Honey Pay
         ↓
     Banco escolhido
         ↓
@@ -55,9 +50,9 @@ PAGAMENTO DO CLIENTE DO COMERCIANTE
         ↓
     Comprovativo
         ↓
-    Confirmação do comerciante
+    Comerciante verifica
 
-O BitPay NÃO é utilizado no segundo fluxo.
+BITPAY NÃO PARTICIPA NO SEGUNDO FLUXO.
 
 ============================================================
 */
@@ -72,93 +67,70 @@ CONFIGURATION
 ============================================================
 */
 
-const API_BASE =
-    "/api";
+const API_BASE = "/api";
 
-
-const TOKEN_KEY =
-    "honey_pay_token";
-
+const TOKEN_KEY = "honey_pay_token";
 
 const LEGACY_TOKEN_KEYS = [
-
     "honey_token",
-
     "token",
-
     "accessToken",
-
     "access_token"
-
 ];
 
+const DEFAULT_VIEW = "dashboard";
 
-const DEFAULT_VIEW =
-    "dashboard";
-
-
-const REQUEST_TIMEOUT =
-    30000;
+const REQUEST_TIMEOUT = 30000;
 
 
 /*
 ============================================================
-APPLICATION STATE
+STATE
 ============================================================
 */
 
 const state = {
 
-    initialized:
-        false,
+    initialized: false,
 
-    loading:
-        false,
+    loading: false,
 
-    authenticated:
-        false,
+    authenticated: false,
 
-    token:
-        null,
+    token: null,
 
-    merchant:
-        null,
+    merchant: null,
 
-    plan:
-        null,
+    subscription: null,
 
-    bankAccounts:
-        [],
+    plan: null,
 
-    proofs:
-        [],
+    invoices: [],
 
-    currentView:
-        DEFAULT_VIEW,
+    invoiceStatistics: null,
 
-    notifications:
-        [],
+    bankAccounts: [],
 
-    requestControllers:
-        new Map(),
+    proofs: [],
 
-    requestCounter:
-        0
+    currentView: DEFAULT_VIEW,
+
+    requestControllers: new Map(),
+
+    requestCounter: 0
 
 };
 
 
 /*
 ============================================================
-DOM HELPERS
+DOM
 ============================================================
 */
 
 function $(selector) {
 
-    return document.querySelector(
-        selector
-    );
+    return document.querySelector(selector);
 
 }
 
@@ -166,97 +138,60 @@ function $(selector) {
 function $$(selector) {
 
     return Array.from(
-        document.querySelectorAll(
-            selector
-        )
+        document.querySelectorAll(selector)
     );
 
 }
 
 
-function getElement(
-    id
-) {
+function getElement(id) {
 
-    return document.getElementById(
-        id
-    );
+    return document.getElementById(id);
 
 }
 
 
 /*
 ============================================================
-SAFE TEXT
+ESCAPE HTML
 ============================================================
 */
 
-function escapeHtml(
-    value
-) {
+function escapeHtml(value) {
 
-    return String(
-        value ??
-        ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
 }
 
 
 /*
 ============================================================
-TOKEN MANAGEMENT
+TOKEN
 ============================================================
 */
 
 function getStoredToken() {
 
-    let token =
-        localStorage.getItem(
-            TOKEN_KEY
-        );
+    const current =
+        localStorage.getItem(TOKEN_KEY);
 
-    if (
-        token
-    ) {
+    if (current) {
 
-        return token;
+        return current;
 
     }
 
-
-    for (
-        const key of LEGACY_TOKEN_KEYS
-    ) {
+    for (const key of LEGACY_TOKEN_KEYS) {
 
         const legacy =
-            localStorage.getItem(
-                key
-            );
+            localStorage.getItem(key);
 
-        if (
-            legacy
-        ) {
+        if (legacy) {
 
             localStorage.setItem(
                 TOKEN_KEY,
@@ -269,49 +204,32 @@ function getStoredToken() {
 
     }
 
-
     return null;
 
 }
 
 
-function setToken(
-    token
-) {
+function setToken(token) {
 
     if (
-        !token ||
-        typeof token !==
-        "string"
+        typeof token !== "string" ||
+        !token.trim()
     ) {
 
         return false;
 
     }
-
 
     const normalized =
         token.trim();
-
-
-    if (
-        !normalized
-    ) {
-
-        return false;
-
-    }
-
 
     localStorage.setItem(
         TOKEN_KEY,
         normalized
     );
 
-
     state.token =
         normalized;
-
 
     return true;
 
@@ -324,127 +242,13 @@ function clearToken() {
         TOKEN_KEY
     );
 
+    for (const key of LEGACY_TOKEN_KEYS) {
 
-    for (
-        const key of LEGACY_TOKEN_KEYS
-    ) {
-
-        localStorage.removeItem(
-            key
-        );
+        localStorage.removeItem(key);
 
     }
 
-
-    state.token =
-        null;
-
-}
-
-
-/*
-============================================================
-TOKEN EXTRACTION
-============================================================
-*/
-
-function extractToken(
-    payload
-) {
-
-    if (
-        !payload
-    ) {
-
-        return null;
-
-    }
-
-
-    const candidates = [
-
-        payload.token,
-
-        payload.accessToken,
-
-        payload.access_token,
-
-        payload.data?.token,
-
-        payload.data?.accessToken,
-
-        payload.data?.access_token,
-
-        payload.result?.token,
-
-        payload.result?.accessToken,
-
-        payload.result?.access_token
-
-    ];
-
-
-    for (
-        const candidate of candidates
-    ) {
-
-        if (
-            typeof candidate ===
-            "string" &&
-            candidate.trim()
-        ) {
-
-            return candidate.trim();
-
-        }
-
-    }
-
-
-    return null;
-
-}
-
-
-/*
-============================================================
-REQUEST ID
-============================================================
-*/
-
-function createRequestId() {
-
-    state.requestCounter += 1;
-
-
-    return (
-
-        Date.now()
-            .toString(36)
-
-        +
-
-        "-"
-
-        +
-
-        state.requestCounter
-            .toString(36)
-
-        +
-
-        "-"
-
-        +
-
-        Math.random()
-            .toString(36)
-            .slice(
-                2,
-                10
-            )
-
-    );
+    state.token = null;
 
 }
 
@@ -465,24 +269,13 @@ class ApiError extends Error {
         requestId = null
     ) {
 
-        super(
-            message
-        );
+        super(message);
 
-        this.name =
-            "ApiError";
-
-        this.status =
-            status;
-
-        this.code =
-            code;
-
-        this.details =
-            details;
-
-        this.requestId =
-            requestId;
+        this.name = "ApiError";
+        this.status = status;
+        this.code = code;
+        this.details = details;
+        this.requestId = requestId;
 
     }
 
@@ -491,7 +284,32 @@ class ApiError extends Error {
 
 /*
 ============================================================
-RESPONSE MESSAGE
+REQUEST ID
+============================================================
+*/
+
+function createRequestId() {
+
+    state.requestCounter += 1;
+
+    return (
+
+        Date.now().toString(36) +
+        "-" +
+        state.requestCounter.toString(36) +
+        "-" +
+        Math.random()
+            .toString(36)
+            .slice(2, 10)
+
+    );
+
+}
+
+
+/*
+============================================================
+API RESPONSE
 ============================================================
 */
 
@@ -500,53 +318,37 @@ function getResponseMessage(
     fallback
 ) {
 
-    if (
-        typeof payload?.message ===
-        "string" &&
-        payload.message.trim()
-    ) {
+    const messages = [
 
-        return payload.message;
+        payload?.message,
 
-    }
+        payload?.error?.message,
 
+        payload?.data?.message,
 
-    if (
-        typeof payload?.error?.message ===
-        "string" &&
-        payload.error.message.trim()
-    ) {
+        payload?.result?.message
 
-        return payload.error.message;
+    ];
 
-    }
+    for (const message of messages) {
 
+        if (
+            typeof message === "string" &&
+            message.trim()
+        ) {
 
-    if (
-        typeof payload?.data?.message ===
-        "string" &&
-        payload.data.message.trim()
-    ) {
+            return message.trim();
 
-        return payload.data.message;
+        }
 
     }
-
 
     return fallback;
 
 }
 
 
-/*
-============================================================
-NORMALIZE API DATA
-============================================================
-*/
-
-function extractData(
-    payload
-) {
+function extractData(payload) {
 
     if (
         payload &&
@@ -560,7 +362,6 @@ function extractData(
 
     }
 
-
     if (
         payload &&
         Object.prototype.hasOwnProperty.call(
@@ -572,7 +373,6 @@ function extractData(
         return payload.result;
 
     }
-
 
     return payload;
 
@@ -593,94 +393,61 @@ async function apiRequest(
     const requestId =
         createRequestId();
 
-
     const method =
         String(
-            options.method ||
-            "GET"
+            options.method || "GET"
         ).toUpperCase();
-
 
     const controller =
         new AbortController();
 
-
     const timeout =
         setTimeout(
-            () => {
-
-                controller.abort();
-
-            },
+            () => controller.abort(),
             REQUEST_TIMEOUT
         );
-
 
     state.requestControllers.set(
         requestId,
         controller
     );
 
-
     const headers = {
 
         Accept:
             "application/json",
 
-        ...(options.headers ||
-            {})
+        ...(options.headers || {})
 
     };
 
+    let body =
+        options.body;
 
     if (
-        options.body !==
-        undefined &&
-        !(options.body instanceof FormData)
+        body !== undefined &&
+        !(body instanceof FormData) &&
+        typeof body !== "string"
     ) {
 
-        headers[
-            "Content-Type"
-        ] =
+        headers["Content-Type"] =
             "application/json";
 
-    }
+        body =
+            JSON.stringify(body);
 
+    }
 
     const token =
         state.token ||
         getStoredToken();
 
-
-    if (
-        token
-    ) {
+    if (token) {
 
         headers.Authorization =
             `Bearer ${token}`;
 
     }
-
-
-    let body =
-        options.body;
-
-
-    if (
-        body !==
-        undefined &&
-        !(body instanceof FormData) &&
-        typeof body !==
-        "string"
-    ) {
-
-        body =
-            JSON.stringify(
-                body
-            );
-
-    }
-
 
     try {
 
@@ -707,17 +474,12 @@ async function apiRequest(
                 }
             );
 
-
         const contentType =
             response.headers.get(
                 "content-type"
-            ) ||
-            "";
+            ) || "";
 
-
-        let payload =
-            null;
-
+        let payload = null;
 
         if (
             contentType.includes(
@@ -730,53 +492,32 @@ async function apiRequest(
                 payload =
                     await response.json();
 
-            }
+            } catch {
 
-            catch {
-
-                payload =
-                    null;
+                payload = null;
 
             }
 
-        }
-
-        else {
+        } else {
 
             const text =
                 await response.text();
 
-
-            if (
+            payload =
                 text
-            ) {
-
-                payload = {
-
-                    message:
-                        text
-
-                };
-
-            }
+                    ? { message: text }
+                    : null;
 
         }
 
-
-        if (
-            !response.ok
-        ) {
-
-            const message =
-                getResponseMessage(
-                    payload,
-                    `Pedido recusado (${response.status}).`
-                );
-
+        if (!response.ok) {
 
             throw new ApiError(
 
-                message,
+                getResponseMessage(
+                    payload,
+                    `Pedido recusado (${response.status}).`
+                ),
 
                 response.status,
 
@@ -797,14 +538,9 @@ async function apiRequest(
 
         }
 
-
         return payload;
 
-    }
-
-    catch (
-        error
-    ) {
+    } catch (error) {
 
         if (
             error instanceof ApiError
@@ -814,47 +550,30 @@ async function apiRequest(
 
         }
 
-
         if (
             error?.name ===
             "AbortError"
         ) {
 
             throw new ApiError(
-
                 "O pedido demorou demasiado tempo. Tente novamente.",
-
                 408,
-
                 "REQUEST_TIMEOUT"
-
             );
 
         }
 
-
         throw new ApiError(
-
             "Não foi possível comunicar com o servidor.",
-
             0,
-
             "NETWORK_ERROR",
-
             null,
-
             requestId
-
         );
 
-    }
+    } finally {
 
-    finally {
-
-        clearTimeout(
-            timeout
-        );
-
+        clearTimeout(timeout);
 
         state.requestControllers.delete(
             requestId
@@ -871,36 +590,26 @@ LOADING
 ============================================================
 */
 
-function setGlobalLoading(
-    active
-) {
+function setGlobalLoading(active) {
 
     state.loading =
-        Boolean(
-            active
-        );
+        Boolean(active);
 
-
-    const element =
+    const loader =
         $(".global-loading");
 
-
-    if (
-        !element
-    ) {
+    if (!loader) {
 
         return;
 
     }
 
+    loader.hidden =
+        !state.loading;
 
-    element.hidden =
-        !active;
-
-
-    element.setAttribute(
+    loader.setAttribute(
         "aria-hidden",
-        active
+        state.loading
             ? "false"
             : "true"
     );
@@ -914,105 +623,9 @@ TOAST
 ============================================================
 */
 
-function showToast(
-    message,
-    type = "info"
-) {
+function getToastTitle(type) {
 
-    const container =
-        $(".toast-container");
-
-
-    if (
-        !container
-    ) {
-
-        return;
-
-    }
-
-
-    const toast =
-        document.createElement(
-            "div"
-        );
-
-
-    toast.className =
-        `toast toast-${escapeHtml(type)}`;
-
-
-    toast.innerHTML = `
-
-        <div class="toast-content">
-
-            <strong>
-                ${escapeHtml(
-                    getToastTitle(
-                        type
-                    )
-                )}
-            </strong>
-
-            <span>
-                ${escapeHtml(
-                    message
-                )}
-            </span>
-
-        </div>
-
-        <button
-            type="button"
-            class="toast-close"
-            aria-label="Fechar"
-        >
-            ×
-        </button>
-
-    `;
-
-
-    const closeButton =
-        toast.querySelector(
-            ".toast-close"
-        );
-
-
-    closeButton?.addEventListener(
-        "click",
-        () => {
-
-            toast.remove();
-
-        }
-    );
-
-
-    container.appendChild(
-        toast
-    );
-
-
-    setTimeout(
-        () => {
-
-            toast.remove();
-
-        },
-        5000
-    );
-
-}
-
-
-function getToastTitle(
-    type
-) {
-
-    switch (
-        type
-    ) {
+    switch (type) {
 
         case "success":
             return "Concluído";
@@ -1031,9 +644,72 @@ function getToastTitle(
 }
 
 
+function showToast(
+    message,
+    type = "info"
+) {
+
+    const container =
+        $(".toast-container");
+
+    if (!container) {
+
+        return;
+
+    }
+
+    const toast =
+        document.createElement("div");
+
+    toast.className =
+        `toast toast-${type}`;
+
+    toast.innerHTML = `
+
+        <div class="toast-content">
+
+            <strong>
+                ${escapeHtml(
+                    getToastTitle(type)
+                )}
+            </strong>
+
+            <span>
+                ${escapeHtml(message)}
+            </span>
+
+        </div>
+
+        <button
+            type="button"
+            class="toast-close"
+            aria-label="Fechar"
+        >
+            ×
+        </button>
+
+    `;
+
+    toast
+        .querySelector(".toast-close")
+        ?.addEventListener(
+            "click",
+            () => toast.remove()
+        );
+
+    container.appendChild(toast);
+
+    setTimeout(
+        () => toast.remove(),
+        5000
+    );
+
+}
+
+
 /*
 ============================================================
-ERROR HANDLER
+ERROR HANDLING
 ============================================================
 */
 
@@ -1043,34 +719,26 @@ function handleError(
 ) {
 
     console.error(
-        "[HONEY PAY FRONTEND]",
+        "[HONEY PAY]",
         error
     );
-
 
     if (
         error instanceof ApiError &&
         (
-            error.status ===
-            401 ||
-            error.status ===
-            403
+            error.status === 401 ||
+            error.status === 403
         )
     ) {
 
-        state.authenticated =
-            false;
-
-        state.merchant =
-            null;
-
         clearToken();
 
+        state.authenticated = false;
+        state.merchant = null;
+        state.subscription = null;
+        state.plan = null;
 
-        if (
-            options.silentAuth !==
-            true
-        ) {
+        if (!options.silentAuth) {
 
             showToast(
                 "A sua sessão terminou. Entre novamente.",
@@ -1079,28 +747,20 @@ function handleError(
 
         }
 
-
         return;
 
     }
 
-
-    if (
-        options.silent
-    ) {
+    if (options.silent) {
 
         return;
 
     }
-
 
     showToast(
-
         error?.message ||
         "Ocorreu um erro inesperado.",
-
         "error"
-
     );
 
 }
@@ -1116,9 +776,9 @@ function getMerchantName() {
 
     return (
 
-        state.merchant?.name ||
-
         state.merchant?.businessName ||
+
+        state.merchant?.name ||
 
         state.merchant?.companyName ||
 
@@ -1146,62 +806,37 @@ function getMerchantEmail() {
 }
 
 
-function getInitials(
-    name
-) {
+function getInitials(name) {
 
     const value =
-        String(
-            name ||
-            "HP"
-        )
+        String(name || "HP")
             .trim();
 
-
-    if (
-        !value
-    ) {
+    if (!value) {
 
         return "HP";
 
     }
 
-
     const parts =
         value
-            .split(
-                /\s+/
-            )
-            .filter(
-                Boolean
-            );
+            .split(/\s+/)
+            .filter(Boolean);
 
-
-    if (
-        parts.length ===
-        1
-    ) {
+    if (parts.length === 1) {
 
         return parts[0]
-            .slice(
-                0,
-                2
-            )
+            .slice(0, 2)
             .toUpperCase();
 
     }
 
-
     return (
 
         parts[0][0] +
+        parts[parts.length - 1][0]
 
-        parts[
-            parts.length - 1
-        ][0]
-
-    )
-        .toUpperCase();
+    ).toUpperCase();
 
 }
 
@@ -1211,48 +846,30 @@ function renderMerchantProfile() {
     const name =
         getMerchantName();
 
-
     const email =
         getMerchantEmail();
 
-
-    $$(
-        "[data-merchant-name]"
-    )
+    $$("[data-merchant-name]")
         .forEach(
             element => {
-
                 element.textContent =
                     name;
-
             }
         );
 
-
-    $$(
-        "[data-merchant-email]"
-    )
+    $$("[data-merchant-email]")
         .forEach(
             element => {
-
                 element.textContent =
                     email;
-
             }
         );
 
-
-    $$(
-        "[data-merchant-initials]"
-    )
+    $$("[data-merchant-initials]")
         .forEach(
             element => {
-
                 element.textContent =
-                    getInitials(
-                        name
-                    );
-
+                    getInitials(name);
             }
         );
 
@@ -1261,7 +878,7 @@ function renderMerchantProfile() {
 
 /*
 ============================================================
-AUTHENTICATED PROFILE
+AUTH
 ============================================================
 */
 
@@ -1272,29 +889,31 @@ async function loadMerchantProfile() {
             "/auth/me"
         );
 
-
     const data =
-        extractData(
-            response
-        );
-
+        extractData(response);
 
     state.merchant =
         data?.merchant ||
         data?.user ||
         data?.profile ||
-        data ||
         null;
 
+    state.subscription =
+        data?.subscription ||
+        null;
+
+    state.plan =
+        data?.plan ||
+        null;
 
     state.authenticated =
         true;
 
-
     renderMerchantProfile();
 
+    renderPlan();
 
-    return state.merchant;
+    return data;
 
 }
 
@@ -1305,43 +924,16 @@ PLAN
 ============================================================
 */
 
-function normalizePlan(
-    data
-) {
+function formatDate(value) {
 
-    return (
-
-        data?.plan ||
-
-        data?.subscription ||
-
-        data ||
-
-        {}
-
-    );
-
-}
-
-
-function formatDate(
-    value
-) {
-
-    if (
-        !value
-    ) {
+    if (!value) {
 
         return "—";
 
     }
 
-
     const date =
-        new Date(
-            value
-        );
-
+        new Date(value);
 
     if (
         Number.isNaN(
@@ -1349,31 +941,59 @@ function formatDate(
         )
     ) {
 
-        return String(
-            value
-        );
+        return String(value);
 
     }
-
 
     return new Intl.DateTimeFormat(
         "pt-PT",
         {
 
-            day:
-                "2-digit",
+            day: "2-digit",
 
-            month:
-                "2-digit",
+            month: "2-digit",
 
-            year:
-                "numeric"
+            year: "numeric"
 
         }
-    )
-        .format(
-            date
-        );
+    ).format(date);
+
+}
+
+
+function formatDateTime(value) {
+
+    if (!value) {
+
+        return "—";
+
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(value);
+
+    }
+
+    return new Intl.DateTimeFormat(
+        "pt-PT",
+        {
+
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+
+        }
+    ).format(date);
 
 }
 
@@ -1384,25 +1004,18 @@ function formatMoney(
 ) {
 
     const numeric =
-        Number(
-            amount
-        );
-
+        Number(amount);
 
     if (
-        !Number.isFinite(
-            numeric
-        )
+        !Number.isFinite(numeric)
     ) {
 
         return "0 Kz";
 
     }
 
-
     if (
-        currency ===
-        "AOA"
+        currency === "AOA"
     ) {
 
         return (
@@ -1410,13 +1023,10 @@ function formatMoney(
             new Intl.NumberFormat(
                 "pt-PT",
                 {
-                    maximumFractionDigits:
-                        2
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
                 }
-            )
-                .format(
-                    numeric
-                )
+            ).format(numeric)
 
             +
 
@@ -1426,31 +1036,71 @@ function formatMoney(
 
     }
 
-
     try {
 
         return new Intl.NumberFormat(
             "pt-PT",
             {
 
-                style:
-                    "currency",
+                style: "currency",
 
                 currency
 
             }
-        )
-            .format(
-                numeric
-            );
+        ).format(numeric);
 
-    }
-
-    catch {
+    } catch {
 
         return `${numeric} ${currency}`;
 
     }
+
+}
+
+
+function normalizeStatusLabel(status) {
+
+    const value =
+        String(status || "")
+            .toLowerCase();
+
+    const labels = {
+
+        active: "Ativo",
+
+        inactive: "Inativo",
+
+        pending: "Pendente",
+
+        approved: "Aprovado",
+
+        confirmed: "Confirmado",
+
+        rejected: "Rejeitado",
+
+        verified: "Verificado",
+
+        submitted: "Enviado",
+
+        paid: "Pago",
+
+        unpaid: "Por pagar",
+
+        cancelled: "Cancelado",
+
+        expired: "Expirado",
+
+        overdue: "Em atraso",
+
+        draft: "Rascunho"
+
+    };
+
+    return (
+        labels[value] ||
+        status ||
+        "—"
+    );
 
 }
 
@@ -1462,23 +1112,21 @@ async function loadPlan() {
             "/auth/plan"
         );
 
-
     const data =
-        extractData(
-            response
-        );
-
+        extractData(response);
 
     state.plan =
-        normalizePlan(
-            data
-        );
+        data?.plan ||
+        data ||
+        null;
 
+    state.subscription =
+        data?.subscription ||
+        state.subscription;
 
     renderPlan();
 
-
-    return state.plan;
+    return data;
 
 }
 
@@ -1486,102 +1134,100 @@ async function loadPlan() {
 function renderPlan() {
 
     const plan =
-        state.plan ||
-        {};
+        state.plan || {};
 
+    const subscription =
+        state.subscription || {};
 
     const name =
         plan.name ||
         plan.planName ||
-        plan.title ||
-        "Gratuito";
-
-
-    const status =
-        plan.status ||
-        plan.subscriptionStatus ||
-        "active";
-
-
-    const statusLabel =
-        normalizeStatusLabel(
-            status
+        (
+            plan.id === "pro"
+                ? "Profissional"
+                : "Gratuito"
         );
 
+    const status =
+        subscription.status ||
+        plan.status ||
+        "active";
+
+    const statusLabel =
+        normalizeStatusLabel(status);
 
     const nameElement =
         getElement(
             "current-plan-name"
         );
 
-
     const statusElement =
         getElement(
             "subscription-status"
         );
-
 
     const stateElement =
         getElement(
             "subscription-state"
         );
 
-
-    const nextBilling =
+    const billingElement =
         getElement(
             "subscription-next-billing"
         );
 
-
-    if (
-        nameElement
-    ) {
+    if (nameElement) {
 
         nameElement.textContent =
             name;
 
     }
 
-
-    if (
-        statusElement
-    ) {
+    if (statusElement) {
 
         statusElement.textContent =
             statusLabel;
 
     }
 
-
-    if (
-        stateElement
-    ) {
+    if (stateElement) {
 
         stateElement.textContent =
             statusLabel;
 
     }
 
+    if (billingElement) {
 
-    if (
-        nextBilling
-    ) {
-
-        nextBilling.textContent =
+        billingElement.textContent =
             formatDate(
-                plan.nextBillingAt ||
-                plan.nextBillingDate ||
-                plan.currentPeriodEnd
+                subscription.expiresAt ||
+                plan.currentPeriodEnd ||
+                plan.nextBillingAt
             );
 
     }
+
+    $$("[data-plan-price]")
+        .forEach(
+            element => {
+
+                element.textContent =
+                    plan.priceKz != null
+                        ? formatMoney(
+                            plan.priceKz
+                        )
+                        : "—";
+
+            }
+        );
 
 }
 
 
 /*
 ============================================================
-BANK ACCOUNTS
+GENERIC COLLECTION
 ============================================================
 */
 
@@ -1591,19 +1237,14 @@ function normalizeCollection(
 ) {
 
     if (
-        Array.isArray(
-            data
-        )
+        Array.isArray(data)
     ) {
 
         return data;
 
     }
 
-
-    for (
-        const key of keys
-    ) {
+    for (const key of keys) {
 
         if (
             Array.isArray(
@@ -1617,11 +1258,16 @@ function normalizeCollection(
 
     }
 
-
     return [];
 
 }
 
+
+/*
+============================================================
+BANK ACCOUNTS
+============================================================
+*/
 
 async function loadBankAccounts() {
 
@@ -1630,120 +1276,79 @@ async function loadBankAccounts() {
             "/bank-accounts"
         );
 
-
     const data =
-        extractData(
-            response
-        );
-
+        extractData(response);
 
     state.bankAccounts =
         normalizeCollection(
-
             data,
-
             [
                 "items",
                 "accounts",
                 "bankAccounts"
             ]
-
         );
-
 
     renderBankAccounts();
 
-
-    updateDashboardBankCount();
-
+    updateDashboardCounters();
 
     return state.bankAccounts;
 
 }
 
 
-function getBankAccountId(
-    account
-) {
+function getBankAccountId(account) {
 
     return (
-
         account?._id ||
-
         account?.id ||
-
         account?.accountId ||
-
         null
-
     );
 
 }
 
 
-function getBankName(
-    account
-) {
+function getBankName(account) {
 
     return (
-
         account?.bankName ||
-
         account?.bank ||
-
         "Banco"
-
     );
 
 }
 
 
-function getAccountName(
-    account
-) {
+function getAccountName(account) {
 
     return (
-
         account?.accountName ||
-
         account?.name ||
-
         "Conta bancária"
-
     );
 
 }
 
 
-function getHolderName(
-    account
-) {
+function getHolderName(account) {
 
     return (
-
         account?.holderName ||
-
         account?.accountHolder ||
-
         "Titular"
-
     );
 
 }
 
 
-function getIban(
-    account
-) {
+function getIban(account) {
 
     return (
-
         account?.iban ||
-
         account?.IBAN ||
-
         "—"
-
     );
 
 }
@@ -1756,15 +1361,11 @@ function renderBankAccounts() {
             "bank-accounts-content"
         );
 
-
-    if (
-        !container
-    ) {
+    if (!container) {
 
         return;
 
     }
-
 
     if (
         !state.bankAccounts.length
@@ -1783,209 +1384,171 @@ function renderBankAccounts() {
                 </h4>
 
                 <p>
-                    Adicione uma conta bancária para disponibilizá-la
-                    nas suas cobranças.
+                    Adicione a primeira conta bancária
+                    para começar a receber pagamentos.
                 </p>
 
             </div>
 
         `;
 
-
         return;
 
     }
 
-
     container.innerHTML =
         state.bankAccounts
-            .map(
-                account => {
+            .map(account => {
 
-                    const id =
-                        getBankAccountId(
-                            account
-                        );
+                const id =
+                    getBankAccountId(account);
 
+                const active =
+                    account.active !== false;
 
-                    const active =
-                        account.active !==
-                        false;
+                const primary =
+                    Boolean(
+                        account.isPrimary ||
+                        account.primary
+                    );
 
+                return `
 
-                    const primary =
-                        Boolean(
-                            account.isPrimary ||
-                            account.primary
-                        );
+                    <article
+                        class="bank-account-card"
+                        data-bank-account-id="${escapeHtml(id)}"
+                    >
 
+                        <div class="bank-account-card-header">
 
-                    return `
+                            <div>
 
-                        <article
-                            class="bank-account-card"
-                            data-bank-account-id="${escapeHtml(id)}"
-                        >
+                                <span class="bank-account-bank">
+                                    ${escapeHtml(
+                                        getBankName(account)
+                                    )}
+                                </span>
 
-                            <div class="bank-account-card-header">
+                                <h3>
+                                    ${escapeHtml(
+                                        getAccountName(account)
+                                    )}
+                                </h3>
 
-                                <div>
+                            </div>
 
-                                    <span class="bank-account-bank">
-                                        ${escapeHtml(
-                                            getBankName(
-                                                account
-                                            )
-                                        )}
-                                    </span>
+                            <div class="bank-account-badges">
 
-                                    <h3>
-                                        ${escapeHtml(
-                                            getAccountName(
-                                                account
-                                            )
-                                        )}
-                                    </h3>
+                                ${
+                                    primary
+                                        ? `
+                                            <span class="badge badge-primary">
+                                                Principal
+                                            </span>
+                                          `
+                                        : ""
+                                }
 
-                                </div>
-
-                                <div class="bank-account-badges">
+                                <span class="badge ${
+                                    active
+                                        ? "badge-success"
+                                        : "badge-muted"
+                                }">
 
                                     ${
-                                        primary
-                                            ? `
-                                                <span class="badge badge-primary">
-                                                    Principal
-                                                </span>
-                                              `
-                                            : ""
+                                        active
+                                            ? "Ativa"
+                                            : "Inativa"
                                     }
 
-                                    <span class="badge ${
-                                        active
-                                            ? "badge-success"
-                                            : "badge-muted"
-                                    }">
-
-                                        ${
-                                            active
-                                                ? "Ativa"
-                                                : "Inativa"
-                                        }
-
-                                    </span>
-
-                                </div>
+                                </span>
 
                             </div>
 
+                        </div>
 
-                            <div class="bank-account-details">
+                        <div class="bank-account-details">
 
-                                <div>
-
-                                    <span>
-                                        Titular
-                                    </span>
-
-                                    <strong>
-                                        ${escapeHtml(
-                                            getHolderName(
-                                                account
-                                            )
-                                        )}
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        IBAN
-                                    </span>
-
-                                    <strong>
-                                        ${escapeHtml(
-                                            getIban(
-                                                account
-                                            )
-                                        )}
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        Moeda
-                                    </span>
-
-                                    <strong>
-                                        ${escapeHtml(
-                                            account.currency ||
-                                            "AOA"
-                                        )}
-                                    </strong>
-
-                                </div>
-
+                            <div>
+                                <span>Titular</span>
+                                <strong>
+                                    ${escapeHtml(
+                                        getHolderName(account)
+                                    )}
+                                </strong>
                             </div>
 
-
-                            <div class="bank-account-actions">
-
-                                ${
-                                    !primary && id
-                                        ? `
-                                            <button
-                                                type="button"
-                                                class="button button-secondary"
-                                                data-bank-primary="${escapeHtml(id)}"
-                                            >
-                                                Tornar principal
-                                            </button>
-                                          `
-                                        : ""
-                                }
-
-
-                                ${
-                                    id
-                                        ? `
-                                            <button
-                                                type="button"
-                                                class="button button-secondary"
-                                                data-bank-toggle="${escapeHtml(id)}"
-                                                data-bank-active="${active}"
-                                            >
-                                                ${
-                                                    active
-                                                        ? "Desativar"
-                                                        : "Ativar"
-                                                }
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                class="button button-danger-outline"
-                                                data-bank-delete="${escapeHtml(id)}"
-                                            >
-                                                Eliminar
-                                            </button>
-                                          `
-                                        : ""
-                                }
-
+                            <div>
+                                <span>IBAN</span>
+                                <strong>
+                                    ${escapeHtml(
+                                        getIban(account)
+                                    )}
+                                </strong>
                             </div>
 
-                        </article>
+                            <div>
+                                <span>Moeda</span>
+                                <strong>
+                                    ${escapeHtml(
+                                        account.currency ||
+                                        "AOA"
+                                    )}
+                                </strong>
+                            </div>
 
-                    `;
+                        </div>
 
-                }
-            )
+                        <div class="bank-account-actions">
+
+                            ${
+                                !primary && id
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="button button-secondary"
+                                            data-bank-primary="${escapeHtml(id)}"
+                                        >
+                                            Tornar principal
+                                        </button>
+                                      `
+                                    : ""
+                            }
+
+                            ${
+                                id
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="button button-secondary"
+                                            data-bank-toggle="${escapeHtml(id)}"
+                                            data-bank-active="${active}"
+                                        >
+                                            ${
+                                                active
+                                                    ? "Desativar"
+                                                    : "Ativar"
+                                            }
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="button button-danger-outline"
+                                            data-bank-delete="${escapeHtml(id)}"
+                                        >
+                                            Eliminar
+                                        </button>
+                                      `
+                                    : ""
+                            }
+
+                        </div>
+
+                    </article>
+
+                `;
+
+            })
             .join("");
 
 }
@@ -2001,59 +1564,37 @@ async function setPrimaryBankAccount(
     accountId
 ) {
 
-    if (
-        !accountId
-    ) {
+    if (!accountId) {
 
         return;
 
     }
 
-
-    setGlobalLoading(
-        true
-    );
-
+    setGlobalLoading(true);
 
     try {
 
         await apiRequest(
-
             `/bank-accounts/${encodeURIComponent(accountId)}/primary`,
-
             {
-                method:
-                    "PATCH"
+                method: "PATCH"
             }
-
         );
-
 
         await loadBankAccounts();
 
-
         showToast(
-            "A conta foi definida como principal.",
+            "Conta definida como principal.",
             "success"
         );
 
-    }
+    } catch (error) {
 
-    catch (
-        error
-    ) {
+        handleError(error);
 
-        handleError(
-            error
-        );
+    } finally {
 
-    }
-
-    finally {
-
-        setGlobalLoading(
-            false
-        );
+        setGlobalLoading(false);
 
     }
 
@@ -2065,70 +1606,45 @@ async function toggleBankAccount(
     active
 ) {
 
-    if (
-        !accountId
-    ) {
+    if (!accountId) {
 
         return;
 
     }
 
-
-    setGlobalLoading(
-        true
-    );
-
+    setGlobalLoading(true);
 
     try {
 
         await apiRequest(
-
             `/bank-accounts/${encodeURIComponent(accountId)}/status`,
-
             {
 
-                method:
-                    "PATCH",
+                method: "PATCH",
 
                 body: {
-
-                    active:
-                        !active
-
+                    active: !active
                 }
 
             }
-
         );
-
 
         await loadBankAccounts();
 
-
         showToast(
             active
-                ? "A conta foi desativada."
-                : "A conta foi ativada.",
+                ? "Conta desativada."
+                : "Conta ativada.",
             "success"
         );
 
-    }
+    } catch (error) {
 
-    catch (
-        error
-    ) {
+        handleError(error);
 
-        handleError(
-            error
-        );
+    } finally {
 
-    }
-
-    finally {
-
-        setGlobalLoading(
-            false
-        );
+        setGlobalLoading(false);
 
     }
 
@@ -2139,75 +1655,1034 @@ async function deleteBankAccount(
     accountId
 ) {
 
-    if (
-        !accountId
-    ) {
+    if (!accountId) {
 
         return;
 
     }
 
-
-    const confirmed =
-        window.confirm(
+    if (
+        !window.confirm(
             "Tem a certeza de que pretende eliminar esta conta bancária?"
-        );
-
-
-    if (
-        !confirmed
+        )
     ) {
 
         return;
 
     }
 
-
-    setGlobalLoading(
-        true
-    );
-
+    setGlobalLoading(true);
 
     try {
 
         await apiRequest(
-
             `/bank-accounts/${encodeURIComponent(accountId)}`,
-
             {
-
-                method:
-                    "DELETE"
-
+                method: "DELETE"
             }
-
         );
 
-
         await loadBankAccounts();
-
 
         showToast(
             "Conta bancária eliminada.",
             "success"
         );
 
+    } catch (error) {
+
+        handleError(error);
+
+    } finally {
+
+        setGlobalLoading(false);
+
     }
 
-    catch (
-        error
-    ) {
+}
 
-        handleError(
-            error
+
+/*
+============================================================
+INVOICES
+============================================================
+*/
+
+async function loadInvoices() {
+
+    const response =
+        await apiRequest(
+            "/invoices?limit=100&skip=0"
         );
 
+    const data =
+        extractData(response);
+
+    state.invoices =
+        normalizeCollection(
+            data,
+            [
+                "items",
+                "invoices",
+                "results"
+            ]
+        );
+
+    renderInvoices();
+
+    updateDashboardCounters();
+
+    return state.invoices;
+
+}
+
+
+async function loadInvoiceStatistics() {
+
+    const response =
+        await apiRequest(
+            "/invoices/statistics"
+        );
+
+    state.invoiceStatistics =
+        extractData(response);
+
+    renderInvoiceStatistics();
+
+    updateDashboardCounters();
+
+    return state.invoiceStatistics;
+
+}
+
+
+function getInvoiceId(invoice) {
+
+    return (
+        invoice?._id ||
+        invoice?.id ||
+        invoice?.invoiceId ||
+        null
+    );
+
+}
+
+
+function getInvoiceAmount(invoice) {
+
+    return (
+        invoice?.amount ??
+        invoice?.total ??
+        invoice?.totalAmount ??
+        0
+    );
+
+}
+
+
+function getInvoiceCurrency(invoice) {
+
+    return (
+        invoice?.currency ||
+        "AOA"
+    );
+
+}
+
+
+function getInvoiceStatus(invoice) {
+
+    return String(
+        invoice?.status ||
+        invoice?.paymentStatus ||
+        "pending"
+    ).toLowerCase();
+
+}
+
+
+function getInvoiceCustomer(invoice) {
+
+    const customer =
+        invoice?.customer ||
+        invoice?.payer ||
+        {};
+
+    return (
+        customer?.name ||
+        invoice?.customerName ||
+        invoice?.payerName ||
+        "Cliente"
+    );
+
+}
+
+
+function getInvoicePublicToken(invoice) {
+
+    return (
+        invoice?.publicToken ||
+        invoice?.token ||
+        invoice?.paymentToken ||
+        null
+    );
+
+}
+
+
+function renderInvoices() {
+
+    const container =
+        getElement(
+            "invoices-content"
+        );
+
+    if (!container) {
+
+        return;
+
     }
 
-    finally {
+    if (!state.invoices.length) {
 
-        setGlobalLoading(
-            false
+        container.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    +
+                </div>
+
+                <h4>
+                    Ainda não existem faturas
+                </h4>
+
+                <p>
+                    Crie a primeira cobrança para começar
+                    a receber pagamentos dos seus clientes.
+                </p>
+
+                <button
+                    type="button"
+                    class="button button-primary"
+                    data-action="create-invoice"
+                >
+                    Criar primeira cobrança
+                </button>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = `
+
+        <div class="data-table">
+
+            <div class="data-table-head">
+
+                <span>
+                    Cliente
+                </span>
+
+                <span>
+                    Valor
+                </span>
+
+                <span>
+                    Estado
+                </span>
+
+                <span>
+                    Data
+                </span>
+
+                <span>
+                    Ações
+                </span>
+
+            </div>
+
+            ${state.invoices
+                .map(invoice => {
+
+                    const id =
+                        getInvoiceId(invoice);
+
+                    const status =
+                        getInvoiceStatus(invoice);
+
+                    const publicToken =
+                        getInvoicePublicToken(
+                            invoice
+                        );
+
+                    return `
+
+                        <div
+                            class="data-table-row"
+                            data-invoice-id="${escapeHtml(id)}"
+                        >
+
+                            <span>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        getInvoiceCustomer(invoice)
+                                    )}
+                                </strong>
+
+                                <small>
+                                    ${escapeHtml(
+                                        invoice.description ||
+                                        "Cobrança"
+                                    )}
+                                </small>
+
+                            </span>
+
+                            <span>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        formatMoney(
+                                            getInvoiceAmount(invoice),
+                                            getInvoiceCurrency(invoice)
+                                        )
+                                    )}
+                                </strong>
+
+                            </span>
+
+                            <span>
+
+                                <span class="badge">
+                                    ${escapeHtml(
+                                        normalizeStatusLabel(
+                                            status
+                                        )
+                                    )}
+                                </span>
+
+                            </span>
+
+                            <span>
+
+                                ${escapeHtml(
+                                    formatDateTime(
+                                        invoice.createdAt ||
+                                        invoice.issueDate ||
+                                        invoice.created
+                                    )
+                                )}
+
+                            </span>
+
+                            <span class="table-actions">
+
+                                ${
+                                    publicToken
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="button button-secondary"
+                                                data-invoice-copy="${escapeHtml(publicToken)}"
+                                            >
+                                                Copiar link
+                                            </button>
+                                          `
+                                        : ""
+                                }
+
+                                ${
+                                    ![
+                                        "paid",
+                                        "cancelled",
+                                        "canceled",
+                                        "expired"
+                                    ].includes(status) && id
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="button button-danger-outline"
+                                                data-invoice-cancel="${escapeHtml(id)}"
+                                            >
+                                                Cancelar
+                                            </button>
+                                          `
+                                        : ""
+                                }
+
+                            </span>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("")}
+
+        </div>
+
+    `;
+
+}
+
+
+function renderInvoiceStatistics() {
+
+    const stats =
+        state.invoiceStatistics ||
+        {};
+
+    const values = {
+
+        total:
+            stats.total ??
+            stats.totalInvoices ??
+            stats.count ??
+            0,
+
+        paid:
+            stats.paid ??
+            stats.paidInvoices ??
+            stats.confirmed ??
+            0,
+
+        pending:
+            stats.pending ??
+            stats.pendingInvoices ??
+            0,
+
+        cancelled:
+            stats.cancelled ??
+            stats.cancelledInvoices ??
+            0,
+
+        received:
+            stats.totalReceived ??
+            stats.received ??
+            stats.paidAmount ??
+            0
+
+    };
+
+    const map = {
+
+        "dashboard-invoices":
+            values.total,
+
+        "dashboard-paid-invoices":
+            values.paid,
+
+        "dashboard-pending-payments":
+            values.pending,
+
+        "dashboard-cancelled-invoices":
+            values.cancelled
+
+    };
+
+    for (
+        const [id, value] of Object.entries(map)
+    ) {
+
+        const element =
+            getElement(id);
+
+        if (element) {
+
+            element.textContent =
+                String(value);
+
+        }
+
+    }
+
+    const total =
+        getElement(
+            "dashboard-total-received"
+        );
+
+    if (total) {
+
+        total.textContent =
+            formatMoney(
+                values.received
+            );
+
+        total.dataset.loaded =
+            "true";
+
+    }
+
+}
+
+
+/*
+============================================================
+CREATE INVOICE
+============================================================
+*/
+
+function openCreateInvoiceModal() {
+
+    const root =
+        getElement("modal-root");
+
+    if (!root) {
+
+        return;
+
+    }
+
+    const activeAccounts =
+        state.bankAccounts
+            .filter(
+                account =>
+                    account.active !== false
+            );
+
+    if (!activeAccounts.length) {
+
+        showToast(
+            "Adicione pelo menos uma conta bancária ativa antes de criar uma cobrança.",
+            "warning"
+        );
+
+        navigate("bank-accounts");
+
+        return;
+
+    }
+
+    root.hidden = false;
+
+    root.innerHTML = `
+
+        <div
+            class="modal-backdrop"
+            data-modal-close
+        >
+
+            <div
+                class="modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-invoice-title"
+            >
+
+                <div class="modal-header">
+
+                    <div>
+
+                        <span class="modal-kicker">
+                            Nova cobrança
+                        </span>
+
+                        <h2 id="create-invoice-title">
+                            Criar fatura
+                        </h2>
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="modal-close"
+                        data-modal-close
+                        aria-label="Fechar"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+                <form
+                    id="create-invoice-form"
+                    class="modal-form"
+                >
+
+                    <label>
+
+                        <span>
+                            Valor
+                        </span>
+
+                        <input
+                            name="amount"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            required
+                            placeholder="15000"
+                        >
+
+                    </label>
+
+                    <label>
+
+                        <span>
+                            Descrição
+                        </span>
+
+                        <input
+                            name="description"
+                            type="text"
+                            maxlength="500"
+                            required
+                            placeholder="Ex.: Venda de produto"
+                        >
+
+                    </label>
+
+                    <label>
+
+                        <span>
+                            Nome do cliente
+                        </span>
+
+                        <input
+                            name="customerName"
+                            type="text"
+                            maxlength="160"
+                            required
+                            placeholder="Nome do cliente"
+                        >
+
+                    </label>
+
+                    <label>
+
+                        <span>
+                            Telefone
+                        </span>
+
+                        <input
+                            name="customerPhone"
+                            type="tel"
+                            maxlength="40"
+                            placeholder="+244..."
+                        >
+
+                    </label>
+
+                    <label>
+
+                        <span>
+                            Email
+                        </span>
+
+                        <input
+                            name="customerEmail"
+                            type="email"
+                            maxlength="180"
+                            placeholder="cliente@email.com"
+                        >
+
+                    </label>
+
+                    <div>
+
+                        <span>
+                            Contas para pagamento
+                        </span>
+
+                        <div class="bank-selection">
+
+                            ${activeAccounts
+                                .map(
+                                    account => {
+
+                                        const id =
+                                            getBankAccountId(
+                                                account
+                                            );
+
+                                        return `
+
+                                            <label class="checkbox-field">
+
+                                                <input
+                                                    type="checkbox"
+                                                    name="bankAccountIds"
+                                                    value="${escapeHtml(id)}"
+                                                    checked
+                                                >
+
+                                                <span>
+
+                                                    ${escapeHtml(
+                                                        getBankName(
+                                                            account
+                                                        )
+                                                    )}
+
+                                                    —
+
+                                                    ${escapeHtml(
+                                                        getIban(
+                                                            account
+                                                        )
+                                                    )}
+
+                                                </span>
+
+                                            </label>
+
+                                        `;
+
+                                    }
+                                )
+                                .join("")}
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-actions">
+
+                        <button
+                            type="button"
+                            class="button button-secondary"
+                            data-modal-close
+                        >
+                            Cancelar
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="button button-primary"
+                        >
+                            Criar cobrança
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    `;
+
+    getElement(
+        "create-invoice-form"
+    )?.addEventListener(
+        "submit",
+        handleCreateInvoiceSubmit
+    );
+
+}
+
+
+async function handleCreateInvoiceSubmit(
+    event
+) {
+
+    event.preventDefault();
+
+    const form =
+        event.currentTarget;
+
+    const formData =
+        new FormData(form);
+
+    const bankAccountIds =
+        formData.getAll(
+            "bankAccountIds"
+        )
+            .filter(Boolean);
+
+    const amount =
+        Number(
+            formData.get("amount")
+        );
+
+    const description =
+        String(
+            formData.get("description") ||
+            ""
+        ).trim();
+
+    const customerName =
+        String(
+            formData.get("customerName") ||
+            ""
+        ).trim();
+
+    const customerPhone =
+        String(
+            formData.get("customerPhone") ||
+            ""
+        ).trim();
+
+    const customerEmail =
+        String(
+            formData.get("customerEmail") ||
+            ""
+        ).trim();
+
+    if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ) {
+
+        showToast(
+            "Indique um valor válido.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (!description) {
+
+        showToast(
+            "A descrição é obrigatória.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (!customerName) {
+
+        showToast(
+            "O nome do cliente é obrigatório.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    if (!bankAccountIds.length) {
+
+        showToast(
+            "Selecione pelo menos uma conta bancária.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    setGlobalLoading(true);
+
+    try {
+
+        const response =
+            await apiRequest(
+                "/invoices",
+                {
+
+                    method: "POST",
+
+                    body: {
+
+                        amount,
+
+                        description,
+
+                        customer: {
+
+                            name:
+                                customerName,
+
+                            phone:
+                                customerPhone,
+
+                            email:
+                                customerEmail
+
+                        },
+
+                        bankAccountIds
+
+                    }
+
+                }
+            );
+
+        const invoice =
+            extractData(response);
+
+        closeModal();
+
+        await Promise.allSettled([
+
+            loadInvoices(),
+
+            loadInvoiceStatistics()
+
+        ]);
+
+        showToast(
+            "Cobrança criada com sucesso.",
+            "success"
+        );
+
+        if (
+            invoice?.publicToken ||
+            invoice?.token
+        ) {
+
+            setTimeout(
+                () => {
+
+                    copyInvoiceLink(
+                        invoice.publicToken ||
+                        invoice.token
+                    );
+
+                },
+                250
+            );
+
+        }
+
+    } catch (error) {
+
+        handleError(error);
+
+    } finally {
+
+        setGlobalLoading(false);
+
+    }
+
+}
+
+
+/*
+============================================================
+CANCEL INVOICE
+============================================================
+*/
+
+async function cancelInvoice(
+    invoiceId
+) {
+
+    if (!invoiceId) {
+
+        return;
+
+    }
+
+    if (
+        !window.confirm(
+            "Tem a certeza de que pretende cancelar esta cobrança?"
+        )
+    ) {
+
+        return;
+
+    }
+
+    setGlobalLoading(true);
+
+    try {
+
+        await apiRequest(
+            `/invoices/${encodeURIComponent(invoiceId)}/cancel`,
+            {
+                method: "POST"
+            }
+        );
+
+        await Promise.allSettled([
+
+            loadInvoices(),
+
+            loadInvoiceStatistics()
+
+        ]);
+
+        showToast(
+            "Cobrança cancelada.",
+            "success"
+        );
+
+    } catch (error) {
+
+        handleError(error);
+
+    } finally {
+
+        setGlobalLoading(false);
+
+    }
+
+}
+
+
+/*
+============================================================
+COPY PAYMENT LINK
+============================================================
+*/
+
+function buildPublicPaymentUrl(
+    publicToken
+) {
+
+    if (!publicToken) {
+
+        return null;
+
+    }
+
+    return (
+        `${window.location.origin}/pay/` +
+        encodeURIComponent(publicToken)
+    );
+
+}
+
+
+async function copyInvoiceLink(
+    publicToken
+) {
+
+    const url =
+        buildPublicPaymentUrl(
+            publicToken
+        );
+
+    if (!url) {
+
+        showToast(
+            "Esta cobrança não possui link público.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+    try {
+
+        await navigator.clipboard.writeText(
+            url
+        );
+
+        showToast(
+            "Link de pagamento copiado.",
+            "success"
+        );
+
+    } catch {
+
+        window.prompt(
+            "Copie o link de pagamento:",
+            url
         );
 
     }
@@ -2221,91 +2696,71 @@ PROOFS
 ============================================================
 */
 
-async function loadProofs() {
+async function loadProofs(
+    options = {}
+) {
+
+    const params =
+        new URLSearchParams();
+
+    params.set("page", "1");
+    params.set(
+        "limit",
+        String(
+            options.limit || 100
+        )
+    );
+
+    if (options.status) {
+
+        params.set(
+            "status",
+            options.status
+        );
+
+    }
+
+    if (options.search) {
+
+        params.set(
+            "search",
+            options.search
+        );
+
+    }
+
+    if (options.invoiceId) {
+
+        params.set(
+            "invoiceId",
+            options.invoiceId
+        );
+
+    }
 
     const response =
         await apiRequest(
-            "/proofs?page=1&limit=50"
+            `/proofs?${params.toString()}`
         );
-
 
     const data =
-        extractData(
-            response
-        );
-
+        extractData(response);
 
     state.proofs =
         normalizeCollection(
-
             data,
-
             [
                 "items",
                 "proofs",
                 "receipts"
             ]
-
         );
-
 
     renderProofs();
 
+    updateDashboardCounters();
 
     return state.proofs;
-
-}
-
-
-function normalizeStatusLabel(
-    status
-) {
-
-    const value =
-        String(
-            status ||
-            ""
-        )
-            .toLowerCase();
-
-
-    const labels = {
-
-        active:
-            "Ativo",
-
-        inactive:
-            "Inativo",
-
-        pending:
-            "Pendente",
-
-        approved:
-            "Aprovado",
-
-        confirmed:
-            "Confirmado",
-
-        rejected:
-            "Rejeitado",
-
-        verified:
-            "Verificado",
-
-        submitted:
-            "Enviado",
-
-        cancelled:
-            "Cancelado"
-
-    };
-
-
-    return (
-        labels[value] ||
-        status ||
-        "—"
-    );
 
 }
 
@@ -2317,19 +2772,13 @@ function renderProofs() {
             "proofs-content"
         );
 
-
-    if (
-        !container
-    ) {
+    if (!container) {
 
         return;
 
     }
 
-
-    if (
-        !state.proofs.length
-    ) {
+    if (!state.proofs.length) {
 
         container.innerHTML = `
 
@@ -2344,19 +2793,17 @@ function renderProofs() {
                 </h4>
 
                 <p>
-                    Os comprovativos enviados pelos seus clientes
-                    aparecerão aqui.
+                    Os comprovativos enviados pelos
+                    seus clientes aparecerão aqui.
                 </p>
 
             </div>
 
         `;
 
-
         return;
 
     }
-
 
     container.innerHTML = `
 
@@ -2365,7 +2812,7 @@ function renderProofs() {
             <div class="data-table-head">
 
                 <span>
-                    Ficheiro
+                    Cliente / ficheiro
                 </span>
 
                 <span>
@@ -2376,20 +2823,30 @@ function renderProofs() {
                     Data
                 </span>
 
+                <span>
+                    Ações
+                </span>
+
             </div>
 
-
             ${state.proofs
-                .map(
-                    proof => `
+                .map(proof => {
+
+                    const id =
+                        proof.id ||
+                        proof._id ||
+                        proof.proofId;
+
+                    const status =
+                        String(
+                            proof.status || ""
+                        ).toLowerCase();
+
+                    return `
 
                         <div
                             class="data-table-row"
-                            data-proof-id="${escapeHtml(
-                                proof.id ||
-                                proof._id ||
-                                ""
-                            )}"
+                            data-proof-id="${escapeHtml(id)}"
                         >
 
                             <span>
@@ -2403,34 +2860,35 @@ function renderProofs() {
                                 </strong>
 
                                 <small>
-                                    ${escapeHtml(
-                                        proof.mimeType ||
+
+                                    ${
+                                        proof.payerName ||
+                                        proof.customerName ||
+                                        proof.invoiceId ||
+                                        proof.paymentId ||
                                         ""
-                                    )}
+                                    }
+
                                 </small>
 
                             </span>
 
-
                             <span>
 
                                 <span class="badge">
-
                                     ${escapeHtml(
                                         normalizeStatusLabel(
-                                            proof.status
+                                            status
                                         )
                                     )}
-
                                 </span>
 
                             </span>
 
-
                             <span>
 
                                 ${escapeHtml(
-                                    formatDate(
+                                    formatDateTime(
                                         proof.createdAt ||
                                         proof.uploadedAt
                                     )
@@ -2438,10 +2896,39 @@ function renderProofs() {
 
                             </span>
 
+                            <span class="table-actions">
+
+                                ${
+                                    status === "pending"
+                                        ? `
+                                            <button
+                                                type="button"
+                                                class="button button-primary"
+                                                data-proof-review="${escapeHtml(id)}"
+                                                data-proof-decision="approved"
+                                            >
+                                                Aprovar
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="button button-danger-outline"
+                                                data-proof-review="${escapeHtml(id)}"
+                                                data-proof-decision="rejected"
+                                            >
+                                                Rejeitar
+                                            </button>
+                                          `
+                                        : ""
+                                }
+
+                            </span>
+
                         </div>
 
-                    `
-                )
+                    `;
+
+                })
                 .join("")}
 
         </div>
@@ -2453,62 +2940,107 @@ function renderProofs() {
 
 /*
 ============================================================
-DASHBOARD COUNTERS
+PROOF REVIEW
 ============================================================
 */
 
-function updateDashboardBankCount() {
+async function reviewProof(
+    proofId,
+    decision
+) {
 
-    const element =
-        getElement(
-            "dashboard-bank-accounts"
-        );
+    if (!proofId) {
 
-
-    if (
-        element
-    ) {
-
-        element.textContent =
-            String(
-                state.bankAccounts.length
-            );
+        return;
 
     }
 
-}
-
-
-function updateDashboardProofCount() {
-
-    const pending =
-        state.proofs
-            .filter(
-                proof =>
-                    String(
-                        proof.status ||
-                        ""
-                    )
-                        .toLowerCase() ===
-                    "pending"
-            )
-            .length;
-
-
-    const element =
-        getElement(
-            "dashboard-pending-payments"
-        );
-
+    let reason = "";
 
     if (
-        element
+        decision === "rejected"
     ) {
 
-        element.textContent =
-            String(
-                pending
+        reason =
+            window.prompt(
+                "Indique o motivo da rejeição:"
             );
+
+        if (!reason?.trim()) {
+
+            showToast(
+                "O motivo da rejeição é obrigatório.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+    }
+
+    if (
+        !window.confirm(
+            decision === "approved"
+                ? "Confirmar aprovação deste comprovativo?"
+                : "Confirmar rejeição deste comprovativo?"
+        )
+    ) {
+
+        return;
+
+    }
+
+    setGlobalLoading(true);
+
+    try {
+
+        await apiRequest(
+            `/proofs/${encodeURIComponent(proofId)}/review`,
+            {
+
+                method: "PATCH",
+
+                body: {
+
+                    decision,
+
+                    ...(decision === "rejected"
+                        ? {
+                            reason:
+                                reason.trim()
+                          }
+                        : {})
+
+                }
+
+            }
+        );
+
+        await Promise.allSettled([
+
+            loadProofs(),
+
+            loadInvoices(),
+
+            loadInvoiceStatistics()
+
+        ]);
+
+        showToast(
+            decision === "approved"
+                ? "Comprovativo aprovado."
+                : "Comprovativo rejeitado.",
+            "success"
+        );
+
+    } catch (error) {
+
+        handleError(error);
+
+    } finally {
+
+        setGlobalLoading(false);
 
     }
 
@@ -2521,46 +3053,78 @@ DASHBOARD
 ============================================================
 */
 
+function updateDashboardCounters() {
+
+    const invoiceCount =
+        state.invoiceStatistics?.total ??
+        state.invoiceStatistics?.totalInvoices ??
+        state.invoices.length;
+
+    const pendingProofs =
+        state.proofs.filter(
+            proof =>
+                String(
+                    proof.status || ""
+                ).toLowerCase() ===
+                "pending"
+        ).length;
+
+    const pendingInvoices =
+        state.invoiceStatistics?.pending ??
+        state.invoiceStatistics?.pendingInvoices ??
+        state.invoices.filter(
+            invoice =>
+                [
+                    "pending",
+                    "unpaid",
+                    "submitted"
+                ].includes(
+                    getInvoiceStatus(invoice)
+                )
+        ).length;
+
+    const bankCount =
+        state.bankAccounts.length;
+
+    const counters = {
+
+        "dashboard-invoices":
+            invoiceCount,
+
+        "dashboard-bank-accounts":
+            bankCount,
+
+        "dashboard-pending-payments":
+            pendingProofs ||
+            pendingInvoices
+
+    };
+
+    for (
+        const [id, value]
+        of Object.entries(counters)
+    ) {
+
+        const element =
+            getElement(id);
+
+        if (element) {
+
+            element.textContent =
+                String(value);
+
+        }
+
+    }
+
+}
+
+
 function renderDashboard() {
 
-    const invoices =
-        getElement(
-            "dashboard-invoices"
-        );
+    updateDashboardCounters();
 
-
-    if (
-        invoices &&
-        invoices.textContent.trim() ===
-        "0"
-    ) {
-
-        invoices.textContent =
-            "—";
-
-    }
-
-
-    const total =
-        getElement(
-            "dashboard-total-received"
-        );
-
-
-    if (
-        total &&
-        !total.dataset.loaded
-    ) {
-
-        total.textContent =
-            "—";
-
-    }
-
-
-    updateDashboardBankCount();
-
-    updateDashboardProofCount();
+    renderInvoiceStatistics();
 
 }
 
@@ -2646,22 +3210,11 @@ const VIEW_META = {
 };
 
 
-function normalizeView(
-    view
-) {
+function normalizeView(view) {
 
-    if (
-        VIEW_META[
-            view
-        ]
-    ) {
-
-        return view;
-
-    }
-
-
-    return DEFAULT_VIEW;
+    return VIEW_META[view]
+        ? view
+        : DEFAULT_VIEW;
 
 }
 
@@ -2673,37 +3226,28 @@ function getViewFromUrl() {
             window.location.search
         );
 
-
     return normalizeView(
-        params.get(
-            "view"
-        ) ||
+        params.get("view") ||
         DEFAULT_VIEW
     );
 
 }
 
 
-function updateUrl(
-    view
-) {
+function updateUrl(view) {
 
     const url =
         new URL(
             window.location.href
         );
 
-
     url.searchParams.set(
         "view",
         view
     );
 
-
     window.history.pushState(
-        {
-            view
-        },
+        { view },
         "",
         url
     );
@@ -2717,29 +3261,18 @@ function navigate(
 ) {
 
     const normalized =
-        normalizeView(
-            view
-        );
-
+        normalizeView(view);
 
     state.currentView =
         normalized;
 
+    if (pushState) {
 
-    if (
-        pushState
-    ) {
-
-        updateUrl(
-            normalized
-        );
+        updateUrl(normalized);
 
     }
 
-
-    $$(
-        "[data-view]"
-    )
+    $$("[data-view]")
         .forEach(
             section => {
 
@@ -2747,10 +3280,8 @@ function navigate(
                     section.dataset.view ===
                     normalized;
 
-
                 section.hidden =
                     !active;
-
 
                 section.classList.toggle(
                     "active-view",
@@ -2760,66 +3291,43 @@ function navigate(
             }
         );
 
-
-    $$(
-        "[data-nav]"
-    )
+    $$("[data-nav]")
         .forEach(
             item => {
 
                 item.classList.toggle(
-
                     "active",
-
                     item.dataset.nav ===
                     normalized
-
                 );
 
             }
         );
 
-
     const meta =
-        VIEW_META[
-            normalized
-        ];
-
+        VIEW_META[normalized];
 
     const title =
-        getElement(
-            "page-title"
-        );
-
+        getElement("page-title");
 
     const eyebrow =
-        getElement(
-            "page-eyebrow"
-        );
+        getElement("page-eyebrow");
 
-
-    if (
-        title
-    ) {
+    if (title) {
 
         title.textContent =
             meta.title;
 
     }
 
-
-    if (
-        eyebrow
-    ) {
+    if (eyebrow) {
 
         eyebrow.textContent =
             meta.eyebrow;
 
     }
 
-
     closeSidebar();
-
 
     onViewActivated(
         normalized
@@ -2830,7 +3338,7 @@ function navigate(
 
 /*
 ============================================================
-VIEW ACTIVATION
+VIEW DATA
 ============================================================
 */
 
@@ -2838,66 +3346,85 @@ const loadedViews =
     new Set();
 
 
-async function onViewActivated(
-    view
-) {
-
-    if (
-        loadedViews.has(
-            view
-        )
-    ) {
-
-        return;
-
-    }
-
+async function onViewActivated(view) {
 
     try {
 
         if (
-            view ===
-            "bank-accounts"
+            view === "dashboard"
+        ) {
+
+            await Promise.allSettled([
+
+                loadInvoices(),
+
+                loadInvoiceStatistics(),
+
+                loadBankAccounts(),
+
+                loadProofs()
+
+            ]);
+
+        }
+
+        if (
+            view === "payments"
+        ) {
+
+            await Promise.allSettled([
+
+                loadInvoices(),
+
+                loadProofs()
+
+            ]);
+
+        }
+
+        if (
+            view === "invoices"
+        ) {
+
+            await Promise.all([
+
+                loadInvoices(),
+
+                loadInvoiceStatistics()
+
+            ]);
+
+        }
+
+        if (
+            view === "bank-accounts"
         ) {
 
             await loadBankAccounts();
 
         }
 
-
         if (
-            view ===
-            "proofs"
+            view === "proofs"
         ) {
 
             await loadProofs();
 
         }
 
-
         if (
-            view ===
-            "plans"
+            view === "plans"
         ) {
 
             await loadPlan();
 
         }
 
+        loadedViews.add(view);
 
-        loadedViews.add(
-            view
-        );
+    } catch (error) {
 
-    }
-
-    catch (
-        error
-    ) {
-
-        handleError(
-            error
-        );
+        handleError(error);
 
     }
 
@@ -2930,565 +3457,39 @@ function closeSidebar() {
 
 /*
 ============================================================
-LOGOUT
+MODAL
 ============================================================
 */
 
-function logout(
-    notify = true
-) {
+function closeModal() {
 
-    clearToken();
+    const root =
+        getElement("modal-root");
 
-
-    state.authenticated =
-        false;
-
-    state.merchant =
-        null;
-
-    state.plan =
-        null;
-
-    state.bankAccounts =
-        [];
-
-    state.proofs =
-        [];
-
-
-    if (
-        notify
-    ) {
-
-        showToast(
-            "Sessão terminada.",
-            "success"
-        );
-
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Não redirecionamos para uma página inexistente.
-    Quando o login frontend for integrado, esta função poderá
-    redirecionar para a página de autenticação.
-    --------------------------------------------------------
-    */
-
-    setTimeout(
-        () => {
-
-            window.location.reload();
-
-        },
-        notify
-            ? 500
-            : 0
-    );
-
-}
-
-
-/*
-============================================================
-AUTH BOOTSTRAP
-============================================================
-*/
-
-async function bootstrapAuthentication() {
-
-    const token =
-        getStoredToken();
-
-
-    if (
-        !token
-    ) {
-
-        state.authenticated =
-            false;
-
-
-        /*
-        A interface continua carregável.
-        O frontend de login será integrado na camada seguinte.
-        */
-
-        renderMerchantProfile();
-
-
-        return false;
-
-    }
-
-
-    state.token =
-        token;
-
-
-    try {
-
-        await loadMerchantProfile();
-
-
-        return true;
-
-    }
-
-    catch (
-        error
-    ) {
-
-        if (
-            error instanceof ApiError &&
-            (
-                error.status ===
-                401 ||
-                error.status ===
-                403
-            )
-        ) {
-
-            clearToken();
-
-            state.authenticated =
-                false;
-
-            return false;
-
-        }
-
-
-        handleError(
-            error,
-            {
-                silentAuth:
-                    true
-            }
-        );
-
-
-        return false;
-
-    }
-
-}
-
-
-/*
-============================================================
-INITIAL DATA
-============================================================
-*/
-
-async function loadInitialData() {
-
-    if (
-        !state.authenticated
-    ) {
-
-        renderDashboard();
+    if (!root) {
 
         return;
 
     }
 
+    root.hidden = true;
 
-    const jobs = [
-
-        loadPlan(),
-
-        loadBankAccounts(),
-
-        loadProofs()
-
-    ];
-
-
-    const results =
-        await Promise.allSettled(
-            jobs
-        );
-
-
-    results.forEach(
-        result => {
-
-            if (
-                result.status ===
-                "rejected"
-            ) {
-
-                handleError(
-                    result.reason,
-                    {
-                        silent:
-                            true
-                    }
-                );
-
-            }
-
-        }
-    );
-
-
-    renderDashboard();
-
-
-    loadedViews.add(
-        "dashboard"
-    );
-
-
-    loadedViews.add(
-        "plans"
-    );
-
-
-    loadedViews.add(
-        "bank-accounts"
-    );
-
-
-    loadedViews.add(
-        "proofs"
-    );
+    root.innerHTML = "";
 
 }
 
 
-/*
-============================================================
-EVENT DELEGATION
-============================================================
-*/
+function handleModalClick(event) {
 
-function setupEvents() {
+    if (
+        event.target.closest(
+            "[data-modal-close]"
+        )
+    ) {
 
-    document.addEventListener(
-        "click",
-        event => {
+        closeModal();
 
-            const nav =
-                event.target.closest(
-                    "[data-nav]"
-                );
-
-
-            if (
-                nav
-            ) {
-
-                event.preventDefault();
-
-
-                navigate(
-                    nav.dataset.nav
-                );
-
-
-                return;
-
-            }
-
-
-            const route =
-                event.target.closest(
-                    "[data-route]"
-                );
-
-
-            if (
-                route
-            ) {
-
-                event.preventDefault();
-
-
-                navigate(
-                    route.dataset.route
-                );
-
-
-                return;
-
-            }
-
-
-            const action =
-                event.target.closest(
-                    "[data-action]"
-                );
-
-
-            if (
-                action
-            ) {
-
-                event.preventDefault();
-
-
-                if (
-                    action.dataset.action ===
-                    "logout"
-                ) {
-
-                    logout();
-
-                }
-
-
-                return;
-
-            }
-
-
-            const primary =
-                event.target.closest(
-                    "[data-bank-primary]"
-                );
-
-
-            if (
-                primary
-            ) {
-
-                event.preventDefault();
-
-
-                setPrimaryBankAccount(
-                    primary.dataset.bankPrimary
-                );
-
-
-                return;
-
-            }
-
-
-            const toggle =
-                event.target.closest(
-                    "[data-bank-toggle]"
-                );
-
-
-            if (
-                toggle
-            ) {
-
-                event.preventDefault();
-
-
-                toggleBankAccount(
-
-                    toggle.dataset.bankToggle,
-
-                    toggle.dataset.bankActive ===
-                    "true"
-
-                );
-
-
-                return;
-
-            }
-
-
-            const remove =
-                event.target.closest(
-                    "[data-bank-delete]"
-                );
-
-
-            if (
-                remove
-            ) {
-
-                event.preventDefault();
-
-
-                deleteBankAccount(
-                    remove.dataset.bankDelete
-                );
-
-
-                return;
-
-            }
-
-
-            const sidebarButton =
-                event.target.closest(
-                    "#mobile-menu-button"
-                );
-
-
-            if (
-                sidebarButton
-            ) {
-
-                openSidebar();
-
-                return;
-
-            }
-
-
-            const sidebarClose =
-                event.target.closest(
-                    "#sidebar-close"
-                );
-
-
-            if (
-                sidebarClose
-            ) {
-
-                closeSidebar();
-
-                return;
-
-            }
-
-
-            const overlay =
-                event.target.closest(
-                    "#sidebar-overlay"
-                );
-
-
-            if (
-                overlay
-            ) {
-
-                closeSidebar();
-
-                return;
-
-            }
-
-
-            const managePlan =
-                event.target.closest(
-                    "#manage-plan-button"
-                );
-
-
-            if (
-                managePlan
-            ) {
-
-                navigate(
-                    "plans"
-                );
-
-
-                showToast(
-                    "A gestão da subscrição será ligada ao checkout da Honey Pay.",
-                    "info"
-                );
-
-
-                return;
-
-            }
-
-
-            const createInvoice =
-                event.target.closest(
-                    "#create-invoice-button"
-                );
-
-
-            if (
-                createInvoice
-            ) {
-
-                showToast(
-                    "O módulo de criação de cobranças será ligado à rota de faturação quando essa API estiver exposta pelo backend.",
-                    "info"
-                );
-
-
-                return;
-
-            }
-
-
-            const addBank =
-                event.target.closest(
-                    "#add-bank-account-button"
-                );
-
-
-            if (
-                addBank
-            ) {
-
-                openBankAccountModal();
-
-                return;
-
-            }
-
-
-            const notifications =
-                event.target.closest(
-                    "#notification-button"
-                );
-
-
-            if (
-                notifications
-            ) {
-
-                showToast(
-                    "Não existem novas notificações.",
-                    "info"
-                );
-
-
-                return;
-
-            }
-
-        }
-    );
-
-
-    window.addEventListener(
-        "popstate",
-        () => {
-
-            navigate(
-                getViewFromUrl(),
-                false
-            );
-
-        }
-    );
-
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key ===
-                "Escape"
-            ) {
-
-                closeSidebar();
-
-                closeModal();
-
-            }
-
-        }
-    );
+    }
 
 }
 
@@ -3502,23 +3503,15 @@ BANK ACCOUNT MODAL
 function openBankAccountModal() {
 
     const root =
-        getElement(
-            "modal-root"
-        );
+        getElement("modal-root");
 
-
-    if (
-        !root
-    ) {
+    if (!root) {
 
         return;
 
     }
 
-
-    root.hidden =
-        false;
-
+    root.hidden = false;
 
     root.innerHTML = `
 
@@ -3531,7 +3524,6 @@ function openBankAccountModal() {
                 class="modal"
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="bank-modal-title"
             >
 
                 <div class="modal-header">
@@ -3542,7 +3534,7 @@ function openBankAccountModal() {
                             Recebimentos
                         </span>
 
-                        <h2 id="bank-modal-title">
+                        <h2>
                             Adicionar conta bancária
                         </h2>
 
@@ -3552,13 +3544,11 @@ function openBankAccountModal() {
                         type="button"
                         class="modal-close"
                         data-modal-close
-                        aria-label="Fechar"
                     >
                         ×
                     </button>
 
                 </div>
-
 
                 <form
                     id="bank-account-form"
@@ -3581,7 +3571,6 @@ function openBankAccountModal() {
 
                     </label>
 
-
                     <label>
 
                         <span>
@@ -3593,11 +3582,10 @@ function openBankAccountModal() {
                             type="text"
                             required
                             maxlength="120"
-                            placeholder="Ex.: Conta Principal"
+                            placeholder="Conta Principal"
                         >
 
                     </label>
-
 
                     <label>
 
@@ -3613,7 +3601,6 @@ function openBankAccountModal() {
                         >
 
                     </label>
-
 
                     <label>
 
@@ -3632,16 +3619,13 @@ function openBankAccountModal() {
 
                     </label>
 
-
                     <label>
 
                         <span>
                             Moeda
                         </span>
 
-                        <select
-                            name="currency"
-                        >
+                        <select name="currency">
 
                             <option value="AOA">
                                 AOA — Kwanza
@@ -3650,7 +3634,6 @@ function openBankAccountModal() {
                         </select>
 
                     </label>
-
 
                     <label class="checkbox-field">
 
@@ -3665,7 +3648,6 @@ function openBankAccountModal() {
                         </span>
 
                     </label>
-
 
                     <div class="modal-actions">
 
@@ -3694,26 +3676,11 @@ function openBankAccountModal() {
 
     `;
 
-
-    const form =
-        getElement(
-            "bank-account-form"
-        );
-
-
-    form?.addEventListener(
+    getElement(
+        "bank-account-form"
+    )?.addEventListener(
         "submit",
         handleBankAccountSubmit
-    );
-
-
-    root.addEventListener(
-        "click",
-        handleModalClick,
-        {
-            once:
-                true
-        }
     );
 
 }
@@ -3725,76 +3692,51 @@ async function handleBankAccountSubmit(
 
     event.preventDefault();
 
-
     const form =
         event.currentTarget;
 
-
-    const formData =
-        new FormData(
-            form
-        );
-
+    const data =
+        new FormData(form);
 
     const payload = {
 
         bankName:
             String(
-                formData.get(
-                    "bankName"
-                ) ||
+                data.get("bankName") ||
                 ""
-            )
-                .trim(),
+            ).trim(),
 
         accountName:
             String(
-                formData.get(
-                    "accountName"
-                ) ||
+                data.get("accountName") ||
                 ""
-            )
-                .trim(),
+            ).trim(),
 
         holderName:
             String(
-                formData.get(
-                    "holderName"
-                ) ||
+                data.get("holderName") ||
                 ""
-            )
-                .trim(),
+            ).trim(),
 
         iban:
             String(
-                formData.get(
-                    "iban"
-                ) ||
+                data.get("iban") ||
                 ""
             )
                 .trim()
-                .replace(
-                    /\s+/g,
-                    ""
-                )
+                .replace(/\s+/g, "")
                 .toUpperCase(),
 
         currency:
             String(
-                formData.get(
-                    "currency"
-                ) ||
+                data.get("currency") ||
                 "AOA"
             ),
 
         active:
-            formData.get(
-                "active"
-            ) ===
-            "on"
+            data.get("active") === "on"
 
     };
-
 
     if (
         !payload.bankName ||
@@ -3808,64 +3750,41 @@ async function handleBankAccountSubmit(
             "warning"
         );
 
-
         return;
 
     }
 
-
-    setGlobalLoading(
-        true
-    );
-
+    setGlobalLoading(true);
 
     try {
 
         await apiRequest(
-
             "/bank-accounts",
-
             {
 
-                method:
-                    "POST",
+                method: "POST",
 
-                body:
-                    payload
+                body: payload
 
             }
-
         );
-
 
         closeModal();
 
-
         await loadBankAccounts();
 
-
         showToast(
-            "Conta bancária adicionada com sucesso.",
+            "Conta bancária adicionada.",
             "success"
         );
 
-    }
+    } catch (error) {
 
-    catch (
-        error
-    ) {
+        handleError(error);
 
-        handleError(
-            error
-        );
+    } finally {
 
-    }
-
-    finally {
-
-        setGlobalLoading(
-            false
-        );
+        setGlobalLoading(false);
 
     }
 
@@ -3874,64 +3793,148 @@ async function handleBankAccountSubmit(
 
 /*
 ============================================================
-MODAL
+AUTH BOOTSTRAP
 ============================================================
 */
 
-function handleModalClick(
-    event
-) {
+async function bootstrapAuthentication() {
 
-    if (
-        event.target.closest(
-            "[data-modal-close]"
-        )
-    ) {
+    const token =
+        getStoredToken();
 
-        closeModal();
+    if (!token) {
+
+        state.authenticated =
+            false;
+
+        return false;
+
+    }
+
+    state.token =
+        token;
+
+    try {
+
+        await loadMerchantProfile();
+
+        return true;
+
+    } catch (error) {
+
+        if (
+            error instanceof ApiError &&
+            (
+                error.status === 401 ||
+                error.status === 403
+            )
+        ) {
+
+            clearToken();
+
+            state.authenticated =
+                false;
+
+            return false;
+
+        }
+
+        handleError(
+            error,
+            {
+                silentAuth: true
+            }
+        );
+
+        return false;
 
     }
 
 }
 
 
-function closeModal() {
+/*
+============================================================
+INITIAL DATA
+============================================================
+*/
 
-    const root =
-        getElement(
-            "modal-root"
-        );
+async function loadInitialData() {
 
+    if (!state.authenticated) {
 
-    if (
-        !root
-    ) {
+        renderDashboard();
 
         return;
 
     }
 
+    await Promise.allSettled([
 
-    root.hidden =
-        true;
+        loadPlan(),
 
+        loadInvoices(),
 
-    root.innerHTML =
-        "";
+        loadInvoiceStatistics(),
+
+        loadBankAccounts(),
+
+        loadProofs()
+
+    ]);
+
+    renderDashboard();
 
 }
 
 
 /*
 ============================================================
-PUBLIC CHECKOUT HELPERS
+LOGOUT
 ============================================================
+*/
 
-Estas funções não utilizam BitPay.
+function logout() {
 
-Servem somente para o checkout público da Honey Pay,
-onde o cliente de um comerciante consulta uma cobrança.
+    clearToken();
 
+    state.authenticated =
+        false;
+
+    state.merchant =
+        null;
+
+    state.subscription =
+        null;
+
+    state.plan =
+        null;
+
+    state.invoices =
+        [];
+
+    state.bankAccounts =
+        [];
+
+    state.proofs =
+        [];
+
+    showToast(
+        "Sessão terminada.",
+        "success"
+    );
+
+    setTimeout(
+        () => window.location.reload(),
+        500
+    );
+
+}
+
+
+/*
+============================================================
+PUBLIC CHECKOUT
 ============================================================
 */
 
@@ -3939,30 +3942,22 @@ export async function getPublicCheckout(
     publicToken
 ) {
 
-    if (
-        !publicToken
-    ) {
+    if (!publicToken) {
 
         throw new ApiError(
-            "Token público de checkout inválido.",
+            "Token público inválido.",
             400,
             "INVALID_PUBLIC_TOKEN"
         );
 
     }
 
-
     const response =
         await apiRequest(
-
             `/checkout/${encodeURIComponent(publicToken)}`
-
         );
 
-
-    return extractData(
-        response
-    );
+    return extractData(response);
 
 }
 
@@ -3972,41 +3967,30 @@ export async function createPublicPaymentIntent(
     payload
 ) {
 
-    if (
-        !publicToken
-    ) {
+    if (!publicToken) {
 
         throw new ApiError(
-            "Token público de checkout inválido.",
+            "Token público inválido.",
             400,
             "INVALID_PUBLIC_TOKEN"
         );
 
     }
 
-
     const response =
         await apiRequest(
-
             `/checkout/${encodeURIComponent(publicToken)}/payment-intent`,
-
             {
 
-                method:
-                    "POST",
+                method: "POST",
 
                 body:
-                    payload ||
-                    {}
+                    payload || {}
 
             }
-
         );
 
-
-    return extractData(
-        response
-    );
+    return extractData(response);
 
 }
 
@@ -4029,85 +4013,38 @@ export async function getPublicPaymentStatus(
 
     }
 
-
     const response =
         await apiRequest(
-
             `/checkout/${encodeURIComponent(publicToken)}/payment/${encodeURIComponent(paymentId)}`
-
         );
 
-
-    return extractData(
-        response
-    );
+    return extractData(response);
 
 }
 
 
 /*
 ============================================================
-SUBSCRIPTION CHECKOUT SEPARATION
+SUBSCRIPTION
 ============================================================
 
-IMPORTANTE:
+BITPAY CONTINUA EXCLUSIVAMENTE NO BACKEND.
 
-O frontend NÃO chama BitPay.
+Não existe chave BitPay neste frontend.
 
-O frontend deverá chamar futuramente uma rota interna
-do backend responsável por criar a sessão de subscrição.
-
-Exemplo futuro:
-
-POST /api/subscription/checkout
-
-O backend será responsável por:
-
-1. Validar o comerciante
-2. Validar o plano
-3. Calcular o valor
-4. Criar o checkout
-5. Comunicar com BitPay
-6. Receber a resposta
-7. Devolver somente os dados públicos necessários
-
-Nenhuma chave BitPay será enviada para este arquivo.
+Como a API atual do repositório não expõe ainda uma rota
+pública de criação do checkout de subscrição, NÃO simulamos
+um pagamento nem inventamos uma rota.
 
 ============================================================
 */
 
-
-export async function createSubscriptionCheckout(
-    planId
-) {
-
-    if (
-        !planId
-    ) {
-
-        throw new ApiError(
-            "Plano inválido.",
-            400,
-            "INVALID_PLAN"
-        );
-
-    }
-
-
-    /*
-    --------------------------------------------------------
-    A rota de subscrição BitPay não será inventada aqui.
-    Ela será ligada quando o backend disponibilizar a rota
-    oficial correspondente.
-    --------------------------------------------------------
-    */
+export async function createSubscriptionCheckout() {
 
     throw new ApiError(
 
-        "O checkout da subscrição ainda não está exposto pelo backend.",
-
+        "O checkout da subscrição ainda não está exposto pela API.",
         501,
-
         "SUBSCRIPTION_CHECKOUT_NOT_EXPOSED"
 
     );
@@ -4130,44 +4067,34 @@ export async function checkApiHealth() {
                 "/health",
                 {
 
-                    method:
-                        "GET",
+                    method: "GET",
 
                     headers: {
-
                         Accept:
                             "application/json"
-
                     },
 
-                    cache:
-                        "no-store"
+                    cache: "no-store"
 
                 }
             );
 
-
-        if (
-            !response.ok
-        ) {
+        if (!response.ok) {
 
             return false;
 
         }
 
-
         const data =
             await response.json();
 
-
         return (
-            data?.success ===
-            true
+            data?.success === true ||
+            data?.data?.status === "operational" ||
+            data?.status === "operational"
         );
 
-    }
-
-    catch {
+    } catch {
 
         return false;
 
@@ -4178,230 +4105,550 @@ export async function checkApiHealth() {
 
 /*
 ============================================================
-GLOBAL FRONTEND API
+EVENTS
 ============================================================
 */
 
-window.HoneyPay =
-    {
+function setupEvents() {
 
-        state,
+    document.addEventListener(
+        "click",
+        event => {
 
-        api:
+            const nav =
+                event.target.closest(
+                    "[data-nav]"
+                );
 
-            {
+            if (nav) {
 
-                request:
-                    apiRequest,
+                event.preventDefault();
 
-                health:
-                    checkApiHealth,
+                navigate(
+                    nav.dataset.nav
+                );
 
-                getPublicCheckout,
-
-                createPublicPaymentIntent,
-
-                getPublicPaymentStatus,
-
-                createSubscriptionCheckout
-
-            },
-
-        auth:
-
-            {
-
-                getToken:
-                    getStoredToken,
-
-                setToken,
-
-                clearToken,
-
-                logout
-
-            },
-
-        navigation:
-
-            {
-
-                navigate,
-
-                current:
-                    () =>
-                        state.currentView
-
-            },
-
-        merchant:
-
-            {
-
-                get:
-                    () =>
-                        state.merchant
-
-            },
-
-        plan:
-
-            {
-
-                get:
-                    () =>
-                        state.plan,
-
-                reload:
-                    loadPlan
-
-            },
-
-        bankAccounts:
-
-            {
-
-                list:
-                    () =>
-                        state.bankAccounts,
-
-                reload:
-                    loadBankAccounts,
-
-                setPrimary:
-                    setPrimaryBankAccount,
-
-                toggle:
-                    toggleBankAccount,
-
-                remove:
-                    deleteBankAccount
-
-            },
-
-        proofs:
-
-            {
-
-                list:
-                    () =>
-                        state.proofs,
-
-                reload:
-                    loadProofs
+                return;
 
             }
 
-    };
+            const route =
+                event.target.closest(
+                    "[data-route]"
+                );
+
+            if (route) {
+
+                event.preventDefault();
+
+                navigate(
+                    route.dataset.route
+                );
+
+                return;
+
+            }
+
+            const action =
+                event.target.closest(
+                    "[data-action]"
+                );
+
+            if (action) {
+
+                event.preventDefault();
+
+                switch (
+                    action.dataset.action
+                ) {
+
+                    case "logout":
+
+                        logout();
+
+                        break;
+
+                    case "create-invoice":
+
+                        navigate("invoices");
+
+                        openCreateInvoiceModal();
+
+                        break;
+
+                    case "open-invoices":
+
+                        navigate("invoices");
+
+                        break;
+
+                    case "open-proofs":
+
+                        navigate("proofs");
+
+                        break;
+
+                    case "open-bank-accounts":
+
+                        navigate(
+                            "bank-accounts"
+                        );
+
+                        break;
+
+                    case "open-plans":
+
+                        navigate("plans");
+
+                        break;
+
+                }
+
+                return;
+
+            }
+
+            const primary =
+                event.target.closest(
+                    "[data-bank-primary]"
+                );
+
+            if (primary) {
+
+                event.preventDefault();
+
+                setPrimaryBankAccount(
+                    primary.dataset.bankPrimary
+                );
+
+                return;
+
+            }
+
+            const toggle =
+                event.target.closest(
+                    "[data-bank-toggle]"
+                );
+
+            if (toggle) {
+
+                event.preventDefault();
+
+                toggleBankAccount(
+
+                    toggle.dataset.bankToggle,
+
+                    toggle.dataset.bankActive ===
+                    "true"
+
+                );
+
+                return;
+
+            }
+
+            const remove =
+                event.target.closest(
+                    "[data-bank-delete]"
+                );
+
+            if (remove) {
+
+                event.preventDefault();
+
+                deleteBankAccount(
+                    remove.dataset.bankDelete
+                );
+
+                return;
+
+            }
+
+            const cancelInvoiceButton =
+                event.target.closest(
+                    "[data-invoice-cancel]"
+                );
+
+            if (cancelInvoiceButton) {
+
+                event.preventDefault();
+
+                cancelInvoice(
+                    cancelInvoiceButton.dataset.invoiceCancel
+                );
+
+                return;
+
+            }
+
+            const copyInvoiceButton =
+                event.target.closest(
+                    "[data-invoice-copy]"
+                );
+
+            if (copyInvoiceButton) {
+
+                event.preventDefault();
+
+                copyInvoiceLink(
+                    copyInvoiceButton.dataset.invoiceCopy
+                );
+
+                return;
+
+            }
+
+            const reviewProofButton =
+                event.target.closest(
+                    "[data-proof-review]"
+                );
+
+            if (reviewProofButton) {
+
+                event.preventDefault();
+
+                reviewProof(
+
+                    reviewProofButton.dataset.proofReview,
+
+                    reviewProofButton.dataset.proofDecision
+
+                );
+
+                return;
+
+            }
+
+            const mobileMenu =
+                event.target.closest(
+                    "#mobile-menu-button"
+                );
+
+            if (mobileMenu) {
+
+                openSidebar();
+
+                return;
+
+            }
+
+            const sidebarClose =
+                event.target.closest(
+                    "#sidebar-close"
+                );
+
+            if (sidebarClose) {
+
+                closeSidebar();
+
+                return;
+
+            }
+
+            const overlay =
+                event.target.closest(
+                    "#sidebar-overlay"
+                );
+
+            if (overlay) {
+
+                closeSidebar();
+
+                return;
+
+            }
+
+            const createInvoiceButton =
+                event.target.closest(
+                    "#create-invoice-button"
+                );
+
+            if (createInvoiceButton) {
+
+                navigate("invoices");
+
+                openCreateInvoiceModal();
+
+                return;
+
+            }
+
+            const addBank =
+                event.target.closest(
+                    "#add-bank-account-button"
+                );
+
+            if (addBank) {
+
+                openBankAccountModal();
+
+                return;
+
+            }
+
+            const managePlan =
+                event.target.closest(
+                    "#manage-plan-button"
+                );
+
+            if (managePlan) {
+
+                navigate("plans");
+
+                return;
+
+            }
+
+            const notification =
+                event.target.closest(
+                    "#notification-button"
+                );
+
+            if (notification) {
+
+                showToast(
+                    "As notificações serão apresentadas aqui quando existirem.",
+                    "info"
+                );
+
+                return;
+
+            }
+
+        }
+    );
+
+    document.addEventListener(
+        "click",
+        handleModalClick
+    );
+
+    window.addEventListener(
+        "popstate",
+        () => {
+
+            navigate(
+                getViewFromUrl(),
+                false
+            );
+
+        }
+    );
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeSidebar();
+
+                closeModal();
+
+            }
+
+        }
+    );
+
+}
 
 
 /*
 ============================================================
-APPLICATION INITIALIZATION
+GLOBAL API
+============================================================
+*/
+
+window.HoneyPay = {
+
+    state,
+
+    api: {
+
+        request:
+            apiRequest,
+
+        health:
+            checkApiHealth,
+
+        getPublicCheckout,
+
+        createPublicPaymentIntent,
+
+        getPublicPaymentStatus,
+
+        createSubscriptionCheckout
+
+    },
+
+    auth: {
+
+        getToken:
+            getStoredToken,
+
+        setToken,
+
+        clearToken,
+
+        logout
+
+    },
+
+    navigation: {
+
+        navigate,
+
+        current:
+            () => state.currentView
+
+    },
+
+    merchant: {
+
+        get:
+            () => state.merchant
+
+    },
+
+    plan: {
+
+        get:
+            () => state.plan,
+
+        reload:
+            loadPlan
+
+    },
+
+    invoices: {
+
+        list:
+            () => state.invoices,
+
+        reload:
+            loadInvoices,
+
+        statistics:
+            loadInvoiceStatistics,
+
+        create:
+            openCreateInvoiceModal,
+
+        cancel:
+            cancelInvoice,
+
+        copyLink:
+            copyInvoiceLink
+
+    },
+
+    bankAccounts: {
+
+        list:
+            () => state.bankAccounts,
+
+        reload:
+            loadBankAccounts,
+
+        create:
+            openBankAccountModal,
+
+        setPrimary:
+            setPrimaryBankAccount,
+
+        toggle:
+            toggleBankAccount,
+
+        remove:
+            deleteBankAccount
+
+    },
+
+    proofs: {
+
+        list:
+            () => state.proofs,
+
+        reload:
+            loadProofs,
+
+        review:
+            reviewProof
+
+    }
+
+};
+
+
+/*
+============================================================
+INITIALIZATION
 ============================================================
 */
 
 async function initializeApplication() {
 
-    if (
-        state.initialized
-    ) {
+    if (state.initialized) {
 
         return;
 
     }
 
-
     state.initialized =
         true;
 
-
     const loader =
-        getElement(
-            "app-loader"
-        );
-
+        getElement("app-loader");
 
     try {
 
         setupEvents();
 
-
         const authenticated =
             await bootstrapAuthentication();
 
-
-        if (
-            authenticated
-        ) {
+        if (authenticated) {
 
             await loadInitialData();
 
-        }
-
-        else {
+        } else {
 
             renderDashboard();
 
         }
 
-
-        const initialView =
-            getViewFromUrl();
-
-
         navigate(
-            initialView,
+            getViewFromUrl(),
             false
         );
-
-
-        /*
-        ----------------------------------------------------
-        A aplicação frontend está pronta.
-        ----------------------------------------------------
-        */
 
         document.body.classList.add(
             "app-ready"
         );
 
-
-        if (
-            loader
-        ) {
+        if (loader) {
 
             loader.classList.add(
                 "loaded"
             );
 
-
             setTimeout(
-                () => {
-
-                    loader.remove();
-
-                },
+                () => loader.remove(),
                 350
             );
 
         }
 
-    }
-
-    catch (
-        error
-    ) {
+    } catch (error) {
 
         console.error(
-            "[HONEY PAY] Initialization error:",
+            "[HONEY PAY INITIALIZATION]",
             error
         );
 
-
-        if (
-            loader
-        ) {
+        if (loader) {
 
             loader.classList.add(
                 "loaded"
@@ -4409,9 +4656,15 @@ async function initializeApplication() {
 
         }
 
+        handleError(
+            error,
+            {
+                silent: true
+            }
+        );
 
         showToast(
-            "A aplicação foi carregada, mas alguns dados não puderam ser obtidos.",
+            "A plataforma abriu, mas alguns dados não puderam ser carregados.",
             "warning"
         );
 
@@ -4435,14 +4688,11 @@ if (
         "DOMContentLoaded",
         initializeApplication,
         {
-            once:
-                true
+            once: true
         }
     );
 
-}
-
-else {
+} else {
 
     initializeApplication();
 
