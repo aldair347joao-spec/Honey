@@ -5,450 +5,303 @@ INVOICE SERVICE
 V1.0.0
 ============================================================
 
-MÓDULO REAL DE FATURAS / COBRANÇAS
+MÓDULO DE FATURAS E LINKS DE PAGAMENTO
 
 ------------------------------------------------------------
 RESPONSABILIDADES
 ------------------------------------------------------------
 
 - Criar faturas
-- Controlar limite FREE
-- Permitir faturas ilimitadas PRO
-- Gerar número único
-- Gerar identificador público
-- Associar conta bancária
-- Criar checkout público
-- Consultar faturas
+- Gerar números únicos
+- Gerar identificadores públicos seguros
+- Gerar links públicos
+- Controlar limite do plano gratuito
+- Permitir faturas ilimitadas no Pro
+- Associar contas bancárias
+- Guardar dados do comprador
+- Consultar faturas privadas
+- Consultar faturas públicas
 - Cancelar faturas
-- Atualizar contador do comerciante
-- Evitar criação duplicada
-- Preparar estrutura para QR Code
-- Preparar estrutura para Honey Shield
+- Preparar QR Code para checkout
 
 ------------------------------------------------------------
-REGRA FREE
+PLANOS
 ------------------------------------------------------------
 
-1ª até 10ª fatura:
-PERMITIDO
+FREE
+10 faturas vitalícias
 
-11ª fatura:
-BLOQUEADA
-
-------------------------------------------------------------
-REGRA PRO
-------------------------------------------------------------
-
-Faturas ilimitadas.
+PRO
+7.500 Kz / mês
+Faturas ilimitadas
 
 ============================================================
 */
 
 import crypto from "node:crypto";
+import { ObjectId } from "mongodb";
 
 import {
-    Merchant,
-    Invoice,
-    BankAccount
-} from "./models.js";
-
+    getDatabase
+} from "./database.js";
 
 import {
-    validateInvoiceInput,
-    validateObjectId
-} from "./validators.js";
-
-
-import {
-    sanitizeInvoiceInput
-} from "./validators.js";
-
-
-import {
-    canCreateInvoice,
-    getEffectivePlan,
-    PLAN_FREE,
-    PLAN_PRO,
-    FREE_INVOICE_LIMIT
+    getPlanSummary
 } from "./plans.js";
 
 
-import {
-    buildCheckoutPath,
-    buildAbsoluteUrl,
-    publicInvoice
-} from "./utils.js";
-
-
-import {
-    logSecurityEvent
-} from "./logger.js";
-
-
 /*
 ============================================================
-CONSTANTES
+CONFIGURAÇÃO
 ============================================================
 */
 
-const INVOICE_PREFIX =
-    "HP";
+const FREE_INVOICE_LIMIT =
+    10;
 
+const PRO_PLAN_IDS =
+    new Set([
+        "pro",
+        "professional"
+    ]);
 
-const DEFAULT_CURRENCY =
+const CURRENCY =
     "AOA";
 
+const PUBLIC_ID_BYTES =
+    18;
 
-const DEFAULT_EXPIRATION_HOURS =
-    24;
+const MAX_DESCRIPTION_LENGTH =
+    1000;
 
+const MAX_CUSTOMER_NAME_LENGTH =
+    160;
 
-/*
-============================================================
-INVOICE PUBLIC ID
-============================================================
+const MAX_CUSTOMER_PHONE_LENGTH =
+    40;
 
-Identificador que pode aparecer no link público.
+const MAX_CUSTOMER_EMAIL_LENGTH =
+    180;
 
-Não usamos diretamente o _id do MongoDB no checkout.
-============================================================
-*/
+const MAX_REFERENCE_LENGTH =
+    160;
 
-function generatePublicId() {
+const MAX_AMOUNT =
+    999999999999;
 
-    return (
-
-        INVOICE_PREFIX +
-
-        "-" +
-
-        crypto
-            .randomBytes(
-                10
-            )
-            .toString(
-                "hex"
-            )
-            .toUpperCase()
-    );
-}
+const DEFAULT_EXPIRY_DAYS =
+    30;
 
 
 /*
 ============================================================
-INVOICE NUMBER
+COLLECTION NAMES
 ============================================================
 */
 
-function generateInvoiceNumber() {
+const INVOICES_COLLECTION =
+    "invoices";
 
-    const timestamp =
-        Date.now()
-            .toString(
-                36
-            )
-            .toUpperCase();
+const BANK_ACCOUNTS_COLLECTION =
+    "bank_accounts";
 
-
-    const random =
-        crypto
-            .randomBytes(
-                3
-            )
-            .toString(
-                "hex"
-            )
-            .toUpperCase();
-
-
-    return (
-
-        INVOICE_PREFIX +
-
-        "-" +
-
-        timestamp +
-
-        "-" +
-
-        random
-    );
-}
+const MERCHANTS_COLLECTION =
+    "merchants";
 
 
 /*
 ============================================================
-EXPIRATION
+UTIL
 ============================================================
 */
 
-function getDefaultExpirationDate() {
-
-    const date =
-        new Date();
-
-
-    date.setHours(
-
-        date.getHours() +
-
-        DEFAULT_EXPIRATION_HOURS
-    );
-
-
-    return date;
-}
-
-
-/*
-============================================================
-NORMALIZE CUSTOMER
-============================================================
-*/
-
-function normalizeCustomer(
-    data
-) {
-
-    return {
-
-        name:
-            data.customerName ||
-            "",
-
-        phone:
-            data.customerPhone ||
-            "",
-
-        email:
-            data.customerEmail ||
-            ""
-    };
-}
-
-
-/*
-============================================================
-GET BANK ACCOUNT
-============================================================
-*/
-
-async function getSelectedBankAccount(
-    merchantId,
-    bankAccountId
+function cleanString(
+    value,
+    maxLength = 500
 ) {
 
     if (
-        !bankAccountId
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+    }
+
+    return String(
+        value
+    )
+        .normalize(
+            "NFKC"
+        )
+        .replace(
+            /[\u0000-\u001F\u007F]/g,
+            ""
+        )
+        .trim()
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .slice(
+            0,
+            maxLength
+        );
+}
+
+
+function normalizeId(
+    value
+) {
+
+    if (
+        value instanceof ObjectId
+    ) {
+
+        return value;
+    }
+
+    if (
+        typeof value !==
+        "string"
+    ) {
+
+        return null;
+    }
+
+    const normalized =
+        value.trim();
+
+
+    if (
+        !ObjectId.isValid(
+            normalized
+        )
     ) {
 
         return null;
     }
 
 
-    const idError =
-        validateObjectId(
-            bankAccountId,
-            "bankAccountId"
-        );
-
-
-    if (
-        idError
-    ) {
-
-        const error =
-            new Error(
-                idError.message
-            );
-
-
-        error.code =
-            "INVALID_BANK_ACCOUNT_ID";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    const account =
-        await BankAccount
-            .findOne({
-
-                _id:
-                    bankAccountId,
-
-                merchantId,
-
-                isActive:
-                    true
-            })
-            .lean();
-
-
-    if (
-        !account
-    ) {
-
-        const error =
-            new Error(
-                "A conta bancária selecionada não existe ou está inativa."
-            );
-
-
-        error.code =
-            "BANK_ACCOUNT_NOT_FOUND";
-
-
-        error.statusCode =
-            404;
-
-
-        throw error;
-    }
-
-
-    return account;
+    return new ObjectId(
+        normalized
+    );
 }
 
 
-/*
-============================================================
-GET DEFAULT BANK ACCOUNT
-============================================================
-*/
+function createPublicId() {
 
-async function getDefaultBankAccount(
-    merchantId
-) {
-
-    /*
-    --------------------------------------------------------
-    Primeiro tentamos uma conta marcada como default.
-    --------------------------------------------------------
-    */
-
-    const defaultAccount =
-        await BankAccount
-            .findOne({
-
-                merchantId,
-
-                isActive:
-                    true,
-
-                isDefault:
-                    true
-            })
-            .sort({
-                displayOrder:
-                    1
-            })
-            .lean();
-
-
-    if (
-        defaultAccount
-    ) {
-
-        return defaultAccount;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Caso não exista, usamos a primeira conta ativa.
-    --------------------------------------------------------
-    */
-
-    return BankAccount
-        .findOne({
-
-            merchantId,
-
-            isActive:
-                true
-        })
-        .sort({
-            displayOrder:
-                1,
-
-            createdAt:
-                1
-        })
-        .lean();
+    return crypto
+        .randomBytes(
+            PUBLIC_ID_BYTES
+        )
+        .toString(
+            "base64url"
+        );
 }
 
 
-/*
-============================================================
-REQUIRE BANK ACCOUNT
-============================================================
-*/
+function createInvoiceNumber() {
 
-async function resolveBankAccount(
-    merchantId,
-    bankAccountId
-) {
-
-    if (
-        bankAccountId
-    ) {
-
-        return getSelectedBankAccount(
-            merchantId,
-            bankAccountId
-        );
-    }
+    const date =
+        new Date();
 
 
-    return getDefaultBankAccount(
-        merchantId
+    const year =
+        date.getUTCFullYear();
+
+
+    const month =
+        String(
+            date.getUTCMonth() + 1
+        )
+            .padStart(
+                2,
+                "0"
+            );
+
+
+    const day =
+        String(
+            date.getUTCDate()
+        )
+            .padStart(
+                2,
+                "0"
+            );
+
+
+    const random =
+        crypto
+            .randomBytes(
+                4
+            )
+            .toString(
+                "hex"
+            )
+            .toUpperCase();
+
+
+    return (
+        `HP-${year}${month}${day}-${random}`
     );
 }
 
 
 /*
 ============================================================
-CREATE INVOICE
+AMOUNT
 ============================================================
 */
 
-export async function createInvoice(
-    merchantId,
-    input,
-    options = {}
+function normalizeAmount(
+    value
 ) {
 
-    /*
-    --------------------------------------------------------
-    Validar merchant ID.
-    --------------------------------------------------------
-    */
-
-    const merchantIdError =
-        validateObjectId(
-            merchantId,
-            "merchantId"
+    const amount =
+        Number(
+            value
         );
 
 
     if (
-        merchantIdError
+        !Number.isFinite(
+            amount
+        ) ||
+        amount <= 0
     ) {
 
         const error =
             new Error(
-                merchantIdError.message
+                "O valor da fatura deve ser superior a zero."
             );
 
 
         error.code =
-            "INVALID_MERCHANT_ID";
+            "INVALID_INVOICE_AMOUNT";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    if (
+        amount >
+        MAX_AMOUNT
+    ) {
+
+        const error =
+            new Error(
+                "O valor da fatura ultrapassa o limite permitido."
+            );
+
+
+        error.code =
+            "INVOICE_AMOUNT_TOO_LARGE";
 
 
         error.statusCode =
@@ -461,112 +314,250 @@ export async function createInvoice(
 
     /*
     --------------------------------------------------------
-    Validar input.
+    Valores monetários são armazenados com duas casas.
     --------------------------------------------------------
     */
 
-    const validationErrors =
-        validateInvoiceInput(
-            input
-        );
+    return Math.round(
+        amount *
+        100
+    ) / 100;
+}
 
 
-    if (
-        validationErrors.length
-    ) {
+/*
+============================================================
+PLAN
+============================================================
+*/
 
-        const error =
-            new Error(
-                "Dados da fatura inválidos."
+async function resolveMerchantPlan(
+    merchantId
+) {
+
+    try {
+
+        const summary =
+            await getPlanSummary(
+                merchantId
             );
 
 
-        error.code =
-            "VALIDATION_ERROR";
+        const planId =
+            String(
+                summary?.planId ||
+                summary?.plan ||
+                summary?.id ||
+                "free"
+            )
+                .trim()
+                .toLowerCase();
 
 
-        error.statusCode =
-            400;
+        const isPro =
+            PRO_PLAN_IDS.has(
+                planId
+            );
 
 
-        error.details =
-            validationErrors;
+        return {
 
+            planId,
 
-        throw error;
+            isPro
+        };
+
     }
 
+    catch {
 
-    /*
-    --------------------------------------------------------
-    Sanitizar.
-    --------------------------------------------------------
-    */
+        /*
+        ----------------------------------------------------
+        Fail-safe:
+        se não conseguirmos confirmar o plano,
+        tratamos como Free.
 
-    const data =
-        sanitizeInvoiceInput(
-            input
-        );
+        Isto evita que um erro de leitura desbloqueie
+        faturas ilimitadas.
+        ----------------------------------------------------
+        */
+
+        return {
+
+            planId:
+                "free",
+
+            isPro:
+                false
+        };
+    }
+}
 
 
-    /*
-    --------------------------------------------------------
-    Verificar capacidade do plano.
+/*
+============================================================
+INVOICE COUNT
+============================================================
+*/
 
-    Esta verificação acontece ANTES de criar a fatura.
-    --------------------------------------------------------
-    */
+async function countMerchantInvoices(
+    invoices,
+    merchantId
+) {
 
-    const capacity =
-        await canCreateInvoice(
+    return invoices.countDocuments({
+
+        merchantId
+    });
+}
+
+
+/*
+============================================================
+FREE LIMIT
+============================================================
+*/
+
+async function enforceInvoiceLimit(
+    invoices,
+    merchantId
+) {
+
+    const plan =
+        await resolveMerchantPlan(
             merchantId
         );
 
 
     if (
-        !capacity.allowed
+        plan.isPro
+    ) {
+
+        return {
+
+            allowed:
+                true,
+
+            planId:
+                plan.planId,
+
+            invoiceCount:
+                await countMerchantInvoices(
+                    invoices,
+                    merchantId
+                ),
+
+            limit:
+                null,
+
+            remaining:
+                null
+        };
+    }
+
+
+    const count =
+        await countMerchantInvoices(
+            invoices,
+            merchantId
+        );
+
+
+    if (
+        count >=
+        FREE_INVOICE_LIMIT
     ) {
 
         const error =
             new Error(
-                "O limite de 10 faturas gratuitas foi atingido."
+                "O plano gratuito atingiu o limite de 10 faturas. Ative o Plano Profissional por 7.500 Kz/mês para continuar."
             );
 
 
         error.code =
-            capacity.reason ||
-            "INVOICE_LIMIT_REACHED";
+            "FREE_INVOICE_LIMIT_REACHED";
 
 
         error.statusCode =
             402;
 
 
-        error.upgrade = {
+        error.details =
+            {
 
-            requiredPlan:
-                PLAN_PRO,
+                plan:
+                    "free",
 
-            priceKz:
-                7500
-        };
+                limit:
+                    FREE_INVOICE_LIMIT,
+
+                used:
+                    count,
+
+                remaining:
+                    0,
+
+                upgradeRequired:
+                    true,
+
+                proPrice:
+                    7500
+            };
 
 
         throw error;
     }
 
 
-    /*
-    --------------------------------------------------------
-    Obter comerciante.
-    --------------------------------------------------------
-    */
+    return {
+
+        allowed:
+            true,
+
+        planId:
+            plan.planId,
+
+        invoiceCount:
+            count,
+
+        limit:
+            FREE_INVOICE_LIMIT,
+
+        remaining:
+            Math.max(
+                0,
+                FREE_INVOICE_LIMIT -
+                count -
+                1
+            )
+    };
+}
+
+
+/*
+============================================================
+MERCHANT
+============================================================
+*/
+
+async function getMerchant(
+    db,
+    merchantId
+) {
+
+    const merchants =
+        db.collection(
+            MERCHANTS_COLLECTION
+        );
+
 
     const merchant =
-        await Merchant
-            .findById(
-                merchantId
-            );
+        await merchants.findOne(
+            {
+                _id:
+                    merchantId
+            }
+        );
 
 
     if (
@@ -591,19 +582,343 @@ export async function createInvoice(
     }
 
 
+    return merchant;
+}
+
+
+/*
+============================================================
+BUSINESS NAME
+============================================================
+*/
+
+function getBusinessName(
+    merchant
+) {
+
+    return cleanString(
+
+        merchant?.businessName ||
+
+        merchant?.storeName ||
+
+        merchant?.shopName ||
+
+        merchant?.name ||
+
+        "Loja",
+
+        160
+    );
+}
+
+
+/*
+============================================================
+SLUG
+============================================================
+*/
+
+function slugify(
+    value
+) {
+
+    const normalized =
+        cleanString(
+            value,
+            160
+        )
+            .toLowerCase()
+            .normalize(
+                "NFD"
+            )
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            )
+            .replace(
+                /^-+|-+$/g,
+                ""
+            )
+            .slice(
+                0,
+                80
+            );
+
+
+    return (
+        normalized ||
+        "loja"
+    );
+}
+
+
+/*
+============================================================
+PAYMENT SLUG
+============================================================
+*/
+
+async function buildPaymentSlug(
+    invoices,
+    merchantId,
+    merchant
+) {
+
+    const base =
+        slugify(
+            getBusinessName(
+                merchant
+            )
+        );
+
+
+    let slug =
+        base;
+
+
+    const existing =
+        await invoices.findOne(
+            {
+                merchantId,
+                paymentSlug:
+                    slug
+            }
+        );
+
+
     if (
-        merchant.status !==
-        "active"
+        !existing
+    ) {
+
+        return slug;
+    }
+
+
+    slug =
+        `${base}-${crypto
+            .randomBytes(3)
+            .toString("hex")}`;
+
+
+    return slug;
+}
+
+
+/*
+============================================================
+BANK ACCOUNTS
+============================================================
+*/
+
+async function resolveBankAccounts(
+    db,
+    merchantId,
+    requestedBankAccountIds
+) {
+
+    const banks =
+        db.collection(
+            BANK_ACCOUNTS_COLLECTION
+        );
+
+
+    const requested =
+        Array.isArray(
+            requestedBankAccountIds
+        )
+            ? requestedBankAccountIds
+            : [];
+
+
+    /*
+    --------------------------------------------------------
+    Se nenhuma conta específica for indicada,
+    todas as contas ativas do comerciante ficam disponíveis
+    para o checkout.
+    --------------------------------------------------------
+    */
+
+    if (
+        !requested.length
+    ) {
+
+        const accounts =
+            await banks
+                .find(
+                    {
+
+                        merchantId,
+
+                        active:
+                            {
+                                $ne:
+                                    false
+                            }
+                    },
+                    {
+
+                        projection:
+                            {
+                                _id:
+                                    1,
+
+                                bankName:
+                                    1,
+
+                                bankCode:
+                                    1,
+
+                                accountName:
+                                    1,
+
+                                accountNumber:
+                                    1,
+
+                                iban:
+                                    1,
+
+                                currency:
+                                    1,
+
+                                active:
+                                    1,
+
+                                isDefault:
+                                    1
+                            }
+                    }
+                )
+                .sort(
+                    {
+                        isDefault:
+                            -1,
+
+                        createdAt:
+                            1
+                    }
+                )
+                .toArray();
+
+
+        return accounts;
+    }
+
+
+    const ids =
+        requested
+            .map(
+                normalizeId
+            )
+            .filter(
+                Boolean
+            );
+
+
+    if (
+        ids.length !==
+        requested.length
     ) {
 
         const error =
             new Error(
-                "A conta do comerciante não está ativa."
+                "Uma ou mais contas bancárias são inválidas."
             );
 
 
         error.code =
-            "MERCHANT_INACTIVE";
+            "INVALID_BANK_ACCOUNT_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const accounts =
+        await banks
+            .find(
+                {
+
+                    _id:
+                        {
+                            $in:
+                                ids
+                        },
+
+                    merchantId,
+
+                    active:
+                        {
+                            $ne:
+                                false
+                        }
+                },
+                {
+
+                    projection:
+                        {
+                            _id:
+                                1,
+
+                            bankName:
+                                1,
+
+                            bankCode:
+                                1,
+
+                            accountName:
+                                1,
+
+                            accountNumber:
+                                1,
+
+                            iban:
+                                1,
+
+                            currency:
+                                1,
+
+                            active:
+                                1,
+
+                            isDefault:
+                                1
+                        }
+                }
+            )
+            .sort(
+                {
+                    isDefault:
+                        -1,
+
+                    createdAt:
+                        1
+                }
+            )
+            .toArray();
+
+
+    if (
+        accounts.length !==
+        ids.length
+    ) {
+
+        const error =
+            new Error(
+                "Uma ou mais contas bancárias não pertencem ao comerciante ou estão inativas."
+            );
+
+
+        error.code =
+            "BANK_ACCOUNT_ACCESS_DENIED";
 
 
         error.statusCode =
@@ -614,30 +929,341 @@ export async function createInvoice(
     }
 
 
-    /*
-    --------------------------------------------------------
-    Resolver conta bancária.
+    return accounts;
+}
 
-    O comerciante pode ter várias contas.
-    --------------------------------------------------------
-    */
 
-    const bankAccount =
-        await resolveBankAccount(
+/*
+============================================================
+PUBLIC BANK ACCOUNT DATA
+============================================================
+*/
 
-            merchantId,
+function sanitizeBankAccount(
+    account
+) {
 
-            input.bankAccountId
+    if (
+        !account
+    ) {
+
+        return null;
+    }
+
+
+    return {
+
+        id:
+            String(
+                account._id
+            ),
+
+        bankName:
+            cleanString(
+                account.bankName,
+                120
+            ),
+
+        bankCode:
+            cleanString(
+                account.bankCode,
+                30
+            ),
+
+        accountName:
+            cleanString(
+                account.accountName,
+                160
+            ),
+
+        accountNumber:
+            cleanString(
+                account.accountNumber,
+                80
+            ),
+
+        iban:
+            cleanString(
+                account.iban,
+                80
+            ),
+
+        currency:
+            cleanString(
+                account.currency ||
+                CURRENCY,
+                10
+            ),
+
+        isDefault:
+            Boolean(
+                account.isDefault
+            )
+    };
+}
+
+
+/*
+============================================================
+SANITIZE INVOICE
+============================================================
+*/
+
+function sanitizeInvoice(
+    invoice,
+    options = {}
+) {
+
+    if (
+        !invoice
+    ) {
+
+        return null;
+    }
+
+
+    const includePrivate =
+        options.includePrivate ===
+        true;
+
+
+    const result = {
+
+        id:
+            String(
+                invoice._id
+            ),
+
+        invoiceNumber:
+            invoice.invoiceNumber,
+
+        publicId:
+            invoice.publicId,
+
+        paymentSlug:
+            invoice.paymentSlug,
+
+        paymentUrl:
+            invoice.paymentUrl,
+
+        amount:
+            invoice.amount,
+
+        currency:
+            invoice.currency,
+
+        description:
+            invoice.description,
+
+        status:
+            invoice.status,
+
+        createdAt:
+            invoice.createdAt,
+
+        expiresAt:
+            invoice.expiresAt,
+
+        paidAt:
+            invoice.paidAt ||
+            null,
+
+        cancelledAt:
+            invoice.cancelledAt ||
+            null,
+
+        paymentCount:
+            Number(
+                invoice.paymentCount ||
+                0
+            ),
+
+        merchant:
+            {
+
+                businessName:
+                    invoice.merchantSnapshot
+                        ?.businessName ||
+                    null
+            },
+
+        bankAccounts:
+            Array.isArray(
+                invoice.bankAccountsSnapshot
+            )
+                ? invoice
+                    .bankAccountsSnapshot
+                    .map(
+                        sanitizeBankAccount
+                    )
+                : []
+    };
+
+
+    if (
+        includePrivate
+    ) {
+
+        result.merchantId =
+            String(
+                invoice.merchantId
+            );
+
+
+        result.customer =
+            invoice.customer ||
+            null;
+
+
+        result.metadata =
+            invoice.metadata ||
+            {};
+
+
+        result.updatedAt =
+            invoice.updatedAt ||
+            null;
+    }
+
+
+    return result;
+}
+
+
+/*
+============================================================
+CREATE INVOICE
+============================================================
+*/
+
+export async function createInvoice(
+    merchantId,
+    data = {}
+) {
+
+    const normalizedMerchantId =
+        normalizeId(
+            merchantId
         );
 
 
     if (
-        !bankAccount
+        !normalizedMerchantId
     ) {
 
         const error =
             new Error(
-                "Adicione pelo menos uma conta bancária antes de criar uma cobrança."
+                "Identificador do comerciante inválido."
+            );
+
+
+        error.code =
+            "INVALID_MERCHANT_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    const merchant =
+        await getMerchant(
+            db,
+            normalizedMerchantId
+        );
+
+
+    /*
+    --------------------------------------------------------
+    Verificar limite antes de criar.
+    --------------------------------------------------------
+    */
+
+    const quota =
+        await enforceInvoiceLimit(
+
+            invoices,
+
+            normalizedMerchantId
+        );
+
+
+    const amount =
+        normalizeAmount(
+            data.amount
+        );
+
+
+    const description =
+        cleanString(
+            data.description,
+            MAX_DESCRIPTION_LENGTH
+        );
+
+
+    if (
+        !description
+    ) {
+
+        const error =
+            new Error(
+                "A descrição da fatura é obrigatória."
+            );
+
+
+        error.code =
+            "INVOICE_DESCRIPTION_REQUIRED";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Contas bancárias.
+    --------------------------------------------------------
+    */
+
+    const requestedBankAccounts =
+        data.bankAccountIds;
+
+
+    const bankAccounts =
+        await resolveBankAccounts(
+
+            db,
+
+            normalizedMerchantId,
+
+            requestedBankAccounts
+        );
+
+
+    if (
+        !bankAccounts.length
+    ) {
+
+        const error =
+            new Error(
+                "Configure pelo menos uma conta bancária antes de criar uma fatura."
             );
 
 
@@ -655,192 +1281,276 @@ export async function createInvoice(
 
     /*
     --------------------------------------------------------
-    Plano atual.
+    Cliente opcional.
     --------------------------------------------------------
     */
 
-    const plan =
-        await getEffectivePlan(
-            merchantId
+    const customer = {
+
+        name:
+            cleanString(
+                data.customer?.name ||
+                data.customerName,
+                MAX_CUSTOMER_NAME_LENGTH
+            ) || null,
+
+        phone:
+            cleanString(
+                data.customer?.phone ||
+                data.customerPhone,
+                MAX_CUSTOMER_PHONE_LENGTH
+            ) || null,
+
+        email:
+            cleanString(
+                data.customer?.email ||
+                data.customerEmail,
+                MAX_CUSTOMER_EMAIL_LENGTH
+            )
+                .toLowerCase() ||
+            null
+    };
+
+
+    /*
+    --------------------------------------------------------
+    Validação de referência.
+    --------------------------------------------------------
+    */
+
+    const reference =
+        cleanString(
+            data.reference,
+            MAX_REFERENCE_LENGTH
+        ) || null;
+
+
+    /*
+    --------------------------------------------------------
+    Expiração.
+    --------------------------------------------------------
+    */
+
+    let expiryDays =
+        Number(
+            data.expiryDays
+        );
+
+
+    if (
+        !Number.isFinite(
+            expiryDays
+        )
+    ) {
+
+        expiryDays =
+            DEFAULT_EXPIRY_DAYS;
+    }
+
+
+    expiryDays =
+        Math.min(
+            365,
+            Math.max(
+                1,
+                Math.floor(
+                    expiryDays
+                )
+            )
+        );
+
+
+    const now =
+        new Date();
+
+
+    const expiresAt =
+        new Date(
+            now.getTime() +
+            expiryDays *
+            24 *
+            60 *
+            60 *
+            1000
         );
 
 
     /*
     --------------------------------------------------------
-    Criar IDs.
-
-    O loop permite tentar novamente se houver uma colisão
-    extremamente improvável.
+    Identificadores.
     --------------------------------------------------------
     */
 
-    let invoice = null;
+    let publicId =
+        createPublicId();
 
+
+    let invoiceNumber =
+        createInvoiceNumber();
+
+
+    let paymentSlug =
+        await buildPaymentSlug(
+
+            invoices,
+
+            normalizedMerchantId,
+
+            merchant
+        );
+
+
+    /*
+    --------------------------------------------------------
+    Link público.
+    --------------------------------------------------------
+    */
+
+    const baseUrl =
+        String(
+            process.env.PUBLIC_APP_URL ||
+            process.env.APP_URL ||
+            ""
+        )
+            .trim()
+            .replace(
+                /\/+$/,
+                ""
+            );
+
+
+    /*
+    --------------------------------------------------------
+    Se não existir domínio configurado, utilizamos
+    caminho relativo. Isto funciona no mesmo domínio
+    do Render e evita inventar domínio.
+    --------------------------------------------------------
+    */
+
+    const paymentPath =
+        `/p/${encodeURIComponent(
+            paymentSlug
+        )}/${encodeURIComponent(
+            publicId
+        )}`;
+
+
+    const paymentUrl =
+        baseUrl
+            ? `${baseUrl}${paymentPath}`
+            : paymentPath;
+
+
+    const bankAccountsSnapshot =
+        bankAccounts.map(
+            sanitizeBankAccount
+        );
+
+
+    /*
+    --------------------------------------------------------
+    Documento.
+    --------------------------------------------------------
+    */
+
+    const invoice = {
+
+        merchantId:
+            normalizedMerchantId,
+
+        invoiceNumber,
+
+        publicId,
+
+        paymentSlug,
+
+        paymentUrl,
+
+        amount,
+
+        currency:
+            CURRENCY,
+
+        description,
+
+        reference,
+
+        status:
+            "pending",
+
+        customer,
+
+        merchantSnapshot:
+            {
+
+                businessName:
+                    getBusinessName(
+                        merchant
+                    )
+            },
+
+        bankAccountsSnapshot,
+
+        bankAccountIds:
+            bankAccounts.map(
+                account =>
+                    account._id
+            ),
+
+        paymentCount:
+            0,
+
+        createdAt:
+            now,
+
+        updatedAt:
+            now,
+
+        expiresAt,
+
+        paidAt:
+            null,
+
+        cancelledAt:
+            null,
+
+        metadata:
+            {
+
+                source:
+                    "dashboard",
+
+                planAtCreation:
+                    quota.planId
+            }
+    };
+
+
+    /*
+    --------------------------------------------------------
+    Tentamos inserir com identificadores únicos.
+
+    Os índices definitivos serão criados no database.js
+    quando fecharmos a camada de inicialização.
+    --------------------------------------------------------
+    */
 
     for (
         let attempt = 0;
-        attempt < 5;
+        attempt < 3;
         attempt++
     ) {
 
-        const publicId =
-            generatePublicId();
-
-
-        const invoiceNumber =
-            generateInvoiceNumber();
-
-
         try {
 
-            invoice =
-                await Invoice.create({
-
-                    merchantId:
-
-                        merchant._id,
+            const result =
+                await invoices.insertOne(
+                    invoice
+                );
 
 
-                    bankAccountId:
-
-                        bankAccount._id,
-
-
-                    publicId,
-
-
-                    invoiceNumber,
-
-
-                    description:
-
-                        data.description,
-
-
-                    amount:
-
-                        data.amount,
-
-
-                    currency:
-
-                        DEFAULT_CURRENCY,
-
-
-                    customer:
-
-                        normalizeCustomer(
-                            data
-                        ),
-
-
-                    status:
-
-                        "pending",
-
-
-                    expiresAt:
-
-                        options.expiresAt
-                            ? new Date(
-                                options.expiresAt
-                            )
-                            : getDefaultExpirationDate(),
-
-
-                    payment:
-
-                        {
-
-                            method:
-                                "bank_transfer",
-
-                            bankAccountId:
-                                bankAccount._id,
-
-                            submittedAt:
-                                null,
-
-                            confirmedAt:
-                                null
-                        },
-
-
-                    receipt:
-
-                        {
-
-                            status:
-                                "not_submitted",
-
-                            fileId:
-                                null,
-
-                            originalName:
-                                null,
-
-                            mimeType:
-                                null,
-
-                            size:
-                                null,
-
-                            sha256:
-                                null,
-
-                            submittedAt:
-                                null
-                        },
-
-
-                    fraudProtection:
-
-                        {
-
-                            verificationStatus:
-                                "not_checked",
-
-                            duplicateDetected:
-                                false,
-
-                            riskScore:
-                                0,
-
-                            verificationAttempts:
-                                0
-                        },
-
-
-                    qrCode:
-
-                        {
-
-                            enabled:
-                                true,
-
-                            generated:
-                                false,
-
-                            data:
-                                null,
-
-                            imageUrl:
-                                null
-                        },
-
-
-                    metadata:
-
-                        {
-
-                            planAtCreation:
-                                plan,
-
-                            createdFrom:
-                                options.source ||
-                                "dashboard"
-                        }
-                });
+            invoice._id =
+                result.insertedId;
 
 
             break;
@@ -849,19 +1559,26 @@ export async function createInvoice(
 
         catch (error) {
 
-            /*
-            ------------------------------------------------
-            Colisão de publicId ou invoiceNumber.
-            ------------------------------------------------
-            */
-
             if (
                 error?.code ===
                 11000
             ) {
 
-                invoice =
-                    null;
+                publicId =
+                    createPublicId();
+
+
+                invoiceNumber =
+                    createInvoiceNumber();
+
+
+                invoice.publicId =
+                    publicId;
+
+
+                invoice.invoiceNumber =
+                    invoiceNumber;
+
 
                 continue;
             }
@@ -873,17 +1590,17 @@ export async function createInvoice(
 
 
     if (
-        !invoice
+        !invoice._id
     ) {
 
         const error =
             new Error(
-                "Não foi possível gerar um identificador único para a fatura."
+                "Não foi possível criar uma fatura única."
             );
 
 
         error.code =
-            "INVOICE_ID_GENERATION_FAILED";
+            "INVOICE_UNIQUE_ID_ERROR";
 
 
         error.statusCode =
@@ -895,568 +1612,73 @@ export async function createInvoice(
 
 
     /*
-    ========================================================
-    INCREMENTAR CONTADOR
-    ========================================================
-
-    A atualização usa condição para evitar que duas requests
-    concorrentes ultrapassem o limite FREE.
-
-    PRO não possui limite.
-    ========================================================
-    */
-
-    if (
-        plan ===
-        PLAN_FREE
-    ) {
-
-        const updatedMerchant =
-            await Merchant.findOneAndUpdate(
-
-                {
-
-                    _id:
-                        merchant._id,
-
-                    status:
-                        "active",
-
-                    invoiceCount:
-                        {
-                            $lt:
-                                FREE_INVOICE_LIMIT
-                        }
-                },
-
-                {
-
-                    $inc:
-                        {
-
-                            invoiceCount:
-                                1,
-
-                            freeInvoiceCount:
-                                1
-                        }
-                },
-
-                {
-
-                    new:
-                        true
-                }
-            );
-
-
-        /*
-        ----------------------------------------------------
-        Se não conseguiu incrementar, a fatura foi criada
-        mas o limite foi atingido por uma request concorrente.
-
-        Apagamos a fatura para manter consistência.
-        ----------------------------------------------------
-        */
-
-        if (
-            !updatedMerchant
-        ) {
-
-            await Invoice.deleteOne({
-
-                _id:
-                    invoice._id
-            });
-
-
-            const error =
-                new Error(
-                    "O limite de 10 faturas gratuitas foi atingido."
-                );
-
-
-            error.code =
-                "FREE_INVOICE_LIMIT_REACHED";
-
-
-            error.statusCode =
-                402;
-
-
-            error.upgrade = {
-
-                requiredPlan:
-                    PLAN_PRO,
-
-                priceKz:
-                    7500
-            };
-
-
-            throw error;
-        }
-
-    }
-
-    else {
-
-        /*
-        ----------------------------------------------------
-        PRO:
-        contador apenas para estatísticas.
-        ----------------------------------------------------
-        */
-
-        await Merchant.updateOne(
-
-            {
-                _id:
-                    merchant._id
-            },
-
-            {
-                $inc:
-                    {
-                        invoiceCount:
-                            1
-                    }
-            }
-        );
-    }
-
-
-    /*
     --------------------------------------------------------
-    Construir URL de checkout.
-
-    A URL absoluta depende de options.baseUrl.
+    Resultado.
     --------------------------------------------------------
     */
-
-    const checkoutPath =
-        buildCheckoutPath(
-            invoice.publicId
-        );
-
-
-    const checkoutUrl =
-        options.baseUrl
-            ? buildAbsoluteUrl(
-                options.baseUrl,
-                checkoutPath
-            )
-            : checkoutPath;
-
-
-    /*
-    --------------------------------------------------------
-    Atualizar URL no documento caso o schema possua o campo.
-    --------------------------------------------------------
-    */
-
-    invoice.checkoutPath =
-        checkoutPath;
-
-
-    invoice.checkoutUrl =
-        checkoutUrl;
-
-
-    await invoice.save();
-
-
-    logSecurityEvent(
-        "invoice_created",
-        {
-
-            merchantId:
-                merchant._id.toString(),
-
-            invoiceId:
-                invoice._id.toString(),
-
-            plan,
-
-            amount:
-                invoice.amount
-        }
-    );
-
 
     return {
 
         invoice:
-            publicInvoice(
-                invoice
+            sanitizeInvoice(
+                invoice,
+                {
+                    includePrivate:
+                        true
+                }
             ),
 
-        checkout: {
+        quota:
+            {
 
-            path:
-                checkoutPath,
+                plan:
+                    quota.planId,
 
-            url:
-                checkoutUrl
-        },
+                used:
+                    quota.invoiceCount +
+                    1,
 
-        bankAccount: {
+                limit:
+                    quota.limit,
 
-            id:
-                bankAccount._id.toString(),
-
-            bankName:
-                bankAccount.bankName,
-
-            accountName:
-                bankAccount.accountName,
-
-            iban:
-                bankAccount.iban,
-
-            accountType:
-                bankAccount.accountType
-        },
-
-        qrCode: {
-
-            enabled:
-                true,
-
-            generated:
-                false
-        },
-
-        plan: {
-
-            id:
-                plan,
-
-            freeInvoicesRemaining:
-                plan ===
-                PLAN_FREE
-                    ? Math.max(
-                        0,
-                        FREE_INVOICE_LIMIT -
-                        Number(
-                            merchant.invoiceCount || 0
-                        ) -
-                        1
-                    )
-                    : null
-        }
+                remaining:
+                    quota.remaining
+            }
     };
 }
 
 
 /*
 ============================================================
-GET PUBLIC INVOICE
-============================================================
-
-Usado pelo checkout.
-
-IMPORTANTE:
-
-Não devolvemos dados internos do comerciante nem detalhes
-desnecessários.
+GET INVOICE
 ============================================================
 */
 
-export async function getPublicInvoice(
-    publicId
-) {
-
-    if (
-        typeof publicId !==
-        "string" ||
-        publicId.length <
-        5
-    ) {
-
-        const error =
-            new Error(
-                "Fatura não encontrada."
-            );
-
-
-        error.code =
-            "INVOICE_NOT_FOUND";
-
-
-        error.statusCode =
-            404;
-
-
-        throw error;
-    }
-
-
-    const invoice =
-        await Invoice
-            .findOne({
-                publicId:
-                    publicId
-                        .trim()
-                        .toUpperCase()
-            })
-            .populate({
-
-                path:
-                    "merchantId",
-
-                select:
-                    "businessName slug logoUrl description phone country currency status"
-            })
-            .populate({
-
-                path:
-                    "bankAccountId",
-
-                select:
-                    "bankName accountName iban accountType isActive"
-            })
-            .lean();
-
-
-    if (
-        !invoice
-    ) {
-
-        const error =
-            new Error(
-                "Fatura não encontrada."
-            );
-
-
-        error.code =
-            "INVOICE_NOT_FOUND";
-
-
-        error.statusCode =
-            404;
-
-
-        throw error;
-    }
-
-
-    if (
-        invoice.merchantId?.status !==
-        "active"
-    ) {
-
-        const error =
-            new Error(
-                "Esta cobrança não está disponível."
-            );
-
-
-        error.code =
-            "INVOICE_UNAVAILABLE";
-
-
-        error.statusCode =
-            404;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Verificar expiração.
-
-    Não alteramos automaticamente o status aqui para evitar
-    efeitos colaterais numa operação de leitura.
-    --------------------------------------------------------
-    */
-
-    const expired =
-        invoice.expiresAt &&
-        new Date(
-            invoice.expiresAt
-        ).getTime() <=
-        Date.now();
-
-
-    return {
-
-        invoice: {
-
-            publicId:
-                invoice.publicId,
-
-            invoiceNumber:
-                invoice.invoiceNumber,
-
-            description:
-                invoice.description,
-
-            amount:
-                invoice.amount,
-
-            currency:
-                invoice.currency ||
-                DEFAULT_CURRENCY,
-
-            status:
-                expired &&
-                invoice.status ===
-                "pending"
-
-                    ? "expired"
-
-                    : invoice.status,
-
-            expiresAt:
-                invoice.expiresAt,
-
-            customer:
-                {
-
-                    name:
-                        invoice.customer?.name ||
-                        ""
-                }
-        },
-
-
-        merchant: {
-
-            businessName:
-                invoice.merchantId
-                    ?.businessName ||
-                "",
-
-            slug:
-                invoice.merchantId
-                    ?.slug ||
-                "",
-
-            logoUrl:
-                invoice.merchantId
-                    ?.logoUrl ||
-                null,
-
-            description:
-                invoice.merchantId
-                    ?.description ||
-                null
-        },
-
-
-        bankAccount: {
-
-            bankName:
-                invoice.bankAccountId
-                    ?.bankName ||
-                "",
-
-            accountName:
-                invoice.bankAccountId
-                    ?.accountName ||
-                "",
-
-            iban:
-                invoice.bankAccountId
-                    ?.iban ||
-                "",
-
-            accountType:
-                invoice.bankAccountId
-                    ?.accountType ||
-                "bank"
-        },
-
-
-        payment: {
-
-            method:
-                "bank_transfer",
-
-            receiptUpload:
-                true
-        },
-
-
-        qrCode: {
-
-            enabled:
-                true,
-
-            generated:
-                Boolean(
-                    invoice.qrCode?.generated
-                ),
-
-            data:
-                invoice.qrCode?.data ||
-                null,
-
-            imageUrl:
-                invoice.qrCode?.imageUrl ||
-                null
-        }
-    };
-}
-
-
-/*
-============================================================
-GET MERCHANT INVOICE
-============================================================
-*/
-
-export async function getMerchantInvoice(
+export async function getInvoice(
     merchantId,
     invoiceId
 ) {
 
-    const merchantIdError =
-        validateObjectId(
-            merchantId,
-            "merchantId"
+    const normalizedMerchantId =
+        normalizeId(
+            merchantId
+        );
+
+
+    const normalizedInvoiceId =
+        normalizeId(
+            invoiceId
         );
 
 
     if (
-        merchantIdError
+        !normalizedMerchantId ||
+        !normalizedInvoiceId
     ) {
 
         const error =
             new Error(
-                merchantIdError.message
-            );
-
-
-        error.code =
-            "INVALID_MERCHANT_ID";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    const invoiceIdError =
-        validateObjectId(
-            invoiceId,
-            "invoiceId"
-        );
-
-
-    if (
-        invoiceIdError
-    ) {
-
-        const error =
-            new Error(
-                invoiceIdError.message
+                "Identificador de fatura inválido."
             );
 
 
@@ -1472,24 +1694,27 @@ export async function getMerchantInvoice(
     }
 
 
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
     const invoice =
-        await Invoice
-            .findOne({
+        await invoices.findOne(
+            {
 
                 _id:
-                    invoiceId,
+                    normalizedInvoiceId,
 
-                merchantId
-            })
-            .populate({
-
-                path:
-                    "bankAccountId",
-
-                select:
-                    "bankName accountName iban accountType isActive"
-            })
-            .lean();
+                merchantId:
+                    normalizedMerchantId
+            }
+        );
 
 
     if (
@@ -1514,128 +1739,298 @@ export async function getMerchantInvoice(
     }
 
 
-    return {
-
-        invoice:
-            publicInvoice(
-                invoice
-            ),
-
-        checkout: {
-
-            path:
-                buildCheckoutPath(
-                    invoice.publicId
-                )
-        },
-
-        bankAccount:
-            invoice.bankAccountId
-                ? {
-
-                    id:
-                        invoice.bankAccountId
-                            ._id
-                            .toString(),
-
-                    bankName:
-                        invoice.bankAccountId
-                            .bankName,
-
-                    accountName:
-                        invoice.bankAccountId
-                            .accountName,
-
-                    iban:
-                        invoice.bankAccountId
-                            .iban,
-
-                    accountType:
-                        invoice.bankAccountId
-                            .accountType,
-
-                    isActive:
-                        invoice.bankAccountId
-                            .isActive
-                }
-                : null,
-
-        fraudProtection:
-            {
-
-                verificationStatus:
-                    invoice
-                        .fraudProtection
-                        ?.verificationStatus ||
-                    "not_checked",
-
-                duplicateDetected:
-                    Boolean(
-                        invoice
-                            .fraudProtection
-                            ?.duplicateDetected
-                    ),
-
-                verificationAttempts:
-                    invoice
-                        .fraudProtection
-                        ?.verificationAttempts ||
-                    0
-            },
-
-        qrCode:
-            {
-
-                enabled:
-                    true,
-
-                generated:
-                    Boolean(
-                        invoice.qrCode
-                            ?.generated
-                    ),
-
-                imageUrl:
-                    invoice.qrCode
-                        ?.imageUrl ||
-                    null
-            }
-    };
+    return sanitizeInvoice(
+        invoice,
+        {
+            includePrivate:
+                true
+        }
+    );
 }
 
 
 /*
 ============================================================
-LIST MERCHANT INVOICES
+PUBLIC INVOICE
 ============================================================
 */
 
-export async function listMerchantInvoices(
+export async function getPublicInvoice(
+    publicId
+) {
+
+    const normalizedPublicId =
+        cleanString(
+            publicId,
+            100
+        );
+
+
+    if (
+        !normalizedPublicId ||
+        normalizedPublicId.length <
+            20
+    ) {
+
+        const error =
+            new Error(
+                "Link de pagamento inválido."
+            );
+
+
+        error.code =
+            "INVALID_PUBLIC_INVOICE_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    const invoice =
+        await invoices.findOne(
+            {
+
+                publicId:
+                    normalizedPublicId
+            }
+        );
+
+
+    if (
+        !invoice
+    ) {
+
+        const error =
+            new Error(
+                "Fatura não encontrada."
+            );
+
+
+        error.code =
+            "PUBLIC_INVOICE_NOT_FOUND";
+
+
+        error.statusCode =
+            404;
+
+
+        throw error;
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Verificar expiração.
+    --------------------------------------------------------
+    */
+
+    const now =
+        new Date();
+
+
+    if (
+        invoice.status ===
+            "pending" &&
+        invoice.expiresAt &&
+        new Date(
+            invoice.expiresAt
+        ) <= now
+    ) {
+
+        await invoices.updateOne(
+
+            {
+                _id:
+                    invoice._id,
+
+                status:
+                    "pending"
+            },
+
+            {
+
+                $set:
+                    {
+
+                        status:
+                            "expired",
+
+                        updatedAt:
+                            now
+                    }
+            }
+        );
+
+
+        invoice.status =
+            "expired";
+
+        invoice.updatedAt =
+            now;
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Não expor dados internos do comerciante.
+    --------------------------------------------------------
+    */
+
+    return sanitizeInvoice(
+        invoice,
+        {
+            includePrivate:
+                false
+        }
+    );
+}
+
+
+/*
+============================================================
+LIST INVOICES
+============================================================
+*/
+
+export async function listInvoices(
     merchantId,
     options = {}
 ) {
 
-    const page =
-        Math.max(
-            1,
-            Number(
-                options.page ||
-                1
-            )
+    const normalizedMerchantId =
+        normalizeId(
+            merchantId
         );
 
 
-    const limit =
+    if (
+        !normalizedMerchantId
+    ) {
+
+        const error =
+            new Error(
+                "Identificador do comerciante inválido."
+            );
+
+
+        error.code =
+            "INVALID_MERCHANT_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    let page =
+        Number(
+            options.page
+        );
+
+
+    let limit =
+        Number(
+            options.limit
+        );
+
+
+    if (
+        !Number.isFinite(
+            page
+        ) ||
+        page < 1
+    ) {
+
+        page =
+            1;
+    }
+
+
+    if (
+        !Number.isFinite(
+            limit
+        ) ||
+        limit < 1
+    ) {
+
+        limit =
+            20;
+    }
+
+
+    page =
+        Math.floor(
+            page
+        );
+
+
+    limit =
         Math.min(
             100,
-            Math.max(
-                1,
-                Number(
-                    options.limit ||
-                    20
-                )
+            Math.floor(
+                limit
             )
         );
+
+
+    const filter = {
+
+        merchantId:
+            normalizedMerchantId
+    };
+
+
+    const status =
+        cleanString(
+            options.status,
+            30
+        )
+            .toLowerCase();
+
+
+    if (
+        status &&
+        [
+            "pending",
+            "paid",
+            "expired",
+            "cancelled"
+        ]
+            .includes(
+                status
+            )
+    ) {
+
+        filter.status =
+            status;
+    }
 
 
     const skip =
@@ -1646,45 +2041,46 @@ export async function listMerchantInvoices(
         limit;
 
 
-    const filter = {
-
-        merchantId
-    };
-
-
-    if (
-        options.status
-    ) {
-
-        filter.status =
-            options.status;
-    }
-
-
     const [
-        invoices,
+        documents,
         total
     ] =
         await Promise.all([
 
-            Invoice
+            invoices
                 .find(
-                    filter
-                )
-                .sort({
+                    filter,
+                    {
 
-                    createdAt:
-                        -1
-                })
+                        projection:
+                            {
+
+                                merchantId:
+                                    0,
+
+                                metadata:
+                                    0,
+
+                                customer:
+                                    0
+                            }
+                    }
+                )
+                .sort(
+                    {
+                        createdAt:
+                            -1
+                    }
+                )
                 .skip(
                     skip
                 )
                 .limit(
                     limit
                 )
-                .lean(),
+                .toArray(),
 
-            Invoice.countDocuments(
+            invoices.countDocuments(
                 filter
             )
         ]);
@@ -1692,31 +2088,33 @@ export async function listMerchantInvoices(
 
     return {
 
-        items:
-            invoices.map(
+        invoices:
+            documents.map(
                 invoice =>
-                    publicInvoice(
-                        invoice
+                    sanitizeInvoice(
+                        invoice,
+                        {
+                            includePrivate:
+                                false
+                        }
                     )
             ),
 
-        pagination: {
+        pagination:
+            {
 
-            page,
+                page,
 
-            limit,
+                limit,
 
-            total,
+                total,
 
-            totalPages:
-                Math.max(
-                    1,
+                pages:
                     Math.ceil(
                         total /
                         limit
                     )
-                )
-        }
+            }
     };
 }
 
@@ -1732,14 +2130,62 @@ export async function cancelInvoice(
     invoiceId
 ) {
 
-    const invoice =
-        await Invoice.findOne({
-
-            _id:
-                invoiceId,
-
+    const normalizedMerchantId =
+        normalizeId(
             merchantId
-        });
+        );
+
+
+    const normalizedInvoiceId =
+        normalizeId(
+            invoiceId
+        );
+
+
+    if (
+        !normalizedMerchantId ||
+        !normalizedInvoiceId
+    ) {
+
+        const error =
+            new Error(
+                "Identificador de fatura inválido."
+            );
+
+
+        error.code =
+            "INVALID_INVOICE_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    const invoice =
+        await invoices.findOne(
+            {
+
+                _id:
+                    normalizedInvoiceId,
+
+                merchantId:
+                    normalizedMerchantId
+            }
+        );
 
 
     if (
@@ -1764,25 +2210,19 @@ export async function cancelInvoice(
     }
 
 
-    /*
-    --------------------------------------------------------
-    Só cobranças pendentes podem ser canceladas.
-    --------------------------------------------------------
-    */
-
     if (
-        invoice.status !==
-        "pending"
+        invoice.status ===
+        "paid"
     ) {
 
         const error =
             new Error(
-                "Esta fatura não pode ser cancelada no estado atual."
+                "Uma fatura paga não pode ser cancelada."
             );
 
 
         error.code =
-            "INVOICE_CANNOT_BE_CANCELLED";
+            "PAID_INVOICE_CANNOT_BE_CANCELLED";
 
 
         error.statusCode =
@@ -1793,67 +2233,43 @@ export async function cancelInvoice(
     }
 
 
-    invoice.status =
-        "cancelled";
+    if (
+        invoice.status ===
+        "cancelled"
+    ) {
+
+        return sanitizeInvoice(
+            invoice,
+            {
+                includePrivate:
+                    true
+            }
+        );
+    }
 
 
-    invoice.cancelledAt =
+    const now =
         new Date();
 
 
-    await invoice.save();
-
-
-    logSecurityEvent(
-        "invoice_cancelled",
-        {
-
-            merchantId:
-                merchantId.toString(),
-
-            invoiceId:
-                invoice._id.toString()
-        }
-    );
-
-
-    return {
-
-        invoice:
-            publicInvoice(
-                invoice
-            )
-    };
-}
-
-
-/*
-============================================================
-MARK EXPIRED INVOICES
-============================================================
-
-Função preparada para futura rotina automática.
-
-Não depende de cron nesta V1.
-============================================================
-*/
-
-export async function expirePendingInvoices(
-    limit = 500
-) {
-
     const result =
-        await Invoice.updateMany(
+        await invoices.findOneAndUpdate(
 
             {
 
-                status:
-                    "pending",
+                _id:
+                    normalizedInvoiceId,
 
-                expiresAt:
+                merchantId:
+                    normalizedMerchantId,
+
+                status:
                     {
-                        $lte:
-                            new Date()
+                        $in:
+                            [
+                                "pending",
+                                "expired"
+                            ]
                     }
             },
 
@@ -1863,36 +2279,322 @@ export async function expirePendingInvoices(
                     {
 
                         status:
-                            "expired",
+                            "cancelled",
 
-                        expiredAt:
+                        cancelledAt:
+                            now,
+
+                        updatedAt:
+                            now
+                    }
+            },
+
+            {
+
+                returnDocument:
+                    "after"
+            }
+        );
+
+
+    const updated =
+        result?.value ||
+        result;
+
+
+    if (
+        !updated
+    ) {
+
+        const error =
+            new Error(
+                "A fatura não pôde ser cancelada."
+            );
+
+
+        error.code =
+            "INVOICE_CANCEL_FAILED";
+
+
+        error.statusCode =
+            409;
+
+
+        throw error;
+    }
+
+
+    return sanitizeInvoice(
+        updated,
+        {
+            includePrivate:
+                true
+        }
+    );
+}
+
+
+/*
+============================================================
+INCREMENT PAYMENT COUNT
+============================================================
+
+Utilizado pelo payment.js quando um novo comprovativo
+é recebido.
+
+============================================================
+*/
+
+export async function incrementInvoicePaymentCount(
+    invoiceId
+) {
+
+    const normalizedInvoiceId =
+        normalizeId(
+            invoiceId
+        );
+
+
+    if (
+        !normalizedInvoiceId
+    ) {
+
+        const error =
+            new Error(
+                "Identificador de fatura inválido."
+            );
+
+
+        error.code =
+            "INVALID_INVOICE_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    const result =
+        await invoices.findOneAndUpdate(
+
+            {
+                _id:
+                    normalizedInvoiceId,
+
+                status:
+                    "pending"
+            },
+
+            {
+
+                $inc:
+                    {
+
+                        paymentCount:
+                            1
+                    },
+
+                $set:
+                    {
+
+                        updatedAt:
                             new Date()
                     }
             },
 
             {
 
-                limit
+                returnDocument:
+                    "after"
             }
         );
 
 
-    return {
-
-        matched:
-            result.matchedCount ||
-            0,
-
-        modified:
-            result.modifiedCount ||
-            0
-    };
+    return (
+        result?.value ||
+        result ||
+        null
+    );
 }
 
 
 /*
 ============================================================
-EXPORT
+MARK PAID
+============================================================
+*/
+
+export async function markInvoicePaid(
+    invoiceId
+) {
+
+    const normalizedInvoiceId =
+        normalizeId(
+            invoiceId
+        );
+
+
+    if (
+        !normalizedInvoiceId
+    ) {
+
+        const error =
+            new Error(
+                "Identificador de fatura inválido."
+            );
+
+
+        error.code =
+            "INVALID_INVOICE_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const db =
+        await getDatabase();
+
+
+    const invoices =
+        db.collection(
+            INVOICES_COLLECTION
+        );
+
+
+    const now =
+        new Date();
+
+
+    const result =
+        await invoices.findOneAndUpdate(
+
+            {
+
+                _id:
+                    normalizedInvoiceId,
+
+                status:
+                    "pending"
+            },
+
+            {
+
+                $set:
+                    {
+
+                        status:
+                            "paid",
+
+                        paidAt:
+                            now,
+
+                        updatedAt:
+                            now
+                    }
+            },
+
+            {
+
+                returnDocument:
+                    "after"
+            }
+        );
+
+
+    return (
+        result?.value ||
+        result ||
+        null
+    );
+}
+
+
+/*
+============================================================
+INVOICE HEALTH
+============================================================
+*/
+
+export async function invoiceHealthCheck() {
+
+    try {
+
+        const db =
+            await getDatabase();
+
+
+        await db
+            .collection(
+                INVOICES_COLLECTION
+            )
+            .findOne(
+                {},
+                {
+                    projection:
+                        {
+                            _id:
+                                1
+                        }
+                }
+            );
+
+
+        return {
+
+            healthy:
+                true,
+
+            collection:
+                INVOICES_COLLECTION,
+
+            freeInvoiceLimit:
+                FREE_INVOICE_LIMIT,
+
+            proPrice:
+                7500
+        };
+
+    }
+
+    catch (error) {
+
+        return {
+
+            healthy:
+                false,
+
+            collection:
+                INVOICES_COLLECTION,
+
+            error:
+                error?.message ||
+                "Erro desconhecido."
+        };
+    }
+}
+
+
+/*
+============================================================
+EXPORT DEFAULT
 ============================================================
 */
 
@@ -1900,13 +2602,17 @@ export default {
 
     createInvoice,
 
+    getInvoice,
+
     getPublicInvoice,
 
-    getMerchantInvoice,
-
-    listMerchantInvoices,
+    listInvoices,
 
     cancelInvoice,
 
-    expirePendingInvoices
+    incrementInvoicePaymentCount,
+
+    markInvoicePaid,
+
+    invoiceHealthCheck
 };
