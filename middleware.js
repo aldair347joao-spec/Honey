@@ -1,56 +1,206 @@
-import {
-    extractBearerToken,
-    verifyAccessToken
-} from "./security.js";
-
-import {
-    Merchant,
-    Subscription
-} from "./models.js";
-
-import {
-    logSecurityEvent
-} from "./logger.js";
-
-
 /*
 ============================================================
 HONEY PAY
-MIDDLEWARE
+AUTHENTICATION & AUTHORIZATION MIDDLEWARE
 V1.0.0
 ============================================================
 
 RESPONSABILIDADES
-------------------------------------------------------------
-- Autenticação JWT
-- Carregamento do comerciante autenticado
-- Verificação de conta ativa
-- Verificação de plano
-- Proteção de rotas
-- Tratamento de erros de autenticação
+
+- Validar JWT
+- Identificar comerciante autenticado
+- Proteger rotas privadas
+- Verificar conta ativa
+- Verificar plano
+- Verificar propriedade de recursos
+- Não expor informações sensíveis
 
 ============================================================
 */
+
+import jwt from "jsonwebtoken";
+
+
+import {
+    getMerchantById
+} from "./auth.js";
+
+
+/*
+============================================================
+CONFIGURATION
+============================================================
+*/
+
+const JWT_SECRET =
+    process.env.JWT_SECRET ||
+    "";
+
+
+/*
+============================================================
+JWT VALIDATION
+============================================================
+*/
+
+function validateJwtConfiguration() {
+
+    if (
+        !JWT_SECRET ||
+        JWT_SECRET.length <
+        32
+    ) {
+
+        const error =
+            new Error(
+                "JWT_SECRET não está configurado corretamente."
+            );
+
+
+        error.code =
+            "AUTH_CONFIGURATION_ERROR";
+
+
+        error.statusCode =
+            500;
+
+
+        throw error;
+    }
+}
+
+
+/*
+============================================================
+TOKEN EXTRACTION
+============================================================
+*/
+
+function extractBearerToken(
+    req
+) {
+
+    const authorization =
+        req.get(
+            "authorization"
+        );
+
+
+    if (
+        !authorization
+    ) {
+
+        return null;
+    }
+
+
+    const parts =
+        authorization
+            .trim()
+            .split(
+                /\s+/
+            );
+
+
+    if (
+        parts.length !==
+        2
+    ) {
+
+        return null;
+    }
+
+
+    if (
+        parts[0].toLowerCase() !==
+        "bearer"
+    ) {
+
+        return null;
+    }
+
+
+    return parts[1] || null;
+}
+
+
+/*
+============================================================
+VERIFY TOKEN
+============================================================
+*/
+
+function verifyToken(
+    token
+) {
+
+    validateJwtConfiguration();
+
+
+    if (
+        !token ||
+        typeof token !==
+        "string"
+    ) {
+
+        const error =
+            new Error(
+                "Autenticação necessária."
+            );
+
+
+        error.code =
+            "AUTHENTICATION_REQUIRED";
+
+
+        error.statusCode =
+            401;
+
+
+        throw error;
+    }
+
+
+    try {
+
+        return jwt.verify(
+            token,
+            JWT_SECRET,
+            {
+
+                algorithms: [
+                    "HS256"
+                ]
+            }
+        );
+    }
+
+    catch (
+        error
+    ) {
+
+        const authError =
+            new Error(
+                "Sessão inválida ou expirada."
+            );
+
+
+        authError.code =
+            "INVALID_TOKEN";
+
+
+        authError.statusCode =
+            401;
+
+
+        throw authError;
+    }
+}
 
 
 /*
 ============================================================
 AUTHENTICATE
-============================================================
-
-Middleware principal de autenticação.
-
-Esperado:
-
-Authorization: Bearer TOKEN
-
-Depois da validação:
-
-req.user
-req.merchant
-req.subscription
-
-ficarão disponíveis para as rotas protegidas.
 ============================================================
 */
 
@@ -62,304 +212,192 @@ export async function authenticate(
 
     try {
 
-        const authorization =
-            req.headers.authorization;
-
-
         const token =
             extractBearerToken(
-                authorization
+                req
             );
 
 
-        if (
-            !token
-        ) {
-
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "AUTH_REQUIRED",
-
-                        message:
-                            "Autenticação necessária."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        /*
-        ----------------------------------------------------
-        Validar JWT
-        ----------------------------------------------------
-        */
-
-        let payload;
-
-
-        try {
-
-            payload =
-                verifyAccessToken(
-                    token
-                );
-
-        }
-
-        catch (error) {
-
-            logSecurityEvent(
-                "invalid_jwt",
-                {
-                    requestId:
-                        req.requestId,
-
-                    ip:
-                        req.ip
-                }
+        const payload =
+            verifyToken(
+                token
             );
 
-
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "INVALID_TOKEN",
-
-                        message:
-                            "Sessão inválida ou expirada."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        /*
-        ----------------------------------------------------
-        Validar identidade presente no token
-        ----------------------------------------------------
-        */
 
         const merchantId =
-            payload?.merchantId;
+            payload?.merchantId ||
+            payload?.sub;
 
 
         if (
-            !merchantId
+            !merchantId ||
+            typeof merchantId !==
+            "string"
         ) {
 
-            return res
-                .status(401)
-                .json({
+            const error =
+                new Error(
+                    "Sessão inválida."
+                );
 
-                    success:
-                        false,
 
-                    error: {
+            error.code =
+                "INVALID_AUTH_PAYLOAD";
 
-                        code:
-                            "INVALID_TOKEN_PAYLOAD",
 
-                        message:
-                            "Token de autenticação inválido."
-                    },
+            error.statusCode =
+                401;
 
-                    requestId:
-                        req.requestId
-                });
+
+            throw error;
         }
 
 
-        /*
-        ----------------------------------------------------
-        Procurar comerciante.
-
-        passwordHash não é carregado.
-        ----------------------------------------------------
-        */
-
         const merchant =
-            await Merchant
-                .findById(
-                    merchantId
-                )
-                .lean();
+            await getMerchantById(
+                merchantId
+            );
 
 
         if (
             !merchant
         ) {
 
-            logSecurityEvent(
-                "merchant_not_found_for_token",
-                {
-                    requestId:
-                        req.requestId,
-
-                    ip:
-                        req.ip
-                }
-            );
+            const error =
+                new Error(
+                    "Conta não encontrada."
+                );
 
 
-            return res
-                .status(401)
-                .json({
+            error.code =
+                "MERCHANT_NOT_FOUND";
 
-                    success:
-                        false,
 
-                    error: {
+            error.statusCode =
+                401;
 
-                        code:
-                            "ACCOUNT_NOT_FOUND",
 
-                        message:
-                            "Conta não encontrada."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
+            throw error;
         }
 
 
         /*
         ----------------------------------------------------
-        Verificar estado da conta
+        Verificação de conta
         ----------------------------------------------------
         */
 
+        const accountStatus =
+            merchant.accountStatus ||
+            merchant.status ||
+            "active";
+
+
         if (
-            merchant.status !==
+            accountStatus !==
             "active"
         ) {
 
-            logSecurityEvent(
-                "inactive_account_access",
-                {
-                    requestId:
-                        req.requestId,
-
-                    accountStatus:
-                        merchant.status,
-
-                    ip:
-                        req.ip
-                }
-            );
+            const error =
+                new Error(
+                    "A conta não está ativa."
+                );
 
 
-            return res
-                .status(403)
-                .json({
+            error.code =
+                "ACCOUNT_NOT_ACTIVE";
 
-                    success:
-                        false,
 
-                    error: {
+            error.statusCode =
+                403;
 
-                        code:
-                            "ACCOUNT_INACTIVE",
 
-                        message:
-                            "Esta conta não está ativa."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
+            throw error;
         }
 
 
         /*
         ----------------------------------------------------
-        Procurar subscription.
+        Contexto autenticado
         ----------------------------------------------------
         */
 
-        const subscription =
-            await Subscription
-                .findOne({
-                    merchantId:
-                        merchant._id
-                })
-                .lean();
+        req.auth = {
+
+            merchantId,
+
+            userId:
+                merchantId,
+
+            merchant,
+
+            tokenPayload:
+                payload
+        };
 
 
         /*
         ----------------------------------------------------
-        Disponibilizar contexto autenticado.
+        Compatibilidade.
+
+        Alguns módulos podem consultar req.user.
         ----------------------------------------------------
         */
 
-        req.user = {
-
-            id:
-                merchant._id.toString(),
-
-            merchantId:
-                merchant._id.toString(),
-
-            email:
-                merchant.email,
-
-            name:
-                merchant.name,
-
-            businessName:
-                merchant.businessName,
-
-            slug:
-                merchant.slug
-        };
-
-
-        req.merchant =
+        req.user =
             merchant;
 
 
-        req.subscription =
-            subscription || {
-
-                plan:
-                    "free",
-
-                status:
-                    "active",
-
-                monthlyPriceKz:
-                    0
-            };
-
-
         next();
-
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
-        next(error);
+        const statusCode =
+            Number.isInteger(
+                error?.statusCode
+            )
+                ? error.statusCode
+                : 401;
+
+
+        return res
+            .status(
+                statusCode
+            )
+            .json(
+                {
+
+                    success:
+                        false,
+
+                    code:
+                        error?.code ||
+                        "AUTHENTICATION_FAILED",
+
+                    message:
+                        error?.message ||
+                        "Não foi possível autenticar o pedido."
+                }
+            );
     }
 }
+
+
+/*
+============================================================
+AUTHENTICATE REQUEST
+============================================================
+
+Nome oficial utilizado pelas rotas da API.
+
+============================================================
+*/
+
+export const authenticateRequest =
+    authenticate;
 
 
 /*
@@ -367,17 +405,12 @@ export async function authenticate(
 OPTIONAL AUTHENTICATION
 ============================================================
 
-Útil para endpoints que funcionam tanto para visitantes
-como para utilizadores autenticados.
+Permite continuar sem autenticação.
 
-Exemplo futuro:
+Se existir token válido, adiciona req.auth.
 
-Checkout público.
+Se o token for inválido, não falha a request.
 
-Se não houver token, a request continua normalmente.
-
-Se houver token inválido, não ignoramos o erro: devolvemos
-401 para evitar comportamento ambíguo.
 ============================================================
 */
 
@@ -389,21 +422,9 @@ export async function optionalAuthenticate(
 
     try {
 
-        const authorization =
-            req.headers.authorization;
-
-
-        if (
-            !authorization
-        ) {
-
-            return next();
-        }
-
-
         const token =
             extractBearerToken(
-                authorization
+                req
             );
 
 
@@ -411,350 +432,70 @@ export async function optionalAuthenticate(
             !token
         ) {
 
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "INVALID_AUTHORIZATION",
-
-                        message:
-                            "Cabeçalho de autenticação inválido."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
+            return next();
         }
 
 
-        let payload;
-
-
-        try {
-
-            payload =
-                verifyAccessToken(
-                    token
-                );
-
-        }
-
-        catch (error) {
-
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "INVALID_TOKEN",
-
-                        message:
-                            "Sessão inválida ou expirada."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
+        const payload =
+            verifyToken(
+                token
+            );
 
 
         const merchantId =
-            payload?.merchantId;
+            payload?.merchantId ||
+            payload?.sub;
 
 
         if (
             !merchantId
         ) {
 
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "INVALID_TOKEN_PAYLOAD",
-
-                        message:
-                            "Token de autenticação inválido."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
+            return next();
         }
 
 
         const merchant =
-            await Merchant
-                .findById(
-                    merchantId
-                )
-                .lean();
+            await getMerchantById(
+                merchantId
+            );
 
 
         if (
             !merchant
         ) {
 
-            return res
-                .status(401)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "ACCOUNT_NOT_FOUND",
-
-                        message:
-                            "Conta não encontrada."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
+            return next();
         }
 
 
-        if (
-            merchant.status !==
-            "active"
-        ) {
+        req.auth = {
 
-            return res
-                .status(403)
-                .json({
+            merchantId,
 
-                    success:
-                        false,
+            userId:
+                merchantId,
 
-                    error: {
+            merchant,
 
-                        code:
-                            "ACCOUNT_INACTIVE",
-
-                        message:
-                            "Esta conta não está ativa."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        const subscription =
-            await Subscription
-                .findOne({
-                    merchantId:
-                        merchant._id
-                })
-                .lean();
-
-
-        req.user = {
-
-            id:
-                merchant._id.toString(),
-
-            merchantId:
-                merchant._id.toString(),
-
-            email:
-                merchant.email,
-
-            name:
-                merchant.name,
-
-            businessName:
-                merchant.businessName,
-
-            slug:
-                merchant.slug
+            tokenPayload:
+                payload
         };
 
 
-        req.merchant =
+        req.user =
             merchant;
 
 
-        req.subscription =
-            subscription || {
-
-                plan:
-                    "free",
-
-                status:
-                    "active",
-
-                monthlyPriceKz:
-                    0
-            };
-
-
-        next();
-
+        return next();
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
-        next(error);
+        return next();
     }
-}
-
-
-/*
-============================================================
-REQUIRE PLAN
-============================================================
-
-Middleware para funcionalidades que exigem determinado
-plano.
-
-Exemplo:
-
-requirePlan("pro")
-
-============================================================
-*/
-
-export function requirePlan(
-    requiredPlan
-) {
-
-    return (
-        req,
-        res,
-        next
-    ) => {
-
-        const subscription =
-            req.subscription;
-
-
-        if (
-            !subscription
-        ) {
-
-            return res
-                .status(403)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "SUBSCRIPTION_REQUIRED",
-
-                        message:
-                            "É necessário possuir um plano ativo."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        if (
-            subscription.status !==
-            "active"
-        ) {
-
-            return res
-                .status(403)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "SUBSCRIPTION_INACTIVE",
-
-                        message:
-                            "O plano desta conta não está ativo."
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        /*
-        ----------------------------------------------------
-        V1 possui apenas:
-
-        free
-        pro
-
-        Portanto, PRO também satisfaz qualquer recurso
-        PRO.
-        ----------------------------------------------------
-        */
-
-        if (
-            requiredPlan ===
-            "pro" &&
-
-            subscription.plan !==
-            "pro"
-        ) {
-
-            return res
-                .status(402)
-                .json({
-
-                    success:
-                        false,
-
-                    error: {
-
-                        code:
-                            "PRO_PLAN_REQUIRED",
-
-                        message:
-                            "Esta funcionalidade está disponível no plano Profissional."
-                    },
-
-                    upgrade: {
-
-                        plan:
-                            "pro",
-
-                        monthlyPriceKz:
-                            7500
-                    },
-
-                    requestId:
-                        req.requestId
-                });
-        }
-
-
-        next();
-    };
 }
 
 
@@ -771,97 +512,440 @@ export function requireActiveAccount(
 ) {
 
     if (
-        !req.merchant
+        !req.auth ||
+        !req.auth.merchantId
     ) {
 
         return res
-            .status(401)
-            .json({
+            .status(
+                401
+            )
+            .json(
+                {
 
-                success:
-                    false,
-
-                error: {
+                    success:
+                        false,
 
                     code:
-                        "AUTH_REQUIRED",
+                        "AUTHENTICATION_REQUIRED",
 
                     message:
                         "Autenticação necessária."
-                },
-
-                requestId:
-                    req.requestId
-            });
+                }
+            );
     }
 
 
+    const merchant =
+        req.auth.merchant;
+
+
+    const status =
+        merchant?.accountStatus ||
+        merchant?.status ||
+        "active";
+
+
     if (
-        req.merchant.status !==
+        status !==
         "active"
     ) {
 
         return res
-            .status(403)
-            .json({
+            .status(
+                403
+            )
+            .json(
+                {
 
-                success:
-                    false,
-
-                error: {
+                    success:
+                        false,
 
                     code:
-                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NOT_ACTIVE",
 
                     message:
-                        "Esta conta não está ativa."
-                },
-
-                requestId:
-                    req.requestId
-            });
+                        "A conta não está ativa."
+                }
+            );
     }
 
 
-    next();
+    return next();
 }
 
 
 /*
 ============================================================
-OWNERSHIP HELPER
+REQUIRE PLAN
 ============================================================
 
-Utilizado pelos controllers para garantir que um recurso
-pertence ao comerciante autenticado.
+Uso:
+
+requirePlan("pro")
+
+ou:
+
+requirePlan(["pro", "business"])
+
+============================================================
+*/
+
+export function requirePlan(
+    requiredPlans
+) {
+
+    const plans =
+        Array.isArray(
+            requiredPlans
+        )
+            ? requiredPlans
+            : [
+                requiredPlans
+            ];
+
+
+    return (
+        req,
+        res,
+        next
+    ) => {
+
+        if (
+            !req.auth ||
+            !req.auth.merchantId
+        ) {
+
+            return res
+                .status(
+                    401
+                )
+                .json(
+                    {
+
+                        success:
+                            false,
+
+                        code:
+                            "AUTHENTICATION_REQUIRED",
+
+                        message:
+                            "Autenticação necessária."
+                    }
+                );
+        }
+
+
+        const merchant =
+            req.auth.merchant;
+
+
+        const subscription =
+            merchant?.subscription ||
+            {};
+
+
+        const plan =
+            (
+                subscription.plan ||
+                merchant.plan ||
+                "free"
+            )
+            .toLowerCase();
+
+
+        if (
+            !plans
+                .map(
+                    value =>
+                        String(
+                            value
+                        )
+                        .toLowerCase()
+                )
+                .includes(
+                    plan
+                )
+        ) {
+
+            return res
+                .status(
+                    403
+                )
+                .json(
+                    {
+
+                        success:
+                            false,
+
+                        code:
+                            "PLAN_REQUIRED",
+
+                        message:
+                            "O plano atual não permite esta operação.",
+
+                        requiredPlans:
+                            plans
+                    }
+                );
+        }
+
+
+        return next();
+    };
+}
+
+
+/*
+============================================================
+MERCHANT OWNERSHIP
+============================================================
+
+Garante que um recurso pertence ao comerciante autenticado.
+
+Pode receber:
+
+- merchantId diretamente
+- objeto com merchantId
+- ownerId
+- userId
+
 ============================================================
 */
 
 export function assertMerchantOwnership(
-    resourceMerchantId,
-    merchantId
+    req,
+    resource
 ) {
 
+    const authenticatedMerchantId =
+        req?.auth?.merchantId;
+
+
     if (
-        !resourceMerchantId ||
-        !merchantId
+        !authenticatedMerchantId
     ) {
 
-        return false;
+        const error =
+            new Error(
+                "Autenticação necessária."
+            );
+
+
+        error.code =
+            "AUTHENTICATION_REQUIRED";
+
+
+        error.statusCode =
+            401;
+
+
+        throw error;
     }
 
 
-    return String(
-        resourceMerchantId
-    ) === String(
-        merchantId
-    );
+    const resourceMerchantId =
+        resource?.merchantId ||
+        resource?.ownerId ||
+        resource?.userId;
+
+
+    if (
+        !resourceMerchantId
+    ) {
+
+        const error =
+            new Error(
+                "Não foi possível verificar a propriedade do recurso."
+            );
+
+
+        error.code =
+            "OWNERSHIP_UNVERIFIABLE";
+
+
+        error.statusCode =
+            403;
+
+
+        throw error;
+    }
+
+
+    if (
+        String(
+            resourceMerchantId
+        ) !==
+        String(
+            authenticatedMerchantId
+        )
+    ) {
+
+        const error =
+            new Error(
+                "Não tem permissão para aceder a este recurso."
+            );
+
+
+        error.code =
+            "RESOURCE_FORBIDDEN";
+
+
+        error.statusCode =
+            403;
+
+
+        throw error;
+    }
+
+
+    return true;
 }
 
 
 /*
 ============================================================
-EXPORT
+REQUIRE MERCHANT OWNERSHIP MIDDLEWARE
+============================================================
+
+Permite proteger recursos quando o merchantId está:
+
+- em req.params
+- em req.body
+- em req.query
+
+============================================================
+*/
+
+export function requireMerchantOwnership(
+    req,
+    res,
+    next
+) {
+
+    try {
+
+        const authenticatedMerchantId =
+            req?.auth?.merchantId;
+
+
+        if (
+            !authenticatedMerchantId
+        ) {
+
+            return res
+                .status(
+                    401
+                )
+                .json(
+                    {
+
+                        success:
+                            false,
+
+                        code:
+                            "AUTHENTICATION_REQUIRED",
+
+                        message:
+                            "Autenticação necessária."
+                    }
+                );
+        }
+
+
+        const suppliedMerchantId =
+            req.params?.merchantId ||
+            req.body?.merchantId ||
+            req.query?.merchantId;
+
+
+        /*
+        ----------------------------------------------------
+        Se o endpoint não recebe merchantId do cliente,
+        não há nada para comparar.
+
+        O servidor deve utilizar req.auth.merchantId.
+        ----------------------------------------------------
+        */
+
+        if (
+            !suppliedMerchantId
+        ) {
+
+            req.merchantId =
+                authenticatedMerchantId;
+
+
+            return next();
+        }
+
+
+        if (
+            String(
+                suppliedMerchantId
+            ) !==
+            String(
+                authenticatedMerchantId
+            )
+        ) {
+
+            return res
+                .status(
+                    403
+                )
+                .json(
+                    {
+
+                        success:
+                            false,
+
+                        code:
+                            "RESOURCE_FORBIDDEN",
+
+                        message:
+                            "Não tem permissão para aceder a este recurso."
+                    }
+                );
+        }
+
+
+        req.merchantId =
+            authenticatedMerchantId;
+
+
+        return next();
+    }
+
+    catch (
+        error
+    ) {
+
+        return res
+            .status(
+                403
+            )
+            .json(
+                {
+
+                    success:
+                        false,
+
+                    code:
+                        error?.code ||
+                        "RESOURCE_FORBIDDEN",
+
+                    message:
+                        error?.message ||
+                        "Não tem permissão para aceder a este recurso."
+                }
+            );
+    }
+}
+
+
+/*
+============================================================
+EXPORT DEFAULT
 ============================================================
 */
 
@@ -869,11 +953,15 @@ export default {
 
     authenticate,
 
+    authenticateRequest,
+
     optionalAuthenticate,
 
     requirePlan,
 
     requireActiveAccount,
 
-    assertMerchantOwnership
+    assertMerchantOwnership,
+
+    requireMerchantOwnership
 };
