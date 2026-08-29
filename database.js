@@ -2,35 +2,39 @@
 ============================================================
 HONEY PAY
 DATABASE
-V1.0.0
+V1.0.1
 ============================================================
 
 CAMADA CENTRAL DE DATABASE
 
 ------------------------------------------------------------
-RESPONSABILIDADES
+ARQUITETURA
 ------------------------------------------------------------
 
-- Conectar ao MongoDB
-- Manter uma única conexão Mongoose
-- Validar configuração
-- Expor estado da conexão
-- Encerrar conexão corretamente
-- Fornecer informações seguras de diagnóstico
-- Compatibilidade com Render
-- Compatibilidade com MongoDB Atlas
+Mongoose
+    │
+    ├── Models
+    │
+    └── Native MongoDB Database Handle
+             │
+             ├── Invoice Service
+             ├── Checkout
+             ├── Proof
+             └── Outros serviços legados
 
 ------------------------------------------------------------
-SEGURANÇA
+OBJETIVO
 ------------------------------------------------------------
 
-Nunca expõe:
+Manter UMA conexão MongoDB.
 
-- MongoDB URI
-- Password
-- Username
-- JWT secret
-- Connection string
+O sistema pode utilizar:
+
+1. Mongoose para os modelos;
+2. driver MongoDB nativo através de mongoose.connection.db.
+
+Isso permite migrar os serviços gradualmente sem abrir
+múltiplas conexões ao MongoDB.
 
 ============================================================
 */
@@ -70,7 +74,7 @@ let shuttingDown =
 
 /*
 ============================================================
-MONGOOSE CONFIGURATION
+MONGOOSE
 ============================================================
 */
 
@@ -82,7 +86,7 @@ mongoose.set(
 
 /*
 ============================================================
-CONNECTION OPTIONS
+OPTIONS
 ============================================================
 */
 
@@ -119,7 +123,7 @@ const connectionOptions = {
 
 /*
 ============================================================
-VALIDATE DATABASE CONFIG
+CONFIG VALIDATION
 ============================================================
 */
 
@@ -174,40 +178,12 @@ function validateDatabaseConfig() {
 
         throw error;
     }
-
-
-    if (
-        !MONGODB_DB_NAME ||
-        typeof MONGODB_DB_NAME !==
-        "string"
-    ) {
-
-        const error =
-            new Error(
-                "MONGODB_DB_NAME não está configurado corretamente."
-            );
-
-
-        error.code =
-            "DATABASE_CONFIGURATION_ERROR";
-
-
-        error.statusCode =
-            500;
-
-
-        throw error;
-    }
 }
 
 
 /*
 ============================================================
 CONNECT DATABASE
-============================================================
-
-Garante que toda a aplicação utiliza a mesma conexão.
-
 ============================================================
 */
 
@@ -223,12 +199,6 @@ export async function connectDatabase() {
     }
 
 
-    /*
-    --------------------------------------------------------
-    Já conectado
-    --------------------------------------------------------
-    */
-
     if (
         mongoose.connection.readyState ===
         1
@@ -237,12 +207,6 @@ export async function connectDatabase() {
         return mongoose.connection;
     }
 
-
-    /*
-    --------------------------------------------------------
-    Conexão já em andamento
-    --------------------------------------------------------
-    */
 
     if (
         connectionPromise
@@ -300,7 +264,96 @@ export async function connectDatabase() {
 
 /*
 ============================================================
-DISCONNECT DATABASE
+GET MONGOOSE CONNECTION
+============================================================
+*/
+
+export function getMongooseConnection() {
+
+    if (
+        mongoose.connection.readyState !==
+        1
+    ) {
+
+        const error =
+            new Error(
+                "A conexão MongoDB ainda não está disponível."
+            );
+
+
+        error.code =
+            "DATABASE_NOT_CONNECTED";
+
+
+        error.statusCode =
+            503;
+
+
+        throw error;
+    }
+
+
+    return mongoose.connection;
+}
+
+
+/*
+============================================================
+GET NATIVE DATABASE
+============================================================
+
+Compatibilidade para serviços que utilizam:
+
+db.collection(...)
+
+IMPORTANTE:
+
+Não cria uma nova conexão.
+
+Utiliza exatamente a mesma conexão aberta pelo Mongoose.
+
+============================================================
+*/
+
+export function getDatabase() {
+
+    const connection =
+        getMongooseConnection();
+
+
+    const database =
+        connection.db;
+
+
+    if (
+        !database
+    ) {
+
+        const error =
+            new Error(
+                "A instância nativa do MongoDB não está disponível."
+            );
+
+
+        error.code =
+            "DATABASE_HANDLE_UNAVAILABLE";
+
+
+        error.statusCode =
+            503;
+
+
+        throw error;
+    }
+
+
+    return database;
+}
+
+
+/*
+============================================================
+DISCONNECT
 ============================================================
 */
 
@@ -313,7 +366,6 @@ export async function disconnectDatabase() {
 
         connectionPromise =
             null;
-
 
         return;
     }
@@ -339,14 +391,10 @@ export async function disconnectDatabase() {
 
 /*
 ============================================================
-COMPATIBILITY ALIAS
+CLOSE DATABASE
 ============================================================
 
-Alguns componentes antigos da aplicação utilizam
-closeDatabase().
-
-Mantemos a função para que a transição da arquitetura
-não quebre o servidor.
+Alias utilizado pelo server.js.
 
 ============================================================
 */
@@ -365,7 +413,7 @@ DATABASE STATUS
 
 export function getDatabaseStatus() {
 
-    const state =
+    const readyState =
         mongoose.connection.readyState;
 
 
@@ -374,7 +422,7 @@ export function getDatabaseStatus() {
 
 
     if (
-        state ===
+        readyState ===
         1
     ) {
 
@@ -383,7 +431,7 @@ export function getDatabaseStatus() {
     }
 
     else if (
-        state ===
+        readyState ===
         2
     ) {
 
@@ -392,7 +440,7 @@ export function getDatabaseStatus() {
     }
 
     else if (
-        state ===
+        readyState ===
         3
     ) {
 
@@ -404,13 +452,12 @@ export function getDatabaseStatus() {
     return {
 
         connected:
-            state ===
+            readyState ===
             1,
 
         status,
 
-        readyState:
-            state,
+        readyState,
 
         database:
             mongoose.connection.name ||
@@ -421,7 +468,7 @@ export function getDatabaseStatus() {
 
 /*
 ============================================================
-COMPATIBILITY
+COMPATIBILITY HELPERS
 ============================================================
 */
 
@@ -448,7 +495,20 @@ export function isDatabaseConnected() {
 
 /*
 ============================================================
-MONGOOSE CONNECTION EVENTS
+SHUTDOWN STATE
+============================================================
+*/
+
+export function markDatabaseShuttingDown() {
+
+    shuttingDown =
+        true;
+}
+
+
+/*
+============================================================
+MONGOOSE EVENTS
 ============================================================
 */
 
@@ -488,26 +548,17 @@ mongoose.connection.on(
 
 /*
 ============================================================
-GRACEFUL SHUTDOWN STATE
-============================================================
-*/
-
-export function markDatabaseShuttingDown() {
-
-    shuttingDown =
-        true;
-}
-
-
-/*
-============================================================
-EXPORT DEFAULT
+DEFAULT EXPORT
 ============================================================
 */
 
 export default {
 
     connectDatabase,
+
+    getMongooseConnection,
+
+    getDatabase,
 
     disconnectDatabase,
 
