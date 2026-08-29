@@ -2,99 +2,45 @@
 ============================================================
 HONEY PAY
 PUBLIC CHECKOUT SERVICE
-V1.0.0
+V1.0.1
 ============================================================
 
-CHECKOUT PÚBLICO DE FATURAS
+RESPONSABILIDADES
 
-------------------------------------------------------------
-OBJETIVO
-------------------------------------------------------------
-
-Criar uma experiência de pagamento simples para o cliente
-final:
-
-1. Abrir o link da fatura.
-2. Ver o comerciante.
-3. Ver o valor.
-4. Escolher uma conta bancária.
-5. Copiar o IBAN.
-6. Efetuar a transferência.
-7. Enviar o comprovativo.
-
-------------------------------------------------------------
-CARACTERÍSTICAS
-------------------------------------------------------------
-
-- Não exige conta ao comprador.
-- Não expõe documentos internos.
-- Mostra somente contas bancárias ativas.
-- Permite múltiplas contas bancárias.
-- Usa token público da fatura.
-- Não permite alterar o valor através do cliente.
-- Não aceita merchantId vindo do cliente para determinar
-  propriedade da fatura.
-- O checkout é somente leitura.
-- O estado do pagamento é controlado pelo servidor.
+- Resolver faturas através do publicToken/publicId
+- Expor checkout público seguro
+- Mostrar dados mínimos necessários ao cliente
+- Mostrar conta bancária de pagamento
+- Criar intenção de pagamento
+- Impedir acesso a faturas de outros comerciantes
+- Evitar pagamentos duplicados
+- Manter o checkout independente da área privada
+- Utilizar a conexão central MongoDB/Mongoose
 
 ============================================================
 */
 
-import crypto from "node:crypto";
-import { ObjectId } from "mongodb";
+import mongoose from "mongoose";
 
 
 import {
-    getDatabase
-} from "./database.js";
-
-
-import {
-    getPublicBankAccounts
-} from "./bank-accounts.js";
-
-
-/*
-============================================================
-COLLECTIONS
-============================================================
-*/
-
-const INVOICES_COLLECTION =
-    "invoices";
-
-
-const MERCHANTS_COLLECTION =
-    "merchants";
+    Invoice,
+    Payment,
+    BankAccount,
+    Merchant
+} from "./models.js";
 
 
 /*
 ============================================================
-LIMITS
-============================================================
-*/
-
-const MAX_TOKEN_LENGTH =
-    200;
-
-const MAX_PUBLIC_TEXT_LENGTH =
-    500;
-
-const MAX_ITEMS =
-    100;
-
-
-/*
-============================================================
-ERROR FACTORY
+ERROR
 ============================================================
 */
 
 function createError(
     message,
     code,
-    statusCode = 400,
-    details = null
+    statusCode
 ) {
 
     const error =
@@ -111,54 +57,7 @@ function createError(
         statusCode;
 
 
-    if (
-        details !== null
-    ) {
-
-        error.details =
-            details;
-    }
-
-
     return error;
-}
-
-
-/*
-============================================================
-STRING NORMALIZATION
-============================================================
-*/
-
-function cleanString(
-    value,
-    maxLength
-) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-    }
-
-
-    return String(
-        value
-    )
-        .normalize(
-            "NFKC"
-        )
-        .replace(
-            /[\u0000-\u001F\u007F]/g,
-            ""
-        )
-        .trim()
-        .slice(
-            0,
-            maxLength
-        );
 }
 
 
@@ -168,382 +67,35 @@ OBJECT ID
 ============================================================
 */
 
-function normalizeObjectId(
+function isValidObjectId(
     value
 ) {
 
-    if (
-        value instanceof ObjectId
-    ) {
-
-        return value;
-    }
-
-
-    if (
-        typeof value !==
-        "string"
-    ) {
-
-        return null;
-    }
-
-
-    const normalized =
-        value.trim();
-
-
-    if (
-        !ObjectId.isValid(
-            normalized
-        )
-    ) {
-
-        return null;
-    }
-
-
-    return new ObjectId(
-        normalized
-    );
-}
-
-
-/*
-============================================================
-PUBLIC TOKEN NORMALIZATION
-============================================================
-*/
-
-function normalizePublicToken(
-    token
-) {
-
-    const normalized =
-        cleanString(
-            token,
-            MAX_TOKEN_LENGTH
-        );
-
-
-    if (
-        !normalized
-    ) {
-
-        throw createError(
-            "Link de pagamento inválido.",
-            "INVALID_CHECKOUT_TOKEN",
-            400
-        );
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Aceitamos apenas caracteres seguros para tokens públicos.
-    --------------------------------------------------------
-    */
-
-    if (
-        !/^[A-Za-z0-9_-]+$/.test(
-            normalized
-        )
-    ) {
-
-        throw createError(
-            "Link de pagamento inválido.",
-            "INVALID_CHECKOUT_TOKEN",
-            400
-        );
-    }
-
-
-    return normalized;
-}
-
-
-/*
-============================================================
-TOKEN HASH
-============================================================
-
-O token público pode existir no documento como hash.
-
-Também mantemos suporte para documentos que tenham
-publicToken diretamente.
-
-============================================================
-*/
-
-function hashPublicToken(
-    token
-) {
-
-    return crypto
-        .createHash(
-            "sha256"
-        )
-        .update(
-            token,
-            "utf8"
-        )
-        .digest(
-            "hex"
-        );
-}
-
-
-/*
-============================================================
-DECIMAL MONEY
-============================================================
-
-O dinheiro nunca é calculado com floating point.
-
-============================================================
-*/
-
-function normalizeAmount(
-    value
-) {
-
-    if (
-        typeof value ===
-        "number"
-    ) {
-
-        if (
-            !Number.isFinite(
-                value
-            ) ||
-            value < 0
-        ) {
-
-            throw createError(
-                "Valor da fatura inválido.",
-                "INVALID_INVOICE_AMOUNT",
-                500
-            );
-        }
-
-
-        return Math.round(
-            value *
-            100
-        );
-    }
-
-
-    if (
-        typeof value ===
-        "string"
-    ) {
-
-        const normalized =
+    return Boolean(
+        value &&
+        mongoose.Types.ObjectId.isValid(
             value
-                .trim()
-                .replace(
-                    ",",
-                    "."
-                );
-
-
-        if (
-            !/^\d+(?:\.\d{1,2})?$/.test(
-                normalized
-            )
-        ) {
-
-            throw createError(
-                "Valor da fatura inválido.",
-                "INVALID_INVOICE_AMOUNT",
-                500
-            );
-        }
-
-
-        const [
-            whole,
-            decimal = ""
-        ] =
-            normalized.split(
-                "."
-            );
-
-
-        return (
-            Number(
-                whole
-            ) *
-            100
-        ) +
-        Number(
-            decimal.padEnd(
-                2,
-                "0"
-            )
-        );
-    }
-
-
-    throw createError(
-        "Valor da fatura inválido.",
-        "INVALID_INVOICE_AMOUNT",
-        500
+        )
     );
 }
 
 
 /*
 ============================================================
-FORMAT MONEY
+PUBLIC INVOICE QUERY
 ============================================================
 */
 
-function formatAmount(
-    cents,
-    currency
-) {
-
-    const safeCents =
-        Number(
-            cents
-        );
-
-
-    if (
-        !Number.isSafeInteger(
-            safeCents
-        ) ||
-        safeCents < 0
-    ) {
-
-        throw createError(
-            "Valor monetário inválido.",
-            "INVALID_MONEY_VALUE",
-            500
-        );
-    }
-
-
-    const amount =
-        safeCents /
-        100;
-
-
-    return {
-
-        value:
-            amount,
-
-        currency:
-            currency,
-
-        formatted:
-            new Intl.NumberFormat(
-                "pt-PT",
-                {
-
-                    minimumFractionDigits:
-                        2,
-
-                    maximumFractionDigits:
-                        2
-                }
-            ).format(
-                amount
-            ) +
-            " " +
-            currency
-    };
-}
-
-
-/*
-============================================================
-INVOICE STATUS
-============================================================
-*/
-
-function normalizeInvoiceStatus(
-    invoice
-) {
-
-    const raw =
-        String(
-            invoice?.status ||
-            invoice?.state ||
-            invoice?.paymentStatus ||
-            "pending"
-        )
-            .trim()
-            .toLowerCase();
-
-
-    if (
-        [
-            "paid",
-            "approved",
-            "completed",
-            "success",
-            "settled"
-        ].includes(
-            raw
-        )
-    ) {
-
-        return "paid";
-    }
-
-
-    if (
-        [
-            "cancelled",
-            "canceled",
-            "expired",
-            "void"
-        ].includes(
-            raw
-        )
-    ) {
-
-        return "cancelled";
-    }
-
-
-    if (
-        [
-            "processing",
-            "review",
-            "under_review"
-        ].includes(
-            raw
-        )
-    ) {
-
-        return "review";
-    }
-
-
-    return "pending";
-}
-
-
-/*
-============================================================
-INVOICE EXPIRATION
-============================================================
-*/
-
-function getExpirationDate(
-    invoice
+function buildPublicInvoiceQuery(
+    token
 ) {
 
     const value =
-        invoice?.expiresAt ||
-        invoice?.expirationDate ||
-        invoice?.dueDate ||
-        null;
+        String(
+            token ||
+            ""
+        )
+        .trim();
 
 
     if (
@@ -554,1100 +106,197 @@ function getExpirationDate(
     }
 
 
-    const date =
-        new Date(
-            value
-        );
+    const conditions = [
 
+        {
+            publicToken:
+                value
+        },
 
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return null;
-    }
-
-
-    return date;
-}
-
-
-/*
-============================================================
-IS EXPIRED
-============================================================
-*/
-
-function isInvoiceExpired(
-    invoice
-) {
-
-    const expiration =
-        getExpirationDate(
-            invoice
-        );
-
-
-    if (
-        !expiration
-    ) {
-
-        return false;
-    }
-
-
-    return expiration.getTime() <
-        Date.now();
-}
-
-
-/*
-============================================================
-INVOICE ACTIVE
-============================================================
-*/
-
-function isInvoicePayable(
-    invoice
-) {
-
-    if (
-        !invoice
-    ) {
-
-        return false;
-    }
-
-
-    const status =
-        normalizeInvoiceStatus(
-            invoice
-        );
-
-
-    if (
-        status ===
-        "paid"
-    ) {
-
-        return false;
-    }
-
-
-    if (
-        status ===
-        "cancelled"
-    ) {
-
-        return false;
-    }
-
-
-    if (
-        isInvoiceExpired(
-            invoice
-        )
-    ) {
-
-        return false;
-    }
-
-
-    if (
-        invoice.active ===
-        false
-    ) {
-
-        return false;
-    }
-
-
-    return true;
-}
-
-
-/*
-============================================================
-MERCHANT DISPLAY NAME
-============================================================
-*/
-
-function getMerchantName(
-    merchant
-) {
-
-    const candidates = [
-
-        merchant?.businessName,
-
-        merchant?.storeName,
-
-        merchant?.shopName,
-
-        merchant?.companyName,
-
-        merchant?.name,
-
-        merchant?.business?.name,
-
-        merchant?.profile?.businessName
-
+        {
+            publicId:
+                value
+        }
     ];
 
 
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const value =
-            cleanString(
-                candidate,
-                160
-            );
-
-
-        if (
+    if (
+        isValidObjectId(
             value
-        ) {
-
-            return value;
-        }
-    }
-
-
-    return "Comerciante";
-}
-
-
-/*
-============================================================
-MERCHANT LOGO
-============================================================
-*/
-
-function getMerchantLogo(
-    merchant
-) {
-
-    const candidates = [
-
-        merchant?.logoUrl,
-
-        merchant?.logo,
-
-        merchant?.business?.logoUrl,
-
-        merchant?.profile?.logoUrl
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const value =
-            cleanString(
-                candidate,
-                1000
-            );
-
-
-        if (
-            value
-        ) {
-
-            return value;
-        }
-    }
-
-
-    return null;
-}
-
-
-/*
-============================================================
-MERCHANT SLUG
-============================================================
-*/
-
-function getMerchantSlug(
-    merchant
-) {
-
-    const candidates = [
-
-        merchant?.businessSlug,
-
-        merchant?.storeSlug,
-
-        merchant?.shopSlug,
-
-        merchant?.slug,
-
-        merchant?.business?.slug
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const value =
-            cleanString(
-                candidate,
-                160
-            );
-
-
-        if (
-            value
-        ) {
-
-            return value
-                .toLowerCase()
-                .replace(
-                    /[^a-z0-9-]/g,
-                    "-"
-                )
-                .replace(
-                    /-+/g,
-                    "-"
-                )
-                .replace(
-                    /^-|-$/g,
-                    ""
-                );
-        }
-    }
-
-
-    return null;
-}
-
-
-/*
-============================================================
-INVOICE NUMBER
-============================================================
-*/
-
-function getInvoiceNumber(
-    invoice
-) {
-
-    const candidates = [
-
-        invoice?.invoiceNumber,
-
-        invoice?.number,
-
-        invoice?.reference,
-
-        invoice?.code,
-
-        invoice?.invoiceCode
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const value =
-            cleanString(
-                candidate,
-                120
-            );
-
-
-        if (
-            value
-        ) {
-
-            return value;
-        }
-    }
-
-
-    return null;
-}
-
-
-/*
-============================================================
-INVOICE DESCRIPTION
-============================================================
-*/
-
-function getInvoiceDescription(
-    invoice
-) {
-
-    const candidates = [
-
-        invoice?.description,
-
-        invoice?.title,
-
-        invoice?.summary,
-
-        invoice?.notes
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const value =
-            cleanString(
-                candidate,
-                MAX_PUBLIC_TEXT_LENGTH
-            );
-
-
-        if (
-            value
-        ) {
-
-            return value;
-        }
-    }
-
-
-    return "Pagamento";
-}
-
-
-/*
-============================================================
-INVOICE ITEMS
-============================================================
-*/
-
-function getInvoiceItems(
-    invoice
-) {
-
-    const rawItems =
-        Array.isArray(
-            invoice?.items
         )
-            ? invoice.items
-            : [];
+    ) {
 
+        conditions.push(
 
-    return rawItems
-        .slice(
-            0,
-            MAX_ITEMS
-        )
-        .map(
-            item => {
-
-                if (
-                    !item ||
-                    typeof item !==
-                    "object"
-                ) {
-
-                    return null;
-                }
-
-
-                const name =
-                    cleanString(
-                        item.name ||
-                        item.title ||
-                        item.description ||
-                        "Item",
-                        200
-                    );
-
-
-                const quantityRaw =
-                    Number(
-                        item.quantity ??
-                        1
-                    );
-
-
-                const quantity =
-                    Number.isFinite(
-                        quantityRaw
-                    ) &&
-                    quantityRaw > 0
-
-                        ? Math.min(
-                            quantityRaw,
-                            100000
-                        )
-
-                        : 1;
-
-
-                let amountCents =
-                    null;
-
-
-                try {
-
-                    if (
-                        item.amountCents !==
-                        undefined
-                    ) {
-
-                        amountCents =
-                            normalizeAmount(
-                                Number(
-                                    item.amountCents
-                                ) /
-                                100
-                            );
-
-                    }
-
-                    else if (
-                        item.amount !==
-                        undefined
-                    ) {
-
-                        amountCents =
-                            normalizeAmount(
-                                item.amount
-                            );
-                    }
-
-                }
-
-                catch (
-                    error
-                ) {
-
-                    amountCents =
-                        null;
-                }
-
-
-                return {
-
-                    name,
-
-                    quantity,
-
-                    amount:
-                        amountCents !== null
-                            ? amountCents /
-                              100
-                            : null
-                };
-            }
-        )
-        .filter(
-            Boolean
-        );
-}
-
-
-/*
-============================================================
-FIND INVOICE BY PUBLIC TOKEN
-============================================================
-*/
-
-async function findInvoiceByPublicToken(
-    token
-) {
-
-    const db =
-        await getDatabase();
-
-
-    const collection =
-        db.collection(
-            INVOICES_COLLECTION
-        );
-
-
-    /*
-    --------------------------------------------------------
-    Primeiro procuramos pelo token em texto.
-
-    --------------------------------------------------------
-    */
-
-    let invoice =
-        await collection.findOne(
             {
-
-                publicToken:
-                    token
-            }
-        );
-
-
-    if (
-        invoice
-    ) {
-
-        return invoice;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Suporte para token armazenado como hash.
-    --------------------------------------------------------
-    */
-
-    const tokenHash =
-        hashPublicToken(
-            token
-        );
-
-
-    invoice =
-        await collection.findOne(
-            {
-
-                publicTokenHash:
-                    tokenHash
-            }
-        );
-
-
-    if (
-        invoice
-    ) {
-
-        return invoice;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Algumas versões podem utilizar checkoutToken.
-    --------------------------------------------------------
-    */
-
-    invoice =
-        await collection.findOne(
-            {
-
-                checkoutToken:
-                    token
-            }
-        );
-
-
-    if (
-        invoice
-    ) {
-
-        return invoice;
-    }
-
-
-    return null;
-}
-
-
-/*
-============================================================
-GET MERCHANT
-============================================================
-*/
-
-async function findMerchant(
-    merchantId
-) {
-
-    const normalizedId =
-        normalizeObjectId(
-            merchantId
-        );
-
-
-    if (
-        !normalizedId
-    ) {
-
-        return null;
-    }
-
-
-    const db =
-        await getDatabase();
-
-
-    return db
-        .collection(
-            MERCHANTS_COLLECTION
-        )
-        .findOne(
-            {
-
                 _id:
-                    normalizedId
+                    new mongoose.Types.ObjectId(
+                        value
+                    )
             }
         );
-}
-
-
-/*
-============================================================
-EXTRACT MERCHANT ID
-============================================================
-*/
-
-function extractMerchantId(
-    invoice
-) {
-
-    const candidates = [
-
-        invoice?.merchantId,
-
-        invoice?.merchant?._id,
-
-        invoice?.merchant?.id,
-
-        invoice?.ownerId,
-
-        invoice?.userId
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        const normalized =
-            normalizeObjectId(
-                candidate
-            );
-
-
-        if (
-            normalized
-        ) {
-
-            return normalized;
-        }
-    }
-
-
-    return null;
-}
-
-
-/*
-============================================================
-EXTRACT AMOUNT
-============================================================
-*/
-
-function extractInvoiceAmount(
-    invoice
-) {
-
-    const candidates = [
-
-        invoice?.amount,
-
-        invoice?.total,
-
-        invoice?.totalAmount,
-
-        invoice?.grandTotal,
-
-        invoice?.value
-
-    ];
-
-
-    for (
-        const candidate
-        of candidates
-    ) {
-
-        if (
-            candidate !==
-            undefined &&
-            candidate !==
-            null
-        ) {
-
-            return normalizeAmount(
-                candidate
-            );
-        }
-    }
-
-
-    if (
-        invoice?.amountCents !==
-        undefined
-    ) {
-
-        const cents =
-            Number(
-                invoice.amountCents
-            );
-
-
-        if (
-            Number.isSafeInteger(
-                cents
-            ) &&
-            cents >= 0
-        ) {
-
-            return cents;
-        }
-    }
-
-
-    throw createError(
-        "A fatura não possui um valor válido.",
-        "INVOICE_AMOUNT_MISSING",
-        500
-    );
-}
-
-
-/*
-============================================================
-EXTRACT CURRENCY
-============================================================
-*/
-
-function extractCurrency(
-    invoice
-) {
-
-    const currency =
-        cleanString(
-            invoice?.currency ||
-            invoice?.currencyCode ||
-            "AOA",
-            3
-        )
-            .toUpperCase();
-
-
-    if (
-        !/^[A-Z]{3}$/.test(
-            currency
-        )
-    ) {
-
-        return "AOA";
-    }
-
-
-    return currency;
-}
-
-
-/*
-============================================================
-CHECKOUT STATUS
-============================================================
-*/
-
-function getCheckoutStatus(
-    invoice
-) {
-
-    const status =
-        normalizeInvoiceStatus(
-            invoice
-        );
-
-
-    if (
-        status ===
-        "paid"
-    ) {
-
-        return {
-
-            code:
-                "paid",
-
-            title:
-                "Pagamento recebido",
-
-            message:
-                "Esta fatura já foi marcada como paga.",
-
-            payable:
-                false
-        };
-    }
-
-
-    if (
-        status ===
-        "cancelled"
-    ) {
-
-        return {
-
-            code:
-                "cancelled",
-
-            title:
-                "Fatura indisponível",
-
-            message:
-                "Esta fatura foi cancelada.",
-
-            payable:
-                false
-        };
-    }
-
-
-    if (
-        isInvoiceExpired(
-            invoice
-        )
-    ) {
-
-        return {
-
-            code:
-                "expired",
-
-            title:
-                "Fatura expirada",
-
-            message:
-                "O prazo desta fatura terminou.",
-
-            payable:
-                false
-        };
-    }
-
-
-    if (
-        status ===
-        "review"
-    ) {
-
-        return {
-
-            code:
-                "review",
-
-            title:
-                "Pagamento em análise",
-
-            message:
-                "Existe um pagamento associado a esta fatura que está em análise.",
-
-            payable:
-                false
-        };
     }
 
 
     return {
 
-        code:
-            "pending",
-
-        title:
-            "Pagamento pendente",
-
-        message:
-            "Efetue a transferência e envie o comprovativo.",
-
-        payable:
-            true
+        $or:
+            conditions
     };
 }
 
 
 /*
 ============================================================
-PUBLIC CHECKOUT OBJECT
+SAFE MERCHANT
 ============================================================
 */
 
-function buildCheckout(
+function sanitizeMerchant(
+    merchant
+) {
+
+    if (
+        !merchant
+    ) {
+
+        return null;
+    }
+
+
+    return {
+
+        businessName:
+            merchant.businessName ||
+            merchant.name ||
+            null
+    };
+}
+
+
+/*
+============================================================
+SAFE BANK ACCOUNT
+============================================================
+*/
+
+function sanitizeBankAccount(
+    account
+) {
+
+    if (
+        !account
+    ) {
+
+        return null;
+    }
+
+
+    return {
+
+        id:
+            String(
+                account._id
+            ),
+
+        bankName:
+            account.bankName,
+
+        accountName:
+            account.accountName,
+
+        iban:
+            account.iban,
+
+        ibanLast4:
+            account.ibanLast4,
+
+        accountNumber:
+            account.accountNumber,
+
+        accountType:
+            account.accountType,
+
+        currency:
+            account.currency,
+
+        isPrimary:
+            Boolean(
+                account.isPrimary
+            )
+    };
+}
+
+
+/*
+============================================================
+SAFE INVOICE
+============================================================
+*/
+
+function sanitizeInvoice(
     invoice,
     merchant,
-    bankAccounts
+    bankAccount
 ) {
-
-    const amountCents =
-        extractInvoiceAmount(
-            invoice
-        );
-
-
-    const currency =
-        extractCurrency(
-            invoice
-        );
-
-
-    const money =
-        formatAmount(
-            amountCents,
-            currency
-        );
-
-
-    const status =
-        getCheckoutStatus(
-            invoice
-        );
-
-
-    const expiration =
-        getExpirationDate(
-            invoice
-        );
-
-
-    const merchantName =
-        getMerchantName(
-            merchant
-        );
-
-
-    const merchantSlug =
-        getMerchantSlug(
-            merchant
-        );
-
 
     return {
 
-        checkoutVersion:
-            "1.0.0",
+        id:
+            String(
+                invoice._id
+            ),
 
-        type:
-            "invoice_checkout",
+        invoiceNumber:
+            invoice.invoiceNumber,
 
-        invoice: {
+        publicId:
+            invoice.publicId,
 
-            id:
-                invoice.publicId ||
-                invoice.publicInvoiceId ||
-                invoice.invoicePublicId ||
-                String(
-                    invoice._id
-                ),
+        publicToken:
+            invoice.publicToken ||
+            null,
 
-            number:
-                getInvoiceNumber(
-                    invoice
-                ),
+        customerName:
+            invoice.customerName ||
+            null,
 
-            description:
-                getInvoiceDescription(
-                    invoice
-                ),
+        description:
+            invoice.description ||
+            null,
 
-            amount:
-                money.value,
+        amount:
+            Number(
+                invoice.amount
+            ),
 
-            currency:
-                money.currency,
+        currency:
+            invoice.currency ||
+            "AOA",
 
-            formattedAmount:
-                money.formatted,
+        status:
+            invoice.status,
 
-            items:
-                getInvoiceItems(
-                    invoice
-                ),
+        expiresAt:
+            invoice.expiresAt ||
+            null,
 
-            createdAt:
-                invoice.createdAt ||
-                null,
+        merchant:
+            sanitizeMerchant(
+                merchant
+            ),
 
-            expiresAt:
-                expiration
-                    ? expiration.toISOString()
-                    : null
-        },
-
-        merchant: {
-
-            name:
-                merchantName,
-
-            slug:
-                merchantSlug,
-
-            logoUrl:
-                getMerchantLogo(
-                    merchant
-                )
-        },
-
-        payment: {
-
-            status:
-                status.code,
-
-            title:
-                status.title,
-
-            message:
-                status.message,
-
-            payable:
-                status.payable,
-
-            method:
-                "bank_transfer"
-        },
-
-        bankAccounts:
-            status.payable
-                ? bankAccounts
-                : [],
-
-        proof: {
-
-            accepted:
-                status.payable,
-
-            endpoint:
-                "/api/pay",
-
-            fieldName:
-                "proof"
-        }
+        bankAccount:
+            sanitizeBankAccount(
+                bankAccount
+            )
     };
 }
 
 
 /*
 ============================================================
-GET PUBLIC CHECKOUT
+RESOLVE INVOICE
 ============================================================
 */
 
@@ -1655,16 +304,33 @@ export async function getPublicCheckout(
     publicToken
 ) {
 
-    const token =
-        normalizePublicToken(
+    const query =
+        buildPublicInvoiceQuery(
             publicToken
         );
 
 
-    const invoice =
-        await findInvoiceByPublicToken(
-            token
+    if (
+        !query
+    ) {
+
+        throw createError(
+
+            "Link de pagamento inválido.",
+
+            "INVALID_PUBLIC_TOKEN",
+
+            400
         );
+    }
+
+
+    const invoice =
+        await Invoice
+            .findOne(
+                query
+            )
+            .lean();
 
 
     if (
@@ -1672,35 +338,90 @@ export async function getPublicCheckout(
     ) {
 
         throw createError(
-            "A fatura não foi encontrada.",
+
+            "Fatura não encontrada.",
+
             "INVOICE_NOT_FOUND",
+
             404
         );
     }
 
 
-    const merchantId =
-        extractMerchantId(
-            invoice
+    /*
+    --------------------------------------------------------
+    Verificar expiração
+    --------------------------------------------------------
+    */
+
+    if (
+        invoice.expiresAt &&
+        new Date(
+            invoice.expiresAt
+        ).getTime() <=
+        Date.now() &&
+        invoice.status ===
+        "pending"
+    ) {
+
+        await Invoice.updateOne(
+
+            {
+                _id:
+                    invoice._id,
+
+                status:
+                    "pending"
+            },
+
+            {
+                $set: {
+                    status:
+                        "expired"
+                }
+            }
         );
 
 
+        invoice.status =
+            "expired";
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Fatura cancelada
+    --------------------------------------------------------
+    */
+
     if (
-        !merchantId
+        invoice.status ===
+        "cancelled"
     ) {
 
         throw createError(
-            "A fatura não possui um comerciante válido.",
-            "INVOICE_MERCHANT_MISSING",
-            500
+
+            "Esta fatura foi cancelada.",
+
+            "INVOICE_CANCELLED",
+
+            410
         );
     }
 
 
+    /*
+    --------------------------------------------------------
+    Comerciante
+    --------------------------------------------------------
+    */
+
     const merchant =
-        await findMerchant(
-            merchantId
-        );
+        await Merchant
+            .findById(
+                invoice.merchantId
+            )
+            .lean();
 
 
     if (
@@ -1708,114 +429,218 @@ export async function getPublicCheckout(
     ) {
 
         throw createError(
-            "O comerciante associado à fatura não foi encontrado.",
+
+            "Comerciante não encontrado.",
+
             "MERCHANT_NOT_FOUND",
+
             404
         );
     }
 
 
-    const bankAccounts =
-        await getPublicBankAccounts(
-            merchantId
+    /*
+    --------------------------------------------------------
+    Conta bancária
+
+    Primeiro procura a conta associada à fatura.
+
+    Caso não exista, utiliza a principal ativa.
+    --------------------------------------------------------
+    */
+
+    let bankAccount =
+        null;
+
+
+    if (
+        invoice.bankAccountId &&
+        isValidObjectId(
+            invoice.bankAccountId
+        )
+    ) {
+
+        bankAccount =
+            await BankAccount
+                .findOne(
+                    {
+
+                        _id:
+                            invoice.bankAccountId,
+
+                        merchantId:
+                            invoice.merchantId,
+
+                        isActive:
+                            true
+                    }
+                )
+                .lean();
+    }
+
+
+    if (
+        !bankAccount
+    ) {
+
+        bankAccount =
+            await BankAccount
+                .findOne(
+                    {
+
+                        merchantId:
+                            invoice.merchantId,
+
+                        isActive:
+                            true,
+
+                        isPrimary:
+                            true
+                    }
+                )
+                .lean();
+    }
+
+
+    if (
+        !bankAccount
+    ) {
+
+        throw createError(
+
+            "O comerciante ainda não possui uma conta bancária de recebimento ativa.",
+
+            "BANK_ACCOUNT_UNAVAILABLE",
+
+            409
         );
+    }
 
 
     /*
     --------------------------------------------------------
-    Uma fatura só pode ser apresentada para pagamento se
-    existir pelo menos uma conta bancária ativa.
+    Pagamento existente
     --------------------------------------------------------
     */
 
-    const checkout =
-        buildCheckout(
+    const existingPayment =
+        await Payment
+            .findOne(
+                {
 
-            invoice,
+                    invoiceId:
+                        invoice._id,
 
-            merchant,
-
-            bankAccounts
-        );
-
-
-    if (
-        checkout.payment.payable &&
-        checkout.bankAccounts.length ===
-        0
-    ) {
-
-        checkout.payment.payable =
-            false;
-
-
-        checkout.payment.status =
-            "unavailable";
-
-
-        checkout.payment.title =
-            "Pagamento temporariamente indisponível";
+                    status:
+                        {
+                            $in: [
+                                "pending",
+                                "confirmed"
+                            ]
+                        }
+                }
+            )
+            .sort(
+                {
+                    createdAt:
+                        -1
+                }
+            )
+            .lean();
 
 
-        checkout.payment.message =
-            "O comerciante ainda não possui uma conta bancária disponível para este pagamento.";
-    }
+    return {
 
+        available:
+            invoice.status ===
+            "pending",
 
-    return checkout;
+        invoice:
+            sanitizeInvoice(
+                invoice,
+                merchant,
+                bankAccount
+            ),
+
+        payment:
+            existingPayment
+                ? {
+
+                    id:
+                        String(
+                            existingPayment._id
+                        ),
+
+                    status:
+                        existingPayment.status,
+
+                    amount:
+                        existingPayment.amount,
+
+                    currency:
+                        existingPayment.currency,
+
+                    transactionReference:
+                        existingPayment.transactionReference ||
+                        null,
+
+                    createdAt:
+                        existingPayment.createdAt,
+
+                    paidAt:
+                        existingPayment.paidAt ||
+                        null
+                }
+                : null
+    };
 }
 
 
 /*
 ============================================================
-PUBLIC CHECKOUT BY INVOICE ID
+CREATE PAYMENT INTENT
 ============================================================
 
-Utilitário interno.
+Cria uma intenção de pagamento.
 
-Não deve ser exposto diretamente sem uma camada de
-autorização pública apropriada.
+Não marca a fatura como paga.
+
+A confirmação só deve acontecer depois de validação do
+pagamento/comprovativo.
 
 ============================================================
 */
 
-export async function getCheckoutByInvoiceId(
-    invoiceId
+export async function createPaymentIntent(
+    publicToken,
+    data = {}
 ) {
 
-    const normalizedId =
-        normalizeObjectId(
-            invoiceId
+    const query =
+        buildPublicInvoiceQuery(
+            publicToken
         );
 
 
     if (
-        !normalizedId
+        !query
     ) {
 
         throw createError(
-            "Identificador da fatura inválido.",
-            "INVALID_INVOICE_ID",
+
+            "Link de pagamento inválido.",
+
+            "INVALID_PUBLIC_TOKEN",
+
             400
         );
     }
 
 
-    const db =
-        await getDatabase();
-
-
     const invoice =
-        await db
-            .collection(
-                INVOICES_COLLECTION
-            )
+        await Invoice
             .findOne(
-                {
-
-                    _id:
-                        normalizedId
-                }
+                query
             );
 
 
@@ -1824,114 +649,640 @@ export async function getCheckoutByInvoiceId(
     ) {
 
         throw createError(
-            "A fatura não foi encontrada.",
+
+            "Fatura não encontrada.",
+
             "INVOICE_NOT_FOUND",
+
             404
         );
     }
 
 
-    const merchantId =
-        extractMerchantId(
-            invoice
-        );
-
+    /*
+    --------------------------------------------------------
+    Verificar estado
+    --------------------------------------------------------
+    */
 
     if (
-        !merchantId
+        invoice.status ===
+        "paid"
     ) {
 
         throw createError(
-            "A fatura não possui um comerciante válido.",
-            "INVOICE_MERCHANT_MISSING",
-            500
+
+            "Esta fatura já foi paga.",
+
+            "INVOICE_ALREADY_PAID",
+
+            409
         );
     }
 
 
-    const merchant =
-        await findMerchant(
-            merchantId
-        );
-
-
     if (
-        !merchant
+        invoice.status ===
+        "cancelled"
     ) {
 
         throw createError(
-            "O comerciante associado à fatura não foi encontrado.",
-            "MERCHANT_NOT_FOUND",
-            404
+
+            "Esta fatura foi cancelada.",
+
+            "INVOICE_CANCELLED",
+
+            410
         );
     }
 
 
-    const bankAccounts =
-        await getPublicBankAccounts(
-            merchantId
+    if (
+        invoice.status ===
+        "expired"
+    ) {
+
+        throw createError(
+
+            "Esta fatura expirou.",
+
+            "INVOICE_EXPIRED",
+
+            410
         );
+    }
 
 
-    return buildCheckout(
+    if (
+        invoice.expiresAt &&
+        new Date(
+            invoice.expiresAt
+        ).getTime() <=
+        Date.now()
+    ) {
 
-        invoice,
-
-        merchant,
-
-        bankAccounts
-    );
-}
+        invoice.status =
+            "expired";
 
 
-/*
-============================================================
-CHECKOUT TOKEN GENERATOR
-============================================================
+        await invoice.save();
 
-Utilizado quando uma nova fatura precisar de um token
-público.
 
-============================================================
-*/
+        throw createError(
 
-export function generateCheckoutToken() {
+            "Esta fatura expirou.",
 
-    return crypto
-        .randomBytes(
-            24
+            "INVOICE_EXPIRED",
+
+            410
+        );
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Conta bancária ativa
+    --------------------------------------------------------
+    */
+
+    let bankAccount =
+        null;
+
+
+    if (
+        invoice.bankAccountId &&
+        isValidObjectId(
+            invoice.bankAccountId
         )
-        .toString(
-            "base64url"
+    ) {
+
+        bankAccount =
+            await BankAccount
+                .findOne(
+                    {
+
+                        _id:
+                            invoice.bankAccountId,
+
+                        merchantId:
+                            invoice.merchantId,
+
+                        isActive:
+                            true
+                    }
+                );
+    }
+
+
+    if (
+        !bankAccount
+    ) {
+
+        bankAccount =
+            await BankAccount
+                .findOne(
+                    {
+
+                        merchantId:
+                            invoice.merchantId,
+
+                        isActive:
+                            true,
+
+                        isPrimary:
+                            true
+                    }
+                );
+    }
+
+
+    if (
+        !bankAccount
+    ) {
+
+        throw createError(
+
+            "Nenhuma conta bancária de recebimento está disponível.",
+
+            "BANK_ACCOUNT_UNAVAILABLE",
+
+            409
         );
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Evitar múltiplas intenções abertas
+    --------------------------------------------------------
+    */
+
+    const existingPayment =
+        await Payment
+            .findOne(
+                {
+
+                    invoiceId:
+                        invoice._id,
+
+                    status:
+                        "pending"
+                }
+            )
+            .sort(
+                {
+                    createdAt:
+                        -1
+                }
+            );
+
+
+    if (
+        existingPayment
+    ) {
+
+        return {
+
+            created:
+                false,
+
+            payment: {
+
+                id:
+                    String(
+                        existingPayment._id
+                    ),
+
+                status:
+                    existingPayment.status,
+
+                amount:
+                    existingPayment.amount,
+
+                currency:
+                    existingPayment.currency,
+
+                createdAt:
+                    existingPayment.createdAt
+            }
+        };
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Dados do cliente
+    --------------------------------------------------------
+    */
+
+    const customerName =
+        typeof data.customerName ===
+        "string"
+            ? data.customerName
+                .trim()
+                .slice(
+                    0,
+                    180
+                )
+            : invoice.customerName ||
+              null;
+
+
+    const customerEmail =
+        typeof data.customerEmail ===
+        "string"
+            ? data.customerEmail
+                .trim()
+                .toLowerCase()
+                .slice(
+                    0,
+                    180
+                )
+            : invoice.customerEmail ||
+              null;
+
+
+    /*
+    --------------------------------------------------------
+    Criar pagamento
+    --------------------------------------------------------
+    */
+
+    const payment =
+        await Payment.create(
+
+            {
+
+                merchantId:
+                    invoice.merchantId,
+
+                invoiceId:
+                    invoice._id,
+
+                amount:
+                    invoice.amount,
+
+                currency:
+                    invoice.currency ||
+                    "AOA",
+
+                status:
+                    "pending",
+
+                method:
+                    "manual_bank_transfer",
+
+                metadata: {
+
+                    customerName,
+
+                    customerEmail,
+
+                    bankAccountId:
+                        String(
+                            bankAccount._id
+                        )
+                }
+            }
+        );
+
+
+    return {
+
+        created:
+            true,
+
+        payment: {
+
+            id:
+                String(
+                    payment._id
+                ),
+
+            status:
+                payment.status,
+
+            amount:
+                payment.amount,
+
+            currency:
+                payment.currency,
+
+            bankAccount:
+                sanitizeBankAccount(
+                    bankAccount
+                ),
+
+            createdAt:
+                payment.createdAt
+        }
+    };
 }
 
 
 /*
 ============================================================
-CHECKOUT TOKEN HASH
+GET PAYMENT STATUS
 ============================================================
 */
 
-export function generateCheckoutTokenHash(
-    token
+export async function getPublicPaymentStatus(
+    publicToken,
+    paymentId
 ) {
 
-    const normalized =
-        normalizePublicToken(
-            token
+    const query =
+        buildPublicInvoiceQuery(
+            publicToken
         );
 
 
-    return hashPublicToken(
-        normalized
-    );
+    if (
+        !query
+    ) {
+
+        throw createError(
+
+            "Link de pagamento inválido.",
+
+            "INVALID_PUBLIC_TOKEN",
+
+            400
+        );
+    }
+
+
+    if (
+        !isValidObjectId(
+            paymentId
+        )
+    ) {
+
+        throw createError(
+
+            "Pagamento inválido.",
+
+            "INVALID_PAYMENT_ID",
+
+            400
+        );
+    }
+
+
+    const invoice =
+        await Invoice
+            .findOne(
+                query
+            )
+            .lean();
+
+
+    if (
+        !invoice
+    ) {
+
+        throw createError(
+
+            "Fatura não encontrada.",
+
+            "INVOICE_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    const payment =
+        await Payment
+            .findOne(
+                {
+
+                    _id:
+                        new mongoose.Types.ObjectId(
+                            paymentId
+                        ),
+
+                    invoiceId:
+                        invoice._id
+                }
+            )
+            .lean();
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado.",
+
+            "PAYMENT_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    return {
+
+        invoiceId:
+            String(
+                invoice._id
+            ),
+
+        paymentId:
+            String(
+                payment._id
+            ),
+
+        status:
+            payment.status,
+
+        amount:
+            payment.amount,
+
+        currency:
+            payment.currency,
+
+        transactionReference:
+            payment.transactionReference ||
+            null,
+
+        createdAt:
+            payment.createdAt,
+
+        paidAt:
+            payment.paidAt ||
+            null
+    };
 }
 
 
 /*
 ============================================================
-EXPORT
+MARK PAYMENT CONFIRMED
+============================================================
+
+Uso interno.
+
+Não deve ser exposto diretamente como endpoint público.
+
+============================================================
+*/
+
+export async function confirmPayment(
+    paymentId,
+    transactionReference = null
+) {
+
+    if (
+        !isValidObjectId(
+            paymentId
+        )
+    ) {
+
+        throw createError(
+
+            "Pagamento inválido.",
+
+            "INVALID_PAYMENT_ID",
+
+            400
+        );
+    }
+
+
+    const payment =
+        await Payment.findById(
+            paymentId
+        );
+
+
+    if (
+        !payment
+    ) {
+
+        throw createError(
+
+            "Pagamento não encontrado.",
+
+            "PAYMENT_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    if (
+        payment.status ===
+        "confirmed"
+    ) {
+
+        return payment;
+    }
+
+
+    if (
+        payment.status !==
+        "pending"
+    ) {
+
+        throw createError(
+
+            "Este pagamento não pode ser confirmado.",
+
+            "PAYMENT_NOT_CONFIRMABLE",
+
+            409
+        );
+    }
+
+
+    const invoice =
+        await Invoice.findById(
+            payment.invoiceId
+        );
+
+
+    if (
+        !invoice
+    ) {
+
+        throw createError(
+
+            "Fatura associada não encontrada.",
+
+            "INVOICE_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    if (
+        invoice.status ===
+        "paid"
+    ) {
+
+        payment.status =
+            "confirmed";
+
+
+        payment.paidAt =
+            invoice.paidAt ||
+            new Date();
+
+
+        await payment.save();
+
+
+        return payment;
+    }
+
+
+    payment.status =
+        "confirmed";
+
+
+    payment.transactionReference =
+        transactionReference
+            ? String(
+                transactionReference
+            )
+            .trim()
+            .slice(
+                0,
+                180
+            )
+            : null;
+
+
+    payment.paidAt =
+        new Date();
+
+
+    await payment.save();
+
+
+    invoice.status =
+        "paid";
+
+
+    invoice.paidAt =
+        payment.paidAt;
+
+
+    await invoice.save();
+
+
+    return payment;
+}
+
+
+/*
+============================================================
+EXPORTS
 ============================================================
 */
 
@@ -1939,9 +1290,10 @@ export default {
 
     getPublicCheckout,
 
-    getCheckoutByInvoiceId,
+    createPaymentIntent,
 
-    generateCheckoutToken,
+    getPublicPaymentStatus,
 
-    generateCheckoutTokenHash
+    confirmPayment
+
 };
