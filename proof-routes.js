@@ -5,7 +5,7 @@ PAYMENT PROOF ROUTES
 V1.0.0
 ============================================================
 
-ROTAS REAIS DE COMPROVATIVOS DE PAGAMENTO
+ROTAS DO COMPROVATIVO DE PAGAMENTO
 
 ------------------------------------------------------------
 PUBLIC
@@ -13,37 +13,43 @@ PUBLIC
 
 POST /api/pay/:publicToken/proof
 
-O comprador utiliza esta rota para enviar o comprovativo.
-
 ------------------------------------------------------------
 AUTHENTICATED
 ------------------------------------------------------------
 
-GET  /api/proofs/:proofId
-GET  /api/invoices/:invoiceId/proofs
-GET  /api/proofs/:proofId/file
-POST /api/proofs/:proofId/review
-POST /api/proofs/:proofId/approve
-POST /api/proofs/:proofId/reject
-GET  /api/proofs/security/statistics
+GET /api/proofs
+GET /api/proofs/:proofId
+PATCH /api/proofs/:proofId/review
 
 ------------------------------------------------------------
-SECURITY
+OBJETIVO
 ------------------------------------------------------------
 
-- Checkout público não exige JWT
-- Operações administrativas exigem JWT
-- Merchant ownership é sempre validado
-- O ficheiro nunca é exposto através de URL pública
-- Download é feito através de stream autorizado
-- Upload é limitado pelo middleware de ficheiros
-- Erros internos não são enviados ao cliente
+Permitir que:
+
+1. O cliente envie o comprovativo através do checkout.
+2. O comprovativo fique associado à fatura correta.
+3. O comerciante consulte os seus comprovativos.
+4. O comerciante aprove ou rejeite um comprovativo.
+
+------------------------------------------------------------
+SEGURANÇA
+------------------------------------------------------------
+
+- O cliente não pode escolher o merchantId.
+- O cliente não pode escolher a invoiceId.
+- A fatura é identificada pelo publicToken.
+- O valor da fatura não pode ser alterado pelo cliente.
+- O comprovativo fica associado ao comerciante da fatura.
+- O comerciante só pode consultar os seus próprios comprovativos.
+- A decisão de aprovação/rejeição exige autenticação.
+- Dados internos não são enviados para o cliente.
+- Erros internos não expõem stack traces.
 
 ============================================================
 */
 
 import express from "express";
-import multer from "multer";
 
 
 import {
@@ -59,14 +65,10 @@ import {
 
 
 import {
-    createPaymentProof,
-    getPaymentProof,
-    listInvoiceProofs,
-    getPaymentProofStream,
-    reviewPaymentProof,
-    approvePaymentProof,
-    rejectPaymentProof,
-    getProofSecurityStatistics
+    submitPaymentProof,
+    listMerchantProofs,
+    getMerchantProof,
+    reviewPaymentProof
 } from "./proof.js";
 
 
@@ -82,98 +84,52 @@ const router =
 
 /*
 ============================================================
-UPLOAD CONFIGURATION
-============================================================
-
-O arquivo é mantido apenas em memória durante o processamento.
-
-Depois é enviado imediatamente para MongoDB GridFS.
-
-NÃO utilizamos filesystem local do Render.
-
+SECURITY HEADERS
 ============================================================
 */
 
-const upload =
-    multer({
+function applyProofSecurityHeaders(
+    res
+) {
 
-        storage:
-            multer.memoryStorage(),
-
-        limits:
-            {
-
-                fileSize:
-                    10 *
-                    1024 *
-                    1024,
-
-                files:
-                    1
-            },
-
-        fileFilter:
-            (
-                req,
-                file,
-                callback
-            ) => {
-
-                const allowed =
-                    new Set([
-
-                        "image/jpeg",
-                        "image/png",
-                        "image/webp",
-                        "application/pdf"
-
-                    ]);
+    res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, private"
+    );
 
 
-                if (
-                    !allowed.has(
-                        String(
-                            file.mimetype ||
-                            ""
-                        ).toLowerCase()
-                    )
-                ) {
-
-                    const error =
-                        new Error(
-                            "Formato de comprovativo não suportado."
-                        );
+    res.setHeader(
+        "Pragma",
+        "no-cache"
+    );
 
 
-                    error.code =
-                        "PROOF_FILE_TYPE_NOT_ALLOWED";
+    res.setHeader(
+        "Expires",
+        "0"
+    );
 
 
-                    error.statusCode =
-                        415;
+    res.setHeader(
+        "X-Content-Type-Options",
+        "nosniff"
+    );
 
 
-                    return callback(
-                        error
-                    );
-                }
-
-
-                return callback(
-                    null,
-                    true
-                );
-            }
-    });
+    res.setHeader(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin"
+    );
+}
 
 
 /*
 ============================================================
-ERROR HELPER
+ERROR HANDLER
 ============================================================
 */
 
-function sendRouteError(
+function sendProofError(
     res,
     error
 ) {
@@ -183,6 +139,12 @@ function sendRouteError(
             error
         );
 
+
+    /*
+    --------------------------------------------------------
+    Nunca devolver stack trace ou objeto de erro interno.
+    --------------------------------------------------------
+    */
 
     return errorResponse(
 
@@ -194,7 +156,6 @@ function sendRouteError(
 
         normalized.message,
 
-        error?.details ||
         null
     );
 }
@@ -202,112 +163,220 @@ function sendRouteError(
 
 /*
 ============================================================
-MULTER ERROR NORMALIZATION
+BODY VALIDATION
 ============================================================
 */
 
-function normalizeUploadError(
-    error
+function getBody(
+    req
 ) {
 
     if (
-        !error
+        !req.body ||
+        typeof req.body !==
+        "object" ||
+        Array.isArray(
+            req.body
+        )
     ) {
 
-        return null;
+        return {};
     }
 
 
-    if (
-        error instanceof
-        multer.MulterError
-    ) {
-
-        if (
-            error.code ===
-            "LIMIT_FILE_SIZE"
-        ) {
-
-            const normalized =
-                new Error(
-                    "O comprovativo não pode ultrapassar 10 MB."
-                );
-
-
-            normalized.code =
-                "PROOF_FILE_TOO_LARGE";
-
-
-            normalized.statusCode =
-                413;
-
-
-            return normalized;
-        }
-
-
-        if (
-            error.code ===
-            "LIMIT_FILE_COUNT"
-        ) {
-
-            const normalized =
-                new Error(
-                    "Só é permitido enviar um comprovativo de cada vez."
-                );
-
-
-            normalized.code =
-                "PROOF_FILE_COUNT_LIMIT";
-
-
-            normalized.statusCode =
-                400;
-
-
-            return normalized;
-        }
-
-
-        const normalized =
-            new Error(
-                "Não foi possível processar o ficheiro enviado."
-            );
-
-
-        normalized.code =
-            "PROOF_UPLOAD_ERROR";
-
-
-        normalized.statusCode =
-            400;
-
-
-        return normalized;
-    }
-
-
-    return error;
+    return req.body;
 }
 
 
 /*
 ============================================================
-PUBLIC PROOF UPLOAD
+PUBLIC TOKEN VALIDATION
+============================================================
+*/
+
+function normalizePublicToken(
+    value
+) {
+
+    if (
+        typeof value !==
+        "string"
+    ) {
+
+        const error =
+            new Error(
+                "Link de pagamento inválido."
+            );
+
+
+        error.code =
+            "INVALID_CHECKOUT_TOKEN";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const token =
+        value.trim();
+
+
+    if (
+        !token ||
+        token.length >
+        200
+    ) {
+
+        const error =
+            new Error(
+                "Link de pagamento inválido."
+            );
+
+
+        error.code =
+            "INVALID_CHECKOUT_TOKEN";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Token URL-safe.
+    --------------------------------------------------------
+    */
+
+    if (
+        !/^[A-Za-z0-9_-]+$/.test(
+            token
+        )
+    ) {
+
+        const error =
+            new Error(
+                "Link de pagamento inválido."
+            );
+
+
+        error.code =
+            "INVALID_CHECKOUT_TOKEN";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    return token;
+}
+
+
+/*
+============================================================
+PROOF ID VALIDATION
+============================================================
+*/
+
+function normalizeProofId(
+    value
+) {
+
+    if (
+        typeof value !==
+        "string"
+    ) {
+
+        const error =
+            new Error(
+                "Comprovativo inválido."
+            );
+
+
+        error.code =
+            "INVALID_PROOF_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    const id =
+        value.trim();
+
+
+    if (
+        !id ||
+        id.length >
+        200
+    ) {
+
+        const error =
+            new Error(
+                "Comprovativo inválido."
+            );
+
+
+        error.code =
+            "INVALID_PROOF_ID";
+
+
+        error.statusCode =
+            400;
+
+
+        throw error;
+    }
+
+
+    return id;
+}
+
+
+/*
+============================================================
+PUBLIC SUBMIT PAYMENT PROOF
 ============================================================
 
 POST /api/pay/:publicToken/proof
 
-Content-Type:
-multipart/form-data
+------------------------------------------------------------
+BODY ESPERADO
+------------------------------------------------------------
 
-Campo obrigatório:
+{
+    "fileName": "comprovativo.jpg",
+    "mimeType": "image/jpeg",
+    "fileSize": 250000,
+    "fileData": "...",
+    "payerName": "Nome do cliente",
+    "payerPhone": "+244...",
+    "reference": "ABC123"
+}
 
-proof
+------------------------------------------------------------
+IMPORTANTE
+------------------------------------------------------------
 
-Campos opcionais:
+O serviço `submitPaymentProof()` é responsável pelas
+validações profundas do ficheiro e pelo armazenamento.
 
-note
+A rota apenas organiza e encaminha os dados.
 
 ============================================================
 */
@@ -315,77 +384,81 @@ note
 router.post(
     "/pay/:publicToken/proof",
 
-    upload.single(
-        "proof"
-    ),
-
     async (
         req,
         res
     ) => {
 
+        applyProofSecurityHeaders(
+            res
+        );
+
+
         try {
 
             const publicToken =
-                String(
-                    req.params.publicToken ||
-                    ""
-                ).trim();
+                normalizePublicToken(
+                    req.params.publicToken
+                );
 
 
-            if (
-                !publicToken
-            ) {
-
-                const error =
-                    new Error(
-                        "Link de pagamento inválido."
-                    );
+            const body =
+                getBody(
+                    req
+                );
 
 
-                error.code =
-                    "INVALID_PAYMENT_LINK";
+            /*
+            ------------------------------------------------
+            Nunca permitir que o cliente injete:
+            ------------------------------------------------
 
+            merchantId
+            invoiceId
+            amount
+            status
+            approved
+            reviewStatus
+            ------------------------------------------------
+            */
 
-                error.statusCode =
-                    400;
+            const proofInput = {
 
+                fileName:
+                    body.fileName,
 
-                throw error;
-            }
+                mimeType:
+                    body.mimeType,
 
+                fileSize:
+                    body.fileSize,
 
-            if (
-                !req.file
-            ) {
+                fileData:
+                    body.fileData,
 
-                const error =
-                    new Error(
-                        "Envie o comprovativo de pagamento."
-                    );
+                payerName:
+                    body.payerName,
 
+                payerPhone:
+                    body.payerPhone,
 
-                error.code =
-                    "PROOF_FILE_REQUIRED";
+                reference:
+                    body.reference,
 
+                note:
+                    body.note
 
-                error.statusCode =
-                    400;
-
-
-                throw error;
-            }
+            };
 
 
             const result =
-                await createPaymentProof(
+                await submitPaymentProof(
+
+                    publicToken,
+
+                    proofInput,
 
                     {
-
-                        publicToken,
-
-                        file:
-                            req.file,
 
                         ip:
                             req.ip,
@@ -393,11 +466,7 @@ router.post(
                         userAgent:
                             req.get(
                                 "user-agent"
-                            ),
-
-                        note:
-                            req.body?.note ||
-                            null
+                            )
                     }
                 );
 
@@ -416,17 +485,10 @@ router.post(
             error
         ) {
 
-            const normalized =
-                normalizeUploadError(
-                    error
-                );
-
-
-            return sendRouteError(
+            return sendProofError(
 
                 res,
 
-                normalized ||
                 error
             );
         }
@@ -436,12 +498,93 @@ router.post(
 
 /*
 ============================================================
-GET SINGLE PROOF
+LIST MERCHANT PROOFS
+============================================================
+
+GET /api/proofs
+
+Query:
+
+?page=1
+&limit=20
+&status=pending
+&search=...
+&invoiceId=...
+
+============================================================
+*/
+
+router.get(
+    "/proofs",
+
+    authenticateRequest,
+
+    async (
+        req,
+        res
+    ) => {
+
+        applyProofSecurityHeaders(
+            res
+        );
+
+
+        try {
+
+            const result =
+                await listMerchantProofs(
+
+                    req.auth.merchantId,
+
+                    {
+
+                        page:
+                            req.query?.page,
+
+                        limit:
+                            req.query?.limit,
+
+                        status:
+                            req.query?.status,
+
+                        search:
+                            req.query?.search,
+
+                        invoiceId:
+                            req.query?.invoiceId
+                    }
+                );
+
+
+            return successResponse(
+
+                res,
+
+                result
+            );
+        }
+
+        catch (
+            error
+        ) {
+
+            return sendProofError(
+
+                res,
+
+                error
+            );
+        }
+    }
+);
+
+
+/*
+============================================================
+GET SINGLE MERCHANT PROOF
 ============================================================
 
 GET /api/proofs/:proofId
-
-Somente o comerciante dono do comprovativo.
 
 ============================================================
 */
@@ -456,14 +599,25 @@ router.get(
         res
     ) => {
 
+        applyProofSecurityHeaders(
+            res
+        );
+
+
         try {
 
+            const proofId =
+                normalizeProofId(
+                    req.params.proofId
+                );
+
+
             const result =
-                await getPaymentProof(
+                await getMerchantProof(
 
                     req.auth.merchantId,
 
-                    req.params.proofId
+                    proofId
                 );
 
 
@@ -479,7 +633,7 @@ router.get(
             error
         ) {
 
-            return sendRouteError(
+            return sendProofError(
 
                 res,
 
@@ -492,223 +646,37 @@ router.get(
 
 /*
 ============================================================
-LIST PROOFS OF INVOICE
+REVIEW PAYMENT PROOF
 ============================================================
 
-GET /api/invoices/:invoiceId/proofs
+PATCH /api/proofs/:proofId/review
 
-============================================================
-*/
+------------------------------------------------------------
+BODY
+------------------------------------------------------------
 
-router.get(
-    "/invoices/:invoiceId/proofs",
+{
+    "decision": "approved"
+}
 
-    authenticateRequest,
+ou
 
-    async (
-        req,
-        res
-    ) => {
+{
+    "decision": "rejected",
+    "reason": "Valor não corresponde ao pagamento."
+}
 
-        try {
+------------------------------------------------------------
+DECISÕES PERMITIDAS
+------------------------------------------------------------
 
-            const result =
-                await listInvoiceProofs(
-
-                    req.auth.merchantId,
-
-                    req.params.invoiceId
-                );
-
-
-            return successResponse(
-
-                res,
-
-                result
-            );
-        }
-
-        catch (
-            error
-        ) {
-
-            return sendRouteError(
-
-                res,
-
-                error
-            );
-        }
-    }
-);
-
-
-/*
-============================================================
-DOWNLOAD / VIEW PROOF
-============================================================
-
-GET /api/proofs/:proofId/file
-
-O ficheiro só pode ser obtido pelo comerciante proprietário.
+approved
+rejected
 
 ============================================================
 */
 
-router.get(
-    "/proofs/:proofId/file",
-
-    authenticateRequest,
-
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const result =
-                await getPaymentProofStream(
-
-                    req.auth.merchantId,
-
-                    req.params.proofId
-                );
-
-
-            /*
-            ------------------------------------------------
-            Headers de segurança
-            ------------------------------------------------
-            */
-
-            res.setHeader(
-
-                "Content-Type",
-
-                result.mimeType
-            );
-
-
-            res.setHeader(
-
-                "Content-Length",
-
-                String(
-                    result.size
-                )
-            );
-
-
-            res.setHeader(
-
-                "Content-Disposition",
-
-                `inline; filename="${String(
-                    result.filename
-                ).replace(
-                    /["\\\r\n]/g,
-                    "_"
-                )}"`
-            );
-
-
-            res.setHeader(
-
-                "X-Content-Type-Options",
-
-                "nosniff"
-            );
-
-
-            res.setHeader(
-
-                "Cache-Control",
-
-                "private, no-store"
-            );
-
-
-            /*
-            ------------------------------------------------
-            Stream para o cliente.
-            ------------------------------------------------
-            */
-
-            result.stream.on(
-                "error",
-                error => {
-
-                    console.error(
-                        "[HONEY PAY] Proof stream error:",
-                        error
-                    );
-
-
-                    if (
-                        !res.headersSent
-                    ) {
-
-                        return sendRouteError(
-
-                            res,
-
-                            error
-                        );
-                    }
-
-
-                    try {
-
-                        res.destroy();
-
-                    }
-
-                    catch (
-                        destroyError
-                    ) {
-
-                        console.error(
-                            "[HONEY PAY] Stream destroy error:",
-                            destroyError
-                        );
-                    }
-                }
-            );
-
-
-            result.stream.pipe(
-                res
-            );
-        }
-
-        catch (
-            error
-        ) {
-
-            return sendRouteError(
-
-                res,
-
-                error
-            );
-        }
-    }
-);
-
-
-/*
-============================================================
-PUT PROOF INTO REVIEW
-============================================================
-
-POST /api/proofs/:proofId/review
-
-============================================================
-*/
-
-router.post(
+router.patch(
     "/proofs/:proofId/review",
 
     authenticateRequest,
@@ -718,164 +686,66 @@ router.post(
         res
     ) => {
 
+        applyProofSecurityHeaders(
+            res
+        );
+
+
         try {
 
-            const result =
-                await reviewPaymentProof(
-
-                    req.auth.merchantId,
-
-                    req.params.proofId,
-
-                    {
-
-                        reviewer:
-                            req.auth.merchantId
-                                ? String(
-                                    req.auth.merchantId
-                                )
-                                : "merchant"
-                    }
+            const proofId =
+                normalizeProofId(
+                    req.params.proofId
                 );
 
 
-            return successResponse(
-
-                res,
-
-                result
-            );
-        }
-
-        catch (
-            error
-        ) {
-
-            return sendRouteError(
-
-                res,
-
-                error
-            );
-        }
-    }
-);
+            const body =
+                getBody(
+                    req
+                );
 
 
-/*
-============================================================
-APPROVE PROOF
-============================================================
+            const decision =
+                typeof body.decision ===
+                "string"
 
-POST /api/proofs/:proofId/approve
-
-Body opcional:
-
-{
-    "paymentReference": "ABC123"
-}
-
-============================================================
-*/
-
-router.post(
-    "/proofs/:proofId/approve",
-
-    authenticateRequest,
-
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const paymentReference =
-                typeof
-                    req.body?.paymentReference ===
-                    "string"
-
-                    ? req.body.paymentReference
+                    ? body.decision
                         .trim()
-                        .slice(
-                            0,
-                            200
-                        )
+                        .toLowerCase()
 
-                    : null;
+                    : "";
 
 
-            const result =
-                await approvePaymentProof(
+            if (
+                decision !==
+                    "approved" &&
+                decision !==
+                    "rejected"
+            ) {
 
-                    req.auth.merchantId,
-
-                    req.params.proofId,
-
-                    {
-
-                        paymentReference
-                    }
-                );
-
-
-            return successResponse(
-
-                res,
-
-                result
-            );
-        }
-
-        catch (
-            error
-        ) {
-
-            return sendRouteError(
-
-                res,
-
-                error
-            );
-        }
-    }
-);
+                const error =
+                    new Error(
+                        "A decisão deve ser approved ou rejected."
+                    );
 
 
-/*
-============================================================
-REJECT PROOF
-============================================================
+                error.code =
+                    "INVALID_PROOF_DECISION";
 
-POST /api/proofs/:proofId/reject
 
-Body:
+                error.statusCode =
+                    400;
 
-{
-    "reason": "Valor incorreto."
-}
 
-============================================================
-*/
+                throw error;
+            }
 
-router.post(
-    "/proofs/:proofId/reject",
-
-    authenticateRequest,
-
-    async (
-        req,
-        res
-    ) => {
-
-        try {
 
             const reason =
-                typeof
-                    req.body?.reason ===
-                    "string"
+                typeof body.reason ===
+                "string"
 
-                    ? req.body.reason
+                    ? body.reason
                         .trim()
                         .slice(
                             0,
@@ -885,14 +755,54 @@ router.post(
                     : "";
 
 
+            if (
+                decision ===
+                    "rejected" &&
+                !reason
+            ) {
+
+                const error =
+                    new Error(
+                        "É obrigatório indicar o motivo da rejeição."
+                    );
+
+
+                error.code =
+                    "REJECTION_REASON_REQUIRED";
+
+
+                error.statusCode =
+                    400;
+
+
+                throw error;
+            }
+
+
             const result =
-                await rejectPaymentProof(
+                await reviewPaymentProof(
 
                     req.auth.merchantId,
 
-                    req.params.proofId,
+                    proofId,
 
-                    reason
+                    {
+
+                        decision,
+
+                        reason
+                    },
+
+                    {
+
+                        ip:
+                            req.ip,
+
+                        userAgent:
+                            req.get(
+                                "user-agent"
+                            )
+                    }
                 );
 
 
@@ -908,7 +818,7 @@ router.post(
             error
         ) {
 
-            return sendRouteError(
+            return sendProofError(
 
                 res,
 
@@ -921,59 +831,7 @@ router.post(
 
 /*
 ============================================================
-SECURITY STATISTICS
-============================================================
-
-GET /api/proofs/security/statistics
-
-============================================================
-*/
-
-router.get(
-    "/proofs/security/statistics",
-
-    authenticateRequest,
-
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const result =
-                await getProofSecurityStatistics(
-
-                    req.auth.merchantId
-                );
-
-
-            return successResponse(
-
-                res,
-
-                result
-            );
-        }
-
-        catch (
-            error
-        ) {
-
-            return sendRouteError(
-
-                res,
-
-                error
-            );
-        }
-    }
-);
-
-
-/*
-============================================================
-ROUTE FALLBACK
+404 FALLBACK
 ============================================================
 */
 
@@ -982,6 +840,11 @@ router.use(
         req,
         res
     ) => {
+
+        applyProofSecurityHeaders(
+            res
+        );
+
 
         return errorResponse(
 
@@ -999,7 +862,7 @@ router.use(
 
 /*
 ============================================================
-GLOBAL ROUTE ERROR HANDLER
+GLOBAL ERROR HANDLER
 ============================================================
 */
 
@@ -1029,7 +892,12 @@ router.use(
         }
 
 
-        return sendRouteError(
+        applyProofSecurityHeaders(
+            res
+        );
+
+
+        return sendProofError(
 
             res,
 
