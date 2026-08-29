@@ -2,7 +2,7 @@
 ============================================================
 HONEY PAY
 PAYMENT SERVICE
-V1.0.0
+V1.1.0
 ============================================================
 
 PROCESSAMENTO DE PAGAMENTOS / COMPROVATIVOS
@@ -11,41 +11,38 @@ PROCESSAMENTO DE PAGAMENTOS / COMPROVATIVOS
 RESPONSABILIDADES
 ------------------------------------------------------------
 
-- Registar intenção de pagamento
-- Receber metadados do comprovativo
-- Gerar SHA-256 do ficheiro
-- Impedir reutilização do mesmo comprovativo
-- Associar comprovativo à fatura correta
-- Validar valor declarado
-- Validar conta bancária selecionada
-- Controlar estados de pagamento
-- Permitir confirmação manual pelo comerciante
-- Permitir rejeição do pagamento
-- Criar histórico de segurança
-- Preparar integração WhatsApp
-- Preparar Honey Shield
+- Registar pagamentos
+- Validar faturas
+- Validar contas bancárias
+- Validar valores
+- Receber comprovativos
+- Gerar SHA-256
+- Impedir reutilização de comprovativos
+- Associar pagamento à fatura
+- Controlar revisão do pagamento
+- Confirmar pagamento manualmente
+- Rejeitar pagamento
+- Atualizar estado da fatura
+- Registar eventos de segurança
 
 ------------------------------------------------------------
-IMPORTANTE
+FLUXO
 ------------------------------------------------------------
 
-A V1 NÃO afirma que o dinheiro entrou no banco apenas
-porque existe um comprovativo.
-
-O sistema distingue:
-
-PENDING_REVIEW
-    ↓
-CONFIRMED
-    ↓
-REJECTED
-
-A confirmação final é feita pelo comerciante.
+pending
+   ↓
+payment_submitted
+   ↓
+pending_review
+   ├──────────────→ confirmed
+   │
+   └──────────────→ rejected
 
 ============================================================
 */
 
 import crypto from "node:crypto";
+
 
 import {
     Invoice,
@@ -73,7 +70,7 @@ import {
 
 /*
 ============================================================
-CONSTANTES
+CONSTANTS
 ============================================================
 */
 
@@ -91,7 +88,48 @@ const ALLOWED_RECEIPT_TYPES =
         "image/webp",
 
         "application/pdf"
+
     ]);
+
+
+/*
+============================================================
+ERROR FACTORY
+============================================================
+*/
+
+function createError(
+    message,
+    code,
+    statusCode = 400,
+    details = null
+) {
+
+    const error =
+        new Error(
+            message
+        );
+
+
+    error.code =
+        code;
+
+
+    error.statusCode =
+        statusCode;
+
+
+    if (
+        details !== null
+    ) {
+
+        error.details =
+            details;
+    }
+
+
+    return error;
+}
 
 
 /*
@@ -131,7 +169,7 @@ export function calculateSha256(
 
 /*
 ============================================================
-VALIDATE FILE
+VALIDATE RECEIPT FILE
 ============================================================
 */
 
@@ -143,21 +181,14 @@ function validateReceiptFile(
         !file
     ) {
 
-        const error =
-            new Error(
-                "É necessário enviar um comprovativo."
-            );
+        throw createError(
 
+            "É necessário enviar um comprovativo.",
 
-        error.code =
-            "RECEIPT_REQUIRED";
+            "RECEIPT_REQUIRED",
 
-
-        error.statusCode =
-            400;
-
-
-        throw error;
+            400
+        );
     }
 
 
@@ -167,44 +198,56 @@ function validateReceiptFile(
         )
     ) {
 
-        const error =
-            new Error(
-                "Ficheiro inválido."
-            );
+        throw createError(
+
+            "Ficheiro inválido.",
+
+            "INVALID_RECEIPT_FILE",
+
+            400
+        );
+    }
 
 
-        error.code =
-            "INVALID_RECEIPT_FILE";
+    const actualSize =
+        Number(
+            file.size ??
+            file.buffer.length
+        );
 
 
-        error.statusCode =
-            400;
+    if (
+        !Number.isFinite(
+            actualSize
+        ) ||
+        actualSize <=
+        0
+    ) {
 
+        throw createError(
 
-        throw error;
+            "O comprovativo está vazio.",
+
+            "INVALID_RECEIPT_SIZE",
+
+            400
+        );
     }
 
 
     if (
-        file.size >
+        actualSize >
         MAX_RECEIPT_SIZE
     ) {
 
-        const error =
-            new Error(
-                "O comprovativo não pode ultrapassar 10 MB."
-            );
+        throw createError(
 
+            "O comprovativo não pode ultrapassar 10 MB.",
 
-        error.code =
-            "RECEIPT_TOO_LARGE";
+            "RECEIPT_TOO_LARGE",
 
-
-        error.statusCode =
-            413;
-
-
-        throw error;
+            413
+        );
     }
 
 
@@ -214,28 +257,59 @@ function validateReceiptFile(
         )
     ) {
 
-        const error =
-            new Error(
-                "Formato de comprovativo não suportado."
-            );
+        throw createError(
+
+            "Formato de comprovativo não suportado.",
+
+            "INVALID_RECEIPT_TYPE",
+
+            415
+        );
+    }
 
 
-        error.code =
-            "INVALID_RECEIPT_TYPE";
+    return actualSize;
+}
 
 
-        error.statusCode =
-            415;
+/*
+============================================================
+VALIDATE OBJECT ID
+============================================================
+*/
+
+function assertObjectId(
+    value,
+    field,
+    code
+) {
+
+    const validation =
+        validateObjectId(
+            value,
+            field
+        );
 
 
-        throw error;
+    if (
+        validation
+    ) {
+
+        throw createError(
+
+            validation.message,
+
+            code,
+
+            400
+        );
     }
 }
 
 
 /*
 ============================================================
-VERIFY INVOICE
+GET PENDING INVOICE
 ============================================================
 */
 
@@ -245,80 +319,102 @@ async function getPendingInvoice(
 
     if (
         typeof publicId !==
-        "string"
+        "string" ||
+        !publicId.trim()
     ) {
 
-        const error =
-            new Error(
-                "Identificador da fatura inválido."
-            );
+        throw createError(
 
+            "Identificador da fatura inválido.",
 
-        error.code =
-            "INVALID_INVOICE_ID";
+            "INVALID_INVOICE_ID",
 
-
-        error.statusCode =
-            400;
-
-
-        throw error;
+            400
+        );
     }
 
 
     const invoice =
-        await Invoice
-            .findOne({
+        await Invoice.findOne({
 
-                publicId:
-                    publicId
-                        .trim()
-                        .toUpperCase()
-            });
+            publicId:
+                publicId
+                    .trim()
+                    .toUpperCase()
+
+        });
 
 
     if (
         !invoice
     ) {
 
-        const error =
-            new Error(
-                "Fatura não encontrada."
-            );
+        throw createError(
 
+            "Fatura não encontrada.",
 
-        error.code =
-            "INVOICE_NOT_FOUND";
+            "INVOICE_NOT_FOUND",
 
-
-        error.statusCode =
-            404;
-
-
-        throw error;
+            404
+        );
     }
 
+
+    /*
+    --------------------------------------------------------
+    EXPIRATION
+    --------------------------------------------------------
+    */
+
+    if (
+        invoice.expiresAt &&
+        new Date(
+            invoice.expiresAt
+        ).getTime() <=
+        Date.now()
+    ) {
+
+        invoice.status =
+            "expired";
+
+
+        invoice.expiredAt =
+            new Date();
+
+
+        await invoice.save();
+
+
+        throw createError(
+
+            "Esta fatura expirou.",
+
+            "INVOICE_EXPIRED",
+
+            409
+        );
+    }
+
+
+    /*
+    --------------------------------------------------------
+    STATUS
+    --------------------------------------------------------
+    */
 
     if (
         invoice.status ===
         "expired"
     ) {
 
-        const error =
-            new Error(
-                "Esta fatura expirou."
-            );
+        throw createError(
 
+            "Esta fatura expirou.",
 
-        error.code =
-            "INVOICE_EXPIRED";
+            "INVOICE_EXPIRED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
@@ -327,21 +423,14 @@ async function getPendingInvoice(
         "cancelled"
     ) {
 
-        const error =
-            new Error(
-                "Esta fatura foi cancelada."
-            );
+        throw createError(
 
+            "Esta fatura foi cancelada.",
 
-        error.code =
-            "INVOICE_CANCELLED";
+            "INVOICE_CANCELLED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
@@ -350,21 +439,14 @@ async function getPendingInvoice(
         "paid"
     ) {
 
-        const error =
-            new Error(
-                "Esta fatura já foi paga."
-            );
+        throw createError(
 
+            "Esta fatura já foi paga.",
 
-        error.code =
-            "INVOICE_ALREADY_PAID";
+            "INVOICE_ALREADY_PAID",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
@@ -373,21 +455,14 @@ async function getPendingInvoice(
         "payment_submitted"
     ) {
 
-        const error =
-            new Error(
-                "Já existe um pagamento em análise para esta fatura."
-            );
+        throw createError(
 
+            "Já existe um pagamento em análise para esta fatura.",
 
-        error.code =
-            "PAYMENT_ALREADY_SUBMITTED";
+            "PAYMENT_ALREADY_SUBMITTED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
@@ -411,33 +486,14 @@ async function verifyBankAccount(
         invoice.bankAccountId;
 
 
-    const validation =
-        validateObjectId(
-            selectedId,
-            "bankAccountId"
-        );
+    assertObjectId(
 
+        selectedId,
 
-    if (
-        validation
-    ) {
+        "bankAccountId",
 
-        const error =
-            new Error(
-                validation.message
-            );
-
-
-        error.code =
-            "INVALID_BANK_ACCOUNT_ID";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
+        "INVALID_BANK_ACCOUNT_ID"
+    );
 
 
     const account =
@@ -452,6 +508,7 @@ async function verifyBankAccount(
 
                 isActive:
                     true
+
             })
             .lean();
 
@@ -460,21 +517,14 @@ async function verifyBankAccount(
         !account
     ) {
 
-        const error =
-            new Error(
-                "A conta bancária selecionada não está disponível."
-            );
+        throw createError(
 
+            "A conta bancária selecionada não está disponível.",
 
-        error.code =
-            "BANK_ACCOUNT_NOT_AVAILABLE";
+            "BANK_ACCOUNT_NOT_AVAILABLE",
 
-
-        error.statusCode =
-            400;
-
-
-        throw error;
+            400
+        );
     }
 
 
@@ -484,7 +534,7 @@ async function verifyBankAccount(
 
 /*
 ============================================================
-DUPLICATE RECEIPT CHECK
+DUPLICATE RECEIPT
 ============================================================
 */
 
@@ -500,6 +550,7 @@ async function findDuplicateReceipt(
 
             "receipt.sha256":
                 sha256
+
         })
         .select(
             "_id invoiceId status createdAt"
@@ -515,15 +566,20 @@ SUBMIT PAYMENT
 */
 
 export async function submitPayment(
+
     publicId,
-    input,
+
+    input = {},
+
     file,
+
     requestContext = {}
+
 ) {
 
     /*
     --------------------------------------------------------
-    Validar input básico.
+    INPUT
     --------------------------------------------------------
     */
 
@@ -537,42 +593,34 @@ export async function submitPayment(
         validationErrors.length
     ) {
 
-        const error =
-            new Error(
-                "Dados do pagamento inválidos."
-            );
+        throw createError(
 
+            "Dados do pagamento inválidos.",
 
-        error.code =
-            "VALIDATION_ERROR";
+            "VALIDATION_ERROR",
 
+            400,
 
-        error.statusCode =
-            400;
-
-
-        error.details =
-            validationErrors;
-
-
-        throw error;
+            validationErrors
+        );
     }
 
 
     /*
     --------------------------------------------------------
-    Validar ficheiro.
+    FILE
     --------------------------------------------------------
     */
 
-    validateReceiptFile(
-        file
-    );
+    const fileSize =
+        validateReceiptFile(
+            file
+        );
 
 
     /*
     --------------------------------------------------------
-    Buscar fatura.
+    INVOICE
     --------------------------------------------------------
     */
 
@@ -584,50 +632,7 @@ export async function submitPayment(
 
     /*
     --------------------------------------------------------
-    Verificar validade temporal.
-    --------------------------------------------------------
-    */
-
-    if (
-        invoice.expiresAt &&
-        new Date(
-            invoice.expiresAt
-        ).getTime() <=
-        Date.now()
-    ) {
-
-        invoice.status =
-            "expired";
-
-
-        invoice.expiredAt =
-            new Date();
-
-
-        await invoice.save();
-
-
-        const error =
-            new Error(
-                "Esta fatura expirou."
-            );
-
-
-        error.code =
-            "INVOICE_EXPIRED";
-
-
-        error.statusCode =
-            409;
-
-
-        throw error;
-    }
-
-
-    /*
-    --------------------------------------------------------
-    Conta bancária.
+    BANK ACCOUNT
     --------------------------------------------------------
     */
 
@@ -642,9 +647,7 @@ export async function submitPayment(
 
     /*
     --------------------------------------------------------
-    Valor declarado.
-
-    O cliente deve enviar o mesmo valor da fatura.
+    AMOUNT
     --------------------------------------------------------
     */
 
@@ -662,52 +665,67 @@ export async function submitPayment(
         0
     ) {
 
-        const error =
-            new Error(
-                "Valor de pagamento inválido."
-            );
+        throw createError(
+
+            "Valor de pagamento inválido.",
+
+            "INVALID_PAYMENT_AMOUNT",
+
+            400
+        );
+    }
 
 
-        error.code =
-            "INVALID_PAYMENT_AMOUNT";
+    const invoiceAmount =
+        Number(
+            invoice.amount
+        );
 
 
-        error.statusCode =
-            400;
+    if (
+        !Number.isFinite(
+            invoiceAmount
+        ) ||
+        invoiceAmount <=
+        0
+    ) {
 
+        throw createError(
 
-        throw error;
+            "A fatura possui um valor inválido.",
+
+            "INVALID_INVOICE_AMOUNT",
+
+            500
+        );
     }
 
 
     if (
-        declaredAmount !==
-        Number(
-            invoice.amount
+        Math.round(
+            declaredAmount *
+            100
+        ) !==
+        Math.round(
+            invoiceAmount *
+            100
         )
     ) {
 
-        const error =
-            new Error(
-                "O valor enviado não corresponde ao valor da fatura."
-            );
+        throw createError(
 
+            "O valor enviado não corresponde ao valor da fatura.",
 
-        error.code =
-            "PAYMENT_AMOUNT_MISMATCH";
+            "PAYMENT_AMOUNT_MISMATCH",
 
-
-        error.statusCode =
-            400;
-
-
-        throw error;
+            400
+        );
     }
 
 
     /*
     --------------------------------------------------------
-    Calcular hash do comprovativo.
+    SHA-256
     --------------------------------------------------------
     */
 
@@ -719,9 +737,7 @@ export async function submitPayment(
 
     /*
     --------------------------------------------------------
-    Honey Shield:
-
-    procurar o mesmo ficheiro no histórico do comerciante.
+    DUPLICATE RECEIPT
     --------------------------------------------------------
     */
 
@@ -739,7 +755,9 @@ export async function submitPayment(
     ) {
 
         logSecurityEvent(
+
             "duplicate_receipt_detected",
+
             {
 
                 merchantId:
@@ -754,30 +772,28 @@ export async function submitPayment(
                 ip:
                     requestContext.ip ||
                     null
+
             }
         );
 
 
         const error =
-            new Error(
-                "Este comprovativo já foi utilizado anteriormente."
+            createError(
+
+                "Este comprovativo já foi utilizado anteriormente.",
+
+                "DUPLICATE_RECEIPT",
+
+                409
             );
 
 
-        error.code =
-            "DUPLICATE_RECEIPT";
+        error.security = {
 
+            duplicateDetected:
+                true
 
-        error.statusCode =
-            409;
-
-
-        error.security =
-            {
-
-                duplicateDetected:
-                    true
-            };
+        };
 
 
         throw error;
@@ -786,7 +802,7 @@ export async function submitPayment(
 
     /*
     --------------------------------------------------------
-    Criar pagamento.
+    CREATE PAYMENT
     --------------------------------------------------------
     */
 
@@ -820,59 +836,87 @@ export async function submitPayment(
                 method:
                     "bank_transfer",
 
-                payer:
-                    {
+                payer: {
 
-                        name:
+                    name:
+                        String(
                             input.payerName ||
-                            "",
+                            ""
+                        )
+                            .trim()
+                            .slice(
+                                0,
+                                180
+                            ),
 
-                        phone:
+                    phone:
+                        String(
                             input.payerPhone ||
-                            "",
+                            ""
+                        )
+                            .trim()
+                            .slice(
+                                0,
+                                40
+                            ),
 
-                        reference:
+                    reference:
+                        String(
                             input.reference ||
                             ""
-                    },
+                        )
+                            .trim()
+                            .slice(
+                                0,
+                                180
+                            )
 
-                receipt:
-                    {
+                },
 
-                        originalName:
+                receipt: {
+
+                    originalName:
+                        String(
                             file.originalname ||
-                            "receipt",
+                            "receipt"
+                        )
+                            .trim()
+                            .slice(
+                                0,
+                                255
+                            ),
 
-                        mimeType:
-                            file.mimetype,
+                    mimeType:
+                        file.mimetype,
 
-                        size:
-                            file.size,
+                    size:
+                        fileSize,
 
-                        sha256,
+                    sha256,
 
-                        storagePath:
-                            null,
+                    storagePath:
+                        null,
 
-                        uploadedAt:
-                            new Date()
-                    },
+                    uploadedAt:
+                        new Date()
 
-                verification:
-                    {
+                },
 
-                        status:
-                            "pending",
+                verification: {
 
-                        duplicateDetected:
-                            false,
+                    status:
+                        "pending",
 
-                        riskScore:
-                            0,
+                    duplicateDetected:
+                        false,
 
-                        notes:
-                            []
-                    },
+                    riskScore:
+                        0,
+
+                    notes:
+                        []
+
+                },
 
                 submittedAt:
                     new Date(),
@@ -884,16 +928,18 @@ export async function submitPayment(
                 userAgent:
                     requestContext.userAgent ||
                     null
+
             });
 
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         /*
         ----------------------------------------------------
-        Índice unique do hash protege contra duas requests
-        simultâneas com o mesmo comprovativo.
+        DUPLICATE UNIQUE INDEX
         ----------------------------------------------------
         */
 
@@ -902,21 +948,14 @@ export async function submitPayment(
             11000
         ) {
 
-            const duplicateError =
-                new Error(
-                    "Este comprovativo já foi utilizado anteriormente."
-                );
+            throw createError(
 
+                "Este comprovativo já foi utilizado anteriormente.",
 
-            duplicateError.code =
-                "DUPLICATE_RECEIPT";
+                "DUPLICATE_RECEIPT",
 
-
-            duplicateError.statusCode =
-                409;
-
-
-            throw duplicateError;
+                409
+            );
         }
 
 
@@ -926,9 +965,7 @@ export async function submitPayment(
 
     /*
     --------------------------------------------------------
-    Atualizar fatura.
-
-    O ficheiro real será armazenado pelo módulo de storage.
+    UPDATE INVOICE
     --------------------------------------------------------
     */
 
@@ -953,10 +990,11 @@ export async function submitPayment(
                 bankAccount._id,
 
             submittedAt:
-                new Date(),
+                payment.submittedAt,
 
             confirmedAt:
                 null
+
         };
 
 
@@ -977,12 +1015,13 @@ export async function submitPayment(
                 file.mimetype,
 
             size:
-                file.size,
+                fileSize,
 
             sha256,
 
             submittedAt:
-                new Date()
+                payment.submittedAt
+
         };
 
 
@@ -1005,14 +1044,72 @@ export async function submitPayment(
                         ?.verificationAttempts ||
                     0
                 ) + 1
+
         };
 
 
-    await invoice.save();
+    try {
 
+        await invoice.save();
+
+    }
+
+    catch (
+        error
+    ) {
+
+        /*
+        ----------------------------------------------------
+        COMPENSAÇÃO
+
+        Se a criação da Payment foi bem sucedida mas a Invoice
+        falhou, removemos o Payment recém-criado para evitar
+        pagamento órfão.
+
+        ----------------------------------------------------
+        */
+
+        try {
+
+            await Payment.deleteOne({
+
+                _id:
+                    payment._id,
+
+                merchantId:
+                    invoice.merchantId
+
+            });
+
+        }
+
+        catch (
+            cleanupError
+        ) {
+
+            console.error(
+
+                "[PAYMENT CLEANUP ERROR]",
+
+                cleanupError
+            );
+        }
+
+
+        throw error;
+    }
+
+
+    /*
+    --------------------------------------------------------
+    SECURITY LOG
+    --------------------------------------------------------
+    */
 
     logSecurityEvent(
+
         "payment_submitted",
+
         {
 
             merchantId:
@@ -1027,9 +1124,16 @@ export async function submitPayment(
             ip:
                 requestContext.ip ||
                 null
+
         }
     );
 
+
+    /*
+    --------------------------------------------------------
+    RESPONSE
+    --------------------------------------------------------
+    */
 
     return {
 
@@ -1043,18 +1147,19 @@ export async function submitPayment(
                 invoice
             ),
 
-        verification:
-            {
+        verification: {
 
-                status:
-                    "pending_review",
+            status:
+                "pending_review",
 
-                duplicateDetected:
-                    false,
+            duplicateDetected:
+                false,
 
-                message:
-                    "Comprovativo recebido e enviado para análise."
-            }
+            message:
+                "Comprovativo recebido e enviado para análise."
+
+        }
+
     };
 }
 
@@ -1066,66 +1171,31 @@ GET PAYMENT
 */
 
 export async function getPayment(
+
     merchantId,
+
     paymentId
+
 ) {
 
-    const merchantValidation =
-        validateObjectId(
-            merchantId,
-            "merchantId"
-        );
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+    );
 
 
-    if (
-        merchantValidation
-    ) {
+    assertObjectId(
 
-        const error =
-            new Error(
-                merchantValidation.message
-            );
+        paymentId,
 
+        "paymentId",
 
-        error.code =
-            "INVALID_MERCHANT_ID";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
-
-
-    const paymentValidation =
-        validateObjectId(
-            paymentId,
-            "paymentId"
-        );
-
-
-    if (
-        paymentValidation
-    ) {
-
-        const error =
-            new Error(
-                paymentValidation.message
-            );
-
-
-        error.code =
-            "INVALID_PAYMENT_ID";
-
-
-        error.statusCode =
-            400;
-
-
-        throw error;
-    }
+        "INVALID_PAYMENT_ID"
+    );
 
 
     const payment =
@@ -1136,6 +1206,7 @@ export async function getPayment(
                     paymentId,
 
                 merchantId
+
             })
             .lean();
 
@@ -1144,21 +1215,14 @@ export async function getPayment(
         !payment
     ) {
 
-        const error =
-            new Error(
-                "Pagamento não encontrado."
-            );
+        throw createError(
 
+            "Pagamento não encontrado.",
 
-        error.code =
-            "PAYMENT_NOT_FOUND";
+            "PAYMENT_NOT_FOUND",
 
-
-        error.statusCode =
-            404;
-
-
-        throw error;
+            404
+        );
     }
 
 
@@ -1169,34 +1233,37 @@ export async function getPayment(
                 payment
             ),
 
-        verification:
-            {
+        verification: {
 
-                status:
+            status:
+                payment
+                    .verification
+                    ?.status ||
+                "pending",
+
+            duplicateDetected:
+                Boolean(
                     payment
                         .verification
-                        ?.status ||
-                    "pending",
+                        ?.duplicateDetected
+                ),
 
-                duplicateDetected:
-                    Boolean(
-                        payment
-                            .verification
-                            ?.duplicateDetected
-                    ),
-
-                riskScore:
+            riskScore:
+                Number(
                     payment
                         .verification
                         ?.riskScore ||
-                    0,
+                    0
+                ),
 
-                notes:
-                    payment
-                        .verification
-                        ?.notes ||
-                    []
-            }
+            notes:
+                payment
+                    .verification
+                    ?.notes ||
+                []
+
+        }
+
     };
 }
 
@@ -1208,36 +1275,63 @@ LIST PAYMENTS
 */
 
 export async function listPayments(
+
     merchantId,
+
     options = {}
+
 ) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+    );
+
 
     const page =
         Math.max(
+
             1,
-            Number(
-                options.page ||
-                1
+
+            Math.floor(
+                Number(
+                    options.page ||
+                    1
+                )
             )
+
         );
 
 
     const limit =
         Math.min(
+
             100,
+
             Math.max(
+
                 1,
-                Number(
-                    options.limit ||
-                    20
+
+                Math.floor(
+                    Number(
+                        options.limit ||
+                        20
+                    )
                 )
+
             )
+
         );
 
 
     const filter = {
 
         merchantId
+
     };
 
 
@@ -1245,8 +1339,37 @@ export async function listPayments(
         options.status
     ) {
 
+        const status =
+            String(
+                options.status
+            )
+                .trim()
+                .toLowerCase();
+
+
+        if (
+            ![
+                "pending_review",
+                "confirmed",
+                "rejected"
+            ].includes(
+                status
+            )
+        ) {
+
+            throw createError(
+
+                "Estado de pagamento inválido.",
+
+                "INVALID_PAYMENT_STATUS",
+
+                400
+            );
+        }
+
+
         filter.status =
-            options.status;
+            status;
     }
 
 
@@ -1259,8 +1382,11 @@ export async function listPayments(
 
 
     const [
+
         payments,
+
         total
+
     ] =
         await Promise.all([
 
@@ -1272,6 +1398,7 @@ export async function listPayments(
 
                     createdAt:
                         -1
+
                 })
                 .skip(
                     skip
@@ -1284,6 +1411,7 @@ export async function listPayments(
             Payment.countDocuments(
                 filter
             )
+
         ]);
 
 
@@ -1307,13 +1435,20 @@ export async function listPayments(
 
             totalPages:
                 Math.max(
+
                     1,
+
                     Math.ceil(
+
                         total /
                         limit
+
                     )
+
                 )
+
         }
+
     };
 }
 
@@ -1325,16 +1460,40 @@ CONFIRM PAYMENT
 
 AÇÃO MANUAL DO COMERCIANTE
 
-Esta é a confirmação definitiva na V1.
+Apenas pending_review pode ser confirmado.
 
 ============================================================
 */
 
 export async function confirmPayment(
+
     merchantId,
+
     paymentId,
+
     options = {}
+
 ) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+    );
+
+
+    assertObjectId(
+
+        paymentId,
+
+        "paymentId",
+
+        "INVALID_PAYMENT_ID"
+    );
+
 
     const payment =
         await Payment.findOne({
@@ -1343,6 +1502,7 @@ export async function confirmPayment(
                 paymentId,
 
             merchantId
+
         });
 
 
@@ -1350,21 +1510,14 @@ export async function confirmPayment(
         !payment
     ) {
 
-        const error =
-            new Error(
-                "Pagamento não encontrado."
-            );
+        throw createError(
 
+            "Pagamento não encontrado.",
 
-        error.code =
-            "PAYMENT_NOT_FOUND";
+            "PAYMENT_NOT_FOUND",
 
-
-        error.statusCode =
-            404;
-
-
-        throw error;
+            404
+        );
     }
 
 
@@ -1382,6 +1535,7 @@ export async function confirmPayment(
 
             alreadyConfirmed:
                 true
+
         };
     }
 
@@ -1391,22 +1545,91 @@ export async function confirmPayment(
         "pending_review"
     ) {
 
-        const error =
-            new Error(
-                "Este pagamento não está disponível para confirmação."
-            );
+        throw createError(
 
+            "Este pagamento não está disponível para confirmação.",
 
-        error.code =
-            "PAYMENT_CANNOT_BE_CONFIRMED";
+            "PAYMENT_CANNOT_BE_CONFIRMED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
+
+
+    /*
+    --------------------------------------------------------
+    INVOICE
+    --------------------------------------------------------
+    */
+
+    const invoice =
+        await Invoice.findOne({
+
+            _id:
+                payment.invoiceId,
+
+            merchantId
+
+        });
+
+
+    if (
+        !invoice
+    ) {
+
+        throw createError(
+
+            "A fatura associada ao pagamento não foi encontrada.",
+
+            "INVOICE_NOT_FOUND",
+
+            404
+        );
+    }
+
+
+    if (
+        invoice.status ===
+        "paid"
+    ) {
+
+        throw createError(
+
+            "A fatura já está marcada como paga.",
+
+            "INVOICE_ALREADY_PAID",
+
+            409
+        );
+    }
+
+
+    if (
+        invoice.status ===
+        "cancelled" ||
+        invoice.status ===
+        "expired"
+    ) {
+
+        throw createError(
+
+            "A fatura não pode ser confirmada.",
+
+            "INVOICE_NOT_PAYABLE",
+
+            409
+        );
+    }
+
+
+    /*
+    --------------------------------------------------------
+    CONFIRM PAYMENT
+    --------------------------------------------------------
+    */
+
+    const confirmedAt =
+        new Date();
 
 
     payment.status =
@@ -1414,7 +1637,7 @@ export async function confirmPayment(
 
 
     payment.confirmedAt =
-        new Date();
+        confirmedAt;
 
 
     payment.confirmedBy =
@@ -1432,6 +1655,9 @@ export async function confirmPayment(
                 false,
 
             riskScore:
+                payment
+                    .verification
+                    ?.riskScore ||
                 0,
 
             notes:
@@ -1439,6 +1665,7 @@ export async function confirmPayment(
                     .verification
                     ?.notes ||
                 []
+
         };
 
 
@@ -1447,84 +1674,79 @@ export async function confirmPayment(
 
     /*
     --------------------------------------------------------
-    Atualizar fatura.
+    UPDATE INVOICE
     --------------------------------------------------------
     */
 
-    const invoice =
-        await Invoice.findOne({
-
-            _id:
-                payment.invoiceId,
-
-            merchantId
-        });
+    invoice.status =
+        "paid";
 
 
-    if (
-        invoice
-    ) {
-
-        invoice.status =
-            "paid";
+    invoice.paidAt =
+        confirmedAt;
 
 
-        invoice.paidAt =
-            new Date();
+    invoice.payment =
+        {
+
+            paymentId:
+                payment._id,
+
+            method:
+                "bank_transfer",
+
+            bankAccountId:
+                payment.bankAccountId,
+
+            submittedAt:
+                payment.submittedAt,
+
+            confirmedAt
+
+        };
 
 
-        invoice.payment =
-            {
+    invoice.receipt =
+        {
 
-                paymentId:
-                    payment._id,
+            ...(
+                invoice.receipt ||
+                {}
+            ),
 
-                method:
-                    "bank_transfer",
+            status:
+                "verified"
 
-                bankAccountId:
-                    payment.bankAccountId,
-
-                submittedAt:
-                    payment.submittedAt,
-
-                confirmedAt:
-                    payment.confirmedAt
-            };
+        };
 
 
-        invoice.receipt =
-            {
+    invoice.fraudProtection =
+        {
 
-                ...(
-                    invoice.receipt ||
-                    {}
-                ),
+            ...(
+                invoice.fraudProtection ||
+                {}
+            ),
 
-                status:
-                    "verified"
-            };
+            verificationStatus:
+                "verified"
 
-
-        invoice.fraudProtection =
-            {
-
-                ...(
-                    invoice.fraudProtection ||
-                    {}
-                ),
-
-                verificationStatus:
-                    "verified"
-            };
+        };
 
 
-        await invoice.save();
-    }
+    await invoice.save();
 
+
+    /*
+    --------------------------------------------------------
+    SECURITY EVENT
+    --------------------------------------------------------
+    */
 
     logSecurityEvent(
+
         "payment_confirmed",
+
         {
 
             merchantId:
@@ -1535,6 +1757,7 @@ export async function confirmPayment(
 
             invoiceId:
                 payment.invoiceId.toString()
+
         }
     );
 
@@ -1547,11 +1770,10 @@ export async function confirmPayment(
             ),
 
         invoice:
-            invoice
-                ? publicInvoice(
-                    invoice
-                )
-                : null
+            publicInvoice(
+                invoice
+            )
+
     };
 }
 
@@ -1563,10 +1785,34 @@ REJECT PAYMENT
 */
 
 export async function rejectPayment(
+
     merchantId,
+
     paymentId,
+
     reason = ""
+
 ) {
+
+    assertObjectId(
+
+        merchantId,
+
+        "merchantId",
+
+        "INVALID_MERCHANT_ID"
+    );
+
+
+    assertObjectId(
+
+        paymentId,
+
+        "paymentId",
+
+        "INVALID_PAYMENT_ID"
+    );
+
 
     const payment =
         await Payment.findOne({
@@ -1575,6 +1821,7 @@ export async function rejectPayment(
                 paymentId,
 
             merchantId
+
         });
 
 
@@ -1582,21 +1829,14 @@ export async function rejectPayment(
         !payment
     ) {
 
-        const error =
-            new Error(
-                "Pagamento não encontrado."
-            );
+        throw createError(
 
+            "Pagamento não encontrado.",
 
-        error.code =
-            "PAYMENT_NOT_FOUND";
+            "PAYMENT_NOT_FOUND",
 
-
-        error.statusCode =
-            404;
-
-
-        throw error;
+            404
+        );
     }
 
 
@@ -1605,21 +1845,14 @@ export async function rejectPayment(
         "confirmed"
     ) {
 
-        const error =
-            new Error(
-                "Um pagamento confirmado não pode ser rejeitado."
-            );
+        throw createError(
 
+            "Um pagamento confirmado não pode ser rejeitado.",
 
-        error.code =
-            "PAYMENT_ALREADY_CONFIRMED";
+            "PAYMENT_ALREADY_CONFIRMED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
@@ -1628,27 +1861,21 @@ export async function rejectPayment(
         "pending_review"
     ) {
 
-        const error =
-            new Error(
-                "Este pagamento não está disponível para rejeição."
-            );
+        throw createError(
 
+            "Este pagamento não está disponível para rejeição.",
 
-        error.code =
-            "PAYMENT_CANNOT_BE_REJECTED";
+            "PAYMENT_CANNOT_BE_REJECTED",
 
-
-        error.statusCode =
-            409;
-
-
-        throw error;
+            409
+        );
     }
 
 
     const cleanReason =
         String(
-            reason || ""
+            reason ||
+            ""
         )
             .trim()
             .slice(
@@ -1680,11 +1907,18 @@ export async function rejectPayment(
 
             status:
                 "rejected"
+
         };
 
 
     await payment.save();
 
+
+    /*
+    --------------------------------------------------------
+    INVOICE
+    --------------------------------------------------------
+    */
 
     const invoice =
         await Invoice.findOne({
@@ -1693,6 +1927,7 @@ export async function rejectPayment(
                 payment.invoiceId,
 
             merchantId
+
         });
 
 
@@ -1700,62 +1935,93 @@ export async function rejectPayment(
         invoice
     ) {
 
-        invoice.status =
-            "pending";
+        /*
+        ----------------------------------------------------
+        Só libertamos a fatura se ela estiver associada a
+        este pagamento.
+        ----------------------------------------------------
+        */
+
+        const currentPaymentId =
+            invoice
+                .payment
+                ?.paymentId
+                ?.toString();
 
 
-        invoice.payment =
-            {
+        if (
+            currentPaymentId ===
+            payment._id.toString()
+        ) {
 
-                paymentId:
-                    null,
-
-                method:
-                    "bank_transfer",
-
-                bankAccountId:
-                    invoice.bankAccountId,
-
-                submittedAt:
-                    null,
-
-                confirmedAt:
-                    null
-            };
+            invoice.status =
+                "pending";
 
 
-        invoice.receipt =
-            {
+            invoice.payment =
+                {
 
-                ...(
-                    invoice.receipt ||
-                    {}
-                ),
+                    paymentId:
+                        null,
 
-                status:
-                    "rejected"
-            };
+                    method:
+                        "bank_transfer",
 
+                    bankAccountId:
+                        invoice.bankAccountId,
 
-        invoice.fraudProtection =
-            {
+                    submittedAt:
+                        null,
 
-                ...(
-                    invoice.fraudProtection ||
-                    {}
-                ),
+                    confirmedAt:
+                        null
 
-                verificationStatus:
-                    "rejected"
-            };
+                };
 
 
-        await invoice.save();
+            invoice.receipt =
+                {
+
+                    ...(
+                        invoice.receipt ||
+                        {}
+                    ),
+
+                    status:
+                        "rejected"
+
+                };
+
+
+            invoice.fraudProtection =
+                {
+
+                    ...(
+                        invoice.fraudProtection ||
+                        {}
+                    ),
+
+                    verificationStatus:
+                        "rejected"
+
+                };
+
+
+            await invoice.save();
+        }
     }
 
 
+    /*
+    --------------------------------------------------------
+    SECURITY EVENT
+    --------------------------------------------------------
+    */
+
     logSecurityEvent(
+
         "payment_rejected",
+
         {
 
             merchantId:
@@ -1766,6 +2032,7 @@ export async function rejectPayment(
 
             invoiceId:
                 payment.invoiceId.toString()
+
         }
     );
 
@@ -1783,6 +2050,7 @@ export async function rejectPayment(
                     invoice
                 )
                 : null
+
     };
 }
 
@@ -1806,4 +2074,5 @@ export default {
     confirmPayment,
 
     rejectPayment
+
 };
