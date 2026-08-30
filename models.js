@@ -1,60 +1,18 @@
-/*
-============================================================
-HONEY PAY
-MONGOOSE MODELS
-V1.1.0
-============================================================
-
-MODELOS PRINCIPAIS DA PLATAFORMA
-
-------------------------------------------------------------
-MODELOS
-------------------------------------------------------------
-
-- Merchant
-- BankAccount
-- Invoice
-- Payment
-- Receipt
-- Subscription
-
-------------------------------------------------------------
-ARQUITETURA
-------------------------------------------------------------
-
-MongoDB
-   ↓
-Mongoose
-   ↓
-Models
-   ↓
-Services
-   ↓
-API Routes
-
-------------------------------------------------------------
-PAYMENT FLOW
-------------------------------------------------------------
-
-Invoice
-   ↓
-Payment submitted
-   ↓
-pending_review
-   ↓
-confirmed / rejected
-   ↓
-Invoice paid / pending
-
-============================================================
-*/
-
 import mongoose from "mongoose";
 
 
 /*
 ============================================================
-SCHEMA HELPERS
+HONEY PAY
+MONGOOSE MODELS
+V2.0.0
+============================================================
+
+AUTENTICAÇÃO:
+Google Account ONLY.
+
+Não existe password obrigatória.
+
 ============================================================
 */
 
@@ -74,6 +32,12 @@ const merchantSchema =
 
         {
 
+            /*
+            ------------------------------------------------
+            IDENTIDADE
+            ------------------------------------------------
+            */
+
             name: {
 
                 type:
@@ -87,6 +51,7 @@ const merchantSchema =
 
                 maxlength:
                     120
+
             },
 
 
@@ -108,20 +73,120 @@ const merchantSchema =
                     true,
 
                 maxlength:
-                    180
+                    180,
+
+                index:
+                    true
+
             },
 
+
+            /*
+            ------------------------------------------------
+            GOOGLE IDENTITY
+            ------------------------------------------------
+
+            O sub de Google é o identificador estável
+            da conta Google.
+
+            ------------------------------------------------
+            */
+
+            googleId: {
+
+                type:
+                    String,
+
+                unique:
+                    true,
+
+                sparse:
+                    true,
+
+                index:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    255
+
+            },
+
+
+            googleEmail: {
+
+                type:
+                    String,
+
+                lowercase:
+                    true,
+
+                trim:
+                    true,
+
+                maxlength:
+                    180,
+
+                default:
+                    null
+
+            },
+
+
+            googlePicture: {
+
+                type:
+                    String,
+
+                trim:
+                    true,
+
+                maxlength:
+                    1000,
+
+                default:
+                    null
+
+            },
+
+
+            googleEmailVerified: {
+
+                type:
+                    Boolean,
+
+                default:
+                    false
+
+            },
+
+
+            /*
+            ------------------------------------------------
+            LEGACY PASSWORD
+            ------------------------------------------------
+
+            Mantido apenas para compatibilidade com dados
+            antigos.
+
+            NÃO é utilizado pelo novo login.
+
+            ------------------------------------------------
+            */
 
             passwordHash: {
 
                 type:
                     String,
 
-                required:
-                    true,
-
                 select:
-                    false
+                    false,
+
+                default:
+                    null
+
             },
 
 
@@ -138,6 +203,7 @@ const merchantSchema =
 
                 default:
                     null
+
             },
 
 
@@ -154,6 +220,7 @@ const merchantSchema =
 
                 default:
                     null
+
             },
 
 
@@ -175,7 +242,11 @@ const merchantSchema =
                 ],
 
                 default:
-                    "active"
+                    "active",
+
+                index:
+                    true
+
             },
 
 
@@ -194,8 +265,15 @@ const merchantSchema =
 
                 default:
                     "merchant"
+
             },
 
+
+            /*
+            ------------------------------------------------
+            SUBSCRIPTION CACHE
+            ------------------------------------------------
+            */
 
             subscription: {
 
@@ -216,6 +294,7 @@ const merchantSchema =
 
                     default:
                         "free"
+
                 },
 
 
@@ -240,6 +319,7 @@ const merchantSchema =
 
                     default:
                         "active"
+
                 },
 
 
@@ -250,6 +330,7 @@ const merchantSchema =
 
                     default:
                         Date.now
+
                 },
 
 
@@ -260,10 +341,17 @@ const merchantSchema =
 
                     default:
                         null
+
                 }
 
             },
 
+
+            /*
+            ------------------------------------------------
+            LOGIN
+            ------------------------------------------------
+            */
 
             lastLoginAt: {
 
@@ -272,6 +360,7 @@ const merchantSchema =
 
                 default:
                     null
+
             },
 
 
@@ -281,7 +370,30 @@ const merchantSchema =
                     String,
 
                 default:
+                    null,
+
+                maxlength:
+                    120
+
+            },
+
+
+            lastLoginProvider: {
+
+                type:
+                    String,
+
+                enum: [
+
+                    "google",
+
                     null
+
+                ],
+
+                default:
+                    null
+
             }
 
         },
@@ -293,20 +405,48 @@ const merchantSchema =
 
             collection:
                 "merchants"
+
         }
+
     );
 
 
 merchantSchema.index(
 
     {
+
         email:
             1
+
     },
 
     {
+
         unique:
             true
+
+    }
+
+);
+
+
+merchantSchema.index(
+
+    {
+
+        googleId:
+            1
+
+    },
+
+    {
+
+        unique:
+            true,
+
+        sparse:
+            true
+
     }
 
 );
@@ -336,6 +476,7 @@ const bankAccountSchema =
 
                 index:
                     true
+
             },
 
 
@@ -352,6 +493,7 @@ const bankAccountSchema =
 
                 maxlength:
                     160
+
             },
 
 
@@ -368,6 +510,7 @@ const bankAccountSchema =
 
                 maxlength:
                     160
+
             },
 
 
@@ -387,6 +530,7 @@ const bankAccountSchema =
 
                 maxlength:
                     80
+
             },
 
 
@@ -403,6 +547,7 @@ const bankAccountSchema =
 
                 default:
                     null
+
             },
 
 
@@ -419,6 +564,7 @@ const bankAccountSchema =
 
                 default:
                     null
+
             },
 
 
@@ -443,6 +589,7 @@ const bankAccountSchema =
 
                 default:
                     "bank"
+
             },
 
 
@@ -462,6 +609,7 @@ const bankAccountSchema =
 
                 maxlength:
                     10
+
             },
 
 
@@ -475,6 +623,7 @@ const bankAccountSchema =
 
                 index:
                     true
+
             },
 
 
@@ -488,6 +637,7 @@ const bankAccountSchema =
 
                 index:
                     true
+
             },
 
 
@@ -501,6 +651,7 @@ const bankAccountSchema =
 
                 min:
                     0
+
             },
 
 
@@ -511,6 +662,7 @@ const bankAccountSchema =
 
                 default:
                     {}
+
             }
 
         },
@@ -522,38 +674,32 @@ const bankAccountSchema =
 
             collection:
                 "bankAccounts"
+
         }
+
     );
 
 
-bankAccountSchema.index(
+bankAccountSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    isActive:
+        1
 
-        isActive:
-            1
-
-    }
-
-);
+});
 
 
-bankAccountSchema.index(
+bankAccountSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    isPrimary:
+        1
 
-        isPrimary:
-            1
-
-    }
-
-);
+});
 
 
 /*
@@ -580,6 +726,7 @@ const invoiceSchema =
 
                 index:
                     true
+
             },
 
 
@@ -596,6 +743,7 @@ const invoiceSchema =
 
                 maxlength:
                     80
+
             },
 
 
@@ -615,6 +763,7 @@ const invoiceSchema =
 
                 trim:
                     true
+
             },
 
 
@@ -634,6 +783,7 @@ const invoiceSchema =
 
                 trim:
                     true
+
             },
 
 
@@ -650,6 +800,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -669,6 +820,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -685,6 +837,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -701,6 +854,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -714,6 +868,7 @@ const invoiceSchema =
 
                 min:
                     0
+
             },
 
 
@@ -730,14 +885,9 @@ const invoiceSchema =
 
                 maxlength:
                     10
+
             },
 
-
-            /*
-            ------------------------------------------------
-            INVOICE STATUS
-            ------------------------------------------------
-            */
 
             status: {
 
@@ -767,6 +917,7 @@ const invoiceSchema =
 
                 index:
                     true
+
             },
 
 
@@ -780,6 +931,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -793,6 +945,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -806,6 +959,7 @@ const invoiceSchema =
 
                 index:
                     true
+
             },
 
 
@@ -816,6 +970,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -826,6 +981,7 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
 
@@ -836,14 +992,9 @@ const invoiceSchema =
 
                 default:
                     null
+
             },
 
-
-            /*
-            ------------------------------------------------
-            PAYMENT INFORMATION
-            ------------------------------------------------
-            */
 
             payment: {
 
@@ -857,6 +1008,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -867,6 +1019,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -880,6 +1033,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -890,6 +1044,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -900,16 +1055,11 @@ const invoiceSchema =
 
                     default:
                         null
+
                 }
 
             },
 
-
-            /*
-            ------------------------------------------------
-            RECEIPT INFORMATION
-            ------------------------------------------------
-            */
 
             receipt: {
 
@@ -932,6 +1082,7 @@ const invoiceSchema =
 
                     default:
                         "none"
+
                 },
 
 
@@ -942,6 +1093,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -958,6 +1110,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -974,6 +1127,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -987,6 +1141,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -1006,6 +1161,7 @@ const invoiceSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -1016,16 +1172,11 @@ const invoiceSchema =
 
                     default:
                         null
+
                 }
 
             },
 
-
-            /*
-            ------------------------------------------------
-            FRAUD PROTECTION
-            ------------------------------------------------
-            */
 
             fraudProtection: {
 
@@ -1046,6 +1197,7 @@ const invoiceSchema =
 
                     default:
                         "pending"
+
                 },
 
 
@@ -1056,6 +1208,7 @@ const invoiceSchema =
 
                     default:
                         false
+
                 },
 
 
@@ -1072,6 +1225,7 @@ const invoiceSchema =
 
                     default:
                         0
+
                 },
 
 
@@ -1085,6 +1239,7 @@ const invoiceSchema =
 
                     default:
                         0
+
                 }
 
             },
@@ -1097,6 +1252,7 @@ const invoiceSchema =
 
                 default:
                     {}
+
             }
 
         },
@@ -1108,50 +1264,40 @@ const invoiceSchema =
 
             collection:
                 "invoices"
+
         }
+
     );
 
 
-invoiceSchema.index(
+invoiceSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    createdAt:
+        -1
 
-        createdAt:
-            -1
-
-    }
-
-);
+});
 
 
-invoiceSchema.index(
+invoiceSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    status:
+        1
 
-        status:
-            1
-
-    }
-
-);
+});
 
 
-invoiceSchema.index(
+invoiceSchema.index({
 
-    {
+    "receipt.sha256":
+        1
 
-        "receipt.sha256":
-            1
-
-    }
-
-);
+});
 
 
 /*
@@ -1178,6 +1324,7 @@ const paymentSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1194,6 +1341,7 @@ const paymentSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1210,6 +1358,7 @@ const paymentSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1223,6 +1372,7 @@ const paymentSchema =
 
                 min:
                     0
+
             },
 
 
@@ -1242,24 +1392,9 @@ const paymentSchema =
 
                 maxlength:
                     10
+
             },
 
-
-            /*
-            ------------------------------------------------
-            PAYMENT STATUS
-            ------------------------------------------------
-
-            pending_review
-                ↓
-            confirmed
-
-            pending_review
-                ↓
-            rejected
-
-            ------------------------------------------------
-            */
 
             status: {
 
@@ -1281,6 +1416,7 @@ const paymentSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1294,14 +1430,9 @@ const paymentSchema =
 
                 default:
                     "bank_transfer"
+
             },
 
-
-            /*
-            ------------------------------------------------
-            PAYER
-            ------------------------------------------------
-            */
 
             payer: {
 
@@ -1318,6 +1449,7 @@ const paymentSchema =
 
                     default:
                         ""
+
                 },
 
 
@@ -1334,6 +1466,7 @@ const paymentSchema =
 
                     default:
                         ""
+
                 },
 
 
@@ -1350,16 +1483,11 @@ const paymentSchema =
 
                     default:
                         ""
+
                 }
 
             },
 
-
-            /*
-            ------------------------------------------------
-            RECEIPT
-            ------------------------------------------------
-            */
 
             receipt: {
 
@@ -1376,6 +1504,7 @@ const paymentSchema =
 
                     default:
                         "receipt"
+
                 },
 
 
@@ -1392,6 +1521,7 @@ const paymentSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -1405,6 +1535,7 @@ const paymentSchema =
 
                     default:
                         0
+
                 },
 
 
@@ -1424,6 +1555,7 @@ const paymentSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -1440,6 +1572,7 @@ const paymentSchema =
 
                     default:
                         null
+
                 },
 
 
@@ -1450,16 +1583,11 @@ const paymentSchema =
 
                     default:
                         null
+
                 }
 
             },
 
-
-            /*
-            ------------------------------------------------
-            VERIFICATION
-            ------------------------------------------------
-            */
 
             verification: {
 
@@ -1480,6 +1608,7 @@ const paymentSchema =
 
                     default:
                         "pending"
+
                 },
 
 
@@ -1490,6 +1619,7 @@ const paymentSchema =
 
                     default:
                         false
+
                 },
 
 
@@ -1506,6 +1636,7 @@ const paymentSchema =
 
                     default:
                         0
+
                 },
 
 
@@ -1518,16 +1649,11 @@ const paymentSchema =
 
                     default:
                         []
+
                 }
 
             },
 
-
-            /*
-            ------------------------------------------------
-            TIMELINE
-            ------------------------------------------------
-            */
 
             submittedAt: {
 
@@ -1539,6 +1665,7 @@ const paymentSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1549,6 +1676,7 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1562,6 +1690,7 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1572,6 +1701,7 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1588,14 +1718,9 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
-
-            /*
-            ------------------------------------------------
-            REQUEST CONTEXT
-            ------------------------------------------------
-            */
 
             ip: {
 
@@ -1610,6 +1735,7 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1626,6 +1752,7 @@ const paymentSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1636,6 +1763,7 @@ const paymentSchema =
 
                 default:
                     {}
+
             }
 
         },
@@ -1647,75 +1775,44 @@ const paymentSchema =
 
             collection:
                 "payments"
+
         }
+
     );
 
 
-/*
-============================================================
-PAYMENT INDEXES
-============================================================
-*/
+paymentSchema.index({
 
-paymentSchema.index(
+    merchantId:
+        1,
 
-    {
+    createdAt:
+        -1
 
-        merchantId:
-            1,
-
-        createdAt:
-            -1
-
-    }
-
-);
+});
 
 
-paymentSchema.index(
+paymentSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    status:
+        1
 
-        status:
-            1
-
-    }
-
-);
+});
 
 
-paymentSchema.index(
+paymentSchema.index({
 
-    {
+    invoiceId:
+        1,
 
-        invoiceId:
-            1,
+    status:
+        1
 
-        status:
-            1
+});
 
-    }
-
-);
-
-
-/*
-============================================================
-HONEY SHIELD
-DUPLICATE RECEIPT PROTECTION
-============================================================
-
-O mesmo SHA-256 não pode ser reutilizado pelo mesmo
-comerciante.
-
-O índice parcial ignora pagamentos que ainda não possuem
-comprovativo/hash.
-
-============================================================
-*/
 
 paymentSchema.index(
 
@@ -1741,6 +1838,7 @@ paymentSchema.index(
                     $type:
                         "string"
                 }
+
         }
 
     }
@@ -1772,6 +1870,7 @@ const receiptSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1788,6 +1887,7 @@ const receiptSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1804,6 +1904,7 @@ const receiptSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1820,6 +1921,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1830,6 +1932,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1846,6 +1949,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1862,6 +1966,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1881,6 +1986,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1894,6 +2000,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1910,6 +2017,7 @@ const receiptSchema =
 
                 default:
                     null
+
             },
 
 
@@ -1933,6 +2041,7 @@ const receiptSchema =
 
                 index:
                     true
+
             },
 
 
@@ -1943,6 +2052,7 @@ const receiptSchema =
 
                 default:
                     {}
+
             }
 
         },
@@ -1954,23 +2064,21 @@ const receiptSchema =
 
             collection:
                 "receipts"
+
         }
+
     );
 
 
-receiptSchema.index(
+receiptSchema.index({
 
-    {
+    merchantId:
+        1,
 
-        merchantId:
-            1,
+    createdAt:
+        -1
 
-        createdAt:
-            -1
-
-    }
-
-);
+});
 
 
 /*
@@ -2000,6 +2108,7 @@ const subscriptionSchema =
 
                 index:
                     true
+
             },
 
 
@@ -2020,6 +2129,7 @@ const subscriptionSchema =
 
                 default:
                     "free"
+
             },
 
 
@@ -2044,6 +2154,7 @@ const subscriptionSchema =
 
                 default:
                     "active"
+
             },
 
 
@@ -2054,6 +2165,7 @@ const subscriptionSchema =
 
                 default:
                     Date.now
+
             },
 
 
@@ -2064,6 +2176,7 @@ const subscriptionSchema =
 
                 default:
                     null
+
             },
 
 
@@ -2074,6 +2187,7 @@ const subscriptionSchema =
 
                 default:
                     null
+
             },
 
 
@@ -2084,6 +2198,7 @@ const subscriptionSchema =
 
                 default:
                     {}
+
             }
 
         },
@@ -2095,87 +2210,65 @@ const subscriptionSchema =
 
             collection:
                 "subscriptions"
+
         }
+
     );
 
 
 /*
 ============================================================
-MODEL REGISTRATION
+MODELS
 ============================================================
 */
 
 const Merchant =
     mongoose.models.Merchant ||
     mongoose.model(
-
         "Merchant",
-
         merchantSchema
-
     );
 
 
 const BankAccount =
     mongoose.models.BankAccount ||
     mongoose.model(
-
         "BankAccount",
-
         bankAccountSchema
-
     );
 
 
 const Invoice =
     mongoose.models.Invoice ||
     mongoose.model(
-
         "Invoice",
-
         invoiceSchema
-
     );
 
 
 const Payment =
     mongoose.models.Payment ||
     mongoose.model(
-
         "Payment",
-
         paymentSchema
-
     );
 
 
 const Receipt =
     mongoose.models.Receipt ||
     mongoose.model(
-
         "Receipt",
-
         receiptSchema
-
     );
 
 
 const Subscription =
     mongoose.models.Subscription ||
     mongoose.model(
-
         "Subscription",
-
         subscriptionSchema
-
     );
 
-
-/*
-============================================================
-EXPORTS
-============================================================
-*/
 
 export {
 
@@ -2193,12 +2286,6 @@ export {
 
 };
 
-
-/*
-============================================================
-DEFAULT EXPORT
-============================================================
-*/
 
 export default {
 
