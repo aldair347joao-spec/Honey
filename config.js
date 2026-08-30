@@ -4,15 +4,14 @@ import "dotenv/config";
 ============================================================
 HONEY PAY
 APPLICATION CONFIGURATION
-V1.0.0
+V2.0.0
 ============================================================
 
-Este arquivo centraliza as configurações da aplicação.
+AUTENTICAÇÃO:
+- Google OAuth 2.0
+- JWT interno Honey Pay
 
-Nenhuma credencial real deve ser escrita aqui.
-
-As informações sensíveis continuam nas Environment
-Variables do Render.
+NÃO EXISTE LOGIN POR PASSWORD.
 
 ============================================================
 */
@@ -28,17 +27,23 @@ function getString(
     name,
     fallback = ""
 ) {
+
     const value =
         process.env[name];
+
 
     if (
         typeof value !== "string" ||
         value.trim() === ""
     ) {
+
         return fallback;
+
     }
 
+
     return value.trim();
+
 }
 
 
@@ -48,16 +53,21 @@ function getInteger(
     minimum = Number.MIN_SAFE_INTEGER,
     maximum = Number.MAX_SAFE_INTEGER
 ) {
+
     const raw =
         process.env[name];
+
 
     if (
         raw === undefined ||
         raw === null ||
         raw === ""
     ) {
+
         return fallback;
+
     }
+
 
     const value =
         Number.parseInt(
@@ -65,25 +75,36 @@ function getInteger(
             10
         );
 
+
     if (
         !Number.isInteger(value)
     ) {
+
         return fallback;
+
     }
+
 
     if (
         value < minimum
     ) {
+
         return minimum;
+
     }
+
 
     if (
         value > maximum
     ) {
+
         return maximum;
+
     }
 
+
     return value;
+
 }
 
 
@@ -91,15 +112,20 @@ function getBoolean(
     name,
     fallback = false
 ) {
+
     const value =
         process.env[name];
+
 
     if (
         value === undefined ||
         value === null
     ) {
+
         return fallback;
+
     }
+
 
     return [
         "true",
@@ -111,6 +137,7 @@ function getBoolean(
             .trim()
             .toLowerCase()
     );
+
 }
 
 
@@ -166,13 +193,45 @@ const MONGODB_URI =
 
 /*
 ============================================================
-AUTHENTICATION
+JWT
 ============================================================
 */
 
 const JWT_SECRET =
     getString(
         "JWT_SECRET"
+    );
+
+
+/*
+============================================================
+GOOGLE AUTHENTICATION
+============================================================
+
+Render Environment Variables:
+
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+GOOGLE_CALLBACK_URL
+
+============================================================
+*/
+
+const GOOGLE_CLIENT_ID =
+    getString(
+        "GOOGLE_CLIENT_ID"
+    );
+
+
+const GOOGLE_CLIENT_SECRET =
+    getString(
+        "GOOGLE_CLIENT_SECRET"
+    );
+
+
+const GOOGLE_CALLBACK_URL =
+    getString(
+        "GOOGLE_CALLBACK_URL"
     );
 
 
@@ -198,14 +257,14 @@ REQUEST LIMITS
 const MAX_JSON_SIZE =
     getString(
         "MAX_JSON_SIZE",
-        "1mb"
+        "2mb"
     );
 
 
 const MAX_URLENCODED_SIZE =
     getString(
         "MAX_URLENCODED_SIZE",
-        "1mb"
+        "2mb"
     );
 
 
@@ -247,16 +306,6 @@ const PUBLIC_APP_URL =
 /*
 ============================================================
 BUSINESS PLANS
-============================================================
-
-FREE:
-10 cobranças vitalícias.
-
-PRO:
-7.500 Kz por mês.
-
-Estes valores ficam centralizados para evitar que
-diferentes partes do sistema utilizem valores diferentes.
 ============================================================
 */
 
@@ -365,16 +414,9 @@ const WHATSAPP_WEBHOOK_SECRET =
 
 /*
 ============================================================
-APPLICATION FEATURES
+FEATURES
 ============================================================
 */
-
-const ENABLE_REGISTRATION =
-    getBoolean(
-        "ENABLE_REGISTRATION",
-        true
-    );
-
 
 const ENABLE_PUBLIC_CHECKOUT =
     getBoolean(
@@ -414,9 +456,11 @@ if (
     isProduction &&
     !MONGODB_URI
 ) {
+
     throw new Error(
         "MONGODB_URI é obrigatória em produção."
     );
+
 }
 
 
@@ -424,9 +468,11 @@ if (
     isProduction &&
     !JWT_SECRET
 ) {
+
     throw new Error(
         "JWT_SECRET é obrigatória em produção."
     );
+
 }
 
 
@@ -434,27 +480,47 @@ if (
     isProduction &&
     JWT_SECRET.length < 32
 ) {
+
     throw new Error(
         "JWT_SECRET deve possuir pelo menos 32 caracteres em produção."
     );
+
 }
 
 
 if (
-    PRO_MONTHLY_PRICE_KZ < 0
+    isProduction &&
+    !GOOGLE_CLIENT_ID
 ) {
+
     throw new Error(
-        "PRO_MONTHLY_PRICE_KZ não pode ser negativo."
+        "GOOGLE_CLIENT_ID é obrigatória em produção."
     );
+
 }
 
 
 if (
-    FREE_INVOICE_LIMIT < 1
+    isProduction &&
+    !GOOGLE_CLIENT_SECRET
 ) {
+
     throw new Error(
-        "FREE_INVOICE_LIMIT deve ser maior que zero."
+        "GOOGLE_CLIENT_SECRET é obrigatória em produção."
     );
+
+}
+
+
+if (
+    isProduction &&
+    !GOOGLE_CALLBACK_URL
+) {
+
+    throw new Error(
+        "GOOGLE_CALLBACK_URL é obrigatória em produção."
+    );
+
 }
 
 
@@ -462,20 +528,17 @@ if (
 ============================================================
 PUBLIC CONFIGURATION
 ============================================================
-
-Somente valores que podem ser utilizados com segurança
-por módulos internos.
-
-NÃO expomos segredos através deste objeto.
-============================================================
 */
 
 export const config = Object.freeze({
 
     app: {
-        name: "Honey Pay",
 
-        version: "1.0.0",
+        name:
+            "Honey Pay",
+
+        version:
+            "2.0.0",
 
         environment:
             NODE_ENV,
@@ -489,76 +552,121 @@ export const config = Object.freeze({
 
         publicUrl:
             PUBLIC_APP_URL
+
     },
 
 
     database: {
+
         uri:
             MONGODB_URI
+
     },
 
 
     auth: {
+
         jwtSecret:
             JWT_SECRET
+
+    },
+
+
+    google: {
+
+        clientId:
+            GOOGLE_CLIENT_ID,
+
+        clientSecret:
+            GOOGLE_CLIENT_SECRET,
+
+        callbackUrl:
+            GOOGLE_CALLBACK_URL,
+
+        scopes: [
+
+            "openid",
+
+            "email",
+
+            "profile"
+
+        ]
+
     },
 
 
     cors: {
+
         origin:
             CORS_ORIGIN
+
     },
 
 
     requests: {
+
         maxJsonSize:
             MAX_JSON_SIZE,
 
         maxUrlEncodedSize:
             MAX_URLENCODED_SIZE
+
     },
 
 
     uploads: {
+
         maxSizeMB:
             MAX_UPLOAD_SIZE_MB,
 
         directory:
             UPLOAD_DIRECTORY
+
     },
 
 
     plans: {
 
         free: {
+
             invoiceLimit:
                 FREE_INVOICE_LIMIT
+
         },
 
         pro: {
+
             monthlyPriceKz:
                 PRO_MONTHLY_PRICE_KZ
+
         }
+
     },
 
 
     rateLimits: {
 
         auth: {
+
             windowMs:
                 AUTH_RATE_LIMIT_WINDOW_MS,
 
             max:
                 AUTH_RATE_LIMIT_MAX
+
         },
 
         uploads: {
+
             windowMs:
                 UPLOAD_RATE_LIMIT_WINDOW_MS,
 
             max:
                 UPLOAD_RATE_LIMIT_MAX
+
         }
+
     },
 
 
@@ -578,13 +686,11 @@ export const config = Object.freeze({
 
         webhookSecret:
             WHATSAPP_WEBHOOK_SECRET
+
     },
 
 
     features: {
-
-        registration:
-            ENABLE_REGISTRATION,
 
         publicCheckout:
             ENABLE_PUBLIC_CHECKOUT,
@@ -597,15 +703,10 @@ export const config = Object.freeze({
 
         honeyShield:
             ENABLE_HONEY_SHIELD
+
     }
 
 });
 
-
-/*
-============================================================
-DEFAULT EXPORT
-============================================================
-*/
 
 export default config;
