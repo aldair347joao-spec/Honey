@@ -2,42 +2,90 @@
 ============================================================
 HONEY PAY
 AUTHENTICATION UI
-V1.0.0
-PRODUCTION AUTHENTICATION GATE
+V2.0.0
+GOOGLE ONLY
 ============================================================
 
 RESPONSABILIDADES
 ------------------------------------------------------------
-- Login
-- Registo
+- Login exclusivamente com Google
+- Recuperação de sessão JWT
+- Proteção da aplicação
 - Logout
-- JWT
-- Proteção da consola
-- Recuperação de sessão
 - Estados de loading
-- Erros de autenticação
-- Validação client-side
-- Não expõe dados financeiros
+- Tratamento de erros
+- Compatibilidade com app.js
+- Compatibilidade com honey_pay_token
+- Não utiliza email/password
+- Não possui registo manual
+
+FLUXO
+------------------------------------------------------------
+
+Utilizador
+    ↓
+Continuar com Google
+    ↓
+/api/auth/google
+    ↓
+Google OAuth
+    ↓
+/api/auth/google/callback
+    ↓
+JWT
+    ↓
+Honey Pay
+    ↓
+Dashboard
+
 ============================================================
 */
 
 "use strict";
 
-const AUTH_TOKEN_KEY = "honey_pay_token";
+
+/*
+============================================================
+CONFIGURATION
+============================================================
+*/
+
+const AUTH_TOKEN_KEY =
+    "honey_pay_token";
+
 
 const LEGACY_TOKEN_KEYS = [
+
     "honey_token",
+
     "token",
+
     "accessToken",
+
     "access_token"
+
 ];
 
-const AUTH_API = "/api";
+
+const AUTH_API =
+    "/api";
+
+
+const GOOGLE_LOGIN_URL =
+    "/api/auth/google";
+
 
 const state = {
-    mode: "login",
-    loading: false,
-    initialized: false
+
+    loading:
+        false,
+
+    initialized:
+        false,
+
+    authenticated:
+        false
+
 };
 
 
@@ -47,17 +95,47 @@ UTILITIES
 ============================================================
 */
 
-function escapeHtml(value) {
+function escapeHtml(
+    value
+) {
 
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return String(
+        value ?? ""
+    )
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
+
+/*
+============================================================
+TOKEN
+============================================================
+*/
 
 function getStoredToken() {
 
@@ -66,14 +144,25 @@ function getStoredToken() {
             AUTH_TOKEN_KEY
         );
 
-    if (current) {
+
+    if (
+        current
+    ) {
 
         return current;
 
     }
 
+
+    /*
+    --------------------------------------------------------
+    Migração de tokens antigos.
+    --------------------------------------------------------
+    */
+
     for (
-        const key of LEGACY_TOKEN_KEYS
+        const key of
+        LEGACY_TOKEN_KEYS
     ) {
 
         const legacy =
@@ -81,12 +170,34 @@ function getStoredToken() {
                 key
             );
 
-        if (legacy) {
+
+        if (
+            legacy
+        ) {
 
             localStorage.setItem(
                 AUTH_TOKEN_KEY,
                 legacy
             );
+
+
+            /*
+            ------------------------------------------------
+            Remove imediatamente as chaves antigas.
+            ------------------------------------------------
+            */
+
+            for (
+                const oldKey of
+                LEGACY_TOKEN_KEYS
+            ) {
+
+                localStorage.removeItem(
+                    oldKey
+                );
+
+            }
+
 
             return legacy;
 
@@ -94,15 +205,19 @@ function getStoredToken() {
 
     }
 
+
     return null;
 
 }
 
 
-function storeToken(token) {
+function storeToken(
+    token
+) {
 
     if (
-        typeof token !== "string" ||
+        typeof token !==
+            "string" ||
         !token.trim()
     ) {
 
@@ -110,16 +225,20 @@ function storeToken(token) {
 
     }
 
+
     const normalized =
         token.trim();
+
 
     localStorage.setItem(
         AUTH_TOKEN_KEY,
         normalized
     );
 
+
     for (
-        const key of LEGACY_TOKEN_KEYS
+        const key of
+        LEGACY_TOKEN_KEYS
     ) {
 
         localStorage.removeItem(
@@ -127,6 +246,7 @@ function storeToken(token) {
         );
 
     }
+
 
     return true;
 
@@ -139,8 +259,10 @@ function clearStoredToken() {
         AUTH_TOKEN_KEY
     );
 
+
     for (
-        const key of LEGACY_TOKEN_KEYS
+        const key of
+        LEGACY_TOKEN_KEYS
     ) {
 
         localStorage.removeItem(
@@ -152,7 +274,15 @@ function clearStoredToken() {
 }
 
 
-function extractData(payload) {
+/*
+============================================================
+RESPONSE HELPERS
+============================================================
+*/
+
+function extractData(
+    payload
+) {
 
     if (
         payload &&
@@ -166,6 +296,7 @@ function extractData(payload) {
 
     }
 
+
     if (
         payload &&
         Object.prototype.hasOwnProperty.call(
@@ -178,6 +309,7 @@ function extractData(payload) {
 
     }
 
+
     return payload;
 
 }
@@ -189,10 +321,15 @@ function extractMessage(
 ) {
 
     return (
+
         payload?.message ||
+
         payload?.error?.message ||
+
         payload?.data?.message ||
+
         fallback
+
     );
 
 }
@@ -200,7 +337,7 @@ function extractMessage(
 
 /*
 ============================================================
-API
+AUTH API
 ============================================================
 */
 
@@ -210,27 +347,47 @@ async function authRequest(
 ) {
 
     const headers = {
-        Accept:
-            "application/json",
 
-        "Content-Type":
+        Accept:
             "application/json"
+
     };
+
 
     const token =
         getStoredToken();
 
-    if (token) {
+
+    if (
+        token
+    ) {
 
         headers.Authorization =
             `Bearer ${token}`;
 
     }
 
+
+    if (
+        options.body !==
+        undefined
+    ) {
+
+        headers[
+            "Content-Type"
+        ] =
+            "application/json";
+
+    }
+
+
     const response =
         await fetch(
+
             `${AUTH_API}${path}`,
+
             {
+
                 method:
                     options.method ||
                     "GET",
@@ -238,10 +395,13 @@ async function authRequest(
                 headers,
 
                 body:
-                    options.body !== undefined
+                    options.body !==
+                    undefined
+
                         ? JSON.stringify(
                             options.body
                         )
+
                         : undefined,
 
                 credentials:
@@ -249,10 +409,15 @@ async function authRequest(
 
                 cache:
                     "no-store"
+
             }
+
         );
 
-    let payload = null;
+
+    let payload =
+        null;
+
 
     try {
 
@@ -263,36 +428,50 @@ async function authRequest(
 
     catch {
 
-        payload = null;
+        payload =
+            null;
 
     }
 
-    if (!response.ok) {
+
+    if (
+        !response.ok
+    ) {
 
         const error =
             new Error(
+
                 extractMessage(
+
                     payload,
+
                     "Não foi possível concluir a operação."
+
                 )
+
             );
+
 
         error.status =
             response.status;
+
 
         error.code =
             payload?.code ||
             payload?.error?.code ||
             null;
 
+
         error.details =
             payload?.details ||
             payload?.error?.details ||
             null;
 
+
         throw error;
 
     }
+
 
     return payload;
 
@@ -301,7 +480,7 @@ async function authRequest(
 
 /*
 ============================================================
-AUTHENTICATION CHECK
+SESSION
 ============================================================
 */
 
@@ -310,11 +489,15 @@ async function validateExistingSession() {
     const token =
         getStoredToken();
 
-    if (!token) {
+
+    if (
+        !token
+    ) {
 
         return false;
 
     }
+
 
     try {
 
@@ -323,10 +506,12 @@ async function validateExistingSession() {
                 "/auth/me"
             );
 
+
         const data =
             extractData(
                 response
             );
+
 
         if (
             !data
@@ -338,13 +523,25 @@ async function validateExistingSession() {
 
         }
 
+
+        state.authenticated =
+            true;
+
+
         return true;
 
     }
 
-    catch {
+    catch (
+        error
+    ) {
 
         clearStoredToken();
+
+
+        state.authenticated =
+            false;
+
 
         return false;
 
@@ -371,216 +568,553 @@ function injectStyles() {
 
     }
 
+
     const style =
         document.createElement(
             "style"
         );
 
+
     style.id =
         "honey-auth-styles";
 
+
     style.textContent = `
+
         #honey-auth-gate {
+
             position: fixed;
+
             inset: 0;
+
             z-index: 999999;
+
             display: none;
+
             align-items: center;
+
             justify-content: center;
+
             padding: 24px;
+
             background:
+
                 radial-gradient(
-                    circle at top right,
-                    rgba(245, 190, 52, .10),
+                    circle at 15% 10%,
+                    rgba(245,190,52,.10),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(245,190,52,.06),
                     transparent 32%
                 ),
+
                 #080a0f;
+
             color: #f5f7fb;
+
             overflow-y: auto;
+
         }
+
 
         #honey-auth-gate.is-visible {
+
             display: flex;
+
         }
+
 
         .honey-auth-shell {
-            width: min(100%, 460px);
+
+            width:
+                min(
+                    100%,
+                    460px
+                );
+
         }
+
 
         .honey-auth-brand {
-            text-align: center;
-            margin-bottom: 28px;
+
+            text-align:
+                center;
+
+            margin-bottom:
+                28px;
+
         }
+
 
         .honey-auth-mark {
-            width: 52px;
-            height: 52px;
-            margin: 0 auto 14px;
-            display: grid;
-            place-items: center;
-            border-radius: 16px;
-            background: #f5be34;
-            color: #111318;
-            font-size: 22px;
-            font-weight: 900;
+
+            width:
+                56px;
+
+            height:
+                56px;
+
+            margin:
+                0 auto 15px;
+
+            display:
+                grid;
+
+            place-items:
+                center;
+
+            border-radius:
+                17px;
+
+            background:
+                #f5be34;
+
+            color:
+                #111318;
+
+            font-size:
+                23px;
+
+            font-weight:
+                900;
+
             box-shadow:
-                0 12px 35px rgba(245, 190, 52, .18);
+                0 14px 40px
+                rgba(
+                    245,
+                    190,
+                    52,
+                    .18
+                );
+
         }
+
 
         .honey-auth-brand strong {
-            display: block;
-            font-size: 25px;
-            letter-spacing: -.04em;
+
+            display:
+                block;
+
+            font-size:
+                26px;
+
+            letter-spacing:
+                -.045em;
+
         }
+
 
         .honey-auth-brand span {
-            display: block;
-            margin-top: 6px;
-            color: #8f98aa;
-            font-size: 13px;
+
+            display:
+                block;
+
+            margin-top:
+                6px;
+
+            color:
+                #8f98aa;
+
+            font-size:
+                13px;
+
         }
+
 
         .honey-auth-card {
-            border: 1px solid #252a35;
-            border-radius: 24px;
-            padding: 30px;
-            background: #10131a;
+
+            border:
+                1px solid
+                #252a35;
+
+            border-radius:
+                24px;
+
+            padding:
+                32px;
+
+            background:
+                #10131a;
+
             box-shadow:
-                0 30px 80px rgba(0,0,0,.35);
+                0 30px 80px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    .38
+                );
+
         }
+
 
         .honey-auth-heading {
-            margin-bottom: 24px;
+
+            text-align:
+                center;
+
+            margin-bottom:
+                24px;
+
         }
+
 
         .honey-auth-heading h1 {
-            margin: 0;
-            font-size: 25px;
-            letter-spacing: -.035em;
+
+            margin:
+                0;
+
+            font-size:
+                25px;
+
+            letter-spacing:
+                -.035em;
+
         }
+
 
         .honey-auth-heading p {
-            margin: 8px 0 0;
-            color: #8f98aa;
-            line-height: 1.6;
-            font-size: 14px;
+
+            margin:
+                9px 0 0;
+
+            color:
+                #8f98aa;
+
+            line-height:
+                1.65;
+
+            font-size:
+                14px;
+
         }
 
-        .honey-auth-form {
-            display: grid;
-            gap: 16px;
-        }
 
-        .honey-auth-field {
-            display: grid;
-            gap: 7px;
-        }
+        .honey-auth-google {
 
-        .honey-auth-field label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #cdd3df;
-        }
+            width:
+                100%;
 
-        .honey-auth-field input {
-            width: 100%;
-            box-sizing: border-box;
-            min-height: 50px;
-            padding: 0 15px;
-            border: 1px solid #2a303c;
-            border-radius: 12px;
-            outline: none;
-            background: #0b0e14;
-            color: #f5f7fb;
-            font: inherit;
-            transition:
-                border-color .18s ease,
-                box-shadow .18s ease;
-        }
+            min-height:
+                54px;
 
-        .honey-auth-field input:focus {
-            border-color: #f5be34;
-            box-shadow:
-                0 0 0 3px rgba(245,190,52,.10);
-        }
+            display:
+                flex;
 
-        .honey-auth-submit {
-            min-height: 52px;
-            border: 0;
-            border-radius: 12px;
-            background: #f5be34;
-            color: #111318;
-            font: inherit;
-            font-weight: 850;
-            cursor: pointer;
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                12px;
+
+            border:
+                1px solid
+                #303642;
+
+            border-radius:
+                13px;
+
+            background:
+                #ffffff;
+
+            color:
+                #202124;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            font-size:
+                15px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+
             transition:
                 transform .18s ease,
-                opacity .18s ease;
+                box-shadow .18s ease,
+                background .18s ease;
+
         }
 
-        .honey-auth-submit:hover {
-            transform: translateY(-1px);
+
+        .honey-auth-google:hover {
+
+            transform:
+                translateY(-1px);
+
+            box-shadow:
+                0 10px 28px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    .24
+                );
+
+            background:
+                #f8f9fa;
+
         }
 
-        .honey-auth-submit:disabled {
-            opacity: .55;
-            cursor: wait;
-            transform: none;
+
+        .honey-auth-google:active {
+
+            transform:
+                translateY(0);
+
         }
 
-        .honey-auth-error {
-            display: none;
-            padding: 12px 14px;
-            border: 1px solid rgba(239,93,93,.25);
-            border-radius: 11px;
-            background: rgba(239,93,93,.08);
-            color: #ff9b9b;
-            font-size: 13px;
-            line-height: 1.5;
+
+        .honey-auth-google:disabled {
+
+            opacity:
+                .60;
+
+            cursor:
+                wait;
+
+            transform:
+                none;
+
         }
 
-        .honey-auth-error.is-visible {
-            display: block;
+
+        .honey-google-icon {
+
+            width:
+                20px;
+
+            height:
+                20px;
+
+            flex:
+                0 0 20px;
+
         }
 
-        .honey-auth-switch {
-            margin-top: 22px;
-            text-align: center;
-            color: #8f98aa;
-            font-size: 13px;
+
+        .honey-auth-divider {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                12px;
+
+            margin:
+                22px 0;
+
+            color:
+                #687184;
+
+            font-size:
+                11px;
+
         }
 
-        .honey-auth-switch button {
-            border: 0;
-            padding: 0;
-            background: transparent;
-            color: #f5be34;
-            font: inherit;
-            font-weight: 750;
-            cursor: pointer;
+
+        .honey-auth-divider::before,
+
+        .honey-auth-divider::after {
+
+            content:
+                "";
+
+            flex:
+                1;
+
+            height:
+                1px;
+
+            background:
+                #252a35;
+
         }
+
 
         .honey-auth-security {
-            margin-top: 18px;
-            text-align: center;
-            color: #687184;
-            font-size: 11px;
-            line-height: 1.6;
+
+            margin-top:
+                20px;
+
+            text-align:
+                center;
+
+            color:
+                #687184;
+
+            font-size:
+                11px;
+
+            line-height:
+                1.65;
+
         }
 
-        @media (max-width: 520px) {
+
+        .honey-auth-error {
+
+            display:
+                none;
+
+            margin-bottom:
+                16px;
+
+            padding:
+                12px 14px;
+
+            border:
+                1px solid
+                rgba(
+                    239,
+                    93,
+                    93,
+                    .25
+                );
+
+            border-radius:
+                11px;
+
+            background:
+                rgba(
+                    239,
+                    93,
+                    93,
+                    .08
+                );
+
+            color:
+                #ff9b9b;
+
+            font-size:
+                13px;
+
+            line-height:
+                1.5;
+
+        }
+
+
+        .honey-auth-error.is-visible {
+
+            display:
+                block;
+
+        }
+
+
+        .honey-auth-loading {
+
+            display:
+                none;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            gap:
+                9px;
+
+            margin-top:
+                16px;
+
+            color:
+                #8f98aa;
+
+            font-size:
+                13px;
+
+        }
+
+
+        .honey-auth-loading.is-visible {
+
+            display:
+                flex;
+
+        }
+
+
+        .honey-auth-spinner {
+
+            width:
+                16px;
+
+            height:
+                16px;
+
+            border:
+                2px solid
+                #303642;
+
+            border-top-color:
+                #f5be34;
+
+            border-radius:
+                50%;
+
+            animation:
+                honeyAuthSpin
+                .75s linear infinite;
+
+        }
+
+
+        @keyframes honeyAuthSpin {
+
+            to {
+
+                transform:
+                    rotate(
+                        360deg
+                    );
+
+            }
+
+        }
+
+
+        @media (
+            max-width: 520px
+        ) {
 
             #honey-auth-gate {
-                padding: 16px;
+
+                padding:
+                    16px;
+
             }
 
+
             .honey-auth-card {
-                padding: 22px;
-                border-radius: 20px;
+
+                padding:
+                    23px;
+
+                border-radius:
+                    20px;
+
             }
 
         }
+
     `;
+
 
     document.head.appendChild(
         style
@@ -597,66 +1131,94 @@ AUTH HTML
 
 function createAuthGate() {
 
-    if (
+    const existing =
         document.getElementById(
-            "honey-auth-gate"
-        )
-    ) {
-
-        return document.getElementById(
             "honey-auth-gate"
         );
 
+
+    if (
+        existing
+    ) {
+
+        return existing;
+
     }
+
 
     const gate =
         document.createElement(
             "div"
         );
 
+
     gate.id =
         "honey-auth-gate";
+
 
     gate.setAttribute(
         "aria-hidden",
         "true"
     );
 
+
     gate.innerHTML = `
-        <div class="honey-auth-shell">
 
-            <div class="honey-auth-brand">
+        <div
+            class="honey-auth-shell"
+        >
 
-                <div class="honey-auth-mark">
+            <div
+                class="honey-auth-brand"
+            >
+
+                <div
+                    class="honey-auth-mark"
+                    aria-hidden="true"
+                >
                     H
                 </div>
+
 
                 <strong>
                     Honey Pay
                 </strong>
 
+
                 <span>
-                    Plataforma profissional de cobranças
+                    Plataforma profissional
+                    de cobranças
                 </span>
 
             </div>
+
 
             <section
                 class="honey-auth-card"
                 aria-labelledby="honey-auth-title"
             >
 
-                <div class="honey-auth-heading">
+                <div
+                    class="honey-auth-heading"
+                >
 
-                    <h1 id="honey-auth-title">
-                        Entrar na sua conta
+                    <h1
+                        id="honey-auth-title"
+                    >
+                        Entre na sua conta
                     </h1>
 
-                    <p id="honey-auth-description">
-                        Aceda ao seu espaço de gestão.
+
+                    <p
+                        id="honey-auth-description"
+                    >
+                        Aceda ao seu espaço de
+                        gestão de forma segura
+                        através da sua conta Google.
                     </p>
 
                 </div>
+
 
                 <div
                     id="honey-auth-error"
@@ -665,127 +1227,103 @@ function createAuthGate() {
                     aria-live="polite"
                 ></div>
 
-                <form
-                    id="honey-auth-form"
-                    class="honey-auth-form"
-                    novalidate
+
+                <button
+                    id="honey-auth-google"
+                    class="honey-auth-google"
+                    type="button"
+                    aria-label="Continuar com Google"
                 >
 
-                    <div
-                        id="honey-auth-name-field"
-                        class="honey-auth-field"
-                        hidden
+                    <svg
+                        class="honey-google-icon"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
                     >
 
-                        <label for="honey-auth-name">
-                            Nome / Empresa
-                        </label>
+                        <path
+                            fill="#4285F4"
+                            d="M21.35 12.27c0-.71-.06-1.4-.18-2.05H12v3.88h5.24a4.48 4.48 0 0 1-1.95 2.94v2.45h3.15c1.85-1.7 2.91-4.2 2.91-7.22z"
+                        />
 
-                        <input
-                            id="honey-auth-name"
-                            name="name"
-                            type="text"
-                            autocomplete="organization"
-                            maxlength="160"
-                        >
+                        <path
+                            fill="#34A853"
+                            d="M12 21.75c2.65 0 4.88-.88 6.5-2.36l-3.15-2.45c-.87.58-1.98.92-3.35.92-2.57 0-4.75-1.74-5.53-4.08H3.22v2.53A9.82 9.82 0 0 0 12 21.75z"
+                        />
 
-                    </div>
+                        <path
+                            fill="#FBBC05"
+                            d="M6.47 13.78A5.9 5.9 0 0 1 6.16 12c0-.62.11-1.22.31-1.78V7.69H3.22A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05.97 4.31l3.25-2.53z"
+                        />
 
-                    <div class="honey-auth-field">
+                        <path
+                            fill="#EA4335"
+                            d="M12 6.14c1.44 0 2.73.5 3.75 1.49l2.81-2.81C16.87 3.18 14.65 2.25 12 2.25a9.82 9.82 0 0 0-8.78 5.44l3.25 2.53C7.25 7.88 9.43 6.14 12 6.14z"
+                        />
 
-                        <label for="honey-auth-email">
-                            Email
-                        </label>
+                    </svg>
 
-                        <input
-                            id="honey-auth-email"
-                            name="email"
-                            type="email"
-                            autocomplete="email"
-                            inputmode="email"
-                            maxlength="180"
-                            required
-                        >
 
-                    </div>
-
-                    <div class="honey-auth-field">
-
-                        <label for="honey-auth-password">
-                            Palavra-passe
-                        </label>
-
-                        <input
-                            id="honey-auth-password"
-                            name="password"
-                            type="password"
-                            autocomplete="current-password"
-                            minlength="8"
-                            maxlength="128"
-                            required
-                        >
-
-                    </div>
-
-                    <div
-                        id="honey-auth-confirm-field"
-                        class="honey-auth-field"
-                        hidden
-                    >
-
-                        <label for="honey-auth-confirm">
-                            Confirmar palavra-passe
-                        </label>
-
-                        <input
-                            id="honey-auth-confirm"
-                            name="confirmPassword"
-                            type="password"
-                            autocomplete="new-password"
-                            minlength="8"
-                            maxlength="128"
-                        >
-
-                    </div>
-
-                    <button
-                        id="honey-auth-submit"
-                        class="honey-auth-submit"
-                        type="submit"
-                    >
-                        Entrar
-                    </button>
-
-                </form>
-
-                <div class="honey-auth-switch">
-
-                    <span id="honey-auth-switch-text">
-                        Ainda não tem uma conta?
+                    <span>
+                        Continuar com Google
                     </span>
 
-                    <button
-                        id="honey-auth-switch-button"
-                        type="button"
-                    >
-                        Criar conta
-                    </button>
+                </button>
+
+
+                <div
+                    class="honey-auth-loading"
+                    id="honey-auth-loading"
+                    aria-live="polite"
+                >
+
+                    <span
+                        class="honey-auth-spinner"
+                        aria-hidden="true"
+                    ></span>
+
+                    <span>
+                        A ligar à sua conta Google…
+                    </span>
 
                 </div>
 
-                <div class="honey-auth-security">
-                    A sua sessão é protegida por autenticação
-                    segura do Honey Pay.
+
+                <div
+                    class="honey-auth-divider"
+                    aria-hidden="true"
+                >
+
+                    <span>
+                        AUTENTICAÇÃO SEGURA
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="honey-auth-security"
+                >
+
+                    O acesso ao Honey Pay é feito
+                    exclusivamente através da
+                    autenticação Google.
+                    <br>
+                    Não armazenamos palavras-passe.
+
                 </div>
 
             </section>
 
         </div>
+
     `;
+
 
     document.body.appendChild(
         gate
     );
+
 
     return gate;
 
@@ -794,7 +1332,7 @@ function createAuthGate() {
 
 /*
 ============================================================
-UI STATE
+UI
 ============================================================
 */
 
@@ -805,20 +1343,26 @@ function showGate() {
             "honey-auth-gate"
         );
 
-    if (!gate) {
+
+    if (
+        !gate
+    ) {
 
         return;
 
     }
 
+
     gate.classList.add(
         "is-visible"
     );
+
 
     gate.setAttribute(
         "aria-hidden",
         "false"
     );
+
 
     document.body.classList.add(
         "honey-auth-active"
@@ -834,20 +1378,26 @@ function hideGate() {
             "honey-auth-gate"
         );
 
-    if (!gate) {
+
+    if (
+        !gate
+    ) {
 
         return;
 
     }
 
+
     gate.classList.remove(
         "is-visible"
     );
+
 
     gate.setAttribute(
         "aria-hidden",
         "true"
     );
+
 
     document.body.classList.remove(
         "honey-auth-active"
@@ -865,14 +1415,19 @@ function setError(
             "honey-auth-error"
         );
 
-    if (!element) {
+
+    if (
+        !element
+    ) {
 
         return;
 
     }
 
+
     element.textContent =
         message || "";
+
 
     element.classList.toggle(
         "is-visible",
@@ -893,398 +1448,50 @@ function setLoading(
             loading
         );
 
+
     const button =
         document.getElementById(
-            "honey-auth-submit"
+            "honey-auth-google"
         );
 
-    if (!button) {
 
-        return;
-
-    }
-
-    button.disabled =
-        state.loading;
-
-    button.textContent =
-        state.loading
-            ? "A processar..."
-            : state.mode === "login"
-                ? "Entrar"
-                : "Criar conta";
-
-}
-
-
-function renderMode() {
-
-    const login =
-        state.mode === "login";
-
-    const title =
+    const loadingElement =
         document.getElementById(
-            "honey-auth-title"
+            "honey-auth-loading"
         );
 
-    const description =
-        document.getElementById(
-            "honey-auth-description"
-        );
 
-    const nameField =
-        document.getElementById(
-            "honey-auth-name-field"
-        );
+    if (
+        button
+    ) {
 
-    const confirmField =
-        document.getElementById(
-            "honey-auth-confirm-field"
-        );
-
-    const password =
-        document.getElementById(
-            "honey-auth-password"
-        );
-
-    const switchText =
-        document.getElementById(
-            "honey-auth-switch-text"
-        );
-
-    const switchButton =
-        document.getElementById(
-            "honey-auth-switch-button"
-        );
-
-    if (title) {
-
-        title.textContent =
-            login
-                ? "Entrar na sua conta"
-                : "Criar conta Honey Pay";
+        button.disabled =
+            state.loading;
 
     }
 
-    if (description) {
 
-        description.textContent =
-            login
-                ? "Aceda ao seu espaço de gestão."
-                : "Comece a receber pagamentos através do Honey Pay.";
+    if (
+        loadingElement
+    ) {
 
-    }
-
-    if (nameField) {
-
-        nameField.hidden =
-            login;
+        loadingElement.classList.toggle(
+            "is-visible",
+            state.loading
+        );
 
     }
-
-    if (confirmField) {
-
-        confirmField.hidden =
-            login;
-
-    }
-
-    if (password) {
-
-        password.autocomplete =
-            login
-                ? "current-password"
-                : "new-password";
-
-    }
-
-    if (switchText) {
-
-        switchText.textContent =
-            login
-                ? "Ainda não tem uma conta?"
-                : "Já tem uma conta?";
-
-    }
-
-    if (switchButton) {
-
-        switchButton.textContent =
-            login
-                ? "Criar conta"
-                : "Entrar";
-
-    }
-
-    setLoading(
-        false
-    );
 
 }
 
 
 /*
 ============================================================
-VALIDATION
+GOOGLE LOGIN
 ============================================================
 */
 
-function validateForm(
-    form
-) {
-
-    const data =
-        new FormData(
-            form
-        );
-
-    const email =
-        String(
-            data.get("email") ||
-            ""
-        )
-            .trim()
-            .toLowerCase();
-
-    const password =
-        String(
-            data.get("password") ||
-            ""
-        );
-
-    if (
-        !email ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-            email
-        )
-    ) {
-
-        throw new Error(
-            "Introduza um email válido."
-        );
-
-    }
-
-    if (
-        password.length < 8
-    ) {
-
-        throw new Error(
-            "A palavra-passe deve ter pelo menos 8 caracteres."
-        );
-
-    }
-
-    if (
-        password.length > 128
-    ) {
-
-        throw new Error(
-            "A palavra-passe é demasiado longa."
-        );
-
-    }
-
-    if (
-        state.mode === "register"
-    ) {
-
-        const name =
-            String(
-                data.get("name") ||
-                ""
-            )
-                .trim();
-
-        const confirm =
-            String(
-                data.get("confirmPassword") ||
-                ""
-            );
-
-        if (
-            name.length < 2
-        ) {
-
-            throw new Error(
-                "Introduza o nome ou nome da empresa."
-            );
-
-        }
-
-        if (
-            name.length > 160
-        ) {
-
-            throw new Error(
-                "O nome indicado é demasiado longo."
-            );
-
-        }
-
-        if (
-            password !== confirm
-        ) {
-
-            throw new Error(
-                "As palavras-passe não coincidem."
-            );
-
-        }
-
-    }
-
-    return {
-        email,
-        password,
-
-        name:
-            String(
-                data.get("name") ||
-                ""
-            )
-                .trim()
-    };
-
-}
-
-
-/*
-============================================================
-LOGIN
-============================================================
-*/
-
-async function login(
-    payload
-) {
-
-    const response =
-        await authRequest(
-            "/auth/login",
-            {
-                method:
-                    "POST",
-
-                body:
-                    {
-                        email:
-                            payload.email,
-
-                        password:
-                            payload.password
-                    }
-            }
-        );
-
-    const data =
-        extractData(
-            response
-        );
-
-    const token =
-        data?.token ||
-        data?.accessToken ||
-        data?.access_token;
-
-    if (
-        !token
-    ) {
-
-        throw new Error(
-            "O servidor não devolveu uma sessão válida."
-        );
-
-    }
-
-    storeToken(
-        token
-    );
-
-    return data;
-
-}
-
-
-/*
-============================================================
-REGISTER
-============================================================
-*/
-
-async function register(
-    payload
-) {
-
-    const response =
-        await authRequest(
-            "/auth/register",
-            {
-                method:
-                    "POST",
-
-                body:
-                    {
-                        name:
-                            payload.name,
-
-                        businessName:
-                            payload.name,
-
-                        email:
-                            payload.email,
-
-                        password:
-                            payload.password
-                    }
-            }
-        );
-
-    const data =
-        extractData(
-            response
-        );
-
-    /*
-    --------------------------------------------------------
-    Alguns backends devolvem token imediatamente.
-    Se não devolverem, fazemos login automaticamente.
-    --------------------------------------------------------
-    */
-
-    const token =
-        data?.token ||
-        data?.accessToken ||
-        data?.access_token;
-
-    if (token) {
-
-        storeToken(
-            token
-        );
-
-        return data;
-
-    }
-
-    return await login(
-        payload
-    );
-
-}
-
-
-/*
-============================================================
-FORM SUBMISSION
-============================================================
-*/
-
-async function handleSubmit(
-    event
-) {
-
-    event.preventDefault();
+function startGoogleLogin() {
 
     if (
         state.loading
@@ -1294,84 +1501,84 @@ async function handleSubmit(
 
     }
 
-    const form =
-        event.currentTarget;
 
     setError(
         ""
     );
 
-    let payload;
-
-    try {
-
-        payload =
-            validateForm(
-                form
-            );
-
-    }
-
-    catch (error) {
-
-        setError(
-            error.message
-        );
-
-        return;
-
-    }
 
     setLoading(
         true
     );
 
+
+    /*
+    --------------------------------------------------------
+    Não fazemos fetch aqui.
+
+    O endpoint inicia o OAuth e redireciona
+    o navegador para o Google.
+
+    --------------------------------------------------------
+    */
+
+    window.location.assign(
+        GOOGLE_LOGIN_URL
+    );
+
+}
+
+
+/*
+============================================================
+LOGOUT
+============================================================
+*/
+
+async function logout(
+    options = {}
+) {
+
+    clearStoredToken();
+
+
+    state.authenticated =
+        false;
+
+
+    /*
+    --------------------------------------------------------
+    Se o backend possuir endpoint de logout,
+    tentamos utilizá-lo sem bloquear o logout local.
+    --------------------------------------------------------
+    */
+
     try {
 
-        if (
-            state.mode ===
-            "login"
-        ) {
-
-            await login(
-                payload
-            );
-
-        } else {
-
-            await register(
-                payload
-            );
-
-        }
-
-        hideGate();
-
-        /*
-        ----------------------------------------------------
-        O app.js existente já possui o bootstrap de sessão.
-        Forçamos reload para que ele leia o novo JWT e
-        carregue todos os dados reais do comerciante.
-        ----------------------------------------------------
-        */
-
-        window.location.reload();
-
-    }
-
-    catch (error) {
-
-        setError(
-            error?.message ||
-            "Não foi possível concluir a autenticação."
+        await authRequest(
+            "/auth/logout",
+            {
+                method:
+                    "POST"
+            }
         );
 
     }
 
-    finally {
+    catch {
+        /*
+        Logout local continua válido.
+        */
+    }
 
-        setLoading(
-            false
+
+    if (
+        options.redirect !==
+        false
+    ) {
+
+        window.location.replace(
+            "/"
         );
 
     }
@@ -1381,41 +1588,394 @@ async function handleSubmit(
 
 /*
 ============================================================
-SWITCH MODE
+HANDLE GOOGLE CALLBACK TOKEN
+============================================================
+
+Aceita token caso o callback do backend redirecione
+para a aplicação utilizando:
+
+/?token=JWT
+
+ou:
+
+/#token=JWT
+
+O token é imediatamente removido da URL.
+
 ============================================================
 */
 
-function switchMode() {
+function consumeCallbackToken() {
 
-    if (
-        state.loading
-    ) {
-
-        return;
-
-    }
-
-    state.mode =
-        state.mode === "login"
-            ? "register"
-            : "login";
-
-    setError(
-        ""
-    );
-
-    const form =
-        document.getElementById(
-            "honey-auth-form"
+    const url =
+        new URL(
+            window.location.href
         );
 
-    if (form) {
 
-        form.reset();
+    let token =
+        url.searchParams.get(
+            "token"
+        );
+
+
+    if (
+        !token
+    ) {
+
+        token =
+            url.searchParams.get(
+                "access_token"
+            );
 
     }
 
-    renderMode();
+
+    /*
+    --------------------------------------------------------
+    Também suporta hash:
+
+    #token=...
+    --------------------------------------------------------
+    */
+
+    if (
+        !token &&
+        window.location.hash
+    ) {
+
+        const hash =
+            new URLSearchParams(
+                window.location.hash
+                    .replace(
+                        /^#/,
+                        ""
+                    )
+            );
+
+
+        token =
+            hash.get(
+                "token"
+            ) ||
+            hash.get(
+                "access_token"
+            );
+
+    }
+
+
+    if (
+        typeof token !==
+            "string" ||
+        !token.trim()
+    ) {
+
+        return null;
+
+    }
+
+
+    token =
+        token.trim();
+
+
+    storeToken(
+        token
+    );
+
+
+    /*
+    --------------------------------------------------------
+    Remove o token da barra de endereço.
+    --------------------------------------------------------
+    */
+
+    url.searchParams.delete(
+        "token"
+    );
+
+
+    url.searchParams.delete(
+        "access_token"
+    );
+
+
+    const cleanUrl =
+        url.pathname +
+        (
+            url.searchParams.toString()
+                ? `?${url.searchParams.toString()}`
+                : ""
+        );
+
+
+    window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+    );
+
+
+    return token;
+
+}
+
+
+/*
+============================================================
+AUTH ERROR FROM CALLBACK
+============================================================
+*/
+
+function consumeCallbackError() {
+
+    const url =
+        new URL(
+            window.location.href
+        );
+
+
+    const error =
+        url.searchParams.get(
+            "auth_error"
+        ) ||
+        url.searchParams.get(
+            "error"
+        );
+
+
+    if (
+        !error
+    ) {
+
+        return null;
+
+    }
+
+
+    url.searchParams.delete(
+        "auth_error"
+    );
+
+
+    url.searchParams.delete(
+        "error"
+    );
+
+
+    url.searchParams.delete(
+        "error_description"
+    );
+
+
+    const cleanUrl =
+        url.pathname +
+        (
+            url.searchParams.toString()
+                ? `?${url.searchParams.toString()}`
+                : ""
+        );
+
+
+    window.history.replaceState(
+        {},
+        document.title,
+        cleanUrl
+    );
+
+
+    const messages = {
+
+        access_denied:
+            "O acesso Google foi cancelado.",
+
+        google_auth_failed:
+            "Não foi possível autenticar com o Google.",
+
+        account_not_active:
+            "A sua conta Honey Pay não está ativa.",
+
+        authentication_failed:
+            "Não foi possível concluir a autenticação."
+
+    };
+
+
+    return (
+        messages[error] ||
+        "Não foi possível concluir o acesso com Google."
+    );
+
+}
+
+
+/*
+============================================================
+INITIALIZE
+============================================================
+*/
+
+async function initializeAuth() {
+
+    if (
+        state.initialized
+    ) {
+
+        return state.authenticated;
+
+    }
+
+
+    state.initialized =
+        true;
+
+
+    injectStyles();
+
+    createAuthGate();
+
+
+    /*
+    --------------------------------------------------------
+    Primeiro consumimos eventual token vindo
+    do callback OAuth.
+    --------------------------------------------------------
+    */
+
+    consumeCallbackToken();
+
+
+    const callbackError =
+        consumeCallbackError();
+
+
+    if (
+        callbackError
+    ) {
+
+        clearStoredToken();
+
+
+        showGate();
+
+
+        setError(
+            callbackError
+        );
+
+
+        return false;
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Sessão existente.
+    --------------------------------------------------------
+    */
+
+    const authenticated =
+        await validateExistingSession();
+
+
+    if (
+        authenticated
+    ) {
+
+        hideGate();
+
+
+        /*
+        ----------------------------------------------------
+        Notifica o restante da aplicação.
+        ----------------------------------------------------
+        */
+
+        window.dispatchEvent(
+            new CustomEvent(
+                "honey-authenticated"
+            )
+        );
+
+
+        return true;
+
+    }
+
+
+    showGate();
+
+
+    return false;
+
+}
+
+
+/*
+============================================================
+EVENTS
+============================================================
+*/
+
+function bindEvents() {
+
+    const googleButton =
+        document.getElementById(
+            "honey-auth-google"
+        );
+
+
+    if (
+        googleButton &&
+        !googleButton.dataset.bound
+    ) {
+
+        googleButton.dataset.bound =
+            "true";
+
+
+        googleButton.addEventListener(
+            "click",
+            startGoogleLogin
+        );
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Logout global.
+    --------------------------------------------------------
+    */
+
+    document.addEventListener(
+        "click",
+        event => {
+
+            const logoutButton =
+                event.target.closest(
+                    "[data-action='logout'], [data-logout], #logout-button, #logout"
+                );
+
+
+            if (
+                !logoutButton
+            ) {
+
+                return;
+
+            }
+
+
+            event.preventDefault();
+
+
+            logout();
+
+        }
+    );
 
 }
 
@@ -1426,83 +1986,161 @@ BOOT
 ============================================================
 */
 
-async function initializeAuthUI() {
+function boot() {
 
     if (
-        state.initialized
+        document.readyState ===
+        "loading"
     ) {
 
-        return;
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
 
-    }
+                bindEvents();
 
-    state.initialized =
-        true;
+                initializeAuth();
 
-    injectStyles();
-
-    const gate =
-        createAuthGate();
-
-    renderMode();
-
-    const form =
-        document.getElementById(
-            "honey-auth-form"
+            },
+            {
+                once:
+                    true
+            }
         );
 
-    const switchButton =
-        document.getElementById(
-            "honey-auth-switch-button"
-        );
-
-    form?.addEventListener(
-        "submit",
-        handleSubmit
-    );
-
-    switchButton?.addEventListener(
-        "click",
-        switchMode
-    );
-
-    /*
-    --------------------------------------------------------
-    Se não existe sessão, bloquear imediatamente a consola.
-    --------------------------------------------------------
-    */
-
-    const token =
-        getStoredToken();
-
-    if (!token) {
-
-        showGate();
-
-        return;
-
     }
 
-    /*
-    --------------------------------------------------------
-    Existe token. Validar antes de liberar a consola.
-    --------------------------------------------------------
-    */
+    else {
 
-    const valid =
-        await validateExistingSession();
+        bindEvents();
 
-    if (!valid) {
-
-        showGate();
-
-        return;
+        initializeAuth();
 
     }
-
-    hideGate();
 
 }
+
+
+/*
+============================================================
+PUBLIC API
+============================================================
+*/
+
+window.HoneyPayAuth = {
+
+    getToken() {
+
+        return getStoredToken();
+
+    },
+
+
+    isAuthenticated() {
+
+        return Boolean(
+            state.authenticated
+        );
+
+    },
+
+
+    async validateSession() {
+
+        return validateExistingSession();
+
+    },
+
+
+    async logout() {
+
+        return logout();
+
+    },
+
+
+    showLogin() {
+
+        showGate();
+
+    },
+
+
+    hideLogin() {
+
+        hideGate();
+
+    },
+
+
+    startGoogleLogin() {
+
+        startGoogleLogin();
+
+    },
+
+
+    getState() {
+
+        return {
+
+            ...state
+
+        };
+
+    }
+
+};
+
+
+/*
+============================================================
+GLOBAL EVENTS
+============================================================
+*/
+
+window.addEventListener(
+    "honey-auth-required",
+    () => {
+
+        clearStoredToken();
+
+        state.authenticated =
+            false;
+
+        showGate();
+
+    }
+);
+
+
+window.addEventListener(
+    "storage",
+    event => {
+
+        if (
+            event.key !==
+            AUTH_TOKEN_KEY
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            !event.newValue
+        ) {
+
+            state.authenticated =
+                false;
+
+            showGate();
+
+        }
+
+    }
+);
 
 
 /*
@@ -1511,50 +2149,25 @@ START
 ============================================================
 */
 
-if (
-    document.readyState ===
-    "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeAuthUI,
-        {
-            once: true
-        }
-    );
-
-} else {
-
-    initializeAuthUI();
-
-}
+boot();
 
 
 /*
 ============================================================
-GLOBAL API
+EXPORT
 ============================================================
 */
 
-window.HoneyPayAuth = {
+export {
 
-    login,
+    initializeAuth,
 
-    register,
+    validateExistingSession,
 
-    logout() {
+    startGoogleLogin,
 
-        clearStoredToken();
+    logout,
 
-        window.location.reload();
-
-    },
-
-    getToken() {
-
-        return getStoredToken();
-
-    }
+    getStoredToken
 
 };
