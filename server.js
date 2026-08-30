@@ -2,134 +2,41 @@
 ============================================================
 HONEY PAY
 MAIN SERVER
-V1.3.0
+V2.0.0
 ============================================================
 
-SERVIDOR PRINCIPAL DA HONEY PAY
-
-------------------------------------------------------------
-RESPONSABILIDADES
-------------------------------------------------------------
-
-- Servir o frontend da Honey Pay
-- Servir index.html
-- Servir CSS / JS / assets
-- Montar todas as APIs
-- Autenticação
-- Comerciantes
-- Planos
-- Faturas
-- Contas bancárias
-- Checkout
-- Comprovativos
-- Health check
-- Segurança
-- CORS
-- Rate limiting
-- Request ID
-- Error handling
-- Graceful shutdown
-- Render
-- MongoDB Atlas
-
-------------------------------------------------------------
-PAGAMENTOS
-------------------------------------------------------------
-
-CAMADA 1 — SUBSCRIÇÃO DA HONEY PAY
-
-Comerciante
-    ↓
-Plano Honey Pay
-    ↓
-BitPay
-    ↓
-Pagamento da subscrição
-    ↓
-Honey Pay / proprietário
-
-
-CAMADA 2 — PAGAMENTO DO CLIENTE
-
-Cliente
-    ↓
-Checkout Honey Pay
-    ↓
-Conta bancária do comerciante
-    ↓
-Transferência / pagamento bancário
-    ↓
-Comprovativo
-    ↓
-Comerciante
-    ↓
-Aprovar / Rejeitar
-
-A CAMADA 2 NÃO PASSA PELO BITPAY.
+AUTENTICAÇÃO:
+GOOGLE ONLY
 
 ============================================================
 */
 
 import express from "express";
+
 import cors from "cors";
+
 import helmet from "helmet";
+
 import rateLimit from "express-rate-limit";
 
 import path from "node:path";
+
 import crypto from "node:crypto";
+
 import { fileURLToPath } from "node:url";
 
-
-/*
-============================================================
-MAIN API
-============================================================
-*/
 
 import router from "./routes.js";
 
 
-/*
-============================================================
-BANK ACCOUNTS
-============================================================
-*/
-
 import bankAccountRouter from "./bank-account-routes.js";
-
-
-/*
-============================================================
-CHECKOUT
-============================================================
-*/
 
 import checkoutRouter from "./checkout-routes.js";
 
-
-/*
-============================================================
-PROOFS
-============================================================
-*/
-
 import proofRouter from "./proof-routes.js";
-
-
-/*
-============================================================
-INVOICES
-============================================================
-*/
 
 import invoiceRouter from "./invoice-routes.js";
 
-
-/*
-============================================================
-DATABASE
-============================================================
-*/
 
 import {
     connectDatabase,
@@ -140,44 +47,35 @@ import {
 
 /*
 ============================================================
-PATH CONFIGURATION
+PATH
 ============================================================
 */
 
-const __filename = fileURLToPath(import.meta.url);
-
-const __dirname = path.dirname(__filename);
-
-
-/*
-============================================================
-PROJECT ROOT
-============================================================
-
-server.js encontra-se na raiz do projeto.
-
-Exemplo Render:
-
-/opt/render/project/src
-
-============================================================
-*/
-
-const PROJECT_ROOT = __dirname;
+const __filename =
+    fileURLToPath(
+        import.meta.url
+    );
 
 
-/*
-============================================================
-FRONTEND
-============================================================
-*/
+const __dirname =
+    path.dirname(
+        __filename
+    );
 
-const INDEX_FILE = path.join(
-    PROJECT_ROOT,
-    "index.html"
-);
 
-const FRONTEND_DIR = PROJECT_ROOT;
+const PROJECT_ROOT =
+    __dirname;
+
+
+const INDEX_FILE =
+    path.join(
+        PROJECT_ROOT,
+        "index.html"
+    );
+
+
+const FRONTEND_DIR =
+    PROJECT_ROOT;
 
 
 /*
@@ -193,7 +91,8 @@ const NODE_ENV =
 
 const PORT =
     Number(
-        process.env.PORT || 10000
+        process.env.PORT ||
+        10000
     );
 
 
@@ -204,33 +103,18 @@ const HOST =
 
 /*
 ============================================================
-APPLICATION
+APP
 ============================================================
 */
 
-const app = express();
+const app =
+    express();
 
-
-/*
-============================================================
-EXPRESS CONFIGURATION
-============================================================
-*/
 
 app.disable(
     "x-powered-by"
 );
 
-
-/*
-============================================================
-TRUST PROXY
-============================================================
-
-Render utiliza proxy reverso.
-
-============================================================
-*/
 
 app.set(
     "trust proxy",
@@ -245,23 +129,31 @@ SECURITY
 */
 
 app.use(
-    helmet(
-        {
-            contentSecurityPolicy: false,
 
-            crossOriginEmbedderPolicy: false,
+    helmet({
 
-            referrerPolicy: {
-                policy:
-                    "strict-origin-when-cross-origin"
-            },
+        contentSecurityPolicy:
+            false,
 
-            frameguard: {
-                action:
-                    "sameorigin"
-            }
+        crossOriginEmbedderPolicy:
+            false,
+
+        referrerPolicy: {
+
+            policy:
+                "strict-origin-when-cross-origin"
+
+        },
+
+        frameguard: {
+
+            action:
+                "sameorigin"
+
         }
-    )
+
+    })
+
 );
 
 
@@ -269,24 +161,13 @@ app.use(
 ============================================================
 CORS
 ============================================================
-
-CORS_ORIGINS pode conter:
-
-https://honeypay.ao
-https://www.honeypay.ao
-
-ou múltiplas origens separadas por vírgula.
-
-Em produção, se não houver CORS_ORIGINS definido,
-requests same-origin continuam funcionando normalmente.
-
-============================================================
 */
 
 function getAllowedOrigins() {
 
     const raw =
         process.env.CORS_ORIGINS ||
+        process.env.CORS_ORIGIN ||
         "";
 
 
@@ -306,136 +187,144 @@ const allowedOrigins =
 
 
 app.use(
-    cors(
-        {
-            origin(
-                origin,
-                callback
+
+    cors({
+
+        origin(
+            origin,
+            callback
+        ) {
+
+            if (
+                !origin
             ) {
 
-                /*
-                ------------------------------------------------
-                Requests sem Origin
-                ------------------------------------------------
-                */
-
-                if (!origin) {
-
-                    return callback(
-                        null,
-                        true
-                    );
-
-                }
-
-
-                /*
-                ------------------------------------------------
-                CORS não configurado
-                ------------------------------------------------
-
-                O frontend principal e a API estão no mesmo
-                domínio no Render.
-
-                Portanto requests same-origin não dependem
-                desta configuração.
-
-                Para desenvolvimento e compatibilidade inicial,
-                permitimos origins quando a lista ainda não
-                foi configurada.
-                ------------------------------------------------
-                */
-
-                if (
-                    allowedOrigins.length === 0
-                ) {
-
-                    return callback(
-                        null,
-                        true
-                    );
-
-                }
-
-
-                /*
-                ------------------------------------------------
-                Origem autorizada
-                ------------------------------------------------
-                */
-
-                if (
-                    allowedOrigins.includes(origin)
-                ) {
-
-                    return callback(
-                        null,
-                        true
-                    );
-
-                }
-
-
                 return callback(
-                    new Error(
-                        "Origem não autorizada pelo CORS."
-                    )
+                    null,
+                    true
                 );
 
-            },
+            }
 
-            credentials: true,
 
-            methods: [
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "HEAD",
-                "OPTIONS"
-            ],
+            if (
+                allowedOrigins.length ===
+                0
+            ) {
 
-            allowedHeaders: [
-                "Content-Type",
-                "Authorization",
-                "Accept",
-                "Origin",
-                "X-Requested-With",
-                "X-Request-ID"
-            ],
+                return callback(
+                    null,
+                    true
+                );
 
-            exposedHeaders: [
-                "X-Request-ID"
-            ]
-        }
-    )
+            }
+
+
+            if (
+                allowedOrigins.includes(
+                    origin
+                )
+            ) {
+
+                return callback(
+                    null,
+                    true
+                );
+
+            }
+
+
+            return callback(
+                new Error(
+                    "Origem não autorizada pelo CORS."
+                )
+            );
+
+        },
+
+        credentials:
+            true,
+
+        methods: [
+
+            "GET",
+
+            "POST",
+
+            "PUT",
+
+            "PATCH",
+
+            "DELETE",
+
+            "HEAD",
+
+            "OPTIONS"
+
+        ],
+
+        allowedHeaders: [
+
+            "Content-Type",
+
+            "Authorization",
+
+            "Accept",
+
+            "Origin",
+
+            "X-Requested-With",
+
+            "X-Request-ID"
+
+        ],
+
+        exposedHeaders: [
+
+            "X-Request-ID"
+
+        ]
+
+    })
+
 );
 
 
 /*
 ============================================================
-BODY PARSER
+BODY
 ============================================================
 */
 
 app.use(
-    express.json(
-        {
-            limit: "2mb",
-            strict: true
-        }
-    )
+
+    express.json({
+
+        limit:
+            process.env.MAX_JSON_SIZE ||
+            "2mb",
+
+        strict:
+            true
+
+    })
+
 );
 
 
 app.use(
-    express.urlencoded(
-        {
-            extended: false,
-            limit: "2mb"
-        }
-    )
+
+    express.urlencoded({
+
+        extended:
+            false,
+
+        limit:
+            process.env.MAX_URLENCODED_SIZE ||
+            "2mb"
+
+    })
+
 );
 
 
@@ -446,6 +335,7 @@ REQUEST ID
 */
 
 app.use(
+
     (
         req,
         res,
@@ -463,7 +353,7 @@ app.use(
                 incomingRequestId
             )
                 ? incomingRequestId
-                : cryptoRandomId();
+                : crypto.randomUUID();
 
 
         req.requestId =
@@ -479,6 +369,7 @@ app.use(
         next();
 
     }
+
 );
 
 
@@ -486,78 +377,74 @@ app.use(
 ============================================================
 RATE LIMIT
 ============================================================
-
-Limite geral das APIs.
-
-Não substitui limites específicos das operações
-sensíveis existentes nos routers.
-
-============================================================
 */
 
 const publicRateLimiter =
-    rateLimit(
-        {
-            windowMs:
-                15 * 60 * 1000,
+    rateLimit({
 
-            limit:
-                300,
+        windowMs:
+            15 * 60 * 1000,
 
-            standardHeaders:
-                "draft-8",
+        limit:
+            300,
 
-            legacyHeaders:
+        standardHeaders:
+            "draft-8",
+
+        legacyHeaders:
+            false,
+
+        message: {
+
+            success:
                 false,
 
+            code:
+                "RATE_LIMIT_EXCEEDED",
+
             message:
-                {
-                    success: false,
+                "Demasiados pedidos. Tente novamente mais tarde."
+
+        },
+
+        handler(
+            req,
+            res
+        ) {
+
+            return res
+                .status(429)
+                .json({
+
+                    success:
+                        false,
 
                     code:
                         "RATE_LIMIT_EXCEEDED",
 
                     message:
-                        "Demasiados pedidos. Tente novamente mais tarde."
-                },
+                        "Demasiados pedidos. Tente novamente mais tarde.",
 
-            handler(
-                req,
-                res
-            ) {
+                    requestId:
+                        req.requestId ||
+                        null
 
-                res.status(
-                    429
-                ).json(
-                    {
-                        success: false,
+                });
 
-                        code:
-                            "RATE_LIMIT_EXCEEDED",
+        },
 
-                        message:
-                            "Demasiados pedidos. Tente novamente mais tarde.",
+        skip(
+            req
+        ) {
 
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
+            return (
+                req.path ===
+                "/health"
+            );
 
-            },
-
-            skip(
-                req
-            ) {
-
-                return (
-                    req.path ===
-                    "/health"
-                );
-
-            }
         }
-    );
+
+    });
 
 
 app.use(
@@ -568,11 +455,12 @@ app.use(
 
 /*
 ============================================================
-HTTP LOGGING
+HTTP LOG
 ============================================================
 */
 
 app.use(
+
     (
         req,
         res,
@@ -593,7 +481,9 @@ app.use(
 
 
                 console.log(
+
                     `[HTTP] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms ${req.requestId || "-"}`
+
                 );
 
             }
@@ -603,17 +493,20 @@ app.use(
         next();
 
     }
+
 );
 
 
 /*
 ============================================================
-HEALTH CHECK
+HEALTH
 ============================================================
 */
 
 app.get(
+
     "/health",
+
     async (
         req,
         res
@@ -625,12 +518,9 @@ app.get(
                 getDatabaseStatus();
 
 
-            const databaseConnected =
-                database?.connected === true;
-
-
             const healthy =
-                databaseConnected;
+                database?.connected ===
+                true;
 
 
             return res
@@ -639,46 +529,52 @@ app.get(
                         ? 200
                         : 503
                 )
-                .json(
-                    {
-                        success:
-                            healthy,
+                .json({
 
-                        service:
-                            "Honey Pay API",
+                    success:
+                        healthy,
 
-                        version:
-                            "1.3.0",
+                    service:
+                        "Honey Pay API",
 
-                        status:
-                            healthy
-                                ? "operational"
-                                : "degraded",
+                    version:
+                        "2.0.0",
 
-                        database,
+                    status:
+                        healthy
+                            ? "operational"
+                            : "degraded",
 
-                        frontend:
-                            {
-                                available:
-                                    true,
+                    authentication:
+                        "google",
 
-                                entry:
-                                    "/"
-                            },
+                    database,
 
-                        requestId:
-                            req.requestId ||
-                            null,
+                    frontend: {
 
-                        timestamp:
-                            new Date()
-                                .toISOString()
-                    }
-                );
+                        available:
+                            true,
+
+                        entry:
+                            "/"
+
+                    },
+
+                    requestId:
+                        req.requestId ||
+                        null,
+
+                    timestamp:
+                        new Date()
+                            .toISOString()
+
+                });
 
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             console.error(
                 "[HEALTH ERROR]",
@@ -687,48 +583,52 @@ app.get(
 
 
             return res
-                .status(
-                    503
-                )
-                .json(
-                    {
-                        success:
-                            false,
+                .status(503)
+                .json({
 
-                        service:
-                            "Honey Pay API",
+                    success:
+                        false,
 
-                        version:
-                            "1.3.0",
+                    service:
+                        "Honey Pay API",
 
-                        status:
-                            "degraded",
+                    version:
+                        "2.0.0",
 
-                        database:
-                            {
-                                connected:
-                                    false
-                            },
+                    status:
+                        "degraded",
 
-                        frontend:
-                            {
-                                available:
-                                    true
-                            },
+                    authentication:
+                        "google",
 
-                        requestId:
-                            req.requestId ||
-                            null,
+                    database: {
 
-                        timestamp:
-                            new Date()
-                                .toISOString()
-                    }
-                );
+                        connected:
+                            false
+
+                    },
+
+                    frontend: {
+
+                        available:
+                            true
+
+                    },
+
+                    requestId:
+                        req.requestId ||
+                        null,
+
+                    timestamp:
+                        new Date()
+                            .toISOString()
+
+                });
 
         }
 
     }
+
 );
 
 
@@ -738,36 +638,11 @@ API ROUTES
 ============================================================
 */
 
-
-/*
-------------------------------------------------------------
-MAIN API
-------------------------------------------------------------
-*/
-
 app.use(
     "/api",
     router
 );
 
-
-/*
-------------------------------------------------------------
-INVOICES
-------------------------------------------------------------
-
-Rotas esperadas:
-
-POST   /api/invoices
-GET    /api/invoices
-GET    /api/invoices/statistics
-GET    /api/invoices/:invoiceId
-PATCH  /api/invoices/:invoiceId
-POST   /api/invoices/:invoiceId/cancel
-GET    /api/pay/:publicToken
-
-------------------------------------------------------------
-*/
 
 app.use(
     "/api",
@@ -775,35 +650,17 @@ app.use(
 );
 
 
-/*
-------------------------------------------------------------
-BANK ACCOUNTS
-------------------------------------------------------------
-*/
-
 app.use(
     "/api",
     bankAccountRouter
 );
 
 
-/*
-------------------------------------------------------------
-CHECKOUT
-------------------------------------------------------------
-*/
-
 app.use(
     "/api",
     checkoutRouter
 );
 
-
-/*
-------------------------------------------------------------
-PROOFS
-------------------------------------------------------------
-*/
 
 app.use(
     "/api",
@@ -818,34 +675,35 @@ API 404
 */
 
 app.use(
+
     "/api",
+
     (
         req,
         res
     ) => {
 
         return res
-            .status(
-                404
-            )
-            .json(
-                {
-                    success:
-                        false,
+            .status(404)
+            .json({
 
-                    code:
-                        "API_ROUTE_NOT_FOUND",
+                success:
+                    false,
 
-                    message:
-                        "A rota solicitada não existe.",
+                code:
+                    "API_ROUTE_NOT_FOUND",
 
-                    requestId:
-                        req.requestId ||
-                        null
-                }
-            );
+                message:
+                    "A rota solicitada não existe.",
+
+                requestId:
+                    req.requestId ||
+                    null
+
+            });
 
     }
+
 );
 
 
@@ -853,49 +711,47 @@ app.use(
 ============================================================
 STATIC FRONTEND
 ============================================================
-
-Serve:
-
-/
- /index.html
- /style.css
- /app.js
- /frontend/*
- /assets/*
- /favicon.ico
-
-e restantes ficheiros públicos existentes na raiz.
-
-============================================================
 */
 
 app.use(
+
     express.static(
+
         FRONTEND_DIR,
+
         {
-            index: false,
 
-            fallthrough: true,
+            index:
+                false,
 
-            etag: true,
+            fallthrough:
+                true,
+
+            etag:
+                true,
 
             maxAge:
                 NODE_ENV === "production"
                     ? "1h"
                     : 0
+
         }
+
     )
+
 );
 
 
 /*
 ============================================================
-ROOT FRONTEND
+ROOT
 ============================================================
 */
 
 app.get(
+
     "/",
+
     (
         req,
         res
@@ -906,28 +762,32 @@ app.get(
         );
 
     }
+
 );
 
 
 /*
 ============================================================
-FRONTEND FALLBACK
-============================================================
-
-Rotas conhecidas do frontend.
-
+FRONTEND ROUTES
 ============================================================
 */
 
 app.get(
+
     [
+
         "/dashboard",
+
         "/login",
-        "/register",
+
         "/merchant",
+
         "/settings",
+
         "/billing"
+
     ],
+
     (
         req,
         res
@@ -938,6 +798,7 @@ app.get(
         );
 
     }
+
 );
 
 
@@ -948,90 +809,44 @@ GLOBAL 404
 */
 
 app.use(
+
     (
         req,
         res
     ) => {
 
-        /*
-        ----------------------------------------------------
-        Se for uma requisição que espera JSON
-        ----------------------------------------------------
-        */
-
-        const acceptsJson =
-            req.accepts(
-                "json"
-            );
-
-
-        if (
-            acceptsJson &&
-            !req.accepts("html")
-        ) {
-
-            return res
-                .status(
-                    404
-                )
-                .json(
-                    {
-                        success:
-                            false,
-
-                        code:
-                            "NOT_FOUND",
-
-                        message:
-                            "O recurso solicitado não existe.",
-
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
-
-        }
-
-
-        /*
-        ----------------------------------------------------
-        Para requests HTML
-        ----------------------------------------------------
-        */
-
         return res
-            .status(
-                404
-            )
-            .json(
-                {
-                    success:
-                        false,
+            .status(404)
+            .json({
 
-                    code:
-                        "NOT_FOUND",
+                success:
+                    false,
 
-                    message:
-                        "O recurso solicitado não existe.",
+                code:
+                    "NOT_FOUND",
 
-                    requestId:
-                        req.requestId ||
-                        null
-                }
-            );
+                message:
+                    "O recurso solicitado não existe.",
+
+                requestId:
+                    req.requestId ||
+                    null
+
+            });
 
     }
+
 );
 
 
 /*
 ============================================================
-GLOBAL ERROR HANDLER
+GLOBAL ERROR
 ============================================================
 */
 
 app.use(
+
     (
         error,
         req,
@@ -1040,8 +855,11 @@ app.use(
     ) => {
 
         console.error(
+
             "[HONEY PAY GLOBAL ERROR]",
+
             {
+
                 requestId:
                     req.requestId ||
                     null,
@@ -1055,15 +873,11 @@ app.use(
                 error:
                     error?.message ||
                     error
+
             }
+
         );
 
-
-        /*
-        ----------------------------------------------------
-        Headers já enviados
-        ----------------------------------------------------
-        */
 
         if (
             res.headersSent
@@ -1076,46 +890,32 @@ app.use(
         }
 
 
-        /*
-        ----------------------------------------------------
-        INVALID JSON
-        ----------------------------------------------------
-        */
-
         if (
             error?.type ===
             "entity.parse.failed"
         ) {
 
             return res
-                .status(
-                    400
-                )
-                .json(
-                    {
-                        success:
-                            false,
+                .status(400)
+                .json({
 
-                        code:
-                            "INVALID_JSON",
+                    success:
+                        false,
 
-                        message:
-                            "O corpo da requisição contém JSON inválido.",
+                    code:
+                        "INVALID_JSON",
 
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
+                    message:
+                        "O corpo da requisição contém JSON inválido.",
+
+                    requestId:
+                        req.requestId ||
+                        null
+
+                });
 
         }
 
-
-        /*
-        ----------------------------------------------------
-        PAYLOAD TOO LARGE
-        ----------------------------------------------------
-        */
 
         if (
             error?.type ===
@@ -1123,34 +923,26 @@ app.use(
         ) {
 
             return res
-                .status(
-                    413
-                )
-                .json(
-                    {
-                        success:
-                            false,
+                .status(413)
+                .json({
 
-                        code:
-                            "PAYLOAD_TOO_LARGE",
+                    success:
+                        false,
 
-                        message:
-                            "O pedido excede o tamanho permitido.",
+                    code:
+                        "PAYLOAD_TOO_LARGE",
 
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
+                    message:
+                        "O pedido excede o tamanho permitido.",
+
+                    requestId:
+                        req.requestId ||
+                        null
+
+                });
 
         }
 
-
-        /*
-        ----------------------------------------------------
-        CORS
-        ----------------------------------------------------
-        */
 
         if (
             error?.message ===
@@ -1158,82 +950,33 @@ app.use(
         ) {
 
             return res
-                .status(
-                    403
-                )
-                .json(
-                    {
-                        success:
-                            false,
+                .status(403)
+                .json({
 
-                        code:
-                            "CORS_ORIGIN_NOT_ALLOWED",
+                    success:
+                        false,
 
-                        message:
-                            "Origem não autorizada.",
+                    code:
+                        "CORS_ORIGIN_NOT_ALLOWED",
 
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
+                    message:
+                        "Origem não autorizada.",
+
+                    requestId:
+                        req.requestId ||
+                        null
+
+                });
 
         }
 
-
-        /*
-        ----------------------------------------------------
-        RATE LIMIT
-        ----------------------------------------------------
-        */
-
-        if (
-            error?.status === 429 ||
-            error?.statusCode === 429
-        ) {
-
-            return res
-                .status(
-                    429
-                )
-                .json(
-                    {
-                        success:
-                            false,
-
-                        code:
-                            "RATE_LIMIT_EXCEEDED",
-
-                        message:
-                            "Demasiados pedidos. Tente novamente mais tarde.",
-
-                        requestId:
-                            req.requestId ||
-                            null
-                    }
-                );
-
-        }
-
-
-        /*
-        ----------------------------------------------------
-        HTTP STATUS
-        ----------------------------------------------------
-        */
 
         const statusCode =
             Number.isInteger(
                 error?.statusCode
             )
                 ? error.statusCode
-                : (
-                    Number.isInteger(
-                        error?.status
-                    )
-                        ? error.status
-                        : 500
-                );
+                : 500;
 
 
         const safeStatus =
@@ -1243,14 +986,9 @@ app.use(
                 : 500;
 
 
-        /*
-        ----------------------------------------------------
-        ERROR CODE
-        ----------------------------------------------------
-        */
-
         const errorCode =
-            typeof error?.code === "string" &&
+            typeof error?.code ===
+                "string" &&
             /^[A-Z0-9_:-]+$/.test(
                 error.code
             )
@@ -1258,85 +996,60 @@ app.use(
                 : "INTERNAL_SERVER_ERROR";
 
 
-        /*
-        ----------------------------------------------------
-        ERROR MESSAGE
-        ----------------------------------------------------
-        */
+        const message =
+            NODE_ENV !==
+            "production"
+                ? (
+                    error?.message ||
+                    "Ocorreu um erro interno no servidor."
+                )
+                : (
+                    error?.expose === true &&
+                    typeof error?.message ===
+                        "string"
+                        ? error.message
+                        : "Ocorreu um erro interno no servidor."
+                );
 
-        let message =
-            "Ocorreu um erro interno no servidor.";
-
-
-        if (
-            NODE_ENV !== "production"
-        ) {
-
-            message =
-                error?.message ||
-                message;
-
-        }
-        else if (
-            error?.expose === true &&
-            typeof error?.message === "string"
-        ) {
-
-            message =
-                error.message;
-
-        }
-
-
-        /*
-        ----------------------------------------------------
-        RESPONSE
-        ----------------------------------------------------
-        */
 
         return res
             .status(
                 safeStatus
             )
-            .json(
-                {
-                    success:
-                        false,
+            .json({
 
-                    code:
-                        errorCode,
+                success:
+                    false,
 
-                    message,
+                code:
+                    errorCode,
 
-                    requestId:
-                        req.requestId ||
-                        null
-                }
-            );
+                message,
+
+                requestId:
+                    req.requestId ||
+                    null
+
+            });
 
     }
+
 );
 
 
 /*
 ============================================================
-REQUEST ID
+HELPER
 ============================================================
 */
-
-function cryptoRandomId() {
-
-    return crypto.randomUUID();
-
-}
-
 
 function isValidRequestId(
     value
 ) {
 
     if (
-        typeof value !== "string"
+        typeof value !==
+        "string"
     ) {
 
         return false;
@@ -1354,12 +1067,6 @@ function isValidRequestId(
     }
 
 
-    /*
-    --------------------------------------------------------
-    Permite IDs UUID e IDs alfanuméricos seguros.
-    --------------------------------------------------------
-    */
-
     return /^[a-zA-Z0-9._:-]+$/.test(
         value
     );
@@ -1369,18 +1076,21 @@ function isValidRequestId(
 
 /*
 ============================================================
-SERVER STATE
+SERVER
 ============================================================
 */
 
-let server = null;
+let server =
+    null;
 
-let shuttingDown = false;
+
+let shuttingDown =
+    false;
 
 
 /*
 ============================================================
-START SERVER
+START
 ============================================================
 */
 
@@ -1402,7 +1112,7 @@ async function startServer() {
 
 
         console.log(
-            `[HONEY PAY] Version: 1.3.0`
+            "[HONEY PAY] Version: 2.0.0"
         );
 
 
@@ -1433,7 +1143,7 @@ async function startServer() {
 
         /*
         ----------------------------------------------------
-        VALIDATE FRONTEND
+        FRONTEND
         ----------------------------------------------------
         */
 
@@ -1456,16 +1166,14 @@ async function startServer() {
 
         }
 
-        catch (error) {
-
-            console.error(
-                "[HONEY PAY] index.html was not found:",
-                INDEX_FILE
-            );
-
+        catch (
+            error
+        ) {
 
             throw new Error(
+
                 `Frontend entry file not found: ${INDEX_FILE}`
+
             );
 
         }
@@ -1487,14 +1195,17 @@ async function startServer() {
 
         /*
         ----------------------------------------------------
-        HTTP SERVER
+        HTTP
         ----------------------------------------------------
         */
 
         server =
             app.listen(
+
                 PORT,
+
                 HOST,
+
                 () => {
 
                     console.log(
@@ -1518,32 +1229,17 @@ async function startServer() {
 
 
                     console.log(
+                        "[HONEY PAY] Google Login: /api/auth/google"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Google Callback: /api/auth/google/callback"
+                    );
+
+
+                    console.log(
                         "[HONEY PAY] Health: /health"
-                    );
-
-
-                    console.log(
-                        "[HONEY PAY] Invoices: /api/invoices"
-                    );
-
-
-                    console.log(
-                        "[HONEY PAY] Public checkout: /api/pay/:publicToken"
-                    );
-
-
-                    console.log(
-                        "[HONEY PAY] Bank accounts: /api"
-                    );
-
-
-                    console.log(
-                        "[HONEY PAY] Proofs: /api"
-                    );
-
-
-                    console.log(
-                        "[HONEY PAY] Checkout: /api"
                     );
 
 
@@ -1557,20 +1253,9 @@ async function startServer() {
                     );
 
                 }
+
             );
 
-
-        /*
-        ----------------------------------------------------
-        SERVER TIMEOUTS
-        ----------------------------------------------------
-
-        Valores suficientemente altos para não interromper
-        operações legítimas, mas evitando conexões penduradas
-        indefinidamente.
-
-        ----------------------------------------------------
-        */
 
         server.requestTimeout =
             120000;
@@ -1584,14 +1269,10 @@ async function startServer() {
             65000;
 
 
-        /*
-        ----------------------------------------------------
-        HTTP SERVER ERROR
-        ----------------------------------------------------
-        */
-
         server.on(
+
             "error",
+
             error => {
 
                 console.error(
@@ -1600,22 +1281,10 @@ async function startServer() {
                 );
 
 
-                /*
-                ------------------------------------------------
-                Se a porta já estiver em uso, termina o processo
-                para que o Render possa reiniciar corretamente.
-                ------------------------------------------------
-                */
-
                 if (
                     error?.code ===
                     "EADDRINUSE"
                 ) {
-
-                    console.error(
-                        `[HONEY PAY] Port ${PORT} is already in use.`
-                    );
-
 
                     process.exit(
                         1
@@ -1624,11 +1293,14 @@ async function startServer() {
                 }
 
             }
+
         );
 
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         console.error(
             "[HONEY PAY] Failed to start:",
@@ -1636,23 +1308,18 @@ async function startServer() {
         );
 
 
-        /*
-        ----------------------------------------------------
-        Tenta fechar a ligação à base de dados caso tenha
-        sido aberta antes da falha.
-        ----------------------------------------------------
-        */
-
         try {
 
             await closeDatabase();
 
         }
 
-        catch (closeError) {
+        catch (
+            closeError
+        ) {
 
             console.error(
-                "[HONEY PAY] Database close after startup failure failed:",
+                "[HONEY PAY] Database close failed:",
                 closeError
             );
 
@@ -1670,7 +1337,7 @@ async function startServer() {
 
 /*
 ============================================================
-GRACEFUL SHUTDOWN
+SHUTDOWN
 ============================================================
 */
 
@@ -1696,14 +1363,9 @@ async function shutdown(
     );
 
 
-    /*
-    --------------------------------------------------------
-    Safety timeout
-    --------------------------------------------------------
-    */
-
     const forceShutdownTimer =
         setTimeout(
+
             () => {
 
                 console.error(
@@ -1716,7 +1378,9 @@ async function shutdown(
                 );
 
             },
+
             15000
+
         );
 
 
@@ -1725,17 +1389,12 @@ async function shutdown(
 
     try {
 
-        /*
-        ----------------------------------------------------
-        STOP HTTP SERVER
-        ----------------------------------------------------
-        */
-
         if (
             server
         ) {
 
             await new Promise(
+
                 (
                     resolve,
                     reject
@@ -1761,6 +1420,7 @@ async function shutdown(
                     );
 
                 }
+
             );
 
 
@@ -1771,22 +1431,11 @@ async function shutdown(
         }
 
 
-        /*
-        ----------------------------------------------------
-        CLOSE DATABASE
-        ----------------------------------------------------
-        */
-
         await closeDatabase();
 
 
         console.log(
             "[HONEY PAY] MongoDB connection closed."
-        );
-
-
-        console.log(
-            "[HONEY PAY] Shutdown completed."
         );
 
 
@@ -1801,7 +1450,9 @@ async function shutdown(
 
     }
 
-    catch (error) {
+    catch (
+        error
+    ) {
 
         console.error(
             "[HONEY PAY] Shutdown error:",
@@ -1825,44 +1476,25 @@ async function shutdown(
 
 /*
 ============================================================
-PROCESS SIGNALS
+SIGNALS
 ============================================================
 */
 
 process.once(
     "SIGTERM",
-    () => {
-
-        shutdown(
-            "SIGTERM"
-        );
-
-    }
+    () => shutdown("SIGTERM")
 );
 
 
 process.once(
     "SIGINT",
-    () => {
-
-        shutdown(
-            "SIGINT"
-        );
-
-    }
+    () => shutdown("SIGINT")
 );
 
 
 /*
 ============================================================
-UNHANDLED PROMISE
-============================================================
-
-Não encerramos imediatamente porque uma Promise rejeitada
-pode ser tratada pelo próprio processo/infraestrutura.
-
-O erro fica registado para diagnóstico.
-
+UNHANDLED REJECTION
 ============================================================
 */
 
@@ -1882,13 +1514,6 @@ process.on(
 /*
 ============================================================
 UNCAUGHT EXCEPTION
-============================================================
-
-Uma exceção não capturada pode deixar o processo num estado
-inconsistente.
-
-Por isso encerramos de forma controlada.
-
 ============================================================
 */
 
@@ -1912,17 +1537,11 @@ process.on(
 
 /*
 ============================================================
-START APPLICATION
+START
 ============================================================
 */
 
 startServer();
 
-
-/*
-============================================================
-EXPORT
-============================================================
-*/
 
 export default app;
