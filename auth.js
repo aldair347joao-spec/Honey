@@ -1,49 +1,9 @@
-/*
-============================================================
-HONEY PAY
-AUTHENTICATION + API ROUTES
-V1.1.0
-============================================================
-
-RESPONSABILIDADES
-------------------------------------------------------------
-
-- Registo de comerciantes
-- Login
-- JWT
-- Perfil autenticado
-- Alteração de password
-- Consulta de comerciante
-- Consulta de subscrição
-- Rotas /api/auth/*
-- Health check
-
-IMPORTANTE
-------------------------------------------------------------
-
-A autenticação da Honey Pay pertence à plataforma.
-
-BITPAY NÃO É UTILIZADO NESTE ARQUIVO.
-
-Os pagamentos da subscrição serão tratados pelo fluxo
-SubscriptionPayment + BitPay.
-
-Os pagamentos dos clientes dos comerciantes continuam
-separados através de Invoice + Payment + BankAccount +
-Receipt.
-
-============================================================
-*/
-
-
 import express from "express";
 
+import {
+    google
+} from "googleapis";
 
-/*
-============================================================
-MODELS
-============================================================
-*/
 
 import {
     Merchant,
@@ -51,39 +11,13 @@ import {
 } from "./models.js";
 
 
-/*
-============================================================
-SECURITY
-============================================================
-*/
-
 import {
-    hashPassword,
-    comparePassword,
     normalizeEmail,
-    normalizePhone,
-    createAccessToken
+    createAccessToken,
+    createOAuthState,
+    verifyOAuthState
 } from "./security.js";
 
-
-/*
-============================================================
-VALIDATORS
-============================================================
-*/
-
-import {
-    validateRegistrationInput,
-    validateLoginInput,
-    sanitizeRegistrationInput
-} from "./validators.js";
-
-
-/*
-============================================================
-PLANS
-============================================================
-*/
 
 import {
     PLAN_FREE,
@@ -92,22 +26,10 @@ import {
 } from "./plans.js";
 
 
-/*
-============================================================
-MIDDLEWARE
-============================================================
-*/
-
 import {
     authenticate
 } from "./middleware.js";
 
-
-/*
-============================================================
-UTILS
-============================================================
-*/
 
 import {
     successResponse,
@@ -117,22 +39,10 @@ import {
 } from "./utils.js";
 
 
-/*
-============================================================
-DATABASE
-============================================================
-*/
-
 import {
     getDatabaseStatus
 } from "./database.js";
 
-
-/*
-============================================================
-LOGGER
-============================================================
-*/
 
 import {
     logSecurityEvent,
@@ -140,11 +50,24 @@ import {
 } from "./logger.js";
 
 
+import config from "./config.js";
+
+
 /*
 ============================================================
-ROUTER
+HONEY PAY
+GOOGLE AUTHENTICATION
+V2.0.0
+============================================================
+
+ÚNICA AUTENTICAÇÃO:
+Google OAuth 2.0 / OpenID Connect.
+
+Não existe login por password.
+
 ============================================================
 */
+
 
 const router =
     express.Router();
@@ -152,7 +75,53 @@ const router =
 
 /*
 ============================================================
-ERROR FACTORY
+GOOGLE CLIENT
+============================================================
+*/
+
+function getGoogleClient() {
+
+    if (
+        !config.google.clientId ||
+        !config.google.clientSecret ||
+        !config.google.callbackUrl
+    ) {
+
+        const error =
+            new Error(
+                "Google OAuth não está configurado."
+            );
+
+
+        error.code =
+            "GOOGLE_AUTH_NOT_CONFIGURED";
+
+
+        error.statusCode =
+            500;
+
+
+        throw error;
+
+    }
+
+
+    return new google.auth.OAuth2(
+
+        config.google.clientId,
+
+        config.google.clientSecret,
+
+        config.google.callbackUrl
+
+    );
+
+}
+
+
+/*
+============================================================
+AUTH ERROR
 ============================================================
 */
 
@@ -167,11 +136,14 @@ function createAuthError(
             message
         );
 
+
     error.code =
         code;
 
+
     error.statusCode =
         statusCode;
+
 
     return error;
 
@@ -180,21 +152,12 @@ function createAuthError(
 
 /*
 ============================================================
-GET MERCHANT BY ID
-============================================================
-
-Esta função existe como export nomeado porque outros módulos
-da aplicação podem utilizá-la diretamente.
-
-Nunca devolve passwordHash.
-
+GET MERCHANT
 ============================================================
 */
 
 export async function getMerchantById(
-
     merchantId
-
 ) {
 
     if (
@@ -202,13 +165,9 @@ export async function getMerchantById(
     ) {
 
         throw createAuthError(
-
             "merchantId é obrigatório.",
-
             "MERCHANT_ID_REQUIRED",
-
             400
-
         );
 
     }
@@ -227,13 +186,9 @@ export async function getMerchantById(
     ) {
 
         throw createAuthError(
-
             "Comerciante não encontrado.",
-
             "MERCHANT_NOT_FOUND",
-
             404
-
         );
 
     }
@@ -246,14 +201,42 @@ export async function getMerchantById(
 
 /*
 ============================================================
+GET MERCHANT BY GOOGLE ID
+============================================================
+*/
+
+export async function getMerchantByGoogleId(
+    googleId
+) {
+
+    if (
+        typeof googleId !== "string" ||
+        !googleId.trim()
+    ) {
+
+        return null;
+
+    }
+
+
+    return Merchant.findOne({
+
+        googleId:
+            googleId.trim()
+
+    });
+
+}
+
+
+/*
+============================================================
 GET MERCHANT BY EMAIL
 ============================================================
 */
 
 export async function getMerchantByEmail(
-
     email
-
 ) {
 
     const normalizedEmail =
@@ -266,43 +249,29 @@ export async function getMerchantByEmail(
         !normalizedEmail
     ) {
 
-        throw createAuthError(
-
-            "Email inválido.",
-
-            "INVALID_EMAIL",
-
-            400
-
-        );
+        return null;
 
     }
 
 
-    return Merchant
-        .findOne({
+    return Merchant.findOne({
 
-            email:
-                normalizedEmail
+        email:
+            normalizedEmail
 
-        })
-        .select(
-            "+passwordHash"
-        );
+    });
 
 }
 
 
 /*
 ============================================================
-GET MERCHANT SUBSCRIPTION
+SUBSCRIPTION
 ============================================================
 */
 
 export async function getMerchantSubscription(
-
     merchantId
-
 ) {
 
     if (
@@ -310,48 +279,31 @@ export async function getMerchantSubscription(
     ) {
 
         throw createAuthError(
-
             "merchantId é obrigatório.",
-
             "MERCHANT_ID_REQUIRED",
-
             400
-
         );
 
     }
 
 
-    return Subscription
-        .findOne({
+    return Subscription.findOne({
 
-            merchantId
+        merchantId
 
-        });
+    });
 
 }
 
 
 /*
 ============================================================
-CREATE DEFAULT SUBSCRIPTION
-============================================================
-
-Todas as contas começam no plano FREE.
-
-IMPORTANTE:
-
-FREE não significa pagamento BitPay.
-
-A subscrição FREE é criada internamente.
-
+ENSURE FREE SUBSCRIPTION
 ============================================================
 */
 
 export async function ensureMerchantSubscription(
-
     merchantId
-
 ) {
 
     if (
@@ -359,25 +311,20 @@ export async function ensureMerchantSubscription(
     ) {
 
         throw createAuthError(
-
             "merchantId é obrigatório.",
-
             "MERCHANT_ID_REQUIRED",
-
             400
-
         );
 
     }
 
 
     let subscription =
-        await Subscription
-            .findOne({
+        await Subscription.findOne({
 
-                merchantId
+            merchantId
 
-            });
+        });
 
 
     if (
@@ -389,27 +336,62 @@ export async function ensureMerchantSubscription(
     }
 
 
-    subscription =
-        await Subscription.create({
+    try {
 
-            merchantId,
+        subscription =
+            await Subscription.create({
 
-            plan:
-                PLAN_FREE,
+                merchantId,
 
-            status:
-                "active",
+                plan:
+                    PLAN_FREE,
 
-            startedAt:
-                new Date(),
+                status:
+                    "active",
 
-            expiresAt:
-                null,
+                startedAt:
+                    new Date(),
 
-            cancelledAt:
-                null
+                expiresAt:
+                    null,
 
-        });
+                cancelledAt:
+                    null
+
+            });
+
+    }
+
+    catch (
+        error
+    ) {
+
+        /*
+        ----------------------------------------------------
+        Concorrência: outra request pode ter criado a
+        subscription entretanto.
+        ----------------------------------------------------
+        */
+
+        if (
+            error?.code === 11000
+        ) {
+
+            subscription =
+                await Subscription.findOne({
+
+                    merchantId
+
+                });
+
+        }
+        else {
+
+            throw error;
+
+        }
+
+    }
 
 
     return subscription;
@@ -419,16 +401,13 @@ export async function ensureMerchantSubscription(
 
 /*
 ============================================================
-BUILD AUTH RESPONSE
+AUTH RESPONSE
 ============================================================
 */
 
 export async function buildAuthResponse(
-
     merchant,
-
     subscription = null
-
 ) {
 
     if (
@@ -436,13 +415,9 @@ export async function buildAuthResponse(
     ) {
 
         throw createAuthError(
-
             "Comerciante não encontrado.",
-
             "MERCHANT_NOT_FOUND",
-
             404
-
         );
 
     }
@@ -451,18 +426,14 @@ export async function buildAuthResponse(
     const currentSubscription =
         subscription ||
         await ensureMerchantSubscription(
-
             merchant._id
-
         );
 
 
     const plan =
         getPlan(
-
             currentSubscription?.plan ||
             PLAN_FREE
-
         );
 
 
@@ -477,7 +448,10 @@ export async function buildAuthResponse(
 
             role:
                 merchant.role ||
-                "merchant"
+                "merchant",
+
+            authProvider:
+                "google"
 
         });
 
@@ -542,441 +516,582 @@ export async function buildAuthResponse(
 
 /*
 ============================================================
-REGISTER MERCHANT
+GOOGLE AUTH URL
 ============================================================
 */
 
-export async function registerMerchant(
-
-    input = {}
-
+export function createGoogleAuthorizationUrl(
+    context = {}
 ) {
 
-    const validationErrors =
-        validateRegistrationInput(
-            input
-        );
+    const state =
+        createOAuthState({
 
+            ip:
+                context.ip ||
+                null,
 
-    if (
-        validationErrors.length > 0
-    ) {
-
-        const error =
-            createAuthError(
-
-                "Dados de registo inválidos.",
-
-                "VALIDATION_ERROR",
-
-                400
-
-            );
-
-        error.details =
-            validationErrors;
-
-        throw error;
-
-    }
-
-
-    const data =
-        sanitizeRegistrationInput(
-            input
-        );
-
-
-    const email =
-        normalizeEmail(
-            data.email
-        );
-
-
-    /*
-    --------------------------------------------------------
-    VERIFICAR EMAIL
-    --------------------------------------------------------
-    */
-
-    const existingMerchant =
-        await Merchant
-            .findOne({
-
-                email
-
-            });
-
-
-    if (
-        existingMerchant
-    ) {
-
-        logSecurityEvent(
-
-            "duplicate_registration",
-
-            {
-
-                email
-
-            }
-
-        );
-
-
-        throw createAuthError(
-
-            "Já existe uma conta com este email.",
-
-            "EMAIL_ALREADY_REGISTERED",
-
-            409
-
-        );
-
-    }
-
-
-    /*
-    --------------------------------------------------------
-    PASSWORD
-    --------------------------------------------------------
-    */
-
-    const passwordHash =
-        await hashPassword(
-
-            data.password
-
-        );
-
-
-    /*
-    --------------------------------------------------------
-    PHONE
-    --------------------------------------------------------
-    */
-
-    const phone =
-        normalizePhone(
-            data.phone
-        );
-
-
-    /*
-    --------------------------------------------------------
-    MERCHANT
-    --------------------------------------------------------
-    */
-
-    const merchant =
-        await Merchant.create({
-
-            name:
-                data.name,
-
-            email,
-
-            passwordHash,
-
-            phone,
-
-            businessName:
-                data.businessName,
-
-            accountStatus:
-                "active",
-
-            role:
-                "merchant"
+            userAgent:
+                context.userAgent ||
+                null
 
         });
 
 
-    /*
-    --------------------------------------------------------
-    SUBSCRIPTION FREE
-    --------------------------------------------------------
-    */
-
-    const subscription =
-        await ensureMerchantSubscription(
-
-            merchant._id
-
-        );
+    const client =
+        getGoogleClient();
 
 
-    /*
-    --------------------------------------------------------
-    BUSINESS LOG
-    --------------------------------------------------------
-    */
+    return client.generateAuthUrl({
 
-    logBusinessEvent(
+        access_type:
+            "online",
 
-        "merchant_registered",
+        scope:
+            config.google.scopes,
 
-        {
+        include_granted_scopes:
+            true,
 
-            merchantId:
-                merchant._id.toString(),
+        state,
 
-            plan:
-                PLAN_FREE
+        prompt:
+            "select_account"
 
-        }
-
-    );
-
-
-    /*
-    --------------------------------------------------------
-    RESPONSE
-    --------------------------------------------------------
-    */
-
-    return buildAuthResponse(
-
-        merchant,
-
-        subscription
-
-    );
+    });
 
 }
 
 
 /*
 ============================================================
-LOGIN MERCHANT
+GOOGLE CALLBACK
 ============================================================
 */
 
-export async function loginMerchant(
-
-    input = {},
-
+export async function authenticateWithGoogle(
+    code,
+    state,
     context = {}
-
 ) {
 
-    const validationErrors =
-        validateLoginInput(
-            input
-        );
-
-
     if (
-        validationErrors.length > 0
+        typeof code !== "string" ||
+        !code
     ) {
 
-        const error =
-            createAuthError(
-
-                "Dados de login inválidos.",
-
-                "VALIDATION_ERROR",
-
-                400
-
-            );
-
-        error.details =
-            validationErrors;
-
-        throw error;
+        throw createAuthError(
+            "Código Google ausente.",
+            "GOOGLE_CODE_MISSING",
+            400
+        );
 
     }
 
 
+    if (
+        typeof state !== "string" ||
+        !state
+    ) {
+
+        throw createAuthError(
+            "Estado OAuth ausente.",
+            "GOOGLE_STATE_MISSING",
+            400
+        );
+
+    }
+
+
+    let statePayload;
+
+    try {
+
+        statePayload =
+            verifyOAuthState(
+                state
+            );
+
+    }
+
+    catch (
+        error
+    ) {
+
+        logSecurityEvent(
+            "google_oauth_state_invalid",
+            {
+                ip:
+                    context.ip ||
+                    null
+            }
+        );
+
+
+        throw createAuthError(
+            "A sessão de autenticação Google é inválida ou expirou.",
+            "GOOGLE_INVALID_STATE",
+            401
+        );
+
+    }
+
+
+    if (
+        statePayload?.purpose !==
+        "google-oauth-state"
+    ) {
+
+        throw createAuthError(
+            "Estado OAuth inválido.",
+            "GOOGLE_INVALID_STATE",
+            401
+        );
+
+    }
+
+
+    const client =
+        getGoogleClient();
+
+
+    let tokens;
+
+    try {
+
+        const tokenResponse =
+            await client.getToken(
+                code
+            );
+
+
+        tokens =
+            tokenResponse.tokens;
+
+    }
+
+    catch (
+        error
+    ) {
+
+        console.error(
+            "[GOOGLE TOKEN EXCHANGE ERROR]",
+            error?.message ||
+            error
+        );
+
+
+        throw createAuthError(
+            "Não foi possível concluir a autenticação Google.",
+            "GOOGLE_TOKEN_EXCHANGE_FAILED",
+            401
+        );
+
+    }
+
+
+    if (
+        !tokens?.id_token
+    ) {
+
+        throw createAuthError(
+            "O Google não devolveu uma identidade válida.",
+            "GOOGLE_ID_TOKEN_MISSING",
+            401
+        );
+
+    }
+
+
+    let ticket;
+
+    try {
+
+        ticket =
+            await client.verifyIdToken({
+
+                idToken:
+                    tokens.id_token,
+
+                audience:
+                    config.google.clientId
+
+            });
+
+    }
+
+    catch (
+        error
+    ) {
+
+        console.error(
+            "[GOOGLE ID TOKEN ERROR]",
+            error?.message ||
+            error
+        );
+
+
+        throw createAuthError(
+            "A identidade Google não pôde ser validada.",
+            "GOOGLE_IDENTITY_INVALID",
+            401
+        );
+
+    }
+
+
+    const payload =
+        ticket.getPayload();
+
+
+    const googleId =
+        payload?.sub;
+
+
     const email =
         normalizeEmail(
-            input.email
+            payload?.email
         );
+
+
+    const emailVerified =
+        payload?.email_verified === true;
+
+
+    const name =
+        typeof payload?.name === "string" &&
+        payload.name.trim()
+            ? payload.name.trim()
+            : email.split("@")[0];
+
+
+    const picture =
+        typeof payload?.picture === "string"
+            ? payload.picture
+            : null;
+
+
+    if (
+        !googleId
+    ) {
+
+        throw createAuthError(
+            "A conta Google não possui um identificador válido.",
+            "GOOGLE_ID_MISSING",
+            401
+        );
+
+    }
+
+
+    if (
+        !email
+    ) {
+
+        throw createAuthError(
+            "A conta Google não possui um email válido.",
+            "GOOGLE_EMAIL_MISSING",
+            401
+        );
+
+    }
+
+
+    if (
+        !emailVerified
+    ) {
+
+        throw createAuthError(
+            "O email da conta Google não está verificado.",
+            "GOOGLE_EMAIL_NOT_VERIFIED",
+            403
+        );
+
+    }
 
 
     /*
     --------------------------------------------------------
-    PROCURAR CONTA
+    PRIMEIRO: GOOGLE ID
     --------------------------------------------------------
     */
 
-    const merchant =
-        await getMerchantByEmail(
-
-            email
-
+    let merchant =
+        await getMerchantByGoogleId(
+            googleId
         );
 
+
+    let created =
+        false;
+
+
+    /*
+    --------------------------------------------------------
+    SE NÃO ENCONTRAR, PROCURAR PELO EMAIL
+    --------------------------------------------------------
+    */
 
     if (
         !merchant
     ) {
 
-        logSecurityEvent(
+        merchant =
+            await getMerchantByEmail(
+                email
+            );
 
-            "login_failed",
+        /*
+        ----------------------------------------------------
+        Conta antiga com o mesmo email.
 
-            {
+        Vinculamos Google a ela.
 
-                reason:
-                    "merchant_not_found",
+        ----------------------------------------------------
+        */
 
-                ip:
-                    context.ip ||
-                    null
+        if (
+            merchant
+        ) {
+
+            if (
+                merchant.googleId &&
+                merchant.googleId !== googleId
+            ) {
+
+                throw createAuthError(
+                    "Este email já está associado a outra identidade Google.",
+                    "GOOGLE_ACCOUNT_CONFLICT",
+                    409
+                );
 
             }
 
-        );
+
+            merchant.googleId =
+                googleId;
 
 
-        throw createAuthError(
+            merchant.googleEmail =
+                email;
 
-            "Email ou password incorretos.",
 
-            "INVALID_CREDENTIALS",
+            merchant.googlePicture =
+                picture;
 
-            401
 
-        );
+            merchant.googleEmailVerified =
+                true;
+
+
+            merchant.lastLoginProvider =
+                "google";
+
+
+            merchant.lastLoginAt =
+                new Date();
+
+
+            merchant.lastLoginIp =
+                context.ip ||
+                null;
+
+
+            await merchant.save();
+
+        }
 
     }
 
 
     /*
     --------------------------------------------------------
-    PASSWORD
-    --------------------------------------------------------
-    */
-
-    const validPassword =
-        await comparePassword(
-
-            input.password,
-
-            merchant.passwordHash
-
-        );
-
-
-    if (
-        !validPassword
-    ) {
-
-        logSecurityEvent(
-
-            "login_failed",
-
-            {
-
-                merchantId:
-                    merchant._id.toString(),
-
-                reason:
-                    "invalid_password",
-
-                ip:
-                    context.ip ||
-                    null
-
-            }
-
-        );
-
-
-        throw createAuthError(
-
-            "Email ou password incorretos.",
-
-            "INVALID_CREDENTIALS",
-
-            401
-
-        );
-
-    }
-
-
-    /*
-    --------------------------------------------------------
-    ACCOUNT STATUS
+    CRIAR NOVO MERCHANT
     --------------------------------------------------------
     */
 
     if (
-        merchant.accountStatus !==
-        "active"
+        !merchant
     ) {
 
-        logSecurityEvent(
+        try {
 
-            "login_blocked",
+            merchant =
+                await Merchant.create({
 
-            {
+                    name,
 
-                merchantId:
-                    merchant._id.toString(),
+                    email,
 
-                accountStatus:
-                    merchant.accountStatus,
+                    googleId,
 
-                ip:
-                    context.ip ||
-                    null
+                    googleEmail:
+                        email,
 
-            }
+                    googlePicture:
+                        picture,
 
-        );
+                    googleEmailVerified:
+                        true,
 
+                    passwordHash:
+                        null,
 
-        throw createAuthError(
+                    accountStatus:
+                        "active",
 
-            "Esta conta não está ativa.",
-
-            "ACCOUNT_INACTIVE",
-
-            403
-
-        );
-
-    }
-
-
-    /*
-    --------------------------------------------------------
-    UPDATE LAST LOGIN
-    --------------------------------------------------------
-    */
-
-    await Merchant
-        .updateOne(
-
-            {
-
-                _id:
-                    merchant._id
-
-            },
-
-            {
-
-                $set: {
+                    role:
+                        "merchant",
 
                     lastLoginAt:
                         new Date(),
 
                     lastLoginIp:
                         context.ip ||
-                        null
+                        null,
 
-                }
+                    lastLoginProvider:
+                        "google"
+
+                });
+
+
+            created =
+                true;
+
+        }
+
+        catch (
+            error
+        ) {
+
+            /*
+            ------------------------------------------------
+            Possível corrida entre duas autenticações.
+            ------------------------------------------------
+            */
+
+            if (
+                error?.code === 11000
+            ) {
+
+                merchant =
+                    await getMerchantByGoogleId(
+                        googleId
+                    );
+
+            }
+            else {
+
+                throw error;
 
             }
 
+        }
+
+    }
+
+
+    if (
+        !merchant
+    ) {
+
+        throw createAuthError(
+            "Não foi possível criar ou localizar a conta Honey Pay.",
+            "MERCHANT_AUTHENTICATION_FAILED",
+            500
         );
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    CONTA ATIVA
+    --------------------------------------------------------
+    */
+
+    const accountStatus =
+        merchant.accountStatus ||
+        "active";
+
+
+    if (
+        accountStatus !==
+        "active"
+    ) {
+
+        logSecurityEvent(
+            "google_login_blocked",
+            {
+
+                merchantId:
+                    merchant._id.toString(),
+
+                accountStatus,
+
+                ip:
+                    context.ip ||
+                    null
+
+            }
+        );
+
+
+        throw createAuthError(
+            "Esta conta não está ativa.",
+            "ACCOUNT_INACTIVE",
+            403
+        );
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    ATUALIZAR GOOGLE PROFILE
+    --------------------------------------------------------
+    */
+
+    await Merchant.updateOne(
+
+        {
+
+            _id:
+                merchant._id
+
+        },
+
+        {
+
+            $set: {
+
+                googleId,
+
+                googleEmail:
+                    email,
+
+                googlePicture:
+                    picture,
+
+                googleEmailVerified:
+                    true,
+
+                lastLoginAt:
+                    new Date(),
+
+                lastLoginIp:
+                    context.ip ||
+                    null,
+
+                lastLoginProvider:
+                    "google"
+
+            }
+
+        }
+
+    );
 
 
     /*
@@ -987,21 +1102,21 @@ export async function loginMerchant(
 
     const subscription =
         await ensureMerchantSubscription(
-
             merchant._id
-
         );
 
 
     /*
     --------------------------------------------------------
-    BUSINESS LOG
+    LOGS
     --------------------------------------------------------
     */
 
     logBusinessEvent(
 
-        "merchant_login",
+        created
+            ? "merchant_registered_google"
+            : "merchant_login_google",
 
         {
 
@@ -1017,9 +1132,17 @@ export async function loginMerchant(
     );
 
 
+    const freshMerchant =
+        await Merchant
+            .findById(
+                merchant._id
+            )
+            .lean();
+
+
     return buildAuthResponse(
 
-        merchant,
+        freshMerchant,
 
         subscription
 
@@ -1030,37 +1153,29 @@ export async function loginMerchant(
 
 /*
 ============================================================
-GET AUTHENTICATED PROFILE
+AUTHENTICATED PROFILE
 ============================================================
 */
 
 export async function getAuthenticatedProfile(
-
     merchantId
-
 ) {
 
     const merchant =
         await getMerchantById(
-
             merchantId
-
         );
 
 
     const subscription =
         await ensureMerchantSubscription(
-
             merchant._id
-
         );
 
 
     const plan =
         getPlan(
-
             subscription.plan
-
         );
 
 
@@ -1116,222 +1231,7 @@ export async function getAuthenticatedProfile(
 
 /*
 ============================================================
-CHANGE MERCHANT PASSWORD
-============================================================
-*/
-
-export async function changeMerchantPassword(
-
-    merchantId,
-
-    currentPassword,
-
-    newPassword
-
-) {
-
-    if (
-        !merchantId
-    ) {
-
-        throw createAuthError(
-
-            "merchantId é obrigatório.",
-
-            "MERCHANT_ID_REQUIRED",
-
-            400
-
-        );
-
-    }
-
-
-    if (
-        typeof currentPassword !==
-        "string" ||
-
-        typeof newPassword !==
-        "string"
-
-    ) {
-
-        throw createAuthError(
-
-            "Password inválida.",
-
-            "INVALID_PASSWORD_REQUEST",
-
-            400
-
-        );
-
-    }
-
-
-    const merchant =
-        await Merchant
-            .findById(
-                merchantId
-            )
-            .select(
-                "+passwordHash"
-            );
-
-
-    if (
-        !merchant
-    ) {
-
-        throw createAuthError(
-
-            "Comerciante não encontrado.",
-
-            "MERCHANT_NOT_FOUND",
-
-            404
-
-        );
-
-    }
-
-
-    const validCurrentPassword =
-        await comparePassword(
-
-            currentPassword,
-
-            merchant.passwordHash
-
-        );
-
-
-    if (
-        !validCurrentPassword
-    ) {
-
-        logSecurityEvent(
-
-            "password_change_failed",
-
-            {
-
-                merchantId:
-                    merchant._id.toString()
-
-            }
-
-        );
-
-
-        throw createAuthError(
-
-            "A password atual está incorreta.",
-
-            "INVALID_CURRENT_PASSWORD",
-
-            401
-
-        );
-
-    }
-
-
-    if (
-        newPassword.length <
-        8
-    ) {
-
-        throw createAuthError(
-
-            "A nova password deve possuir pelo menos 8 caracteres.",
-
-            "PASSWORD_TOO_SHORT",
-
-            400
-
-        );
-
-    }
-
-
-    if (
-        newPassword.length >
-        128
-    ) {
-
-        throw createAuthError(
-
-            "A nova password é demasiado longa.",
-
-            "PASSWORD_TOO_LONG",
-
-            400
-
-        );
-
-    }
-
-
-    const newPasswordHash =
-        await hashPassword(
-
-            newPassword
-
-        );
-
-
-    await Merchant
-        .updateOne(
-
-            {
-
-                _id:
-                    merchant._id
-
-            },
-
-            {
-
-                $set: {
-
-                    passwordHash:
-                        newPasswordHash
-
-                }
-
-            }
-
-        );
-
-
-    logSecurityEvent(
-
-        "password_changed",
-
-        {
-
-            merchantId:
-                merchant._id.toString()
-
-        }
-
-    );
-
-
-    return {
-
-        changed:
-            true
-
-    };
-
-}
-
-
-/*
-============================================================
-HEALTH CHECK
+HEALTH
 ============================================================
 */
 
@@ -1340,10 +1240,8 @@ router.get(
     "/health",
 
     async (
-
         req,
         res
-
     ) => {
 
         try {
@@ -1352,36 +1250,31 @@ router.get(
                 getDatabaseStatus();
 
 
-            const operational =
-                database?.connected ===
-                true;
-
-
             return successResponse(
-
                 res,
-
                 {
 
                     service:
                         "Honey Pay API",
 
                     version:
-                        "1.1.0",
+                        "2.0.0",
 
                     status:
-                        operational
+                        database?.connected === true
                             ? "operational"
                             : "degraded",
 
                     database,
+
+                    authentication:
+                        "google",
 
                     timestamp:
                         new Date()
                             .toISOString()
 
                 }
-
             );
 
         }
@@ -1389,15 +1282,6 @@ router.get(
         catch (
             error
         ) {
-
-            console.error(
-
-                "[API HEALTH ERROR]",
-
-                error
-
-            );
-
 
             const normalized =
                 normalizeError(
@@ -1426,39 +1310,38 @@ router.get(
 
 /*
 ============================================================
-REGISTER ROUTE
+GOOGLE LOGIN
 ============================================================
 */
 
-router.post(
+router.get(
 
-    "/auth/register",
+    "/auth/google",
 
-    async (
-
+    (
         req,
         res
-
     ) => {
 
         try {
 
-            const result =
-                await registerMerchant(
+            const url =
+                createGoogleAuthorizationUrl({
 
-                    req.body
+                    ip:
+                        req.ip,
 
-                );
+                    userAgent:
+                        req.get(
+                            "user-agent"
+                        )
+
+                });
 
 
-            return successResponse(
-
-                res,
-
-                result,
-
-                201
-
+            return res.redirect(
+                302,
+                url
             );
 
         }
@@ -1468,34 +1351,25 @@ router.post(
         ) {
 
             console.error(
-
-                "[AUTH REGISTER ERROR]",
-
+                "[GOOGLE LOGIN START ERROR]",
                 error
-
             );
 
 
-            const normalized =
-                normalizeError(
-                    error
-                );
+            return res
+                .status(500)
+                .json({
 
+                    success:
+                        false,
 
-            return errorResponse(
+                    code:
+                        "GOOGLE_AUTH_START_FAILED",
 
-                res,
+                    message:
+                        "Não foi possível iniciar o login Google."
 
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message,
-
-                error?.details ||
-                null
-
-            );
+                });
 
         }
 
@@ -1506,27 +1380,52 @@ router.post(
 
 /*
 ============================================================
-LOGIN ROUTE
+GOOGLE CALLBACK
 ============================================================
 */
 
-router.post(
+router.get(
 
-    "/auth/login",
+    "/auth/google/callback",
 
     async (
-
         req,
         res
-
     ) => {
 
         try {
 
-            const result =
-                await loginMerchant(
+            const {
 
-                    req.body,
+                code,
+
+                state,
+
+                error:
+                    googleError
+
+            } =
+                req.query;
+
+
+            if (
+                googleError
+            ) {
+
+                return res.redirect(
+                    302,
+                    "/login?error=google_access_denied"
+                );
+
+            }
+
+
+            const result =
+                await authenticateWithGoogle(
+
+                    code,
+
+                    state,
 
                     {
 
@@ -1543,11 +1442,28 @@ router.post(
                 );
 
 
-            return successResponse(
+            /*
+            ------------------------------------------------
+            IMPORTANTE
 
-                res,
+            O token vai no fragmento (#).
 
-                result
+            O fragmento não é enviado ao servidor.
+
+            ------------------------------------------------
+            */
+
+            const token =
+                encodeURIComponent(
+                    result.token
+                );
+
+
+            return res.redirect(
+
+                302,
+
+                `/#auth_token=${token}`
 
             );
 
@@ -1558,11 +1474,8 @@ router.post(
         ) {
 
             console.error(
-
-                "[AUTH LOGIN ERROR]",
-
+                "[GOOGLE CALLBACK ERROR]",
                 error
-
             );
 
 
@@ -1572,18 +1485,18 @@ router.post(
                 );
 
 
-            return errorResponse(
+            const errorCode =
+                encodeURIComponent(
+                    normalized.code ||
+                    "GOOGLE_AUTH_FAILED"
+                );
 
-                res,
 
-                normalized.statusCode,
+            return res.redirect(
 
-                normalized.code,
+                302,
 
-                normalized.message,
-
-                error?.details ||
-                null
+                `/login?error=${errorCode}`
 
             );
 
@@ -1596,7 +1509,7 @@ router.post(
 
 /*
 ============================================================
-AUTHENTICATED PROFILE
+AUTH ME
 ============================================================
 */
 
@@ -1607,10 +1520,8 @@ router.get(
     authenticate,
 
     async (
-
         req,
         res
-
     ) => {
 
         try {
@@ -1618,17 +1529,14 @@ router.get(
             const result =
                 await getAuthenticatedProfile(
 
-                    req.user.merchantId
+                    req.auth.merchantId
 
                 );
 
 
             return successResponse(
-
                 res,
-
                 result
-
             );
 
         }
@@ -1636,15 +1544,6 @@ router.get(
         catch (
             error
         ) {
-
-            console.error(
-
-                "[AUTH PROFILE ERROR]",
-
-                error
-
-            );
-
 
             const normalized =
                 normalizeError(
@@ -1673,7 +1572,7 @@ router.get(
 
 /*
 ============================================================
-PLAN SUMMARY
+PLAN
 ============================================================
 */
 
@@ -1684,10 +1583,8 @@ router.get(
     authenticate,
 
     async (
-
         req,
         res
-
     ) => {
 
         try {
@@ -1695,17 +1592,14 @@ router.get(
             const result =
                 await getPlanSummary(
 
-                    req.user.merchantId
+                    req.auth.merchantId
 
                 );
 
 
             return successResponse(
-
                 res,
-
                 result
-
             );
 
         }
@@ -1713,15 +1607,6 @@ router.get(
         catch (
             error
         ) {
-
-            console.error(
-
-                "[AUTH PLAN ERROR]",
-
-                error
-
-            );
-
 
             const normalized =
                 normalizeError(
@@ -1750,132 +1635,7 @@ router.get(
 
 /*
 ============================================================
-CHANGE PASSWORD ROUTE
-============================================================
-*/
-
-router.post(
-
-    "/auth/change-password",
-
-    authenticate,
-
-    async (
-
-        req,
-        res
-
-    ) => {
-
-        try {
-
-            const body =
-
-                req.body &&
-                typeof req.body ===
-                    "object" &&
-                !Array.isArray(
-                    req.body
-                )
-
-                    ? req.body
-
-                    : {};
-
-
-            const currentPassword =
-                body.currentPassword;
-
-
-            const newPassword =
-                body.newPassword;
-
-
-            if (
-                typeof currentPassword !==
-                    "string" ||
-
-                typeof newPassword !==
-                    "string"
-
-            ) {
-
-                throw createAuthError(
-
-                    "A password atual e a nova password são obrigatórias.",
-
-                    "INVALID_PASSWORD_REQUEST",
-
-                    400
-
-                );
-
-            }
-
-
-            const result =
-                await changeMerchantPassword(
-
-                    req.user.merchantId,
-
-                    currentPassword,
-
-                    newPassword
-
-                );
-
-
-            return successResponse(
-
-                res,
-
-                result
-
-            );
-
-        }
-
-        catch (
-            error
-        ) {
-
-            console.error(
-
-                "[AUTH CHANGE PASSWORD ERROR]",
-
-                error
-
-            );
-
-
-            const normalized =
-                normalizeError(
-                    error
-                );
-
-
-            return errorResponse(
-
-                res,
-
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message
-
-            );
-
-        }
-
-    }
-
-);
-
-
-/*
-============================================================
-ROUTER ERROR HANDLER
+ROUTER ERROR
 ============================================================
 */
 
@@ -1886,15 +1646,11 @@ router.use(
         req,
         res,
         next
-
     ) => {
 
         console.error(
-
             "[AUTH ROUTER ERROR]",
-
             error
-
         );
 
 
@@ -1932,23 +1688,11 @@ router.use(
 );
 
 
-/*
-============================================================
-NAMED EXPORTS
-============================================================
-*/
-
 export {
 
     router
 
 };
 
-
-/*
-============================================================
-DEFAULT EXPORT
-============================================================
-*/
 
 export default router;
