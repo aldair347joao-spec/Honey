@@ -25,915 +25,12 @@
         content="noindex,nofollow"
     >
 
-    <title>
-        Honey Pay
-    </title>
+    <title>Honey Pay</title>
 
     <link
         rel="stylesheet"
         href="/style.css"
     >
-
-    <style>
-
-        /* =====================================================
-           PUBLIC CHECKOUT
-        ===================================================== */
-
-        #public-checkout-root {
-            display: none;
-        }
-
-        body.public-checkout-mode {
-            background:
-                #07090d;
-        }
-
-        body.public-checkout-mode
-        #app-loader,
-        body.public-checkout-mode
-        #app,
-        body.public-checkout-mode
-        .global-loading,
-        body.public-checkout-mode
-        .toast-container {
-            display: none !important;
-        }
-
-        body.public-checkout-mode
-        #public-checkout-root {
-            display: block;
-        }
-
-        .public-checkout {
-            min-height: 100vh;
-            padding:
-                28px 16px 60px;
-
-            display: flex;
-            justify-content: center;
-
-            background:
-                radial-gradient(
-                    circle at 50% -15%,
-                    rgba(245,190,52,.10),
-                    transparent 38%
-                ),
-                #07090d;
-
-            color:
-                #f5f7fb;
-
-            font-family:
-                Inter,
-                "Plus Jakarta Sans",
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
-
-        .public-checkout-container {
-            width:
-                min(100%, 720px);
-        }
-
-        .public-checkout-header {
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            justify-content:
-                space-between;
-
-            gap:
-                16px;
-
-            margin-bottom:
-                24px;
-        }
-
-        .public-checkout-brand {
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            gap:
-                11px;
-        }
-
-        .public-checkout-logo {
-            width:
-                42px;
-
-            height:
-                42px;
-
-            display:
-                grid;
-
-            place-items:
-                center;
-
-            border-radius:
-                13px;
-
-            background:
-                #f5be34;
-
-            color:
-                #111318;
-
-            font-size:
-                18px;
-
-            font-weight:
-                900;
-        }
-
-        .public-checkout-brand strong {
-            display:
-                block;
-
-            font-size:
-                17px;
-        }
-
-        .public-checkout-brand span {
-            display:
-                block;
-
-            margin-top:
-                2px;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                11px;
-        }
-
-        .public-checkout-secure {
-            display:
-                flex;
-
-            align-items:
-                center;
-
-            gap:
-                7px;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                11px;
-        }
-
-        .public-checkout-secure-dot {
-            width:
-                7px;
-
-            height:
-                7px;
-
-            border-radius:
-                50%;
-
-            background:
-                #49d18d;
-
-            box-shadow:
-                0 0 0 4px
-                rgba(73,209,141,.08);
-        }
-
-        .public-checkout-card {
-            overflow:
-                hidden;
-
-            border:
-                1px solid #252b35;
-
-            border-radius:
-                22px;
-
-            background:
-                #10141b;
-
-            box-shadow:
-                0 30px 90px
-                rgba(0,0,0,.38);
-        }
-
-        .public-checkout-content {
-            padding:
-                30px;
-        }
-
-        .public-checkout-merchant {
-            margin-bottom:
-                8px;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                13px;
-        }
-
-        .public-checkout-title {
-            margin:
-                0;
-
-            font-size:
-                clamp(26px,5vw,38px);
-
-            line-height:
-                1.08;
-
-            letter-spacing:
-                -.045em;
-        }
-
-        .public-checkout-description {
-            margin:
-                12px 0 0;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                14px;
-
-            line-height:
-                1.65;
-        }
-
-        .public-checkout-amount {
-            margin-top:
-                26px;
-
-            padding:
-                22px;
-
-            border:
-                1px solid #252b35;
-
-            border-radius:
-                17px;
-
-            background:
-                #0b0f15;
-        }
-
-        .public-checkout-label {
-            color:
-                #8e98a9;
-
-            font-size:
-                10px;
-
-            font-weight:
-                800;
-
-            letter-spacing:
-                .08em;
-
-            text-transform:
-                uppercase;
-        }
-
-        .public-checkout-value {
-            margin-top:
-                7px;
-
-            font-size:
-                clamp(32px,8vw,48px);
-
-            font-weight:
-                850;
-
-            line-height:
-                1;
-
-            letter-spacing:
-                -.055em;
-        }
-
-        .public-checkout-meta {
-            display:
-                grid;
-
-            grid-template-columns:
-                repeat(2,minmax(0,1fr));
-
-            gap:
-                12px;
-
-            margin-top:
-                12px;
-        }
-
-        .public-checkout-meta-item {
-            padding:
-                14px;
-
-            border:
-                1px solid #252b35;
-
-            border-radius:
-                13px;
-
-            background:
-                #0b0f15;
-        }
-
-        .public-checkout-meta-item span {
-            display:
-                block;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                10px;
-
-            font-weight:
-                800;
-
-            text-transform:
-                uppercase;
-
-            letter-spacing:
-                .07em;
-        }
-
-        .public-checkout-meta-item strong {
-            display:
-                block;
-
-            margin-top:
-                5px;
-
-            font-size:
-                13px;
-
-            word-break:
-                break-word;
-        }
-
-        .public-checkout-section {
-            margin-top:
-                27px;
-        }
-
-        .public-checkout-section h2 {
-            margin:
-                0 0 12px;
-
-            font-size:
-                16px;
-
-            letter-spacing:
-                -.02em;
-        }
-
-        .public-checkout-bank {
-            padding:
-                19px;
-
-            border:
-                1px solid
-                rgba(245,190,52,.22);
-
-            border-radius:
-                17px;
-
-            background:
-                rgba(245,190,52,.045);
-        }
-
-        .public-checkout-bank-name {
-            font-size:
-                16px;
-
-            font-weight:
-                800;
-        }
-
-        .public-checkout-bank-row {
-            display:
-                flex;
-
-            justify-content:
-                space-between;
-
-            gap:
-                20px;
-
-            padding:
-                13px 0;
-
-            border-bottom:
-                1px solid
-                rgba(255,255,255,.06);
-        }
-
-        .public-checkout-bank-row:last-child {
-            border-bottom:
-                0;
-
-            padding-bottom:
-                0;
-        }
-
-        .public-checkout-bank-row span {
-            color:
-                #8e98a9;
-
-            font-size:
-                11px;
-        }
-
-        .public-checkout-bank-row strong {
-            text-align:
-                right;
-
-            font-size:
-                13px;
-
-            word-break:
-                break-word;
-        }
-
-        .public-checkout-copy {
-            display:
-                block;
-
-            margin:
-                5px 0 0 auto;
-
-            padding:
-                0;
-
-            border:
-                0;
-
-            background:
-                transparent;
-
-            color:
-                #f5be34;
-
-            font:
-                inherit;
-
-            font-size:
-                11px;
-
-            font-weight:
-                750;
-
-            cursor:
-                pointer;
-        }
-
-        .public-checkout-form {
-            display:
-                grid;
-
-            gap:
-                15px;
-        }
-
-        .public-checkout-field {
-            display:
-                grid;
-
-            gap:
-                7px;
-        }
-
-        .public-checkout-field > label,
-        .public-checkout-field > span {
-            color:
-                #cdd3df;
-
-            font-size:
-                12px;
-
-            font-weight:
-                700;
-        }
-
-        .public-checkout-field input,
-        .public-checkout-field textarea {
-            width:
-                100%;
-
-            border:
-                1px solid #252b35;
-
-            border-radius:
-                12px;
-
-            background:
-                #090c11;
-
-            color:
-                #f5f7fb;
-
-            outline:
-                none;
-
-            padding:
-                13px 14px;
-
-            font:
-                inherit;
-        }
-
-        .public-checkout-field textarea {
-            min-height:
-                90px;
-
-            resize:
-                vertical;
-        }
-
-        .public-checkout-field input:focus,
-        .public-checkout-field textarea:focus {
-            border-color:
-                #f5be34;
-
-            box-shadow:
-                0 0 0 3px
-                rgba(245,190,52,.09);
-        }
-
-        .public-checkout-file {
-            position:
-                relative;
-
-            padding:
-                20px;
-
-            border:
-                1px dashed #3b4350;
-
-            border-radius:
-                15px;
-
-            background:
-                #090c11;
-
-            text-align:
-                center;
-
-            cursor:
-                pointer;
-        }
-
-        .public-checkout-file:hover {
-            border-color:
-                rgba(245,190,52,.6);
-        }
-
-        .public-checkout-file input {
-            position:
-                absolute;
-
-            width:
-                1px;
-
-            height:
-                1px;
-
-            opacity:
-                0;
-        }
-
-        .public-checkout-file strong {
-            display:
-                block;
-
-            font-size:
-                14px;
-        }
-
-        .public-checkout-file small {
-            display:
-                block;
-
-            margin-top:
-                6px;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                11px;
-
-            line-height:
-                1.5;
-        }
-
-        .public-checkout-file-name {
-            margin-top:
-                8px;
-
-            color:
-                #f5be34;
-
-            font-size:
-                12px;
-
-            word-break:
-                break-word;
-        }
-
-        .public-checkout-button {
-            width:
-                100%;
-
-            min-height:
-                54px;
-
-            border:
-                0;
-
-            border-radius:
-                13px;
-
-            background:
-                #f5be34;
-
-            color:
-                #111318;
-
-            font:
-                inherit;
-
-            font-weight:
-                850;
-
-            cursor:
-                pointer;
-        }
-
-        .public-checkout-button:disabled {
-            opacity:
-                .55;
-
-            cursor:
-                wait;
-        }
-
-        .public-checkout-alert {
-            display:
-                none;
-
-            padding:
-                13px 15px;
-
-            border-radius:
-                12px;
-
-            font-size:
-                13px;
-
-            line-height:
-                1.55;
-        }
-
-        .public-checkout-alert.show {
-            display:
-                block;
-        }
-
-        .public-checkout-alert.error {
-            border:
-                1px solid
-                rgba(255,119,119,.25);
-
-            background:
-                rgba(255,119,119,.07);
-
-            color:
-                #ffadad;
-        }
-
-        .public-checkout-alert.warning {
-            border:
-                1px solid
-                rgba(242,189,85,.25);
-
-            background:
-                rgba(242,189,85,.07);
-
-            color:
-                #f5cc82;
-        }
-
-        .public-checkout-state {
-            padding:
-                65px 28px;
-
-            text-align:
-                center;
-        }
-
-        .public-checkout-state-icon {
-            width:
-                60px;
-
-            height:
-                60px;
-
-            margin:
-                0 auto 18px;
-
-            display:
-                grid;
-
-            place-items:
-                center;
-
-            border-radius:
-                50%;
-
-            background:
-                #1b2029;
-
-            font-size:
-                23px;
-
-            font-weight:
-                900;
-        }
-
-        .public-checkout-state.success
-        .public-checkout-state-icon {
-            color:
-                #49d18d;
-
-            background:
-                rgba(73,209,141,.11);
-        }
-
-        .public-checkout-state.error
-        .public-checkout-state-icon {
-            color:
-                #ff7777;
-
-            background:
-                rgba(255,119,119,.11);
-        }
-
-        .public-checkout-state.warning
-        .public-checkout-state-icon {
-            color:
-                #f2bd55;
-
-            background:
-                rgba(242,189,85,.11);
-        }
-
-        .public-checkout-state h1 {
-            margin:
-                0;
-
-            font-size:
-                25px;
-
-            letter-spacing:
-                -.035em;
-        }
-
-        .public-checkout-state p {
-            max-width:
-                500px;
-
-            margin:
-                10px auto 0;
-
-            color:
-                #8e98a9;
-
-            font-size:
-                14px;
-
-            line-height:
-                1.65;
-        }
-
-        .public-checkout-loading {
-            padding:
-                80px 25px;
-
-            text-align:
-                center;
-        }
-
-        .public-checkout-spinner {
-            width:
-                38px;
-
-            height:
-                38px;
-
-            margin:
-                0 auto 18px;
-
-            border:
-                3px solid #292f39;
-
-            border-top-color:
-                #f5be34;
-
-            border-radius:
-                50%;
-
-            animation:
-                honey-checkout-spin
-                .8s linear infinite;
-        }
-
-        @keyframes honey-checkout-spin {
-
-            to {
-                transform:
-                    rotate(360deg);
-            }
-
-        }
-
-        .public-checkout-footer {
-            margin-top:
-                20px;
-
-            color:
-                #687184;
-
-            text-align:
-                center;
-
-            font-size:
-                10px;
-
-            line-height:
-                1.6;
-        }
-
-        @media (max-width: 600px) {
-
-            .public-checkout {
-                padding:
-                    16px 11px 35px;
-            }
-
-            .public-checkout-content {
-                padding:
-                    21px;
-            }
-
-            .public-checkout-secure {
-                display:
-                    none;
-            }
-
-            .public-checkout-meta {
-                grid-template-columns:
-                    1fr;
-            }
-
-            .public-checkout-bank-row {
-                display:
-                    grid;
-
-                gap:
-                    5px;
-            }
-
-            .public-checkout-bank-row strong {
-                text-align:
-                    left;
-            }
-
-            .public-checkout-copy {
-                margin:
-                    5px 0 0;
-            }
-
-        }
-
-    </style>
 
 </head>
 
@@ -1012,6 +109,10 @@
     ></div>
 
 
+    <!-- ====================================================
+         SIDEBAR
+    ===================================================== -->
+
     <aside
         id="app-sidebar"
         class="app-sidebar"
@@ -1079,6 +180,10 @@
 
         </div>
 
+
+        <!-- =================================================
+             NAVIGATION
+        ================================================== -->
 
         <nav
             class="sidebar-navigation"
@@ -1178,7 +283,7 @@
                 </span>
 
                 <span
-                    id="dashboard-pending-payments"
+                    id="dashboard-pending-payments-nav"
                     class="nav-counter"
                 >
                     0
@@ -1228,6 +333,10 @@
         </nav>
 
 
+        <!-- =================================================
+             SIDEBAR FOOTER
+        ================================================== -->
+
         <div class="sidebar-footer">
 
             <div class="sidebar-security">
@@ -1268,8 +377,16 @@
     </aside>
 
 
+    <!-- ====================================================
+         MAIN APPLICATION
+    ===================================================== -->
+
     <main class="app-main">
 
+
+        <!-- =================================================
+             TOPBAR
+        ================================================== -->
 
         <header class="topbar">
 
@@ -1322,6 +439,7 @@
 
                 </button>
 
+
                 <div class="topbar-divider"></div>
 
 
@@ -1361,12 +479,16 @@
         </header>
 
 
+        <!-- =================================================
+             PAGE CONTENT
+        ================================================== -->
+
         <div class="page-content">
 
 
             <!-- =================================================
                  DASHBOARD
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section active-view"
@@ -1416,6 +538,10 @@
 
                 </div>
 
+
+                <!-- =================================================
+                     METRICS
+                ================================================== -->
 
                 <div class="metrics-grid">
 
@@ -1539,6 +665,7 @@
                         0
                     </span>
 
+
                     <span
                         id="dashboard-cancelled-invoices"
                         hidden
@@ -1550,7 +677,12 @@
                 </div>
 
 
+                <!-- =================================================
+                     DASHBOARD GRID
+                ================================================== -->
+
                 <div class="dashboard-grid">
+
 
                     <article class="workspace-card">
 
@@ -1576,6 +708,7 @@
 
 
                         <div class="flow-list">
+
 
                             <div class="flow-item">
 
@@ -1664,6 +797,7 @@
 
                             </div>
 
+
                         </div>
 
                     </article>
@@ -1751,8 +885,13 @@
 
                     </article>
 
+
                 </div>
 
+
+                <!-- =================================================
+                     VALUE BANNER
+                ================================================== -->
 
                 <div class="value-banner">
 
@@ -1794,12 +933,13 @@
 
                 </div>
 
+
             </section>
 
 
             <!-- =================================================
                  PAYMENTS
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -1855,7 +995,7 @@
 
             <!-- =================================================
                  INVOICES
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -1917,7 +1057,7 @@
 
             <!-- =================================================
                  BANK ACCOUNTS
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -2001,7 +1141,7 @@
 
             <!-- =================================================
                  PROOFS
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -2075,7 +1215,7 @@
 
             <!-- =================================================
                  PLANS
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -2179,6 +1319,7 @@
                         <div class="pricing-popular">
                             Mais escolhido
                         </div>
+
 
                         <div class="pricing-card-header">
 
@@ -2325,7 +1466,7 @@
 
             <!-- =================================================
                  SETTINGS
-            ================================================= -->
+            ================================================== -->
 
             <section
                 class="view-section"
@@ -2471,6 +1612,10 @@
         </div>
 
 
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
         <footer class="app-footer">
 
             <span>
@@ -2500,7 +1645,7 @@
 
 
 <!-- ========================================================
-     TOASTS
+     TOAST CONTAINER
 ======================================================== -->
 
 <div
@@ -2521,1895 +1666,135 @@
 
 
 <!-- ========================================================
-     APPLICATION
-======================================================== -->
-
-<script
-    type="module"
-    src="/frontend/app.js"
-></script>
-
-
-<!-- ========================================================
-     PUBLIC CHECKOUT ENGINE
+     APPLICATION BOOT
 ======================================================== -->
 
 <script type="module">
 
-    import {
-        getPublicCheckout,
-        createPublicPaymentIntent,
-        getPublicPaymentStatus
-    } from "/frontend/app.js";
-
-
-    const Checkout = {
-
-        token:
-            null,
-
-        invoice:
-            null,
-
-        payment:
-            null,
-
-        pollingTimer:
-            null,
-
-        polling:
-            false,
-
-        pollAttempts:
-            0,
-
-        maxPollAttempts:
-            240,
-
-        pollInterval:
-            5000
-
-    };
-
-
-    function escapeHtml(value) {
-
-        return String(value ?? "")
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-            .replace(
-                /</g,
-                "&lt;"
-            )
-            .replace(
-                />/g,
-                "&gt;"
-            )
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-            .replace(
-                /'/g,
-                "&#039;"
-            );
-
-    }
-
-
-    function formatMoney(
-        amount,
-        currency = "AOA"
-    ) {
-
-        const value =
-            Number(amount);
-
-        if (
-            !Number.isFinite(value)
-        ) {
-            return "—";
-        }
-
-        try {
-
-            return new Intl.NumberFormat(
-                "pt-PT",
-                {
-                    style:
-                        "currency",
-
-                    currency:
-                        currency,
-
-                    minimumFractionDigits:
-                        2,
-
-                    maximumFractionDigits:
-                        2
-                }
-            ).format(value);
-
-        }
-
-        catch {
-
-            return `${value.toLocaleString(
-                "pt-PT"
-            )} ${currency}`;
-
-        }
-
-    }
-
-
-    function formatDate(
-        value
-    ) {
-
-        if (!value) {
-            return "—";
-        }
-
-        const date =
-            new Date(value);
-
-        if (
-            Number.isNaN(
-                date.getTime()
-            )
-        ) {
-            return "—";
-        }
-
-        return new Intl.DateTimeFormat(
-            "pt-PT",
-            {
-                dateStyle:
-                    "medium",
-
-                timeStyle:
-                    "short"
-            }
-        ).format(date);
-
-    }
-
-
-    function getPublicToken() {
-
-        const parts =
-            window.location.pathname
-                .split("/")
-                .filter(Boolean);
-
-        const index =
-            parts.findIndex(
-                value =>
-                    value.toLowerCase() ===
-                    "pay"
-            );
-
-        if (
-            index < 0 ||
-            !parts[index + 1]
-        ) {
-            return null;
-        }
-
-        return decodeURIComponent(
-            parts[index + 1]
-        );
-
-    }
-
-
-    function isCheckoutRoute() {
-
-        return Boolean(
-            getPublicToken()
-        );
-
-    }
-
-
-    function root() {
-
-        return document.getElementById(
-            "public-checkout-root"
-        );
-
-    }
-
-
-    function shell(
-        content
-    ) {
-
-        root().innerHTML = `
-
-            <main class="public-checkout">
-
-                <div class="public-checkout-container">
-
-                    <header
-                        class="public-checkout-header"
-                    >
-
-                        <div
-                            class="public-checkout-brand"
-                        >
-
-                            <div
-                                class="public-checkout-logo"
-                            >
-                                H
-                            </div>
-
-                            <div>
-
-                                <strong>
-                                    Honey Pay
-                                </strong>
-
-                                <span>
-                                    Pagamento seguro
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        <div
-                            class="public-checkout-secure"
-                        >
-
-                            <span
-                                class="public-checkout-secure-dot"
-                            ></span>
-
-                            Ligação segura
-
-                        </div>
-
-                    </header>
-
-
-                    <section
-                        class="public-checkout-card"
-                    >
-
-                        ${content}
-
-                    </section>
-
-
-                    <footer
-                        class="public-checkout-footer"
-                    >
-
-                        Este pagamento é processado
-                        através da plataforma Honey Pay.
-                        A confirmação depende da
-                        verificação do comprovativo.
-
-                    </footer>
-
-                </div>
-
-            </main>
-
-        `;
-
-    }
-
-
-    function loading() {
-
-        shell(`
-
-            <div
-                class="public-checkout-loading"
-            >
-
-                <div
-                    class="public-checkout-spinner"
-                ></div>
-
-                <strong>
-                    A carregar a cobrança...
-                </strong>
-
-                <p
-                    style="
-                        color:#8e98a9;
-                        font-size:13px;
-                        margin:8px 0 0;
-                    "
-                >
-                    A validar o link de pagamento.
-                </p>
-
-            </div>
-
-        `);
-
-    }
-
-
-    function stateScreen(
-        type,
-        icon,
-        title,
-        message,
-        extra = ""
-    ) {
-
-        shell(`
-
-            <div
-                class="
-                    public-checkout-state
-                    ${escapeHtml(type)}
-                "
-            >
-
-                <div
-                    class="public-checkout-state-icon"
-                >
-                    ${escapeHtml(icon)}
-                </div>
-
-                <h1>
-                    ${escapeHtml(title)}
-                </h1>
-
-                <p>
-                    ${escapeHtml(message)}
-                </p>
-
-                ${
-                    extra
-                        ? `
-                            <p>
-                                ${escapeHtml(extra)}
-                            </p>
-                        `
-                        : ""
-                }
-
-            </div>
-
-        `);
-
-    }
-
-
-    function renderBank(
-        account
-    ) {
-
-        if (!account) {
-
-            return `
-
-                <div
-                    class="
-                        public-checkout-alert
-                        error
-                        show
-                    "
-                >
-                    O comerciante não possui
-                    uma conta bancária disponível.
-                </div>
-
-            `;
-
-        }
-
-        const rows = [];
-
-
-        if (account.accountName) {
-
-            rows.push(`
-
-                <div
-                    class="public-checkout-bank-row"
-                >
-
-                    <span>
-                        Conta
-                    </span>
-
-                    <strong>
-                        ${escapeHtml(
-                            account.accountName
-                        )}
-                    </strong>
-
-                </div>
-
-            `);
-
-        }
-
-
-        if (account.bankName) {
-
-            rows.push(`
-
-                <div
-                    class="public-checkout-bank-row"
-                >
-
-                    <span>
-                        Banco
-                    </span>
-
-                    <strong>
-                        ${escapeHtml(
-                            account.bankName
-                        )}
-                    </strong>
-
-                </div>
-
-            `);
-
-        }
-
-
-        if (account.iban) {
-
-            rows.push(`
-
-                <div
-                    class="public-checkout-bank-row"
-                >
-
-                    <span>
-                        IBAN
-                    </span>
-
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(
-                                account.iban
-                            )}
-                        </strong>
-
-                        <button
-                            type="button"
-                            class="public-checkout-copy"
-                            data-copy-value="${escapeHtml(
-                                account.iban
-                            )}"
-                        >
-                            Copiar IBAN
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `);
-
-        }
-
-
-        if (account.accountNumber) {
-
-            rows.push(`
-
-                <div
-                    class="public-checkout-bank-row"
-                >
-
-                    <span>
-                        Número da conta
-                    </span>
-
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(
-                                account.accountNumber
-                            )}
-                        </strong>
-
-                        <button
-                            type="button"
-                            class="public-checkout-copy"
-                            data-copy-value="${escapeHtml(
-                                account.accountNumber
-                            )}"
-                        >
-                            Copiar número
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `);
-
-        }
-
-
-        return `
-
-            <div
-                class="public-checkout-bank"
-            >
-
-                <div
-                    class="public-checkout-bank-name"
-                >
-                    Dados para transferência
-                </div>
-
-                ${rows.join("")}
-
-            </div>
-
-        `;
-
-    }
-
-
-    function renderCheckout() {
-
-        const invoice =
-            Checkout.invoice;
-
-        const payment =
-            Checkout.payment;
-
-
-        if (!invoice) {
-
-            stateScreen(
-                "error",
-                "!",
-                "Cobrança indisponível",
-                "Não foi possível carregar esta cobrança."
-            );
-
-            return;
-
-        }
-
-
-        if (
-            invoice.status ===
-            "paid" ||
-            payment?.status ===
-            "confirmed"
-        ) {
-
-            stopPolling();
-
-            stateScreen(
-                "success",
-                "✓",
-                "Pagamento confirmado",
-                "Esta cobrança já foi paga e confirmada.",
-                payment?.paidAt
-                    ? `Confirmado em ${formatDate(
-                        payment.paidAt
-                    )}.`
-                    : ""
-            );
-
-            return;
-
-        }
-
-
-        if (
-            invoice.status ===
-            "expired"
-        ) {
-
-            stopPolling();
-
-            stateScreen(
-                "warning",
-                "!",
-                "Cobrança expirada",
-                "Este link de pagamento já não está disponível.",
-                invoice.expiresAt
-                    ? `Expirou em ${formatDate(
-                        invoice.expiresAt
-                    )}.`
-                    : ""
-            );
-
-            return;
-
-        }
-
-
-        if (
-            invoice.status ===
-            "cancelled"
-        ) {
-
-            stopPolling();
-
-            stateScreen(
-                "error",
-                "×",
-                "Cobrança cancelada",
-                "O comerciante cancelou esta cobrança."
-            );
-
-            return;
-
-        }
-
-
-        if (
-            payment?.status ===
-            "pending_review"
-        ) {
-
-            stateScreen(
-                "warning",
-                "…",
-                "Pagamento em análise",
-                "O comprovativo foi recebido e está a aguardar verificação.",
-                "Não é necessário enviar novamente."
-            );
-
-            startPolling();
-
-            return;
-
-        }
-
-
-        const merchant =
-            invoice.merchant?.businessName ||
-            "Comerciante";
-
-
-        shell(`
-
-            <div
-                class="public-checkout-content"
-            >
-
-                <div
-                    class="public-checkout-merchant"
-                >
-
-                    Pagamento para
-                    <strong>
-                        ${escapeHtml(
-                            merchant
-                        )}
-                    </strong>
-
-                </div>
-
-
-                <h1
-                    class="public-checkout-title"
-                >
-                    ${escapeHtml(
-                        invoice.description ||
-                        "Cobrança Honey Pay"
-                    )}
-                </h1>
-
-
-                <p
-                    class="public-checkout-description"
-                >
-
-                    Faça a transferência para
-                    a conta indicada e envie
-                    o comprovativo para concluir
-                    o processo.
-
-                </p>
-
-
-                <div
-                    class="public-checkout-amount"
-                >
-
-                    <div
-                        class="public-checkout-label"
-                    >
-                        Valor a pagar
-                    </div>
-
-                    <div
-                        class="public-checkout-value"
-                    >
-                        ${escapeHtml(
-                            formatMoney(
-                                invoice.amount,
-                                invoice.currency
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-
-                <div
-                    class="public-checkout-meta"
-                >
-
-                    <div
-                        class="public-checkout-meta-item"
-                    >
-
-                        <span>
-                            Referência
-                        </span>
-
-                        <strong>
-                            ${escapeHtml(
-                                invoice.invoiceNumber ||
-                                invoice.publicId ||
-                                "—"
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div
-                        class="public-checkout-meta-item"
-                    >
-
-                        <span>
-                            Válida até
-                        </span>
-
-                        <strong>
-                            ${escapeHtml(
-                                formatDate(
-                                    invoice.expiresAt
-                                )
-                            )}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <section
-                    class="public-checkout-section"
-                >
-
-                    <h2>
-                        1. Faça a transferência
-                    </h2>
-
-                    ${renderBank(
-                        invoice.bankAccount
-                    )}
-
-                </section>
-
-
-                <section
-                    class="public-checkout-section"
-                >
-
-                    <h2>
-                        2. Envie o comprovativo
-                    </h2>
-
-
-                    <div
-                        id="public-checkout-alert"
-                        class="public-checkout-alert"
-                        role="alert"
-                    ></div>
-
-
-                    <form
-                        id="public-checkout-form"
-                        class="public-checkout-form"
-                    >
-
-                        <div
-                            class="public-checkout-field"
-                        >
-
-                            <label
-                                for="checkout-payer-name"
-                            >
-                                Nome do pagador
-                            </label>
-
-                            <input
-                                id="checkout-payer-name"
-                                name="payerName"
-                                type="text"
-                                maxlength="180"
-                                autocomplete="name"
-                                value="${escapeHtml(
-                                    invoice.customerName ||
-                                    ""
-                                )}"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div
-                            class="public-checkout-field"
-                        >
-
-                            <label
-                                for="checkout-payer-phone"
-                            >
-                                Telefone
-                            </label>
-
-                            <input
-                                id="checkout-payer-phone"
-                                name="payerPhone"
-                                type="tel"
-                                maxlength="40"
-                                autocomplete="tel"
-                                placeholder="+244..."
-                            >
-
-                        </div>
-
-
-                        <div
-                            class="public-checkout-field"
-                        >
-
-                            <label
-                                for="checkout-reference"
-                            >
-                                Referência da transferência
-                            </label>
-
-                            <input
-                                id="checkout-reference"
-                                name="reference"
-                                type="text"
-                                maxlength="180"
-                                placeholder="Opcional"
-                            >
-
-                        </div>
-
-
-                        <div
-                            class="public-checkout-field"
-                        >
-
-                            <span>
-                                Comprovativo
-                            </span>
-
-
-                            <label
-                                class="public-checkout-file"
-                            >
-
-                                <input
-                                    id="checkout-proof"
-                                    type="file"
-                                    accept="
-                                        image/jpeg,
-                                        image/png,
-                                        image/webp,
-                                        application/pdf
-                                    "
-                                    required
-                                >
-
-                                <strong>
-                                    Selecionar comprovativo
-                                </strong>
-
-                                <small>
-                                    PDF, JPG, PNG ou WebP.
-                                    Máximo 10 MB.
-                                </small>
-
-                                <div
-                                    id="checkout-file-name"
-                                    class="public-checkout-file-name"
-                                >
-                                    Nenhum ficheiro selecionado
-                                </div>
-
-                            </label>
-
-                        </div>
-
-
-                        <div
-                            class="public-checkout-field"
-                        >
-
-                            <label
-                                for="checkout-note"
-                            >
-                                Observação
-                            </label>
-
-                            <textarea
-                                id="checkout-note"
-                                name="note"
-                                maxlength="1000"
-                                placeholder="Opcional"
-                            ></textarea>
-
-                        </div>
-
-
-                        <button
-                            id="checkout-submit"
-                            class="public-checkout-button"
-                            type="submit"
-                        >
-                            Enviar comprovativo
-                        </button>
-
-                    </form>
-
-                </section>
-
-            </div>
-
-        `);
-
-
-        bindCheckoutEvents();
-
-    }
-
-
-    function showCheckoutAlert(
-        message,
-        type = "error"
-    ) {
-
-        const element =
-            document.getElementById(
-                "public-checkout-alert"
-            );
-
-        if (!element) {
-            return;
-        }
-
-        element.textContent =
-            message;
-
-        element.className =
-            `
-                public-checkout-alert
-                ${type}
-                show
-            `;
-
-    }
-
-
-    function bindCheckoutEvents() {
-
-
-        document
-            .querySelectorAll(
-                "[data-copy-value]"
-            )
-            .forEach(
-                button => {
-
-                    button.addEventListener(
-                        "click",
-                        async () => {
-
-                            const value =
-                                button.dataset.copyValue;
-
-                            try {
-
-                                await navigator.clipboard.writeText(
-                                    value
-                                );
-
-                                button.textContent =
-                                    "Copiado";
-
-                                setTimeout(
-                                    () => {
-                                        button.textContent =
-                                            "Copiar";
-                                    },
-                                    1500
-                                );
-
-                            }
-
-                            catch {
-
-                                window.prompt(
-                                    "Copie o valor:",
-                                    value
-                                );
-
-                            }
-
-                        }
-                    );
-
-                }
-            );
-
-
-        const file =
-            document.getElementById(
-                "checkout-proof"
-            );
-
-        const fileName =
-            document.getElementById(
-                "checkout-file-name"
-            );
-
-
-        file?.addEventListener(
-            "change",
-            () => {
-
-                const selected =
-                    file.files?.[0];
-
-                fileName.textContent =
-                    selected
-                        ? `${selected.name} — ${formatFileSize(
-                            selected.size
-                        )}`
-                        : "Nenhum ficheiro selecionado";
-
-            }
-        );
-
-
-        document
-            .getElementById(
-                "public-checkout-form"
-            )
-            ?.addEventListener(
-                "submit",
-                submitProof
-            );
-
-    }
-
-
-    function formatFileSize(
-        bytes
-    ) {
-
-        if (
-            bytes < 1024
-        ) {
-            return `${bytes} B`;
-        }
-
-        if (
-            bytes <
-            1024 * 1024
-        ) {
-            return `${(
-                bytes / 1024
-            ).toFixed(1)} KB`;
-        }
-
-        return `${(
-            bytes /
-            (1024 * 1024)
-        ).toFixed(2)} MB`;
-
-    }
-
-
-    function validateFile(
-        file
-    ) {
-
-        if (!file) {
-
-            throw new Error(
-                "Selecione o comprovativo da transferência."
-            );
-
-        }
-
-
-        if (
-            file.size <= 0
-        ) {
-
-            throw new Error(
-                "O ficheiro selecionado está vazio."
-            );
-
-        }
-
-
-        if (
-            file.size >
-            10 * 1024 * 1024
-        ) {
-
-            throw new Error(
-                "O comprovativo não pode ultrapassar 10 MB."
-            );
-
-        }
-
-
-        const allowed =
-            new Set([
-                "image/jpeg",
-                "image/png",
-                "image/webp",
-                "application/pdf"
-            ]);
-
-
-        if (
-            !allowed.has(
-                file.type
-            )
-        ) {
-
-            throw new Error(
-                "Formato não suportado. Envie PDF, JPG, PNG ou WebP."
-            );
-
-        }
-
-    }
-
-
-    function fileToBase64(
-        file
-    ) {
-
-        return new Promise(
-            (
-                resolve,
-                reject
-            ) => {
-
-                const reader =
-                    new FileReader();
-
-
-                reader.onload =
-                    () => {
-
-                        const value =
-                            String(
-                                reader.result ||
-                                ""
-                            );
-
-                        const comma =
-                            value.indexOf(",");
-
-                        resolve(
-                            comma >= 0
-                                ? value.slice(
-                                    comma + 1
-                                )
-                                : value
-                        );
-
-                    };
-
-
-                reader.onerror =
-                    () => {
-
-                        reject(
-                            new Error(
-                                "Não foi possível ler o comprovativo."
-                            )
-                        );
-
-                    };
-
-
-                reader.readAsDataURL(
-                    file
-                );
-
-            }
-        );
-
-    }
-
-
-    async function submitProof(
-        event
-    ) {
-
-        event.preventDefault();
-
-
-        const form =
-            event.currentTarget;
-
-        const file =
-            document.getElementById(
-                "checkout-proof"
-            )?.files?.[0];
-
-        const button =
-            document.getElementById(
-                "checkout-submit"
-            );
-
-
-        try {
-
-            validateFile(
-                file
-            );
-
-
-            if (
-                !Checkout.payment?.id
-            ) {
-
-                throw new Error(
-                    "O pagamento ainda não foi iniciado."
-                );
-
-            }
-
-
-            button.disabled =
-                true;
-
-            button.textContent =
-                "A preparar comprovativo...";
-
-
-            showCheckoutAlert(
-                "A preparar o comprovativo...",
-                "warning"
-            );
-
-
-            const fileData =
-                await fileToBase64(
-                    file
-                );
-
-
-            const payerName =
-                document.getElementById(
-                    "checkout-payer-name"
-                )?.value
-                    ?.trim() ||
-                "";
-
-
-            const payerPhone =
-                document.getElementById(
-                    "checkout-payer-phone"
-                )?.value
-                    ?.trim() ||
-                "";
-
-
-            const reference =
-                document.getElementById(
-                    "checkout-reference"
-                )?.value
-                    ?.trim() ||
-                "";
-
-
-            const note =
-                document.getElementById(
-                    "checkout-note"
-                )?.value
-                    ?.trim() ||
-                "";
-
-
-            button.textContent =
-                "A enviar comprovativo...";
-
-
-            showCheckoutAlert(
-                "A enviar o comprovativo...",
-                "warning"
-            );
-
-
-            const response =
-                await fetch(
-                    `/api/pay/${encodeURIComponent(
-                        Checkout.token
-                    )}/proof`,
-                    {
-
-                        method:
-                            "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-
-                            Accept:
-                                "application/json"
-                        },
-
-                        credentials:
-                            "same-origin",
-
-                        body:
-                            JSON.stringify({
-
-                                fileName:
-                                    file.name,
-
-                                mimeType:
-                                    file.type,
-
-                                fileSize:
-                                    file.size,
-
-                                fileData,
-
-                                payerName,
-
-                                payerPhone,
-
-                                reference,
-
-                                note
-
-                            })
-
-                    }
-                );
-
-
-            let data =
-                null;
-
-
-            try {
-
-                data =
-                    await response.json();
-
-            }
-
-            catch {
-
-                data =
-                    null;
-
-            }
-
-
-            if (
-                !response.ok
-            ) {
-
-                throw new Error(
-                    data?.message ||
-                    data?.error?.message ||
-                    "Não foi possível enviar o comprovativo."
-                );
-
-            }
-
-
-            stateScreen(
-                "warning",
-                "…",
-                "Comprovativo enviado",
-                "Recebemos o seu comprovativo. O comerciante irá verificar o pagamento.",
-                "Não é necessário enviar o comprovativo novamente."
-            );
-
-
-            startPolling();
-
-        }
-
-        catch (
-            error
-        ) {
-
-            button.disabled =
-                false;
-
-            button.textContent =
-                "Enviar comprovativo";
-
-
-            showCheckoutAlert(
-                error?.message ||
-                "Não foi possível enviar o comprovativo.",
-                "error"
-            );
-
-        }
-
-    }
-
-
-    async function createPayment() {
-
-        const result =
-            await createPublicPaymentIntent(
-                Checkout.token,
-                {
-                    customerName:
-                        Checkout.invoice
-                            ?.customerName ||
-                        null,
-
-                    customerEmail:
-                        null
-                }
-            );
-
-
-        if (
-            !result?.payment
-        ) {
-
-            throw new Error(
-                "O servidor não devolveu um pagamento válido."
-            );
-
-        }
-
-
-        Checkout.payment =
-            result.payment;
-
-    }
-
-
-    async function load() {
-
-        loading();
-
-
-        try {
-
-            Checkout.token =
-                getPublicToken();
-
-
-            const result =
-                await getPublicCheckout(
-                    Checkout.token
-                );
-
-
-            if (
-                !result?.invoice
-            ) {
-
-                throw new Error(
-                    "A cobrança não devolveu dados válidos."
-                );
-
-            }
-
-
-            Checkout.invoice =
-                result.invoice;
-
-
-            Checkout.payment =
-                result.payment ||
-                null;
-
-
-            if (
-                Checkout.payment?.status ===
-                "confirmed"
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            if (
-                Checkout.invoice.status ===
-                "paid"
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            if (
-                Checkout.invoice.status ===
-                "expired"
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            if (
-                Checkout.invoice.status ===
-                "cancelled"
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            if (
-                Checkout.payment?.status ===
-                "pending"
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            if (
-                !result.available
-            ) {
-
-                renderCheckout();
-
-                return;
-
-            }
-
-
-            await createPayment();
-
-
-            renderCheckout();
-
-        }
-
-        catch (
-            error
-        ) {
-
-            const code =
-                error?.code ||
-                "";
-
-
-            if (
-                code ===
-                "INVOICE_NOT_FOUND"
-            ) {
-
-                stateScreen(
-                    "error",
-                    "!",
-                    "Cobrança não encontrada",
-                    "Este link de pagamento não corresponde a uma cobrança válida."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                code ===
-                "INVOICE_EXPIRED"
-            ) {
-
-                stateScreen(
-                    "warning",
-                    "!",
-                    "Cobrança expirada",
-                    "Esta cobrança já não pode receber pagamentos."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                code ===
-                "INVOICE_ALREADY_PAID"
-            ) {
-
-                stateScreen(
-                    "success",
-                    "✓",
-                    "Cobrança já paga",
-                    "Esta cobrança já foi confirmada."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                code ===
-                "BANK_ACCOUNT_UNAVAILABLE"
-            ) {
-
-                stateScreen(
-                    "warning",
-                    "!",
-                    "Pagamento temporariamente indisponível",
-                    "O comerciante ainda não possui uma conta bancária de recebimento ativa."
-                );
-
-                return;
-
-            }
-
-
-            stateScreen(
-                "error",
-                "!",
-                "Não foi possível abrir a cobrança",
-                error?.message ||
-                "Ocorreu um erro ao carregar o checkout."
-            );
-
-        }
-
-    }
-
-
-    function startPolling() {
-
-        stopPolling();
-
-
-        if (
-            !Checkout.payment?.id
-        ) {
-            return;
-        }
-
-
-        Checkout.polling =
-            true;
-
-        Checkout.pollAttempts =
-            0;
-
-
-        Checkout.pollingTimer =
-            setTimeout(
-                poll,
-                Checkout.pollInterval
-            );
-
-    }
-
-
-    function stopPolling() {
-
-        Checkout.polling =
-            false;
-
-
-        if (
-            Checkout.pollingTimer
-        ) {
-
-            clearTimeout(
-                Checkout.pollingTimer
-            );
-
-            Checkout.pollingTimer =
-                null;
-
-        }
-
-    }
-
-
-    async function poll() {
-
-        if (
-            !Checkout.polling
-        ) {
-            return;
-        }
-
-
-        if (
-            Checkout.pollAttempts >=
-            Checkout.maxPollAttempts
-        ) {
-
-            stopPolling();
-
-            return;
-
-        }
-
-
-        Checkout.pollAttempts +=
-            1;
-
-
-        try {
-
-            const result =
-                await getPublicPaymentStatus(
-                    Checkout.token,
-                    Checkout.payment.id
-                );
-
-
-            if (
-                result
-            ) {
-
-                Checkout.payment =
-                    {
-                        ...Checkout.payment,
-                        ...result
-                    };
-
-
-                if (
-                    result.status ===
-                    "confirmed"
-                ) {
-
-                    stopPolling();
-
-
-                    stateScreen(
-                        "success",
-                        "✓",
-                        "Pagamento confirmado",
-                        "O comerciante confirmou o pagamento desta cobrança.",
-                        result.paidAt
-                            ? `Confirmado em ${formatDate(
-                                result.paidAt
-                            )}.`
-                            : ""
-                    );
-
-
-                    return;
-
-                }
-
-
-                if (
-                    result.status ===
-                    "rejected"
-                ) {
-
-                    stopPolling();
-
-
-                    stateScreen(
-                        "error",
-                        "×",
-                        "Comprovativo rejeitado",
-                        "O comprovativo enviado foi rejeitado pelo comerciante.",
-                        "Contacte o comerciante para saber como proceder."
-                    );
-
-
-                    return;
-
-                }
-
-            }
-
-        }
-
-        catch {
-            /*
-             * Falhas transitórias de consulta
-             * não cancelam o pagamento.
-             */
-        }
-
-
-        Checkout.pollingTimer =
-            setTimeout(
-                poll,
-                Checkout.pollInterval
-            );
-
-    }
-
-
-    async function initializePublicCheckout() {
-
-        if (
-            !isCheckoutRoute()
-        ) {
-
-            return;
-
-        }
-
+    const path =
+        window.location.pathname
+            .replace(/\/+$/, "");
+
+
+    const parts =
+        path
+            .split("/")
+            .filter(Boolean);
+
+
+    const isPublicCheckout =
+        parts.length >= 2 &&
+        parts[0].toLowerCase() === "pay" &&
+        Boolean(parts[1]);
+
+
+    /*
+     * --------------------------------------------------------
+     * PUBLIC CHECKOUT
+     * --------------------------------------------------------
+     *
+     * Em /pay/:token carregamos somente o checkout.
+     *
+     * Não carregamos app.js nem auth-ui.js porque a página
+     * pública não deve iniciar a consola nem o sistema de
+     * autenticação do comerciante.
+     */
+
+    if (isPublicCheckout) {
 
         document.body.classList.add(
             "public-checkout-mode"
         );
 
-
         document.title =
             "Pagamento — Honey Pay";
 
+        const app =
+            document.getElementById(
+                "app"
+            );
 
-        await load();
+        const loader =
+            document.getElementById(
+                "app-loader"
+            );
 
-    }
+        const globalLoading =
+            document.querySelector(
+                ".global-loading"
+            );
+
+        const toast =
+            document.querySelector(
+                ".toast-container"
+            );
+
+        if (app) {
+            app.hidden = true;
+        }
+
+        if (loader) {
+            loader.remove();
+        }
+
+        if (globalLoading) {
+            globalLoading.remove();
+        }
+
+        if (toast) {
+            toast.remove();
+        }
 
 
-    if (
-        document.readyState ===
-        "loading"
-    ) {
-
-        document.addEventListener(
-            "DOMContentLoaded",
-            initializePublicCheckout,
-            {
-                once:
-                    true
-            }
+        import(
+            "/frontend/checkout.js"
         );
 
     }
+
+
+    /*
+     * --------------------------------------------------------
+     * PRIVATE HONEY PAY APPLICATION
+     * --------------------------------------------------------
+     *
+     * Na consola carregamos o motor principal e a camada
+     * de autenticação.
+     */
+
     else {
 
-        initializePublicCheckout();
+        Promise.all([
+
+            import(
+                "/frontend/app.js"
+            ),
+
+            import(
+                "/frontend/auth-ui.js"
+            )
+
+        ]).catch(
+            error => {
+
+                console.error(
+                    "[HONEY PAY BOOT]",
+                    error
+                );
+
+                const loader =
+                    document.getElementById(
+                        "app-loader"
+                    );
+
+                if (loader) {
+                    loader.classList.add(
+                        "loaded"
+                    );
+                }
+
+            }
+        );
 
     }
 
