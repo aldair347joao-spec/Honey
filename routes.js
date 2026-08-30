@@ -1,36 +1,8 @@
-/*
-============================================================
-HONEY PAY
-API ROUTES
-V1.0.0
-============================================================
-
-ROTAS PRINCIPAIS DA API
-
-------------------------------------------------------------
-PUBLIC
-------------------------------------------------------------
-GET  /api/health
-POST /api/auth/register
-POST /api/auth/login
-
-------------------------------------------------------------
-AUTHENTICATED
-------------------------------------------------------------
-GET  /api/auth/me
-POST /api/auth/change-password
-
-============================================================
-*/
-
 import express from "express";
 
 
 import {
-    registerMerchant,
-    loginMerchant,
-    getAuthenticatedProfile,
-    changeMerchantPassword
+    router as authRouter
 } from "./auth.js";
 
 
@@ -62,7 +34,21 @@ const router =
 
 /*
 ============================================================
-HEALTH CHECK
+HONEY PAY
+MAIN API ROUTES
+V2.0.0
+============================================================
+
+AUTHENTICATION:
+Google ONLY.
+
+============================================================
+*/
+
+
+/*
+============================================================
+HEALTH
 ============================================================
 */
 
@@ -79,6 +65,10 @@ router.get(
                 getDatabaseStatus();
 
 
+            const operational =
+                database?.connected === true;
+
+
             return successResponse(
                 res,
                 {
@@ -87,21 +77,30 @@ router.get(
                         "Honey Pay API",
 
                     version:
-                        "1.0.0",
+                        "2.0.0",
 
                     status:
-                        "operational",
+                        operational
+                            ? "operational"
+                            : "degraded",
 
                     database,
 
+                    authentication:
+                        "google",
+
                     timestamp:
-                        new Date().toISOString()
+                        new Date()
+                            .toISOString()
+
                 }
             );
 
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             const normalized =
                 normalizeError(
@@ -110,6 +109,7 @@ router.get(
 
 
             return errorResponse(
+
                 res,
 
                 normalized.statusCode,
@@ -117,177 +117,29 @@ router.get(
                 normalized.code,
 
                 normalized.message
+
             );
+
         }
+
     }
 );
 
 
 /*
 ============================================================
-REGISTER
+GOOGLE AUTH ROUTES
+============================================================
+
+/api/auth/google
+/api/auth/google/callback
+/api/auth/me
+
 ============================================================
 */
 
-router.post(
-    "/auth/register",
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const result =
-                await registerMerchant(
-                    req.body
-                );
-
-
-            return successResponse(
-                res,
-                result,
-                201
-            );
-
-        }
-
-        catch (error) {
-
-            const normalized =
-                normalizeError(
-                    error
-                );
-
-
-            return errorResponse(
-                res,
-
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message,
-
-                error.details ||
-                null
-            );
-        }
-    }
-);
-
-
-/*
-============================================================
-LOGIN
-============================================================
-*/
-
-router.post(
-    "/auth/login",
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const result =
-                await loginMerchant(
-                    req.body,
-                    {
-
-                        ip:
-                            req.ip,
-
-                        userAgent:
-                            req.get(
-                                "user-agent"
-                            )
-                    }
-                );
-
-
-            return successResponse(
-                res,
-                result
-            );
-
-        }
-
-        catch (error) {
-
-            const normalized =
-                normalizeError(
-                    error
-                );
-
-
-            return errorResponse(
-                res,
-
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message,
-
-                error.details ||
-                null
-            );
-        }
-    }
-);
-
-
-/*
-============================================================
-AUTHENTICATED PROFILE
-============================================================
-*/
-
-router.get(
-    "/auth/me",
-    authenticateRequest,
-    async (
-        req,
-        res
-    ) => {
-
-        try {
-
-            const result =
-                await getAuthenticatedProfile(
-                    req.auth.merchantId
-                );
-
-
-            return successResponse(
-                res,
-                result
-            );
-
-        }
-
-        catch (error) {
-
-            const normalized =
-                normalizeError(
-                    error
-                );
-
-
-            return errorResponse(
-                res,
-
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message
-            );
-        }
-    }
+router.use(
+    authRouter
 );
 
 
@@ -320,7 +172,9 @@ router.get(
 
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             const normalized =
                 normalizeError(
@@ -329,6 +183,7 @@ router.get(
 
 
             return errorResponse(
+
                 res,
 
                 normalized.statusCode,
@@ -336,78 +191,55 @@ router.get(
                 normalized.code,
 
                 normalized.message
+
             );
+
         }
+
     }
 );
 
 
 /*
 ============================================================
-CHANGE PASSWORD
+DEPRECATED PASSWORD ROUTES
+============================================================
+
+Bloqueamos explicitamente os antigos endpoints.
+
 ============================================================
 */
 
-router.post(
-    "/auth/change-password",
-    authenticateRequest,
-    async (
+router.all(
+    [
+        "/auth/register",
+        "/auth/login",
+        "/auth/change-password"
+    ],
+    (
         req,
         res
     ) => {
 
-        try {
+        return errorResponse(
 
-            const {
-                currentPassword,
-                newPassword
-            } =
-                req.body || {};
+            res,
 
+            410,
 
-            const result =
-                await changeMerchantPassword(
+            "PASSWORD_AUTH_DISABLED",
 
-                    req.auth.merchantId,
+            "A autenticação por email e password foi desativada. Entre exclusivamente com a sua conta Google."
 
-                    currentPassword,
+        );
 
-                    newPassword
-                );
-
-
-            return successResponse(
-                res,
-                result
-            );
-
-        }
-
-        catch (error) {
-
-            const normalized =
-                normalizeError(
-                    error
-                );
-
-
-            return errorResponse(
-                res,
-
-                normalized.statusCode,
-
-                normalized.code,
-
-                normalized.message
-            );
-        }
     }
 );
 
 
 /*
 ============================================================
-404 API FALLBACK
+API 404
 ============================================================
 */
 
@@ -418,6 +250,7 @@ router.use(
     ) => {
 
         return errorResponse(
+
             res,
 
             404,
@@ -425,19 +258,16 @@ router.use(
             "ROUTE_NOT_FOUND",
 
             "A rota solicitada não existe."
+
         );
+
     }
 );
 
 
 /*
 ============================================================
-GLOBAL ROUTE ERROR HANDLER
-============================================================
-
-Esta função fica no final do router.
-
-Erros inesperados não devem expor stack trace ao cliente.
+ROUTE ERROR
 ============================================================
 */
 
@@ -450,15 +280,9 @@ router.use(
     ) => {
 
         console.error(
-            "[API ERROR]",
+            "[API ROUTE ERROR]",
             error
         );
-
-
-        const normalized =
-            normalizeError(
-                error
-            );
 
 
         if (
@@ -468,10 +292,18 @@ router.use(
             return next(
                 error
             );
+
         }
 
 
+        const normalized =
+            normalizeError(
+                error
+            );
+
+
         return errorResponse(
+
             res,
 
             normalized.statusCode,
@@ -479,15 +311,11 @@ router.use(
             normalized.code,
 
             normalized.message
+
         );
+
     }
 );
 
-
-/*
-============================================================
-EXPORT
-============================================================
-*/
 
 export default router;
