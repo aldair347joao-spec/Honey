@@ -2,29 +2,42 @@
 ============================================================
 HONEY PAY
 CHECKOUT ROUTES
-V1.0.1
+V2.0.0
 ============================================================
 
-ROTAS PÚBLICAS DO CHECKOUT
+CHECKOUT PÚBLICO
+
+GET
+/api/checkout/:publicToken
+
+POST
+/api/checkout/:publicToken/payment-intent
+
+GET
+/api/checkout/:publicToken/payment/:paymentId
 
 ------------------------------------------------------------
-PUBLIC
+ARQUITECTURA
+
+Checkout
+   ↓
+PaymentIntent
+   ↓
+Transaction
+   ↓
+PaymentEvent
+   ↓
+Legacy Payment
+   ↓
+Proof / Verification
+
 ------------------------------------------------------------
+IMPORTANTE
 
-GET  /api/checkout/:publicToken
-POST /api/checkout/:publicToken/payment-intent
-GET  /api/checkout/:publicToken/payment/:paymentId
+O cliente nunca recebe dados internos do comerciante.
 
-------------------------------------------------------------
-INTERNAL
-------------------------------------------------------------
-
-A confirmação de pagamento NÃO é exposta através de uma
-rota pública.
-
-A confirmação deve ser executada pelo fluxo interno
-autorizado da plataforma.
-
+Nenhuma rota pública permite confirmar directamente
+um pagamento.
 ============================================================
 */
 
@@ -32,10 +45,14 @@ import express from "express";
 
 
 import {
-    getPublicCheckout,
-    createPaymentIntent,
-    getPublicPaymentStatus
+    getPublicCheckout
 } from "./checkout.js";
+
+
+import {
+    createCheckoutPaymentIntent,
+    getCheckoutPaymentStatus
+} from "./checkout-payment-intent.js";
 
 
 import {
@@ -57,7 +74,7 @@ const router =
 
 /*
 ============================================================
-ERROR RESPONSE
+ERROR HANDLER
 ============================================================
 */
 
@@ -82,9 +99,11 @@ function handleRouteError(
 
         normalized.message,
 
-        error.details ||
+        error?.details ||
         null
+
     );
+
 }
 
 
@@ -96,11 +115,6 @@ GET PUBLIC CHECKOUT
 GET
 
 /api/checkout/:publicToken
-
-Retorna somente os dados necessários para o cliente
-visualizar e efetuar o pagamento.
-
-Não exige autenticação.
 
 ============================================================
 */
@@ -116,15 +130,12 @@ router.get(
 
         try {
 
-            const {
-                publicToken
-            } =
-                req.params;
-
-
             const result =
                 await getPublicCheckout(
-                    publicToken
+
+                    req.params
+                        .publicToken
+
                 );
 
 
@@ -133,19 +144,27 @@ router.get(
                 res,
 
                 result
+
             );
+
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             return handleRouteError(
 
                 res,
 
                 error
+
             );
+
         }
+
     }
+
 );
 
 
@@ -157,10 +176,6 @@ CREATE PAYMENT INTENT
 POST
 
 /api/checkout/:publicToken/payment-intent
-
-Cria uma intenção de pagamento para a fatura.
-
-Não confirma o pagamento.
 
 ============================================================
 */
@@ -176,19 +191,27 @@ router.post(
 
         try {
 
-            const {
-                publicToken
-            } =
-                req.params;
-
-
             const result =
-                await createPaymentIntent(
+                await createCheckoutPaymentIntent(
 
-                    publicToken,
+                    req.params
+                        .publicToken,
 
                     req.body ||
-                    {}
+                    {},
+
+                    {
+
+                        idempotencyKey:
+                            req.get(
+                                "Idempotency-Key"
+                            ),
+
+                        requestId:
+                            req.requestId
+
+                    }
+
                 );
 
 
@@ -201,19 +224,27 @@ router.post(
                 result.created
                     ? 201
                     : 200
+
             );
+
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             return handleRouteError(
 
                 res,
 
                 error
+
             );
+
         }
+
     }
+
 );
 
 
@@ -226,8 +257,12 @@ GET
 
 /api/checkout/:publicToken/payment/:paymentId
 
-Permite ao cliente consultar o estado do pagamento
-associado à sua fatura pública.
+============================================================
+
+Aceita:
+
+- PaymentIntent public ID
+- Legacy Payment ObjectId
 
 ============================================================
 */
@@ -243,22 +278,15 @@ router.get(
 
         try {
 
-            const {
-
-                publicToken,
-
-                paymentId
-
-            } =
-                req.params;
-
-
             const result =
-                await getPublicPaymentStatus(
+                await getCheckoutPaymentStatus(
 
-                    publicToken,
+                    req.params
+                        .publicToken,
 
-                    paymentId
+                    req.params
+                        .paymentId
+
                 );
 
 
@@ -267,25 +295,33 @@ router.get(
                 res,
 
                 result
+
             );
+
         }
 
-        catch (error) {
+        catch (
+            error
+        ) {
 
             return handleRouteError(
 
                 res,
 
                 error
+
             );
+
         }
+
     }
+
 );
 
 
 /*
 ============================================================
-404 CHECKOUT FALLBACK
+CHECKOUT 404
 ============================================================
 */
 
@@ -305,17 +341,17 @@ router.use(
             "CHECKOUT_ROUTE_NOT_FOUND",
 
             "A rota de checkout solicitada não existe."
+
         );
+
     }
+
 );
 
 
 /*
 ============================================================
-ROUTE ERROR HANDLER
-============================================================
-
-Erros inesperados não devem expor stack trace ao cliente.
+CHECKOUT ERROR HANDLER
 ============================================================
 */
 
@@ -332,7 +368,22 @@ router.use(
 
             "[CHECKOUT API ERROR]",
 
-            error
+            {
+
+                requestId:
+                    req.requestId ||
+                    null,
+
+                method:
+                    req.method,
+
+                url:
+                    req.originalUrl,
+
+                error
+
+            }
+
         );
 
 
@@ -343,6 +394,7 @@ router.use(
             return next(
                 error
             );
+
         }
 
 
@@ -351,8 +403,11 @@ router.use(
             res,
 
             error
+
         );
+
     }
+
 );
 
 
