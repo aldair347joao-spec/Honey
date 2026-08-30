@@ -11,48 +11,28 @@ import config from "./config.js";
 ============================================================
 HONEY PAY
 SECURITY
-V1.0.0
+V2.0.0
 ============================================================
 
-RESPONSABILIDADES
-------------------------------------------------------------
-- Hash de passwords
-- Comparação de passwords
-- Geração de JWT
-- Verificação de JWT
-- Hash de identificadores sensíveis
-- Hash de arquivos
-- Geração de IDs públicos
-- Normalização de email
-- Normalização de telefone
-- Normalização de IBAN
-- Comparações seguras
+AUTENTICAÇÃO PRINCIPAL:
+Google OAuth + JWT Honey Pay.
 
-IMPORTANTE
-------------------------------------------------------------
-Nenhuma password é armazenada em texto puro.
-
-Nenhum JWT deve ser colocado em logs.
-
-IBANs completos não devem ser retornados para clientes
-quando não forem necessários.
+Password functions remain only for compatibility with
+legacy records. They are NOT part of the new login flow.
 
 ============================================================
 */
 
-
-/*
-============================================================
-PASSWORD SECURITY
-============================================================
-*/
 
 const BCRYPT_ROUNDS = 12;
 
 
-/**
- * Cria um hash seguro para uma password.
- */
+/*
+============================================================
+PASSWORD COMPATIBILITY
+============================================================
+*/
+
 export async function hashPassword(
     password
 ) {
@@ -65,6 +45,7 @@ export async function hashPassword(
         throw new Error(
             "A password deve possuir pelo menos 8 caracteres."
         );
+
     }
 
 
@@ -72,12 +53,10 @@ export async function hashPassword(
         password,
         BCRYPT_ROUNDS
     );
+
 }
 
 
-/**
- * Compara uma password com o seu hash.
- */
 export async function comparePassword(
     password,
     passwordHash
@@ -89,6 +68,7 @@ export async function comparePassword(
     ) {
 
         return false;
+
     }
 
 
@@ -96,6 +76,7 @@ export async function comparePassword(
         password,
         passwordHash
     );
+
 }
 
 
@@ -114,12 +95,14 @@ export function normalizeEmail(
     ) {
 
         return "";
+
     }
 
 
     return email
         .trim()
         .toLowerCase();
+
 }
 
 
@@ -138,22 +121,9 @@ export function normalizePhone(
     ) {
 
         return "";
+
     }
 
-
-    /*
-    --------------------------------------------------------
-    Mantemos somente números.
-
-    Exemplo:
-
-    +244 923 000 000
-
-    vira:
-
-    244923000000
-    --------------------------------------------------------
-    */
 
     return phone
         .trim()
@@ -161,6 +131,7 @@ export function normalizePhone(
             /\D/g,
             ""
         );
+
 }
 
 
@@ -179,6 +150,7 @@ export function normalizeIban(
     ) {
 
         return "";
+
     }
 
 
@@ -188,12 +160,10 @@ export function normalizeIban(
             ""
         )
         .toUpperCase();
+
 }
 
 
-/**
- * Retorna apenas os últimos 4 caracteres de um IBAN.
- */
 export function getIbanLast4(
     iban
 ) {
@@ -209,18 +179,20 @@ export function getIbanLast4(
     ) {
 
         return "";
+
     }
 
 
     return normalized.slice(
         -4
     );
+
 }
 
 
 /*
 ============================================================
-GENERIC SHA-256 HASH
+SHA256
 ============================================================
 */
 
@@ -236,6 +208,7 @@ export function sha256(
         throw new Error(
             "Valor inválido para SHA-256."
         );
+
     }
 
 
@@ -250,23 +223,13 @@ export function sha256(
         .digest(
             "hex"
         );
+
 }
 
 
 /*
 ============================================================
 BUFFER HASH
-============================================================
-
-Utilizado principalmente para comprovativos.
-
-O mesmo arquivo produz o mesmo hash.
-
-Isso permite detectar:
-
-- reupload do mesmo arquivo
-- duplicação
-- reutilização de comprovativo
 ============================================================
 */
 
@@ -275,14 +238,13 @@ export function hashBuffer(
 ) {
 
     if (
-        !Buffer.isBuffer(
-            buffer
-        )
+        !Buffer.isBuffer(buffer)
     ) {
 
         throw new TypeError(
             "hashBuffer espera um Buffer."
         );
+
     }
 
 
@@ -296,17 +258,13 @@ export function hashBuffer(
         .digest(
             "hex"
         );
+
 }
 
 
 /*
 ============================================================
-HMAC HASH
-============================================================
-
-Para dados que não queremos expor diretamente.
-
-O resultado depende do segredo da aplicação.
+HMAC
 ============================================================
 */
 
@@ -322,6 +280,7 @@ export function hmacSha256(
         throw new Error(
             "Secret não configurado para HMAC."
         );
+
     }
 
 
@@ -337,12 +296,13 @@ export function hmacSha256(
         .digest(
             "hex"
         );
+
 }
 
 
 /*
 ============================================================
-SECURE RANDOM TOKEN
+SECURE RANDOM
 ============================================================
 */
 
@@ -351,9 +311,7 @@ export function generateSecureToken(
 ) {
 
     if (
-        !Number.isInteger(
-            bytes
-        ) ||
+        !Number.isInteger(bytes) ||
         bytes < 16 ||
         bytes > 128
     ) {
@@ -361,6 +319,7 @@ export function generateSecureToken(
         throw new Error(
             "Quantidade de bytes inválida."
         );
+
     }
 
 
@@ -371,19 +330,13 @@ export function generateSecureToken(
         .toString(
             "hex"
         );
+
 }
 
 
 /*
 ============================================================
 PUBLIC ID
-============================================================
-
-IDs públicos não utilizam diretamente o ObjectId do
-MongoDB.
-
-Isso torna os links de checkout mais limpos e evita
-exposição desnecessária da estrutura interna do banco.
 ============================================================
 */
 
@@ -416,17 +369,13 @@ export function generatePublicId(
 
 
     return `${cleanPrefix}-${randomPart}`;
+
 }
 
 
 /*
 ============================================================
 INVOICE NUMBER
-============================================================
-
-Número humano da cobrança.
-
-Não substitui o publicId.
 ============================================================
 */
 
@@ -452,6 +401,7 @@ export function generateInvoiceNumber() {
 
 
     return `INV-${timestamp}-${random}`;
+
 }
 
 
@@ -473,6 +423,7 @@ export function createAccessToken(
         throw new Error(
             "JWT_SECRET não configurada."
         );
+
     }
 
 
@@ -496,14 +447,16 @@ export function createAccessToken(
 
             audience:
                 "honey-pay-client"
+
         }
     );
+
 }
 
 
 /*
 ============================================================
-JWT VERIFICATION
+JWT VERIFY
 ============================================================
 */
 
@@ -519,6 +472,7 @@ export function verifyAccessToken(
         throw new Error(
             "Token de autenticação inválido."
         );
+
     }
 
 
@@ -529,6 +483,7 @@ export function verifyAccessToken(
         throw new Error(
             "JWT_SECRET não configurada."
         );
+
     }
 
 
@@ -541,15 +496,21 @@ export function verifyAccessToken(
                 "honey-pay",
 
             audience:
-                "honey-pay-client"
+                "honey-pay-client",
+
+            algorithms: [
+                "HS256"
+            ]
+
         }
     );
+
 }
 
 
 /*
 ============================================================
-BEARER TOKEN
+BEARER
 ============================================================
 */
 
@@ -563,6 +524,7 @@ export function extractBearerToken(
     ) {
 
         return null;
+
     }
 
 
@@ -579,24 +541,22 @@ export function extractBearerToken(
     ) {
 
         return null;
+
     }
 
 
-    const scheme =
-        parts[0];
-
-
-    const token =
-        parts[1];
-
-
     if (
-        scheme.toLowerCase() !==
+        parts[0].toLowerCase() !==
         "bearer"
     ) {
 
         return null;
+
     }
+
+
+    const token =
+        parts[1];
 
 
     if (
@@ -605,10 +565,12 @@ export function extractBearerToken(
     ) {
 
         return null;
+
     }
 
 
     return token;
+
 }
 
 
@@ -636,6 +598,7 @@ export function sanitizeString(
     ) {
 
         return "";
+
     }
 
 
@@ -645,12 +608,13 @@ export function sanitizeString(
             0,
             maxLength
         );
+
 }
 
 
 /*
 ============================================================
-SAFE INTEGER
+INTEGER
 ============================================================
 */
 
@@ -665,35 +629,23 @@ export function parsePositiveInteger(
 
 
     if (
-        !Number.isInteger(
-            parsed
-        ) ||
+        !Number.isInteger(parsed) ||
         parsed <= 0
     ) {
 
         return null;
+
     }
 
 
     return parsed;
+
 }
 
 
 /*
 ============================================================
 AMOUNT
-============================================================
-
-Valores monetários são armazenados em Kz como número inteiro
-na V1.
-
-Exemplo:
-
-1500 Kz
-
-é armazenado como:
-
-1500
 ============================================================
 */
 
@@ -706,27 +658,18 @@ export function parseAmountKz(
     ) {
 
         if (
-            !Number.isFinite(
-                value
-            ) ||
-            value <= 0
+            !Number.isFinite(value) ||
+            value <= 0 ||
+            !Number.isInteger(value)
         ) {
 
             return null;
-        }
 
-
-        if (
-            !Number.isInteger(
-                value
-            )
-        ) {
-
-            return null;
         }
 
 
         return value;
+
     }
 
 
@@ -735,6 +678,7 @@ export function parseAmountKz(
     ) {
 
         return null;
+
     }
 
 
@@ -762,30 +706,24 @@ export function parseAmountKz(
 
 
     if (
-        !Number.isFinite(
-            parsed
-        ) ||
+        !Number.isFinite(parsed) ||
         parsed <= 0 ||
-        !Number.isInteger(
-            parsed
-        )
+        !Number.isInteger(parsed)
     ) {
 
         return null;
+
     }
 
 
     return parsed;
+
 }
 
 
 /*
 ============================================================
 SECURE EQUAL
-============================================================
-
-Comparação resistente a timing attacks para strings.
-
 ============================================================
 */
 
@@ -800,6 +738,7 @@ export function secureEqual(
     ) {
 
         return false;
+
     }
 
 
@@ -823,6 +762,7 @@ export function secureEqual(
     ) {
 
         return false;
+
     }
 
 
@@ -830,14 +770,108 @@ export function secureEqual(
         firstBuffer,
         secondBuffer
     );
+
 }
 
 
 /*
 ============================================================
-MODULE EXPORT
+OAUTH STATE
+============================================================
+
+State assinado pelo JWT_SECRET.
+
+Não depende de sessão em memória.
+
 ============================================================
 */
+
+export function createOAuthState(
+    payload = {}
+) {
+
+    if (
+        !config.auth.jwtSecret
+    ) {
+
+        throw new Error(
+            "JWT_SECRET não configurada."
+        );
+
+    }
+
+
+    return jwt.sign(
+
+        {
+
+            ...payload,
+
+            purpose:
+                "google-oauth-state"
+
+        },
+
+        config.auth.jwtSecret,
+
+        {
+
+            expiresIn:
+                "10m",
+
+            issuer:
+                "honey-pay",
+
+            audience:
+                "honey-pay-google-oauth"
+
+        }
+
+    );
+
+}
+
+
+export function verifyOAuthState(
+    token
+) {
+
+    if (
+        typeof token !== "string" ||
+        !token
+    ) {
+
+        throw new Error(
+            "OAuth state inválido."
+        );
+
+    }
+
+
+    return jwt.verify(
+
+        token,
+
+        config.auth.jwtSecret,
+
+        {
+
+            issuer:
+                "honey-pay",
+
+            audience:
+                "honey-pay-google-oauth",
+
+            algorithms: [
+                "HS256"
+            ]
+
+        }
+
+    );
+
+}
+
 
 export default {
 
@@ -877,5 +911,10 @@ export default {
 
     parseAmountKz,
 
-    secureEqual
+    secureEqual,
+
+    createOAuthState,
+
+    verifyOAuthState
+
 };
