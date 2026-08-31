@@ -2,7 +2,7 @@
 ============================================================
 HONEY PAY
 AUTHENTICATION UI
-V2.0.0
+V2.0.1
 GOOGLE ONLY
 ============================================================
 
@@ -16,6 +16,7 @@ RESPONSABILIDADES
 - Tratamento de erros
 - Compatibilidade com app.js
 - Compatibilidade com honey_pay_token
+- Compatibilidade com auth_token
 - Não utiliza email/password
 - Não possui registo manual
 
@@ -33,6 +34,8 @@ Google OAuth
 /api/auth/google/callback
     ↓
 JWT
+    ↓
+/#auth_token=JWT
     ↓
 Honey Pay
     ↓
@@ -62,7 +65,9 @@ const LEGACY_TOKEN_KEYS = [
 
     "accessToken",
 
-    "access_token"
+    "access_token",
+
+    "auth_token"
 
 ];
 
@@ -1539,29 +1544,53 @@ async function logout(
     options = {}
 ) {
 
-    clearStoredToken();
-
-
-    state.authenticated =
-        false;
-
-
     /*
     --------------------------------------------------------
-    Se o backend possuir endpoint de logout,
-    tentamos utilizá-lo sem bloquear o logout local.
+    Guardamos o token antes de o limpar para permitir
+    que o backend receba Authorization durante o logout.
     --------------------------------------------------------
     */
 
+    const token =
+        getStoredToken();
+
+
     try {
 
-        await authRequest(
-            "/auth/logout",
-            {
-                method:
-                    "POST"
-            }
-        );
+        if (
+            token
+        ) {
+
+            await fetch(
+
+                `${AUTH_API}/auth/logout`,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        Accept:
+                            "application/json",
+
+                        Authorization:
+                            `Bearer ${token}`
+
+                    },
+
+                    credentials:
+                        "same-origin",
+
+                    cache:
+                        "no-store"
+
+                }
+
+            );
+
+        }
 
     }
 
@@ -1570,6 +1599,17 @@ async function logout(
         Logout local continua válido.
         */
     }
+
+
+    clearStoredToken();
+
+
+    state.authenticated =
+        false;
+
+
+    state.loading =
+        false;
 
 
     if (
@@ -1591,14 +1631,23 @@ async function logout(
 HANDLE GOOGLE CALLBACK TOKEN
 ============================================================
 
-Aceita token caso o callback do backend redirecione
-para a aplicação utilizando:
+ACEITA:
+
+/?auth_token=JWT
 
 /?token=JWT
 
-ou:
+/?access_token=JWT
+
+/#auth_token=JWT
 
 /#token=JWT
+
+/#access_token=JWT
+
+O backend atual da Honey Pay utiliza:
+
+/#auth_token=JWT
 
 O token é imediatamente removido da URL.
 
@@ -1614,28 +1663,72 @@ function consumeCallbackToken() {
 
 
     let token =
-        url.searchParams.get(
-            "token"
-        );
+        null;
 
 
-    if (
-        !token
+    let tokenSource =
+        null;
+
+
+    /*
+    --------------------------------------------------------
+    1. Query string
+    --------------------------------------------------------
+    */
+
+    const queryTokenKeys = [
+
+        "auth_token",
+
+        "token",
+
+        "access_token",
+
+        "accessToken"
+
+    ];
+
+
+    for (
+        const key of
+        queryTokenKeys
     ) {
 
-        token =
+        const value =
             url.searchParams.get(
-                "access_token"
+                key
             );
+
+
+        if (
+            typeof value ===
+                "string" &&
+            value.trim()
+        ) {
+
+            token =
+                value.trim();
+
+            tokenSource =
+                "query";
+
+
+            break;
+
+        }
 
     }
 
 
     /*
     --------------------------------------------------------
-    Também suporta hash:
+    2. Hash
+    --------------------------------------------------------
 
-    #token=...
+    Exemplo:
+
+    #auth_token=eyJ...
+
     --------------------------------------------------------
     */
 
@@ -1644,31 +1737,74 @@ function consumeCallbackToken() {
         window.location.hash
     ) {
 
-        const hash =
+        const rawHash =
+            window.location.hash
+                .replace(
+                    /^#/,
+                    ""
+                );
+
+
+        const hashParams =
             new URLSearchParams(
-                window.location.hash
-                    .replace(
-                        /^#/,
-                        ""
-                    )
+                rawHash
             );
 
 
-        token =
-            hash.get(
-                "token"
-            ) ||
-            hash.get(
-                "access_token"
-            );
+        const hashTokenKeys = [
+
+            "auth_token",
+
+            "token",
+
+            "access_token",
+
+            "accessToken"
+
+        ];
+
+
+        for (
+            const key of
+            hashTokenKeys
+        ) {
+
+            const value =
+                hashParams.get(
+                    key
+                );
+
+
+            if (
+                typeof value ===
+                    "string" &&
+                value.trim()
+            ) {
+
+                token =
+                    value.trim();
+
+                tokenSource =
+                    "hash";
+
+
+                break;
+
+            }
+
+        }
 
     }
 
 
+    /*
+    --------------------------------------------------------
+    Nenhum token encontrado.
+    --------------------------------------------------------
+    */
+
     if (
-        typeof token !==
-            "string" ||
-        !token.trim()
+        !token
     ) {
 
         return null;
@@ -1676,20 +1812,37 @@ function consumeCallbackToken() {
     }
 
 
-    token =
-        token.trim();
+    /*
+    --------------------------------------------------------
+    Guarda o JWT.
+    --------------------------------------------------------
+    */
+
+    const stored =
+        storeToken(
+            token
+        );
 
 
-    storeToken(
-        token
-    );
+    if (
+        !stored
+    ) {
+
+        return null;
+
+    }
 
 
     /*
     --------------------------------------------------------
-    Remove o token da barra de endereço.
+    Remove tokens da query string.
     --------------------------------------------------------
     */
+
+    url.searchParams.delete(
+        "auth_token"
+    );
+
 
     url.searchParams.delete(
         "token"
@@ -1701,11 +1854,87 @@ function consumeCallbackToken() {
     );
 
 
+    url.searchParams.delete(
+        "accessToken"
+    );
+
+
+    /*
+    --------------------------------------------------------
+    Remove tokens do hash.
+    --------------------------------------------------------
+    */
+
+    if (
+        tokenSource ===
+        "hash"
+    ) {
+
+        const rawHash =
+            window.location.hash
+                .replace(
+                    /^#/,
+                    ""
+                );
+
+
+        const hashParams =
+            new URLSearchParams(
+                rawHash
+            );
+
+
+        hashParams.delete(
+            "auth_token"
+        );
+
+
+        hashParams.delete(
+            "token"
+        );
+
+
+        hashParams.delete(
+            "access_token"
+        );
+
+
+        hashParams.delete(
+            "accessToken"
+        );
+
+
+        const remainingHash =
+            hashParams.toString();
+
+
+        url.hash =
+            remainingHash
+                ? `#${remainingHash}`
+                : "";
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Remove token da barra de endereço sem recarregar
+    a página.
+    --------------------------------------------------------
+    */
+
     const cleanUrl =
         url.pathname +
+
         (
             url.searchParams.toString()
                 ? `?${url.searchParams.toString()}`
+                : ""
+        ) +
+
+        (
+            url.hash
+                ? url.hash
                 : ""
         );
 
@@ -1736,13 +1965,61 @@ function consumeCallbackError() {
         );
 
 
-    const error =
+    let error =
         url.searchParams.get(
             "auth_error"
         ) ||
         url.searchParams.get(
             "error"
         );
+
+
+    let errorDescription =
+        url.searchParams.get(
+            "error_description"
+        );
+
+
+    /*
+    --------------------------------------------------------
+    Também aceita erros enviados no hash.
+    --------------------------------------------------------
+    */
+
+    if (
+        !error &&
+        window.location.hash
+    ) {
+
+        const rawHash =
+            window.location.hash
+                .replace(
+                    /^#/,
+                    ""
+                );
+
+
+        const hashParams =
+            new URLSearchParams(
+                rawHash
+            );
+
+
+        error =
+            hashParams.get(
+                "auth_error"
+            ) ||
+            hashParams.get(
+                "error"
+            );
+
+
+        errorDescription =
+            hashParams.get(
+                "error_description"
+            );
+
+    }
 
 
     if (
@@ -1753,6 +2030,12 @@ function consumeCallbackError() {
 
     }
 
+
+    /*
+    --------------------------------------------------------
+    Remove informações de erro da URL.
+    --------------------------------------------------------
+    */
 
     url.searchParams.delete(
         "auth_error"
@@ -1769,11 +2052,63 @@ function consumeCallbackError() {
     );
 
 
+    if (
+        window.location.hash
+    ) {
+
+        const rawHash =
+            window.location.hash
+                .replace(
+                    /^#/,
+                    ""
+                );
+
+
+        const hashParams =
+            new URLSearchParams(
+                rawHash
+            );
+
+
+        hashParams.delete(
+            "auth_error"
+        );
+
+
+        hashParams.delete(
+            "error"
+        );
+
+
+        hashParams.delete(
+            "error_description"
+        );
+
+
+        const remainingHash =
+            hashParams.toString();
+
+
+        url.hash =
+            remainingHash
+                ? `#${remainingHash}`
+                : "";
+
+    }
+
+
     const cleanUrl =
         url.pathname +
+
         (
             url.searchParams.toString()
                 ? `?${url.searchParams.toString()}`
+                : ""
+        ) +
+
+        (
+            url.hash
+                ? url.hash
                 : ""
         );
 
@@ -1797,14 +2132,31 @@ function consumeCallbackError() {
             "A sua conta Honey Pay não está ativa.",
 
         authentication_failed:
-            "Não foi possível concluir a autenticação."
+            "Não foi possível concluir a autenticação.",
+
+        invalid_state:
+            "A sessão de autenticação expirou. Tente novamente.",
+
+        missing_code:
+            "O Google não devolveu o código de autenticação.",
+
+        token_exchange_failed:
+            "Não foi possível concluir a autenticação Google.",
+
+        invalid_google_token:
+            "A resposta do Google não pôde ser validada."
 
     };
 
 
     return (
+
         messages[error] ||
+
+        errorDescription ||
+
         "Não foi possível concluir o acesso com Google."
+
     );
 
 }
@@ -1843,8 +2195,84 @@ async function initializeAuth() {
     --------------------------------------------------------
     */
 
-    consumeCallbackToken();
+    const callbackToken =
+        consumeCallbackToken();
 
+
+    /*
+    --------------------------------------------------------
+    Se recebemos JWT do Google OAuth, validamos
+    imediatamente a sessão.
+    --------------------------------------------------------
+    */
+
+    if (
+        callbackToken
+    ) {
+
+        setLoading(
+            true
+        );
+
+
+        const authenticated =
+            await validateExistingSession();
+
+
+        setLoading(
+            false
+        );
+
+
+        if (
+            authenticated
+        ) {
+
+            hideGate();
+
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "honey-authenticated"
+                )
+            );
+
+
+            return true;
+
+        }
+
+
+        /*
+        ----------------------------------------------------
+        JWT recebido mas não aceito pelo backend.
+        ----------------------------------------------------
+        */
+
+        clearStoredToken();
+
+        state.authenticated =
+            false;
+
+
+        showGate();
+
+
+        setError(
+            "A autenticação foi recebida, mas a sessão não pôde ser validada. Tente novamente."
+        );
+
+
+        return false;
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    Verifica eventual erro vindo do callback OAuth.
+    --------------------------------------------------------
+    */
 
     const callbackError =
         consumeCallbackError();
@@ -2118,9 +2546,25 @@ window.addEventListener(
     "storage",
     event => {
 
+        /*
+        ----------------------------------------------------
+        Reage tanto à chave principal como às antigas.
+        ----------------------------------------------------
+        */
+
+        const relevantKeys = [
+
+            AUTH_TOKEN_KEY,
+
+            ...LEGACY_TOKEN_KEYS
+
+        ];
+
+
         if (
-            event.key !==
-            AUTH_TOKEN_KEY
+            !relevantKeys.includes(
+                event.key
+            )
         ) {
 
             return;
@@ -2136,6 +2580,23 @@ window.addEventListener(
                 false;
 
             showGate();
+
+        }
+
+        else if (
+            event.key !==
+            AUTH_TOKEN_KEY
+        ) {
+
+            /*
+            ------------------------------------------------
+            Migra automaticamente um token antigo.
+            ------------------------------------------------
+            */
+
+            storeToken(
+                event.newValue
+            );
 
         }
 
