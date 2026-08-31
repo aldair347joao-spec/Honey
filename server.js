@@ -772,21 +772,65 @@ FRONTEND ROUTES
 ============================================================
 */
 
+/*
+============================================================
+FRONTEND ROUTES
+============================================================
+
+TODAS AS ROTAS DA APLICAÇÃO PRIVADA
+DEVEM SERVIR O MESMO index.html.
+
+O frontend/app.js decide qual
+view deve ser apresentada.
+
+IMPORTANTE:
+
+/api/* NÃO passa por aqui.
+
+/pay/:token É CHECKOUT PÚBLICO.
+============================================================
+*/
+
+const FRONTEND_ROUTES = [
+
+    "/",
+
+    /*
+    Dashboard
+    */
+    "/dashboard",
+    "/merchant",
+
+    /*
+    Workspace
+    */
+    "/payments",
+    "/invoices",
+
+    /*
+    Recebimentos
+    */
+    "/bank-accounts",
+    "/proofs",
+
+    /*
+    Conta
+    */
+    "/plans",
+    "/billing",
+    "/settings",
+
+    /*
+    Compatibilidade
+    */
+    "/login"
+
+];
+
+
 app.get(
 
-    [
-
-        "/dashboard",
-
-        "/login",
-
-        "/merchant",
-
-        "/settings",
-
-        "/billing"
-
-    ],
+    FRONTEND_ROUTES,
 
     (
         req,
@@ -801,7 +845,36 @@ app.get(
 
 );
 
+/*
+============================================================
+PUBLIC CHECKOUT ROUTE
+============================================================
 
+/pay/:token também utiliza o index.html.
+
+O index.html detecta /pay/:token
+e carrega somente checkout.js.
+
+auth-ui.js NÃO é carregado.
+============================================================
+*/
+
+app.get(
+
+    "/pay/:token",
+
+    (
+        req,
+        res
+    ) => {
+
+        return res.sendFile(
+            INDEX_FILE
+        );
+
+    }
+
+);
 /*
 ============================================================
 GLOBAL 404
