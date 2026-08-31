@@ -2,12 +2,23 @@
 ============================================================
 HONEY PAY
 MAIN SERVER
-V2.0.0
+V2.1.0
 ============================================================
 
 AUTENTICAÇÃO:
 GOOGLE ONLY
 
+RESPONSABILIDADES:
+- Servir o frontend
+- Rotas reais do frontend
+- APIs
+- Faturas
+- Contas bancárias
+- Checkout
+- Comprovativos
+- Autenticação
+- Segurança
+- MongoDB
 ============================================================
 */
 
@@ -27,7 +38,6 @@ import { fileURLToPath } from "node:url";
 
 
 import router from "./routes.js";
-
 
 import bankAccountRouter from "./bank-account-routes.js";
 
@@ -195,6 +205,12 @@ app.use(
             callback
         ) {
 
+            /*
+            ------------------------------------------------
+            Requests without Origin
+            ------------------------------------------------
+            */
+
             if (
                 !origin
             ) {
@@ -206,6 +222,12 @@ app.use(
 
             }
 
+
+            /*
+            ------------------------------------------------
+            No explicit whitelist configured
+            ------------------------------------------------
+            */
 
             if (
                 allowedOrigins.length ===
@@ -220,6 +242,12 @@ app.use(
             }
 
 
+            /*
+            ------------------------------------------------
+            Allowed origin
+            ------------------------------------------------
+            */
+
             if (
                 allowedOrigins.includes(
                     origin
@@ -233,6 +261,12 @@ app.use(
 
             }
 
+
+            /*
+            ------------------------------------------------
+            Blocked origin
+            ------------------------------------------------
+            */
 
             return callback(
                 new Error(
@@ -275,7 +309,9 @@ app.use(
 
             "X-Requested-With",
 
-            "X-Request-ID"
+            "X-Request-ID",
+
+            "Idempotency-Key"
 
         ],
 
@@ -538,7 +574,7 @@ app.get(
                         "Honey Pay API",
 
                     version:
-                        "2.0.0",
+                        "2.1.0",
 
                     status:
                         healthy
@@ -593,7 +629,7 @@ app.get(
                         "Honey Pay API",
 
                     version:
-                        "2.0.0",
+                        "2.1.0",
 
                     status:
                         "degraded",
@@ -636,41 +672,182 @@ app.get(
 ============================================================
 API ROUTES
 ============================================================
+
+ATENÇÃO:
+
+A ORDEM DOS ROUTERS É CRÍTICA.
+
+routes.js possui um middleware 404 interno.
+
+Se routes.js for registado primeiro:
+
+    /api/invoices
+    /api/bank-accounts
+    /api/checkout/...
+    /api/proofs
+
+podem ser interceptados pelo 404 de routes.js.
+
+Por isso:
+
+1. invoiceRouter
+2. bankAccountRouter
+3. checkoutRouter
+4. proofRouter
+5. router principal
+
+============================================================
+*/
+
+
+/*
+------------------------------------------------------------
+INVOICES
+------------------------------------------------------------
+
+POST   /api/invoices
+GET    /api/invoices
+GET    /api/invoices/statistics
+GET    /api/invoices/:invoiceId
+PATCH  /api/invoices/:invoiceId
+POST   /api/invoices/:invoiceId/cancel
+GET    /api/pay/:publicToken
+
+------------------------------------------------------------
 */
 
 app.use(
-    "/api",
-    router
-);
 
-
-app.use(
     "/api",
+
     invoiceRouter
+
 );
 
 
+/*
+------------------------------------------------------------
+BANK ACCOUNTS
+------------------------------------------------------------
+
+GET    /api/bank-accounts
+POST   /api/bank-accounts
+GET    /api/bank-accounts/:accountId
+PUT    /api/bank-accounts/:accountId
+PATCH  /api/bank-accounts/:accountId/status
+PATCH  /api/bank-accounts/:accountId/primary
+DELETE /api/bank-accounts/:accountId
+
+------------------------------------------------------------
+*/
+
 app.use(
+
     "/api",
+
     bankAccountRouter
+
 );
 
 
+/*
+------------------------------------------------------------
+CHECKOUT
+------------------------------------------------------------
+
+GET
+/api/checkout/:publicToken
+
+POST
+/api/checkout/:publicToken/payment-intent
+
+GET
+/api/checkout/:publicToken/payment/:paymentId
+
+------------------------------------------------------------
+*/
+
 app.use(
-    "/api",
+
+    "/api/checkout",
+
     checkoutRouter
+
 );
 
 
+/*
+------------------------------------------------------------
+PROOFS
+------------------------------------------------------------
+
+POST
+/api/pay/:publicToken/proof
+
+GET
+/api/proofs
+
+GET
+/api/proofs/:proofId
+
+PATCH
+/api/proofs/:proofId/review
+
+------------------------------------------------------------
+*/
+
 app.use(
+
     "/api",
+
     proofRouter
+
+);
+
+
+/*
+------------------------------------------------------------
+MAIN API
+------------------------------------------------------------
+
+Inclui:
+
+/api/health
+
+/api/auth/google
+
+/api/auth/google/callback
+
+/api/auth/me
+
+/api/auth/plan
+
+e restantes rotas principais.
+
+IMPORTANTE:
+
+É registado DEPOIS dos routers específicos porque
+routes.js possui um 404 interno.
+------------------------------------------------------------
+*/
+
+app.use(
+
+    "/api",
+
+    router
+
 );
 
 
 /*
 ============================================================
-API 404
+API 404 FINAL
+============================================================
+
+Só chega aqui quando nenhum router reconheceu
+a rota.
+
 ============================================================
 */
 
@@ -694,7 +871,13 @@ app.use(
                     "API_ROUTE_NOT_FOUND",
 
                 message:
-                    "A rota solicitada não existe.",
+                    "A rota da API solicitada não existe.",
+
+                method:
+                    req.method,
+
+                path:
+                    req.originalUrl,
 
                 requestId:
                     req.requestId ||
@@ -744,50 +927,29 @@ app.use(
 
 /*
 ============================================================
-ROOT
-============================================================
-*/
-
-app.get(
-
-    "/",
-
-    (
-        req,
-        res
-    ) => {
-
-        return res.sendFile(
-            INDEX_FILE
-        );
-
-    }
-
-);
-
-
-/*
-============================================================
-FRONTEND ROUTES
-============================================================
-*/
-
-/*
-============================================================
 FRONTEND ROUTES
 ============================================================
 
-TODAS AS ROTAS DA APLICAÇÃO PRIVADA
-DEVEM SERVIR O MESMO index.html.
+A Honey Pay utiliza um único index.html como
+shell da aplicação.
 
-O frontend/app.js decide qual
-view deve ser apresentada.
+O frontend/app.js lê window.location.pathname
+e apresenta a view correspondente.
 
-IMPORTANTE:
+ROTAS:
 
-/api/* NÃO passa por aqui.
+/
+/dashboard
+/merchant
+/payments
+/invoices
+/bank-accounts
+/proofs
+/plans
+/billing
+/settings
+/login
 
-/pay/:token É CHECKOUT PÚBLICO.
 ============================================================
 */
 
@@ -795,34 +957,24 @@ const FRONTEND_ROUTES = [
 
     "/",
 
-    /*
-    Dashboard
-    */
     "/dashboard",
+
     "/merchant",
 
-    /*
-    Workspace
-    */
     "/payments",
+
     "/invoices",
 
-    /*
-    Recebimentos
-    */
     "/bank-accounts",
+
     "/proofs",
 
-    /*
-    Conta
-    */
     "/plans",
+
     "/billing",
+
     "/settings",
 
-    /*
-    Compatibilidade
-    */
     "/login"
 
 ];
@@ -845,17 +997,21 @@ app.get(
 
 );
 
+
 /*
 ============================================================
-PUBLIC CHECKOUT ROUTE
+PUBLIC CHECKOUT PAGE
 ============================================================
 
-/pay/:token também utiliza o index.html.
+URL:
 
-O index.html detecta /pay/:token
-e carrega somente checkout.js.
+/pay/:token
+
+O index.html detecta essa rota e carrega
+frontend/checkout.js.
 
 auth-ui.js NÃO é carregado.
+
 ============================================================
 */
 
@@ -875,6 +1031,8 @@ app.get(
     }
 
 );
+
+
 /*
 ============================================================
 GLOBAL 404
@@ -900,6 +1058,12 @@ app.use(
 
                 message:
                     "O recurso solicitado não existe.",
+
+                method:
+                    req.method,
+
+                path:
+                    req.originalUrl,
 
                 requestId:
                     req.requestId ||
@@ -963,6 +1127,12 @@ app.use(
         }
 
 
+        /*
+        ----------------------------------------------------
+        INVALID JSON
+        ----------------------------------------------------
+        */
+
         if (
             error?.type ===
             "entity.parse.failed"
@@ -989,6 +1159,12 @@ app.use(
 
         }
 
+
+        /*
+        ----------------------------------------------------
+        PAYLOAD TOO LARGE
+        ----------------------------------------------------
+        */
 
         if (
             error?.type ===
@@ -1017,6 +1193,12 @@ app.use(
         }
 
 
+        /*
+        ----------------------------------------------------
+        CORS
+        ----------------------------------------------------
+        */
+
         if (
             error?.message ===
             "Origem não autorizada pelo CORS."
@@ -1044,6 +1226,12 @@ app.use(
         }
 
 
+        /*
+        ----------------------------------------------------
+        STATUS
+        ----------------------------------------------------
+        */
+
         const statusCode =
             Number.isInteger(
                 error?.statusCode
@@ -1059,6 +1247,12 @@ app.use(
                 : 500;
 
 
+        /*
+        ----------------------------------------------------
+        ERROR CODE
+        ----------------------------------------------------
+        */
+
         const errorCode =
             typeof error?.code ===
                 "string" &&
@@ -1068,6 +1262,12 @@ app.use(
                 ? error.code
                 : "INTERNAL_SERVER_ERROR";
 
+
+        /*
+        ----------------------------------------------------
+        MESSAGE
+        ----------------------------------------------------
+        */
 
         const message =
             NODE_ENV !==
@@ -1185,7 +1385,7 @@ async function startServer() {
 
 
         console.log(
-            "[HONEY PAY] Version: 2.0.0"
+            "[HONEY PAY] Version: 2.1.0"
         );
 
 
@@ -1297,7 +1497,32 @@ async function startServer() {
 
 
                     console.log(
+                        "[HONEY PAY] Frontend routes: /payments /invoices /bank-accounts /proofs /plans /settings"
+                    );
+
+
+                    console.log(
                         "[HONEY PAY] API: /api"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Invoices: /api/invoices"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Bank accounts: /api/bank-accounts"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Checkout: /api/checkout/:publicToken"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Proofs: /api/proofs"
                     );
 
 
@@ -1308,6 +1533,11 @@ async function startServer() {
 
                     console.log(
                         "[HONEY PAY] Google Callback: /api/auth/google/callback"
+                    );
+
+
+                    console.log(
+                        "[HONEY PAY] Public payment page: /pay/:token"
                     );
 
 
@@ -1330,6 +1560,12 @@ async function startServer() {
             );
 
 
+        /*
+        ----------------------------------------------------
+        SERVER TIMEOUTS
+        ----------------------------------------------------
+        */
+
         server.requestTimeout =
             120000;
 
@@ -1341,6 +1577,12 @@ async function startServer() {
         server.keepAliveTimeout =
             65000;
 
+
+        /*
+        ----------------------------------------------------
+        SERVER ERROR
+        ----------------------------------------------------
+        */
 
         server.on(
 
@@ -1462,6 +1704,12 @@ async function shutdown(
 
     try {
 
+        /*
+        ----------------------------------------------------
+        HTTP SERVER
+        ----------------------------------------------------
+        */
+
         if (
             server
         ) {
@@ -1503,6 +1751,12 @@ async function shutdown(
 
         }
 
+
+        /*
+        ----------------------------------------------------
+        DATABASE
+        ----------------------------------------------------
+        */
 
         await closeDatabase();
 
@@ -1605,6 +1859,7 @@ process.on(
         );
 
     }
+
 );
 
 
@@ -1616,5 +1871,11 @@ START
 
 startServer();
 
+
+/*
+============================================================
+EXPORT
+============================================================
+*/
 
 export default app;
