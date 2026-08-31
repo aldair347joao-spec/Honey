@@ -317,11 +317,11 @@
             <div>
 
                 <strong>
-                    Ambiente protegido
+                    Ambiente operacional
                 </strong>
 
                 <span>
-                    Dados processados com segurança
+                    Honey Pay
                 </span>
 
             </div>
@@ -339,7 +339,7 @@
                 ↪
             </span>
 
-            Terminar sessão
+            Sair
 
         </button>
 
@@ -1546,17 +1546,18 @@
                             <div>
 
                                 <strong>
-                                    Sessão autenticada
+                                    Acesso direto
                                 </strong>
 
                                 <span>
-                                    Acesso protegido pelo backend.
+                                    O acesso está temporariamente
+                                    aberto para testes.
                                 </span>
 
                             </div>
 
                             <span class="status-pill status-pill-success">
-                                Protegida
+                                Ativo
                             </span>
 
                         </div>
@@ -1567,7 +1568,7 @@
                             class="button button-danger-outline"
                             data-action="logout"
                         >
-                            Terminar sessão
+                            Sair
                         </button>
 
                     </div>
@@ -1646,9 +1647,7 @@
      *
      * Em /pay/:token carregamos somente o checkout.
      *
-     * Não carregamos app.js nem auth-ui.js porque a página
-     * pública não deve iniciar a consola nem o sistema de
-     * autenticação do comerciante.
+     * Não carregamos app.js nem auth-ui.js.
      */
 
     if (isPublicCheckout) {
@@ -1705,32 +1704,26 @@
 
     /*
      * --------------------------------------------------------
-     * PRIVATE HONEY PAY APPLICATION
+     * HONEY PAY — ACESSO DIRETO
      * --------------------------------------------------------
      *
-     * A autenticação é carregada primeiro.
+     * AUTENTICAÇÃO TEMPORARIAMENTE DESATIVADA.
      *
-     * Depois da camada de autenticação terminar a sua
-     * inicialização, carregamos o motor principal da aplicação.
+     * O comerciante entra diretamente no Workspace.
      *
-     * Isto evita que app.js seja inicializado antes de a sessão
-     * do comerciante ser conhecida.
+     * IMPORTANTE:
+     * auth-ui.js NÃO é carregado.
+     * Não existe redirecionamento para Google.
+     * Não existe bloqueio por JWT no frontend.
+     *
+     * A autenticação poderá ser reativada posteriormente
+     * quando o OAuth Google estiver fechado.
      */
 
     else {
 
         import(
-            "/frontend/auth-ui.js"
-        )
-
-        .then(
-            () => {
-
-                return import(
-                    "/frontend/app.js"
-                );
-
-            }
+            "/frontend/app.js"
         )
 
         .catch(
@@ -1740,21 +1733,6 @@
                     "[HONEY PAY BOOT]",
                     error
                 );
-
-
-                const loader =
-                    document.getElementById(
-                        "app-loader"
-                    );
-
-
-                if (loader) {
-
-                    loader.classList.add(
-                        "loaded"
-                    );
-
-                }
 
             }
         );
