@@ -1,1544 +1,850 @@
-<!DOCTYPE html>
-<html lang="pt-PT">
+<!DOCTYPE html><html lang="pt-PT"><head><meta charset="UTF-8">
 
-<head>
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <meta charset="UTF-8">
+<meta
+    name="theme-color"
+    content="#0b0d12"
+>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<meta
+    name="description"
+    content="Honey Pay — plataforma profissional de cobranças e pagamentos."
+>
 
-    <meta
-        name="theme-color"
-        content="#0b0d12"
-    >
+<meta
+    name="robots"
+    content="noindex,nofollow"
+>
 
-    <meta
-        name="description"
-        content="Honey Pay — plataforma profissional de cobranças e pagamentos."
-    >
+<title>Honey Pay</title>
 
-    <meta
-        name="robots"
-        content="noindex,nofollow"
-    >
+<link
+    rel="stylesheet"
+    href="/style.css"
+>
 
-    <title>Honey Pay</title>
-
-    <link
-        rel="stylesheet"
-        href="/style.css"
-    >
-
-</head>
-
-
-<body>
-
-
-<!-- ========================================================
+</head><body><!-- ========================================================
      GLOBAL LOADER
-======================================================== -->
-
-<div
+======================================================== --><div
     id="app-loader"
     class="app-loader"
     aria-label="A carregar Honey Pay"
+><div class="loader-brand">
+
+    <div class="loader-mark">
+        H
+    </div>
+
+    <div>
+
+        <strong>
+            Honey Pay
+        </strong>
+
+        <span>
+            A carregar o seu espaço
+        </span>
+
+    </div>
+
+</div>
+
+<div class="loader-progress">
+    <span></span>
+</div>
+
+</div><!-- ========================================================
+     GLOBAL LOADING
+======================================================== --><div
+    class="global-loading"
+    hidden
+    aria-hidden="true"
+><div class="global-loading-spinner"></div>
+
+<span>
+    A processar...
+</span>
+
+</div><!-- ========================================================
+     PRIVATE APPLICATION
+======================================================== --><div
+    id="app"
+    class="app-shell"
+><div
+    id="sidebar-overlay"
+    class="sidebar-overlay"
+></div>
+
+
+<!-- ====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside
+    id="app-sidebar"
+    class="app-sidebar"
 >
 
-    <div class="loader-brand">
+    <div class="sidebar-header">
 
-        <div class="loader-mark">
-            H
+        <a
+            href="/"
+            class="brand"
+            aria-label="Honey Pay"
+        >
+
+            <span class="brand-mark">
+                H
+            </span>
+
+            <span class="brand-copy">
+
+                <strong>
+                    Honey Pay
+                </strong>
+
+                <small>
+                    Merchant Workspace
+                </small>
+
+            </span>
+
+        </a>
+
+
+        <button
+            id="sidebar-close"
+            class="icon-button sidebar-close"
+            type="button"
+            aria-label="Fechar menu"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="sidebar-merchant">
+
+        <div
+            class="merchant-avatar"
+            data-merchant-initials
+        >
+            HP
         </div>
 
-        <div>
+        <div class="merchant-identity">
 
-            <strong>
-                Honey Pay
+            <strong data-merchant-name>
+                Comerciante
             </strong>
 
-            <span>
-                A carregar o seu espaço
+            <span data-merchant-email>
+                —
             </span>
 
         </div>
 
     </div>
 
-    <div class="loader-progress">
-        <span></span>
-    </div>
 
-</div>
+    <!-- =================================================
+         NAVIGATION
+    ================================================== -->
 
-
-<!-- ========================================================
-     GLOBAL LOADING
-======================================================== -->
-
-<div
-    class="global-loading"
-    hidden
-    aria-hidden="true"
->
-
-    <div class="global-loading-spinner"></div>
-
-    <span>
-        A processar...
-    </span>
-
-</div>
-
-
-<!-- ========================================================
-     PRIVATE APPLICATION
-======================================================== -->
-
-<div
-    id="app"
-    class="app-shell"
->
-
-    <div
-        id="sidebar-overlay"
-        class="sidebar-overlay"
-    ></div>
-
-
-    <!-- ====================================================
-         SIDEBAR
-    ===================================================== -->
-
-    <aside
-        id="app-sidebar"
-        class="app-sidebar"
+    <nav
+        class="sidebar-navigation"
+        aria-label="Navegação principal"
     >
 
-        <div class="sidebar-header">
+        <span class="navigation-label">
+            Workspace
+        </span>
 
-            <a
-                href="/"
-                class="brand"
-                aria-label="Honey Pay"
+
+        <button
+            type="button"
+            class="nav-item active"
+            data-nav="dashboard"
+        >
+
+            <span class="nav-icon">
+                ◈
+            </span>
+
+            <span>
+                Visão geral
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="payments"
+        >
+
+            <span class="nav-icon">
+                ⇄
+            </span>
+
+            <span>
+                Pagamentos
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="invoices"
+        >
+
+            <span class="nav-icon">
+                ▤
+            </span>
+
+            <span>
+                Faturas e cobranças
+            </span>
+
+        </button>
+
+
+        <span class="navigation-label navigation-label-spaced">
+            Recebimentos
+        </span>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="bank-accounts"
+        >
+
+            <span class="nav-icon">
+                ▣
+            </span>
+
+            <span>
+                Contas bancárias
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="proofs"
+        >
+
+            <span class="nav-icon">
+                ✓
+            </span>
+
+            <span>
+                Comprovativos
+            </span>
+
+            <span
+                id="dashboard-pending-payments-nav"
+                class="nav-counter"
             >
+                0
+            </span>
 
-                <span class="brand-mark">
-                    H
+        </button>
+
+
+        <span class="navigation-label navigation-label-spaced">
+            Conta
+        </span>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="plans"
+        >
+
+            <span class="nav-icon">
+                ◆
+            </span>
+
+            <span>
+                Plano
+            </span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            data-nav="settings"
+        >
+
+            <span class="nav-icon">
+                ⚙
+            </span>
+
+            <span>
+                Definições
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- =================================================
+         SIDEBAR FOOTER
+    ================================================== -->
+
+    <div class="sidebar-footer">
+
+        <div class="sidebar-security">
+
+            <span class="security-dot"></span>
+
+            <div>
+
+                <strong>
+                    Ambiente protegido
+                </strong>
+
+                <span>
+                    Dados processados com segurança
                 </span>
 
-                <span class="brand-copy">
+            </div>
 
-                    <strong>
-                        Honey Pay
+        </div>
+
+
+        <button
+            type="button"
+            class="logout-button"
+            data-action="logout"
+        >
+
+            <span>
+                ↪
+            </span>
+
+            Terminar sessão
+
+        </button>
+
+    </div>
+
+</aside>
+
+
+<!-- ====================================================
+     MAIN APPLICATION
+===================================================== -->
+
+<main class="app-main">
+
+
+    <!-- =================================================
+         TOPBAR
+    ================================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-left">
+
+            <button
+                id="mobile-menu-button"
+                class="icon-button mobile-menu-button"
+                type="button"
+                aria-label="Abrir menu"
+            >
+                ☰
+            </button>
+
+
+            <div class="page-heading">
+
+                <span
+                    id="page-eyebrow"
+                    class="page-eyebrow"
+                >
+                    Honey Pay
+                </span>
+
+                <h1 id="page-title">
+                    Visão geral
+                </h1>
+
+            </div>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <button
+                id="notification-button"
+                type="button"
+                class="topbar-button"
+                aria-label="Notificações"
+            >
+
+                <span class="notification-icon">
+                    ◌
+                </span>
+
+                <span class="notification-label">
+                    Notificações
+                </span>
+
+            </button>
+
+
+            <div class="topbar-divider"></div>
+
+
+            <button
+                type="button"
+                class="topbar-profile"
+                data-route="settings"
+            >
+
+                <span
+                    class="topbar-avatar"
+                    data-merchant-initials
+                >
+                    HP
+                </span>
+
+                <span class="topbar-profile-copy">
+
+                    <strong data-merchant-name>
+                        Comerciante
                     </strong>
 
                     <small>
-                        Merchant Workspace
+                        Conta empresarial
                     </small>
 
                 </span>
 
-            </a>
+                <span class="topbar-chevron">
+                    ˅
+                </span>
 
-
-            <button
-                id="sidebar-close"
-                class="icon-button sidebar-close"
-                type="button"
-                aria-label="Fechar menu"
-            >
-                ×
             </button>
 
         </div>
 
+    </header>
 
-        <div class="sidebar-merchant">
 
-            <div
-                class="merchant-avatar"
-                data-merchant-initials
-            >
-                HP
-            </div>
+    <!-- =================================================
+         PAGE CONTENT
+    ================================================== -->
 
-            <div class="merchant-identity">
-
-                <strong data-merchant-name>
-                    Comerciante
-                </strong>
-
-                <span data-merchant-email>
-                    —
-                </span>
-
-            </div>
-
-        </div>
+    <div class="page-content">
 
 
         <!-- =================================================
-             NAVIGATION
+             DASHBOARD
         ================================================== -->
 
-        <nav
-            class="sidebar-navigation"
-            aria-label="Navegação principal"
+        <section
+            class="view-section active-view"
+            data-view="dashboard"
         >
 
-            <span class="navigation-label">
-                Workspace
-            </span>
-
-
-            <button
-                type="button"
-                class="nav-item active"
-                data-nav="dashboard"
-            >
-
-                <span class="nav-icon">
-                    ◈
-                </span>
-
-                <span>
-                    Visão geral
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="payments"
-            >
-
-                <span class="nav-icon">
-                    ⇄
-                </span>
-
-                <span>
-                    Pagamentos
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="invoices"
-            >
-
-                <span class="nav-icon">
-                    ▤
-                </span>
-
-                <span>
-                    Faturas e cobranças
-                </span>
-
-            </button>
-
-
-            <span class="navigation-label navigation-label-spaced">
-                Recebimentos
-            </span>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="bank-accounts"
-            >
-
-                <span class="nav-icon">
-                    ▣
-                </span>
-
-                <span>
-                    Contas bancárias
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="proofs"
-            >
-
-                <span class="nav-icon">
-                    ✓
-                </span>
-
-                <span>
-                    Comprovativos
-                </span>
-
-                <span
-                    id="dashboard-pending-payments-nav"
-                    class="nav-counter"
-                >
-                    0
-                </span>
-
-            </button>
-
-
-            <span class="navigation-label navigation-label-spaced">
-                Conta
-            </span>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="plans"
-            >
-
-                <span class="nav-icon">
-                    ◆
-                </span>
-
-                <span>
-                    Plano
-                </span>
-
-            </button>
-
-
-            <button
-                type="button"
-                class="nav-item"
-                data-nav="settings"
-            >
-
-                <span class="nav-icon">
-                    ⚙
-                </span>
-
-                <span>
-                    Definições
-                </span>
-
-            </button>
-
-        </nav>
-
-
-        <!-- =================================================
-             SIDEBAR FOOTER
-        ================================================== -->
-
-        <div class="sidebar-footer">
-
-            <div class="sidebar-security">
-
-                <span class="security-dot"></span>
+            <div class="dashboard-intro">
 
                 <div>
 
-                    <strong>
-                        Ambiente protegido
-                    </strong>
-
-                    <span>
-                        Dados processados com segurança
+                    <span class="section-kicker">
+                        O seu negócio
                     </span>
 
-                </div>
+                    <h2>
+                        Tenha controlo sobre cada cobrança.
+                    </h2>
 
-            </div>
-
-
-            <button
-                type="button"
-                class="logout-button"
-                data-action="logout"
-            >
-
-                <span>
-                    ↪
-                </span>
-
-                Terminar sessão
-
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- ====================================================
-         MAIN APPLICATION
-    ===================================================== -->
-
-    <main class="app-main">
-
-
-        <!-- =================================================
-             TOPBAR
-        ================================================== -->
-
-        <header class="topbar">
-
-            <div class="topbar-left">
-
-                <button
-                    id="mobile-menu-button"
-                    class="icon-button mobile-menu-button"
-                    type="button"
-                    aria-label="Abrir menu"
-                >
-                    ☰
-                </button>
-
-
-                <div class="page-heading">
-
-                    <span
-                        id="page-eyebrow"
-                        class="page-eyebrow"
-                    >
-                        Honey Pay
-                    </span>
-
-                    <h1 id="page-title">
-                        Visão geral
-                    </h1>
-
-                </div>
-
-            </div>
-
-
-            <div class="topbar-actions">
-
-                <button
-                    id="notification-button"
-                    type="button"
-                    class="topbar-button"
-                    aria-label="Notificações"
-                >
-
-                    <span class="notification-icon">
-                        ◌
-                    </span>
-
-                    <span class="notification-label">
-                        Notificações
-                    </span>
-
-                </button>
-
-
-                <div class="topbar-divider"></div>
-
-
-                <button
-                    type="button"
-                    class="topbar-profile"
-                    data-route="settings"
-                >
-
-                    <span
-                        class="topbar-avatar"
-                        data-merchant-initials
-                    >
-                        HP
-                    </span>
-
-                    <span class="topbar-profile-copy">
-
-                        <strong data-merchant-name>
-                            Comerciante
-                        </strong>
-
-                        <small>
-                            Conta empresarial
-                        </small>
-
-                    </span>
-
-                    <span class="topbar-chevron">
-                        ˅
-                    </span>
-
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <!-- =================================================
-             PAGE CONTENT
-        ================================================== -->
-
-        <div class="page-content">
-
-
-            <!-- =================================================
-                 DASHBOARD
-            ================================================== -->
-
-            <section
-                class="view-section active-view"
-                data-view="dashboard"
-            >
-
-                <div class="dashboard-intro">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            O seu negócio
-                        </span>
-
-                        <h2>
-                            Tenha controlo sobre cada cobrança.
-                        </h2>
-
-                        <p>
-                            Centralize pagamentos, faturas,
-                            contas bancárias e comprovativos
-                            num único espaço profissional.
-                        </p>
-
-                    </div>
-
-
-                    <div class="dashboard-actions">
-
-                        <button
-                            id="create-invoice-button"
-                            type="button"
-                            class="button button-primary"
-                        >
-                            + Nova cobrança
-                        </button>
-
-                        <button
-                            type="button"
-                            class="button button-secondary"
-                            data-route="bank-accounts"
-                        >
-                            Gerir contas
-                        </button>
-
-                    </div>
+                    <p>
+                        Centralize pagamentos, faturas,
+                        contas bancárias e comprovativos
+                        num único espaço profissional.
+                    </p>
 
                 </div>
 
 
-                <!-- =================================================
-                     METRICS
-                ================================================== -->
-
-                <div class="metrics-grid">
-
-
-                    <article class="metric-card metric-card-featured">
-
-                        <div class="metric-card-top">
-
-                            <span class="metric-label">
-                                Total recebido
-                            </span>
-
-                            <span class="metric-icon">
-                                ↗
-                            </span>
-
-                        </div>
-
-                        <strong
-                            id="dashboard-total-received"
-                            class="metric-value"
-                        >
-                            —
-                        </strong>
-
-                        <span class="metric-description">
-                            Valor confirmado através das suas cobranças
-                        </span>
-
-                    </article>
-
-
-                    <article class="metric-card">
-
-                        <div class="metric-card-top">
-
-                            <span class="metric-label">
-                                Cobranças
-                            </span>
-
-                            <span class="metric-icon">
-                                ▤
-                            </span>
-
-                        </div>
-
-                        <strong
-                            id="dashboard-invoices"
-                            class="metric-value"
-                        >
-                            0
-                        </strong>
-
-                        <span class="metric-description">
-                            Faturas e pedidos de pagamento
-                        </span>
-
-                    </article>
-
-
-                    <article class="metric-card">
-
-                        <div class="metric-card-top">
-
-                            <span class="metric-label">
-                                A verificar
-                            </span>
-
-                            <span class="metric-icon metric-icon-warning">
-                                !
-                            </span>
-
-                        </div>
-
-                        <strong
-                            id="dashboard-pending-payments"
-                            class="metric-value"
-                        >
-                            0
-                        </strong>
-
-                        <span class="metric-description">
-                            Comprovativos pendentes
-                        </span>
-
-                    </article>
-
-
-                    <article class="metric-card">
-
-                        <div class="metric-card-top">
-
-                            <span class="metric-label">
-                                Contas bancárias
-                            </span>
-
-                            <span class="metric-icon">
-                                ▣
-                            </span>
-
-                        </div>
-
-                        <strong
-                            id="dashboard-bank-accounts"
-                            class="metric-value"
-                        >
-                            0
-                        </strong>
-
-                        <span class="metric-description">
-                            Contas configuradas para receber
-                        </span>
-
-                    </article>
-
-
-                    <span
-                        id="dashboard-paid-invoices"
-                        hidden
-                    >
-                        0
-                    </span>
-
-
-                    <span
-                        id="dashboard-cancelled-invoices"
-                        hidden
-                    >
-                        0
-                    </span>
-
-
-                </div>
-
-
-                <!-- =================================================
-                     DASHBOARD GRID
-                ================================================== -->
-
-                <div class="dashboard-grid">
-
-
-                    <article class="workspace-card">
-
-                        <div class="workspace-card-header">
-
-                            <div>
-
-                                <span class="section-kicker">
-                                    Recebimentos
-                                </span>
-
-                                <h3>
-                                    Como o dinheiro chega ao comerciante
-                                </h3>
-
-                            </div>
-
-                            <span class="status-pill status-pill-success">
-                                Operacional
-                            </span>
-
-                        </div>
-
-
-                        <div class="flow-list">
-
-
-                            <div class="flow-item">
-
-                                <span class="flow-number">
-                                    01
-                                </span>
-
-                                <div>
-
-                                    <strong>
-                                        Crie uma cobrança
-                                    </strong>
-
-                                    <p>
-                                        Defina o valor, descrição e
-                                        condições da venda.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="flow-item">
-
-                                <span class="flow-number">
-                                    02
-                                </span>
-
-                                <div>
-
-                                    <strong>
-                                        O cliente recebe o link
-                                    </strong>
-
-                                    <p>
-                                        O cliente abre o checkout
-                                        público sem criar conta.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="flow-item">
-
-                                <span class="flow-number">
-                                    03
-                                </span>
-
-                                <div>
-
-                                    <strong>
-                                        O cliente transfere
-                                    </strong>
-
-                                    <p>
-                                        A transferência é realizada
-                                        diretamente através do banco.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="flow-item">
-
-                                <span class="flow-number">
-                                    04
-                                </span>
-
-                                <div>
-
-                                    <strong>
-                                        O comerciante confirma
-                                    </strong>
-
-                                    <p>
-                                        O comprovativo é analisado
-                                        antes da confirmação.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-                    </article>
-
-
-                    <article class="workspace-card">
-
-                        <div class="workspace-card-header">
-
-                            <div>
-
-                                <span class="section-kicker">
-                                    Subscrição
-                                </span>
-
-                                <h3>
-                                    O seu plano Honey Pay
-                                </h3>
-
-                            </div>
-
-                            <button
-                                id="manage-plan-button"
-                                type="button"
-                                class="text-button"
-                            >
-                                Gerir
-                            </button>
-
-                        </div>
-
-
-                        <div class="subscription-card">
-
-                            <div class="subscription-plan">
-
-                                <span class="subscription-label">
-                                    Plano atual
-                                </span>
-
-                                <strong id="current-plan-name">
-                                    Gratuito
-                                </strong>
-
-                                <span
-                                    id="subscription-status"
-                                    class="status-pill status-pill-success"
-                                >
-                                    Ativo
-                                </span>
-
-                            </div>
-
-
-                            <div class="subscription-details">
-
-                                <div>
-
-                                    <span>
-                                        Estado
-                                    </span>
-
-                                    <strong id="subscription-state">
-                                        Ativo
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        Próxima cobrança
-                                    </span>
-
-                                    <strong id="subscription-next-billing">
-                                        —
-                                    </strong>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </article>
-
-
-                </div>
-
-
-                <!-- =================================================
-                     VALUE BANNER
-                ================================================== -->
-
-                <div class="value-banner">
-
-                    <div class="value-banner-content">
-
-                        <span class="value-banner-icon">
-                            H
-                        </span>
-
-                        <div>
-
-                            <span class="section-kicker">
-                                Honey Pay
-                            </span>
-
-                            <h3>
-                                Menos reconciliação manual.
-                                Mais controlo.
-                            </h3>
-
-                            <p>
-                                Organize cobranças, pagamentos,
-                                comprovativos e contas bancárias
-                                num único espaço.
-                            </p>
-
-                        </div>
-
-                    </div>
-
+                <div class="dashboard-actions">
 
                     <button
-                        type="button"
-                        class="button button-light"
-                        data-route="invoices"
-                    >
-                        Criar cobrança
-                    </button>
-
-                </div>
-
-
-            </section>
-
-
-            <!-- =================================================
-                 PAYMENTS
-            ================================================== -->
-
-            <section
-                class="view-section"
-                data-view="payments"
-                hidden
-            >
-
-                <div class="section-page-header">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            Recebimentos
-                        </span>
-
-                        <h2>
-                            Pagamentos
-                        </h2>
-
-                        <p>
-                            Acompanhe os pagamentos associados
-                            às suas cobranças.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="workspace-card">
-
-                    <div class="empty-state">
-
-                        <div class="empty-icon">
-                            ⇄
-                        </div>
-
-                        <h3>
-                            Pagamentos centralizados
-                        </h3>
-
-                        <p>
-                            Os pagamentos associados às suas
-                            cobranças aparecerão aqui.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 INVOICES
-            ================================================== -->
-
-            <section
-                class="view-section"
-                data-view="invoices"
-                hidden
-            >
-
-                <div class="section-page-header">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            Cobranças
-                        </span>
-
-                        <h2>
-                            Faturas e cobranças
-                        </h2>
-
-                        <p>
-                            Crie e acompanhe pedidos de pagamento
-                            para os seus clientes.
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        id="create-invoice-button-page"
+                        id="create-invoice-button"
                         type="button"
                         class="button button-primary"
-                        data-action="create-invoice"
                     >
                         + Nova cobrança
                     </button>
 
-                </div>
-
-
-                <div
-                    id="invoices-content"
-                    class="workspace-card"
-                >
-
-                    <div class="loading-state">
-
-                        <div class="loading-spinner"></div>
-
-                        <span>
-                            A carregar cobranças...
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 BANK ACCOUNTS
-            ================================================== -->
-
-            <section
-                class="view-section"
-                data-view="bank-accounts"
-                hidden
-            >
-
-                <div class="section-page-header">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            Recebimentos
-                        </span>
-
-                        <h2>
-                            Contas bancárias
-                        </h2>
-
-                        <p>
-                            Configure as contas que os seus clientes
-                            poderão utilizar para efetuar transferências.
-                        </p>
-
-                    </div>
-
-
                     <button
-                        id="add-bank-account-button"
                         type="button"
-                        class="button button-primary"
+                        class="button button-secondary"
+                        data-route="bank-accounts"
                     >
-                        + Adicionar conta
+                        Gerir contas
                     </button>
 
                 </div>
 
-
-                <div
-                    id="bank-accounts-content"
-                    class="bank-accounts-grid"
-                >
-
-                    <div class="loading-state">
-
-                        <div class="loading-spinner"></div>
-
-                        <span>
-                            A carregar contas bancárias...
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <div class="information-card">
-
-                    <div class="information-icon">
-                        i
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            As contas bancárias pertencem ao comerciante.
-                        </strong>
-
-                        <p>
-                            O Honey Pay organiza os dados de recebimento
-                            e a confirmação dos pagamentos. A transferência
-                            do cliente é realizada diretamente através do banco.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </section>
+            </div>
 
 
             <!-- =================================================
-                 PROOFS
+                 METRICS
             ================================================== -->
 
-            <section
-                class="view-section"
-                data-view="proofs"
-                hidden
-            >
+            <div class="metrics-grid">
 
-                <div class="section-page-header">
 
-                    <div>
+                <article class="metric-card metric-card-featured">
 
-                        <span class="section-kicker">
-                            Verificação
+                    <div class="metric-card-top">
+
+                        <span class="metric-label">
+                            Total recebido
                         </span>
 
-                        <h2>
-                            Comprovativos
-                        </h2>
-
-                        <p>
-                            Consulte os comprovativos associados
-                            aos pagamentos dos seus clientes.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="proofs-content"
-                    class="workspace-card"
-                >
-
-                    <div class="loading-state">
-
-                        <div class="loading-spinner"></div>
-
-                        <span>
-                            A carregar comprovativos...
+                        <span class="metric-icon">
+                            ↗
                         </span>
 
                     </div>
 
-                </div>
-
-
-                <div class="information-card">
-
-                    <div class="information-icon">
-                        ✓
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            Proteção contra comprovativos duplicados.
-                        </strong>
-
-                        <p>
-                            Os comprovativos são validados no backend
-                            antes de serem associados ao pagamento.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PLANS
-            ================================================== -->
-
-            <section
-                class="view-section"
-                data-view="plans"
-                hidden
-            >
-
-                <div class="section-page-header">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            Honey Pay
-                        </span>
-
-                        <h2>
-                            O seu plano
-                        </h2>
-
-                        <p>
-                            Escolha o nível de operação adequado
-                            ao crescimento do seu negócio.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="pricing-grid">
-
-
-                    <article class="pricing-card">
-
-                        <div class="pricing-card-header">
-
-                            <span class="pricing-label">
-                                Essencial
-                            </span>
-
-                            <h3>
-                                Gratuito
-                            </h3>
-
-                            <p>
-                                Para começar a organizar
-                                os seus recebimentos.
-                            </p>
-
-                        </div>
-
-
-                        <div class="pricing-price">
-
-                            <strong>
-                                0
-                            </strong>
-
-                            <span>
-                                Kz / mês
-                            </span>
-
-                        </div>
-
-
-                        <ul class="pricing-features">
-
-                            <li>
-                                ✓ Gestão de cobranças
-                            </li>
-
-                            <li>
-                                ✓ Contas bancárias
-                            </li>
-
-                            <li>
-                                ✓ Comprovativos
-                            </li>
-
-                            <li>
-                                ✓ Workspace do comerciante
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            type="button"
-                            class="button button-secondary pricing-button"
-                        >
-                            Plano atual
-                        </button>
-
-                    </article>
-
-
-                    <article
-                        class="pricing-card pricing-card-featured"
+                    <strong
+                        id="dashboard-total-received"
+                        class="metric-value"
                     >
+                        —
+                    </strong>
 
-                        <div class="pricing-popular">
-                            Mais escolhido
-                        </div>
+                    <span class="metric-description">
+                        Valor confirmado através das suas cobranças
+                    </span>
 
-
-                        <div class="pricing-card-header">
-
-                            <span class="pricing-label">
-                                Crescimento
-                            </span>
-
-                            <h3>
-                                Individual
-                            </h3>
-
-                            <p>
-                                Mais capacidade para negócios
-                                em crescimento.
-                            </p>
-
-                        </div>
+                </article>
 
 
-                        <div class="pricing-price">
+                <article class="metric-card">
 
-                            <strong>
-                                15.000
-                            </strong>
+                    <div class="metric-card-top">
 
-                            <span>
-                                Kz / mês
-                            </span>
-
-                        </div>
-
-
-                        <ul class="pricing-features">
-
-                            <li>
-                                ✓ Tudo do plano Gratuito
-                            </li>
-
-                            <li>
-                                ✓ Operação avançada
-                            </li>
-
-                            <li>
-                                ✓ Mais recursos de gestão
-                            </li>
-
-                            <li>
-                                ✓ Exportação
-                            </li>
-
-                            <li>
-                                ✓ Projetos ilimitados
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            type="button"
-                            class="button button-primary pricing-button"
-                            data-plan-id="individual"
-                            id="individual-plan-button"
-                        >
-                            Escolher plano
-                        </button>
-
-                    </article>
-
-
-                    <article class="pricing-card">
-
-                        <div class="pricing-card-header">
-
-                            <span class="pricing-label">
-                                Empresas
-                            </span>
-
-                            <h3>
-                                Business
-                            </h3>
-
-                            <p>
-                                Para operações com equipas
-                                e necessidades empresariais.
-                            </p>
-
-                        </div>
-
-
-                        <div class="pricing-price">
-
-                            <strong>
-                                400.000
-                            </strong>
-
-                            <span>
-                                Kz / mês
-                            </span>
-
-                        </div>
-
-
-                        <ul class="pricing-features">
-
-                            <li>
-                                ✓ Tudo do plano Individual
-                            </li>
-
-                            <li>
-                                ✓ Operação empresarial
-                            </li>
-
-                            <li>
-                                ✓ Equipas
-                            </li>
-
-                            <li>
-                                ✓ Agentes personalizados
-                            </li>
-
-                            <li>
-                                ✓ Workspace completo
-                            </li>
-
-                        </ul>
-
-
-                        <button
-                            type="button"
-                            class="button button-secondary pricing-button"
-                            data-plan-id="business"
-                            id="business-plan-button"
-                        >
-                            Escolher plano
-                        </button>
-
-                    </article>
-
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 SETTINGS
-            ================================================== -->
-
-            <section
-                class="view-section"
-                data-view="settings"
-                hidden
-            >
-
-                <div class="section-page-header">
-
-                    <div>
-
-                        <span class="section-kicker">
-                            Conta
+                        <span class="metric-label">
+                            Cobranças
                         </span>
 
-                        <h2>
-                            Definições
-                        </h2>
-
-                        <p>
-                            Consulte os dados principais da sua conta.
-                        </p>
+                        <span class="metric-icon">
+                            ▤
+                        </span>
 
                     </div>
 
-                </div>
+                    <strong
+                        id="dashboard-invoices"
+                        class="metric-value"
+                    >
+                        0
+                    </strong>
+
+                    <span class="metric-description">
+                        Faturas e pedidos de pagamento
+                    </span>
+
+                </article>
 
 
-                <div class="settings-grid">
+                <article class="metric-card">
+
+                    <div class="metric-card-top">
+
+                        <span class="metric-label">
+                            A verificar
+                        </span>
+
+                        <span class="metric-icon metric-icon-warning">
+                            !
+                        </span>
+
+                    </div>
+
+                    <strong
+                        id="dashboard-pending-payments"
+                        class="metric-value"
+                    >
+                        0
+                    </strong>
+
+                    <span class="metric-description">
+                        Comprovativos pendentes
+                    </span>
+
+                </article>
 
 
-                    <article class="workspace-card">
+                <article class="metric-card">
 
-                        <div class="workspace-card-header">
+                    <div class="metric-card-top">
+
+                        <span class="metric-label">
+                            Contas bancárias
+                        </span>
+
+                        <span class="metric-icon">
+                            ▣
+                        </span>
+
+                    </div>
+
+                    <strong
+                        id="dashboard-bank-accounts"
+                        class="metric-value"
+                    >
+                        0
+                    </strong>
+
+                    <span class="metric-description">
+                        Contas configuradas para receber
+                    </span>
+
+                </article>
+
+
+                <span
+                    id="dashboard-paid-invoices"
+                    hidden
+                >
+                    0
+                </span>
+
+
+                <span
+                    id="dashboard-cancelled-invoices"
+                    hidden
+                >
+                    0
+                </span>
+
+
+            </div>
+
+
+            <!-- =================================================
+                 DASHBOARD GRID
+            ================================================== -->
+
+            <div class="dashboard-grid">
+
+
+                <article class="workspace-card">
+
+                    <div class="workspace-card-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                Recebimentos
+                            </span>
+
+                            <h3>
+                                Como o dinheiro chega ao comerciante
+                            </h3>
+
+                        </div>
+
+                        <span class="status-pill status-pill-success">
+                            Operacional
+                        </span>
+
+                    </div>
+
+
+                    <div class="flow-list">
+
+
+                        <div class="flow-item">
+
+                            <span class="flow-number">
+                                01
+                            </span>
 
                             <div>
 
-                                <span class="section-kicker">
-                                    Perfil
-                                </span>
+                                <strong>
+                                    Crie uma cobrança
+                                </strong>
 
-                                <h3>
-                                    Dados do comerciante
-                                </h3>
+                                <p>
+                                    Defina o valor, descrição e
+                                    condições da venda.
+                                </p>
 
                             </div>
 
                         </div>
 
 
-                        <div class="profile-details">
+                        <div class="flow-item">
 
-                            <div class="profile-detail">
+                            <span class="flow-number">
+                                02
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    O cliente recebe o link
+                                </strong>
+
+                                <p>
+                                    O cliente abre o checkout
+                                    público sem criar conta.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="flow-item">
+
+                            <span class="flow-number">
+                                03
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    O cliente transfere
+                                </strong>
+
+                                <p>
+                                    A transferência é realizada
+                                    diretamente através do banco.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="flow-item">
+
+                            <span class="flow-number">
+                                04
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    O comerciante confirma
+                                </strong>
+
+                                <p>
+                                    O comprovativo é analisado
+                                    antes da confirmação.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </article>
+
+
+                <article class="workspace-card">
+
+                    <div class="workspace-card-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                Subscrição
+                            </span>
+
+                            <h3>
+                                O seu plano Honey Pay
+                            </h3>
+
+                        </div>
+
+                        <button
+                            id="manage-plan-button"
+                            type="button"
+                            class="text-button"
+                        >
+                            Gerir
+                        </button>
+
+                    </div>
+
+
+                    <div class="subscription-card">
+
+                        <div class="subscription-plan">
+
+                            <span class="subscription-label">
+                                Plano atual
+                            </span>
+
+                            <strong id="current-plan-name">
+                                Gratuito
+                            </strong>
+
+                            <span
+                                id="subscription-status"
+                                class="status-pill status-pill-success"
+                            >
+                                Ativo
+                            </span>
+
+                        </div>
+
+
+                        <div class="subscription-details">
+
+                            <div>
 
                                 <span>
-                                    Nome
+                                    Estado
                                 </span>
 
-                                <strong data-merchant-name>
-                                    Comerciante
+                                <strong id="subscription-state">
+                                    Ativo
                                 </strong>
 
                             </div>
 
 
-                            <div class="profile-detail">
+                            <div>
 
                                 <span>
-                                    Email
+                                    Próxima cobrança
                                 </span>
 
-                                <strong data-merchant-email>
+                                <strong id="subscription-next-billing">
                                     —
                                 </strong>
 
@@ -1546,130 +852,775 @@
 
                         </div>
 
-                    </article>
+                    </div>
+
+                </article>
 
 
-                    <article class="workspace-card">
-
-                        <div class="workspace-card-header">
-
-                            <div>
-
-                                <span class="section-kicker">
-                                    Segurança
-                                </span>
-
-                                <h3>
-                                    Sessão
-                                </h3>
-
-                            </div>
-
-                        </div>
+            </div>
 
 
-                        <div class="security-settings">
+            <!-- =================================================
+                 VALUE BANNER
+            ================================================== -->
 
-                            <div class="security-row">
+            <div class="value-banner">
 
-                                <div>
+                <div class="value-banner-content">
 
-                                    <strong>
-                                        Sessão autenticada
-                                    </strong>
+                    <span class="value-banner-icon">
+                        H
+                    </span>
 
-                                    <span>
-                                        Acesso protegido pelo backend.
-                                    </span>
+                    <div>
 
-                                </div>
+                        <span class="section-kicker">
+                            Honey Pay
+                        </span>
 
-                                <span class="status-pill status-pill-success">
-                                    Protegida
-                                </span>
+                        <h3>
+                            Menos reconciliação manual.
+                            Mais controlo.
+                        </h3>
 
-                            </div>
+                        <p>
+                            Organize cobranças, pagamentos,
+                            comprovativos e contas bancárias
+                            num único espaço.
+                        </p>
 
-
-                            <button
-                                type="button"
-                                class="button button-danger-outline"
-                                data-action="logout"
-                            >
-                                Terminar sessão
-                            </button>
-
-                        </div>
-
-                    </article>
-
+                    </div>
 
                 </div>
 
-            </section>
+
+                <button
+                    type="button"
+                    class="button button-light"
+                    data-route="invoices"
+                >
+                    Criar cobrança
+                </button>
+
+            </div>
 
 
-        </div>
+        </section>
 
 
         <!-- =================================================
-             FOOTER
+             PAYMENTS
         ================================================== -->
 
-        <footer class="app-footer">
+        <section
+            class="view-section"
+            data-view="payments"
+            hidden
+        >
 
-            <span>
-                © 2026 Honey Pay
-            </span>
+            <div class="section-page-header">
 
-            <span>
-                Plataforma de gestão de recebimentos
-            </span>
+                <div>
 
-        </footer>
+                    <span class="section-kicker">
+                        Recebimentos
+                    </span>
+
+                    <h2>
+                        Pagamentos
+                    </h2>
+
+                    <p>
+                        Acompanhe os pagamentos associados
+                        às suas cobranças.
+                    </p>
+
+                </div>
+
+            </div>
 
 
-    </main>
+            <div class="workspace-card">
 
-</div>
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        ⇄
+                    </div>
+
+                    <h3>
+                        Pagamentos centralizados
+                    </h3>
+
+                    <p>
+                        Os pagamentos associados às suas
+                        cobranças aparecerão aqui.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
 
 
-<!-- ========================================================
+        <!-- =================================================
+             INVOICES
+        ================================================== -->
+
+        <section
+            class="view-section"
+            data-view="invoices"
+            hidden
+        >
+
+            <div class="section-page-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        Cobranças
+                    </span>
+
+                    <h2>
+                        Faturas e cobranças
+                    </h2>
+
+                    <p>
+                        Crie e acompanhe pedidos de pagamento
+                        para os seus clientes.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="create-invoice-button-page"
+                    type="button"
+                    class="button button-primary"
+                    data-action="create-invoice"
+                >
+                    + Nova cobrança
+                </button>
+
+            </div>
+
+
+            <div
+                id="invoices-content"
+                class="workspace-card"
+            >
+
+                <div class="loading-state">
+
+                    <div class="loading-spinner"></div>
+
+                    <span>
+                        A carregar cobranças...
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             BANK ACCOUNTS
+        ================================================== -->
+
+        <section
+            class="view-section"
+            data-view="bank-accounts"
+            hidden
+        >
+
+            <div class="section-page-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        Recebimentos
+                    </span>
+
+                    <h2>
+                        Contas bancárias
+                    </h2>
+
+                    <p>
+                        Configure as contas que os seus clientes
+                        poderão utilizar para efetuar transferências.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="add-bank-account-button"
+                    type="button"
+                    class="button button-primary"
+                >
+                    + Adicionar conta
+                </button>
+
+            </div>
+
+
+            <div
+                id="bank-accounts-content"
+                class="bank-accounts-grid"
+            >
+
+                <div class="loading-state">
+
+                    <div class="loading-spinner"></div>
+
+                    <span>
+                        A carregar contas bancárias...
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="information-card">
+
+                <div class="information-icon">
+                    i
+                </div>
+
+                <div>
+
+                    <strong>
+                        As contas bancárias pertencem ao comerciante.
+                    </strong>
+
+                    <p>
+                        O Honey Pay organiza os dados de recebimento
+                        e a confirmação dos pagamentos. A transferência
+                        do cliente é realizada diretamente através do banco.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PROOFS
+        ================================================== -->
+
+        <section
+            class="view-section"
+            data-view="proofs"
+            hidden
+        >
+
+            <div class="section-page-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        Verificação
+                    </span>
+
+                    <h2>
+                        Comprovativos
+                    </h2>
+
+                    <p>
+                        Consulte os comprovativos associados
+                        aos pagamentos dos seus clientes.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="proofs-content"
+                class="workspace-card"
+            >
+
+                <div class="loading-state">
+
+                    <div class="loading-spinner"></div>
+
+                    <span>
+                        A carregar comprovativos...
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="information-card">
+
+                <div class="information-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Proteção contra comprovativos duplicados.
+                    </strong>
+
+                    <p>
+                        Os comprovativos são validados no backend
+                        antes de serem associados ao pagamento.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PLANS
+        ================================================== -->
+
+        <section
+            class="view-section"
+            data-view="plans"
+            hidden
+        >
+
+            <div class="section-page-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        Honey Pay
+                    </span>
+
+                    <h2>
+                        O seu plano
+                    </h2>
+
+                    <p>
+                        Escolha o nível de operação adequado
+                        ao crescimento do seu negócio.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="pricing-grid">
+
+
+                <article class="pricing-card">
+
+                    <div class="pricing-card-header">
+
+                        <span class="pricing-label">
+                            Essencial
+                        </span>
+
+                        <h3>
+                            Gratuito
+                        </h3>
+
+                        <p>
+                            Para começar a organizar
+                            os seus recebimentos.
+                        </p>
+
+                    </div>
+
+
+                    <div class="pricing-price">
+
+                        <strong>
+                            0
+                        </strong>
+
+                        <span>
+                            Kz / mês
+                        </span>
+
+                    </div>
+
+
+                    <ul class="pricing-features">
+
+                        <li>
+                            ✓ Gestão de cobranças
+                        </li>
+
+                        <li>
+                            ✓ Contas bancárias
+                        </li>
+
+                        <li>
+                            ✓ Comprovativos
+                        </li>
+
+                        <li>
+                            ✓ Workspace do comerciante
+                        </li>
+
+                    </ul>
+
+
+                    <button
+                        type="button"
+                        class="button button-secondary pricing-button"
+                    >
+                        Plano atual
+                    </button>
+
+                </article>
+
+
+                <article
+                    class="pricing-card pricing-card-featured"
+                >
+
+                    <div class="pricing-popular">
+                        Mais escolhido
+                    </div>
+
+
+                    <div class="pricing-card-header">
+
+                        <span class="pricing-label">
+                            Crescimento
+                        </span>
+
+                        <h3>
+                            Individual
+                        </h3>
+
+                        <p>
+                            Mais capacidade para negócios
+                            em crescimento.
+                        </p>
+
+                    </div>
+
+
+                    <div class="pricing-price">
+
+                        <strong>
+                            15.000
+                        </strong>
+
+                        <span>
+                            Kz / mês
+                        </span>
+
+                    </div>
+
+
+                    <ul class="pricing-features">
+
+                        <li>
+                            ✓ Tudo do plano Gratuito
+                        </li>
+
+                        <li>
+                            ✓ Operação avançada
+                        </li>
+
+                        <li>
+                            ✓ Mais recursos de gestão
+                        </li>
+
+                        <li>
+                            ✓ Exportação
+                        </li>
+
+                        <li>
+                            ✓ Projetos ilimitados
+                        </li>
+
+                    </ul>
+
+
+                    <button
+                        type="button"
+                        class="button button-primary pricing-button"
+                        data-plan-id="individual"
+                        id="individual-plan-button"
+                    >
+                        Escolher plano
+                    </button>
+
+                </article>
+
+
+                <article class="pricing-card">
+
+                    <div class="pricing-card-header">
+
+                        <span class="pricing-label">
+                            Empresas
+                        </span>
+
+                        <h3>
+                            Business
+                        </h3>
+
+                        <p>
+                            Para operações com equipas
+                            e necessidades empresariais.
+                        </p>
+
+                    </div>
+
+
+                    <div class="pricing-price">
+
+                        <strong>
+                            400.000
+                        </strong>
+
+                        <span>
+                            Kz / mês
+                        </span>
+
+                    </div>
+
+
+                    <ul class="pricing-features">
+
+                        <li>
+                            ✓ Tudo do plano Individual
+                        </li>
+
+                        <li>
+                            ✓ Operação empresarial
+                        </li>
+
+                        <li>
+                            ✓ Equipas
+                        </li>
+
+                        <li>
+                            ✓ Agentes personalizados
+                        </li>
+
+                        <li>
+                            ✓ Workspace completo
+                        </li>
+
+                    </ul>
+
+
+                    <button
+                        type="button"
+                        class="button button-secondary pricing-button"
+                        data-plan-id="business"
+                        id="business-plan-button"
+                    >
+                        Escolher plano
+                    </button>
+
+                </article>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SETTINGS
+        ================================================== -->
+
+        <section
+            class="view-section"
+            data-view="settings"
+            hidden
+        >
+
+            <div class="section-page-header">
+
+                <div>
+
+                    <span class="section-kicker">
+                        Conta
+                    </span>
+
+                    <h2>
+                        Definições
+                    </h2>
+
+                    <p>
+                        Consulte os dados principais da sua conta.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="settings-grid">
+
+
+                <article class="workspace-card">
+
+                    <div class="workspace-card-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                Perfil
+                            </span>
+
+                            <h3>
+                                Dados do comerciante
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="profile-details">
+
+                        <div class="profile-detail">
+
+                            <span>
+                                Nome
+                            </span>
+
+                            <strong data-merchant-name>
+                                Comerciante
+                            </strong>
+
+                        </div>
+
+
+                        <div class="profile-detail">
+
+                            <span>
+                                Email
+                            </span>
+
+                            <strong data-merchant-email>
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <article class="workspace-card">
+
+                    <div class="workspace-card-header">
+
+                        <div>
+
+                            <span class="section-kicker">
+                                Segurança
+                            </span>
+
+                            <h3>
+                                Sessão
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-settings">
+
+                        <div class="security-row">
+
+                            <div>
+
+                                <strong>
+                                    Sessão autenticada
+                                </strong>
+
+                                <span>
+                                    Acesso protegido pelo backend.
+                                </span>
+
+                            </div>
+
+                            <span class="status-pill status-pill-success">
+                                Protegida
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="button button-danger-outline"
+                            data-action="logout"
+                        >
+                            Terminar sessão
+                        </button>
+
+                    </div>
+
+                </article>
+
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- =================================================
+         FOOTER
+    ================================================== -->
+
+    <footer class="app-footer">
+
+        <span>
+            © 2026 Honey Pay
+        </span>
+
+        <span>
+            Plataforma de gestão de recebimentos
+        </span>
+
+    </footer>
+
+
+</main>
+
+</div><!-- ========================================================
      PUBLIC CHECKOUT ROOT
-======================================================== -->
-
-<div
+======================================================== --><div
     id="public-checkout-root"
     aria-live="polite"
-></div>
-
-
-<!-- ========================================================
+></div><!-- ========================================================
      TOAST CONTAINER
-======================================================== -->
-
-<div
+======================================================== --><div
     class="toast-container"
     aria-live="polite"
     aria-atomic="true"
-></div>
-
-
-<!-- ========================================================
+></div><!-- ========================================================
      MODAL ROOT
-======================================================== -->
-
-<div
+======================================================== --><div
     id="modal-root"
     hidden
-></div>
-
-
-<!-- ========================================================
+></div><!-- ========================================================
      APPLICATION BOOT
-======================================================== -->
-
-<script type="module">
+======================================================== --><script type="module">
 
     const path =
         window.location.pathname
@@ -1745,7 +1696,6 @@
             toast.remove();
         }
 
-
         import(
             "/frontend/checkout.js"
         );
@@ -1758,23 +1708,32 @@
      * PRIVATE HONEY PAY APPLICATION
      * --------------------------------------------------------
      *
-     * Na consola carregamos o motor principal e a camada
-     * de autenticação.
+     * A autenticação é carregada primeiro.
+     *
+     * Depois da camada de autenticação terminar a sua
+     * inicialização, carregamos o motor principal da aplicação.
+     *
+     * Isto evita que app.js seja inicializado antes de a sessão
+     * do comerciante ser conhecida.
      */
 
     else {
 
-        Promise.all([
+        import(
+            "/frontend/auth-ui.js"
+        )
 
-            import(
-                "/frontend/app.js"
-            ),
+        .then(
+            () => {
 
-            import(
-                "/frontend/auth-ui.js"
-            )
+                return import(
+                    "/frontend/app.js"
+                );
 
-        ]).catch(
+            }
+        )
+
+        .catch(
             error => {
 
                 console.error(
@@ -1782,15 +1741,19 @@
                     error
                 );
 
+
                 const loader =
                     document.getElementById(
                         "app-loader"
                     );
 
+
                 if (loader) {
+
                     loader.classList.add(
                         "loaded"
                     );
+
                 }
 
             }
@@ -1798,9 +1761,4 @@
 
     }
 
-</script>
-
-
-</body>
-
-</html>
+</script></body></html>
