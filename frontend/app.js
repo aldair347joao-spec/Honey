@@ -3219,37 +3219,286 @@ function normalizeView(view) {
 }
 
 
+/*
+============================================================
+REAL FRONTEND ROUTING
+============================================================
+
+ROTAS REAIS DA HONEY PAY
+
+/
+ /payments
+ /invoices
+ /bank-accounts
+ /proofs
+ /plans
+ /settings
+
+LEGACY ROUTES TAMBÉM SÃO ACEITES:
+
+/dashboard
+/merchant
+/billing
+
+A URL REAL É A FONTE PRINCIPAL.
+
+Não usamos mais ?view= para criar
+as rotas da aplicação.
+============================================================
+*/
+
+const ROUTE_TO_VIEW = {
+
+    "/":
+        "dashboard",
+
+    "/dashboard":
+        "dashboard",
+
+    "/merchant":
+        "dashboard",
+
+    "/payments":
+        "payments",
+
+    "/invoices":
+        "invoices",
+
+    "/bank-accounts":
+        "bank-accounts",
+
+    "/proofs":
+        "proofs",
+
+    "/plans":
+        "plans",
+
+    "/billing":
+        "plans",
+
+    "/settings":
+        "settings"
+
+};
+
+
+const VIEW_TO_ROUTE = {
+
+    dashboard:
+        "/",
+
+    payments:
+        "/payments",
+
+    invoices:
+        "/invoices",
+
+    "bank-accounts":
+        "/bank-accounts",
+
+    proofs:
+        "/proofs",
+
+    plans:
+        "/plans",
+
+    settings:
+        "/settings"
+
+};
+
+
+function normalizePathname(pathname) {
+
+    if (
+        typeof pathname !==
+        "string"
+    ) {
+
+        return "/";
+
+    }
+
+
+    let path =
+        pathname.trim();
+
+
+    if (
+        !path
+    ) {
+
+        return "/";
+
+    }
+
+
+    if (
+        !path.startsWith("/")
+    ) {
+
+        path =
+            `/${path}`;
+
+    }
+
+
+    path =
+        path.replace(
+            /\/{2,}/g,
+            "/"
+        );
+
+
+    if (
+        path.length > 1 &&
+        path.endsWith("/")
+    ) {
+
+        path =
+            path.slice(
+                0,
+                -1
+            );
+
+    }
+
+
+    return (
+        path || "/"
+    );
+
+}
+
+
 function getViewFromUrl() {
+
+    const pathname =
+        normalizePathname(
+            window.location.pathname
+        );
+
+
+    /*
+    --------------------------------------------------------
+    REAL ROUTE
+    --------------------------------------------------------
+    */
+
+    const realView =
+        ROUTE_TO_VIEW[
+            pathname
+        ];
+
+
+    if (
+        realView
+    ) {
+
+        return normalizeView(
+            realView
+        );
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    LEGACY ?view=
+    --------------------------------------------------------
+
+    Mantemos compatibilidade temporária
+    para URLs antigas.
+    --------------------------------------------------------
+    */
 
     const params =
         new URLSearchParams(
             window.location.search
         );
 
-    return normalizeView(
-        params.get("view") ||
-        DEFAULT_VIEW
-    );
+
+    const legacyView =
+        params.get(
+            "view"
+        );
+
+
+    if (
+        legacyView
+    ) {
+
+        return normalizeView(
+            legacyView
+        );
+
+    }
+
+
+    return DEFAULT_VIEW;
 
 }
 
 
 function updateUrl(view) {
 
-    const url =
-        new URL(
-            window.location.href
+    const normalized =
+        normalizeView(
+            view
         );
 
-    url.searchParams.set(
-        "view",
-        view
-    );
+
+    const route =
+        VIEW_TO_ROUTE[
+            normalized
+        ] ||
+        VIEW_TO_ROUTE.dashboard;
+
+
+    const currentPath =
+        normalizePathname(
+            window.location.pathname
+        );
+
+
+    /*
+    --------------------------------------------------------
+    NÃO CRIAR NOVO HISTÓRICO SE JÁ ESTAMOS NA ROTA
+    --------------------------------------------------------
+    */
+
+    if (
+        currentPath ===
+        route &&
+        !window.location.search
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+    --------------------------------------------------------
+    NAVEGAÇÃO REAL
+    --------------------------------------------------------
+    */
 
     window.history.pushState(
-        { view },
+
+        {
+            view:
+                normalized,
+
+            route:
+                route
+
+        },
+
         "",
-        url
+
+        route
+
     );
 
 }
@@ -4115,6 +4364,79 @@ function setupEvents() {
         "click",
         event => {
 
+            /*
+------------------------------------------------------------
+REAL ROUTE LINKS
+------------------------------------------------------------
+*/
+
+const realLink =
+    event.target.closest(
+        'a[href]'
+    );
+
+
+if (
+    realLink &&
+    realLink.origin ===
+        window.location.origin
+) {
+
+    const href =
+        realLink.getAttribute(
+            "href"
+        );
+
+
+    /*
+    Não interceptar:
+    - /pay/:token
+    - APIs
+    - ficheiros
+    - âncoras
+    */
+
+    if (
+        href &&
+        href.startsWith("/") &&
+        !href.startsWith("/api/") &&
+        !href.startsWith("/pay/")
+    ) {
+
+        const targetUrl =
+            new URL(
+                href,
+                window.location.origin
+            );
+
+
+        const targetPath =
+            normalizePathname(
+                targetUrl.pathname
+            );
+
+
+        if (
+            ROUTE_TO_VIEW[
+                targetPath
+            ]
+        ) {
+
+            event.preventDefault();
+
+            navigate(
+                ROUTE_TO_VIEW[
+                    targetPath
+                ]
+            );
+
+            return;
+
+        }
+
+    }
+
+}
             const nav =
                 event.target.closest(
                     "[data-nav]"
