@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Honey Pay — pagamentos para negócios em Angola."
+  >
+
+  <title>Honey Pay</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        Inter,
+        Arial,
+        sans-serif;
+
+      background:
+        #f6f7fb;
+
+      color:
+        #111827;
+    }
+
+    .top {
+      background:
+        #111827;
+
+      color:
+        white;
+
+      padding:
+        18px 24px;
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+    }
+
+    .brand {
+      font-size:
+        22px;
+
+      font-weight:
+        800;
+    }
+
+    .container {
+      max-width:
+        1200px;
+
+      margin:
+        0 auto;
+
+      padding:
+        30px 20px;
+    }
+
+    .hero {
+      background:
+        white;
+
+      border-radius:
+        18px;
+
+      padding:
+        30px;
+
+      margin-bottom:
+        20px;
+
+      box-shadow:
+        0 10px 35px
+        rgba(0,0,0,.06);
+    }
+
+    .hero h1 {
+      margin-top: 0;
+    }
+
+    .grid {
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(
+            220px,
+            1fr
+          )
+        );
+
+      gap:
+        16px;
+    }
+
+    .card {
+      background:
+        white;
+
+      border-radius:
+        16px;
+
+      padding:
+        22px;
+
+      box-shadow:
+        0 8px 25px
+        rgba(0,0,0,.05);
+    }
+
+    .value {
+      font-size:
+        28px;
+
+      font-weight:
+        800;
+
+      margin-top:
+        8px;
+    }
+
+    button {
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      padding:
+        12px 18px;
+
+      cursor:
+        pointer;
+
+      font-weight:
+        700;
+
+      background:
+        #111827;
+
+      color:
+        white;
+    }
+
+    input,
+    select {
+      width:
+        100%;
+
+      padding:
+        12px;
+
+      border:
+        1px solid #d1d5db;
+
+      border-radius:
+        10px;
+
+      margin:
+        6px 0 14px;
+    }
+
+    .hidden {
+      display:
+        none;
+    }
+
+    .error {
+      color:
+        #b91c1c;
+    }
+
+    .success {
+      color:
+        #047857;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="top">
+    <div class="brand">
+      🍯 Honey Pay
+    </div>
+
+    <div>
+      0,80% por pagamento
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section
+      id="loginSection"
+      class="hero"
+    >
+      <h1>
+        Entrar na Honey Pay
+      </h1>
+
+      <form id="loginForm">
+
+        <label>
+          Email
+        </label>
+
+        <input
+          id="loginEmail"
+          type="email"
+          required
+        >
+
+        <label>
+          Palavra-passe
+        </label>
+
+        <input
+          id="loginPassword"
+          type="password"
+          required
+        >
+
+        <button>
+          Entrar
+        </button>
+
+      </form>
+
+      <p
+        id="loginMessage"
+      ></p>
+
+      <hr>
+
+      <h2>
+        Criar conta
+      </h2>
+
+      <form
+        id="registerForm"
+      >
+
+        <input
+          id="registerName"
+          placeholder="Nome"
+          required
+        >
+
+        <input
+          id="registerBusiness"
+          placeholder="Nome do negócio"
+        >
+
+        <input
+          id="registerEmail"
+          type="email"
+          placeholder="Email"
+          required
+        >
+
+        <input
+          id="registerPassword"
+          type="password"
+          placeholder="Palavra-passe — mínimo 8 caracteres"
+          minlength="8"
+          required
+        >
+
+        <input
+          id="registerPhone"
+          placeholder="Telefone"
+        >
+
+        <button>
+          Criar conta
+        </button>
+
+      </form>
+
+      <p
+        id="registerMessage"
+      ></p>
+
+    </section>
+
+    <section
+      id="dashboardSection"
+      class="hidden"
+    >
+
+      <div class="hero">
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:15px;
+          "
+        >
+
+          <div>
+            <h1>
+              Dashboard
+            </h1>
+
+            <p id="merchantName"></p>
+          </div>
+
+          <button
+            id="logoutButton"
+          >
+            Sair
+          </button>
+
+        </div>
+
+      </div>
+
+      <div
+        class="grid"
+        id="stats"
+      >
+
+        <div class="card">
+          <div>
+            Pagamentos
+          </div>
+
+          <div
+            class="value"
+            id="totalPayments"
+          >
+            0
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            Confirmados
+          </div>
+
+          <div
+            class="value"
+            id="successfulPayments"
+          >
+            0
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            Volume
+          </div>
+
+          <div
+            class="value"
+            id="grossVolume"
+          >
+            0 Kz
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            Comissão Honey Pay
+          </div>
+
+          <div
+            class="value"
+            id="fees"
+          >
+            0 Kz
+          </div>
+        </div>
+
+      </div>
+
+      <br>
+
+      <div class="card">
+
+        <h2>
+          Criar link de pagamento
+        </h2>
+
+        <form
+          id="linkForm"
+        >
+
+          <input
+            id="linkTitle"
+            placeholder="Ex.: Camisola preta"
+            required
+          >
+
+          <input
+            id="linkDescription"
+            placeholder="Descrição"
+          >
+
+          <input
+            id="linkAmount"
+            type="number"
+            min="1"
+            placeholder="Valor em Kz"
+            required
+          >
+
+          <button>
+            Criar link
+          </button>
+
+        </form>
+
+        <p
+          id="linkMessage"
+        ></p>
+
+      </div>
+
+      <br>
+
+      <div class="card">
+
+        <h2>
+          Últimos pagamentos
+        </h2>
+
+        <div id="payments"></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="/app.js"></script>
+
+</body>
+</html>
