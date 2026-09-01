@@ -1,35 +1,36 @@
-'use strict';
-
 /*
 ============================================================
 HONEY PAY
-BACKEND V1.0.0
-REAL PAYMENT ENGINE
+MAIN SERVER
+V3.0.0
+PRODUCTION BACKEND
 ============================================================
 
-- Node.js / Express
-- MongoDB Atlas
-- JWT authentication
-- BitPay real API
-- Payment Intents
-- Idempotency
-- Signed webhooks
-- Payment state machine
-- 0.80% Honey Pay fee
-- Orders
+RESPONSABILIDADES
+------------------------------------------------------------
+- Express API
+- MongoDB / Mongoose
+- Autenticação JWT
+- Merchants
 - Customers
 - Products
+- Orders
+- Payments
 - Payment Links
-- Public checkout
-- Audit logs
-- Rate limiting
-- Security headers
-
-IMPORTANT:
-BitPay secrets NEVER go to frontend.
-
+- Dashboard
+- Reports
+- BitPay
+- BitPay Webhooks
+- Refunds
+- Audit Logs
+- Public Checkout
+- Static Frontend
+- Security / Rate Limit
+- Idempotency
 ============================================================
 */
+
+'use strict';
 
 require('dotenv').config();
 
@@ -43,43 +44,41 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const path = require('path');
 
-const app = express();
-
 /* =========================================================
-   CONFIG
+   CONFIGURATION
 ========================================================= */
 
+const app = express();
+
 const PORT = Number(process.env.PORT || 10000);
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const JWT_SECRET = process.env.JWT_SECRET;
-
-const APP_BASE_URL =
-  process.env.APP_BASE_URL ||
-  `http://localhost:${PORT}`;
 
 const BITPAY_BASE_URL =
   process.env.BITPAY_BASE_URL ||
   'https://api-sandbox.bitpay.ao/v1';
 
-const BITPAY_SECRET_KEY =
-  process.env.BITPAY_SECRET_KEY || '';
+const BITPAY_SECRET_KEY = process.env.BITPAY_SECRET_KEY || '';
+const BITPAY_WEBHOOK_SECRET = process.env.BITPAY_WEBHOOK_SECRET || '';
 
-const BITPAY_WEBHOOK_SECRET =
-  process.env.BITPAY_WEBHOOK_SECRET || '';
+const APP_BASE_URL =
+  process.env.APP_BASE_URL ||
+  `http://localhost:${PORT}`;
 
-const HONEY_PAY_FEE_BPS =
-  Number(process.env.HONEY_PAY_FEE_BPS || 80);
-
-const HONEY_PAY_CURRENCY =
-  process.env.HONEY_PAY_CURRENCY || 'AOA';
+const HONEY_PAY_FEE_BPS = Number(
+  process.env.HONEY_PAY_FEE_BPS || 80
+);
 
 const BITPAY_MULTI_MERCHANT_ENABLED =
-  String(process.env.BITPAY_MULTI_MERCHANT_ENABLED)
+  String(process.env.BITPAY_MULTI_MERCHANT_ENABLED || 'false')
     .toLowerCase() === 'true';
 
+const FRONTEND_DIR = path.join(__dirname, 'public');
+
 if (!MONGODB_URI) {
-  console.error('MONGODB_URI não configurada.');
+  console.error('MONGODB_URI não configurado.');
   process.exit(1);
 }
 
@@ -109,58 +108,42 @@ app.use(
   })
 );
 
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Muitas requisições. Tente novamente mais tarde.'
+  }
+});
+
+app.use('/api', apiLimiter);
+
 /*
-IMPORTANT:
-Webhook precisa receber o corpo RAW para validação HMAC.
+IMPORTANTE:
+O webhook precisa receber o body RAW antes do express.json()
+para podermos verificar a assinatura HMAC da BitPay.
 */
 app.post(
   '/api/webhooks/bitpay',
-  express.raw({
-    type: 'application/json',
-    limit: '1mb'
-  }),
+  express.raw({ type: 'application/json' }),
   handleBitPayWebhook
 );
 
 app.use(
   express.json({
-    limit: '1mb'
+    limit: '2mb'
   })
 );
 
 app.use(
   express.urlencoded({
-    extended: false,
-    limit: '1mb'
+    extended: true,
+    limit: '2mb'
   })
 );
-
-/* =========================================================
-   RATE LIMIT
-========================================================= */
-
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 500,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 20,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-const paymentLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-app.use('/api', globalLimiter);
 
 /* =========================================================
    DATABASE
@@ -179,56 +162,199 @@ mongoose
   });
 
 /* =========================================================
-   SCHEMAS
+   HELPERS
 ========================================================= */
 
-const MerchantSchema = new mongoose.Schema(
+function normalizeEmail(email) {
+  return String(email || '')
+    .trim()
+    .toLowerCase();
+}
+
+function cleanString(value, max = 500) {
+  return String(value || '')
+    .trim()
+    .slice(0, max);
+}
+
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+function generateToken() {
+  return crypto.randomBytes(24).toString('hex');
+}
+
+function generateReference(prefix = 'HP') {
+  const date = new Date()
+    .toISOString()
+    .replace(/\D/g, '')
+    .slice(0, 14);
+
+  const random = crypto
+    .randomBytes(4)
+    .toString('hex')
+    .toUpperCase();
+
+  return `${prefix}-${date}-${random}`;
+}
+
+function calculateFee(amount) {
+  const numeric = Number(amount);
+
+  if (!Number.isInteger(numeric) || numeric < 0) {
+    throw new Error('Valor financeiro inválido.');
+  }
+
+  return Math.round(
+    (numeric * HONEY_PAY_FEE_BPS) / 10000
+  );
+}
+
+function signJWT(user) {
+  return jwt.sign(
+    {
+      sub: String(user._id),
+      email: user.email
+    },
+    JWT_SECRET,
+    {
+      expiresIn: '30d'
+    }
+  );
+}
+
+function getBearerToken(req) {
+  const header = req.headers.authorization || '';
+
+  if (!header.startsWith('Bearer ')) {
+    return null;
+  }
+
+  return header.slice(7).trim();
+}
+
+function authenticate(req, res, next) {
+  try {
+    const token = getBearerToken(req);
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Autenticação necessária.'
+      });
+    }
+
+    const payload = jwt.verify(token, JWT_SECRET);
+
+    req.userId = payload.sub;
+    req.userEmail = payload.email;
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Sessão inválida ou expirada.'
+    });
+  }
+}
+
+function asyncHandler(fn) {
+  return function wrapped(req, res, next) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}
+
+/* =========================================================
+   MODELS
+========================================================= */
+
+const UserSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true,
-      maxlength: 150
+      trim: true
     },
 
     email: {
       type: String,
       required: true,
+      unique: true,
       lowercase: true,
       trim: true,
-      unique: true,
       index: true
     },
 
     passwordHash: {
       type: String,
-      required: true,
-      select: false
+      default: null
     },
 
-    phone: {
+    avatar: {
       type: String,
-      trim: true,
-      maxlength: 30
+      default: ''
+    },
+
+    role: {
+      type: String,
+      enum: ['merchant', 'admin'],
+      default: 'merchant'
+    },
+
+    active: {
+      type: Boolean,
+      default: true
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: null
+    }
+  },
+  {
+    timestamps: true
+  }
+);
+
+const MerchantSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      unique: true,
+      required: true,
+      index: true
     },
 
     businessName: {
       type: String,
-      trim: true,
-      maxlength: 150
+      default: ''
     },
 
-    taxId: {
+    phone: {
       type: String,
-      trim: true,
-      maxlength: 50
+      default: ''
     },
 
-    status: {
+    nif: {
       type: String,
-      enum: ['PENDING', 'ACTIVE', 'SUSPENDED'],
-      default: 'ACTIVE',
-      index: true
+      default: ''
+    },
+
+    address: {
+      type: String,
+      default: ''
+    },
+
+    city: {
+      type: String,
+      default: ''
+    },
+
+    country: {
+      type: String,
+      default: 'AO'
     },
 
     currency: {
@@ -236,31 +362,29 @@ const MerchantSchema = new mongoose.Schema(
       default: 'AOA'
     },
 
-    feeBps: {
-      type: Number,
-      default: HONEY_PAY_FEE_BPS
+    provider: {
+      type: String,
+      default: 'bitpay'
+    },
+
+    providerAccountRef: {
+      type: String,
+      default: ''
     },
 
     /*
-    Future provider mapping.
-    NÃO assume que este campo por si só cria
-    uma subconta BitPay.
+    Só pode ser ativado depois de a configuração
+    de multi-merchant/settlement da BitPay estar
+    efetivamente aprovada.
     */
-    providerAccountId: {
-      type: String,
-      default: null,
-      index: true
+    providerSettlementReady: {
+      type: Boolean,
+      default: false
     },
 
-    providerOnboardingStatus: {
-      type: String,
-      enum: [
-        'NOT_STARTED',
-        'PENDING',
-        'APPROVED',
-        'REJECTED'
-      ],
-      default: 'NOT_STARTED'
+    active: {
+      type: Boolean,
+      default: true
     }
   },
   {
@@ -272,26 +396,37 @@ const CustomerSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       required: true,
       index: true
     },
 
     name: {
       type: String,
-      trim: true,
-      maxlength: 150
+      required: true,
+      trim: true
     },
 
     email: {
       type: String,
-      trim: true,
-      lowercase: true
+      default: '',
+      lowercase: true,
+      trim: true
     },
 
     phone: {
       type: String,
-      trim: true,
-      maxlength: 30
+      default: ''
+    },
+
+    notes: {
+      type: String,
+      default: ''
+    },
+
+    totalOrders: {
+      type: Number,
+      default: 0
     },
 
     totalSpent: {
@@ -299,9 +434,9 @@ const CustomerSchema = new mongoose.Schema(
       default: 0
     },
 
-    totalOrders: {
-      type: Number,
-      default: 0
+    lastOrderAt: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -318,6 +453,7 @@ const ProductSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       required: true,
       index: true
     },
@@ -325,14 +461,17 @@ const ProductSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
-      maxlength: 200
+      trim: true
     },
 
     description: {
       type: String,
-      trim: true,
-      maxlength: 2000
+      default: ''
+    },
+
+    sku: {
+      type: String,
+      default: ''
     },
 
     price: {
@@ -346,9 +485,19 @@ const ProductSchema = new mongoose.Schema(
       default: 'AOA'
     },
 
+    image: {
+      type: String,
+      default: ''
+    },
+
     active: {
       type: Boolean,
       default: true
+    },
+
+    stock: {
+      type: Number,
+      default: null
     }
   },
   {
@@ -356,23 +505,29 @@ const ProductSchema = new mongoose.Schema(
   }
 );
 
+ProductSchema.index({
+  merchantId: 1,
+  createdAt: -1
+});
+
 const OrderSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       required: true,
       index: true
     },
 
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Customer',
       default: null,
       index: true
     },
 
-    orderNumber: {
+    reference: {
       type: String,
-      required: true,
       unique: true,
       index: true
     },
@@ -381,6 +536,7 @@ const OrderSchema = new mongoose.Schema(
       {
         productId: {
           type: mongoose.Schema.Types.ObjectId,
+          ref: 'Product',
           default: null
         },
 
@@ -396,14 +552,20 @@ const OrderSchema = new mongoose.Schema(
           min: 0
         },
 
-        subtotal: {
+        total: {
           type: Number,
           min: 0
         }
       }
     ],
 
-    amount: {
+    subtotal: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+
+    total: {
       type: Number,
       required: true,
       min: 1
@@ -418,9 +580,9 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       enum: [
         'PENDING',
+        'PAYMENT_PROCESSING',
         'PAID',
         'FAILED',
-        'EXPIRED',
         'CANCELLED',
         'REFUNDED',
         'PARTIALLY_REFUNDED'
@@ -433,6 +595,11 @@ const OrderSchema = new mongoose.Schema(
       name: String,
       email: String,
       phone: String
+    },
+
+    paidAt: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -440,72 +607,48 @@ const OrderSchema = new mongoose.Schema(
   }
 );
 
+OrderSchema.index({
+  merchantId: 1,
+  createdAt: -1
+});
+
 const PaymentSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       required: true,
       index: true
     },
 
     orderId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
       required: true,
       index: true
     },
 
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
-      default: null,
+      ref: 'Customer',
+      default: null
+    },
+
+    reference: {
+      type: String,
+      required: true,
       index: true
     },
 
     provider: {
       type: String,
-      enum: ['BITPAY'],
-      default: 'BITPAY'
+      default: 'bitpay'
     },
 
     providerPaymentId: {
       type: String,
-      unique: true,
-      sparse: true,
+      default: '',
       index: true
-    },
-
-    idempotencyKey: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true
-    },
-
-    amount: {
-      type: Number,
-      required: true,
-      min: 1
-    },
-
-    feeBps: {
-      type: Number,
-      required: true
-    },
-
-    feeAmount: {
-      type: Number,
-      required: true,
-      min: 0
-    },
-
-    netAmount: {
-      type: Number,
-      required: true,
-      min: 0
-    },
-
-    currency: {
-      type: String,
-      default: 'AOA'
     },
 
     paymentMethod: {
@@ -517,10 +660,30 @@ const PaymentSchema = new mongoose.Schema(
       required: true
     },
 
+    amount: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+
+    feeAmount: {
+      type: Number,
+      default: 0
+    },
+
+    netAmount: {
+      type: Number,
+      default: 0
+    },
+
+    currency: {
+      type: String,
+      default: 'AOA'
+    },
+
     status: {
       type: String,
       enum: [
-        'CREATED',
         'PENDING',
         'PROCESSING',
         'SUCCEEDED',
@@ -531,35 +694,24 @@ const PaymentSchema = new mongoose.Schema(
         'PARTIALLY_REFUNDED',
         'REFUNDED'
       ],
-      default: 'CREATED',
+      default: 'PENDING',
       index: true
     },
 
-    providerRaw: {
+    idempotencyKey: {
+      type: String,
+      unique: true,
+      index: true
+    },
+
+    providerPayload: {
       type: mongoose.Schema.Types.Mixed,
       default: null
     },
 
-    reference: {
-      entity: String,
-      number: String,
-      expiresAt: Date
-    },
-
-    checkoutUrl: {
+    failureReason: {
       type: String,
-      default: null
-    },
-
-    settlementStatus: {
-      type: String,
-      enum: [
-        'NOT_APPLICABLE',
-        'PENDING',
-        'SETTLED',
-        'UNKNOWN'
-      ],
-      default: 'PENDING'
+      default: ''
     },
 
     succeededAt: {
@@ -572,30 +724,34 @@ const PaymentSchema = new mongoose.Schema(
   }
 );
 
+PaymentSchema.index({
+  merchantId: 1,
+  createdAt: -1
+});
+
 const PaymentLinkSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       required: true,
       index: true
     },
 
     token: {
       type: String,
-      required: true,
       unique: true,
       index: true
     },
 
     title: {
       type: String,
-      required: true,
-      maxlength: 200
+      required: true
     },
 
     description: {
       type: String,
-      maxlength: 2000
+      default: ''
     },
 
     amount: {
@@ -617,6 +773,16 @@ const PaymentLinkSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       default: null
+    },
+
+    totalPayments: {
+      type: Number,
+      default: 0
+    },
+
+    totalReceived: {
+      type: Number,
+      default: 0
     }
   },
   {
@@ -628,7 +794,7 @@ const WebhookEventSchema = new mongoose.Schema(
   {
     provider: {
       type: String,
-      default: 'BITPAY'
+      required: true
     },
 
     eventId: {
@@ -640,12 +806,12 @@ const WebhookEventSchema = new mongoose.Schema(
 
     eventType: {
       type: String,
-      required: true
+      default: ''
     },
 
     payload: {
       type: mongoose.Schema.Types.Mixed,
-      required: true
+      default: null
     },
 
     processed: {
@@ -656,6 +822,11 @@ const WebhookEventSchema = new mongoose.Schema(
     processedAt: {
       type: Date,
       default: null
+    },
+
+    error: {
+      type: String,
+      default: ''
     }
   },
   {
@@ -667,157 +838,2202 @@ const AuditLogSchema = new mongoose.Schema(
   {
     merchantId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: 'Merchant',
       default: null,
       index: true
     },
 
-    action: {
-      type: String,
-      required: true,
-      index: true
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
     },
 
-    entityType: String,
+    action: {
+      type: String,
+      required: true
+    },
 
-    entityId: String,
+    entity: {
+      type: String,
+      default: ''
+    },
+
+    entityId: {
+      type: String,
+      default: ''
+    },
 
     metadata: {
       type: mongoose.Schema.Types.Mixed,
       default: {}
     },
 
-    ip: String,
-
-    userAgent: String
+    ip: {
+      type: String,
+      default: ''
+    }
   },
   {
     timestamps: true
   }
 );
 
-const Merchant =
-  mongoose.model('Merchant', MerchantSchema);
-
-const Customer =
-  mongoose.model('Customer', CustomerSchema);
-
-const Product =
-  mongoose.model('Product', ProductSchema);
-
-const Order =
-  mongoose.model('Order', OrderSchema);
-
-const Payment =
-  mongoose.model('Payment', PaymentSchema);
-
-const PaymentLink =
-  mongoose.model('PaymentLink', PaymentLinkSchema);
-
-const WebhookEvent =
-  mongoose.model('WebhookEvent', WebhookEventSchema);
-
-const AuditLog =
-  mongoose.model('AuditLog', AuditLogSchema);
-
 /* =========================================================
-   HELPERS
+   MODELS
 ========================================================= */
 
-function roundMoney(value) {
-  return Math.round(Number(value));
+const User = mongoose.model('User', UserSchema);
+const Merchant = mongoose.model('Merchant', MerchantSchema);
+const Customer = mongoose.model('Customer', CustomerSchema);
+const Product = mongoose.model('Product', ProductSchema);
+const Order = mongoose.model('Order', OrderSchema);
+const Payment = mongoose.model('Payment', PaymentSchema);
+const PaymentLink = mongoose.model(
+  'PaymentLink',
+  PaymentLinkSchema
+);
+const WebhookEvent = mongoose.model(
+  'WebhookEvent',
+  WebhookEventSchema
+);
+const AuditLog = mongoose.model(
+  'AuditLog',
+  AuditLogSchema
+);
+
+/* =========================================================
+   MERCHANT HELPER
+========================================================= */
+
+async function getMerchantForUser(userId) {
+  return Merchant.findOne({
+    userId,
+    active: true
+  });
 }
 
-function calculateFee(amount, feeBps) {
-  return Math.floor(
-    (Number(amount) * Number(feeBps)) / 10000
-  );
-}
+async function requireMerchant(req, res, next) {
+  const merchant = await getMerchantForUser(req.userId);
 
-function calculateNet(amount, feeBps) {
-  const fee = calculateFee(amount, feeBps);
-
-  return {
-    fee,
-    net: Number(amount) - fee
-  };
-}
-
-function generateOrderNumber() {
-  const timestamp =
-    Date.now().toString(36).toUpperCase();
-
-  const random =
-    crypto.randomBytes(4)
-      .toString('hex')
-      .toUpperCase();
-
-  return `HP-${timestamp}-${random}`;
-}
-
-function generateToken(bytes = 24) {
-  return crypto.randomBytes(bytes).toString('hex');
-}
-
-function normalizePhone(phone) {
-  if (!phone) return null;
-
-  let value = String(phone)
-    .replace(/\s+/g, '')
-    .replace(/-/g, '');
-
-  if (value.startsWith('+244')) {
-    value = value.substring(4);
+  if (!merchant) {
+    return res.status(404).json({
+      success: false,
+      error: 'Perfil de comerciante não encontrado.'
+    });
   }
 
-  if (value.startsWith('244')) {
-    value = value.substring(3);
-  }
-
-  return value;
+  req.merchant = merchant;
+  next();
 }
 
-function safeEqualHex(a, b) {
+/* =========================================================
+   AUDIT
+========================================================= */
+
+async function audit(req, action, entity = '', entityId = '', metadata = {}) {
   try {
-    const aa = Buffer.from(a, 'hex');
-    const bb = Buffer.from(b, 'hex');
+    await AuditLog.create({
+      merchantId: req.merchant?._id || null,
+      userId: req.userId || null,
+      action,
+      entity,
+      entityId: String(entityId || ''),
+      metadata,
+      ip: req.ip || ''
+    });
+  } catch (error) {
+    console.error('Audit log error:', error.message);
+  }
+}
 
-    if (aa.length !== bb.length) {
-      return false;
+/* =========================================================
+   BITPAY CLIENT
+========================================================= */
+
+async function bitpayRequest(endpoint, options = {}) {
+  if (!BITPAY_SECRET_KEY) {
+    throw new Error(
+      'BITPAY_SECRET_KEY não configurado.'
+    );
+  }
+
+  const url =
+    `${BITPAY_BASE_URL.replace(/\/$/, '')}` +
+    `${endpoint}`;
+
+  const headers = {
+    Authorization: `Bearer ${BITPAY_SECRET_KEY}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(url, {
+    method: options.method || 'GET',
+    headers,
+    body: options.body
+  });
+
+  const text = await response.text();
+
+  let data;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {
+      raw: text
+    };
+  }
+
+  if (!response.ok) {
+    const message =
+      data?.error?.message ||
+      data?.message ||
+      data?.error ||
+      `BitPay HTTP ${response.status}`;
+
+    const error = new Error(String(message));
+
+    error.status = response.status;
+    error.providerResponse = data;
+
+    throw error;
+  }
+
+  return data;
+}
+
+/* =========================================================
+   BITPAY PAYMENT CREATION
+========================================================= */
+
+async function createBitPayPayment({
+  amount,
+  paymentMethod,
+  customerPhone,
+  merchantReference,
+  metadata,
+  idempotencyKey
+}) {
+  const payload = {
+    amount,
+    currency: 'AOA',
+    payment_method: paymentMethod,
+    merchant_reference: merchantReference,
+    metadata: metadata || {}
+  };
+
+  if (paymentMethod === 'multicaixa_express') {
+    payload.customer = {
+      mobile: customerPhone
+    };
+  }
+
+  return bitpayRequest('/payment_intents', {
+    method: 'POST',
+    headers: {
+      'Idempotency-Key': idempotencyKey
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+app.post(
+  '/api/auth/register',
+  asyncHandler(async (req, res) => {
+    const name = cleanString(req.body.name, 120);
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || '');
+
+    if (!name || !email || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Nome, email e palavra-passe com pelo menos 8 caracteres são obrigatórios.'
+      });
     }
 
-    return crypto.timingSafeEqual(aa, bb);
-  } catch {
-    return false;
-  }
+    const exists = await User.findOne({ email });
+
+    if (exists) {
+      return res.status(409).json({
+        success: false,
+        error: 'Este email já está registado.'
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(
+      password,
+      12
+    );
+
+    const user = await User.create({
+      name,
+      email,
+      passwordHash
+    });
+
+    const merchant = await Merchant.create({
+      userId: user._id,
+      businessName: name
+    });
+
+    const token = signJWT(user);
+
+    res.status(201).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      merchant: {
+        id: merchant._id,
+        businessName: merchant.businessName
+      }
+    });
+  })
+);
+
+app.post(
+  '/api/auth/login',
+  asyncHandler(async (req, res) => {
+    const email = normalizeEmail(req.body.email);
+    const password = String(req.body.password || '');
+
+    const user = await User.findOne({
+      email,
+      active: true
+    });
+
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciais inválidas.'
+      });
+    }
+
+    const valid = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!valid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Credenciais inválidas.'
+      });
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    const merchant = await getMerchantForUser(
+      user._id
+    );
+
+    const token = signJWT(user);
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar
+      },
+      merchant: merchant
+        ? {
+            id: merchant._id,
+            businessName: merchant.businessName
+          }
+        : null
+    });
+  })
+);
+
+app.get(
+  '/api/me',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.userId)
+      .select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilizador não encontrado.'
+      });
+    }
+
+    const merchant = await getMerchantForUser(
+      req.userId
+    );
+
+    res.json({
+      success: true,
+      user,
+      merchant
+    });
+  })
+);
+
+/* =========================================================
+   MERCHANT
+========================================================= */
+
+app.get(
+  '/api/merchant',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    res.json({
+      success: true,
+      merchant: req.merchant
+    });
+  })
+);
+
+app.patch(
+  '/api/merchant',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const allowed = [
+      'businessName',
+      'phone',
+      'nif',
+      'address',
+      'city'
+    ];
+
+    for (const field of allowed) {
+      if (req.body[field] !== undefined) {
+        req.merchant[field] = cleanString(
+          req.body[field],
+          300
+        );
+      }
+    }
+
+    await req.merchant.save();
+
+    await audit(
+      req,
+      'MERCHANT_UPDATED',
+      'Merchant',
+      req.merchant._id
+    );
+
+    res.json({
+      success: true,
+      merchant: req.merchant
+    });
+  })
+);
+
+/* =========================================================
+   CUSTOMERS
+========================================================= */
+
+app.get(
+  '/api/customers',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const page = Math.max(
+      1,
+      Number(req.query.page || 1)
+    );
+
+    const limit = Math.min(
+      100,
+      Math.max(1, Number(req.query.limit || 25))
+    );
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      merchantId: req.merchant._id
+    };
+
+    const search = cleanString(req.query.search, 100);
+
+    if (search) {
+      filter.$or = [
+        {
+          name: {
+            $regex: search,
+            $options: 'i'
+          }
+        },
+        {
+          email: {
+            $regex: search,
+            $options: 'i'
+          }
+        },
+        {
+          phone: {
+            $regex: search,
+            $options: 'i'
+          }
+        }
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      Customer.find(filter)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Customer.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  })
+);
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+app.get(
+  '/api/products',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const products = await Product.find({
+      merchantId: req.merchant._id
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      products
+    });
+  })
+);
+
+app.post(
+  '/api/products',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const name = cleanString(req.body.name, 200);
+    const description = cleanString(
+      req.body.description,
+      2000
+    );
+
+    const price = Number(req.body.price);
+
+    if (!name || !Number.isInteger(price) || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nome e preço válido são obrigatórios.'
+      });
+    }
+
+    const product = await Product.create({
+      merchantId: req.merchant._id,
+      name,
+      description,
+      sku: cleanString(req.body.sku, 100),
+      price,
+      currency: 'AOA',
+      image: cleanString(req.body.image, 1000),
+      stock:
+        req.body.stock === null ||
+        req.body.stock === undefined ||
+        req.body.stock === ''
+          ? null
+          : Number(req.body.stock)
+    });
+
+    await audit(
+      req,
+      'PRODUCT_CREATED',
+      'Product',
+      product._id
+    );
+
+    res.status(201).json({
+      success: true,
+      product
+    });
+  })
+);
+
+app.patch(
+  '/api/products/:id',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Produto inválido.'
+      });
+    }
+
+    const product = await Product.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Produto não encontrado.'
+      });
+    }
+
+    if (req.body.name !== undefined) {
+      product.name = cleanString(
+        req.body.name,
+        200
+      );
+    }
+
+    if (req.body.description !== undefined) {
+      product.description = cleanString(
+        req.body.description,
+        2000
+      );
+    }
+
+    if (req.body.price !== undefined) {
+      const price = Number(req.body.price);
+
+      if (!Number.isInteger(price) || price <= 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'Preço inválido.'
+        });
+      }
+
+      product.price = price;
+    }
+
+    if (req.body.sku !== undefined) {
+      product.sku = cleanString(
+        req.body.sku,
+        100
+      );
+    }
+
+    if (req.body.image !== undefined) {
+      product.image = cleanString(
+        req.body.image,
+        1000
+      );
+    }
+
+    if (req.body.active !== undefined) {
+      product.active = Boolean(req.body.active);
+    }
+
+    await product.save();
+
+    res.json({
+      success: true,
+      product
+    });
+  })
+);
+
+app.delete(
+  '/api/products/:id',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Produto não encontrado.'
+      });
+    }
+
+    product.active = false;
+    await product.save();
+
+    await audit(
+      req,
+      'PRODUCT_DEACTIVATED',
+      'Product',
+      product._id
+    );
+
+    res.json({
+      success: true
+    });
+  })
+);
+
+/* =========================================================
+   ORDERS
+========================================================= */
+
+app.post(
+  '/api/orders',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const customerInput = req.body.customer || {};
+    const itemsInput = Array.isArray(req.body.items)
+      ? req.body.items
+      : [];
+
+    if (!itemsInput.length) {
+      return res.status(400).json({
+        success: false,
+        error: 'O pedido precisa ter pelo menos um item.'
+      });
+    }
+
+    let customer = null;
+
+    const customerName = cleanString(
+      customerInput.name,
+      200
+    );
+
+    const customerEmail = normalizeEmail(
+      customerInput.email
+    );
+
+    const customerPhone = cleanString(
+      customerInput.phone,
+      50
+    );
+
+    if (!customerName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nome do cliente é obrigatório.'
+      });
+    }
+
+    if (customerEmail) {
+      customer = await Customer.findOne({
+        merchantId: req.merchant._id,
+        email: customerEmail
+      });
+    }
+
+    if (!customer && customerPhone) {
+      customer = await Customer.findOne({
+        merchantId: req.merchant._id,
+        phone: customerPhone
+      });
+    }
+
+    if (!customer) {
+      customer = await Customer.create({
+        merchantId: req.merchant._id,
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone
+      });
+    } else {
+      customer.name = customerName;
+
+      if (customerEmail) {
+        customer.email = customerEmail;
+      }
+
+      if (customerPhone) {
+        customer.phone = customerPhone;
+      }
+
+      await customer.save();
+    }
+
+    const items = [];
+    let subtotal = 0;
+
+    for (const input of itemsInput) {
+      const quantity = Number(
+        input.quantity || 1
+      );
+
+      if (
+        !Number.isInteger(quantity) ||
+        quantity <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: 'Quantidade inválida.'
+        });
+      }
+
+      let product = null;
+
+      if (
+        input.productId &&
+        isValidObjectId(input.productId)
+      ) {
+        product = await Product.findOne({
+          _id: input.productId,
+          merchantId: req.merchant._id,
+          active: true
+        });
+      }
+
+      const unitPrice = product
+        ? product.price
+        : Number(input.unitPrice);
+
+      const name = product
+        ? product.name
+        : cleanString(input.name, 200);
+
+      if (
+        !name ||
+        !Number.isInteger(unitPrice) ||
+        unitPrice <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: 'Item de pedido inválido.'
+        });
+      }
+
+      const total = unitPrice * quantity;
+
+      subtotal += total;
+
+      items.push({
+        productId: product
+          ? product._id
+          : null,
+        name,
+        quantity,
+        unitPrice,
+        total
+      });
+    }
+
+    const order = await Order.create({
+      merchantId: req.merchant._id,
+      customerId: customer._id,
+      reference: generateReference('ORD'),
+      items,
+      subtotal,
+      total: subtotal,
+      currency: 'AOA',
+      status: 'PENDING',
+      customerSnapshot: {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone
+      }
+    });
+
+    customer.totalOrders += 1;
+    customer.lastOrderAt = new Date();
+    await customer.save();
+
+    await audit(
+      req,
+      'ORDER_CREATED',
+      'Order',
+      order._id,
+      {
+        amount: order.total
+      }
+    );
+
+    res.status(201).json({
+      success: true,
+      order
+    });
+  })
+);
+
+app.get(
+  '/api/orders',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const page = Math.max(
+      1,
+      Number(req.query.page || 1)
+    );
+
+    const limit = Math.min(
+      100,
+      Math.max(1, Number(req.query.limit || 25))
+    );
+
+    const skip = (page - 1) * limit;
+
+    const filter = {
+      merchantId: req.merchant._id
+    };
+
+    if (
+      req.query.status &&
+      [
+        'PENDING',
+        'PAYMENT_PROCESSING',
+        'PAID',
+        'FAILED',
+        'CANCELLED',
+        'REFUNDED',
+        'PARTIALLY_REFUNDED'
+      ].includes(req.query.status)
+    ) {
+      filter.status = req.query.status;
+    }
+
+    const [orders, total] = await Promise.all([
+      Order.find(filter)
+        .populate('customerId', 'name email phone')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+
+      Order.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      orders,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  })
+);
+
+app.get(
+  '/api/orders/:id',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    })
+      .populate(
+        'customerId',
+        'name email phone totalOrders totalSpent'
+      )
+      .lean();
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pedido não encontrado.'
+      });
+    }
+
+    const payments = await Payment.find({
+      orderId: order._id,
+      merchantId: req.merchant._id
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      order,
+      payments
+    });
+  })
+);
+
+/* =========================================================
+   PAYMENT LINKS
+========================================================= */
+
+app.post(
+  '/api/payment-links',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const title = cleanString(
+      req.body.title,
+      200
+    );
+
+    const amount = Number(req.body.amount);
+
+    if (
+      !title ||
+      !Number.isInteger(amount) ||
+      amount <= 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Título e valor válido são obrigatórios.'
+      });
+    }
+
+    const link = await PaymentLink.create({
+      merchantId: req.merchant._id,
+      token: generateToken(),
+      title,
+      description: cleanString(
+        req.body.description,
+        2000
+      ),
+      amount,
+      currency: 'AOA',
+      active: true,
+      expiresAt: req.body.expiresAt
+        ? new Date(req.body.expiresAt)
+        : null
+    });
+
+    const url =
+      `${APP_BASE_URL.replace(/\/$/, '')}` +
+      `/pay/${link.token}`;
+
+    await audit(
+      req,
+      'PAYMENT_LINK_CREATED',
+      'PaymentLink',
+      link._id,
+      {
+        amount
+      }
+    );
+
+    res.status(201).json({
+      success: true,
+      link,
+      url
+    });
+  })
+);
+
+app.get(
+  '/api/payment-links',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const links = await PaymentLink.find({
+      merchantId: req.merchant._id
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const items = links.map((link) => ({
+      ...link,
+      url:
+        `${APP_BASE_URL.replace(/\/$/, '')}` +
+        `/pay/${link.token}`
+    }));
+
+    res.json({
+      success: true,
+      links: items
+    });
+  })
+);
+
+app.patch(
+  '/api/payment-links/:id',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const link = await PaymentLink.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    });
+
+    if (!link) {
+      return res.status(404).json({
+        success: false,
+        error: 'Link não encontrado.'
+      });
+    }
+
+    if (req.body.active !== undefined) {
+      link.active = Boolean(req.body.active);
+    }
+
+    if (req.body.title !== undefined) {
+      link.title = cleanString(
+        req.body.title,
+        200
+      );
+    }
+
+    if (req.body.description !== undefined) {
+      link.description = cleanString(
+        req.body.description,
+        2000
+      );
+    }
+
+    await link.save();
+
+    res.json({
+      success: true,
+      link
+    });
+  })
+);
+
+/* =========================================================
+   PAYMENT CREATION
+========================================================= */
+
+app.post(
+  '/api/payments',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const orderId = req.body.orderId;
+    const paymentMethod =
+      req.body.paymentMethod ||
+      'multicaixa_express';
+
+    if (!isValidObjectId(orderId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Pedido inválido.'
+      });
+    }
+
+    if (
+      ![
+        'multicaixa_express',
+        'multicaixa_reference'
+      ].includes(paymentMethod)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Método de pagamento inválido.'
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: orderId,
+      merchantId: req.merchant._id
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pedido não encontrado.'
+      });
+    }
+
+    if (order.status === 'PAID') {
+      return res.status(409).json({
+        success: false,
+        error: 'Este pedido já está pago.'
+      });
+    }
+
+    if (
+      paymentMethod === 'multicaixa_express' &&
+      !cleanString(req.body.customerPhone, 30)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'O número de telemóvel é obrigatório para Multicaixa Express.'
+      });
+    }
+
+    /*
+    Proteção importante:
+    não permitimos cobrar vários pagamentos
+    simultaneamente para o mesmo pedido.
+    */
+    const existingActivePayment =
+      await Payment.findOne({
+        orderId: order._id,
+        merchantId: req.merchant._id,
+        status: {
+          $in: [
+            'PENDING',
+            'PROCESSING',
+            'UNKNOWN'
+          ]
+        }
+      });
+
+    if (existingActivePayment) {
+      return res.status(409).json({
+        success: false,
+        error:
+          'Já existe um pagamento ativo ou em reconciliação para este pedido.',
+        payment: existingActivePayment
+      });
+    }
+
+    /*
+    Multi-merchant:
+    não inventamos nenhum campo de routing da BitPay.
+    Só permitimos o modo central quando explicitamente
+    configurado. Para produção multi-comerciante real,
+    o settlement/routing precisa estar aprovado pela BitPay.
+    */
+    if (
+      !BITPAY_MULTI_MERCHANT_ENABLED &&
+      req.merchant.providerSettlementReady
+    ) {
+      return res.status(503).json({
+        success: false,
+        error:
+          'A configuração de settlement do comerciante requer ativação do modo multi-merchant da BitPay.'
+      });
+    }
+
+    const idempotencyKey =
+      cleanString(
+        req.headers['idempotency-key'],
+        200
+      ) ||
+      crypto.randomUUID();
+
+    const existingByKey =
+      await Payment.findOne({
+        idempotencyKey
+      });
+
+    if (existingByKey) {
+      return res.json({
+        success: true,
+        payment: existingByKey,
+        idempotent: true
+      });
+    }
+
+    const feeAmount = calculateFee(order.total);
+
+    const payment = await Payment.create({
+      merchantId: req.merchant._id,
+      orderId: order._id,
+      customerId: order.customerId,
+      reference: order.reference,
+      provider: 'bitpay',
+      paymentMethod,
+      amount: order.total,
+      feeAmount,
+      netAmount: order.total - feeAmount,
+      currency: 'AOA',
+      status: 'PENDING',
+      idempotencyKey
+    });
+
+    order.status = 'PAYMENT_PROCESSING';
+    await order.save();
+
+    try {
+      const providerResponse =
+        await createBitPayPayment({
+          amount: order.total,
+          paymentMethod,
+          customerPhone:
+            cleanString(
+              req.body.customerPhone,
+              30
+            ) ||
+            order.customerSnapshot?.phone ||
+            '',
+          merchantReference: order.reference,
+          metadata: {
+            honeyPayPaymentId:
+              String(payment._id),
+
+            honeyPayOrderId:
+              String(order._id),
+
+            honeyPayMerchantId:
+              String(req.merchant._id)
+          },
+          idempotencyKey
+        });
+
+      const providerPaymentId =
+        providerResponse?.id ||
+        providerResponse?.data?.id ||
+        '';
+
+      payment.providerPaymentId =
+        providerPaymentId;
+
+      payment.providerPayload =
+        providerResponse;
+
+      payment.status =
+        mapBitPayStatus(
+          providerResponse?.status ||
+            providerResponse?.data?.status ||
+            'PENDING'
+        );
+
+      await payment.save();
+
+      res.status(201).json({
+        success: true,
+        payment: {
+          id: payment._id,
+          orderId: payment.orderId,
+          providerPaymentId:
+            payment.providerPaymentId,
+          reference: payment.reference,
+          amount: payment.amount,
+          feeAmount: payment.feeAmount,
+          netAmount: payment.netAmount,
+          currency: payment.currency,
+          paymentMethod: payment.paymentMethod,
+          status: payment.status
+        },
+
+        provider: providerResponse
+      });
+    } catch (error) {
+      payment.status = 'FAILED';
+      payment.failureReason =
+        error.message || 'Erro no provedor.';
+
+      payment.providerPayload =
+        error.providerResponse || null;
+
+      await payment.save();
+
+      order.status = 'FAILED';
+      await order.save();
+
+      await audit(
+        req,
+        'PAYMENT_CREATION_FAILED',
+        'Payment',
+        payment._id,
+        {
+          error: error.message
+        }
+      );
+
+      return res.status(
+        error.status === 400 ? 400 : 502
+      ).json({
+        success: false,
+        error:
+          error.message ||
+          'Não foi possível criar o pagamento.',
+        paymentId: payment._id
+      });
+    }
+  })
+);
+
+/* =========================================================
+   PAYMENT STATUS
+========================================================= */
+
+app.get(
+  '/api/payments',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const page = Math.max(
+      1,
+      Number(req.query.page || 1)
+    );
+
+    const limit = Math.min(
+      100,
+      Math.max(1, Number(req.query.limit || 25))
+    );
+
+    const filter = {
+      merchantId: req.merchant._id
+    };
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    const [payments, total] = await Promise.all([
+      Payment.find(filter)
+        .populate(
+          'customerId',
+          'name email phone'
+        )
+        .populate(
+          'orderId',
+          'reference total status'
+        )
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+
+      Payment.countDocuments(filter)
+    ]);
+
+    res.json({
+      success: true,
+      payments,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  })
+);
+
+app.get(
+  '/api/payments/:id',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const payment = await Payment.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    })
+      .populate(
+        'orderId',
+        'reference total status items customerSnapshot'
+      )
+      .populate(
+        'customerId',
+        'name email phone'
+      )
+      .lean();
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pagamento não encontrado.'
+      });
+    }
+
+    res.json({
+      success: true,
+      payment
+    });
+  })
+);
+
+/* =========================================================
+   REFUND
+========================================================= */
+
+app.post(
+  '/api/payments/:id/refund',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const payment = await Payment.findOne({
+      _id: req.params.id,
+      merchantId: req.merchant._id
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pagamento não encontrado.'
+      });
+    }
+
+    if (
+      ![
+        'SUCCEEDED',
+        'PARTIALLY_REFUNDED'
+      ].includes(payment.status)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Só pagamentos confirmados podem ser reembolsados.'
+      });
+    }
+
+    if (!payment.providerPaymentId) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Pagamento sem ID do provedor.'
+      });
+    }
+
+    const amount =
+      req.body.amount === undefined
+        ? payment.amount
+        : Number(req.body.amount);
+
+    if (
+      !Number.isInteger(amount) ||
+      amount <= 0 ||
+      amount > payment.amount
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valor de reembolso inválido.'
+      });
+    }
+
+    try {
+      const response = await bitpayRequest(
+        '/refunds',
+        {
+          method: 'POST',
+          headers: {
+            'Idempotency-Key':
+              `refund-${payment._id}-${amount}`
+          },
+          body: JSON.stringify({
+            payment_id:
+              payment.providerPaymentId,
+            amount,
+            currency: 'AOA',
+            metadata: {
+              honeyPayPaymentId:
+                String(payment._id)
+            }
+          })
+        }
+      );
+
+      await audit(
+        req,
+        'REFUND_CREATED',
+        'Payment',
+        payment._id,
+        {
+          amount
+        }
+      );
+
+      res.json({
+        success: true,
+        refund: response
+      });
+    } catch (error) {
+      return res.status(502).json({
+        success: false,
+        error:
+          error.message ||
+          'Não foi possível criar o reembolso.'
+      });
+    }
+  })
+);
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+app.get(
+  '/api/dashboard',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const merchantId = req.merchant._id;
+
+    const [
+      successful,
+      pending,
+      failed,
+      customers,
+      orders,
+      links
+    ] = await Promise.all([
+      Payment.aggregate([
+        {
+          $match: {
+            merchantId,
+            status: 'SUCCEEDED'
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            count: {
+              $sum: 1
+            },
+            gross: {
+              $sum: '$amount'
+            },
+            fees: {
+              $sum: '$feeAmount'
+            },
+            net: {
+              $sum: '$netAmount'
+            }
+          }
+        }
+      ]),
+
+      Payment.aggregate([
+        {
+          $match: {
+            merchantId,
+            status: {
+              $in: [
+                'PENDING',
+                'PROCESSING',
+                'UNKNOWN'
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            count: {
+              $sum: 1
+            },
+            amount: {
+              $sum: '$amount'
+            }
+          }
+        }
+      ]),
+
+      Payment.aggregate([
+        {
+          $match: {
+            merchantId,
+            status: {
+              $in: [
+                'FAILED',
+                'EXPIRED'
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            count: {
+              $sum: 1
+            },
+            amount: {
+              $sum: '$amount'
+            }
+          }
+        }
+      ]),
+
+      Customer.countDocuments({
+        merchantId
+      }),
+
+      Order.countDocuments({
+        merchantId
+      }),
+
+      PaymentLink.countDocuments({
+        merchantId,
+        active: true
+      })
+    ]);
+
+    const successfulData =
+      successful[0] || {
+        count: 0,
+        gross: 0,
+        fees: 0,
+        net: 0
+      };
+
+    const pendingData =
+      pending[0] || {
+        count: 0,
+        amount: 0
+      };
+
+    const failedData =
+      failed[0] || {
+        count: 0,
+        amount: 0
+      };
+
+    const recentPayments =
+      await Payment.find({
+        merchantId
+      })
+        .populate(
+          'customerId',
+          'name email phone'
+        )
+        .populate(
+          'orderId',
+          'reference total'
+        )
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean();
+
+    res.json({
+      success: true,
+
+      stats: {
+        successfulPayments:
+          successfulData.count,
+
+        grossVolume:
+          successfulData.gross,
+
+        honeyPayFees:
+          successfulData.fees,
+
+        netVolume:
+          successfulData.net,
+
+        pendingPayments:
+          pendingData.count,
+
+        pendingAmount:
+          pendingData.amount,
+
+        failedPayments:
+          failedData.count,
+
+        failedAmount:
+          failedData.amount,
+
+        customers,
+
+        orders,
+
+        activePaymentLinks:
+          links
+      },
+
+      recentPayments
+    });
+  })
+);
+
+/* =========================================================
+   REPORTS
+========================================================= */
+
+app.get(
+  '/api/reports/overview',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const merchantId = req.merchant._id;
+
+    const days = Math.min(
+      365,
+      Math.max(
+        1,
+        Number(req.query.days || 30)
+      )
+    );
+
+    const start = new Date();
+
+    start.setDate(
+      start.getDate() - days
+    );
+
+    const report =
+      await Payment.aggregate([
+        {
+          $match: {
+            merchantId,
+            createdAt: {
+              $gte: start
+            }
+          }
+        },
+
+        {
+          $group: {
+            _id: {
+              year: {
+                $year: '$createdAt'
+              },
+              month: {
+                $month: '$createdAt'
+              },
+              day: {
+                $dayOfMonth: '$createdAt'
+              }
+            },
+
+            transactions: {
+              $sum: 1
+            },
+
+            succeeded: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      '$status',
+                      'SUCCEEDED'
+                    ]
+                  },
+                  1,
+                  0
+                ]
+              }
+            },
+
+            volume: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      '$status',
+                      'SUCCEEDED'
+                    ]
+                  },
+                  '$amount',
+                  0
+                ]
+              }
+            },
+
+            fees: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      '$status',
+                      'SUCCEEDED'
+                    ]
+                  },
+                  '$feeAmount',
+                  0
+                ]
+              }
+            }
+          }
+        },
+
+        {
+          $sort: {
+            '_id.year': 1,
+            '_id.month': 1,
+            '_id.day': 1
+          }
+        }
+      ]);
+
+    res.json({
+      success: true,
+      days,
+      report
+    });
+  })
+);
+
+/* =========================================================
+   PUBLIC PAYMENT LINK
+========================================================= */
+
+app.get(
+  '/api/public/payment-links/:token',
+  asyncHandler(async (req, res) => {
+    const link = await PaymentLink.findOne({
+      token: req.params.token,
+      active: true
+    })
+      .populate(
+        'merchantId',
+        'businessName phone currency'
+      )
+      .lean();
+
+    if (!link) {
+      return res.status(404).json({
+        success: false,
+        error: 'Link de pagamento não encontrado.'
+      });
+    }
+
+    if (
+      link.expiresAt &&
+      new Date(link.expiresAt) < new Date()
+    ) {
+      return res.status(410).json({
+        success: false,
+        error: 'Este link de pagamento expirou.'
+      });
+    }
+
+    res.json({
+      success: true,
+      link: {
+        id: link._id,
+        token: link.token,
+        title: link.title,
+        description: link.description,
+        amount: link.amount,
+        currency: link.currency,
+        merchant: link.merchantId
+          ? {
+              id: link.merchantId._id,
+              businessName:
+                link.merchantId.businessName
+            }
+          : null
+      }
+    });
+  })
+);
+
+/*
+Cria pedido + pagamento diretamente a partir
+do checkout público.
+*/
+app.post(
+  '/api/public/payment-links/:token/pay',
+  asyncHandler(async (req, res) => {
+    const link = await PaymentLink.findOne({
+      token: req.params.token,
+      active: true
+    });
+
+    if (!link) {
+      return res.status(404).json({
+        success: false,
+        error: 'Link não encontrado.'
+      });
+    }
+
+    if (
+      link.expiresAt &&
+      new Date(link.expiresAt) < new Date()
+    ) {
+      return res.status(410).json({
+        success: false,
+        error: 'Este link expirou.'
+      });
+    }
+
+    const merchant = await Merchant.findOne({
+      _id: link.merchantId,
+      active: true
+    });
+
+    if (!merchant) {
+      return res.status(404).json({
+        success: false,
+        error: 'Comerciante indisponível.'
+      });
+    }
+
+    const customerName = cleanString(
+      req.body.customerName,
+      200
+    );
+
+    const customerEmail = normalizeEmail(
+      req.body.customerEmail
+    );
+
+    const customerPhone = cleanString(
+      req.body.customerPhone,
+      30
+    );
+
+    const paymentMethod =
+      req.body.paymentMethod ||
+      'multicaixa_express';
+
+    if (!customerName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nome é obrigatório.'
+      });
+    }
+
+    if (
+      paymentMethod === 'multicaixa_express' &&
+      !customerPhone
+    ) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Telemóvel é obrigatório para Multicaixa Express.'
+      });
+    }
+
+    let customer = null;
+
+    if (customerEmail) {
+      customer = await Customer.findOne({
+        merchantId: merchant._id,
+        email: customerEmail
+      });
+    }
+
+    if (!customer && customerPhone) {
+      customer = await Customer.findOne({
+        merchantId: merchant._id,
+        phone: customerPhone
+      });
+    }
+
+    if (!customer) {
+      customer = await Customer.create({
+        merchantId: merchant._id,
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone
+      });
+    }
+
+    const order = await Order.create({
+      merchantId: merchant._id,
+      customerId: customer._id,
+      reference: generateReference('ORD'),
+      items: [
+        {
+          productId: null,
+          name: link.title,
+          quantity: 1,
+          unitPrice: link.amount,
+          total: link.amount
+        }
+      ],
+      subtotal: link.amount,
+      total: link.amount,
+      currency: 'AOA',
+      status: 'PAYMENT_PROCESSING',
+      customerSnapshot: {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone
+      }
+    });
+
+    customer.totalOrders += 1;
+    customer.lastOrderAt = new Date();
+    await customer.save();
+
+    const idempotencyKey =
+      crypto.randomUUID();
+
+    const feeAmount =
+      calculateFee(order.total);
+
+    const payment = await Payment.create({
+      merchantId: merchant._id,
+      orderId: order._id,
+      customerId: customer._id,
+      reference: order.reference,
+      provider: 'bitpay',
+      paymentMethod,
+      amount: order.total,
+      feeAmount,
+      netAmount:
+        order.total - feeAmount,
+      currency: 'AOA',
+      status: 'PENDING',
+      idempotencyKey
+    });
+
+    try {
+      const providerResponse =
+        await createBitPayPayment({
+          amount: order.total,
+          paymentMethod,
+          customerPhone,
+          merchantReference:
+            order.reference,
+          metadata: {
+            honeyPayPaymentId:
+              String(payment._id),
+
+            honeyPayOrderId:
+              String(order._id),
+
+            honeyPayMerchantId:
+              String(merchant._id),
+
+            paymentLinkId:
+              String(link._id)
+          },
+          idempotencyKey
+        });
+
+      payment.providerPaymentId =
+        providerResponse?.id ||
+        providerResponse?.data?.id ||
+        '';
+
+      payment.providerPayload =
+        providerResponse;
+
+      payment.status =
+        mapBitPayStatus(
+          providerResponse?.status ||
+            providerResponse?.data?.status ||
+            'PENDING'
+        );
+
+      await payment.save();
+
+      link.totalPayments += 1;
+      await link.save();
+
+      res.status(201).json({
+        success: true,
+        order: {
+          id: order._id,
+          reference: order.reference,
+          total: order.total
+        },
+        payment: {
+          id: payment._id,
+          providerPaymentId:
+            payment.providerPaymentId,
+          status: payment.status,
+          paymentMethod:
+            payment.paymentMethod
+        },
+        provider: providerResponse
+      });
+    } catch (error) {
+      payment.status = 'FAILED';
+      payment.failureReason =
+        error.message || '';
+      payment.providerPayload =
+        error.providerResponse || null;
+
+      await payment.save();
+
+      order.status = 'FAILED';
+      await order.save();
+
+      return res.status(502).json({
+        success: false,
+        error:
+          error.message ||
+          'Falha ao criar pagamento.'
+      });
+    }
+  })
+);
+
+/* =========================================================
+   BITPAY STATUS MAPPING
+========================================================= */
+
+function mapBitPayStatus(status) {
+  const normalized =
+    String(status || '')
+      .toUpperCase();
+
+  const allowed = [
+    'PENDING',
+    'PROCESSING',
+    'SUCCEEDED',
+    'FAILED',
+    'EXPIRED',
+    'UNKNOWN',
+    'CANCELLED',
+    'PARTIALLY_REFUNDED',
+    'REFUNDED'
+  ];
+
+  return allowed.includes(normalized)
+    ? normalized
+    : 'PENDING';
 }
 
-function verifyBitPaySignature(rawBody, signature) {
+/* =========================================================
+   BITPAY WEBHOOK SECURITY
+========================================================= */
+
+function parseBitPaySignature(header) {
+  const result = {};
+
+  const value = String(header || '');
+
+  for (const part of value.split(',')) {
+    const [key, val] =
+      part.trim().split('=');
+
+    if (key && val) {
+      result[key] = val;
+    }
+  }
+
+  return result;
+}
+
+function verifyBitPayWebhook(
+  rawBody,
+  signatureHeader
+) {
   if (!BITPAY_WEBHOOK_SECRET) {
     return false;
   }
 
-  if (!signature) {
-    return false;
-  }
-
-  const match =
-    String(signature).match(
-      /^t=(\d+),v1=([a-f0-9]+)$/i
+  const parsed =
+    parseBitPaySignature(
+      signatureHeader
     );
 
-  if (!match) {
+  const timestamp =
+    parsed.t;
+
+  const signature =
+    parsed.v1;
+
+  if (!timestamp || !signature) {
     return false;
   }
 
-  const timestamp = Number(match[1]);
-  const received = match[2];
+  const timestampNumber =
+    Number(timestamp);
 
-  const now = Math.floor(Date.now() / 1000);
+  if (!Number.isFinite(timestampNumber)) {
+    return false;
+  }
 
-  if (
-    !Number.isFinite(timestamp) ||
-    Math.abs(now - timestamp) > 600
-  ) {
+  const age =
+    Math.abs(
+      Date.now() -
+        timestampNumber * 1000
+    );
+
+  /*
+  Rejeita timestamps com mais de 10 minutos.
+  */
+  if (age > 10 * 60 * 1000) {
     return false;
   }
 
@@ -833,1906 +3049,115 @@ function verifyBitPaySignature(rawBody, signature) {
       .update(signedPayload)
       .digest('hex');
 
-  return safeEqualHex(expected, received);
-}
-
-async function writeAudit({
-  merchantId = null,
-  action,
-  entityType = null,
-  entityId = null,
-  metadata = {},
-  req = null
-}) {
   try {
-    await AuditLog.create({
-      merchantId,
-      action,
-      entityType,
-      entityId,
-      metadata,
-      ip: req?.ip || null,
-      userAgent:
-        req?.headers?.['user-agent'] || null
-    });
-  } catch (error) {
-    console.error(
-      'Audit error:',
-      error.message
+    return crypto.timingSafeEqual(
+      Buffer.from(expected, 'utf8'),
+      Buffer.from(signature, 'utf8')
     );
-  }
-}
-
-function createToken(merchant) {
-  return jwt.sign(
-    {
-      merchantId: merchant._id.toString(),
-      email: merchant.email
-    },
-    JWT_SECRET,
-    {
-      expiresIn: '7d',
-      issuer: 'honey-pay'
-    }
-  );
-}
-
-function requireAuth(req, res, next) {
-  try {
-    const header =
-      req.headers.authorization || '';
-
-    if (!header.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'AUTH_REQUIRED'
-      });
-    }
-
-    const token =
-      header.substring(7);
-
-    const decoded =
-      jwt.verify(token, JWT_SECRET, {
-        issuer: 'honey-pay'
-      });
-
-    req.merchantId = decoded.merchantId;
-
-    next();
   } catch {
-    return res.status(401).json({
-      error: 'INVALID_TOKEN'
-    });
+    return false;
   }
 }
 
 /* =========================================================
-   BITPAY CLIENT
+   BITPAY WEBHOOK PROCESSOR
 ========================================================= */
 
-async function bitPayRequest(
-  endpoint,
-  {
-    method = 'GET',
-    body = null,
-    idempotencyKey = null
-  } = {}
-) {
-  if (!BITPAY_SECRET_KEY) {
-    throw new Error(
-      'BITPAY_SECRET_KEY não configurada'
-    );
-  }
-
-  const url =
-    `${BITPAY_BASE_URL}${endpoint}`;
-
-  const headers = {
-    Authorization:
-      `Bearer ${BITPAY_SECRET_KEY}`,
-
-    Accept:
-      'application/json'
-  };
-
-  if (body !== null) {
-    headers['Content-Type'] =
-      'application/json';
-  }
-
-  if (idempotencyKey) {
-    headers['Idempotency-Key'] =
-      idempotencyKey;
-  }
-
-  const controller =
-    new AbortController();
-
-  const timeout =
-    setTimeout(
-      () => controller.abort(),
-      20000
-    );
-
+async function handleBitPayWebhook(req, res) {
   try {
-    const response =
-      await fetch(url, {
-        method,
-        headers,
-        body:
-          body === null
-            ? undefined
-            : JSON.stringify(body),
-        signal: controller.signal
-      });
-
-    const text =
-      await response.text();
-
-    let data = {};
-
-    try {
-      data =
-        text ? JSON.parse(text) : {};
-    } catch {
-      data = {
-        raw: text
-      };
-    }
-
-    if (!response.ok) {
-      const error =
-        new Error(
-          data?.message ||
-          data?.error ||
-          `BitPay HTTP ${response.status}`
+    const rawBody = Buffer.isBuffer(req.body)
+      ? req.body
+      : Buffer.from(
+          JSON.stringify(req.body || {})
         );
-
-      error.status =
-        response.status;
-
-      error.data = data;
-
-      throw error;
-    }
-
-    return data;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-/* =========================================================
-   HEALTH
-========================================================= */
-
-app.get('/health', async (req, res) => {
-  const mongoReady =
-    mongoose.connection.readyState === 1;
-
-  res.json({
-    ok:
-      mongoReady &&
-      Boolean(BITPAY_SECRET_KEY),
-
-    service: 'honey-pay',
-
-    environment:
-      process.env.NODE_ENV || 'development',
-
-    database:
-      mongoReady
-        ? 'connected'
-        : 'disconnected',
-
-    bitpay:
-      Boolean(BITPAY_SECRET_KEY)
-        ? 'configured'
-        : 'missing',
-
-    bitpayEnvironment:
-      BITPAY_BASE_URL.includes('sandbox')
-        ? 'sandbox'
-        : 'production',
-
-    timestamp:
-      new Date().toISOString()
-  });
-});
-
-/* =========================================================
-   AUTH
-========================================================= */
-
-app.post(
-  '/api/auth/register',
-  authLimiter,
-  async (req, res, next) => {
-    try {
-      const {
-        name,
-        email,
-        password,
-        phone,
-        businessName
-      } = req.body;
-
-      if (
-        !name ||
-        !email ||
-        !password
-      ) {
-        return res.status(400).json({
-          error: 'MISSING_FIELDS'
-        });
-      }
-
-      if (password.length < 8) {
-        return res.status(400).json({
-          error: 'PASSWORD_TOO_SHORT'
-        });
-      }
-
-      const normalizedEmail =
-        String(email)
-          .trim()
-          .toLowerCase();
-
-      const exists =
-        await Merchant.findOne({
-          email: normalizedEmail
-        });
-
-      if (exists) {
-        return res.status(409).json({
-          error: 'EMAIL_ALREADY_EXISTS'
-        });
-      }
-
-      const passwordHash =
-        await bcrypt.hash(
-          password,
-          12
-        );
-
-      const merchant =
-        await Merchant.create({
-          name,
-          email: normalizedEmail,
-          passwordHash,
-          phone,
-          businessName,
-          feeBps:
-            HONEY_PAY_FEE_BPS,
-          currency:
-            HONEY_PAY_CURRENCY
-        });
-
-      const token =
-        createToken(merchant);
-
-      await writeAudit({
-        merchantId: merchant._id,
-        action: 'MERCHANT_REGISTERED',
-        entityType: 'Merchant',
-        entityId:
-          merchant._id.toString(),
-        req
-      });
-
-      return res.status(201).json({
-        token,
-
-        merchant: {
-          id: merchant._id,
-          name: merchant.name,
-          email: merchant.email,
-          businessName:
-            merchant.businessName,
-          feeBps:
-            merchant.feeBps,
-          currency:
-            merchant.currency
-        }
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.post(
-  '/api/auth/login',
-  authLimiter,
-  async (req, res, next) => {
-    try {
-      const {
-        email,
-        password
-      } = req.body;
-
-      if (!email || !password) {
-        return res.status(400).json({
-          error: 'MISSING_CREDENTIALS'
-        });
-      }
-
-      const merchant =
-        await Merchant
-          .findOne({
-            email:
-              String(email)
-                .trim()
-                .toLowerCase()
-          })
-          .select('+passwordHash');
-
-      if (!merchant) {
-        return res.status(401).json({
-          error: 'INVALID_CREDENTIALS'
-        });
-      }
-
-      const valid =
-        await bcrypt.compare(
-          password,
-          merchant.passwordHash
-        );
-
-      if (!valid) {
-        return res.status(401).json({
-          error: 'INVALID_CREDENTIALS'
-        });
-      }
-
-      if (
-        merchant.status !== 'ACTIVE'
-      ) {
-        return res.status(403).json({
-          error: 'MERCHANT_NOT_ACTIVE'
-        });
-      }
-
-      const token =
-        createToken(merchant);
-
-      return res.json({
-        token,
-
-        merchant: {
-          id: merchant._id,
-          name: merchant.name,
-          email: merchant.email,
-          businessName:
-            merchant.businessName,
-          feeBps:
-            merchant.feeBps,
-          currency:
-            merchant.currency
-        }
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  '/api/auth/me',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const merchant =
-        await Merchant.findById(
-          req.merchantId
-        );
-
-      if (!merchant) {
-        return res.status(404).json({
-          error: 'MERCHANT_NOT_FOUND'
-        });
-      }
-
-      res.json({
-        merchant: {
-          id: merchant._id,
-          name: merchant.name,
-          email: merchant.email,
-          phone: merchant.phone,
-          businessName:
-            merchant.businessName,
-          taxId: merchant.taxId,
-          feeBps:
-            merchant.feeBps,
-          currency:
-            merchant.currency,
-          providerOnboardingStatus:
-            merchant.providerOnboardingStatus
-        }
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   PRODUCTS
-========================================================= */
-
-app.post(
-  '/api/products',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const {
-        name,
-        description,
-        price
-      } = req.body;
-
-      const amount =
-        roundMoney(price);
-
-      if (
-        !name ||
-        !Number.isFinite(amount) ||
-        amount <= 0
-      ) {
-        return res.status(400).json({
-          error: 'INVALID_PRODUCT'
-        });
-      }
-
-      const product =
-        await Product.create({
-          merchantId:
-            req.merchantId,
-          name,
-          description,
-          price: amount,
-          currency:
-            HONEY_PAY_CURRENCY
-        });
-
-      res.status(201).json({
-        product
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  '/api/products',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const products =
-        await Product.find({
-          merchantId:
-            req.merchantId
-        }).sort({
-          createdAt: -1
-        });
-
-      res.json({
-        products
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   CUSTOMERS
-========================================================= */
-
-app.post(
-  '/api/customers',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const {
-        name,
-        email,
-        phone
-      } = req.body;
-
-      const customer =
-        await Customer.create({
-          merchantId:
-            req.merchantId,
-          name,
-          email:
-            email
-              ? String(email)
-                  .trim()
-                  .toLowerCase()
-              : undefined,
-          phone
-        });
-
-      res.status(201).json({
-        customer
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  '/api/customers',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const customers =
-        await Customer.find({
-          merchantId:
-            req.merchantId
-        }).sort({
-          createdAt: -1
-        });
-
-      res.json({
-        customers
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   ORDERS
-========================================================= */
-
-app.post(
-  '/api/orders',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const {
-        customer,
-        items,
-        amount
-      } = req.body;
-
-      const total =
-        roundMoney(amount);
-
-      if (
-        !Number.isFinite(total) ||
-        total <= 0
-      ) {
-        return res.status(400).json({
-          error: 'INVALID_AMOUNT'
-        });
-      }
-
-      if (
-        !Array.isArray(items) ||
-        items.length === 0
-      ) {
-        return res.status(400).json({
-          error: 'ORDER_REQUIRES_ITEMS'
-        });
-      }
-
-      let customerId = null;
-
-      if (customer?.id) {
-        const found =
-          await Customer.findOne({
-            _id: customer.id,
-            merchantId:
-              req.merchantId
-          });
-
-        if (!found) {
-          return res.status(404).json({
-            error: 'CUSTOMER_NOT_FOUND'
-          });
-        }
-
-        customerId =
-          found._id;
-      }
-
-      const order =
-        await Order.create({
-          merchantId:
-            req.merchantId,
-
-          customerId,
-
-          orderNumber:
-            generateOrderNumber(),
-
-          items,
-
-          amount: total,
-
-          currency:
-            HONEY_PAY_CURRENCY,
-
-          customerSnapshot: {
-            name:
-              customer?.name || '',
-            email:
-              customer?.email || '',
-            phone:
-              customer?.phone || ''
-          }
-        });
-
-      res.status(201).json({
-        order
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  '/api/orders',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const orders =
-        await Order.find({
-          merchantId:
-            req.merchantId
-        })
-          .sort({
-            createdAt: -1
-          })
-          .limit(200);
-
-      res.json({
-        orders
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   CREATE PAYMENT
-========================================================= */
-
-app.post(
-  '/api/payments',
-  requireAuth,
-  paymentLimiter,
-  async (req, res, next) => {
-    try {
-      const {
-        orderId,
-        paymentMethod,
-        customerMobile
-      } = req.body;
-
-      if (
-        !orderId ||
-        ![
-          'multicaixa_express',
-          'multicaixa_reference'
-        ].includes(paymentMethod)
-      ) {
-        return res.status(400).json({
-          error:
-            'INVALID_PAYMENT_REQUEST'
-        });
-      }
-
-      const order =
-        await Order.findOne({
-          _id: orderId,
-          merchantId:
-            req.merchantId
-        });
-
-      if (!order) {
-        return res.status(404).json({
-          error: 'ORDER_NOT_FOUND'
-        });
-      }
-
-      if (
-        [
-          'PAID',
-          'REFUNDED'
-        ].includes(order.status)
-      ) {
-        return res.status(409).json({
-          error:
-            'ORDER_ALREADY_PROCESSED'
-        });
-      }
-
-      const merchant =
-        await Merchant.findById(
-          req.merchantId
-        );
-
-      if (!merchant) {
-        return res.status(404).json({
-          error: 'MERCHANT_NOT_FOUND'
-        });
-      }
-
-      /*
-      NÃO permitir produção multi-merchant
-      sem a autorização/estrutura correspondente
-      do provedor.
-      */
-      if (
-        !BITPAY_MULTI_MERCHANT_ENABLED &&
-        !merchant.providerAccountId
-      ) {
-        /*
-        Isto não impede sandbox.
-        Em produção, a conta BitPay usada pela
-        aplicação deve estar corretamente enquadrada.
-        */
-      }
-
-      if (
-        paymentMethod ===
-          'multicaixa_express' &&
-        !normalizePhone(customerMobile)
-      ) {
-        return res.status(400).json({
-          error:
-            'CUSTOMER_MOBILE_REQUIRED'
-        });
-      }
-
-      const idempotencyKey =
-        `hp_${order._id}_${paymentMethod}`;
-
-      const existing =
-        await Payment.findOne({
-          idempotencyKey
-        });
-
-      if (existing) {
-        return res.status(200).json({
-          payment: existing,
-          reused: true
-        });
-      }
-
-      const {
-        fee,
-        net
-      } =
-        calculateNet(
-          order.amount,
-          merchant.feeBps
-        );
-
-      const payment =
-        await Payment.create({
-          merchantId:
-            merchant._id,
-
-          orderId:
-            order._id,
-
-          customerId:
-            order.customerId,
-
-          idempotencyKey,
-
-          amount:
-            order.amount,
-
-          feeBps:
-            merchant.feeBps,
-
-          feeAmount:
-            fee,
-
-          netAmount:
-            net,
-
-          currency:
-            order.currency,
-
-          paymentMethod,
-
-          status:
-            'CREATED'
-        });
-
-      const bitpayPayload = {
-        amount:
-          order.amount,
-
-        currency:
-          'AOA',
-
-        payment_method:
-          paymentMethod,
-
-        merchant_reference:
-          order.orderNumber,
-
-        metadata: {
-          honey_pay_payment_id:
-            payment._id.toString(),
-
-          honey_pay_order_id:
-            order._id.toString(),
-
-          honey_pay_merchant_id:
-            merchant._id.toString()
-        }
-      };
-
-      if (
-        paymentMethod ===
-        'multicaixa_express'
-      ) {
-        bitpayPayload.customer = {
-          mobile:
-            normalizePhone(
-              customerMobile
-            )
-        };
-      }
-
-      let providerResponse;
-
-      try {
-        providerResponse =
-          await bitPayRequest(
-            '/payment_intents',
-            {
-              method: 'POST',
-              body:
-                bitpayPayload,
-              idempotencyKey
-            }
-          );
-      } catch (providerError) {
-        await Payment.findByIdAndUpdate(
-          payment._id,
-          {
-            status:
-              'UNKNOWN',
-            providerRaw:
-              providerError.data || {
-                message:
-                  providerError.message
-              }
-          }
-        );
-
-        await writeAudit({
-          merchantId:
-            merchant._id,
-          action:
-            'PAYMENT_PROVIDER_UNKNOWN',
-          entityType:
-            'Payment',
-          entityId:
-            payment._id.toString(),
-          metadata: {
-            message:
-              providerError.message
-          },
-          req
-        });
-
-        return res.status(502).json({
-          error:
-            'PAYMENT_PROVIDER_UNKNOWN',
-
-          paymentId:
-            payment._id,
-
-          message:
-            'O provedor não confirmou o resultado da criação. Não foi criada uma segunda cobrança.'
-        });
-      }
-
-      const providerPaymentId =
-        providerResponse.id ||
-        providerResponse.payment_intent_id;
-
-      const providerStatus =
-        providerResponse.status ||
-        'PENDING';
-
-      const update = {
-        providerPaymentId,
-        providerRaw:
-          providerResponse,
-
-        status:
-          providerStatus,
-
-        settlementStatus:
-          'PENDING'
-      };
-
-      if (
-        providerResponse.reference
-      ) {
-        update.reference = {
-          entity:
-            providerResponse.reference.entity,
-
-          number:
-            providerResponse.reference.number,
-
-          expiresAt:
-            providerResponse.reference.expires_at
-              ? new Date(
-                  providerResponse.reference.expires_at
-                )
-              : null
-        };
-      }
-
-      if (
-        providerResponse.checkout_url
-      ) {
-        update.checkoutUrl =
-          providerResponse.checkout_url;
-      }
-
-      if (
-        providerStatus ===
-        'SUCCEEDED'
-      ) {
-        update.succeededAt =
-          new Date();
-
-        update.settlementStatus =
-          'SETTLED';
-
-        await Order.findByIdAndUpdate(
-          order._id,
-          {
-            status: 'PAID'
-          }
-        );
-      }
-
-      const savedPayment =
-        await Payment.findByIdAndUpdate(
-          payment._id,
-          update,
-          {
-            new: true
-          }
-        );
-
-      await writeAudit({
-        merchantId:
-          merchant._id,
-        action:
-          'PAYMENT_CREATED',
-        entityType:
-          'Payment',
-        entityId:
-          payment._id.toString(),
-        metadata: {
-          providerPaymentId,
-          amount:
-            order.amount,
-          fee,
-          net,
-          paymentMethod
-        },
-        req
-      });
-
-      return res.status(201).json({
-        payment:
-          savedPayment
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   PAYMENT BY ID
-========================================================= */
-
-app.get(
-  '/api/payments/:id',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const payment =
-        await Payment.findOne({
-          _id: req.params.id,
-          merchantId:
-            req.merchantId
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          error: 'PAYMENT_NOT_FOUND'
-        });
-      }
-
-      res.json({
-        payment
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   PAYMENT LIST
-========================================================= */
-
-app.get(
-  '/api/payments',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const query = {
-        merchantId:
-          req.merchantId
-      };
-
-      if (req.query.status) {
-        query.status =
-          req.query.status;
-      }
-
-      if (req.query.method) {
-        query.paymentMethod =
-          req.query.method;
-      }
-
-      const payments =
-        await Payment.find(query)
-          .sort({
-            createdAt: -1
-          })
-          .limit(500);
-
-      res.json({
-        payments
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   CANCEL PAYMENT
-========================================================= */
-
-app.post(
-  '/api/payments/:id/cancel',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const payment =
-        await Payment.findOne({
-          _id: req.params.id,
-          merchantId:
-            req.merchantId
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          error: 'PAYMENT_NOT_FOUND'
-        });
-      }
-
-      if (
-        !payment.providerPaymentId
-      ) {
-        return res.status(400).json({
-          error:
-            'PROVIDER_PAYMENT_NOT_CREATED'
-        });
-      }
-
-      if (
-        [
-          'SUCCEEDED',
-          'REFUNDED',
-          'PARTIALLY_REFUNDED'
-        ].includes(
-          payment.status
-        )
-      ) {
-        return res.status(409).json({
-          error:
-            'PAYMENT_CANNOT_BE_CANCELLED'
-        });
-      }
-
-      const providerResponse =
-        await bitPayRequest(
-          `/payment_intents/${encodeURIComponent(
-            payment.providerPaymentId
-          )}/cancel`,
-          {
-            method: 'POST'
-          }
-        );
-
-      payment.status =
-        'CANCELLED';
-
-      payment.providerRaw =
-        providerResponse;
-
-      await payment.save();
-
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status: 'CANCELLED'
-        }
-      );
-
-      res.json({
-        payment
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   PAYMENT LINK
-========================================================= */
-
-app.post(
-  '/api/payment-links',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const {
-        title,
-        description,
-        amount,
-        expiresAt
-      } = req.body;
-
-      const value =
-        roundMoney(amount);
-
-      if (
-        !title ||
-        !Number.isFinite(value) ||
-        value <= 0
-      ) {
-        return res.status(400).json({
-          error:
-            'INVALID_PAYMENT_LINK'
-        });
-      }
-
-      const token =
-        generateToken();
-
-      const link =
-        await PaymentLink.create({
-          merchantId:
-            req.merchantId,
-
-          token,
-
-          title,
-
-          description,
-
-          amount:
-            value,
-
-          currency:
-            HONEY_PAY_CURRENCY,
-
-          expiresAt:
-            expiresAt
-              ? new Date(expiresAt)
-              : null
-        });
-
-      res.status(201).json({
-        link,
-
-        url:
-          `${APP_BASE_URL}/pay/${token}`
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-app.get(
-  '/api/payment-links',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const links =
-        await PaymentLink.find({
-          merchantId:
-            req.merchantId
-        }).sort({
-          createdAt: -1
-        });
-
-      res.json({
-        links: links.map((link) => ({
-          ...link.toObject(),
-          url:
-            `${APP_BASE_URL}/pay/${link.token}`
-        }))
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   PUBLIC CHECKOUT
-========================================================= */
-
-app.get(
-  '/api/public/payment-links/:token',
-  async (req, res, next) => {
-    try {
-      const link =
-        await PaymentLink.findOne({
-          token:
-            req.params.token,
-          active: true
-        });
-
-      if (!link) {
-        return res.status(404).json({
-          error:
-            'PAYMENT_LINK_NOT_FOUND'
-        });
-      }
-
-      if (
-        link.expiresAt &&
-        link.expiresAt <= new Date()
-      ) {
-        return res.status(410).json({
-          error:
-            'PAYMENT_LINK_EXPIRED'
-        });
-      }
-
-      const merchant =
-        await Merchant.findById(
-          link.merchantId
-        ).select(
-          'businessName name currency'
-        );
-
-      res.json({
-        link: {
-          id: link._id,
-          title: link.title,
-          description:
-            link.description,
-          amount: link.amount,
-          currency:
-            link.currency,
-          expiresAt:
-            link.expiresAt
-        },
-
-        merchant
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/*
-Cliente paga através do link.
-*/
-app.post(
-  '/api/public/payment-links/:token/pay',
-  paymentLimiter,
-  async (req, res, next) => {
-    try {
-      const {
-        paymentMethod,
-        customerName,
-        customerEmail,
-        customerMobile
-      } = req.body;
-
-      const link =
-        await PaymentLink.findOne({
-          token:
-            req.params.token,
-          active: true
-        });
-
-      if (!link) {
-        return res.status(404).json({
-          error:
-            'PAYMENT_LINK_NOT_FOUND'
-        });
-      }
-
-      if (
-        link.expiresAt &&
-        link.expiresAt <= new Date()
-      ) {
-        return res.status(410).json({
-          error:
-            'PAYMENT_LINK_EXPIRED'
-        });
-      }
-
-      const merchant =
-        await Merchant.findById(
-          link.merchantId
-        );
-
-      if (!merchant) {
-        return res.status(404).json({
-          error:
-            'MERCHANT_NOT_FOUND'
-        });
-      }
-
-      let customerDoc = null;
-
-      if (
-        customerEmail ||
-        customerMobile
-      ) {
-        const normalizedEmail =
-          customerEmail
-            ? String(
-                customerEmail
-              )
-                .trim()
-                .toLowerCase()
-            : null;
-
-        customerDoc =
-          await Customer.findOne({
-            merchantId:
-              merchant._id,
-
-            $or: [
-              ...(normalizedEmail
-                ? [
-                    {
-                      email:
-                        normalizedEmail
-                    }
-                  ]
-                : []),
-
-              ...(customerMobile
-                ? [
-                    {
-                      phone:
-                        normalizePhone(
-                          customerMobile
-                        )
-                    }
-                  ]
-                : [])
-            ]
-          });
-
-        if (!customerDoc) {
-          customerDoc =
-            await Customer.create({
-              merchantId:
-                merchant._id,
-
-              name:
-                customerName,
-
-              email:
-                normalizedEmail,
-
-              phone:
-                normalizePhone(
-                  customerMobile
-                )
-            });
-        }
-      }
-
-      const order =
-        await Order.create({
-          merchantId:
-            merchant._id,
-
-          customerId:
-            customerDoc?._id ||
-            null,
-
-          orderNumber:
-            generateOrderNumber(),
-
-          items: [
-            {
-              name:
-                link.title,
-
-              quantity: 1,
-
-              unitPrice:
-                link.amount,
-
-              subtotal:
-                link.amount
-            }
-          ],
-
-          amount:
-            link.amount,
-
-          currency:
-            link.currency,
-
-          customerSnapshot: {
-            name:
-              customerName || '',
-            email:
-              customerEmail || '',
-            phone:
-              customerMobile || ''
-          }
-        });
-
-      /*
-      Reutiliza o mesmo motor de pagamento.
-      */
-
-      const {
-        fee,
-        net
-      } =
-        calculateNet(
-          order.amount,
-          merchant.feeBps
-        );
-
-      const idempotencyKey =
-        `hp_link_${order._id}_${paymentMethod}`;
-
-      const payment =
-        await Payment.create({
-          merchantId:
-            merchant._id,
-
-          orderId:
-            order._id,
-
-          customerId:
-            customerDoc?._id ||
-            null,
-
-          idempotencyKey,
-
-          amount:
-            order.amount,
-
-          feeBps:
-            merchant.feeBps,
-
-          feeAmount:
-            fee,
-
-          netAmount:
-            net,
-
-          currency:
-            order.currency,
-
-          paymentMethod,
-
-          status:
-            'CREATED'
-        });
-
-      const payload = {
-        amount:
-          order.amount,
-
-        currency:
-          'AOA',
-
-        payment_method:
-          paymentMethod,
-
-        merchant_reference:
-          order.orderNumber,
-
-        metadata: {
-          honey_pay_payment_id:
-            payment._id.toString(),
-
-          honey_pay_order_id:
-            order._id.toString(),
-
-          honey_pay_merchant_id:
-            merchant._id.toString(),
-
-          payment_link:
-            link._id.toString()
-        }
-      };
-
-      if (
-        paymentMethod ===
-        'multicaixa_express'
-      ) {
-        const mobile =
-          normalizePhone(
-            customerMobile
-          );
-
-        if (!mobile) {
-          await Payment.deleteOne({
-            _id: payment._id
-          });
-
-          await Order.deleteOne({
-            _id: order._id
-          });
-
-          return res.status(400).json({
-            error:
-              'CUSTOMER_MOBILE_REQUIRED'
-          });
-        }
-
-        payload.customer = {
-          mobile
-        };
-      }
-
-      let providerResponse;
-
-      try {
-        providerResponse =
-          await bitPayRequest(
-            '/payment_intents',
-            {
-              method: 'POST',
-              body: payload,
-              idempotencyKey
-            }
-          );
-      } catch (providerError) {
-        await Payment.findByIdAndUpdate(
-          payment._id,
-          {
-            status: 'UNKNOWN',
-            providerRaw:
-              providerError.data || {
-                message:
-                  providerError.message
-              }
-          }
-        );
-
-        return res.status(502).json({
-          error:
-            'PAYMENT_PROVIDER_UNKNOWN',
-
-          paymentId:
-            payment._id
-        });
-      }
-
-      payment.providerPaymentId =
-        providerResponse.id ||
-        providerResponse.payment_intent_id;
-
-      payment.providerRaw =
-        providerResponse;
-
-      payment.status =
-        providerResponse.status ||
-        'PENDING';
-
-      if (
-        providerResponse.reference
-      ) {
-        payment.reference = {
-          entity:
-            providerResponse.reference.entity,
-
-          number:
-            providerResponse.reference.number,
-
-          expiresAt:
-            providerResponse.reference.expires_at
-              ? new Date(
-                  providerResponse.reference.expires_at
-                )
-              : null
-        };
-      }
-
-      if (
-        providerResponse.checkout_url
-      ) {
-        payment.checkoutUrl =
-          providerResponse.checkout_url;
-      }
-
-      await payment.save();
-
-      res.status(201).json({
-        orderId:
-          order._id,
-
-        payment
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-app.get(
-  '/api/dashboard',
-  requireAuth,
-  async (req, res, next) => {
-    try {
-      const merchantId =
-        new mongoose.Types.ObjectId(
-          req.merchantId
-        );
-
-      const [
-        totalPayments,
-        successfulPayments,
-        pendingPayments,
-        failedPayments,
-        revenueResult,
-        feesResult,
-        recentPayments
-      ] = await Promise.all([
-        Payment.countDocuments({
-          merchantId
-        }),
-
-        Payment.countDocuments({
-          merchantId,
-          status:
-            'SUCCEEDED'
-        }),
-
-        Payment.countDocuments({
-          merchantId,
-          status: {
-            $in: [
-              'CREATED',
-              'PENDING',
-              'PROCESSING',
-              'UNKNOWN'
-            ]
-          }
-        }),
-
-        Payment.countDocuments({
-          merchantId,
-          status: {
-            $in: [
-              'FAILED',
-              'EXPIRED',
-              'CANCELLED'
-            ]
-          }
-        }),
-
-        Payment.aggregate([
-          {
-            $match: {
-              merchantId,
-              status:
-                'SUCCEEDED'
-            }
-          },
-          {
-            $group: {
-              _id: null,
-              total: {
-                $sum: '$amount'
-              }
-            }
-          }
-        ]),
-
-        Payment.aggregate([
-          {
-            $match: {
-              merchantId,
-              status:
-                'SUCCEEDED'
-            }
-          },
-          {
-            $group: {
-              _id: null,
-              total: {
-                $sum: '$feeAmount'
-              }
-            }
-          }
-        ]),
-
-        Payment.find({
-          merchantId
-        })
-          .sort({
-            createdAt: -1
-          })
-          .limit(10)
-      ]);
-
-      res.json({
-        stats: {
-          totalPayments,
-          successfulPayments,
-          pendingPayments,
-          failedPayments,
-
-          grossVolume:
-            revenueResult[0]?.total ||
-            0,
-
-          honeyPayFees:
-            feesResult[0]?.total ||
-            0
-        },
-
-        recentPayments
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   REAL BITPAY WEBHOOK
-========================================================= */
-
-async function handleBitPayWebhook(
-  req,
-  res
-) {
-  try {
-    const rawBody =
-      Buffer.isBuffer(req.body)
-        ? req.body
-        : Buffer.from(
-            req.body || ''
-          );
 
     const signature =
-      req.headers[
-        'bitpay-signature'
-      ];
+      req.headers['bitpay-signature'];
 
     if (
-      !verifyBitPaySignature(
+      !verifyBitPayWebhook(
         rawBody,
         signature
       )
     ) {
       return res.status(401).json({
-        error:
-          'INVALID_WEBHOOK_SIGNATURE'
+        success: false,
+        error: 'Assinatura inválida.'
       });
     }
 
-    let event;
+    let payload;
 
     try {
-      event =
-        JSON.parse(
-          rawBody.toString('utf8')
-        );
+      payload = JSON.parse(
+        rawBody.toString('utf8')
+      );
     } catch {
       return res.status(400).json({
-        error:
-          'INVALID_WEBHOOK_JSON'
+        success: false,
+        error: 'Webhook JSON inválido.'
       });
     }
 
-    /*
-    Aceita diferentes formas de event_id
-    para manter compatibilidade.
-    */
     const eventId =
-      event.id ||
-      event.event_id ||
-      event.data?.id;
+      payload.id ||
+      payload.event_id ||
+      payload.eventId;
 
     const eventType =
-      event.type ||
-      event.event_type ||
-      event.event ||
-      'unknown';
+      payload.type ||
+      payload.event ||
+      payload.event_type ||
+      '';
 
     if (!eventId) {
       return res.status(400).json({
+        success: false,
         error:
-          'WEBHOOK_EVENT_ID_REQUIRED'
+          'Webhook sem identificador de evento.'
       });
     }
 
     /*
     DEDUPLICAÇÃO
     */
-    try {
-      await WebhookEvent.create({
-        provider:
-          'BITPAY',
-
-        eventId,
-
-        eventType,
-
-        payload:
-          event
+    const existing =
+      await WebhookEvent.findOne({
+        eventId
       });
-    } catch (error) {
-      if (
-        error?.code === 11000
-      ) {
-        return res.status(200).json({
-          received: true,
-          duplicate: true
-        });
-      }
 
-      throw error;
+    if (existing) {
+      return res.status(200).json({
+        success: true,
+        duplicate: true
+      });
     }
 
+    await WebhookEvent.create({
+      provider: 'bitpay',
+      eventId,
+      eventType,
+      payload,
+      processed: false
+    });
+
     /*
-    Localiza o payment.
+    Tenta localizar pagamento.
     */
     const providerPaymentId =
-      event.data?.payment_id ||
-      event.data?.payment_intent_id ||
-      event.payment_id ||
-      event.payment_intent_id ||
-      event.data?.id;
+      payload.payment_id ||
+      payload.paymentId ||
+      payload.data?.payment_id ||
+      payload.data?.paymentId ||
+      payload.data?.id ||
+      '';
+
+    const merchantReference =
+      payload.merchant_reference ||
+      payload.merchantReference ||
+      payload.data?.merchant_reference ||
+      payload.data?.merchantReference ||
+      '';
 
     let payment = null;
 
@@ -2743,31 +3168,11 @@ async function handleBitPayWebhook(
         });
     }
 
-    /*
-    Fallback pelo merchant_reference.
-    */
-    if (!payment) {
-      const merchantReference =
-        event.data?.merchant_reference ||
-        event.merchant_reference;
-
-      if (merchantReference) {
-        const order =
-          await Order.findOne({
-            orderNumber:
-              merchantReference
-          });
-
-        if (order) {
-          payment =
-            await Payment.findOne({
-              orderId:
-                order._id
-            }).sort({
-              createdAt: -1
-            });
-        }
-      }
+    if (!payment && merchantReference) {
+      payment =
+        await Payment.findOne({
+          reference: merchantReference
+        });
     }
 
     if (!payment) {
@@ -2777,191 +3182,115 @@ async function handleBitPayWebhook(
         },
         {
           processed: true,
-          processedAt:
-            new Date()
-        }
-      );
-
-      return res.status(200).json({
-        received: true,
-        matched: false
-      });
-    }
-
-    /*
-    Determina o novo estado.
-    */
-    const providerStatus =
-      event.data?.status ||
-      event.status;
-
-    let newStatus =
-      providerStatus;
-
-    /*
-    Alguns eventos possuem tipo sem status.
-    */
-    if (
-      !newStatus &&
-      eventType ===
-        'payment.succeeded'
-    ) {
-      newStatus =
-        'SUCCEEDED';
-    }
-
-    if (
-      !newStatus &&
-      eventType ===
-        'payment.failed'
-    ) {
-      newStatus =
-        'FAILED';
-    }
-
-    if (
-      !newStatus &&
-      eventType ===
-        'payment.unknown'
-    ) {
-      newStatus =
-        'UNKNOWN';
-    }
-
-    if (
-      !newStatus &&
-      eventType ===
-        'payment.reconciled'
-    ) {
-      newStatus =
-        event.data?.reconciled_status ||
-        'SUCCEEDED';
-    }
-
-    /*
-    Nunca fazemos downgrade de SUCCEEDED.
-    */
-    if (
-      payment.status ===
-        'SUCCEEDED' &&
-      newStatus !==
-        'REFUNDED' &&
-      newStatus !==
-        'PARTIALLY_REFUNDED'
-    ) {
-      newStatus =
-        'SUCCEEDED';
-    }
-
-    const oldStatus =
-      payment.status;
-
-    if (
-      [
-        'CREATED',
-        'PENDING',
-        'PROCESSING',
-        'SUCCEEDED',
-        'FAILED',
-        'EXPIRED',
-        'UNKNOWN',
-        'CANCELLED',
-        'PARTIALLY_REFUNDED',
-        'REFUNDED'
-      ].includes(
-        newStatus
-      )
-    ) {
-      payment.status =
-        newStatus;
-    }
-
-    payment.providerRaw =
-      event;
-
-    if (
-      payment.status ===
-      'SUCCEEDED'
-    ) {
-      payment.succeededAt =
-        payment.succeededAt ||
-        new Date();
-
-      payment.settlementStatus =
-        'SETTLED';
-
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status:
-            'PAID'
+          processedAt: new Date(),
+          error:
+            'Pagamento correspondente ainda não encontrado.'
         }
       );
 
       /*
-      Atualiza estatísticas do cliente
-      somente quando a transação passa
-      efetivamente para SUCCEEDED.
+      200 é intencional:
+      não queremos retries infinitos para eventos
+      que podem chegar antes do nosso registro.
       */
-      if (
-        oldStatus !==
-          'SUCCEEDED' &&
-        payment.customerId
-      ) {
-        await Customer.findByIdAndUpdate(
-          payment.customerId,
-          {
-            $inc: {
-              totalSpent:
-                payment.amount,
-
-              totalOrders: 1
-            }
-          }
-        );
-      }
+      return res.status(200).json({
+        success: true,
+        processed: false
+      });
     }
 
     if (
-      payment.status ===
-      'FAILED'
+      providerPaymentId &&
+      !payment.providerPaymentId
     ) {
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status:
-            'FAILED'
-        }
-      );
+      payment.providerPaymentId =
+        providerPaymentId;
+    }
+
+    const incomingStatus =
+      payload.status ||
+      payload.data?.status ||
+      eventTypeToStatus(eventType);
+
+    const mappedStatus =
+      mapBitPayStatus(incomingStatus);
+
+    /*
+    UNKNOWN nunca é tratado como FAILED.
+    */
+    if (mappedStatus) {
+      payment.status =
+        mappedStatus;
+    }
+
+    payment.providerPayload =
+      payload;
+
+    if (
+      mappedStatus === 'FAILED'
+    ) {
+      payment.failureReason =
+        payload.failure_reason ||
+        payload.error?.message ||
+        payload.data?.error?.message ||
+        'Pagamento falhou.';
     }
 
     if (
-      payment.status ===
-      'EXPIRED'
+      mappedStatus === 'SUCCEEDED'
     ) {
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status:
-            'EXPIRED'
-        }
-      );
-    }
-
-    if (
-      payment.status ===
-      'CANCELLED'
-    ) {
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status:
-            'CANCELLED'
-        }
-      );
+      payment.succeededAt =
+        payment.succeededAt ||
+        new Date();
     }
 
     await payment.save();
+
+    const order =
+      await Order.findById(
+        payment.orderId
+      );
+
+    if (order) {
+      if (
+        mappedStatus === 'SUCCEEDED'
+      ) {
+        order.status = 'PAID';
+        order.paidAt =
+          order.paidAt ||
+          new Date();
+
+        await order.save();
+
+        if (payment.customerId) {
+          await Customer.updateOne(
+            {
+              _id: payment.customerId
+            },
+            {
+              $inc: {
+                totalSpent:
+                  payment.amount
+              }
+            }
+          );
+        }
+      } else if (
+        [
+          'FAILED',
+          'EXPIRED'
+        ].includes(mappedStatus)
+      ) {
+        /*
+        Só marcamos falha se ainda não estiver
+        confirmado.
+        */
+        if (order.status !== 'PAID') {
+          order.status = 'FAILED';
+          await order.save();
+        }
+      }
+    }
 
     await WebhookEvent.updateOne(
       {
@@ -2969,35 +3298,13 @@ async function handleBitPayWebhook(
       },
       {
         processed: true,
-        processedAt:
-          new Date()
+        processedAt: new Date(),
+        error: ''
       }
     );
 
-    await writeAudit({
-      merchantId:
-        payment.merchantId,
-
-      action:
-        'BITPAY_WEBHOOK_PROCESSED',
-
-      entityType:
-        'Payment',
-
-      entityId:
-        payment._id.toString(),
-
-      metadata: {
-        eventId,
-        eventType,
-        oldStatus,
-        newStatus:
-          payment.status
-      }
-    });
-
     return res.status(200).json({
-      received: true,
+      success: true,
       processed: true
     });
   } catch (error) {
@@ -3007,274 +3314,162 @@ async function handleBitPayWebhook(
     );
 
     return res.status(500).json({
-      error:
-        'WEBHOOK_PROCESSING_ERROR'
+      success: false,
+      error: 'Erro interno.'
     });
   }
 }
 
+function eventTypeToStatus(type) {
+  switch (
+    String(type || '')
+      .toLowerCase()
+  ) {
+    case 'payment.succeeded':
+    case 'reference.paid':
+      return 'SUCCEEDED';
+
+    case 'payment.failed':
+      return 'FAILED';
+
+    case 'payment.unknown':
+      return 'UNKNOWN';
+
+    case 'payment.reconciled':
+      return 'SUCCEEDED';
+
+    case 'payment.created':
+      return 'PENDING';
+
+    default:
+      return 'PENDING';
+  }
+}
+
 /* =========================================================
-   ADMIN / RECONCILIATION
+   PAYMENT REFRESH
 ========================================================= */
 
-/*
-Reconcilia pagamentos UNKNOWN consultando
-a BitPay. Nunca cria uma nova cobrança.
-*/
 app.post(
-  '/api/payments/:id/reconcile',
-  requireAuth,
-  async (req, res, next) => {
+  '/api/payments/:id/refresh',
+  authenticate,
+  requireMerchant,
+  asyncHandler(async (req, res) => {
+    const payment =
+      await Payment.findOne({
+        _id: req.params.id,
+        merchantId: req.merchant._id
+      });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pagamento não encontrado.'
+      });
+    }
+
+    if (!payment.providerPaymentId) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Este pagamento ainda não possui ID no provedor.'
+      });
+    }
+
     try {
-      const payment =
-        await Payment.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchantId
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          error:
-            'PAYMENT_NOT_FOUND'
-        });
-      }
-
-      if (
-        !payment.providerPaymentId
-      ) {
-        return res.status(400).json({
-          error:
-            'PROVIDER_PAYMENT_ID_MISSING'
-        });
-      }
-
-      if (
-        payment.status !==
-        'UNKNOWN'
-      ) {
-        return res.json({
-          payment,
-          reconciled: false,
-          reason:
-            'PAYMENT_IS_NOT_UNKNOWN'
-        });
-      }
-
-      const provider =
-        await bitPayRequest(
+      const providerResponse =
+        await bitpayRequest(
           `/payment_intents/${encodeURIComponent(
             payment.providerPaymentId
           )}`
         );
 
       const status =
-        provider.status;
-
-      if (
-        [
-          'PENDING',
-          'PROCESSING',
-          'SUCCEEDED',
-          'FAILED',
-          'EXPIRED',
-          'UNKNOWN',
-          'CANCELLED'
-        ].includes(status)
-      ) {
-        payment.status =
-          status;
-
-        payment.providerRaw =
-          provider;
-
-        if (
-          status ===
-          'SUCCEEDED'
-        ) {
-          payment.succeededAt =
-            payment.succeededAt ||
-            new Date();
-
-          payment.settlementStatus =
-            'SETTLED';
-
-          await Order.findByIdAndUpdate(
-            payment.orderId,
-            {
-              status:
-                'PAID'
-            }
-          );
-        }
-
-        await payment.save();
-      }
-
-      res.json({
-        payment,
-        reconciled: true
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-
-/* =========================================================
-   REFUND
-========================================================= */
-
-app.post(
-  '/api/payments/:id/refund',
-  requireAuth,
-  paymentLimiter,
-  async (req, res, next) => {
-    try {
-      const payment =
-        await Payment.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchantId
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          error:
-            'PAYMENT_NOT_FOUND'
-        });
-      }
-
-      if (
-        payment.status !==
-        'SUCCEEDED'
-      ) {
-        return res.status(409).json({
-          error:
-            'ONLY_SUCCEEDED_PAYMENTS_CAN_BE_REFUNDED'
-        });
-      }
-
-      const requestedAmount =
-        req.body.amount == null
-          ? payment.amount
-          : roundMoney(
-              req.body.amount
-            );
-
-      if (
-        requestedAmount <= 0 ||
-        requestedAmount >
-          payment.amount
-      ) {
-        return res.status(400).json({
-          error:
-            'INVALID_REFUND_AMOUNT'
-        });
-      }
-
-      const refundKey =
-        `refund_${payment._id}_${requestedAmount}`;
-
-      const providerResponse =
-        await bitPayRequest(
-          '/refunds',
-          {
-            method: 'POST',
-
-            body: {
-              payment_id:
-                payment.providerPaymentId,
-
-              amount:
-                requestedAmount,
-
-              currency:
-                'AOA'
-            },
-
-            idempotencyKey:
-              refundKey
-          }
+        mapBitPayStatus(
+          providerResponse?.status ||
+            providerResponse?.data?.status
         );
 
-      if (
-        requestedAmount ===
-        payment.amount
-      ) {
-        payment.status =
-          'REFUNDED';
-      } else {
-        payment.status =
-          'PARTIALLY_REFUNDED';
-      }
-
-      payment.providerRaw =
+      payment.status = status;
+      payment.providerPayload =
         providerResponse;
+
+      if (status === 'SUCCEEDED') {
+        payment.succeededAt =
+          payment.succeededAt ||
+          new Date();
+
+        const order =
+          await Order.findById(
+            payment.orderId
+          );
+
+        if (
+          order &&
+          order.status !== 'PAID'
+        ) {
+          order.status = 'PAID';
+          order.paidAt = new Date();
+          await order.save();
+        }
+      }
 
       await payment.save();
 
-      await Order.findByIdAndUpdate(
-        payment.orderId,
-        {
-          status:
-            requestedAmount ===
-            payment.amount
-              ? 'REFUNDED'
-              : 'PARTIALLY_REFUNDED'
-        }
-      );
-
-      await writeAudit({
-        merchantId:
-          req.merchantId,
-
-        action:
-          'REFUND_CREATED',
-
-        entityType:
-          'Payment',
-
-        entityId:
-          payment._id.toString(),
-
-        metadata: {
-          amount:
-            requestedAmount
-        },
-
-        req
-      });
-
-      res.status(201).json({
+      res.json({
+        success: true,
         payment,
-        refund:
-          providerResponse
+        provider: providerResponse
       });
     } catch (error) {
-      next(error);
+      res.status(502).json({
+        success: false,
+        error:
+          error.message ||
+          'Não foi possível consultar o provedor.'
+      });
     }
-  }
+  })
 );
 
 /* =========================================================
-   PUBLIC CHECKOUT PAGE
+   HEALTH
 ========================================================= */
 
 app.get(
-  '/pay/:token',
+  '/health',
+  asyncHandler(async (req, res) => {
+    const mongoReady =
+      mongoose.connection.readyState === 1;
+
+    res.status(
+      mongoReady ? 200 : 503
+    ).json({
+      success: mongoReady,
+      service: 'Honey Pay API',
+      version: '3.0.0',
+      environment: NODE_ENV,
+      database: mongoReady
+        ? 'connected'
+        : 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  })
+);
+
+/* =========================================================
+   API STATUS
+========================================================= */
+
+app.get(
+  '/api',
   (req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        'public',
-        'checkout.html'
-      )
-    );
+    res.json({
+      success: true,
+      name: 'Honey Pay API',
+      version: '3.0.0',
+      status: 'operational'
+    });
   }
 );
 
@@ -3282,20 +3477,75 @@ app.get(
    FRONTEND
 ========================================================= */
 
-const publicDir =
-  path.join(
-    __dirname,
-    'public'
-  );
-
 app.use(
-  express.static(
-    publicDir,
-    {
-      extensions: ['html']
-    }
-  )
+  express.static(FRONTEND_DIR, {
+    index: false,
+    maxAge:
+      NODE_ENV === 'production'
+        ? '1h'
+        : 0
+  })
 );
+
+/*
+PUBLIC CHECKOUT
+*/
+app.get(
+  '/pay/:token',
+  (req, res) => {
+    const checkoutFile =
+      path.join(
+        FRONTEND_DIR,
+        'checkout.html'
+      );
+
+    res.sendFile(checkoutFile, (error) => {
+      if (error) {
+        res.status(404).send(
+          'Checkout não encontrado.'
+        );
+      }
+    });
+  }
+);
+
+/*
+SPA ROUTES
+*/
+const FRONTEND_ROUTES = [
+  '/',
+  '/dashboard',
+  '/merchant',
+  '/payments',
+  '/orders',
+  '/customers',
+  '/products',
+  '/payment-links',
+  '/reports',
+  '/settings',
+  '/login'
+];
+
+for (const route of FRONTEND_ROUTES) {
+  app.get(
+    route,
+    (req, res) => {
+      res.sendFile(
+        path.join(
+          FRONTEND_DIR,
+          'index.html'
+        ),
+        (error) => {
+          if (error) {
+            res.status(404).send(
+              'Frontend não encontrado.'
+            );
+          }
+        }
+      );
+    }
+  );
+}
 
 /* =========================================================
    API 404
@@ -3305,117 +3555,115 @@ app.use(
   '/api',
   (req, res) => {
     res.status(404).json({
-      error:
-        'API_ROUTE_NOT_FOUND'
+      success: false,
+      error: 'API_ROUTE_NOT_FOUND',
+      path: req.originalUrl
     });
   }
 );
 
 /* =========================================================
-   FRONTEND FALLBACK
-========================================================= */
-
-app.get(
-  '*splat',
-  (req, res) => {
-    if (
-      req.path.startsWith('/api/')
-    ) {
-      return res.status(404).json({
-        error:
-          'API_ROUTE_NOT_FOUND'
-      });
-    }
-
-    res.sendFile(
-      path.join(
-        publicDir,
-        'index.html'
-      )
-    );
-  }
-);
-
-/* =========================================================
-   ERROR HANDLER
+   GLOBAL ERROR HANDLER
 ========================================================= */
 
 app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
+  (error, req, res, next) => {
     console.error(
+      'Unhandled server error:',
       error
     );
 
-    if (
-      res.headersSent
-    ) {
+    if (res.headersSent) {
       return next(error);
     }
 
-    const status =
-      Number(error.status) || 500;
-
-    res.status(status).json({
-      error:
-        status >= 500
-          ? 'INTERNAL_SERVER_ERROR'
-          : error.message,
-
-      ...(process.env.NODE_ENV !==
-        'production' && {
+    if (
+      error.name ===
+      'ValidationError'
+    ) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Dados inválidos.',
         details:
-          error.stack
-      })
+          Object.values(
+            error.errors
+          ).map(
+            (item) => item.message
+          )
+      });
+    }
+
+    if (
+      error.code === 11000
+    ) {
+      return res.status(409).json({
+        success: false,
+        error:
+          'Este registo já existe.'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error:
+        NODE_ENV === 'production'
+          ? 'Erro interno do servidor.'
+          : error.message
     });
   }
 );
 
 /* =========================================================
-   START
+   START SERVER
 ========================================================= */
 
-app.listen(
-  PORT,
-  () => {
-    console.log(
-      '=========================================='
-    );
+app.listen(PORT, () => {
+  console.log(
+    `Honey Pay API running on port ${PORT}`
+  );
 
-    console.log(
-      'HONEY PAY'
-    );
+  console.log(
+    `Environment: ${NODE_ENV}`
+  );
 
-    console.log(
-      `Port: ${PORT}`
-    );
+  console.log(
+    `BitPay: ${BITPAY_BASE_URL}`
+  );
 
-    console.log(
-      `Environment: ${
-        process.env.NODE_ENV ||
-        'development'
-      }`
-    );
+  console.log(
+    `Honey Pay fee: ${HONEY_PAY_FEE_BPS} bps`
+  );
 
-    console.log(
-      `BitPay: ${
-        BITPAY_BASE_URL
-      }`
-    );
+  console.log(
+    `Multi-merchant BitPay: ${
+      BITPAY_MULTI_MERCHANT_ENABLED
+        ? 'ENABLED'
+        : 'DISABLED'
+    }`
+  );
+});
 
-    console.log(
-      `Fee: ${
-        HONEY_PAY_FEE_BPS /
-        100
-      }%`
-    );
+/* =========================================================
+   PROCESS SAFETY
+========================================================= */
 
-    console.log(
-      '=========================================='
+process.on(
+  'unhandledRejection',
+  (reason) => {
+    console.error(
+      'Unhandled Promise Rejection:',
+      reason
+    );
+  }
+);
+
+process.on(
+  'uncaughtException',
+  (error) => {
+    console.error(
+      'Uncaught Exception:',
+      error
     );
   }
 );
