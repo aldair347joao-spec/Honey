@@ -1,0 +1,4906 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="Honey Pay — pagamentos, vendas e gestão financeira para negócios em Angola."
+  >
+
+  <meta name="theme-color" content="#0b0d12">
+
+  <title>Honey Pay</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg: #080a0f;
+      --bg-soft: #0d1017;
+      --panel: #11141c;
+      --panel-2: #151923;
+      --panel-3: #1a1e29;
+
+      --border: rgba(255,255,255,.08);
+      --border-light: rgba(255,255,255,.12);
+
+      --text: #f7f8fa;
+      --text-soft: #a7adba;
+      --text-muted: #707785;
+
+      --primary: #f5b942;
+      --primary-hover: #ffc95c;
+      --primary-soft: rgba(245,185,66,.12);
+
+      --success: #37d67a;
+      --success-soft: rgba(55,214,122,.12);
+
+      --danger: #ff5d6c;
+      --danger-soft: rgba(255,93,108,.12);
+
+      --warning: #f5b942;
+      --warning-soft: rgba(245,185,66,.12);
+
+      --info: #5da9ff;
+      --info-soft: rgba(93,169,255,.12);
+
+      --sidebar-width: 250px;
+      --topbar-height: 72px;
+
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* =====================================================
+       LOADER
+    ===================================================== */
+
+    #app-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      transition: opacity .3s ease, visibility .3s ease;
+    }
+
+    #app-loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loader-box {
+      text-align: center;
+    }
+
+    .loader-logo {
+      width: 56px;
+      height: 56px;
+      margin: auto auto 18px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: #111;
+      font-size: 28px;
+      font-weight: 900;
+      box-shadow: 0 15px 50px rgba(245,185,66,.22);
+    }
+
+    .loader-spinner {
+      width: 22px;
+      height: 22px;
+      margin: auto;
+      border: 2px solid rgba(255,255,255,.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =====================================================
+       AUTH SCREEN
+    ===================================================== */
+
+    #auth-screen {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(245,185,66,.09), transparent 35%),
+        var(--bg);
+    }
+
+    #auth-screen.visible {
+      display: flex;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: rgba(17,20,28,.92);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #111;
+      font-weight: 900;
+    }
+
+    .brand-name {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 21px;
+      font-weight: 800;
+    }
+
+    .auth-title {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .auth-subtitle {
+      color: var(--text-soft);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .google-btn {
+      width: 100%;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      background: #fff;
+      color: #111;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .google-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 35px rgba(0,0,0,.2);
+    }
+
+    .google-icon {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    /* =====================================================
+       APP
+    ===================================================== */
+
+    #app {
+      display: none;
+      min-height: 100vh;
+    }
+
+    #app.visible {
+      display: flex;
+    }
+
+    /* =====================================================
+       SIDEBAR
+    ===================================================== */
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 1000;
+      width: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: #0b0e14;
+    }
+
+    .sidebar-brand {
+      height: var(--topbar-height);
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-brand .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 17px;
+    }
+
+    .sidebar-brand span {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      padding: 22px 14px;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      padding: 0 11px;
+      margin: 8px 0 10px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text-soft);
+      text-align: left;
+      transition: .18s ease;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: var(--primary-soft);
+      border-color: rgba(245,185,66,.1);
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      width: 20px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .nav-text {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .sidebar-bottom {
+      padding: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .merchant-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .merchant-avatar {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #111;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .merchant-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .merchant-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .merchant-email {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 3px;
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    /* =====================================================
+       MAIN
+    ===================================================== */
+
+    .main {
+      min-width: 0;
+      width: calc(100% - var(--sidebar-width));
+      margin-left: var(--sidebar-width);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 900;
+      height: var(--topbar-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,10,15,.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .mobile-menu {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .page-title {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    .page-breadcrumb {
+      margin-top: 3px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--text-soft);
+      transition: .2s;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--border-light);
+    }
+
+    .profile-btn {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .profile-avatar {
+      width: 25px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #111;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    /* =====================================================
+       CONTENT
+    ===================================================== */
+
+    .content {
+      padding: 28px;
+      max-width: 1600px;
+      margin: auto;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .view-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .view-title {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .view-description {
+      margin-top: 6px;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    /* =====================================================
+       BUTTONS
+    ===================================================== */
+
+    .btn {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 15px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #111;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      border-color: var(--border-light);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: var(--panel-2);
+    }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: rgba(255,93,108,.15);
+    }
+
+    .btn-sm {
+      min-height: 34px;
+      padding: 0 11px;
+      font-size: 11px;
+    }
+
+    /* =====================================================
+       DASHBOARD CARDS
+    ===================================================== */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat-card {
+      min-height: 145px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-label {
+      color: var(--text-soft);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .stat-icon {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 14px;
+    }
+
+    .stat-value {
+      margin-top: 18px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .stat-footer {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .stat-footer.success {
+      color: var(--success);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(300px, .8fr);
+      gap: 18px;
+    }
+
+    /* =====================================================
+       PANELS
+    ===================================================== */
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .panel-subtitle {
+      margin-top: 3px;
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    /* =====================================================
+       CHART
+    ===================================================== */
+
+    .chart-wrap {
+      height: 260px;
+      position: relative;
+      padding: 18px;
+    }
+
+    #sales-chart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* =====================================================
+       TABLES
+    ===================================================== */
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.045);
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table-primary {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .table-muted {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    /* =====================================================
+       BADGES
+    ===================================================== */
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .badge-success {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .badge-info {
+      background: var(--info-soft);
+      color: var(--info);
+    }
+
+    .badge-neutral {
+      background: rgba(255,255,255,.06);
+      color: var(--text-soft);
+    }
+
+    /* =====================================================
+       GRID
+    ===================================================== */
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 18px;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 15px;
+    }
+
+    .product-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+
+    .product-name {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .product-description {
+      min-height: 35px;
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .product-price {
+      margin-top: 16px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .product-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* =====================================================
+       FORMS
+    ===================================================== */
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--text-soft);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      padding: 0 12px;
+      outline: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 12px;
+      transition: .2s;
+    }
+
+    textarea {
+      min-height: 100px;
+      padding-top: 12px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(245,185,66,.45);
+      box-shadow: 0 0 0 3px rgba(245,185,66,.06);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* =====================================================
+       EMPTY STATE
+    ===================================================== */
+
+    .empty-state {
+      padding: 55px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 13px;
+      background: rgba(255,255,255,.04);
+      color: var(--text-muted);
+    }
+
+    .empty-title {
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .empty-description {
+      max-width: 400px;
+      margin: 7px auto 18px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    /* =====================================================
+       MODAL
+    ===================================================== */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 560px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    /* =====================================================
+       TOAST
+    ===================================================== */
+
+    #toast-container {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: min(380px, calc(100vw - 40px));
+    }
+
+    .toast {
+      padding: 14px 16px;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      background: var(--panel-2);
+      box-shadow: var(--shadow);
+      animation: toastIn .25s ease;
+    }
+
+    .toast-title {
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .toast-message {
+      margin-top: 4px;
+      color: var(--text-soft);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .toast.success {
+      border-color: rgba(55,214,122,.2);
+    }
+
+    .toast.error {
+      border-color: rgba(255,93,108,.2);
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 1100px) {
+      .stats-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+      }
+    }
+
+    @media (max-width: 800px) {
+      :root {
+        --sidebar-width: 0px;
+      }
+
+      .sidebar {
+        width: 250px;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .main {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .mobile-menu {
+        display: block;
+      }
+
+      .content {
+        padding: 18px;
+      }
+
+      .topbar {
+        padding: 0 16px;
+      }
+
+      .topbar .page-breadcrumb {
+        display: none;
+      }
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-group.full {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .view-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .topbar-actions .profile-btn span {
+        display: none;
+      }
+
+      .auth-card {
+        padding: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       LOADER
+  ====================================================== -->
+
+  <div id="app-loader">
+    <div class="loader-box">
+      <div class="loader-logo">H</div>
+      <div class="loader-spinner"></div>
+    </div>
+  </div>
+
+
+  <!-- =====================================================
+       AUTH
+  ====================================================== -->
+
+  <section id="auth-screen">
+
+    <div class="auth-card">
+
+      <div class="auth-brand">
+        <div class="brand-mark">H</div>
+        <div class="brand-name">Honey Pay</div>
+      </div>
+
+      <h1 class="auth-title">
+        Bem-vindo à Honey Pay
+      </h1>
+
+      <p class="auth-subtitle">
+        Gerencie vendas, pagamentos, clientes e pedidos
+        numa única plataforma.
+      </p>
+
+      <button
+        id="google-login-btn"
+        class="google-btn"
+        type="button"
+      >
+        <span class="google-icon">G</span>
+        Continuar com Google
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       APP
+  ====================================================== -->
+
+  <div id="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-brand">
+        <div class="brand-mark">H</div>
+        <span>Honey Pay</span>
+      </div>
+
+      <div class="sidebar-content">
+
+        <div class="nav-label">
+          Workspace
+        </div>
+
+        <button
+          class="nav-item active"
+          data-view="dashboard"
+        >
+          <span class="nav-icon">⌂</span>
+          <span class="nav-text">Dashboard</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="payments"
+        >
+          <span class="nav-icon">₿</span>
+          <span class="nav-text">Pagamentos</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="orders"
+        >
+          <span class="nav-icon">▤</span>
+          <span class="nav-text">Pedidos</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="products"
+        >
+          <span class="nav-icon">□</span>
+          <span class="nav-text">Produtos</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="customers"
+        >
+          <span class="nav-icon">♙</span>
+          <span class="nav-text">Clientes</span>
+        </button>
+
+        <div class="nav-label">
+          Vendas
+        </div>
+
+        <button
+          class="nav-item"
+          data-view="payment-links"
+        >
+          <span class="nav-icon">↗</span>
+          <span class="nav-text">Links de pagamento</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="reports"
+        >
+          <span class="nav-icon">▥</span>
+          <span class="nav-text">Relatórios</span>
+        </button>
+
+        <div class="nav-label">
+          Conta
+        </div>
+
+        <button
+          class="nav-item"
+          data-view="merchant"
+        >
+          <span class="nav-icon">◉</span>
+          <span class="nav-text">Meu negócio</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="bank-accounts"
+        >
+          <span class="nav-icon">▣</span>
+          <span class="nav-text">Contas bancárias</span>
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="settings"
+        >
+          <span class="nav-icon">⚙</span>
+          <span class="nav-text">Definições</span>
+        </button>
+
+      </div>
+
+      <div class="sidebar-bottom">
+
+        <div class="merchant-mini">
+
+          <div
+            class="merchant-avatar"
+            id="sidebar-avatar"
+          >
+            H
+          </div>
+
+          <div class="merchant-info">
+            <div
+              class="merchant-name"
+              id="sidebar-name"
+            >
+              Honey Pay
+            </div>
+
+            <div
+              class="merchant-email"
+              id="sidebar-email"
+            >
+              —
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+      <!-- TOPBAR -->
+
+      <header class="topbar">
+
+        <div class="topbar-left">
+
+          <button
+            class="mobile-menu"
+            id="mobile-menu"
+            type="button"
+          >
+            ☰
+          </button>
+
+          <div>
+            <div
+              class="page-title"
+              id="page-title"
+            >
+              Dashboard
+            </div>
+
+            <div class="page-breadcrumb">
+              Honey Pay / <span id="breadcrumb">Dashboard</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="topbar-actions">
+
+          <button
+            class="icon-btn"
+            id="refresh-btn"
+            title="Atualizar"
+            type="button"
+          >
+            ↻
+          </button>
+
+          <button
+            class="profile-btn"
+            id="profile-btn"
+            type="button"
+          >
+            <div
+              class="profile-avatar"
+              id="profile-avatar"
+            >
+              H
+            </div>
+
+            <span id="profile-name">
+              Conta
+            </span>
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- CONTENT -->
+
+      <section class="content">
+
+
+        <!-- =================================================
+             DASHBOARD
+        ================================================== -->
+
+        <div
+          class="view active"
+          id="view-dashboard"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Dashboard
+              </h1>
+
+              <p class="view-description">
+                Visão geral do desempenho do seu negócio.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="new-payment-link-btn"
+              type="button"
+            >
+              + Criar pagamento
+            </button>
+
+          </div>
+
+
+          <div class="stats-grid">
+
+            <div class="stat-card">
+              <div class="stat-top">
+                <span class="stat-label">
+                  Vendas confirmadas
+                </span>
+
+                <div class="stat-icon">
+                  ₵
+                </div>
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-sales"
+              >
+                0 Kz
+              </div>
+
+              <div class="stat-footer success">
+                Pagamentos SUCCEEDED
+              </div>
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-top">
+                <span class="stat-label">
+                  Pagamentos pendentes
+                </span>
+
+                <div class="stat-icon">
+                  ◷
+                </div>
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-pending"
+              >
+                0 Kz
+              </div>
+
+              <div class="stat-footer">
+                Aguardando confirmação
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-top">
+                <span class="stat-label">
+                  Pedidos
+                </span>
+
+                <div class="stat-icon">
+                  ▤
+                </div>
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-orders"
+              >
+                0
+              </div>
+
+              <div class="stat-footer">
+                Total de pedidos
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-top">
+                <span class="stat-label">
+                  Clientes
+                </span>
+
+                <div class="stat-icon">
+                  ♙
+                </div>
+              </div>
+
+              <div
+                class="stat-value"
+                id="stat-customers"
+              >
+                0
+              </div>
+
+              <div class="stat-footer">
+                Clientes registados
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="dashboard-grid">
+
+            <div class="panel">
+
+              <div class="panel-header">
+
+                <div>
+                  <div class="panel-title">
+                    Volume de vendas
+                  </div>
+
+                  <div class="panel-subtitle">
+                    Últimos 30 dias
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="chart-wrap">
+                <canvas id="sales-chart"></canvas>
+              </div>
+
+            </div>
+
+
+            <div class="panel">
+
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">
+                    Pagamentos recentes
+                  </div>
+                </div>
+
+                <button
+                  class="btn btn-secondary btn-sm"
+                  data-view-target="payments"
+                  type="button"
+                >
+                  Ver todos
+                </button>
+              </div>
+
+              <div id="recent-payments">
+                <div class="empty-state">
+                  <div class="empty-icon">₿</div>
+                  <div class="empty-title">
+                    Nenhum pagamento
+                  </div>
+                  <div class="empty-description">
+                    Os pagamentos aparecerão aqui.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PAYMENTS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-payments"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Pagamentos
+              </h1>
+
+              <p class="view-description">
+                Acompanhe todos os pagamentos dos seus clientes.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="panel-header">
+
+              <div class="panel-title">
+                Histórico de pagamentos
+              </div>
+
+              <button
+                class="btn btn-secondary btn-sm"
+                id="refresh-payments-btn"
+                type="button"
+              >
+                Atualizar
+              </button>
+
+            </div>
+
+            <div class="table-container">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Referência</th>
+                    <th>Cliente</th>
+                    <th>Método</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+
+                <tbody id="payments-table">
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             ORDERS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-orders"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Pedidos
+              </h1>
+
+              <p class="view-description">
+                Gestão dos pedidos dos seus clientes.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="new-order-btn"
+              type="button"
+            >
+              + Novo pedido
+            </button>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="panel-header">
+              <div class="panel-title">
+                Todos os pedidos
+              </div>
+            </div>
+
+            <div class="table-container">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+
+                <tbody id="orders-table">
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PRODUCTS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-products"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Produtos
+              </h1>
+
+              <p class="view-description">
+                Crie e organize os produtos que vende.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="new-product-btn"
+              type="button"
+            >
+              + Novo produto
+            </button>
+
+          </div>
+
+          <div
+            class="products-grid"
+            id="products-grid"
+          >
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CUSTOMERS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-customers"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Clientes
+              </h1>
+
+              <p class="view-description">
+                Conheça e acompanhe os seus clientes.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="table-container">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Pedidos</th>
+                    <th>Total pago</th>
+                    <th>Última compra</th>
+                  </tr>
+                </thead>
+
+                <tbody id="customers-table">
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PAYMENT LINKS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-payment-links"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Links de pagamento
+              </h1>
+
+              <p class="view-description">
+                Crie links para enviar diretamente aos seus clientes.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="create-link-btn"
+              type="button"
+            >
+              + Criar link
+            </button>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="panel-header">
+              <div class="panel-title">
+                Links criados
+              </div>
+            </div>
+
+            <div class="table-container">
+
+              <table>
+
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Valor</th>
+                    <th>Utilizações</th>
+                    <th>Estado</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+
+                <tbody id="payment-links-table">
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             REPORTS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-reports"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Relatórios
+              </h1>
+
+              <p class="view-description">
+                Analise as vendas e o desempenho financeiro.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="export-report-btn"
+              type="button"
+            >
+              Exportar CSV
+            </button>
+
+          </div>
+
+          <div class="grid-3">
+
+            <div class="stat-card">
+              <div class="stat-label">
+                Receita bruta
+              </div>
+
+              <div
+                class="stat-value"
+                id="report-gross"
+              >
+                0 Kz
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">
+                Taxas Honey Pay
+              </div>
+
+              <div
+                class="stat-value"
+                id="report-fees"
+              >
+                0 Kz
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-label">
+                Receita líquida
+              </div>
+
+              <div
+                class="stat-value"
+                id="report-net"
+              >
+                0 Kz
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MERCHANT
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-merchant"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Meu negócio
+              </h1>
+
+              <p class="view-description">
+                Informações públicas e comerciais da sua empresa.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="panel">
+
+            <div class="panel-header">
+              <div class="panel-title">
+                Dados do negócio
+              </div>
+            </div>
+
+            <div class="panel-body">
+
+              <form id="merchant-form">
+
+                <div class="form-grid">
+
+                  <div class="form-group">
+                    <label for="merchant-name">
+                      Nome comercial
+                    </label>
+
+                    <input
+                      id="merchant-name"
+                      name="name"
+                      type="text"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="merchant-legal-name">
+                      Nome legal
+                    </label>
+
+                    <input
+                      id="merchant-legal-name"
+                      name="legalName"
+                      type="text"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="merchant-email">
+                      Email
+                    </label>
+
+                    <input
+                      id="merchant-email"
+                      name="email"
+                      type="email"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="merchant-phone">
+                      Telefone
+                    </label>
+
+                    <input
+                      id="merchant-phone"
+                      name="phone"
+                      type="tel"
+                    >
+                  </div>
+
+                </div>
+
+                <div class="form-actions">
+
+                  <button
+                    class="btn btn-primary"
+                    type="submit"
+                  >
+                    Guardar alterações
+                  </button>
+
+                </div>
+
+              </form>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             BANK ACCOUNTS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-bank-accounts"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Contas bancárias
+              </h1>
+
+              <p class="view-description">
+                Contas associadas ao seu negócio.
+              </p>
+            </div>
+
+            <button
+              class="btn btn-primary"
+              id="new-bank-btn"
+              type="button"
+            >
+              + Adicionar conta
+            </button>
+
+          </div>
+
+          <div
+            class="grid-2"
+            id="bank-accounts-grid"
+          >
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SETTINGS
+        ================================================== -->
+
+        <div
+          class="view"
+          id="view-settings"
+        >
+
+          <div class="view-header">
+
+            <div>
+              <h1 class="view-title">
+                Definições
+              </h1>
+
+              <p class="view-description">
+                Configurações da sua conta Honey Pay.
+              </p>
+            </div>
+
+          </div>
+
+          <div class="grid-2">
+
+            <div class="panel">
+
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">
+                    Conta
+                  </div>
+
+                  <div class="panel-subtitle">
+                    Dados da sua conta
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-body">
+
+                <div class="form-group">
+                  <label>
+                    Nome
+                  </label>
+
+                  <input
+                    id="settings-name"
+                    type="text"
+                    readonly
+                  >
+                </div>
+
+                <div
+                  class="form-group"
+                  style="margin-top:15px;"
+                >
+                  <label>
+                    Email
+                  </label>
+
+                  <input
+                    id="settings-email"
+                    type="email"
+                    readonly
+                  >
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="panel">
+
+              <div class="panel-header">
+                <div>
+                  <div class="panel-title">
+                    Sessão
+                  </div>
+
+                  <div class="panel-subtitle">
+                    Segurança
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-body">
+
+                <button
+                  class="btn btn-danger"
+                  id="logout-btn"
+                  type="button"
+                >
+                  Terminar sessão
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <!-- =====================================================
+       PRODUCT MODAL
+  ====================================================== -->
+
+  <div
+    class="modal"
+    id="product-modal"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-header">
+
+        <div class="modal-title">
+          Novo produto
+        </div>
+
+        <button
+          class="icon-btn"
+          data-close-modal="product-modal"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <form id="product-form">
+
+          <div class="form-group">
+            <label for="product-name">
+              Nome
+            </label>
+
+            <input
+              id="product-name"
+              type="text"
+              required
+            >
+          </div>
+
+          <div
+            class="form-group"
+            style="margin-top:15px;"
+          >
+            <label for="product-price">
+              Preço (Kz)
+            </label>
+
+            <input
+              id="product-price"
+              type="number"
+              min="1"
+              step="1"
+              required
+            >
+          </div>
+
+          <div
+            class="form-group"
+            style="margin-top:15px;"
+          >
+            <label for="product-sku">
+              SKU
+            </label>
+
+            <input
+              id="product-sku"
+              type="text"
+            >
+          </div>
+
+          <div
+            class="form-group"
+            style="margin-top:15px;"
+          >
+            <label for="product-description">
+              Descrição
+            </label>
+
+            <textarea
+              id="product-description"
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+
+            <button
+              class="btn btn-secondary"
+              data-close-modal="product-modal"
+              type="button"
+            >
+              Cancelar
+            </button>
+
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              Criar produto
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       PAYMENT LINK MODAL
+  ====================================================== -->
+
+  <div
+    class="modal"
+    id="link-modal"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-header">
+
+        <div class="modal-title">
+          Criar link de pagamento
+        </div>
+
+        <button
+          class="icon-btn"
+          data-close-modal="link-modal"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <form id="link-form">
+
+          <div class="form-group">
+
+            <label for="link-title">
+              Título
+            </label>
+
+            <input
+              id="link-title"
+              type="text"
+              placeholder="Ex.: Curso de Marketing"
+              required
+            >
+
+          </div>
+
+
+          <div
+            class="form-group"
+            style="margin-top:15px;"
+          >
+
+            <label for="link-amount">
+              Valor (Kz)
+            </label>
+
+            <input
+              id="link-amount"
+              type="number"
+              min="1"
+              step="1"
+              required
+            >
+
+          </div>
+
+
+          <div
+            class="form-group"
+            style="margin-top:15px;"
+          >
+
+            <label for="link-description">
+              Descrição
+            </label>
+
+            <textarea
+              id="link-description"
+              placeholder="Descrição apresentada ao cliente."
+            ></textarea>
+
+          </div>
+
+
+          <div class="form-actions">
+
+            <button
+              class="btn btn-secondary"
+              data-close-modal="link-modal"
+              type="button"
+            >
+              Cancelar
+            </button>
+
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              Criar link
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       BANK MODAL
+  ====================================================== -->
+
+  <div
+    class="modal"
+    id="bank-modal"
+  >
+
+    <div class="modal-card">
+
+      <div class="modal-header">
+
+        <div class="modal-title">
+          Adicionar conta bancária
+        </div>
+
+        <button
+          class="icon-btn"
+          data-close-modal="bank-modal"
+          type="button"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <form id="bank-form">
+
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="bank-name">
+                Banco
+              </label>
+
+              <input
+                id="bank-name"
+                type="text"
+                placeholder="Ex.: BFA"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="bank-account-name">
+                Titular
+              </label>
+
+              <input
+                id="bank-account-name"
+                type="text"
+                required
+              >
+            </div>
+
+            <div class="form-group full">
+              <label for="bank-account-number">
+                Número da conta
+              </label>
+
+              <input
+                id="bank-account-number"
+                type="text"
+                required
+              >
+            </div>
+
+            <div class="form-group full">
+              <label for="bank-iban">
+                IBAN
+              </label>
+
+              <input
+                id="bank-iban"
+                type="text"
+              >
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+
+            <button
+              class="btn btn-secondary"
+              data-close-modal="bank-modal"
+              type="button"
+            >
+              Cancelar
+            </button>
+
+            <button
+              class="btn btn-primary"
+              type="submit"
+            >
+              Adicionar conta
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div id="toast-container"></div>
+
+
+  <!-- =====================================================
+       APPLICATION
+  ====================================================== -->
+
+  <script>
+
+    /*
+    =========================================================
+    HONEY PAY
+    PROFESSIONAL DASHBOARD
+    FRONTEND CORE
+    =========================================================
+    */
+
+    const API_BASE = "/api";
+    const TOKEN_KEY = "honey_pay_token";
+
+    const state = {
+      user: null,
+      merchant: null,
+      currentView: "dashboard",
+      dashboard: null
+    };
+
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+
+    function getToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function setToken(token) {
+      if (token) {
+        localStorage.setItem(TOKEN_KEY, token);
+      }
+    }
+
+    function clearToken() {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+
+
+    function escapeHtml(value) {
+
+      if (value === null || value === undefined) {
+        return "";
+      }
+
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function formatMoney(value) {
+
+      const amount = Number(value || 0);
+
+      return new Intl.NumberFormat("pt-PT", {
+        maximumFractionDigits: 0
+      }).format(amount) + " Kz";
+    }
+
+
+    function formatDate(value) {
+
+      if (!value) {
+        return "—";
+      }
+
+      try {
+
+        return new Intl.DateTimeFormat("pt-PT", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(value));
+
+      } catch {
+        return "—";
+      }
+    }
+
+
+    function initials(name) {
+
+      if (!name) {
+        return "H";
+      }
+
+      return String(name)
+        .trim()
+        .split(/\s+/)
+        .slice(0,2)
+        .map(part => part[0])
+        .join("")
+        .toUpperCase();
+    }
+
+
+    function showToast(
+      title,
+      message,
+      type = "success"
+    ) {
+
+      const container =
+        document.getElementById("toast-container");
+
+      const toast =
+        document.createElement("div");
+
+      toast.className = `toast ${type}`;
+
+      toast.innerHTML = `
+        <div class="toast-title">
+          ${escapeHtml(title)}
+        </div>
+
+        <div class="toast-message">
+          ${escapeHtml(message)}
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 4500);
+    }
+
+
+    /* =====================================================
+       API
+    ===================================================== */
+
+    async function api(
+      endpoint,
+      options = {}
+    ) {
+
+      const token = getToken();
+
+      const headers = {
+        ...(options.headers || {})
+      };
+
+      if (
+        options.body &&
+        !(options.body instanceof FormData)
+      ) {
+        headers["Content-Type"] =
+          headers["Content-Type"] ||
+          "application/json";
+      }
+
+      if (token) {
+        headers.Authorization =
+          `Bearer ${token}`;
+      }
+
+      const response =
+        await fetch(
+          API_BASE + endpoint,
+          {
+            ...options,
+            headers
+          }
+        );
+
+      let data = null;
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      if (
+        response.status === 401 ||
+        response.status === 403
+      ) {
+
+        clearToken();
+
+        showAuth();
+
+        throw new Error(
+          data.message ||
+          "Sessão expirada."
+        );
+      }
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          "Não foi possível concluir a operação."
+        );
+      }
+
+      return data;
+    }
+
+
+    /* =====================================================
+       AUTH
+    ===================================================== */
+
+    function showAuth() {
+
+      document
+        .getElementById("app")
+        .classList.remove("visible");
+
+      document
+        .getElementById("auth-screen")
+        .classList.add("visible");
+    }
+
+
+    function showApp() {
+
+      document
+        .getElementById("auth-screen")
+        .classList.remove("visible");
+
+      document
+        .getElementById("app")
+        .classList.add("visible");
+    }
+
+
+    function startGoogleLogin() {
+
+      window.location.href =
+        `${API_BASE}/auth/google`;
+    }
+
+
+    function processAuthToken() {
+
+      const params =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      const token =
+        params.get("token") ||
+        params.get("auth_token");
+
+      if (token) {
+
+        setToken(token);
+
+        const cleanUrl =
+          window.location.origin +
+          window.location.pathname;
+
+        window.history.replaceState(
+          {},
+          document.title,
+          cleanUrl
+        );
+
+        return true;
+      }
+
+      return false;
+    }
+
+
+    async function loadCurrentUser() {
+
+      const data =
+        await api("/me");
+
+      state.user =
+        data.user || data;
+
+      state.merchant =
+        data.merchant ||
+        null;
+
+      updateUserUI();
+    }
+
+
+    function updateUserUI() {
+
+      const user =
+        state.user || {};
+
+      const merchant =
+        state.merchant || {};
+
+      const displayName =
+        merchant.name ||
+        user.name ||
+        "Honey Pay";
+
+      const email =
+        merchant.email ||
+        user.email ||
+        "—";
+
+      const avatar =
+        initials(displayName);
+
+      document
+        .getElementById("sidebar-name")
+        .textContent = displayName;
+
+      document
+        .getElementById("sidebar-email")
+        .textContent = email;
+
+      document
+        .getElementById("sidebar-avatar")
+        .textContent = avatar;
+
+      document
+        .getElementById("profile-name")
+        .textContent = displayName;
+
+      document
+        .getElementById("profile-avatar")
+        .textContent = avatar;
+
+      document
+        .getElementById("settings-name")
+        .value =
+          user.name || displayName;
+
+      document
+        .getElementById("settings-email")
+        .value =
+          user.email || email;
+
+      if (merchant) {
+
+        document
+          .getElementById("merchant-name")
+          .value =
+            merchant.name || "";
+
+        document
+          .getElementById("merchant-legal-name")
+          .value =
+            merchant.legalName || "";
+
+        document
+          .getElementById("merchant-email")
+          .value =
+            merchant.email || "";
+
+        document
+          .getElementById("merchant-phone")
+          .value =
+            merchant.phone || "";
+      }
+    }
+
+
+    /* =====================================================
+       NAVIGATION
+    ===================================================== */
+
+    const viewTitles = {
+
+      dashboard: "Dashboard",
+      payments: "Pagamentos",
+      orders: "Pedidos",
+      products: "Produtos",
+      customers: "Clientes",
+      "payment-links": "Links de pagamento",
+      reports: "Relatórios",
+      merchant: "Meu negócio",
+      "bank-accounts": "Contas bancárias",
+      settings: "Definições"
+
+    };
+
+
+    function navigate(view) {
+
+      if (!viewTitles[view]) {
+        view = "dashboard";
+      }
+
+      state.currentView = view;
+
+      document
+        .querySelectorAll(".view")
+        .forEach(element => {
+          element.classList.remove("active");
+        });
+
+      const target =
+        document.getElementById(
+          `view-${view}`
+        );
+
+      if (target) {
+        target.classList.add("active");
+      }
+
+      document
+        .querySelectorAll(".nav-item")
+        .forEach(element => {
+
+          element.classList.toggle(
+            "active",
+            element.dataset.view === view
+          );
+
+        });
+
+      document
+        .getElementById("page-title")
+        .textContent =
+          viewTitles[view];
+
+      document
+        .getElementById("breadcrumb")
+        .textContent =
+          viewTitles[view];
+
+      document
+        .getElementById("sidebar")
+        .classList.remove("mobile-open");
+
+      loadViewData(view);
+
+      window.history.replaceState(
+        {},
+        "",
+        view === "dashboard"
+          ? "/"
+          : `/${view}`
+      );
+    }
+
+
+    async function loadViewData(view) {
+
+      try {
+
+        if (view === "dashboard") {
+          await loadDashboard();
+        }
+
+        if (view === "payments") {
+          await loadPayments();
+        }
+
+        if (view === "orders") {
+          await loadOrders();
+        }
+
+        if (view === "products") {
+          await loadProducts();
+        }
+
+        if (view === "customers") {
+          await loadCustomers();
+        }
+
+        if (view === "payment-links") {
+          await loadPaymentLinks();
+        }
+
+        if (view === "reports") {
+          await loadReports();
+        }
+
+        if (view === "merchant") {
+          await loadMerchant();
+        }
+
+        if (view === "bank-accounts") {
+          await loadBankAccounts();
+        }
+
+      } catch (error) {
+
+        console.error(error);
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       DASHBOARD
+    ===================================================== */
+
+    async function loadDashboard() {
+
+      const data =
+        await api(
+          "/dashboard/summary?range=30d"
+        );
+
+      state.dashboard = data;
+
+      const summary =
+        data.summary ||
+        data;
+
+      document
+        .getElementById("stat-sales")
+        .textContent =
+          formatMoney(
+            summary.totalSales ??
+            summary.sales ??
+            summary.gross ??
+            0
+          );
+
+      document
+        .getElementById("stat-pending")
+        .textContent =
+          formatMoney(
+            summary.pendingAmount ??
+            summary.pending ??
+            0
+          );
+
+      document
+        .getElementById("stat-orders")
+        .textContent =
+          Number(
+            summary.orders ??
+            summary.totalOrders ??
+            0
+          ).toLocaleString("pt-PT");
+
+      document
+        .getElementById("stat-customers")
+        .textContent =
+          Number(
+            summary.customers ??
+            summary.totalCustomers ??
+            0
+          ).toLocaleString("pt-PT");
+
+      renderSalesChart(
+        data.daily ||
+        data.salesByDay ||
+        []
+      );
+
+      await loadRecentPayments();
+    }
+
+
+    async function loadRecentPayments() {
+
+      const data =
+        await api(
+          "/dashboard/recent?limit=8"
+        );
+
+      const payments =
+        data.payments ||
+        data.recent ||
+        [];
+
+      const container =
+        document.getElementById(
+          "recent-payments"
+        );
+
+      if (!payments.length) {
+
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">₿</div>
+            <div class="empty-title">
+              Nenhum pagamento
+            </div>
+            <div class="empty-description">
+              Os pagamentos aparecerão aqui.
+            </div>
+          </div>
+        `;
+
+        return;
+      }
+
+      container.innerHTML =
+        payments.map(payment => {
+
+          return `
+            <div style="
+              display:flex;
+              align-items:center;
+              justify-content:space-between;
+              gap:12px;
+              padding:14px 18px;
+              border-bottom:1px solid rgba(255,255,255,.045);
+            ">
+
+              <div style="min-width:0;">
+
+                <div class="table-primary">
+                  ${escapeHtml(
+                    payment.merchantReference ||
+                    payment.providerPaymentId ||
+                    payment._id ||
+                    "Pagamento"
+                  )}
+                </div>
+
+                <div class="table-muted">
+                  ${escapeHtml(
+                    payment.customer?.name ||
+                    payment.customerName ||
+                    payment.customer?.email ||
+                    "Cliente"
+                  )}
+                </div>
+
+              </div>
+
+              <div style="text-align:right;">
+
+                <div class="table-primary">
+                  ${formatMoney(payment.amount)}
+                </div>
+
+                <div style="margin-top:4px;">
+                  ${statusBadge(
+                    payment.status ||
+                    payment.providerStatus
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
+    }
+
+
+    function renderSalesChart(data) {
+
+      const canvas =
+        document.getElementById(
+          "sales-chart"
+        );
+
+      if (!canvas) {
+        return;
+      }
+
+      const ctx =
+        canvas.getContext("2d");
+
+      const rect =
+        canvas.getBoundingClientRect();
+
+      const dpr =
+        window.devicePixelRatio || 1;
+
+      canvas.width =
+        rect.width * dpr;
+
+      canvas.height =
+        rect.height * dpr;
+
+      ctx.scale(dpr,dpr);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
+
+      const points =
+        Array.isArray(data)
+          ? data
+          : [];
+
+      const values =
+        points.map(item =>
+          Number(
+            item.total ??
+            item.amount ??
+            item.sales ??
+            0
+          )
+        );
+
+      const max =
+        Math.max(
+          ...values,
+          1
+        );
+
+      const padding = 25;
+
+      ctx.strokeStyle =
+        "rgba(255,255,255,.07)";
+
+      ctx.lineWidth = 1;
+
+      for (
+        let i = 0;
+        i < 5;
+        i++
+      ) {
+
+        const y =
+          padding +
+          ((height - padding * 2) / 4) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+          padding,
+          y
+        );
+
+        ctx.lineTo(
+          width - padding,
+          y
+        );
+
+        ctx.stroke();
+      }
+
+      if (!values.length) {
+
+        ctx.fillStyle =
+          "rgba(255,255,255,.25)";
+
+        ctx.font =
+          "12px Inter";
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+          "Ainda não existem vendas suficientes para gerar o gráfico.",
+          width / 2,
+          height / 2
+        );
+
+        return;
+      }
+
+      const usableWidth =
+        width - padding * 2;
+
+      const usableHeight =
+        height - padding * 2;
+
+      ctx.beginPath();
+
+      values.forEach(
+        (value,index) => {
+
+          const x =
+            padding +
+            (usableWidth /
+              Math.max(values.length - 1,1)) *
+            index;
+
+          const y =
+            height -
+            padding -
+            ((value / max) *
+              usableHeight);
+
+          if (index === 0) {
+            ctx.moveTo(x,y);
+          } else {
+            ctx.lineTo(x,y);
+          }
+
+        }
+      );
+
+      ctx.strokeStyle =
+        "#f5b942";
+
+      ctx.lineWidth = 2;
+
+      ctx.stroke();
+
+    }
+
+
+    /* =====================================================
+       PAYMENTS
+    ===================================================== */
+
+    async function loadPayments() {
+
+      const data =
+        await api(
+          "/payments?limit=100"
+        );
+
+      const payments =
+        data.payments ||
+        data.items ||
+        data ||
+        [];
+
+      const tbody =
+        document.getElementById(
+          "payments-table"
+        );
+
+      if (!payments.length) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-title">
+                  Nenhum pagamento encontrado
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      tbody.innerHTML =
+        payments.map(payment => {
+
+          const customer =
+            payment.customer?.name ||
+            payment.customerName ||
+            "Cliente";
+
+          return `
+            <tr>
+
+              <td>
+                <div class="table-primary">
+                  ${escapeHtml(
+                    payment.merchantReference ||
+                    payment.providerPaymentId ||
+                    payment._id
+                  )}
+                </div>
+              </td>
+
+              <td>
+                ${escapeHtml(customer)}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  payment.method ||
+                  payment.paymentMethod ||
+                  "—"
+                )}
+              </td>
+
+              <td class="table-primary">
+                ${formatMoney(payment.amount)}
+              </td>
+
+              <td>
+                ${statusBadge(
+                  payment.status ||
+                  payment.providerStatus
+                )}
+              </td>
+
+              <td>
+                ${formatDate(
+                  payment.createdAt
+                )}
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+    }
+
+
+    /* =====================================================
+       ORDERS
+    ===================================================== */
+
+    async function loadOrders() {
+
+      const data =
+        await api(
+          "/orders?limit=100"
+        );
+
+      const orders =
+        data.orders ||
+        data.items ||
+        data ||
+        [];
+
+      const tbody =
+        document.getElementById(
+          "orders-table"
+        );
+
+      if (!orders.length) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <div class="empty-title">
+                  Nenhum pedido encontrado
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      tbody.innerHTML =
+        orders.map(order => {
+
+          return `
+            <tr>
+
+              <td>
+                <div class="table-primary">
+                  ${escapeHtml(
+                    order.reference ||
+                    order._id
+                  )}
+                </div>
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  order.customer?.name ||
+                  order.customerName ||
+                  "Cliente"
+                )}
+              </td>
+
+              <td class="table-primary">
+                ${formatMoney(order.total)}
+              </td>
+
+              <td>
+                ${statusBadge(
+                  order.status
+                )}
+              </td>
+
+              <td>
+                ${formatDate(
+                  order.createdAt
+                )}
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+    }
+
+
+    /* =====================================================
+       PRODUCTS
+    ===================================================== */
+
+    async function loadProducts() {
+
+      const data =
+        await api(
+          "/products?limit=100"
+        );
+
+      const products =
+        data.products ||
+        data.items ||
+        data ||
+        [];
+
+      const grid =
+        document.getElementById(
+          "products-grid"
+        );
+
+      if (!products.length) {
+
+        grid.innerHTML = `
+          <div class="panel" style="grid-column:1/-1;">
+            <div class="empty-state">
+
+              <div class="empty-icon">
+                □
+              </div>
+
+              <div class="empty-title">
+                Ainda não tem produtos
+              </div>
+
+              <div class="empty-description">
+                Crie o primeiro produto para começar a vender.
+              </div>
+
+              <button
+                class="btn btn-primary"
+                onclick="openModal('product-modal')"
+              >
+                + Criar produto
+              </button>
+
+            </div>
+          </div>
+        `;
+
+        return;
+      }
+
+      grid.innerHTML =
+        products.map(product => {
+
+          return `
+            <div class="product-card">
+
+              <div class="product-name">
+                ${escapeHtml(product.name)}
+              </div>
+
+              <div class="product-description">
+                ${escapeHtml(
+                  product.description ||
+                  "Sem descrição."
+                )}
+              </div>
+
+              <div class="product-price">
+                ${formatMoney(product.price)}
+              </div>
+
+              <div class="product-footer">
+
+                ${
+                  product.active === false
+                  ? `
+                    <span class="badge badge-neutral">
+                      Inativo
+                    </span>
+                  `
+                  : `
+                    <span class="badge badge-success">
+                      Ativo
+                    </span>
+                  `
+                }
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
+    }
+
+
+    async function createProduct(event) {
+
+      event.preventDefault();
+
+      const body = {
+        name:
+          document.getElementById(
+            "product-name"
+          ).value.trim(),
+
+        price:
+          Number(
+            document.getElementById(
+              "product-price"
+            ).value
+          ),
+
+        sku:
+          document.getElementById(
+            "product-sku"
+          ).value.trim(),
+
+        description:
+          document.getElementById(
+            "product-description"
+          ).value.trim()
+      };
+
+      try {
+
+        await api(
+          "/products",
+          {
+            method: "POST",
+            body: JSON.stringify(body)
+          }
+        );
+
+        closeModal("product-modal");
+
+        document
+          .getElementById("product-form")
+          .reset();
+
+        showToast(
+          "Produto criado",
+          "O produto foi criado com sucesso."
+        );
+
+        await loadProducts();
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       CUSTOMERS
+    ===================================================== */
+
+    async function loadCustomers() {
+
+      const data =
+        await api(
+          "/customers?limit=100"
+        );
+
+      const customers =
+        data.customers ||
+        data.items ||
+        data ||
+        [];
+
+      const tbody =
+        document.getElementById(
+          "customers-table"
+        );
+
+      if (!customers.length) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-title">
+                  Nenhum cliente encontrado
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      tbody.innerHTML =
+        customers.map(customer => {
+
+          return `
+            <tr>
+
+              <td class="table-primary">
+                ${escapeHtml(
+                  customer.name ||
+                  "Cliente"
+                )}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  customer.email ||
+                  "—"
+                )}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  customer.phone ||
+                  "—"
+                )}
+              </td>
+
+              <td>
+                ${Number(
+                  customer.totalOrders ||
+                  0
+                )}
+              </td>
+
+              <td class="table-primary">
+                ${formatMoney(
+                  customer.totalPaid
+                )}
+              </td>
+
+              <td>
+                ${formatDate(
+                  customer.lastOrderAt
+                )}
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+    }
+
+
+    /* =====================================================
+       PAYMENT LINKS
+    ===================================================== */
+
+    async function loadPaymentLinks() {
+
+      const data =
+        await api(
+          "/payment-links?limit=100"
+        );
+
+      const links =
+        data.links ||
+        data.paymentLinks ||
+        data.items ||
+        data ||
+        [];
+
+      const tbody =
+        document.getElementById(
+          "payment-links-table"
+        );
+
+      if (!links.length) {
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+
+                <div class="empty-title">
+                  Nenhum link criado
+                </div>
+
+                <div class="empty-description">
+                  Crie um link e envie-o diretamente pelo WhatsApp,
+                  Instagram ou Facebook.
+                </div>
+
+              </div>
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      tbody.innerHTML =
+        links.map(link => {
+
+          const publicUrl =
+            `${window.location.origin}/pay/${encodeURIComponent(link.token)}`;
+
+          return `
+            <tr>
+
+              <td class="table-primary">
+                ${escapeHtml(link.title)}
+              </td>
+
+              <td class="table-primary">
+                ${formatMoney(link.amount)}
+              </td>
+
+              <td>
+                ${Number(
+                  link.usageCount || 0
+                )}
+                ${
+                  link.maxUses
+                    ? ` / ${link.maxUses}`
+                    : ""
+                }
+              </td>
+
+              <td>
+                ${
+                  link.active === false
+                    ? `
+                      <span class="badge badge-neutral">
+                        Inativo
+                      </span>
+                    `
+                    : `
+                      <span class="badge badge-success">
+                        Ativo
+                      </span>
+                    `
+                }
+              </td>
+
+              <td>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="copyText('${publicUrl.replaceAll("'", "\\'")}')"
+                  type="button"
+                >
+                  Copiar
+                </button>
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+    }
+
+
+    async function createPaymentLink(event) {
+
+      event.preventDefault();
+
+      const body = {
+
+        title:
+          document.getElementById(
+            "link-title"
+          ).value.trim(),
+
+        amount:
+          Number(
+            document.getElementById(
+              "link-amount"
+            ).value
+          ),
+
+        description:
+          document.getElementById(
+            "link-description"
+          ).value.trim()
+
+      };
+
+      try {
+
+        const data =
+          await api(
+            "/payment-links",
+            {
+              method: "POST",
+              body: JSON.stringify(body)
+            }
+          );
+
+        closeModal("link-modal");
+
+        document
+          .getElementById("link-form")
+          .reset();
+
+        const token =
+          data.token ||
+          data.link?.token ||
+          data.paymentLink?.token;
+
+        if (token) {
+
+          const url =
+            `${window.location.origin}/pay/${token}`;
+
+          await copyText(url);
+
+          showToast(
+            "Link criado",
+            "O link foi criado e copiado para a área de transferência."
+          );
+
+        } else {
+
+          showToast(
+            "Link criado",
+            "O link de pagamento foi criado com sucesso."
+          );
+        }
+
+        await loadPaymentLinks();
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       REPORTS
+    ===================================================== */
+
+    async function loadReports() {
+
+      const data =
+        await api(
+          "/reports/sales"
+        );
+
+      const report =
+        data.report ||
+        data;
+
+      document
+        .getElementById("report-gross")
+        .textContent =
+          formatMoney(
+            report.gross ??
+            report.totalSales ??
+            0
+          );
+
+      document
+        .getElementById("report-fees")
+        .textContent =
+          formatMoney(
+            report.fees ??
+            report.feeAmount ??
+            0
+          );
+
+      document
+        .getElementById("report-net")
+        .textContent =
+          formatMoney(
+            report.net ??
+            report.netSales ??
+            0
+          );
+    }
+
+
+    async function exportReport() {
+
+      try {
+
+        const token =
+          getToken();
+
+        const response =
+          await fetch(
+            `${API_BASE}/reports/export`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Não foi possível exportar o relatório."
+          );
+        }
+
+        const blob =
+          await response.blob();
+
+        const url =
+          URL.createObjectURL(blob);
+
+        const link =
+          document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+          `honey-pay-relatorio-${new Date().toISOString().slice(0,10)}.csv`;
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        URL.revokeObjectURL(url);
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       MERCHANT
+    ===================================================== */
+
+    async function loadMerchant() {
+
+      const data =
+        await api("/merchant");
+
+      state.merchant =
+        data.merchant ||
+        data;
+
+      updateUserUI();
+    }
+
+
+    async function saveMerchant(event) {
+
+      event.preventDefault();
+
+      const body = {
+
+        name:
+          document
+            .getElementById(
+              "merchant-name"
+            )
+            .value.trim(),
+
+        legalName:
+          document
+            .getElementById(
+              "merchant-legal-name"
+            )
+            .value.trim(),
+
+        email:
+          document
+            .getElementById(
+              "merchant-email"
+            )
+            .value.trim(),
+
+        phone:
+          document
+            .getElementById(
+              "merchant-phone"
+            )
+            .value.trim()
+
+      };
+
+      try {
+
+        const data =
+          await api(
+            "/merchant",
+            {
+              method: "PATCH",
+              body: JSON.stringify(body)
+            }
+          );
+
+        state.merchant =
+          data.merchant ||
+          data;
+
+        updateUserUI();
+
+        showToast(
+          "Guardado",
+          "Os dados do negócio foram atualizados."
+        );
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       BANK ACCOUNTS
+    ===================================================== */
+
+    async function loadBankAccounts() {
+
+      const data =
+        await api(
+          "/merchant/bank-accounts"
+        );
+
+      const accounts =
+        data.accounts ||
+        data.bankAccounts ||
+        data.items ||
+        data ||
+        [];
+
+      const grid =
+        document.getElementById(
+          "bank-accounts-grid"
+        );
+
+      if (!accounts.length) {
+
+        grid.innerHTML = `
+          <div class="panel" style="grid-column:1/-1;">
+            <div class="empty-state">
+
+              <div class="empty-icon">
+                ▣
+              </div>
+
+              <div class="empty-title">
+                Nenhuma conta bancária
+              </div>
+
+              <div class="empty-description">
+                Adicione uma conta bancária para configurar
+                a sua estrutura de recebimentos.
+              </div>
+
+            </div>
+          </div>
+        `;
+
+        return;
+      }
+
+      grid.innerHTML =
+        accounts.map(account => {
+
+          return `
+            <div class="panel">
+
+              <div class="panel-header">
+
+                <div>
+                  <div class="panel-title">
+                    ${escapeHtml(
+                      account.bankName ||
+                      "Banco"
+                    )}
+                  </div>
+
+                  <div class="panel-subtitle">
+                    ${escapeHtml(
+                      account.accountName ||
+                      "Titular"
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  class="btn btn-danger btn-sm"
+                  onclick="deleteBankAccount('${account._id}')"
+                  type="button"
+                >
+                  Remover
+                </button>
+
+              </div>
+
+              <div class="panel-body">
+
+                <div class="table-muted">
+                  Conta
+                </div>
+
+                <div
+                  class="table-primary"
+                  style="margin-top:5px;"
+                >
+                  ${
+                    account.accountNumberLast4
+                      ? `•••• ${escapeHtml(account.accountNumberLast4)}`
+                      : "Conta protegida"
+                  }
+                </div>
+
+                ${
+                  account.ibanLast4
+                    ? `
+                      <div style="margin-top:14px;">
+                        <div class="table-muted">
+                          IBAN
+                        </div>
+
+                        <div
+                          class="table-primary"
+                          style="margin-top:5px;"
+                        >
+                          •••• ${escapeHtml(account.ibanLast4)}
+                        </div>
+                      </div>
+                    `
+                    : ""
+                }
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
+    }
+
+
+    async function createBankAccount(event) {
+
+      event.preventDefault();
+
+      const body = {
+
+        bankName:
+          document
+            .getElementById(
+              "bank-name"
+            )
+            .value.trim(),
+
+        accountName:
+          document
+            .getElementById(
+              "bank-account-name"
+            )
+            .value.trim(),
+
+        accountNumber:
+          document
+            .getElementById(
+              "bank-account-number"
+            )
+            .value.trim(),
+
+        iban:
+          document
+            .getElementById(
+              "bank-iban"
+            )
+            .value.trim()
+
+      };
+
+      try {
+
+        await api(
+          "/merchant/bank-accounts",
+          {
+            method: "POST",
+            body: JSON.stringify(body)
+          }
+        );
+
+        closeModal("bank-modal");
+
+        document
+          .getElementById("bank-form")
+          .reset();
+
+        showToast(
+          "Conta adicionada",
+          "A conta bancária foi adicionada com sucesso."
+        );
+
+        await loadBankAccounts();
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    async function deleteBankAccount(id) {
+
+      if (
+        !confirm(
+          "Tem certeza que deseja remover esta conta bancária?"
+        )
+      ) {
+        return;
+      }
+
+      try {
+
+        await api(
+          `/merchant/bank-accounts/${encodeURIComponent(id)}`,
+          {
+            method: "DELETE"
+          }
+        );
+
+        showToast(
+          "Conta removida",
+          "A conta bancária foi removida."
+        );
+
+        await loadBankAccounts();
+
+      } catch (error) {
+
+        showToast(
+          "Erro",
+          error.message,
+          "error"
+        );
+      }
+    }
+
+
+    /* =====================================================
+       STATUS
+    ===================================================== */
+
+    function statusBadge(status) {
+
+      const normalized =
+        String(
+          status || "UNKNOWN"
+        ).toUpperCase();
+
+      let cls =
+        "badge-neutral";
+
+      let label =
+        normalized;
+
+      if (
+        normalized === "SUCCEEDED" ||
+        normalized === "PAID" ||
+        normalized === "SUCCESS"
+      ) {
+
+        cls = "badge-success";
+        label = "Confirmado";
+
+      } else if (
+        normalized === "PENDING" ||
+        normalized === "PROCESSING"
+      ) {
+
+        cls = "badge-warning";
+        label = "Pendente";
+
+      } else if (
+        normalized === "FAILED" ||
+        normalized === "CANCELLED" ||
+        normalized === "EXPIRED"
+      ) {
+
+        cls = "badge-danger";
+        label = "Falhou";
+
+      } else if (
+        normalized === "UNKNOWN"
+      ) {
+
+        cls = "badge-info";
+        label = "Em reconciliação";
+      }
+
+      return `
+        <span class="badge ${cls}">
+          ${escapeHtml(label)}
+        </span>
+      `;
+    }
+
+
+    /* =====================================================
+       MODALS
+    ===================================================== */
+
+    function openModal(id) {
+
+      const modal =
+        document.getElementById(id);
+
+      if (modal) {
+        modal.classList.add("open");
+      }
+    }
+
+
+    function closeModal(id) {
+
+      const modal =
+        document.getElementById(id);
+
+      if (modal) {
+        modal.classList.remove("open");
+      }
+    }
+
+
+    /* =====================================================
+       CLIPBOARD
+    ===================================================== */
+
+    async function copyText(text) {
+
+      try {
+
+        await navigator.clipboard.writeText(
+          text
+        );
+
+        showToast(
+          "Copiado",
+          "O conteúdo foi copiado para a área de transferência."
+        );
+
+      } catch {
+
+        showToast(
+          "Copie manualmente",
+          text
+        );
+      }
+    }
+
+
+    /* =====================================================
+       EVENTS
+    ===================================================== */
+
+    function setupEvents() {
+
+      document
+        .querySelectorAll(".nav-item")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () => navigate(
+              button.dataset.view
+            )
+          );
+
+        });
+
+
+      document
+        .querySelectorAll("[data-view-target]")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () => navigate(
+              button.dataset.viewTarget
+            )
+          );
+
+        });
+
+
+      document
+        .getElementById(
+          "google-login-btn"
+        )
+        .addEventListener(
+          "click",
+          startGoogleLogin
+        );
+
+
+      document
+        .getElementById(
+          "mobile-menu"
+        )
+        .addEventListener(
+          "click",
+          () => {
+
+            document
+              .getElementById("sidebar")
+              .classList.toggle(
+                "mobile-open"
+              );
+
+          }
+        );
+
+
+      document
+        .getElementById(
+          "refresh-btn"
+        )
+        .addEventListener(
+          "click",
+          () => loadViewData(
+            state.currentView
+          )
+        );
+
+
+      document
+        .getElementById(
+          "refresh-payments-btn"
+        )
+        .addEventListener(
+          "click",
+          loadPayments
+        );
+
+
+      document
+        .getElementById(
+          "new-product-btn"
+        )
+        .addEventListener(
+          "click",
+          () => openModal(
+            "product-modal"
+          )
+        );
+
+
+      document
+        .getElementById(
+          "new-payment-link-btn"
+        )
+        .addEventListener(
+          "click",
+          () => openModal(
+            "link-modal"
+          )
+        );
+
+
+      document
+        .getElementById(
+          "create-link-btn"
+        )
+        .addEventListener(
+          "click",
+          () => openModal(
+            "link-modal"
+          )
+        );
+
+
+      document
+        .getElementById(
+          "new-bank-btn"
+        )
+        .addEventListener(
+          "click",
+          () => openModal(
+            "bank-modal"
+          )
+        );
+
+
+      document
+        .getElementById(
+          "product-form"
+        )
+        .addEventListener(
+          "submit",
+          createProduct
+        );
+
+
+      document
+        .getElementById(
+          "link-form"
+        )
+        .addEventListener(
+          "submit",
+          createPaymentLink
+        );
+
+
+      document
+        .getElementById(
+          "bank-form"
+        )
+        .addEventListener(
+          "submit",
+          createBankAccount
+        );
+
+
+      document
+        .getElementById(
+          "merchant-form"
+        )
+        .addEventListener(
+          "submit",
+          saveMerchant
+        );
+
+
+      document
+        .getElementById(
+          "export-report-btn"
+        )
+        .addEventListener(
+          "click",
+          exportReport
+        );
+
+
+      document
+        .getElementById(
+          "logout-btn"
+        )
+        .addEventListener(
+          "click",
+          logout
+        );
+
+
+      document
+        .querySelectorAll(
+          "[data-close-modal]"
+        )
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () => closeModal(
+              button.dataset.closeModal
+            )
+          );
+
+        });
+
+
+      document
+        .querySelectorAll(".modal")
+        .forEach(modal => {
+
+          modal.addEventListener(
+            "click",
+            event => {
+
+              if (
+                event.target === modal
+              ) {
+                modal.classList.remove(
+                  "open"
+                );
+              }
+
+            }
+          );
+
+        });
+
+    }
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    function logout() {
+
+      clearToken();
+
+      state.user = null;
+      state.merchant = null;
+
+      showAuth();
+
+      showToast(
+        "Sessão terminada",
+        "Você saiu da sua conta."
+      );
+    }
+
+
+    /* =====================================================
+       INITIALIZATION
+    ===================================================== */
+
+    async function initialize() {
+
+      try {
+
+        processAuthToken();
+
+        const token =
+          getToken();
+
+        if (!token) {
+
+          showAuth();
+
+          return;
+        }
+
+        await loadCurrentUser();
+
+        showApp();
+
+        const path =
+          window.location.pathname
+            .replace(/^\/+/, "")
+            .split("/")[0];
+
+        if (
+          path &&
+          viewTitles[path]
+        ) {
+
+          navigate(path);
+
+        } else {
+
+          navigate("dashboard");
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Honey Pay initialization:",
+          error
+        );
+
+        clearToken();
+
+        showAuth();
+
+      } finally {
+
+        document
+          .getElementById(
+            "app-loader"
+          )
+          .classList.add("hidden");
+      }
+    }
+
+
+    /* =====================================================
+       GLOBALS
+    ===================================================== */
+
+    window.openModal =
+      openModal;
+
+    window.closeModal =
+      closeModal;
+
+    window.copyText =
+      copyText;
+
+    window.deleteBankAccount =
+      deleteBankAccount;
+
+
+    /* =====================================================
+       START
+    ===================================================== */
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      () => {
+
+        setupEvents();
+
+        initialize();
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
