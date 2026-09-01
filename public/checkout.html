@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <title>Pagamento — Honey Pay</title>
+
+  <style>
+
+    * {
+      box-sizing:
+        border-box;
+    }
+
+    body {
+      margin:
+        0;
+
+      background:
+        #f5f6fa;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      color:
+        #111827;
+    }
+
+    .wrap {
+      width:
+        min(560px, calc(100% - 30px));
+
+      margin:
+        50px auto;
+    }
+
+    .card {
+      background:
+        white;
+
+      padding:
+        28px;
+
+      border-radius:
+        18px;
+
+      box-shadow:
+        0 15px 50px
+        rgba(0,0,0,.08);
+    }
+
+    h1 {
+      margin-top:
+        0;
+    }
+
+    .amount {
+      font-size:
+        34px;
+
+      font-weight:
+        800;
+
+      margin:
+        20px 0;
+    }
+
+    label {
+      display:
+        block;
+
+      margin-top:
+        12px;
+
+      font-weight:
+        600;
+    }
+
+    input,
+    select {
+      width:
+        100%;
+
+      padding:
+        13px;
+
+      border:
+        1px solid #d1d5db;
+
+      border-radius:
+        10px;
+
+      margin-top:
+        6px;
+    }
+
+    button {
+      width:
+        100%;
+
+      margin-top:
+        20px;
+
+      padding:
+        14px;
+
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      background:
+        #111827;
+
+      color:
+        white;
+
+      font-weight:
+        800;
+
+      cursor:
+        pointer;
+    }
+
+    .message {
+      margin-top:
+        20px;
+
+      line-height:
+        1.6;
+    }
+
+    .error {
+      color:
+        #b91c1c;
+    }
+
+    .success {
+      color:
+        #047857;
+    }
+
+    .reference {
+      background:
+        #f3f4f6;
+
+      padding:
+        15px;
+
+      border-radius:
+        10px;
+
+      margin-top:
+        15px;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <div
+    class="card"
+    id="checkout"
+  >
+
+    <h1>
+      🍯 Honey Pay
+    </h1>
+
+    <h2 id="merchant">
+      A carregar...
+    </h2>
+
+    <h3 id="title">
+      ...
+    </h3>
+
+    <p id="description"></p>
+
+    <div
+      class="amount"
+      id="amount"
+    >
+      ...
+    </div>
+
+    <form
+      id="paymentForm"
+    >
+
+      <label>
+        Nome
+      </label>
+
+      <input
+        id="customerName"
+        required
+      >
+
+      <label>
+        Email
+      </label>
+
+      <input
+        id="customerEmail"
+        type="email"
+      >
+
+      <label>
+        Telefone
+      </label>
+
+      <input
+        id="customerMobile"
+        placeholder="923000000"
+      >
+
+      <label>
+        Método de pagamento
+      </label>
+
+      <select
+        id="paymentMethod"
+        required
+      >
+
+        <option
+          value="multicaixa_express"
+        >
+          Multicaixa Express
+        </option>
+
+        <option
+          value="multicaixa_reference"
+        >
+          Referência Multicaixa
+        </option>
+
+      </select>
+
+      <button
+        id="payButton"
+      >
+        Pagar agora
+      </button>
+
+    </form>
+
+    <div
+      id="message"
+      class="message"
+    ></div>
+
+  </div>
+
+</div>
+
+<script>
+
+'use strict';
+
+const token =
+  location.pathname
+    .split('/')
+    .filter(Boolean)
+    .pop();
+
+const $ =
+  (id) =>
+    document.getElementById(id);
+
+let paymentData = null;
+
+async function load() {
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/public/payment-links/${token}`
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error ||
+        'Link inválido'
+      );
+    }
+
+    paymentData =
+      data;
+
+    $('merchant')
+      .textContent =
+      data.merchant.businessName ||
+      data.merchant.name;
+
+    $('title')
+      .textContent =
+      data.link.title;
+
+    $('description')
+      .textContent =
+      data.link.description ||
+      '';
+
+    $('amount')
+      .textContent =
+      new Intl.NumberFormat(
+        'pt-AO'
+      ).format(
+        data.link.amount
+      ) +
+      ' Kz';
+
+  } catch (error) {
+
+    $('checkout')
+      .innerHTML = `
+        <h1>
+          Pagamento indisponível
+        </h1>
+
+        <p>
+          ${error.message}
+        </p>
+      `;
+  }
+}
+
+$('paymentForm')
+  .addEventListener(
+    'submit',
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $('payButton');
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        'A processar...';
+
+      $('message')
+        .className =
+        'message';
+
+      $('message')
+        .textContent =
+        'A criar o pagamento seguro...';
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/public/payment-links/${token}/pay`,
+            {
+              method:
+                'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+
+              body:
+                JSON.stringify({
+                  paymentMethod:
+                    $('paymentMethod')
+                      .value,
+
+                  customerName:
+                    $('customerName')
+                      .value,
+
+                  customerEmail:
+                    $('customerEmail')
+                      .value,
+
+                  customerMobile:
+                    $('customerMobile')
+                      .value
+                })
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            'Não foi possível criar o pagamento.'
+          );
+        }
+
+        renderPayment(
+          data.payment
+        );
+
+      } catch (error) {
+
+        $('message')
+          .className =
+          'message error';
+
+        $('message')
+          .textContent =
+          error.message;
+
+        button.disabled =
+          false;
+
+        button.textContent =
+          'Tentar novamente';
+      }
+    }
+  );
+
+function renderPayment(payment) {
+
+  const reference =
+    payment.reference;
+
+  let html = `
+    <strong>
+      Pagamento criado.
+    </strong>
+
+    <br><br>
+
+    Estado:
+    ${payment.status}
+  `;
+
+  if (reference) {
+
+    html += `
+      <div class="reference">
+
+        <strong>
+          Referência Multicaixa
+        </strong>
+
+        <br><br>
+
+        Entidade:
+        <strong>
+          ${reference.entity || ''}
+        </strong>
+
+        <br>
+
+        Número:
+        <strong>
+          ${reference.number || ''}
+        </strong>
+
+        <br><br>
+
+        Paga esta referência no
+        ATM, Internet Banking ou
+        Multicaixa Express.
+      </div>
+    `;
+  }
+
+  if (payment.checkoutUrl) {
+
+    html += `
+      <br>
+
+      <a
+        href="${payment.checkoutUrl}"
+        target="_blank"
+      >
+        Continuar pagamento
+      </a>
+    `;
+  }
+
+  html += `
+    <br><br>
+    Não feches esta página até
+    confirmares o pagamento.
+  `;
+
+  $('message')
+    .className =
+    'message success';
+
+  $('message')
+    .innerHTML =
+    html;
+
+  $('paymentForm')
+    .style.display =
+    'none';
+
+  /*
+  Aqui não marcamos como pago
+  no browser.
+
+  A confirmação verdadeira vem
+  do webhook BitPay.
+  */
+}
+
+load();
+
+</script>
+
+</body>
+</html>
