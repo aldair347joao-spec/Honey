@@ -1,461 +1,205 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <title>Honey Pay — Painel</title>
 
-  <meta
-    name="description"
-    content="Honey Pay — pagamentos para negócios em Angola."
-  >
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Painel profissional Honey Pay">
 
-  <title>Honey Pay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family:
-        Inter,
-        Arial,
-        sans-serif;
-
-      background:
-        #f6f7fb;
-
-      color:
-        #111827;
-    }
-
-    .top {
-      background:
-        #111827;
-
-      color:
-        white;
-
-      padding:
-        18px 24px;
-
-      display:
-        flex;
-
-      justify-content:
-        space-between;
-
-      align-items:
-        center;
-    }
-
-    .brand {
-      font-size:
-        22px;
-
-      font-weight:
-        800;
-    }
-
-    .container {
-      max-width:
-        1200px;
-
-      margin:
-        0 auto;
-
-      padding:
-        30px 20px;
-    }
-
-    .hero {
-      background:
-        white;
-
-      border-radius:
-        18px;
-
-      padding:
-        30px;
-
-      margin-bottom:
-        20px;
-
-      box-shadow:
-        0 10px 35px
-        rgba(0,0,0,.06);
-    }
-
-    .hero h1 {
-      margin-top: 0;
-    }
-
-    .grid {
-      display:
-        grid;
-
-      grid-template-columns:
-        repeat(
-          auto-fit,
-          minmax(
-            220px,
-            1fr
-          )
-        );
-
-      gap:
-        16px;
-    }
-
-    .card {
-      background:
-        white;
-
-      border-radius:
-        16px;
-
-      padding:
-        22px;
-
-      box-shadow:
-        0 8px 25px
-        rgba(0,0,0,.05);
-    }
-
-    .value {
-      font-size:
-        28px;
-
-      font-weight:
-        800;
-
-      margin-top:
-        8px;
-    }
-
-    button {
-      border:
-        0;
-
-      border-radius:
-        10px;
-
-      padding:
-        12px 18px;
-
-      cursor:
-        pointer;
-
-      font-weight:
-        700;
-
-      background:
-        #111827;
-
-      color:
-        white;
-    }
-
-    input,
-    select {
-      width:
-        100%;
-
-      padding:
-        12px;
-
-      border:
-        1px solid #d1d5db;
-
-      border-radius:
-        10px;
-
-      margin:
-        6px 0 14px;
-    }
-
-    .hidden {
-      display:
-        none;
-    }
-
-    .error {
-      color:
-        #b91c1c;
-    }
-
-    .success {
-      color:
-        #047857;
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-  <header class="top">
-    <div class="brand">
-      🍯 Honey Pay
+  <!-- APP LOADER -->
+  <div id="appLoader" class="app-loader">
+    <div class="loader-brand">
+      <div class="brand-mark">H</div>
+      <div>
+        <strong>Honey Pay</strong>
+        <span>A carregar painel...</span>
+      </div>
     </div>
-
-    <div>
-      0,80% por pagamento
+    <div class="loader-line">
+      <span></span>
     </div>
-  </header>
+  </div>
 
-  <main class="container">
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
 
-    <section
-      id="loginSection"
-      class="hero"
-    >
-      <h1>
-        Entrar na Honey Pay
-      </h1>
+  <!-- APP -->
+  <div id="app" class="app hidden">
 
-      <form id="loginForm">
+    <!-- SIDEBAR OVERLAY MOBILE -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-        <label>
-          Email
-        </label>
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
 
-        <input
-          id="loginEmail"
-          type="email"
-          required
-        >
+      <div class="sidebar-top">
 
-        <label>
-          Palavra-passe
-        </label>
+        <a href="#dashboard" class="brand">
+          <div class="brand-mark">H</div>
 
-        <input
-          id="loginPassword"
-          type="password"
-          required
-        >
+          <div class="brand-copy">
+            <strong>Honey Pay</strong>
+            <span>Merchant</span>
+          </div>
+        </a>
 
-        <button>
-          Entrar
+        <button id="sidebarClose" class="icon-btn mobile-only" aria-label="Fechar menu">
+          ×
         </button>
 
-      </form>
+      </div>
 
-      <p
-        id="loginMessage"
-      ></p>
+      <div class="merchant-mini">
+        <div id="merchantAvatar" class="merchant-avatar">H</div>
 
-      <hr>
+        <div class="merchant-mini-info">
+          <strong id="merchantName">Meu negócio</strong>
+          <span id="merchantEmail">—</span>
+        </div>
 
-      <h2>
-        Criar conta
-      </h2>
+        <span class="online-dot"></span>
+      </div>
 
-      <form
-        id="registerForm"
-      >
+      <nav class="nav">
 
-        <input
-          id="registerName"
-          placeholder="Nome"
-          required
-        >
+        <div class="nav-section">
+          <span class="nav-label">Workspace</span>
 
-        <input
-          id="registerBusiness"
-          placeholder="Nome do negócio"
-        >
+          <a href="#dashboard" class="nav-item active" data-route="dashboard">
+            <span class="nav-icon">⌂</span>
+            <span>Dashboard</span>
+          </a>
 
-        <input
-          id="registerEmail"
-          type="email"
-          placeholder="Email"
-          required
-        >
+          <a href="#payments" class="nav-item" data-route="payments">
+            <span class="nav-icon">↔</span>
+            <span>Pagamentos</span>
+            <span id="pendingBadge" class="nav-badge hidden">0</span>
+          </a>
 
-        <input
-          id="registerPassword"
-          type="password"
-          placeholder="Palavra-passe — mínimo 8 caracteres"
-          minlength="8"
-          required
-        >
+          <a href="#orders" class="nav-item" data-route="orders">
+            <span class="nav-icon">▣</span>
+            <span>Pedidos</span>
+          </a>
 
-        <input
-          id="registerPhone"
-          placeholder="Telefone"
-        >
+          <a href="#products" class="nav-item" data-route="products">
+            <span class="nav-icon">◇</span>
+            <span>Produtos</span>
+          </a>
 
-        <button>
-          Criar conta
+          <a href="#customers" class="nav-item" data-route="customers">
+            <span class="nav-icon">♙</span>
+            <span>Clientes</span>
+          </a>
+
+          <a href="#links" class="nav-item" data-route="links">
+            <span class="nav-icon">↗</span>
+            <span>Links de pagamento</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-label">Gestão</span>
+
+          <a href="#reports" class="nav-item" data-route="reports">
+            <span class="nav-icon">▥</span>
+            <span>Relatórios</span>
+          </a>
+
+          <a href="#settings" class="nav-item" data-route="settings">
+            <span class="nav-icon">⚙</span>
+            <span>Definições</span>
+          </a>
+        </div>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <div class="support-card">
+          <div class="support-icon">?</div>
+
+          <div>
+            <strong>Precisa de ajuda?</strong>
+            <span>Fale com o suporte Honey Pay.</span>
+          </div>
+        </div>
+
+        <button id="logoutButton" class="logout-btn">
+          <span>↪</span>
+          Terminar sessão
         </button>
 
-      </form>
+      </div>
 
-      <p
-        id="registerMessage"
-      ></p>
+    </aside>
 
-    </section>
+    <!-- MAIN -->
+    <main class="main">
 
-    <section
-      id="dashboardSection"
-      class="hidden"
-    >
+      <!-- TOPBAR -->
+      <header class="topbar">
 
-      <div class="hero">
-
-        <div
-          style="
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:15px;
-          "
-        >
-
-          <div>
-            <h1>
-              Dashboard
-            </h1>
-
-            <p id="merchantName"></p>
-          </div>
-
-          <button
-            id="logoutButton"
-          >
-            Sair
+        <div class="topbar-left">
+          <button id="menuButton" class="icon-btn menu-button">
+            ☰
           </button>
 
-        </div>
-
-      </div>
-
-      <div
-        class="grid"
-        id="stats"
-      >
-
-        <div class="card">
           <div>
-            Pagamentos
-          </div>
-
-          <div
-            class="value"
-            id="totalPayments"
-          >
-            0
+            <span id="breadcrumbParent" class="breadcrumb-parent">Workspace</span>
+            <h1 id="pageTitle">Dashboard</h1>
           </div>
         </div>
 
-        <div class="card">
-          <div>
-            Confirmados
-          </div>
+        <div class="topbar-right">
 
-          <div
-            class="value"
-            id="successfulPayments"
-          >
-            0
-          </div>
-        </div>
-
-        <div class="card">
-          <div>
-            Volume
-          </div>
-
-          <div
-            class="value"
-            id="grossVolume"
-          >
-            0 Kz
-          </div>
-        </div>
-
-        <div class="card">
-          <div>
-            Comissão Honey Pay
-          </div>
-
-          <div
-            class="value"
-            id="fees"
-          >
-            0 Kz
-          </div>
-        </div>
-
-      </div>
-
-      <br>
-
-      <div class="card">
-
-        <h2>
-          Criar link de pagamento
-        </h2>
-
-        <form
-          id="linkForm"
-        >
-
-          <input
-            id="linkTitle"
-            placeholder="Ex.: Camisola preta"
-            required
-          >
-
-          <input
-            id="linkDescription"
-            placeholder="Descrição"
-          >
-
-          <input
-            id="linkAmount"
-            type="number"
-            min="1"
-            placeholder="Valor em Kz"
-            required
-          >
-
-          <button>
-            Criar link
+          <button id="refreshButton" class="top-action" title="Atualizar">
+            ↻
           </button>
 
-        </form>
+          <button class="top-action notification-button" title="Notificações">
+            ♢
+            <span id="notificationDot"></span>
+          </button>
 
-        <p
-          id="linkMessage"
-        ></p>
+          <div class="top-profile">
+            <div id="topAvatar" class="avatar">H</div>
 
-      </div>
+            <div class="top-profile-text">
+              <strong id="topMerchantName">Meu negócio</strong>
+              <span>Administrador</span>
+            </div>
 
-      <br>
+            <span class="profile-chevron">⌄</span>
+          </div>
 
-      <div class="card">
+        </div>
 
-        <h2>
-          Últimos pagamentos
-        </h2>
+      </header>
 
-        <div id="payments"></div>
+      <!-- CONTENT -->
+      <section id="pageContent" class="page-content"></section>
 
-      </div>
+    </main>
 
-    </section>
+  </div>
 
-  </main>
+  <!-- MODAL -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div id="modal" class="modal"></div>
+  </div>
 
-  <script src="/app.js"></script>
-
+  <script src="/app.js" defer></script>
 </body>
 </html>
