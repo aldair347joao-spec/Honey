@@ -2,47 +2,8 @@
 ============================================================
 HONEY PAY
 MERCHANT PANEL
-V2.0.0
-COOKIE SESSION / GOOGLE OAUTH ALIGNED
-============================================================
-
-RESPONSABILIDADES
-------------------------------------------------------------
-
-- Sessão baseada em cookie HttpOnly
-- Google OAuth
-- Compatibilidade com JWT antigo em localStorage
-- Dashboard
-- Pagamentos
-- Pedidos
-- Produtos
-- Clientes
-- Links de pagamento
-- Relatórios
-- Definições
-- Navegação SPA por hash
-- Modais
-- Logout
-- Refresh
-- Proteção contra loop de autenticação
-
-IMPORTANTE
-------------------------------------------------------------
-
-O backend deve criar o cookie:
-
-    honey_pay_token
-
-O frontend NÃO tenta ler o cookie HttpOnly.
-
-A sessão é validada através de:
-
-    GET /api/me
-
-e o browser envia automaticamente o cookie através de:
-
-    credentials: "include"
-
+V3.2.0
+STABLE SESSION / BOOT
 ============================================================
 */
 
@@ -54,21 +15,10 @@ e o browser envia automaticamente o cookie através de:
 
 const API_BASE = "/api";
 
-/*
-  Mantido apenas para compatibilidade com versões antigas.
-
-  A autenticação principal NÃO depende deste valor.
-  O token moderno fica num cookie HttpOnly e não pode/deve
-  ser lido pelo JavaScript.
-*/
-const TOKEN_KEY = "honey_pay_token";
-
-/* =========================================================
-   STATE
-========================================================= */
-
 const state = {
+  authenticated: false,
   merchant: null,
+  user: null,
   dashboard: null,
   payments: [],
   orders: [],
@@ -76,147 +26,105 @@ const state = {
   customers: [],
   links: [],
   currentRoute: "dashboard",
-  loading: false,
-  authenticated: false,
-  booted: false
+  booted: false,
+  loading: false
 };
 
-/* =========================================================
-   ROUTES
-========================================================= */
+const routes = {
+  dashboard: {
+    parent: "Workspace",
+    title: "Dashboard"
+  },
 
-const routeNames = {
-  dashboard: ["Workspace", "Dashboard"],
-  payments: ["Workspace", "Pagamentos"],
-  orders: ["Workspace", "Pedidos"],
-  products: ["Workspace", "Produtos"],
-  customers: ["Workspace", "Clientes"],
-  links: ["Workspace", "Links de pagamento"],
-  reports: ["Gestão", "Relatórios"],
-  settings: ["Gestão", "Definições"]
-};
+  payments: {
+    parent: "Workspace",
+    title: "Pagamentos"
+  },
 
-/* =========================================================
-   DOM HELPERS
-========================================================= */
+  orders: {
+    parent: "Workspace",
+    title: "Pedidos"
+  },
 
-const $ = (selector) => {
-  try {
-    return document.querySelector(selector);
-  } catch {
-    return null;
+  products: {
+    parent: "Workspace",
+    title: "Produtos"
+  },
+
+  customers: {
+    parent: "Workspace",
+    title: "Clientes"
+  },
+
+  links: {
+    parent: "Workspace",
+    title: "Links de pagamento"
+  },
+
+  reports: {
+    parent: "Gestão",
+    title: "Relatórios"
+  },
+
+  settings: {
+    parent: "Gestão",
+    title: "Definições"
   }
 };
 
-const pageContent = $("#pageContent");
+/* =========================================================
+   DOM
+========================================================= */
+
+const $ = (selector) =>
+  document.querySelector(selector);
+
 const app = $("#app");
 const loader = $("#appLoader");
+const pageContent = $("#pageContent");
+const toastContainer = $("#toastContainer");
 const modalOverlay = $("#modalOverlay");
 const modal = $("#modal");
-const toastContainer = $("#toastContainer");
 
 /* =========================================================
-   AUTH
+   SESSION
 ========================================================= */
 
 /*
-  IMPORTANTE:
+   A sessão principal da Honey Pay é o cookie HttpOnly
+   criado pelo server.js depois do Google OAuth.
 
-  Não usamos mais:
-
-      localStorage.getItem("honey_pay_token")
-
-  como requisito para abrir o painel.
-
-  O backend V3.1.0 utiliza cookie HttpOnly.
-
-  JavaScript não consegue ler esse cookie e isso é esperado.
-
-  Portanto:
-
-      browser -> cookie -> /api/me -> sessão válida
+   NÃO usamos localStorage como requisito para abrir
+   o painel.
 */
 
-function getLegacyToken() {
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
+let redirecting = false;
 
-/*
-  Compatibilidade com versões anteriores.
+function redirectToLogin() {
+  if (redirecting) return;
 
-  Não removemos automaticamente o token antigo.
-  Se ele existir, pode ser enviado como Authorization.
+  redirecting = true;
 
-  O cookie continua sendo o método principal.
-*/
-function clearSession() {
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem("honey_token");
-  } catch (error) {
-    console.warn(
-      "Não foi possível limpar sessão local:",
-      error
-    );
-  }
-
-  state.authenticated = false;
-  state.merchant = null;
-}
-
-/*
-  Redireciona apenas quando temos certeza de que a sessão
-  não é válida.
-
-  Evitamos redirects repetidos.
-*/
-let redirectingToLogin = false;
-
-function redirectLogin() {
-  if (redirectingToLogin) return;
-
-  redirectingToLogin = true;
-
-  clearSession();
-
-  if (window.location.pathname === "/login") {
+  if (
+    window.location.pathname === "/login"
+  ) {
+    hideLoader();
+    showApp();
     return;
   }
 
   window.location.replace("/login");
 }
 
-/* =========================================================
-   API REQUEST
-========================================================= */
-
-async function apiRequest(path, options = {}) {
-  const legacyToken = getLegacyToken();
-
-  const headers = {
-    Accept: "application/json",
-    ...(options.body
-      ? {
-          "Content-Type": "application/json"
-        }
-      : {}),
-    ...(options.headers || {})
-  };
-
-  /*
-    Compatibilidade com versões antigas.
-
-    Se existir um JWT antigo em localStorage, enviamos também.
-
-    O cookie HttpOnly continua sendo enviado pelo browser.
-  */
-  if (legacyToken) {
-    headers.Authorization = `Bearer ${legacyToken}`;
-  }
+async function request(
+  path,
+  options = {},
+  config = {}
+) {
+  const {
+    authRequired = true,
+    redirectOn401 = true
+  } = config;
 
   let response;
 
@@ -226,41 +134,48 @@ async function apiRequest(path, options = {}) {
       {
         ...options,
 
-        /*
-          ESSENCIAL PARA O COOKIE HttpOnly.
-
-          Sem isto, o browser pode não enviar
-          honey_pay_token para /api/me.
-        */
         credentials: "include",
 
-        headers
+        headers: {
+          Accept: "application/json",
+
+          ...(options.body
+            ? {
+                "Content-Type":
+                  "application/json"
+              }
+            : {}),
+
+          ...(options.headers || {})
+        }
       }
     );
   } catch (error) {
     console.error(
-      `Erro de rede em ${API_BASE}${path}:`,
+      "Honey Pay network error:",
       error
     );
 
     throw new Error(
-      "Não foi possível contactar o servidor. Verifique a ligação."
+      "Não foi possível contactar o servidor."
     );
   }
 
-  /*
-    401 = sessão realmente inválida.
+  if (
+    response.status === 401 &&
+    authRequired
+  ) {
+    if (redirectOn401) {
+      redirectToLogin();
+    }
 
-    Este é o único status que deve provocar logout
-    automático.
-  */
-  if (response.status === 401) {
-    redirectLogin();
-
-    throw new Error("Sessão expirada.");
+    throw new Error(
+      "Sessão não autenticada."
+    );
   }
 
-  const text = await response.text();
+  const text =
+    await response.text();
 
   let data = {};
 
@@ -276,14 +191,112 @@ async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     throw new Error(
-      data?.message ||
-      data?.error?.message ||
       data?.error ||
+      data?.message ||
       `Erro HTTP ${response.status}`
     );
   }
 
   return data;
+}
+
+/* =========================================================
+   SESSION CHECK
+========================================================= */
+
+async function checkSession() {
+  /*
+     Primeiro usamos /auth/status.
+
+     Este endpoint NÃO redireciona.
+     Ele apenas diz se existe sessão.
+  */
+
+  const status =
+    await request(
+      "/auth/status",
+      {},
+      {
+        authRequired: false,
+        redirectOn401: false
+      }
+    );
+
+  if (
+    !status ||
+    status.authenticated !== true
+  ) {
+    return false;
+  }
+
+  if (status.user) {
+    state.user = status.user;
+  }
+
+  return true;
+}
+
+async function loadCurrentUser() {
+  const data =
+    await request("/me");
+
+  state.user =
+    data?.user ||
+    null;
+
+  state.merchant =
+    data?.merchant ||
+    null;
+
+  if (!state.user) {
+    throw new Error(
+      "Utilizador da sessão não encontrado."
+    );
+  }
+
+  updateMerchantUI();
+
+  return data;
+}
+
+/* =========================================================
+   APP VISIBILITY
+========================================================= */
+
+function showApp() {
+  if (!app) return;
+
+  app.classList.remove("hidden");
+}
+
+function hideLoader() {
+  if (!loader) return;
+
+  loader.classList.add("hide");
+}
+
+function showLoader() {
+  if (!loader) return;
+
+  loader.classList.remove("hide");
+}
+
+/*
+   IMPORTANTE:
+
+   O painel é revelado antes de carregar dashboard,
+   pagamentos, produtos, etc.
+
+   Nenhuma dessas APIs pode bloquear a abertura
+   visual da aplicação.
+*/
+
+function revealApplication() {
+  showApp();
+
+  requestAnimationFrame(() => {
+    hideLoader();
+  });
 }
 
 /* =========================================================
@@ -307,12 +320,15 @@ function escapeHTML(value) {
 }
 
 function formatKz(value) {
-  const amount = Number(value || 0);
-
   return (
-    new Intl.NumberFormat("pt-PT", {
-      maximumFractionDigits: 0
-    }).format(amount) +
+    new Intl.NumberFormat(
+      "pt-PT",
+      {
+        maximumFractionDigits: 0
+      }
+    ).format(
+      Number(value || 0)
+    ) +
     " Kz"
   );
 }
@@ -328,7 +344,8 @@ function formatNumber(value) {
 function formatDate(value) {
   if (!value) return "—";
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
   if (
     Number.isNaN(
@@ -351,7 +368,8 @@ function formatDate(value) {
 function formatDateTime(value) {
   if (!value) return "—";
 
-  const date = new Date(value);
+  const date =
+    new Date(value);
 
   if (
     Number.isNaN(
@@ -379,9 +397,7 @@ function initials(name) {
       name || "Honey Pay"
     ).trim();
 
-  if (!value) {
-    return "HP";
-  }
+  if (!value) return "HP";
 
   const parts =
     value.split(/\s+/);
@@ -398,15 +414,11 @@ function initials(name) {
   ).toUpperCase();
 }
 
-function getName(obj) {
+function getMerchantName() {
   return (
-    obj?.name ||
-    obj?.fullName ||
-    obj?.customerName ||
-    obj?.merchantName ||
-    obj?.businessName ||
-    obj?.email ||
-    "Sem nome"
+    state.merchant?.businessName ||
+    state.user?.name ||
+    "Meu negócio"
   );
 }
 
@@ -436,48 +448,39 @@ function statusLabel(status) {
     SUCCEEDED: "Pago",
     SUCCESS: "Pago",
     PAID: "Pago",
-
     PENDING: "Pendente",
     PROCESSING: "Processando",
-
     FAILED: "Falhou",
     EXPIRED: "Expirado",
     CANCELLED: "Cancelado",
-
-    UNKNOWN: "Desconhecido",
-
     REFUNDED: "Reembolsado",
-    PARTIALLY_REFUNDED:
-      "Reembolso parcial",
-
-    ACTIVE: "Ativo",
-    INACTIVE: "Inativo"
+    UNKNOWN: "Desconhecido"
   };
 
   return (
     map[
-      String(status || "")
-        .toUpperCase()
+      String(
+        status || ""
+      ).toUpperCase()
     ] ||
     String(
-      status ||
-      "Desconhecido"
+      status || "Desconhecido"
     )
   );
 }
 
 function statusClass(status) {
-  const normalized =
-    String(status || "")
-      .toUpperCase();
+  const value =
+    String(
+      status || ""
+    ).toUpperCase();
 
   if (
     [
       "SUCCEEDED",
       "SUCCESS",
-      "PAID",
-      "ACTIVE"
-    ].includes(normalized)
+      "PAID"
+    ].includes(value)
   ) {
     return "success";
   }
@@ -486,7 +489,7 @@ function statusClass(status) {
     [
       "PENDING",
       "PROCESSING"
-    ].includes(normalized)
+    ].includes(value)
   ) {
     return "pending";
   }
@@ -495,9 +498,8 @@ function statusClass(status) {
     [
       "FAILED",
       "EXPIRED",
-      "CANCELLED",
-      "INACTIVE"
-    ].includes(normalized)
+      "CANCELLED"
+    ].includes(value)
   ) {
     return "failed";
   }
@@ -506,7 +508,7 @@ function statusClass(status) {
     [
       "REFUNDED",
       "PARTIALLY_REFUNDED"
-    ].includes(normalized)
+    ].includes(value)
   ) {
     return "refunded";
   }
@@ -522,16 +524,12 @@ function showToast(
   message,
   type = "success"
 ) {
-  if (!toastContainer) {
-    console[type === "error" ? "error" : "log"](
-      message
-    );
-
-    return;
-  }
+  if (!toastContainer) return;
 
   const toast =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   toast.className =
     `toast ${type}`;
@@ -542,8 +540,8 @@ function showToast(
         type === "error"
           ? "!"
           : type === "warning"
-            ? "!"
-            : "✓"
+          ? "!"
+          : "✓"
       }
     </strong>
 
@@ -562,222 +560,18 @@ function showToast(
 }
 
 /* =========================================================
-   MODAL
+   MERCHANT UI
 ========================================================= */
-
-function openModal(content) {
-  if (!modal || !modalOverlay) {
-    return;
-  }
-
-  modal.innerHTML = content;
-
-  modalOverlay.classList.remove(
-    "hidden"
-  );
-
-  document.body.style.overflow =
-    "hidden";
-}
-
-function closeModal() {
-  if (!modal || !modalOverlay) {
-    return;
-  }
-
-  modalOverlay.classList.add(
-    "hidden"
-  );
-
-  modal.innerHTML = "";
-
-  document.body.style.overflow =
-    "";
-}
-
-if (modalOverlay) {
-  modalOverlay.addEventListener(
-    "click",
-    (event) => {
-      if (
-        event.target ===
-        modalOverlay
-      ) {
-        closeModal();
-      }
-    }
-  );
-}
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function setRoute(route) {
-  if (!routeNames[route]) {
-    route = "dashboard";
-  }
-
-  state.currentRoute = route;
-
-  const [
-    parent,
-    title
-  ] = routeNames[route];
-
-  const breadcrumbParent =
-    $("#breadcrumbParent");
-
-  const pageTitle =
-    $("#pageTitle");
-
-  if (breadcrumbParent) {
-    breadcrumbParent.textContent =
-      parent;
-  }
-
-  if (pageTitle) {
-    pageTitle.textContent =
-      title;
-  }
-
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((item) => {
-      item.classList.toggle(
-        "active",
-        item.dataset.route ===
-          route
-      );
-    });
-
-  closeSidebar();
-
-  renderRoute(route);
-}
-
-function navigate() {
-  const hash =
-    window.location.hash
-      .replace("#", "")
-      .trim();
-
-  setRoute(
-    hash || "dashboard"
-  );
-}
-
-window.addEventListener(
-  "hashchange",
-  navigate
-);
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-function openSidebar() {
-  $("#sidebar")?.classList.add(
-    "open"
-  );
-
-  $("#sidebarOverlay")?.classList.add(
-    "active"
-  );
-}
-
-function closeSidebar() {
-  $("#sidebar")?.classList.remove(
-    "open"
-  );
-
-  $("#sidebarOverlay")?.classList.remove(
-    "active"
-  );
-}
-
-$("#menuButton")?.addEventListener(
-  "click",
-  openSidebar
-);
-
-$("#sidebarClose")?.addEventListener(
-  "click",
-  closeSidebar
-);
-
-$("#sidebarOverlay")?.addEventListener(
-  "click",
-  closeSidebar
-);
-
-/* =========================================================
-   MERCHANT / SESSION
-========================================================= */
-
-/*
-  ESTA FUNÇÃO É AGORA A PRINCIPAL VALIDAÇÃO DE SESSÃO.
-
-  O backend responde algo semelhante a:
-
-      {
-        merchant: {...}
-      }
-
-  ou:
-
-      {
-        user: {...}
-      }
-
-  ou diretamente:
-
-      {...}
-*/
-async function loadMerchant() {
-  const data =
-    await apiRequest("/me");
-
-  state.merchant =
-    data?.merchant ||
-    data?.user ||
-    data;
-
-  if (
-    !state.merchant ||
-    typeof state.merchant !==
-      "object"
-  ) {
-    throw new Error(
-      "Sessão inválida."
-    );
-  }
-
-  state.authenticated =
-    true;
-
-  updateMerchantUI();
-
-  return state.merchant;
-}
 
 function updateMerchantUI() {
-  const merchant =
-    state.merchant || {};
-
   const name =
-    merchant.businessName ||
-    merchant.companyName ||
-    merchant.name ||
-    merchant.fullName ||
-    "Meu negócio";
+    getMerchantName();
 
   const email =
-    merchant.email ||
-    merchant.user?.email ||
+    state.user?.email ||
     "Conta Honey Pay";
 
-  const initialsValue =
+  const avatar =
     initials(name);
 
   const merchantName =
@@ -812,23 +606,149 @@ function updateMerchantUI() {
 
   if (merchantAvatar) {
     merchantAvatar.textContent =
-      initialsValue;
+      avatar;
   }
 
   if (topAvatar) {
     topAvatar.textContent =
-      initialsValue;
+      avatar;
   }
 }
 
 /* =========================================================
-   DASHBOARD API
+   NAVIGATION
+========================================================= */
+
+function currentRoute() {
+  const hash =
+    window.location.hash
+      .replace(/^#/, "")
+      .trim();
+
+  if (
+    routes[hash]
+  ) {
+    return hash;
+  }
+
+  return "dashboard";
+}
+
+function updateNavigation(
+  route
+) {
+  const config =
+    routes[route] ||
+    routes.dashboard;
+
+  const breadcrumb =
+    $("#breadcrumbParent");
+
+  const title =
+    $("#pageTitle");
+
+  if (breadcrumb) {
+    breadcrumb.textContent =
+      config.parent;
+  }
+
+  if (title) {
+    title.textContent =
+      config.title;
+  }
+
+  document
+    .querySelectorAll(
+      ".nav-item"
+    )
+    .forEach((item) => {
+      item.classList.toggle(
+        "active",
+        item.dataset.route ===
+          route
+      );
+    });
+}
+
+async function navigate() {
+  const route =
+    currentRoute();
+
+  state.currentRoute =
+    route;
+
+  updateNavigation(
+    route
+  );
+
+  await renderRoute(
+    route
+  );
+}
+
+window.addEventListener(
+  "hashchange",
+  () => {
+    navigate().catch(
+      console.error
+    );
+  }
+);
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+function openSidebar() {
+  $("#sidebar")
+    ?.classList.add(
+      "open"
+    );
+
+  $("#sidebarOverlay")
+    ?.classList.add(
+      "active"
+    );
+}
+
+function closeSidebar() {
+  $("#sidebar")
+    ?.classList.remove(
+      "open"
+    );
+
+  $("#sidebarOverlay")
+    ?.classList.remove(
+      "active"
+    );
+}
+
+$("#menuButton")
+  ?.addEventListener(
+    "click",
+    openSidebar
+  );
+
+$("#sidebarClose")
+  ?.addEventListener(
+    "click",
+    closeSidebar
+  );
+
+$("#sidebarOverlay")
+  ?.addEventListener(
+    "click",
+    closeSidebar
+  );
+
+/* =========================================================
+   DATA LOADERS
 ========================================================= */
 
 async function loadDashboard() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/dashboard"
       );
 
@@ -839,7 +759,7 @@ async function loadDashboard() {
     return state.dashboard;
   } catch (error) {
     console.warn(
-      "Dashboard endpoint indisponível:",
+      "Dashboard:",
       error.message
     );
 
@@ -850,7 +770,7 @@ async function loadDashboard() {
 async function loadPayments() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/payments"
       );
 
@@ -864,12 +784,10 @@ async function loadPayments() {
         ]
       );
 
-    updatePendingBadge();
-
     return state.payments;
   } catch (error) {
     console.warn(
-      "Pagamentos:",
+      "Payments:",
       error.message
     );
 
@@ -882,7 +800,7 @@ async function loadPayments() {
 async function loadOrders() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/orders"
       );
 
@@ -899,7 +817,7 @@ async function loadOrders() {
     return state.orders;
   } catch (error) {
     console.warn(
-      "Pedidos:",
+      "Orders:",
       error.message
     );
 
@@ -912,7 +830,7 @@ async function loadOrders() {
 async function loadProducts() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/products"
       );
 
@@ -929,7 +847,7 @@ async function loadProducts() {
     return state.products;
   } catch (error) {
     console.warn(
-      "Produtos:",
+      "Products:",
       error.message
     );
 
@@ -942,7 +860,7 @@ async function loadProducts() {
 async function loadCustomers() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/customers"
       );
 
@@ -959,7 +877,7 @@ async function loadCustomers() {
     return state.customers;
   } catch (error) {
     console.warn(
-      "Clientes:",
+      "Customers:",
       error.message
     );
 
@@ -972,7 +890,7 @@ async function loadCustomers() {
 async function loadLinks() {
   try {
     const data =
-      await apiRequest(
+      await request(
         "/payment-links"
       );
 
@@ -990,7 +908,7 @@ async function loadLinks() {
     return state.links;
   } catch (error) {
     console.warn(
-      "Links:",
+      "Payment links:",
       error.message
     );
 
@@ -1001,128 +919,18 @@ async function loadLinks() {
 }
 
 /* =========================================================
-   DASHBOARD CALCULATIONS
-========================================================= */
-
-function successfulPayments() {
-  return state.payments.filter(
-    (payment) => {
-      const status =
-        String(
-          payment.status || ""
-        ).toUpperCase();
-
-      return [
-        "SUCCEEDED",
-        "SUCCESS",
-        "PAID"
-      ].includes(status);
-    }
-  );
-}
-
-function pendingPayments() {
-  return state.payments.filter(
-    (payment) => {
-      const status =
-        String(
-          payment.status || ""
-        ).toUpperCase();
-
-      return [
-        "PENDING",
-        "PROCESSING",
-        "UNKNOWN"
-      ].includes(status);
-    }
-  );
-}
-
-function calculatedRevenue() {
-  return successfulPayments()
-    .reduce(
-      (
-        total,
-        payment
-      ) =>
-        total +
-        Number(
-          payment.amount ||
-          payment.total ||
-          0
-        ),
-      0
-    );
-}
-
-function calculatedFees() {
-  return successfulPayments()
-    .reduce(
-      (
-        total,
-        payment
-      ) =>
-        total +
-        Number(
-          payment.feeAmount ||
-          payment.honeyPayFee ||
-          0
-        ),
-      0
-    );
-}
-
-function updatePendingBadge() {
-  const badge =
-    $("#pendingBadge");
-
-  if (!badge) return;
-
-  const count =
-    pendingPayments().length;
-
-  if (!count) {
-    badge.classList.add(
-      "hidden"
-    );
-
-    return;
-  }
-
-  badge.classList.remove(
-    "hidden"
-  );
-
-  badge.textContent =
-    count > 99
-      ? "99+"
-      : count;
-}
-
-/* =========================================================
-   DASHBOARD RENDER
+   DASHBOARD
 ========================================================= */
 
 async function renderDashboard() {
-  if (!pageContent) {
-    throw new Error(
-      "Elemento #pageContent não encontrado."
-    );
-  }
-
   pageContent.innerHTML = `
     <div class="welcome">
       <div>
         <h2>
           Olá,
           ${escapeHTML(
-            getName(
-              state.merchant
-            ) === "Sem nome"
-              ? "bem-vindo"
-              : getName(
-                  state.merchant
-                ).split(" ")[0]
+            getMerchantName()
+              .split(" ")[0]
           )}
           👋
         </h2>
@@ -1131,40 +939,14 @@ async function renderDashboard() {
           Aqui está o resumo do seu negócio.
         </p>
       </div>
-
-      <select
-        id="dashboardPeriod"
-        class="date-control"
-      >
-        <option value="7">
-          Últimos 7 dias
-        </option>
-
-        <option
-          value="30"
-          selected
-        >
-          Últimos 30 dias
-        </option>
-
-        <option value="90">
-          Últimos 90 dias
-        </option>
-      </select>
     </div>
 
     <div class="stats-grid">
 
       <div class="stat-card">
-        <div class="stat-head">
-          <span class="stat-label">
-            Volume recebido
-          </span>
-
-          <span class="stat-icon">
-            Kz
-          </span>
-        </div>
+        <span class="stat-label">
+          Volume recebido
+        </span>
 
         <div
           id="statRevenue"
@@ -1172,25 +954,12 @@ async function renderDashboard() {
         >
           —
         </div>
-
-        <div class="stat-footer trend-up">
-          <span>↑</span>
-          <span>
-            Pagamentos confirmados
-          </span>
-        </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-head">
-          <span class="stat-label">
-            Transações
-          </span>
-
-          <span class="stat-icon">
-            ↔
-          </span>
-        </div>
+        <span class="stat-label">
+          Transações
+        </span>
 
         <div
           id="statTransactions"
@@ -1198,25 +967,12 @@ async function renderDashboard() {
         >
           —
         </div>
-
-        <div class="stat-footer trend-neutral">
-          <span>•</span>
-          <span>
-            Total registado
-          </span>
-        </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-head">
-          <span class="stat-label">
-            Taxas Honey Pay
-          </span>
-
-          <span class="stat-icon">
-            %
-          </span>
-        </div>
+        <span class="stat-label">
+          Taxas Honey Pay
+        </span>
 
         <div
           id="statFees"
@@ -1224,38 +980,18 @@ async function renderDashboard() {
         >
           —
         </div>
-
-        <div class="stat-footer trend-neutral">
-          <span>•</span>
-          <span>
-            0,80% por pagamento
-          </span>
-        </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-head">
-          <span class="stat-label">
-            Pendentes
-          </span>
-
-          <span class="stat-icon">
-            ◷
-          </span>
-        </div>
+        <span class="stat-label">
+          Pendentes
+        </span>
 
         <div
           id="statPending"
           class="stat-value"
         >
           —
-        </div>
-
-        <div class="stat-footer trend-neutral">
-          <span>•</span>
-          <span>
-            Aguardam confirmação
-          </span>
         </div>
       </div>
 
@@ -1266,117 +1002,62 @@ async function renderDashboard() {
       <div class="panel">
 
         <div class="panel-header">
-
           <div>
             <h3>
               Volume de vendas
             </h3>
 
             <span>
-              Desempenho dos últimos 7 períodos
+              Últimos pagamentos
             </span>
           </div>
-
-          <a
-            href="#reports"
-            class="panel-link"
-          >
-            Ver relatório →
-          </a>
-
         </div>
 
-        <div class="chart-wrap">
-          <div
-            id="salesChart"
-            class="chart"
-          ></div>
-        </div>
+        <div
+          id="salesChart"
+          class="chart"
+        ></div>
 
       </div>
 
       <div class="panel">
 
         <div class="panel-header">
-
           <div>
             <h3>
               Ações rápidas
             </h3>
-
-            <span>
-              Operações frequentes
-            </span>
           </div>
-
         </div>
 
         <div class="quick-actions">
 
           <button
             class="quick-action"
-            data-action="create-order"
+            data-route-action="orders"
           >
-            <span class="quick-action-icon">
-              ＋
-            </span>
-
-            Novo pedido
+            ＋ Novo pedido
           </button>
 
           <button
             class="quick-action"
-            data-action="create-product"
+            data-route-action="products"
           >
-            <span class="quick-action-icon">
-              ◇
-            </span>
-
-            Produto
+            ◇ Produtos
           </button>
 
           <button
             class="quick-action"
-            data-action="create-link"
+            data-route-action="links"
           >
-            <span class="quick-action-icon">
-              ↗
-            </span>
-
-            Criar link
+            ↗ Criar link
           </button>
 
           <button
             class="quick-action"
-            data-action="payments"
+            data-route-action="payments"
           >
-            <span class="quick-action-icon">
-              ↔
-            </span>
-
-            Pagamentos
-          </button>
-
-          <button
-            class="quick-action"
-            data-action="customers"
-          >
-            <span class="quick-action-icon">
-              ♙
-            </span>
-
-            Clientes
-          </button>
-
-          <button
-            class="quick-action"
-            data-action="reports"
-          >
-            <span class="quick-action-icon">
-              ▥
-            </span>
-
-            Relatórios
+            ↔ Pagamentos
           </button>
 
         </div>
@@ -1395,7 +1076,7 @@ async function renderDashboard() {
           </h3>
 
           <span>
-            Últimos pagamentos recebidos
+            Últimos pagamentos
           </span>
         </div>
 
@@ -1409,23 +1090,11 @@ async function renderDashboard() {
       </div>
 
       <div id="recentPayments">
-
         <div class="empty-state">
-
-          <div class="empty-icon">
-            ↔
-          </div>
-
           <h3>
-            A carregar transações
+            A carregar...
           </h3>
-
-          <p>
-            Estamos a obter os seus pagamentos.
-          </p>
-
         </div>
-
       </div>
 
     </div>
@@ -1433,33 +1102,34 @@ async function renderDashboard() {
 
   document
     .querySelectorAll(
-      "[data-action]"
+      "[data-route-action]"
     )
     .forEach((button) => {
       button.addEventListener(
         "click",
-        handleQuickAction
+        () => {
+          window.location.hash =
+            button.dataset.routeAction;
+        }
       );
     });
 
   /*
-    O dashboard não depende da API /dashboard
-    para abrir.
-
-    Se ela não existir, usamos os pagamentos.
+     O dashboard pode falhar sem impedir
+     a página de abrir.
   */
-  await loadDashboard();
 
-  await loadPayments();
+  await Promise.allSettled([
+    loadDashboard(),
+    loadPayments()
+  ]);
 
-  fillDashboardStats();
-
-  renderSalesChart();
+  fillDashboard();
 
   renderRecentPayments();
 }
 
-function fillDashboardStats() {
+function fillDashboard() {
   const dashboard =
     state.dashboard || {};
 
@@ -1467,1310 +1137,99 @@ function fillDashboardStats() {
     dashboard.revenue ??
     dashboard.totalRevenue ??
     dashboard.totalReceived ??
-    calculatedRevenue();
-
-  const transactions =
-    dashboard.transactions ??
-    dashboard.totalTransactions ??
-    state.payments.length;
-
-  const fees =
-    dashboard.fees ??
-    dashboard.totalFees ??
-    calculatedFees();
-
-  const pending =
-    dashboard.pending ??
-    dashboard.pendingPayments ??
-    pendingPayments().length;
-
-  const statRevenue =
-    $("#statRevenue");
-
-  const statTransactions =
-    $("#statTransactions");
-
-  const statFees =
-    $("#statFees");
-
-  const statPending =
-    $("#statPending");
-
-  if (statRevenue) {
-    statRevenue.textContent =
-      formatKz(revenue);
-  }
-
-  if (statTransactions) {
-    statTransactions.textContent =
-      formatNumber(
-        transactions
-      );
-  }
-
-  if (statFees) {
-    statFees.textContent =
-      formatKz(fees);
-  }
-
-  if (statPending) {
-    statPending.textContent =
-      formatNumber(pending);
-  }
-}
-
-/* =========================================================
-   CHART
-========================================================= */
-
-function renderSalesChart() {
-  const container =
-    $("#salesChart");
-
-  if (!container) {
-    return;
-  }
-
-  const values =
-    getChartValues();
-
-  const safeValues =
-    values.length
-      ? values
-      : [0, 0, 0, 0, 0, 0, 0];
-
-  const max =
-    Math.max(
-      ...safeValues,
-      1
-    );
-
-  const width = 700;
-  const height = 220;
-
-  const points =
-    safeValues.map(
-      (
-        value,
-        index
-      ) => {
-        const x =
-          safeValues.length === 1
-            ? width / 2
-            : (
-                index /
-                (safeValues.length - 1)
-              ) *
-                (width - 30) +
-              15;
-
-        const y =
-          height -
-          20 -
-          (
-            value /
-            max
-          ) *
-            (height - 50);
-
-        return {
-          x,
-          y,
-          value
-        };
-      }
-    );
-
-  const line =
-    points
-      .map(
-        (
-          point,
-          index
-        ) =>
-          `${
-            index === 0
-              ? "M"
-              : "L"
-          } ${point.x} ${point.y}`
-      )
-      .join(" ");
-
-  const area =
-    `M ${points[0].x} ${
-      height - 20
-    } ` +
-    points
-      .map(
-        (point) =>
-          `L ${point.x} ${point.y}`
-      )
-      .join(" ") +
-    ` L ${
-      points[
-        points.length - 1
-      ].x
-    } ${
-      height - 20
-    } Z`;
-
-  container.innerHTML = `
-    <svg
-      class="chart-svg"
-      viewBox="0 0 ${width} ${height}"
-      preserveAspectRatio="none"
-    >
-
-      <line
-        class="chart-grid-line"
-        x1="0"
-        y1="35"
-        x2="${width}"
-        y2="35"
-      ></line>
-
-      <line
-        class="chart-grid-line"
-        x1="0"
-        y1="90"
-        x2="${width}"
-        y2="90"
-      ></line>
-
-      <line
-        class="chart-grid-line"
-        x1="0"
-        y1="145"
-        x2="${width}"
-        y2="145"
-      ></line>
-
-      <line
-        class="chart-grid-line"
-        x1="0"
-        y1="${height - 20}"
-        x2="${width}"
-        y2="${height - 20}"
-      ></line>
-
-      <path
-        class="chart-area"
-        d="${area}"
-      ></path>
-
-      <path
-        class="chart-line"
-        d="${line}"
-      ></path>
-
-      ${points
-        .map(
-          (point) => `
-            <circle
-              class="chart-point"
-              cx="${point.x}"
-              cy="${point.y}"
-              r="4"
-            ></circle>
-          `
-        )
-        .join("")}
-
-    </svg>
-
-    <div class="chart-labels">
-      <span>Seg</span>
-      <span>Ter</span>
-      <span>Qua</span>
-      <span>Qui</span>
-      <span>Sex</span>
-      <span>Sáb</span>
-      <span>Dom</span>
-    </div>
-  `;
-}
-
-function getChartValues() {
-  const dashboard =
-    state.dashboard;
-
-  if (
-    dashboard?.chart &&
-    Array.isArray(
-      dashboard.chart
-    )
-  ) {
-    return dashboard.chart.map(
-      (item) =>
-        Number(
-          item.amount ??
-          item.value ??
-          0
-        )
-    );
-  }
-
-  const days =
-    Array.from(
-      {
-        length: 7
-      },
-      (_, index) => {
-        const date =
-          new Date();
-
-        date.setHours(
-          0,
-          0,
-          0,
-          0
-        );
-
-        date.setDate(
-          date.getDate() -
-            (6 - index)
-        );
-
-        return date;
-      }
-    );
-
-  return days.map(
-    (day) => {
-      const next =
-        new Date(day);
-
-      next.setDate(
-        next.getDate() + 1
-      );
-
-      return successfulPayments()
-        .filter(
-          (payment) => {
-            const date =
-              new Date(
-                payment.createdAt ||
-                payment.paidAt ||
-                payment.updatedAt
-              );
-
-            return (
-              date >= day &&
-              date < next
-            );
-          }
-        )
-        .reduce(
-          (
-            sum,
-            payment
-          ) =>
-            sum +
-            Number(
-              payment.amount ||
-              payment.total ||
-              0
-            ),
-          0
-        );
-    }
-  );
-}
-
-function renderRecentPayments() {
-  const container =
-    $("#recentPayments");
-
-  if (!container) {
-    return;
-  }
-
-  const payments =
-    [...state.payments]
-      .sort(
-        (a, b) =>
-          new Date(
-            b.createdAt ||
-            b.updatedAt ||
-            0
-          ) -
-          new Date(
-            a.createdAt ||
-            a.updatedAt ||
-            0
-          )
-      )
-      .slice(0, 8);
-
-  if (!payments.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          ↔
-        </div>
-
-        <h3>
-          Nenhuma transação ainda
-        </h3>
-
-        <p>
-          Quando receber o primeiro pagamento,
-          ele aparecerá aqui.
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="table-scroll">
-
-      <table class="data-table">
-
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Referência</th>
-            <th>Valor</th>
-            <th>Estado</th>
-            <th>Data</th>
-            <th></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${payments
-            .map(paymentRow)
-            .join("")}
-        </tbody>
-
-      </table>
-
-    </div>
-  `;
-}
-
-function paymentRow(payment) {
-  const customer =
-    payment.customer?.name ||
-    payment.customerName ||
-    payment.customer?.mobile ||
-    payment.mobile ||
-    "Cliente";
-
-  const reference =
-    payment.merchantReference ||
-    payment.reference ||
-    payment.orderReference ||
-    payment.providerPaymentId ||
-    payment._id ||
-    "—";
-
-  const status =
-    payment.status;
-
-  return `
-    <tr>
-
-      <td>
-
-        <div class="customer-cell">
-
-          <div class="customer-mini-avatar">
-            ${escapeHTML(
-              initials(customer)
-            )}
-          </div>
-
-          <div>
-
-            <strong>
-              ${escapeHTML(customer)}
-            </strong>
-
-            <span>
-              ${escapeHTML(
-                payment.customer?.mobile ||
-                payment.mobile ||
-                "Cliente"
-              )}
-            </span>
-
-          </div>
-
-        </div>
-
-      </td>
-
-      <td class="muted">
-        ${escapeHTML(
-          String(reference)
-            .slice(0, 24)
-        )}
-      </td>
-
-      <td class="amount-cell">
-        ${formatKz(
-          payment.amount ||
-          payment.total ||
-          0
-        )}
-      </td>
-
-      <td>
-        <span
-          class="status ${statusClass(status)}"
-        >
-          ${escapeHTML(
-            statusLabel(status)
-          )}
-        </span>
-      </td>
-
-      <td class="muted">
-        ${formatDateTime(
-          payment.createdAt ||
-          payment.updatedAt
-        )}
-      </td>
-
-      <td>
-
-        <button
-          class="small-action"
-          data-payment-id="${escapeHTML(
-            payment._id ||
-            payment.id ||
-            ""
-          )}"
-          data-view-payment
-        >
-          Ver
-        </button>
-
-      </td>
-
-    </tr>
-  `;
-}
-
-/* =========================================================
-   PAYMENTS
-========================================================= */
-
-async function renderPayments() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-        <h2>Pagamentos</h2>
-
-        <p>
-          Controle todas as transações do seu negócio.
-        </p>
-      </div>
-
-    </div>
-
-    <div class="panel table-panel">
-
-      <div class="filters">
-
-        <div class="search-box">
-
-          <span>⌕</span>
-
-          <input
-            id="paymentSearch"
-            type="search"
-            placeholder="Pesquisar por cliente ou referência..."
-          >
-
-        </div>
-
-        <select
-          id="paymentStatusFilter"
-          class="filter-select"
-        >
-
-          <option value="">
-            Todos os estados
-          </option>
-
-          <option value="SUCCEEDED">
-            Pagos
-          </option>
-
-          <option value="PENDING">
-            Pendentes
-          </option>
-
-          <option value="PROCESSING">
-            Processando
-          </option>
-
-          <option value="FAILED">
-            Falhados
-          </option>
-
-          <option value="UNKNOWN">
-            Desconhecidos
-          </option>
-
-          <option value="REFUNDED">
-            Reembolsados
-          </option>
-
-        </select>
-
-      </div>
-
-      <div id="paymentsTable"></div>
-
-    </div>
-  `;
-
-  await loadPayments();
-
-  renderPaymentsTable();
-
-  $("#paymentSearch")?.addEventListener(
-    "input",
-    renderPaymentsTable
-  );
-
-  $("#paymentStatusFilter")
-    ?.addEventListener(
-      "change",
-      renderPaymentsTable
-    );
-}
-
-function renderPaymentsTable() {
-  const container =
-    $("#paymentsTable");
-
-  if (!container) {
-    return;
-  }
-
-  const query =
-    (
-      $("#paymentSearch")
-        ?.value || ""
-    )
-      .toLowerCase()
-      .trim();
-
-  const statusFilter =
-    $("#paymentStatusFilter")
-      ?.value || "";
-
-  const payments =
-    state.payments.filter(
-      (payment) => {
-        const text = [
-          payment.customer?.name,
-          payment.customerName,
-          payment.customer?.mobile,
-          payment.mobile,
-          payment.reference,
-          payment.merchantReference,
-          payment.providerPaymentId,
-          payment._id
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        const matchesSearch =
-          !query ||
-          text.includes(query);
-
-        const matchesStatus =
-          !statusFilter ||
-          String(
-            payment.status || ""
-          ).toUpperCase() ===
-            statusFilter;
-
-        return (
-          matchesSearch &&
-          matchesStatus
-        );
-      }
-    );
-
-  if (!payments.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          ↔
-        </div>
-
-        <h3>
-          Nenhum pagamento encontrado
-        </h3>
-
-        <p>
-          Não existem transações correspondentes aos filtros.
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="table-scroll">
-
-      <table class="data-table">
-
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Referência</th>
-            <th>Método</th>
-            <th>Valor</th>
-            <th>Estado</th>
-            <th>Data</th>
-            <th></th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          ${payments
-            .map(
-              (payment) => {
-                const customer =
-                  payment.customer?.name ||
-                  payment.customerName ||
-                  "Cliente";
-
-                return `
-                  <tr>
-
-                    <td>
-
-                      <div class="customer-cell">
-
-                        <div class="customer-mini-avatar">
-                          ${escapeHTML(
-                            initials(
-                              customer
-                            )
-                          )}
-                        </div>
-
-                        <div>
-
-                          <strong>
-                            ${escapeHTML(
-                              customer
-                            )}
-                          </strong>
-
-                          <span>
-                            ${escapeHTML(
-                              payment.customer?.mobile ||
-                              payment.mobile ||
-                              "—"
-                            )}
-                          </span>
-
-                        </div>
-
-                      </div>
-
-                    </td>
-
-                    <td class="muted">
-                      ${escapeHTML(
-                        String(
-                          payment.merchantReference ||
-                          payment.reference ||
-                          payment._id ||
-                          "—"
-                        ).slice(0, 22)
-                      )}
-                    </td>
-
-                    <td class="muted">
-                      ${escapeHTML(
-                        payment.paymentMethod ||
-                        payment.method ||
-                        "—"
-                      )}
-                    </td>
-
-                    <td class="amount-cell">
-                      ${formatKz(
-                        payment.amount ||
-                        payment.total ||
-                        0
-                      )}
-                    </td>
-
-                    <td>
-
-                      <span
-                        class="status ${statusClass(
-                          payment.status
-                        )}"
-                      >
-                        ${escapeHTML(
-                          statusLabel(
-                            payment.status
-                          )
-                        )}
-                      </span>
-
-                    </td>
-
-                    <td class="muted">
-                      ${formatDateTime(
-                        payment.createdAt ||
-                        payment.updatedAt
-                      )}
-                    </td>
-
-                    <td>
-
-                      <button
-                        class="small-action"
-                        data-payment-id="${escapeHTML(
-                          payment._id ||
-                          payment.id ||
-                          ""
-                        )}"
-                        data-view-payment
-                      >
-                        Ver
-                      </button>
-
-                    </td>
-
-                  </tr>
-                `;
-              }
-            )
-            .join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-  `;
-}
-
-/* =========================================================
-   PAYMENT DETAILS
-========================================================= */
-
-document.addEventListener(
-  "click",
-  async (event) => {
-    const button =
-      event.target.closest(
-        "[data-view-payment]"
-      );
-
-    if (!button) {
-      return;
-    }
-
-    const id =
-      button.dataset.paymentId;
-
-    if (!id) {
-      return;
-    }
-
-    try {
-      const data =
-        await apiRequest(
-          `/payments/${encodeURIComponent(
-            id
-          )}`
-        );
-
-      const payment =
-        data?.payment ||
-        data;
-
-      openPaymentModal(
-        payment
-      );
-    } catch (error) {
-      showToast(
-        error.message ||
-        "Não foi possível carregar o pagamento.",
-        "error"
-      );
-    }
-  }
-);
-
-function openPaymentModal(
-  payment
-) {
-  const status =
-    payment.status;
-
-  const amount =
-    payment.amount ||
-    payment.total ||
-    0;
-
-  const fee =
-    payment.feeAmount ||
-    payment.honeyPayFee ||
-    0;
-
-  const net =
-    payment.netAmount ??
-    Math.max(
-      Number(amount) -
-        Number(fee),
-      0
-    );
-
-  openModal(`
-    <div class="modal-header">
-
-      <div>
-        <h3>
-          Detalhes do pagamento
-        </h3>
-      </div>
-
-      <button
-        class="modal-close"
-        data-close-modal
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div class="modal-body">
-
-      <div class="entity-card">
-
-        <div class="entity-card-top">
-
-          <div class="entity-icon">
-            Kz
-          </div>
-
-          <span
-            class="status ${statusClass(status)}"
-          >
-            ${escapeHTML(
-              statusLabel(status)
-            )}
-          </span>
-
-        </div>
-
-        <div class="entity-price">
-          ${formatKz(amount)}
-        </div>
-
-        <p>
-          Valor recebido
-        </p>
-
-      </div>
-
-      <div style="height:15px"></div>
-
-      <div class="form-grid">
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Cliente
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${escapeHTML(
-              payment.customer?.name ||
-              payment.customerName ||
-              "—"
-            )}
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Telefone
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${escapeHTML(
-              payment.customer?.mobile ||
-              payment.mobile ||
-              "—"
-            )}
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Referência
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${escapeHTML(
-              payment.merchantReference ||
-              payment.reference ||
-              "—"
-            )}
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Método
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${escapeHTML(
-              payment.paymentMethod ||
-              payment.method ||
-              "—"
-            )}
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Taxa Honey Pay
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${formatKz(fee)}
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label class="form-label">
-            Valor líquido
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${formatKz(net)}
-          </div>
-
-        </div>
-
-        <div class="form-group full">
-
-          <label class="form-label">
-            Data
-          </label>
-
-          <div
-            class="form-input"
-            style="padding-top:11px"
-          >
-            ${formatDateTime(
-              payment.createdAt ||
-              payment.updatedAt
-            )}
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="modal-footer">
-
-      ${
+    state.payments
+      .filter((payment) =>
         [
           "SUCCEEDED",
           "SUCCESS",
           "PAID"
         ].includes(
           String(
-            status || ""
+            payment.status || ""
           ).toUpperCase()
         )
-          ? `
-            <button
-              class="secondary-btn"
-              data-refund-payment="${escapeHTML(
-                payment._id ||
-                payment.id ||
-                ""
-              )}"
-            >
-              Reembolsar
-            </button>
-          `
-          : ""
-      }
-
-      <button
-        class="primary-btn"
-        data-close-modal
-      >
-        Fechar
-      </button>
-
-    </div>
-  `);
-}
-
-/* =========================================================
-   CLOSE MODAL
-========================================================= */
-
-document.addEventListener(
-  "click",
-  (event) => {
-    if (
-      event.target.closest(
-        "[data-close-modal]"
       )
-    ) {
-      closeModal();
-    }
-  }
-);
-
-/* =========================================================
-   REFUND
-========================================================= */
-
-document.addEventListener(
-  "click",
-  async (event) => {
-    const button =
-      event.target.closest(
-        "[data-refund-payment]"
+      .reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.amount ||
+            payment.total ||
+            0
+          ),
+        0
       );
 
-    if (!button) {
-      return;
-    }
+  const fees =
+    dashboard.fees ??
+    dashboard.totalFees ??
+    0;
 
-    const id =
-      button.dataset.refundPayment;
+  const pending =
+    state.payments.filter(
+      (payment) =>
+        [
+          "PENDING",
+          "PROCESSING"
+        ].includes(
+          String(
+            payment.status || ""
+          ).toUpperCase()
+        )
+    ).length;
 
-    if (!id) {
-      return;
-    }
+  $("#statRevenue").textContent =
+    formatKz(revenue);
 
-    const confirmed =
-      window.confirm(
-        "Tem certeza que deseja solicitar o reembolso deste pagamento?"
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await apiRequest(
-        `/payments/${encodeURIComponent(
-          id
-        )}/refund`,
-        {
-          method: "POST"
-        }
-      );
-
-      closeModal();
-
-      showToast(
-        "Pedido de reembolso enviado."
-      );
-
-      await loadPayments();
-
-      if (
-        state.currentRoute ===
-        "payments"
-      ) {
-        renderPaymentsTable();
-      }
-    } catch (error) {
-      showToast(
-        error.message ||
-        "Não foi possível processar o reembolso.",
-        "error"
-      );
-    }
-  }
-);
-
-/* =========================================================
-   ORDERS
-========================================================= */
-
-async function renderOrders() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <h2>Pedidos</h2>
-
-        <p>
-          Crie e acompanhe os pedidos dos seus clientes.
-        </p>
-
-      </div>
-
-      <button
-        class="primary-btn"
-        id="newOrderButton"
-      >
-        + Novo pedido
-      </button>
-
-    </div>
-
-    <div class="panel table-panel">
-
-      <div class="filters">
-
-        <div class="search-box">
-
-          <span>⌕</span>
-
-          <input
-            id="orderSearch"
-            type="search"
-            placeholder="Pesquisar pedido ou cliente..."
-          >
-
-        </div>
-
-      </div>
-
-      <div id="ordersTable"></div>
-
-    </div>
-  `;
-
-  await loadOrders();
-
-  renderOrdersTable();
-
-  $("#orderSearch")
-    ?.addEventListener(
-      "input",
-      renderOrdersTable
+  $("#statTransactions").textContent =
+    formatNumber(
+      state.payments.length
     );
 
-  $("#newOrderButton")
-    ?.addEventListener(
-      "click",
-      openCreateOrderModal
-    );
+  $("#statFees").textContent =
+    formatKz(fees);
+
+  $("#statPending").textContent =
+    formatNumber(pending);
 }
 
-function renderOrdersTable() {
+function renderRecentPayments() {
   const container =
-    $("#ordersTable");
+    $("#recentPayments");
 
-  if (!container) {
-    return;
-  }
+  if (!container) return;
 
-  const query =
-    (
-      $("#orderSearch")
-        ?.value || ""
-    )
-      .toLowerCase()
-      .trim();
-
-  const orders =
-    state.orders.filter(
-      (order) => {
-        if (!query) {
-          return true;
-        }
-
-        const text = [
-          order.reference,
-          order.orderNumber,
-          order.customer?.name,
-          order.customerName,
-          order._id
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        return text.includes(
-          query
-        );
-      }
-    );
-
-  if (!orders.length) {
+  if (
+    !state.payments.length
+  ) {
     container.innerHTML = `
       <div class="empty-state">
-
-        <div class="empty-icon">
-          ▣
-        </div>
-
         <h3>
-          Nenhum pedido encontrado
+          Nenhuma transação ainda
         </h3>
 
         <p>
-          Crie o seu primeiro pedido para começar a vender.
+          Os pagamentos aparecerão aqui.
         </p>
-
       </div>
     `;
 
     return;
   }
+
+  const payments =
+    state.payments
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(
+            b.createdAt || 0
+          ) -
+          new Date(
+            a.createdAt || 0
+          )
+      )
+      .slice(0, 8);
 
   container.innerHTML = `
     <div class="table-scroll">
@@ -2778,848 +1237,67 @@ function renderOrdersTable() {
       <table class="data-table">
 
         <thead>
-
           <tr>
-            <th>Pedido</th>
             <th>Cliente</th>
-            <th>Total</th>
+            <th>Referência</th>
+            <th>Valor</th>
             <th>Estado</th>
             <th>Data</th>
           </tr>
-
         </thead>
 
         <tbody>
 
-          ${orders
+          ${payments
             .map(
-              (order) => {
-                const customer =
-                  order.customer?.name ||
-                  order.customerName ||
-                  "Cliente";
-
-                return `
-                  <tr>
-
-                    <td>
-                      <strong>
-                        ${escapeHTML(
-                          order.reference ||
-                          order.orderNumber ||
-                          order._id ||
-                          "—"
-                        )}
-                      </strong>
-                    </td>
-
-                    <td>
-
-                      <div class="customer-cell">
-
-                        <div class="customer-mini-avatar">
-                          ${escapeHTML(
-                            initials(
-                              customer
-                            )
-                          )}
-                        </div>
-
-                        <div>
-
-                          <strong>
-                            ${escapeHTML(
-                              customer
-                            )}
-                          </strong>
-
-                        </div>
-
-                      </div>
-
-                    </td>
-
-                    <td class="amount-cell">
-                      ${formatKz(
-                        order.total ||
-                        order.amount ||
-                        0
-                      )}
-                    </td>
-
-                    <td>
-
-                      <span
-                        class="status ${statusClass(
-                          order.status
-                        )}"
-                      >
-                        ${escapeHTML(
-                          statusLabel(
-                            order.status
-                          )
-                        )}
-                      </span>
-
-                    </td>
-
-                    <td class="muted">
-                      ${formatDateTime(
-                        order.createdAt
-                      )}
-                    </td>
-
-                  </tr>
-                `;
-              }
-            )
-            .join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-  `;
-}
-
-function openCreateOrderModal() {
-  openModal(`
-    <div class="modal-header">
-
-      <h3>
-        Novo pedido
-      </h3>
-
-      <button
-        class="modal-close"
-        data-close-modal
-      >
-        ×
-      </button>
-
-    </div>
-
-    <form id="createOrderForm">
-
-      <div class="modal-body">
-
-        <div class="form-grid">
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Nome do cliente
-            </label>
-
-            <input
-              name="customerName"
-              class="form-input"
-              required
-              placeholder="Ex.: João Manuel"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Telefone
-            </label>
-
-            <input
-              name="customerMobile"
-              class="form-input"
-              required
-              placeholder="923000000"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Valor
-            </label>
-
-            <input
-              name="amount"
-              class="form-input"
-              type="number"
-              min="1"
-              step="1"
-              required
-              placeholder="25000"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Referência
-            </label>
-
-            <input
-              name="reference"
-              class="form-input"
-              placeholder="Opcional"
-            >
-
-          </div>
-
-          <div class="form-group full">
-
-            <label class="form-label">
-              Descrição
-            </label>
-
-            <textarea
-              name="description"
-              class="form-textarea"
-              placeholder="Descrição do pedido"
-            ></textarea>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-
-        <button
-          type="button"
-          class="secondary-btn"
-          data-close-modal
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          class="primary-btn"
-        >
-          Criar pedido
-        </button>
-
-      </div>
-
-    </form>
-  `);
-
-  $("#createOrderForm")
-    ?.addEventListener(
-      "submit",
-      submitCreateOrder
-    );
-}
-
-async function submitCreateOrder(
-  event
-) {
-  event.preventDefault();
-
-  const form =
-    new FormData(
-      event.target
-    );
-
-  const amount =
-    Number(
-      form.get("amount")
-    );
-
-  if (
-    !Number.isInteger(amount) ||
-    amount <= 0
-  ) {
-    showToast(
-      "O valor deve ser um número inteiro positivo.",
-      "error"
-    );
-
-    return;
-  }
-
-  try {
-    await apiRequest(
-      "/orders",
-      {
-        method: "POST",
-
-        body: JSON.stringify({
-          customerName:
-            form.get(
-              "customerName"
-            ),
-
-          customerMobile:
-            form.get(
-              "customerMobile"
-            ),
-
-          amount,
-
-          reference:
-            form.get(
-              "reference"
-            ) ||
-            undefined,
-
-          description:
-            form.get(
-              "description"
-            ) ||
-            undefined
-        })
-      }
-    );
-
-    closeModal();
-
-    showToast(
-      "Pedido criado com sucesso."
-    );
-
-    await loadOrders();
-
-    renderOrdersTable();
-  } catch (error) {
-    showToast(
-      error.message ||
-      "Não foi possível criar o pedido.",
-      "error"
-    );
-  }
-}
-
-/* =========================================================
-   PRODUCTS
-========================================================= */
-
-async function renderProducts() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <h2>Produtos</h2>
-
-        <p>
-          Organize aquilo que vende e acompanhe os preços.
-        </p>
-
-      </div>
-
-      <button
-        id="newProductButton"
-        class="primary-btn"
-      >
-        + Novo produto
-      </button>
-
-    </div>
-
-    <div
-      id="productsGrid"
-      class="cards-grid"
-    ></div>
-  `;
-
-  await loadProducts();
-
-  renderProductsGrid();
-
-  $("#newProductButton")
-    ?.addEventListener(
-      "click",
-      openCreateProductModal
-    );
-}
-
-function renderProductsGrid() {
-  const container =
-    $("#productsGrid");
-
-  if (!container) {
-    return;
-  }
-
-  if (!state.products.length) {
-    container.innerHTML = `
-      <div
-        class="panel"
-        style="grid-column:1/-1"
-      >
-
-        <div class="empty-state">
-
-          <div class="empty-icon">
-            ◇
-          </div>
-
-          <h3>
-            Nenhum produto
-          </h3>
-
-          <p>
-            Crie produtos para acelerar a criação dos seus pedidos.
-          </p>
-
-        </div>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    state.products
-      .map(
-        (product) => `
-          <div class="entity-card">
-
-            <div class="entity-card-top">
-
-              <div class="entity-icon">
-                ◇
-              </div>
-
-              <span
-                class="status ${
-                  product.active === false
-                    ? "failed"
-                    : "success"
-                }"
-              >
-                ${
-                  product.active === false
-                    ? "Inativo"
-                    : "Ativo"
-                }
-              </span>
-
-            </div>
-
-            <h3>
-              ${escapeHTML(
-                product.name ||
-                product.title ||
-                "Produto"
-              )}
-            </h3>
-
-            <p>
-              ${escapeHTML(
-                product.description ||
-                "Sem descrição."
-              )}
-            </p>
-
-            <div class="entity-price">
-              ${formatKz(
-                product.price ||
-                product.amount ||
-                0
-              )}
-            </div>
-
-          </div>
-        `
-      )
-      .join("");
-}
-
-function openCreateProductModal() {
-  openModal(`
-    <div class="modal-header">
-
-      <h3>
-        Novo produto
-      </h3>
-
-      <button
-        class="modal-close"
-        data-close-modal
-      >
-        ×
-      </button>
-
-    </div>
-
-    <form id="createProductForm">
-
-      <div class="modal-body">
-
-        <div class="form-grid">
-
-          <div class="form-group full">
-
-            <label class="form-label">
-              Nome do produto
-            </label>
-
-            <input
-              name="name"
-              class="form-input"
-              required
-              placeholder="Ex.: Camisola Premium"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Preço
-            </label>
-
-            <input
-              name="price"
-              class="form-input"
-              type="number"
-              min="1"
-              step="1"
-              required
-              placeholder="15000"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Stock
-            </label>
-
-            <input
-              name="stock"
-              class="form-input"
-              type="number"
-              min="0"
-              step="1"
-              value="0"
-            >
-
-          </div>
-
-          <div class="form-group full">
-
-            <label class="form-label">
-              Descrição
-            </label>
-
-            <textarea
-              name="description"
-              class="form-textarea"
-              placeholder="Descrição do produto"
-            ></textarea>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-
-        <button
-          type="button"
-          class="secondary-btn"
-          data-close-modal
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          class="primary-btn"
-        >
-          Criar produto
-        </button>
-
-      </div>
-
-    </form>
-  `);
-
-  $("#createProductForm")
-    ?.addEventListener(
-      "submit",
-      submitCreateProduct
-    );
-}
-
-async function submitCreateProduct(
-  event
-) {
-  event.preventDefault();
-
-  const form =
-    new FormData(
-      event.target
-    );
-
-  const price =
-    Number(
-      form.get("price")
-    );
-
-  const stock =
-    Number(
-      form.get("stock") || 0
-    );
-
-  if (
-    !Number.isInteger(price) ||
-    price <= 0
-  ) {
-    showToast(
-      "O preço deve ser um número inteiro positivo.",
-      "error"
-    );
-
-    return;
-  }
-
-  try {
-    await apiRequest(
-      "/products",
-      {
-        method: "POST",
-
-        body: JSON.stringify({
-          name:
-            form.get("name"),
-
-          price,
-
-          stock,
-
-          description:
-            form.get(
-              "description"
-            ) ||
-            undefined
-        })
-      }
-    );
-
-    closeModal();
-
-    showToast(
-      "Produto criado com sucesso."
-    );
-
-    await loadProducts();
-
-    renderProductsGrid();
-  } catch (error) {
-    showToast(
-      error.message ||
-      "Não foi possível criar o produto.",
-      "error"
-    );
-  }
-}
-
-/* =========================================================
-   CUSTOMERS
-========================================================= */
-
-async function renderCustomers() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <h2>Clientes</h2>
-
-        <p>
-          Consulte os seus clientes e o histórico de compras.
-        </p>
-
-      </div>
-
-    </div>
-
-    <div class="panel table-panel">
-
-      <div class="filters">
-
-        <div class="search-box">
-
-          <span>⌕</span>
-
-          <input
-            id="customerSearch"
-            type="search"
-            placeholder="Pesquisar cliente..."
-          >
-
-        </div>
-
-      </div>
-
-      <div id="customersTable"></div>
-
-    </div>
-  `;
-
-  await loadCustomers();
-
-  renderCustomersTable();
-
-  $("#customerSearch")
-    ?.addEventListener(
-      "input",
-      renderCustomersTable
-    );
-}
-
-function renderCustomersTable() {
-  const container =
-    $("#customersTable");
-
-  if (!container) {
-    return;
-  }
-
-  const query =
-    (
-      $("#customerSearch")
-        ?.value || ""
-    )
-      .toLowerCase()
-      .trim();
-
-  const customers =
-    state.customers.filter(
-      (customer) => {
-        if (!query) {
-          return true;
-        }
-
-        const text = [
-          customer.name,
-          customer.fullName,
-          customer.email,
-          customer.mobile,
-          customer.phone
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        return text.includes(
-          query
-        );
-      }
-    );
-
-  if (!customers.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <div class="empty-icon">
-          ♙
-        </div>
-
-        <h3>
-          Nenhum cliente encontrado
-        </h3>
-
-        <p>
-          Os clientes aparecerão aqui depois das primeiras vendas.
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="table-scroll">
-
-      <table class="data-table">
-
-        <thead>
-
-          <tr>
-            <th>Cliente</th>
-            <th>Telefone</th>
-            <th>Email</th>
-            <th>Total gasto</th>
-            <th>Registado</th>
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${customers
-            .map(
-              (customer) => `
+              (payment) => `
                 <tr>
 
                   <td>
-
-                    <div class="customer-cell">
-
-                      <div class="customer-mini-avatar">
-                        ${escapeHTML(
-                          initials(
-                            customer.name ||
-                            customer.fullName
-                          )
-                        )}
-                      </div>
-
-                      <div>
-
-                        <strong>
-                          ${escapeHTML(
-                            customer.name ||
-                            customer.fullName ||
-                            "Cliente"
-                          )}
-                        </strong>
-
-                      </div>
-
-                    </div>
-
+                    ${
+                      escapeHTML(
+                        payment.customer?.name ||
+                        payment.customerName ||
+                        "Cliente"
+                      )
+                    }
                   </td>
 
                   <td class="muted">
-                    ${escapeHTML(
-                      customer.mobile ||
-                      customer.phone ||
-                      "—"
-                    )}
-                  </td>
-
-                  <td class="muted">
-                    ${escapeHTML(
-                      customer.email ||
-                      "—"
-                    )}
+                    ${
+                      escapeHTML(
+                        payment.reference ||
+                        payment.merchantReference ||
+                        "—"
+                      )
+                    }
                   </td>
 
                   <td class="amount-cell">
                     ${formatKz(
-                      customer.totalSpent ||
-                      customer.totalPurchases ||
+                      payment.amount ||
+                      payment.total ||
                       0
                     )}
                   </td>
 
+                  <td>
+                    <span
+                      class="status ${statusClass(
+                        payment.status
+                      )}"
+                    >
+                      ${escapeHTML(
+                        statusLabel(
+                          payment.status
+                        )
+                      )}
+                    </span>
+                  </td>
+
                   <td class="muted">
-                    ${formatDate(
-                      customer.createdAt
+                    ${formatDateTime(
+                      payment.createdAt
                     )}
                   </td>
 
@@ -3637,559 +1315,49 @@ function renderCustomersTable() {
 }
 
 /* =========================================================
-   PAYMENT LINKS
+   GENERIC RESOURCE PAGES
 ========================================================= */
 
-async function renderLinks() {
+async function renderPayments() {
   pageContent.innerHTML = `
     <div class="page-header">
-
       <div>
-
-        <h2>
-          Links de pagamento
-        </h2>
-
+        <h2>Pagamentos</h2>
         <p>
-          Venda através de WhatsApp, Instagram, Facebook ou qualquer canal.
+          Todas as transações do seu negócio.
         </p>
-
       </div>
-
-      <button
-        id="newLinkButton"
-        class="primary-btn"
-      >
-        + Criar link
-      </button>
-
     </div>
 
     <div
-      id="linksGrid"
-      class="cards-grid"
-    ></div>
-  `;
-
-  await loadLinks();
-
-  renderLinksGrid();
-
-  $("#newLinkButton")
-    ?.addEventListener(
-      "click",
-      openCreateLinkModal
-    );
-}
-
-function renderLinksGrid() {
-  const container =
-    $("#linksGrid");
-
-  if (!container) {
-    return;
-  }
-
-  if (!state.links.length) {
-    container.innerHTML = `
-      <div
-        class="panel"
-        style="grid-column:1/-1"
-      >
-
-        <div class="empty-state">
-
-          <div class="empty-icon">
-            ↗
-          </div>
-
-          <h3>
-            Nenhum link de pagamento
-          </h3>
-
-          <p>
-            Crie um link e envie diretamente para os seus clientes.
-          </p>
-
-        </div>
-
+      id="resourceContent"
+      class="panel"
+    >
+      <div class="empty-state">
+        <h3>
+          A carregar pagamentos...
+        </h3>
       </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    state.links
-      .map(
-        (link) => {
-          const token =
-            link.token ||
-            link.code ||
-            link.shortCode ||
-            "";
-
-          const url =
-            link.url ||
-            `${window.location.origin}/pay/${token}`;
-
-          return `
-            <div class="entity-card">
-
-              <div class="entity-card-top">
-
-                <div class="entity-icon">
-                  ↗
-                </div>
-
-                <span
-                  class="status ${
-                    link.active === false
-                      ? "failed"
-                      : "success"
-                  }"
-                >
-                  ${
-                    link.active === false
-                      ? "Inativo"
-                      : "Ativo"
-                  }
-                </span>
-
-              </div>
-
-              <h3>
-                ${escapeHTML(
-                  link.name ||
-                  link.title ||
-                  "Link de pagamento"
-                )}
-              </h3>
-
-              <p>
-                ${escapeHTML(
-                  link.description ||
-                  "Link Honey Pay"
-                )}
-              </p>
-
-              <div class="entity-price">
-                ${formatKz(
-                  link.amount ||
-                  link.price ||
-                  0
-                )}
-              </div>
-
-              <div
-                style="
-                  margin-top:14px;
-                  display:flex;
-                  gap:7px
-                "
-              >
-
-                <button
-                  class="secondary-btn"
-                  style="flex:1"
-                  data-copy-link="${escapeHTML(
-                    url
-                  )}"
-                >
-                  Copiar
-                </button>
-
-                <a
-                  class="primary-btn"
-                  style="
-                    display:grid;
-                    place-items:center
-                  "
-                  href="${escapeHTML(url)}"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  Abrir
-                </a>
-
-              </div>
-
-            </div>
-          `;
-        }
-      )
-      .join("");
-}
-
-document.addEventListener(
-  "click",
-  async (event) => {
-    const button =
-      event.target.closest(
-        "[data-copy-link]"
-      );
-
-    if (!button) {
-      return;
-    }
-
-    const url =
-      button.dataset.copyLink;
-
-    try {
-      await navigator.clipboard.writeText(
-        url
-      );
-
-      showToast(
-        "Link copiado para a área de transferência."
-      );
-    } catch {
-      showToast(
-        "Não foi possível copiar o link.",
-        "error"
-      );
-    }
-  }
-);
-
-function openCreateLinkModal() {
-  openModal(`
-    <div class="modal-header">
-
-      <h3>
-        Criar link de pagamento
-      </h3>
-
-      <button
-        class="modal-close"
-        data-close-modal
-      >
-        ×
-      </button>
-
-    </div>
-
-    <form id="createLinkForm">
-
-      <div class="modal-body">
-
-        <div class="form-grid">
-
-          <div class="form-group full">
-
-            <label class="form-label">
-              Nome
-            </label>
-
-            <input
-              name="name"
-              class="form-input"
-              required
-              placeholder="Ex.: Venda de ténis"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Valor
-            </label>
-
-            <input
-              name="amount"
-              class="form-input"
-              type="number"
-              min="1"
-              step="1"
-              required
-              placeholder="35000"
-            >
-
-          </div>
-
-          <div class="form-group">
-
-            <label class="form-label">
-              Expiração
-            </label>
-
-            <input
-              name="expiresAt"
-              class="form-input"
-              type="datetime-local"
-            >
-
-          </div>
-
-          <div class="form-group full">
-
-            <label class="form-label">
-              Descrição
-            </label>
-
-            <textarea
-              name="description"
-              class="form-textarea"
-              placeholder="Descrição que o cliente verá no checkout"
-            ></textarea>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-
-        <button
-          type="button"
-          class="secondary-btn"
-          data-close-modal
-        >
-          Cancelar
-        </button>
-
-        <button
-          type="submit"
-          class="primary-btn"
-        >
-          Criar link
-        </button>
-
-      </div>
-
-    </form>
-  `);
-
-  $("#createLinkForm")
-    ?.addEventListener(
-      "submit",
-      submitCreateLink
-    );
-}
-
-async function submitCreateLink(
-  event
-) {
-  event.preventDefault();
-
-  const form =
-    new FormData(
-      event.target
-    );
-
-  const amount =
-    Number(
-      form.get("amount")
-    );
-
-  if (
-    !Number.isInteger(amount) ||
-    amount <= 0
-  ) {
-    showToast(
-      "O valor deve ser um número inteiro positivo.",
-      "error"
-    );
-
-    return;
-  }
-
-  try {
-    await apiRequest(
-      "/payment-links",
-      {
-        method: "POST",
-
-        body: JSON.stringify({
-          name:
-            form.get("name"),
-
-          amount,
-
-          description:
-            form.get(
-              "description"
-            ) ||
-            undefined,
-
-          expiresAt:
-            form.get(
-              "expiresAt"
-            ) ||
-            undefined
-        })
-      }
-    );
-
-    closeModal();
-
-    showToast(
-      "Link criado com sucesso."
-    );
-
-    await loadLinks();
-
-    renderLinksGrid();
-  } catch (error) {
-    showToast(
-      error.message ||
-      "Não foi possível criar o link.",
-      "error"
-    );
-  }
-}
-
-/* =========================================================
-   REPORTS
-========================================================= */
-
-async function renderReports() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <h2>
-          Relatórios
-        </h2>
-
-        <p>
-          Analise vendas, pagamentos e taxas Honey Pay.
-        </p>
-
-      </div>
-
-      <button
-        id="exportCsvButton"
-        class="primary-btn"
-      >
-        Exportar CSV
-      </button>
-
-    </div>
-
-    <div class="stats-grid">
-
-      <div class="stat-card">
-
-        <span class="stat-label">
-          Volume recebido
-        </span>
-
-        <div class="stat-value">
-          ${formatKz(
-            calculatedRevenue()
-          )}
-        </div>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span class="stat-label">
-          Pagamentos
-        </span>
-
-        <div class="stat-value">
-          ${formatNumber(
-            state.payments.length
-          )}
-        </div>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span class="stat-label">
-          Taxas Honey Pay
-        </span>
-
-        <div class="stat-value">
-          ${formatKz(
-            calculatedFees()
-          )}
-        </div>
-
-      </div>
-
-      <div class="stat-card">
-
-        <span class="stat-label">
-          Líquido estimado
-        </span>
-
-        <div class="stat-value">
-          ${formatKz(
-            calculatedRevenue() -
-            calculatedFees()
-          )}
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="panel table-panel">
-
-      <div class="panel-header">
-
-        <div>
-
-          <h3>
-            Resumo das transações
-          </h3>
-
-          <span>
-            Dados disponíveis no painel
-          </span>
-
-        </div>
-
-      </div>
-
-      <div id="reportTable"></div>
-
     </div>
   `;
 
   await loadPayments();
 
-  renderReportTable();
-
-  $("#exportCsvButton")
-    ?.addEventListener(
-      "click",
-      exportPaymentsCSV
-    );
-}
-
-function renderReportTable() {
   const container =
-    $("#reportTable");
+    $("#resourceContent");
 
-  if (!container) {
-    return;
-  }
+  if (!container) return;
 
   if (!state.payments.length) {
     container.innerHTML = `
       <div class="empty-state">
-
-        <div class="empty-icon">
-          ▥
-        </div>
-
         <h3>
-          Sem dados
+          Nenhum pagamento
         </h3>
 
         <p>
-          Ainda não existem pagamentos para gerar o relatório.
+          Ainda não existem pagamentos.
         </p>
-
       </div>
     `;
 
@@ -4202,95 +1370,68 @@ function renderReportTable() {
       <table class="data-table">
 
         <thead>
-
           <tr>
-            <th>Data</th>
             <th>Referência</th>
+            <th>Cliente</th>
             <th>Valor</th>
-            <th>Taxa</th>
-            <th>Líquido</th>
             <th>Estado</th>
+            <th>Data</th>
           </tr>
-
         </thead>
 
         <tbody>
 
           ${state.payments
             .map(
-              (payment) => {
-                const amount =
-                  Number(
-                    payment.amount ||
-                    payment.total ||
-                    0
-                  );
+              (payment) => `
+                <tr>
 
-                const fee =
-                  Number(
-                    payment.feeAmount ||
-                    payment.honeyPayFee ||
-                    0
-                  );
+                  <td>
+                    ${escapeHTML(
+                      payment.reference ||
+                      payment.merchantReference ||
+                      "—"
+                    )}
+                  </td>
 
-                return `
-                  <tr>
+                  <td>
+                    ${escapeHTML(
+                      payment.customer?.name ||
+                      payment.customerName ||
+                      "Cliente"
+                    )}
+                  </td>
 
-                    <td class="muted">
-                      ${formatDateTime(
-                        payment.createdAt
-                      )}
-                    </td>
+                  <td class="amount-cell">
+                    ${formatKz(
+                      payment.amount ||
+                      payment.total ||
+                      0
+                    )}
+                  </td>
 
-                    <td>
+                  <td>
+                    <span
+                      class="status ${statusClass(
+                        payment.status
+                      )}"
+                    >
                       ${escapeHTML(
-                        payment.reference ||
-                        payment.merchantReference ||
-                        "—"
-                      )}
-                    </td>
-
-                    <td class="amount-cell">
-                      ${formatKz(
-                        amount
-                      )}
-                    </td>
-
-                    <td>
-                      ${formatKz(
-                        fee
-                      )}
-                    </td>
-
-                    <td class="amount-cell">
-                      ${formatKz(
-                        Math.max(
-                          amount -
-                            fee,
-                          0
+                        statusLabel(
+                          payment.status
                         )
                       )}
-                    </td>
+                    </span>
+                  </td>
 
-                    <td>
+                  <td class="muted">
+                    ${formatDateTime(
+                      payment.createdAt
+                    )}
+                  </td>
 
-                      <span
-                        class="status ${statusClass(
-                          payment.status
-                        )}"
-                      >
-                        ${escapeHTML(
-                          statusLabel(
-                            payment.status
-                          )
-                        )}
-                      </span>
-
-                    </td>
-
-                  </tr>
-                `;
-              }
+                </tr>
+              `
             )
             .join("")}
 
@@ -4302,135 +1443,267 @@ function renderReportTable() {
   `;
 }
 
-function exportPaymentsCSV() {
-  if (!state.payments.length) {
-    showToast(
-      "Não existem pagamentos para exportar.",
-      "warning"
-    );
+async function renderOrders() {
+  await renderSimpleCollection(
+    "orders",
+    "Pedidos",
+    "orders",
+    "order"
+  );
+}
+
+async function renderProducts() {
+  await renderSimpleCollection(
+    "products",
+    "Produtos",
+    "products",
+    "product"
+  );
+}
+
+async function renderCustomers() {
+  await renderSimpleCollection(
+    "customers",
+    "Clientes",
+    "customers",
+    "customer"
+  );
+}
+
+async function renderLinks() {
+  await renderSimpleCollection(
+    "links",
+    "Links de pagamento",
+    "links",
+    "link"
+  );
+}
+
+async function renderSimpleCollection(
+  route,
+  title,
+  property,
+  singular
+) {
+  pageContent.innerHTML = `
+    <div class="page-header">
+
+      <div>
+        <h2>
+          ${escapeHTML(title)}
+        </h2>
+
+        <p>
+          Gestão de ${escapeHTML(
+            title.toLowerCase()
+          )}.
+        </p>
+      </div>
+
+    </div>
+
+    <div
+      id="resourceContent"
+      class="panel"
+    >
+      <div class="empty-state">
+        <h3>
+          A carregar...
+        </h3>
+      </div>
+    </div>
+  `;
+
+  const loaders = {
+    orders: loadOrders,
+    products: loadProducts,
+    customers: loadCustomers,
+    links: loadLinks
+  };
+
+  const loaderFn =
+    loaders[property];
+
+  if (loaderFn) {
+    await loaderFn();
+  }
+
+  const items =
+    state[property] || [];
+
+  const container =
+    $("#resourceContent");
+
+  if (!container) return;
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>
+          Nenhum ${escapeHTML(
+            singular
+          )} encontrado
+        </h3>
+
+        <p>
+          Ainda não existem registos.
+        </p>
+      </div>
+    `;
 
     return;
   }
 
-  const rows = [
-    [
-      "Data",
-      "Referência",
-      "Cliente",
-      "Valor",
-      "Taxa Honey Pay",
-      "Líquido",
-      "Estado"
-    ]
-  ];
+  container.innerHTML = `
+    <div class="table-scroll">
 
-  state.payments.forEach(
-    (payment) => {
-      const amount =
-        Number(
-          payment.amount ||
-          payment.total ||
-          0
-        );
+      <table class="data-table">
 
-      const fee =
-        Number(
-          payment.feeAmount ||
-          payment.honeyPayFee ||
-          0
-        );
+        <thead>
+          <tr>
+            <th>Nome / Referência</th>
+            <th>Valor</th>
+            <th>Estado</th>
+            <th>Data</th>
+          </tr>
+        </thead>
 
-      rows.push([
-        formatDateTime(
-          payment.createdAt
-        ),
+        <tbody>
 
-        payment.reference ||
-        payment.merchantReference ||
-        "",
-
-        payment.customer?.name ||
-        payment.customerName ||
-        "",
-
-        amount,
-
-        fee,
-
-        Math.max(
-          amount - fee,
-          0
-        ),
-
-        statusLabel(
-          payment.status
-        )
-      ]);
-    }
-  );
-
-  const csv =
-    rows
-      .map(
-        (row) =>
-          row
+          ${items
             .map(
-              (value) =>
-                `"${String(
-                  value ?? ""
-                ).replaceAll(
-                  '"',
-                  '""'
-                )}"`
+              (item) => `
+                <tr>
+
+                  <td>
+                    <strong>
+                      ${escapeHTML(
+                        item.name ||
+                        item.title ||
+                        item.reference ||
+                        item.orderNumber ||
+                        item.customerName ||
+                        "Registo"
+                      )}
+                    </strong>
+                  </td>
+
+                  <td class="amount-cell">
+                    ${formatKz(
+                      item.amount ||
+                      item.total ||
+                      item.price ||
+                      0
+                    )}
+                  </td>
+
+                  <td>
+                    ${
+                      item.status
+                        ? `
+                          <span
+                            class="status ${statusClass(
+                              item.status
+                            )}"
+                          >
+                            ${escapeHTML(
+                              statusLabel(
+                                item.status
+                              )
+                            )}
+                          </span>
+                        `
+                        : "—"
+                    }
+                  </td>
+
+                  <td class="muted">
+                    ${formatDateTime(
+                      item.createdAt
+                    )}
+                  </td>
+
+                </tr>
+              `
             )
-            .join(",")
+            .join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  `;
+}
+
+/* =========================================================
+   REPORTS
+========================================================= */
+
+async function renderReports() {
+  await loadPayments();
+
+  const revenue =
+    state.payments
+      .filter((payment) =>
+        [
+          "SUCCEEDED",
+          "SUCCESS",
+          "PAID"
+        ].includes(
+          String(
+            payment.status || ""
+          ).toUpperCase()
+        )
       )
-      .join("\n");
+      .reduce(
+        (sum, payment) =>
+          sum +
+          Number(
+            payment.amount ||
+            payment.total ||
+            0
+          ),
+        0
+      );
 
-  const blob =
-    new Blob(
-      [
-        "\uFEFF" +
-          csv
-      ],
-      {
-        type:
-          "text/csv;charset=utf-8;"
-      }
-    );
+  pageContent.innerHTML = `
+    <div class="page-header">
+      <div>
+        <h2>Relatórios</h2>
 
-  const url =
-    URL.createObjectURL(
-      blob
-    );
+        <p>
+          Resumo financeiro da sua conta.
+        </p>
+      </div>
+    </div>
 
-  const link =
-    document.createElement(
-      "a"
-    );
+    <div class="stats-grid">
 
-  link.href = url;
+      <div class="stat-card">
+        <span class="stat-label">
+          Volume recebido
+        </span>
 
-  link.download =
-    `honey-pay-pagamentos-${new Date()
-      .toISOString()
-      .slice(0, 10)}.csv`;
+        <div class="stat-value">
+          ${formatKz(revenue)}
+        </div>
+      </div>
 
-  document.body.appendChild(
-    link
-  );
+      <div class="stat-card">
+        <span class="stat-label">
+          Pagamentos
+        </span>
 
-  link.click();
+        <div class="stat-value">
+          ${formatNumber(
+            state.payments.length
+          )}
+        </div>
+      </div>
 
-  link.remove();
-
-  URL.revokeObjectURL(
-    url
-  );
-
-  showToast(
-    "Relatório CSV exportado."
-  );
+    </div>
+  `;
 }
 
 /* =========================================================
@@ -4443,168 +1716,102 @@ async function renderSettings() {
 
   pageContent.innerHTML = `
     <div class="page-header">
-
       <div>
-
-        <h2>
-          Definições
-        </h2>
+        <h2>Definições</h2>
 
         <p>
-          Configure a sua conta e o seu negócio.
+          Configuração da conta.
         </p>
-
       </div>
-
     </div>
 
     <div class="panel">
 
       <div class="panel-header">
-
         <div>
-
           <h3>
-            Perfil do negócio
+            Perfil
           </h3>
 
           <span>
-            Informação da sua conta Honey Pay
+            Dados da conta Honey Pay
           </span>
-
         </div>
-
       </div>
 
-      <form id="settingsForm">
+      <form
+        id="settingsForm"
+        style="padding:20px"
+      >
 
-        <div style="padding:19px">
+        <div class="form-grid">
 
-          <div class="form-grid">
+          <div class="form-group">
 
-            <div class="form-group">
+            <label class="form-label">
+              Nome do negócio
+            </label>
 
-              <label class="form-label">
-                Nome do negócio
-              </label>
+            <input
+              class="form-input"
+              name="businessName"
+              value="${escapeHTML(
+                merchant.businessName ||
+                state.user?.name ||
+                ""
+              )}"
+            >
 
-              <input
-                class="form-input"
-                name="businessName"
-                value="${escapeHTML(
-                  merchant.businessName ||
-                  merchant.companyName ||
-                  merchant.name ||
-                  ""
-                )}"
-              >
+          </div>
 
-            </div>
+          <div class="form-group">
 
-            <div class="form-group">
+            <label class="form-label">
+              Email
+            </label>
 
-              <label class="form-label">
-                Email
-              </label>
+            <input
+              class="form-input"
+              value="${escapeHTML(
+                state.user?.email ||
+                ""
+              )}"
+              disabled
+            >
 
-              <input
-                class="form-input"
-                name="email"
-                type="email"
-                value="${escapeHTML(
-                  merchant.email ||
-                  ""
-                )}"
-              >
+          </div>
 
-            </div>
+          <div class="form-group">
 
-            <div class="form-group">
+            <label class="form-label">
+              Telefone
+            </label>
 
-              <label class="form-label">
-                Telefone
-              </label>
-
-              <input
-                class="form-input"
-                name="phone"
-                value="${escapeHTML(
-                  merchant.phone ||
-                  merchant.mobile ||
-                  ""
-                )}"
-              >
-
-            </div>
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Moeda
-              </label>
-
-              <input
-                class="form-input"
-                value="AOA — Kwanza"
-                disabled
-              >
-
-            </div>
+            <input
+              class="form-input"
+              name="phone"
+              value="${escapeHTML(
+                merchant.phone ||
+                ""
+              )}"
+            >
 
           </div>
 
         </div>
 
-        <div class="modal-footer">
+        <div style="margin-top:20px">
 
           <button
             type="submit"
             class="primary-btn"
           >
-            Guardar alterações
+            Guardar
           </button>
 
         </div>
 
       </form>
-
-    </div>
-
-    <div style="height:18px"></div>
-
-    <div class="panel">
-
-      <div class="panel-header">
-
-        <div>
-
-          <h3>
-            Taxa Honey Pay
-          </h3>
-
-          <span>
-            Modelo de cobrança atual
-          </span>
-
-        </div>
-
-        <strong style="font-size:14px">
-          0,80%
-        </strong>
-
-      </div>
-
-      <div
-        style="
-          padding:19px;
-          color:#6b7280;
-          font-size:11px;
-          line-height:1.7
-        "
-      >
-        A Honey Pay aplica uma taxa de 0,80% sobre o valor das transações
-        elegíveis, de acordo com as regras configuradas no backend.
-      </div>
 
     </div>
   `;
@@ -4626,36 +1833,31 @@ async function saveSettings(
       event.target
     );
 
-  const payload = {
-    businessName:
-      form.get(
-        "businessName"
-      ),
-
-    email:
-      form.get("email"),
-
-    phone:
-      form.get("phone")
-  };
-
   try {
-    await apiRequest(
-      "/me",
-      {
-        method: "PUT",
+    const data =
+      await request(
+        "/merchant",
+        {
+          method: "PATCH",
 
-        body:
-          JSON.stringify(
-            payload
-          )
-      }
-    );
+          body:
+            JSON.stringify({
+              businessName:
+                form.get(
+                  "businessName"
+                ),
 
-    state.merchant = {
-      ...state.merchant,
-      ...payload
-    };
+              phone:
+                form.get(
+                  "phone"
+                )
+            })
+        }
+      );
+
+    state.merchant =
+      data?.merchant ||
+      state.merchant;
 
     updateMerchantUI();
 
@@ -4664,51 +1866,9 @@ async function saveSettings(
     );
   } catch (error) {
     showToast(
-      error.message ||
-      "Não foi possível guardar as alterações.",
+      error.message,
       "error"
     );
-  }
-}
-
-/* =========================================================
-   QUICK ACTIONS
-========================================================= */
-
-function handleQuickAction(
-  event
-) {
-  const action =
-    event.currentTarget
-      .dataset.action;
-
-  switch (action) {
-    case "create-order":
-      openCreateOrderModal();
-      break;
-
-    case "create-product":
-      openCreateProductModal();
-      break;
-
-    case "create-link":
-      openCreateLinkModal();
-      break;
-
-    case "payments":
-      window.location.hash =
-        "payments";
-      break;
-
-    case "customers":
-      window.location.hash =
-        "customers";
-      break;
-
-    case "reports":
-      window.location.hash =
-        "reports";
-      break;
   }
 }
 
@@ -4723,24 +1883,9 @@ async function renderRoute(
     return;
   }
 
-  pageContent.innerHTML = `
-    <div class="panel">
-
-      <div class="empty-state">
-
-        <div
-          class="skeleton loading-block"
-          style="
-            width:100%;
-            max-width:600px;
-            margin:auto
-          "
-        ></div>
-
-      </div>
-
-    </div>
-  `;
+  /*
+     A rota nunca pode bloquear o boot.
+  */
 
   try {
     switch (route) {
@@ -4782,7 +1927,7 @@ async function renderRoute(
     }
   } catch (error) {
     console.error(
-      "Erro ao renderizar rota:",
+      "Route error:",
       error
     );
 
@@ -4791,40 +1936,30 @@ async function renderRoute(
 
         <div class="empty-state">
 
-          <div class="empty-icon">
-            !
-          </div>
-
           <h3>
-            Não foi possível carregar esta página
+            A página não conseguiu carregar
           </h3>
 
           <p>
             ${escapeHTML(
               error.message ||
-              "Ocorreu um erro inesperado."
+              "Erro desconhecido."
             )}
           </p>
 
-          <div
-            style="margin-top:15px"
+          <button
+            class="primary-btn"
+            id="retryButton"
           >
-
-            <button
-              class="primary-btn"
-              id="retryRouteButton"
-            >
-              Tentar novamente
-            </button>
-
-          </div>
+            Tentar novamente
+          </button>
 
         </div>
 
       </div>
     `;
 
-    $("#retryRouteButton")
+    $("#retryButton")
       ?.addEventListener(
         "click",
         () =>
@@ -4842,7 +1977,7 @@ async function renderRoute(
 $("#logoutButton")
   ?.addEventListener(
     "click",
-    () => {
+    async () => {
       const confirmed =
         window.confirm(
           "Tem certeza que deseja terminar a sessão?"
@@ -4852,33 +1987,25 @@ $("#logoutButton")
         return;
       }
 
-      /*
-        O cookie HttpOnly será removido pelo backend
-        através do endpoint de logout, se existir.
-
-        Tentamos primeiro /auth/logout.
-      */
-
-      apiRequest(
-        "/auth/logout",
-        {
-          method: "POST"
-        }
-      )
-        .catch(
-          () => {
-            /*
-              Mesmo que o backend ainda não tenha
-              endpoint de logout, limpamos a sessão
-              local e voltamos ao login.
-            */
-          }
-        )
-        .finally(
-          () => {
-            redirectLogin();
+      try {
+        await request(
+          "/auth/logout",
+          {
+            method: "POST"
+          },
+          {
+            authRequired: false,
+            redirectOn401: false
           }
         );
+      } catch (error) {
+        console.warn(
+          "Logout:",
+          error.message
+        );
+      }
+
+      redirectToLogin();
     }
   );
 
@@ -4895,8 +2022,6 @@ $("#refreshButton")
 
       if (button) {
         button.disabled = true;
-        button.style.transform =
-          "rotate(180deg)";
       }
 
       try {
@@ -4907,148 +2032,168 @@ $("#refreshButton")
         showToast(
           "Painel atualizado."
         );
-      } catch (error) {
-        console.error(
-          "Erro ao atualizar painel:",
-          error
-        );
       } finally {
-        setTimeout(
-          () => {
-            if (button) {
-              button.disabled =
-                false;
-
-              button.style.transform =
-                "";
-            }
-          },
-          300
-        );
+        if (button) {
+          button.disabled = false;
+        }
       }
     }
   );
 
 /* =========================================================
-   STARTUP / BOOT
+   BOOT
 ========================================================= */
-
-/*
-  ESTE É O PONTO MAIS IMPORTANTE DA CORREÇÃO.
-
-  ANTIGO:
-
-      if (!getToken()) {
-          redirectLogin();
-          return;
-      }
-
-  Isso causava o loop porque o token moderno está
-  no cookie HttpOnly e não no localStorage.
-
-  NOVO:
-
-      await loadMerchant();
-
-  /api/me recebe o cookie automaticamente porque
-  apiRequest() usa:
-
-      credentials: "include"
-
-  Se /api/me retornar 200:
-      abre o painel.
-
-  Se /api/me retornar 401:
-      vai para /login.
-
-  Outros endpoints do dashboard não bloqueiam a abertura.
-*/
 
 let bootPromise = null;
 
 async function boot() {
-  /*
-    Evita executar boot duas vezes.
-  */
   if (bootPromise) {
     return bootPromise;
   }
 
   bootPromise =
     (async () => {
+      state.loading = true;
+
+      showLoader();
+
+      /*
+       =====================================================
+       PASSO 1
+       =====================================================
+
+       Verificar sessão.
+
+       NÃO usar localStorage.
+       NÃO carregar dashboard ainda.
+       NÃO redirecionar por erro de dashboard.
+      */
+
+      let authenticated = false;
+
       try {
-        state.loading = true;
-
-        /*
-          Primeiro validamos a sessão real
-          no servidor.
-
-          NÃO verificamos localStorage.
-        */
-        await loadMerchant();
-
-        /*
-          Se chegamos aqui, o backend confirmou
-          a sessão.
-        */
-        state.authenticated =
-          true;
-
-        /*
-          Agora podemos mostrar o painel.
-        */
-        if (app) {
-          app.classList.remove(
-            "hidden"
-          );
-        }
-
-        /*
-          Retiramos o loader.
-        */
-        if (loader) {
-          loader.classList.add(
-            "hide"
-          );
-        }
-
-        /*
-          Só depois da autenticação
-          inicializamos a rota.
-        */
-        navigate();
-
-        state.booted = true;
-
+        authenticated =
+          await checkSession();
       } catch (error) {
         console.error(
-          "Falha ao iniciar Honey Pay:",
+          "Session check failed:",
           error
         );
 
         /*
-          Se apiRequest já recebeu 401,
-          redirectLogin() já foi chamado.
-
-          Para outros erros de autenticação,
-          não abrimos o painel privado.
+           Se o servidor estiver temporariamente
+           indisponível, mostramos uma mensagem em vez
+           de criar um redirect infinito.
         */
-        if (
-          !redirectingToLogin
-        ) {
-          redirectLogin();
-        }
 
-      } finally {
-        state.loading = false;
+        revealApplication();
+
+        pageContent.innerHTML = `
+          <div class="panel">
+
+            <div class="empty-state">
+
+              <h3>
+                Não foi possível verificar a sessão
+              </h3>
+
+              <p>
+                O servidor Honey Pay não respondeu.
+              </p>
+
+              <button
+                class="primary-btn"
+                onclick="location.reload()"
+              >
+                Tentar novamente
+              </button>
+
+            </div>
+
+          </div>
+        `;
+
+        return;
       }
+
+      /*
+       =====================================================
+       NÃO AUTENTICADO
+       =====================================================
+      */
+
+      if (!authenticated) {
+        redirectToLogin();
+        return;
+      }
+
+      /*
+       =====================================================
+       PASSO 2
+       =====================================================
+
+       Sessão confirmada.
+
+       Mostramos imediatamente a aplicação.
+      */
+
+      state.authenticated =
+        true;
+
+      revealApplication();
+
+      /*
+       =====================================================
+       PASSO 3
+       =====================================================
+
+       Carregar /api/me.
+
+       Se falhar por problema secundário,
+       não escondemos novamente a aplicação.
+      */
+
+      try {
+        await loadCurrentUser();
+      } catch (error) {
+        console.error(
+          "Profile loading failed:",
+          error
+        );
+      }
+
+      /*
+       =====================================================
+       PASSO 4
+       =====================================================
+
+       Abrir dashboard.
+
+       O dashboard é secundário.
+       A sessão já foi validada.
+      */
+
+      try {
+        await navigate();
+      } catch (error) {
+        console.error(
+          "Initial route failed:",
+          error
+        );
+      }
+
+      state.booted =
+        true;
+
+      state.loading =
+        false;
     })();
 
   return bootPromise;
 }
 
 /* =========================================================
-   DOM READY
+   START
 ========================================================= */
 
 if (
@@ -5079,5 +2224,5 @@ window.HoneyPay.state =
 window.HoneyPay.boot =
   boot;
 
-window.HoneyPay.logout =
-  redirectLogin;
+window.HoneyPay.session =
+  checkSession;
