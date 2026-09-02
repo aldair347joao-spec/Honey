@@ -269,11 +269,11 @@
 
 <script>
 
-'use strict';
+"use strict";
 
 const token =
   location.pathname
-    .split('/')
+    .split("/")
     .filter(Boolean)
     .pop();
 
@@ -282,6 +282,92 @@ const $ =
     document.getElementById(id);
 
 let paymentData = null;
+let currentPayment = null;
+let eventSource = null;
+
+function formatKz(
+  value
+) {
+  return (
+    new Intl.NumberFormat(
+      "pt-AO"
+    ).format(
+      Number(
+        value || 0
+      )
+    ) +
+    " Kz"
+  );
+}
+
+function escapeHTML(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+function statusLabel(
+  status
+) {
+
+  const map = {
+
+    PENDING:
+      "A aguardar pagamento",
+
+    PROCESSING:
+      "Pagamento em processamento",
+
+    SUCCEEDED:
+      "Pagamento confirmado",
+
+    PAID:
+      "Pagamento confirmado",
+
+    FAILED:
+      "Pagamento falhou",
+
+    EXPIRED:
+      "Pagamento expirado",
+
+    CANCELLED:
+      "Pagamento cancelado",
+
+    UNKNOWN:
+      "A confirmar pagamento"
+  };
+
+  return (
+    map[
+      String(
+        status || ""
+      ).toUpperCase()
+    ] ||
+    "Estado desconhecido"
+  );
+}
 
 async function load() {
 
@@ -289,7 +375,13 @@ async function load() {
 
     const response =
       await fetch(
-        `/api/public/payment-links/${token}`
+        `/api/public/payment-links/${encodeURIComponent(
+          token
+        )}`,
+        {
+          credentials:
+            "include"
+        }
       );
 
     const data =
@@ -298,106 +390,187 @@ async function load() {
     if (!response.ok) {
       throw new Error(
         data.error ||
-        'Link inválido'
+        "Link inválido."
       );
     }
 
     paymentData =
       data;
 
-    $('merchant')
-      .textContent =
-      data.merchant.businessName ||
-      data.merchant.name;
+    const merchantName =
+      data.merchant?.businessName ||
+      data.merchant?.name ||
+      "Honey Pay";
 
-    $('title')
+    $("merchant")
+      .textContent =
+      merchantName;
+
+    $("title")
       .textContent =
       data.link.title;
 
-    $('description')
+    $("description")
       .textContent =
       data.link.description ||
-      '';
+      "";
 
-    $('amount')
+    $("amount")
       .textContent =
-      new Intl.NumberFormat(
-        'pt-AO'
-      ).format(
+      formatKz(
         data.link.amount
-      ) +
-      ' Kz';
+      );
 
-  } catch (error) {
+    renderQr(
+      `${location.origin}/pay/${encodeURIComponent(
+        token
+      )}`
+    );
 
-    $('checkout')
+  } catch (
+    error
+  ) {
+
+    $("checkout")
       .innerHTML = `
         <h1>
           Pagamento indisponível
         </h1>
 
         <p>
-          ${error.message}
+          ${escapeHTML(
+            error.message
+          )}
         </p>
       `;
   }
 }
 
-$('paymentForm')
+/* =========================================================
+   QR
+========================================================= */
+
+function renderQr(
+  value
+) {
+
+  const container =
+    $("qrContainer");
+
+  if (!container) {
+    return;
+  }
+
+  const img =
+    document.createElement(
+      "img"
+    );
+
+  img.alt =
+    "QR Code de pagamento Honey Pay";
+
+  img.loading =
+    "eager";
+
+  img.style.width =
+    "220px";
+
+  img.style.height =
+    "220px";
+
+  img.style.maxWidth =
+    "100%";
+
+  /*
+   Serviço externo apenas para representação
+   visual do QR.
+   O conteúdo codificado é exclusivamente
+   o URL público Honey Pay.
+  */
+
+  img.src =
+    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+      value
+    )}`;
+
+  container.innerHTML =
+    "";
+
+  container.appendChild(
+    img
+  );
+}
+
+/* =========================================================
+   PAYMENT
+========================================================= */
+
+$("paymentForm")
   .addEventListener(
-    'submit',
-    async (event) => {
+    "submit",
+    async (
+      event
+    ) => {
 
       event.preventDefault();
 
       const button =
-        $('payButton');
+        $("payButton");
 
       button.disabled =
         true;
 
       button.textContent =
-        'A processar...';
+        "A processar...";
 
-      $('message')
+      $("message")
         .className =
-        'message';
+        "message";
 
-      $('message')
+      $("message")
         .textContent =
-        'A criar o pagamento seguro...';
+        "A criar pagamento seguro...";
 
       try {
 
         const response =
           await fetch(
-            `/api/public/payment-links/${token}/pay`,
+            `/api/public/payment-links/${encodeURIComponent(
+              token
+            )}/pay`,
             {
               method:
-                'POST',
+                "POST",
 
               headers: {
-                'Content-Type':
-                  'application/json'
+                "Content-Type":
+                  "application/json",
+
+                Accept:
+                  "application/json"
               },
 
               body:
                 JSON.stringify({
+
                   paymentMethod:
-                    $('paymentMethod')
+                    $("paymentMethod")
                       .value,
 
                   customerName:
-                    $('customerName')
-                      .value,
+                    $("customerName")
+                      .value
+                      .trim(),
 
                   customerEmail:
-                    $('customerEmail')
-                      .value,
+                    $("customerEmail")
+                      .value
+                      .trim(),
 
                   customerMobile:
-                    $('customerMobile')
+                    $("customerMobile")
                       .value
+                      .trim()
                 })
             }
           );
@@ -408,21 +581,31 @@ $('paymentForm')
         if (!response.ok) {
           throw new Error(
             data.error ||
-            'Não foi possível criar o pagamento.'
+            "Não foi possível criar o pagamento."
           );
         }
+
+        currentPayment =
+          data.payment;
 
         renderPayment(
           data.payment
         );
 
-      } catch (error) {
+        startPaymentStream(
+          data.payment
+            .providerPaymentId
+        );
 
-        $('message')
+      } catch (
+        error
+      ) {
+
+        $("message")
           .className =
-          'message error';
+          "message error";
 
-        $('message')
+        $("message")
           .textContent =
           error.message;
 
@@ -430,28 +613,55 @@ $('paymentForm')
           false;
 
         button.textContent =
-          'Tentar novamente';
+          "Tentar novamente";
       }
     }
   );
 
-function renderPayment(payment) {
+/* =========================================================
+   PAYMENT VIEW
+========================================================= */
 
-  const reference =
-    payment.reference;
+function renderPayment(
+  payment
+) {
+
+  const status =
+    String(
+      payment.status ||
+      "PENDING"
+    ).toUpperCase();
 
   let html = `
-    <strong>
-      Pagamento criado.
-    </strong>
+    <div class="payment-status">
 
-    <br><br>
+      <strong>
+        ${escapeHTML(
+          statusLabel(
+            status
+          )
+        )}
+      </strong>
 
-    Estado:
-    ${payment.status}
+      <br><br>
+
+      Valor:
+      <strong>
+        ${formatKz(
+          payment.amount
+        )}
+      </strong>
+
+      <br><br>
   `;
 
-  if (reference) {
+  if (
+    payment.multicaixaReference &&
+    (
+      payment.multicaixaReference.entity ||
+      payment.multicaixaReference.number
+    )
+  ) {
 
     html += `
       <div class="reference">
@@ -464,65 +674,231 @@ function renderPayment(payment) {
 
         Entidade:
         <strong>
-          ${reference.entity || ''}
+          ${escapeHTML(
+            payment
+              .multicaixaReference
+              .entity
+          )}
         </strong>
 
         <br>
 
         Número:
         <strong>
-          ${reference.number || ''}
+          ${escapeHTML(
+            payment
+              .multicaixaReference
+              .number
+          )}
         </strong>
 
-        <br><br>
-
-        Paga esta referência no
-        ATM, Internet Banking ou
-        Multicaixa Express.
       </div>
     `;
   }
 
-  if (payment.checkoutUrl) {
+  if (
+    payment.checkoutUrl
+  ) {
 
     html += `
       <br>
 
       <a
-        href="${payment.checkoutUrl}"
+        href="${escapeHTML(
+          payment.checkoutUrl
+        )}"
         target="_blank"
+        rel="noopener noreferrer"
       >
-        Continuar pagamento
+        Abrir checkout BitPay
       </a>
     `;
   }
 
   html += `
-    <br><br>
-    Não feches esta página até
-    confirmares o pagamento.
+
+      <br><br>
+
+      <span id="liveStatus">
+        A aguardar confirmação...
+      </span>
+
+    </div>
   `;
 
-  $('message')
+  $("message")
     .className =
-    'message success';
+    "message success";
 
-  $('message')
+  $("message")
     .innerHTML =
     html;
 
-  $('paymentForm')
+  $("paymentForm")
     .style.display =
-    'none';
+    "none";
+}
+
+/* =========================================================
+   REAL-TIME BITPAY
+========================================================= */
+
+function startPaymentStream(
+  providerPaymentId
+) {
+
+  if (
+    !providerPaymentId
+  ) {
+    return;
+  }
+
+  if (
+    eventSource
+  ) {
+    try {
+      eventSource.close();
+    } catch {}
+  }
+
+  const streamUrl =
+    `https://api-sandbox.bitpay.ao/v1/public/payments/${encodeURIComponent(
+      providerPaymentId
+    )}/events`;
 
   /*
-  Aqui não marcamos como pago
-  no browser.
+   Em produção, o BITPAY_BASE_URL deve ser
+   api.bitpay.ao/v1.
 
-  A confirmação verdadeira vem
-  do webhook BitPay.
+   O browser não recebe a secret key.
+   O endpoint público SSE da BitPay é usado
+   apenas para acompanhar o pagamento.
   */
+
+  try {
+
+    eventSource =
+      new EventSource(
+        streamUrl
+      );
+
+    eventSource.addEventListener(
+      "payment.succeeded",
+      (
+        event
+      ) => {
+
+        let data = {};
+
+        try {
+          data =
+            JSON.parse(
+              event.data
+            );
+        } catch {}
+
+        markPaymentSucceeded(
+          data
+        );
+      }
+    );
+
+    eventSource.addEventListener(
+      "payment.failed",
+      (
+        event
+      ) => {
+
+        let data = {};
+
+        try {
+          data =
+            JSON.parse(
+              event.data
+            );
+        } catch {}
+
+        markPaymentFailed(
+          data
+        );
+      }
+    );
+
+    eventSource.onerror =
+      () => {
+
+        /*
+         Não marcamos como pago.
+         O webhook continua sendo a fonte
+         definitiva de verdade.
+        */
+
+        const live =
+          $("liveStatus");
+
+        if (live) {
+          live.textContent =
+            "A aguardar confirmação do pagamento...";
+        }
+      };
+
+  } catch (
+    error
+  ) {
+
+    console.warn(
+      "SSE:",
+      error
+    );
+  }
 }
+
+function markPaymentSucceeded(
+  data
+) {
+
+  if (
+    eventSource
+  ) {
+    eventSource.close();
+  }
+
+  const live =
+    $("liveStatus");
+
+  if (live) {
+
+    live.innerHTML = `
+      <strong>
+        ✓ Pagamento confirmado.
+      </strong>
+    `;
+  }
+}
+
+function markPaymentFailed(
+  data
+) {
+
+  if (
+    eventSource
+  ) {
+    eventSource.close();
+  }
+
+  const live =
+    $("liveStatus");
+
+  if (live) {
+
+    live.textContent =
+      "O pagamento não foi concluído.";
+  }
+}
+
+/* =========================================================
+   START
+========================================================= */
 
 load();
 
