@@ -4706,68 +4706,7 @@ app.get(
   )
 );
 
-      const amount =
-        Number(
-          req.body.amount
-        );
-
-      if (
-        !title ||
-        !Number.isFinite(
-          amount
-        ) ||
-        amount <= 0
-      ) {
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            error:
-              'Título e valor são obrigatórios.'
-          });
-      }
-
-      const link =
-        await PaymentLink.create({
-          merchantId:
-            req.merchantId,
-
-          token:
-            generateToken(),
-
-          title,
-
-          description:
-            cleanString(
-              req.body.description,
-              2000
-            ),
-
-          amount,
-
-          currency:
-            'AOA',
-
-          active:
-            true
-        });
-
-      return res
-        .status(201)
-        .json({
-          success:
-            true,
-
-          link,
-
-          url:
-            `${APP_BASE_URL}/pay/${link.token}`
-        });
-    }
-  )
-);
+    
 /* =========================================================
    CREATE REAL HONEY PAY PAYMENT LINK
    ========================================================= */
