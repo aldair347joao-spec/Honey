@@ -2,7 +2,47 @@
 ============================================================
 HONEY PAY
 MERCHANT PANEL
-V1.0.0
+V2.0.0
+COOKIE SESSION / GOOGLE OAUTH ALIGNED
+============================================================
+
+RESPONSABILIDADES
+------------------------------------------------------------
+
+- Sessão baseada em cookie HttpOnly
+- Google OAuth
+- Compatibilidade com JWT antigo em localStorage
+- Dashboard
+- Pagamentos
+- Pedidos
+- Produtos
+- Clientes
+- Links de pagamento
+- Relatórios
+- Definições
+- Navegação SPA por hash
+- Modais
+- Logout
+- Refresh
+- Proteção contra loop de autenticação
+
+IMPORTANTE
+------------------------------------------------------------
+
+O backend deve criar o cookie:
+
+    honey_pay_token
+
+O frontend NÃO tenta ler o cookie HttpOnly.
+
+A sessão é validada através de:
+
+    GET /api/me
+
+e o browser envia automaticamente o cookie através de:
+
+    credentials: "include"
+
 ============================================================
 */
 
@@ -13,7 +53,19 @@ V1.0.0
 ========================================================= */
 
 const API_BASE = "/api";
+
+/*
+  Mantido apenas para compatibilidade com versões antigas.
+
+  A autenticação principal NÃO depende deste valor.
+  O token moderno fica num cookie HttpOnly e não pode/deve
+  ser lido pelo JavaScript.
+*/
 const TOKEN_KEY = "honey_pay_token";
+
+/* =========================================================
+   STATE
+========================================================= */
 
 const state = {
   merchant: null,
@@ -24,8 +76,14 @@ const state = {
   customers: [],
   links: [],
   currentRoute: "dashboard",
-  loading: false
+  loading: false,
+  authenticated: false,
+  booted: false
 };
+
+/* =========================================================
+   ROUTES
+========================================================= */
 
 const routeNames = {
   dashboard: ["Workspace", "Dashboard"],
@@ -39,10 +97,16 @@ const routeNames = {
 };
 
 /* =========================================================
-   DOM
+   DOM HELPERS
 ========================================================= */
 
-const $ = (selector) => document.querySelector(selector);
+const $ = (selector) => {
+  try {
+    return document.querySelector(selector);
+  } catch {
+    return null;
+  }
+};
 
 const pageContent = $("#pageContent");
 const app = $("#app");
@@ -55,44 +119,144 @@ const toastContainer = $("#toastContainer");
    AUTH
 ========================================================= */
 
-function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+/*
+  IMPORTANTE:
+
+  Não usamos mais:
+
+      localStorage.getItem("honey_pay_token")
+
+  como requisito para abrir o painel.
+
+  O backend V3.1.0 utiliza cookie HttpOnly.
+
+  JavaScript não consegue ler esse cookie e isso é esperado.
+
+  Portanto:
+
+      browser -> cookie -> /api/me -> sessão válida
+*/
+
+function getLegacyToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
+/*
+  Compatibilidade com versões anteriores.
+
+  Não removemos automaticamente o token antigo.
+  Se ele existir, pode ser enviado como Authorization.
+
+  O cookie continua sendo o método principal.
+*/
 function clearSession() {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("honey_token");
+  } catch (error) {
+    console.warn(
+      "Não foi possível limpar sessão local:",
+      error
+    );
+  }
 
-  /*
-   Compatibilidade com versões anteriores.
-  */
-  localStorage.removeItem("honey_token");
+  state.authenticated = false;
+  state.merchant = null;
 }
+
+/*
+  Redireciona apenas quando temos certeza de que a sessão
+  não é válida.
+
+  Evitamos redirects repetidos.
+*/
+let redirectingToLogin = false;
 
 function redirectLogin() {
+  if (redirectingToLogin) return;
+
+  redirectingToLogin = true;
+
   clearSession();
-  window.location.href = "/login";
+
+  if (window.location.pathname === "/login") {
+    return;
+  }
+
+  window.location.replace("/login");
 }
 
+/* =========================================================
+   API REQUEST
+========================================================= */
+
 async function apiRequest(path, options = {}) {
-  const token = getToken();
+  const legacyToken = getLegacyToken();
 
   const headers = {
     Accept: "application/json",
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(options.body
+      ? {
+          "Content-Type": "application/json"
+        }
+      : {}),
     ...(options.headers || {})
   };
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+  /*
+    Compatibilidade com versões antigas.
+
+    Se existir um JWT antigo em localStorage, enviamos também.
+
+    O cookie HttpOnly continua sendo enviado pelo browser.
+  */
+  if (legacyToken) {
+    headers.Authorization = `Bearer ${legacyToken}`;
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers
-  });
+  let response;
 
+  try {
+    response = await fetch(
+      `${API_BASE}${path}`,
+      {
+        ...options,
+
+        /*
+          ESSENCIAL PARA O COOKIE HttpOnly.
+
+          Sem isto, o browser pode não enviar
+          honey_pay_token para /api/me.
+        */
+        credentials: "include",
+
+        headers
+      }
+    );
+  } catch (error) {
+    console.error(
+      `Erro de rede em ${API_BASE}${path}:`,
+      error
+    );
+
+    throw new Error(
+      "Não foi possível contactar o servidor. Verifique a ligação."
+    );
+  }
+
+  /*
+    401 = sessão realmente inválida.
+
+    Este é o único status que deve provocar logout
+    automático.
+  */
   if (response.status === 401) {
     redirectLogin();
+
     throw new Error("Sessão expirada.");
   }
 
@@ -104,7 +268,9 @@ async function apiRequest(path, options = {}) {
     try {
       data = JSON.parse(text);
     } catch {
-      data = { message: text };
+      data = {
+        message: text
+      };
     }
   }
 
@@ -125,7 +291,12 @@ async function apiRequest(path, options = {}) {
 ========================================================= */
 
 function escapeHTML(value) {
-  if (value === null || value === undefined) return "";
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
 
   return String(value)
     .replaceAll("&", "&amp;")
@@ -138,13 +309,20 @@ function escapeHTML(value) {
 function formatKz(value) {
   const amount = Number(value || 0);
 
-  return new Intl.NumberFormat("pt-PT", {
-    maximumFractionDigits: 0
-  }).format(amount) + " Kz";
+  return (
+    new Intl.NumberFormat("pt-PT", {
+      maximumFractionDigits: 0
+    }).format(amount) +
+    " Kz"
+  );
 }
 
 function formatNumber(value) {
-  return new Intl.NumberFormat("pt-PT").format(Number(value || 0));
+  return new Intl.NumberFormat(
+    "pt-PT"
+  ).format(
+    Number(value || 0)
+  );
 }
 
 function formatDate(value) {
@@ -152,15 +330,22 @@ function formatDate(value) {
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("pt-PT", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "pt-PT",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  ).format(date);
 }
 
 function formatDateTime(value) {
@@ -168,28 +353,43 @@ function formatDateTime(value) {
 
   const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat("pt-PT", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
+  return new Intl.DateTimeFormat(
+    "pt-PT",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  ).format(date);
 }
 
 function initials(name) {
-  const value = String(name || "Honey Pay").trim();
+  const value =
+    String(
+      name || "Honey Pay"
+    ).trim();
 
-  if (!value) return "HP";
+  if (!value) {
+    return "HP";
+  }
 
-  const parts = value.split(/\s+/);
+  const parts =
+    value.split(/\s+/);
 
   if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
+    return parts[0]
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   return (
@@ -204,16 +404,26 @@ function getName(obj) {
     obj?.fullName ||
     obj?.customerName ||
     obj?.merchantName ||
+    obj?.businessName ||
     obj?.email ||
     "Sem nome"
   );
 }
 
-function normalizeArray(data, keys = []) {
-  if (Array.isArray(data)) return data;
+function normalizeArray(
+  data,
+  keys = []
+) {
+  if (Array.isArray(data)) {
+    return data;
+  }
 
   for (const key of keys) {
-    if (Array.isArray(data?.[key])) {
+    if (
+      Array.isArray(
+        data?.[key]
+      )
+    ) {
       return data[key];
     }
   }
@@ -237,39 +447,66 @@ function statusLabel(status) {
     UNKNOWN: "Desconhecido",
 
     REFUNDED: "Reembolsado",
-    PARTIALLY_REFUNDED: "Reembolso parcial",
+    PARTIALLY_REFUNDED:
+      "Reembolso parcial",
 
     ACTIVE: "Ativo",
     INACTIVE: "Inativo"
   };
 
-  return map[String(status || "").toUpperCase()] ||
-    String(status || "Desconhecido");
+  return (
+    map[
+      String(status || "")
+        .toUpperCase()
+    ] ||
+    String(
+      status ||
+      "Desconhecido"
+    )
+  );
 }
 
 function statusClass(status) {
-  const normalized = String(status || "").toUpperCase();
+  const normalized =
+    String(status || "")
+      .toUpperCase();
 
   if (
-    ["SUCCEEDED", "SUCCESS", "PAID", "ACTIVE"].includes(normalized)
+    [
+      "SUCCEEDED",
+      "SUCCESS",
+      "PAID",
+      "ACTIVE"
+    ].includes(normalized)
   ) {
     return "success";
   }
 
   if (
-    ["PENDING", "PROCESSING"].includes(normalized)
+    [
+      "PENDING",
+      "PROCESSING"
+    ].includes(normalized)
   ) {
     return "pending";
   }
 
   if (
-    ["FAILED", "EXPIRED", "CANCELLED", "INACTIVE"].includes(normalized)
+    [
+      "FAILED",
+      "EXPIRED",
+      "CANCELLED",
+      "INACTIVE"
+    ].includes(normalized)
   ) {
     return "failed";
   }
 
   if (
-    ["REFUNDED", "PARTIALLY_REFUNDED"].includes(normalized)
+    [
+      "REFUNDED",
+      "PARTIALLY_REFUNDED"
+    ].includes(normalized)
   ) {
     return "refunded";
   }
@@ -277,17 +514,47 @@ function statusClass(status) {
   return "unknown";
 }
 
-function showToast(message, type = "success") {
-  const toast = document.createElement("div");
+/* =========================================================
+   TOAST
+========================================================= */
 
-  toast.className = `toast ${type}`;
+function showToast(
+  message,
+  type = "success"
+) {
+  if (!toastContainer) {
+    console[type === "error" ? "error" : "log"](
+      message
+    );
+
+    return;
+  }
+
+  const toast =
+    document.createElement("div");
+
+  toast.className =
+    `toast ${type}`;
 
   toast.innerHTML = `
-    <strong>${type === "error" ? "!" : type === "warning" ? "!" : "✓"}</strong>
-    <span>${escapeHTML(message)}</span>
+    <strong>
+      ${
+        type === "error"
+          ? "!"
+          : type === "warning"
+            ? "!"
+            : "✓"
+      }
+    </strong>
+
+    <span>
+      ${escapeHTML(message)}
+    </span>
   `;
 
-  toastContainer.appendChild(toast);
+  toastContainer.appendChild(
+    toast
+  );
 
   setTimeout(() => {
     toast.remove();
@@ -299,22 +566,48 @@ function showToast(message, type = "success") {
 ========================================================= */
 
 function openModal(content) {
+  if (!modal || !modalOverlay) {
+    return;
+  }
+
   modal.innerHTML = content;
-  modalOverlay.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
+
+  modalOverlay.classList.remove(
+    "hidden"
+  );
+
+  document.body.style.overflow =
+    "hidden";
 }
 
 function closeModal() {
-  modalOverlay.classList.add("hidden");
+  if (!modal || !modalOverlay) {
+    return;
+  }
+
+  modalOverlay.classList.add(
+    "hidden"
+  );
+
   modal.innerHTML = "";
-  document.body.style.overflow = "";
+
+  document.body.style.overflow =
+    "";
 }
 
-modalOverlay.addEventListener("click", (event) => {
-  if (event.target === modalOverlay) {
-    closeModal();
-  }
-});
+if (modalOverlay) {
+  modalOverlay.addEventListener(
+    "click",
+    (event) => {
+      if (
+        event.target ===
+        modalOverlay
+      ) {
+        closeModal();
+      }
+    }
+  );
+}
 
 /* =========================================================
    NAVIGATION
@@ -327,17 +620,36 @@ function setRoute(route) {
 
   state.currentRoute = route;
 
-  const [parent, title] = routeNames[route];
+  const [
+    parent,
+    title
+  ] = routeNames[route];
 
-  $("#breadcrumbParent").textContent = parent;
-  $("#pageTitle").textContent = title;
+  const breadcrumbParent =
+    $("#breadcrumbParent");
 
-  document.querySelectorAll(".nav-item").forEach((item) => {
-    item.classList.toggle(
-      "active",
-      item.dataset.route === route
-    );
-  });
+  const pageTitle =
+    $("#pageTitle");
+
+  if (breadcrumbParent) {
+    breadcrumbParent.textContent =
+      parent;
+  }
+
+  if (pageTitle) {
+    pageTitle.textContent =
+      title;
+  }
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach((item) => {
+      item.classList.toggle(
+        "active",
+        item.dataset.route ===
+          route
+      );
+    });
 
   closeSidebar();
 
@@ -345,57 +657,113 @@ function setRoute(route) {
 }
 
 function navigate() {
-  const hash = window.location.hash.replace("#", "").trim();
+  const hash =
+    window.location.hash
+      .replace("#", "")
+      .trim();
 
-  setRoute(hash || "dashboard");
+  setRoute(
+    hash || "dashboard"
+  );
 }
 
-window.addEventListener("hashchange", navigate);
+window.addEventListener(
+  "hashchange",
+  navigate
+);
 
 /* =========================================================
    SIDEBAR
 ========================================================= */
 
 function openSidebar() {
-  $("#sidebar").classList.add("open");
-  $("#sidebarOverlay").classList.add("active");
+  $("#sidebar")?.classList.add(
+    "open"
+  );
+
+  $("#sidebarOverlay")?.classList.add(
+    "active"
+  );
 }
 
 function closeSidebar() {
-  $("#sidebar").classList.remove("open");
-  $("#sidebarOverlay").classList.remove("active");
+  $("#sidebar")?.classList.remove(
+    "open"
+  );
+
+  $("#sidebarOverlay")?.classList.remove(
+    "active"
+  );
 }
 
-$("#menuButton").addEventListener("click", openSidebar);
-$("#sidebarClose").addEventListener("click", closeSidebar);
-$("#sidebarOverlay").addEventListener("click", closeSidebar);
+$("#menuButton")?.addEventListener(
+  "click",
+  openSidebar
+);
+
+$("#sidebarClose")?.addEventListener(
+  "click",
+  closeSidebar
+);
+
+$("#sidebarOverlay")?.addEventListener(
+  "click",
+  closeSidebar
+);
 
 /* =========================================================
-   MERCHANT
+   MERCHANT / SESSION
 ========================================================= */
 
+/*
+  ESTA FUNÇÃO É AGORA A PRINCIPAL VALIDAÇÃO DE SESSÃO.
+
+  O backend responde algo semelhante a:
+
+      {
+        merchant: {...}
+      }
+
+  ou:
+
+      {
+        user: {...}
+      }
+
+  ou diretamente:
+
+      {...}
+*/
 async function loadMerchant() {
-  try {
-    const data = await apiRequest("/me");
+  const data =
+    await apiRequest("/me");
 
-    state.merchant =
-      data?.merchant ||
-      data?.user ||
-      data;
+  state.merchant =
+    data?.merchant ||
+    data?.user ||
+    data;
 
-    updateMerchantUI();
-  } catch (error) {
-    console.error("Erro ao carregar comerciante:", error);
-
-    /*
-      Algumas versões do backend podem não ter /me.
-      O painel continua carregando as páginas públicas.
-    */
+  if (
+    !state.merchant ||
+    typeof state.merchant !==
+      "object"
+  ) {
+    throw new Error(
+      "Sessão inválida."
+    );
   }
+
+  state.authenticated =
+    true;
+
+  updateMerchantUI();
+
+  return state.merchant;
 }
 
 function updateMerchantUI() {
-  const merchant = state.merchant || {};
+  const merchant =
+    state.merchant || {};
 
   const name =
     merchant.businessName ||
@@ -409,15 +777,48 @@ function updateMerchantUI() {
     merchant.user?.email ||
     "Conta Honey Pay";
 
-  const initialsValue = initials(name);
+  const initialsValue =
+    initials(name);
 
-  $("#merchantName").textContent = name;
-  $("#merchantEmail").textContent = email;
+  const merchantName =
+    $("#merchantName");
 
-  $("#topMerchantName").textContent = name;
+  const merchantEmail =
+    $("#merchantEmail");
 
-  $("#merchantAvatar").textContent = initialsValue;
-  $("#topAvatar").textContent = initialsValue;
+  const topMerchantName =
+    $("#topMerchantName");
+
+  const merchantAvatar =
+    $("#merchantAvatar");
+
+  const topAvatar =
+    $("#topAvatar");
+
+  if (merchantName) {
+    merchantName.textContent =
+      name;
+  }
+
+  if (merchantEmail) {
+    merchantEmail.textContent =
+      email;
+  }
+
+  if (topMerchantName) {
+    topMerchantName.textContent =
+      name;
+  }
+
+  if (merchantAvatar) {
+    merchantAvatar.textContent =
+      initialsValue;
+  }
+
+  if (topAvatar) {
+    topAvatar.textContent =
+      initialsValue;
+  }
 }
 
 /* =========================================================
@@ -426,18 +827,21 @@ function updateMerchantUI() {
 
 async function loadDashboard() {
   try {
-    const data = await apiRequest("/dashboard");
+    const data =
+      await apiRequest(
+        "/dashboard"
+      );
 
-    state.dashboard = data?.dashboard || data;
+    state.dashboard =
+      data?.dashboard ||
+      data;
 
     return state.dashboard;
   } catch (error) {
-    /*
-      Se /dashboard ainda não existir,
-      calculamos a informação a partir dos recursos existentes.
-    */
-
-    console.warn("Dashboard endpoint indisponível:", error.message);
+    console.warn(
+      "Dashboard endpoint indisponível:",
+      error.message
+    );
 
     return null;
   }
@@ -445,18 +849,29 @@ async function loadDashboard() {
 
 async function loadPayments() {
   try {
-    const data = await apiRequest("/payments");
+    const data =
+      await apiRequest(
+        "/payments"
+      );
 
-    state.payments = normalizeArray(
-      data,
-      ["payments", "data", "results"]
-    );
+    state.payments =
+      normalizeArray(
+        data,
+        [
+          "payments",
+          "data",
+          "results"
+        ]
+      );
 
     updatePendingBadge();
 
     return state.payments;
   } catch (error) {
-    console.warn("Pagamentos:", error.message);
+    console.warn(
+      "Pagamentos:",
+      error.message
+    );
 
     state.payments = [];
 
@@ -466,16 +881,27 @@ async function loadPayments() {
 
 async function loadOrders() {
   try {
-    const data = await apiRequest("/orders");
+    const data =
+      await apiRequest(
+        "/orders"
+      );
 
-    state.orders = normalizeArray(
-      data,
-      ["orders", "data", "results"]
-    );
+    state.orders =
+      normalizeArray(
+        data,
+        [
+          "orders",
+          "data",
+          "results"
+        ]
+      );
 
     return state.orders;
   } catch (error) {
-    console.warn("Pedidos:", error.message);
+    console.warn(
+      "Pedidos:",
+      error.message
+    );
 
     state.orders = [];
 
@@ -485,16 +911,27 @@ async function loadOrders() {
 
 async function loadProducts() {
   try {
-    const data = await apiRequest("/products");
+    const data =
+      await apiRequest(
+        "/products"
+      );
 
-    state.products = normalizeArray(
-      data,
-      ["products", "data", "results"]
-    );
+    state.products =
+      normalizeArray(
+        data,
+        [
+          "products",
+          "data",
+          "results"
+        ]
+      );
 
     return state.products;
   } catch (error) {
-    console.warn("Produtos:", error.message);
+    console.warn(
+      "Produtos:",
+      error.message
+    );
 
     state.products = [];
 
@@ -504,16 +941,27 @@ async function loadProducts() {
 
 async function loadCustomers() {
   try {
-    const data = await apiRequest("/customers");
+    const data =
+      await apiRequest(
+        "/customers"
+      );
 
-    state.customers = normalizeArray(
-      data,
-      ["customers", "data", "results"]
-    );
+    state.customers =
+      normalizeArray(
+        data,
+        [
+          "customers",
+          "data",
+          "results"
+        ]
+      );
 
     return state.customers;
   } catch (error) {
-    console.warn("Clientes:", error.message);
+    console.warn(
+      "Clientes:",
+      error.message
+    );
 
     state.customers = [];
 
@@ -523,16 +971,28 @@ async function loadCustomers() {
 
 async function loadLinks() {
   try {
-    const data = await apiRequest("/payment-links");
+    const data =
+      await apiRequest(
+        "/payment-links"
+      );
 
-    state.links = normalizeArray(
-      data,
-      ["links", "paymentLinks", "data", "results"]
-    );
+    state.links =
+      normalizeArray(
+        data,
+        [
+          "links",
+          "paymentLinks",
+          "data",
+          "results"
+        ]
+      );
 
     return state.links;
   } catch (error) {
-    console.warn("Links:", error.message);
+    console.warn(
+      "Links:",
+      error.message
+    );
 
     state.links = [];
 
@@ -545,67 +1005,98 @@ async function loadLinks() {
 ========================================================= */
 
 function successfulPayments() {
-  return state.payments.filter((payment) => {
-    const status = String(payment.status || "").toUpperCase();
+  return state.payments.filter(
+    (payment) => {
+      const status =
+        String(
+          payment.status || ""
+        ).toUpperCase();
 
-    return [
-      "SUCCEEDED",
-      "SUCCESS",
-      "PAID"
-    ].includes(status);
-  });
+      return [
+        "SUCCEEDED",
+        "SUCCESS",
+        "PAID"
+      ].includes(status);
+    }
+  );
 }
 
 function pendingPayments() {
-  return state.payments.filter((payment) => {
-    const status = String(payment.status || "").toUpperCase();
+  return state.payments.filter(
+    (payment) => {
+      const status =
+        String(
+          payment.status || ""
+        ).toUpperCase();
 
-    return [
-      "PENDING",
-      "PROCESSING",
-      "UNKNOWN"
-    ].includes(status);
-  });
+      return [
+        "PENDING",
+        "PROCESSING",
+        "UNKNOWN"
+      ].includes(status);
+    }
+  );
 }
 
 function calculatedRevenue() {
-  return successfulPayments().reduce(
-    (total, payment) =>
-      total +
-      Number(
-        payment.amount ||
-        payment.total ||
-        0
-      ),
-    0
-  );
+  return successfulPayments()
+    .reduce(
+      (
+        total,
+        payment
+      ) =>
+        total +
+        Number(
+          payment.amount ||
+          payment.total ||
+          0
+        ),
+      0
+    );
 }
 
 function calculatedFees() {
-  return successfulPayments().reduce(
-    (total, payment) =>
-      total +
-      Number(
-        payment.feeAmount ||
-        payment.honeyPayFee ||
-        0
-      ),
-    0
-  );
+  return successfulPayments()
+    .reduce(
+      (
+        total,
+        payment
+      ) =>
+        total +
+        Number(
+          payment.feeAmount ||
+          payment.honeyPayFee ||
+          0
+        ),
+      0
+    );
 }
 
 function updatePendingBadge() {
-  const count = pendingPayments().length;
+  const badge =
+    $("#pendingBadge");
 
-  const badge = $("#pendingBadge");
+  if (!badge) return;
+
+  const count =
+    pendingPayments().length;
 
   if (!count) {
-    badge.classList.add("hidden");
+    badge.classList.add(
+      "hidden"
+    );
+
     return;
   }
 
-  badge.classList.remove("hidden");
-  badge.textContent = count > 99 ? "99+" : count;
+  badge.classList.remove(
+    "hidden"
+  );
+
+  badge.textContent =
+    count > 99
+      ? "99+"
+      : count;
 }
 
 /* =========================================================
@@ -613,24 +1104,52 @@ function updatePendingBadge() {
 ========================================================= */
 
 async function renderDashboard() {
+  if (!pageContent) {
+    throw new Error(
+      "Elemento #pageContent não encontrado."
+    );
+  }
+
   pageContent.innerHTML = `
     <div class="welcome">
       <div>
-        <h2>Olá, ${escapeHTML(
-          getName(state.merchant) === "Sem nome"
-            ? "bem-vindo"
-            : getName(state.merchant).split(" ")[0]
-        )} 👋</h2>
+        <h2>
+          Olá,
+          ${escapeHTML(
+            getName(
+              state.merchant
+            ) === "Sem nome"
+              ? "bem-vindo"
+              : getName(
+                  state.merchant
+                ).split(" ")[0]
+          )}
+          👋
+        </h2>
 
         <p>
           Aqui está o resumo do seu negócio.
         </p>
       </div>
 
-      <select id="dashboardPeriod" class="date-control">
-        <option value="7">Últimos 7 dias</option>
-        <option value="30" selected>Últimos 30 dias</option>
-        <option value="90">Últimos 90 dias</option>
+      <select
+        id="dashboardPeriod"
+        class="date-control"
+      >
+        <option value="7">
+          Últimos 7 dias
+        </option>
+
+        <option
+          value="30"
+          selected
+        >
+          Últimos 30 dias
+        </option>
+
+        <option value="90">
+          Últimos 90 dias
+        </option>
       </select>
     </div>
 
@@ -638,65 +1157,105 @@ async function renderDashboard() {
 
       <div class="stat-card">
         <div class="stat-head">
-          <span class="stat-label">Volume recebido</span>
-          <span class="stat-icon">Kz</span>
+          <span class="stat-label">
+            Volume recebido
+          </span>
+
+          <span class="stat-icon">
+            Kz
+          </span>
         </div>
 
-        <div id="statRevenue" class="stat-value">
-          — 
+        <div
+          id="statRevenue"
+          class="stat-value"
+        >
+          —
         </div>
 
         <div class="stat-footer trend-up">
           <span>↑</span>
-          <span>Pagamentos confirmados</span>
+          <span>
+            Pagamentos confirmados
+          </span>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-head">
-          <span class="stat-label">Transações</span>
-          <span class="stat-icon">↔</span>
+          <span class="stat-label">
+            Transações
+          </span>
+
+          <span class="stat-icon">
+            ↔
+          </span>
         </div>
 
-        <div id="statTransactions" class="stat-value">
+        <div
+          id="statTransactions"
+          class="stat-value"
+        >
           —
         </div>
 
         <div class="stat-footer trend-neutral">
           <span>•</span>
-          <span>Total registado</span>
+          <span>
+            Total registado
+          </span>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-head">
-          <span class="stat-label">Taxas Honey Pay</span>
-          <span class="stat-icon">%</span>
+          <span class="stat-label">
+            Taxas Honey Pay
+          </span>
+
+          <span class="stat-icon">
+            %
+          </span>
         </div>
 
-        <div id="statFees" class="stat-value">
+        <div
+          id="statFees"
+          class="stat-value"
+        >
           —
         </div>
 
         <div class="stat-footer trend-neutral">
           <span>•</span>
-          <span>0,80% por pagamento</span>
+          <span>
+            0,80% por pagamento
+          </span>
         </div>
       </div>
 
       <div class="stat-card">
         <div class="stat-head">
-          <span class="stat-label">Pendentes</span>
-          <span class="stat-icon">◷</span>
+          <span class="stat-label">
+            Pendentes
+          </span>
+
+          <span class="stat-icon">
+            ◷
+          </span>
         </div>
 
-        <div id="statPending" class="stat-value">
+        <div
+          id="statPending"
+          class="stat-value"
+        >
           —
         </div>
 
         <div class="stat-footer trend-neutral">
           <span>•</span>
-          <span>Aguardam confirmação</span>
+          <span>
+            Aguardam confirmação
+          </span>
         </div>
       </div>
 
@@ -705,60 +1264,118 @@ async function renderDashboard() {
     <div class="dashboard-grid">
 
       <div class="panel">
+
         <div class="panel-header">
+
           <div>
-            <h3>Volume de vendas</h3>
-            <span>Desempenho dos últimos 7 períodos</span>
+            <h3>
+              Volume de vendas
+            </h3>
+
+            <span>
+              Desempenho dos últimos 7 períodos
+            </span>
           </div>
 
-          <a href="#reports" class="panel-link">
+          <a
+            href="#reports"
+            class="panel-link"
+          >
             Ver relatório →
           </a>
+
         </div>
 
         <div class="chart-wrap">
-          <div id="salesChart" class="chart"></div>
+          <div
+            id="salesChart"
+            class="chart"
+          ></div>
         </div>
+
       </div>
 
       <div class="panel">
 
         <div class="panel-header">
+
           <div>
-            <h3>Ações rápidas</h3>
-            <span>Operações frequentes</span>
+            <h3>
+              Ações rápidas
+            </h3>
+
+            <span>
+              Operações frequentes
+            </span>
           </div>
+
         </div>
 
         <div class="quick-actions">
 
-          <button class="quick-action" data-action="create-order">
-            <span class="quick-action-icon">＋</span>
+          <button
+            class="quick-action"
+            data-action="create-order"
+          >
+            <span class="quick-action-icon">
+              ＋
+            </span>
+
             Novo pedido
           </button>
 
-          <button class="quick-action" data-action="create-product">
-            <span class="quick-action-icon">◇</span>
+          <button
+            class="quick-action"
+            data-action="create-product"
+          >
+            <span class="quick-action-icon">
+              ◇
+            </span>
+
             Produto
           </button>
 
-          <button class="quick-action" data-action="create-link">
-            <span class="quick-action-icon">↗</span>
+          <button
+            class="quick-action"
+            data-action="create-link"
+          >
+            <span class="quick-action-icon">
+              ↗
+            </span>
+
             Criar link
           </button>
 
-          <button class="quick-action" data-action="payments">
-            <span class="quick-action-icon">↔</span>
+          <button
+            class="quick-action"
+            data-action="payments"
+          >
+            <span class="quick-action-icon">
+              ↔
+            </span>
+
             Pagamentos
           </button>
 
-          <button class="quick-action" data-action="customers">
-            <span class="quick-action-icon">♙</span>
+          <button
+            class="quick-action"
+            data-action="customers"
+          >
+            <span class="quick-action-icon">
+              ♙
+            </span>
+
             Clientes
           </button>
 
-          <button class="quick-action" data-action="reports">
-            <span class="quick-action-icon">▥</span>
+          <button
+            class="quick-action"
+            data-action="reports"
+          >
+            <span class="quick-action-icon">
+              ▥
+            </span>
+
             Relatórios
           </button>
 
@@ -771,41 +1388,80 @@ async function renderDashboard() {
     <div class="panel table-panel">
 
       <div class="panel-header">
+
         <div>
-          <h3>Transações recentes</h3>
-          <span>Últimos pagamentos recebidos</span>
+          <h3>
+            Transações recentes
+          </h3>
+
+          <span>
+            Últimos pagamentos recebidos
+          </span>
         </div>
 
-        <a href="#payments" class="panel-link">
+        <a
+          href="#payments"
+          class="panel-link"
+        >
           Ver todas →
         </a>
+
       </div>
 
       <div id="recentPayments">
+
         <div class="empty-state">
-          <div class="empty-icon">↔</div>
-          <h3>A carregar transações</h3>
-          <p>Estamos a obter os seus pagamentos.</p>
+
+          <div class="empty-icon">
+            ↔
+          </div>
+
+          <h3>
+            A carregar transações
+          </h3>
+
+          <p>
+            Estamos a obter os seus pagamentos.
+          </p>
+
         </div>
+
       </div>
 
     </div>
   `;
 
-  document.querySelectorAll("[data-action]").forEach((button) => {
-    button.addEventListener("click", handleQuickAction);
-  });
+  document
+    .querySelectorAll(
+      "[data-action]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        handleQuickAction
+      );
+    });
 
+  /*
+    O dashboard não depende da API /dashboard
+    para abrir.
+
+    Se ela não existir, usamos os pagamentos.
+  */
   await loadDashboard();
+
   await loadPayments();
 
   fillDashboardStats();
+
   renderSalesChart();
+
   renderRecentPayments();
 }
 
 function fillDashboardStats() {
-  const dashboard = state.dashboard || {};
+  const dashboard =
+    state.dashboard || {};
 
   const revenue =
     dashboard.revenue ??
@@ -828,52 +1484,135 @@ function fillDashboardStats() {
     dashboard.pendingPayments ??
     pendingPayments().length;
 
-  $("#statRevenue").textContent = formatKz(revenue);
-  $("#statTransactions").textContent = formatNumber(transactions);
-  $("#statFees").textContent = formatKz(fees);
-  $("#statPending").textContent = formatNumber(pending);
+  const statRevenue =
+    $("#statRevenue");
+
+  const statTransactions =
+    $("#statTransactions");
+
+  const statFees =
+    $("#statFees");
+
+  const statPending =
+    $("#statPending");
+
+  if (statRevenue) {
+    statRevenue.textContent =
+      formatKz(revenue);
+  }
+
+  if (statTransactions) {
+    statTransactions.textContent =
+      formatNumber(
+        transactions
+      );
+  }
+
+  if (statFees) {
+    statFees.textContent =
+      formatKz(fees);
+  }
+
+  if (statPending) {
+    statPending.textContent =
+      formatNumber(pending);
+  }
 }
 
+/* =========================================================
+   CHART
+========================================================= */
+
 function renderSalesChart() {
-  const container = $("#salesChart");
+  const container =
+    $("#salesChart");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
-  const values = getChartValues();
+  const values =
+    getChartValues();
 
-  const max = Math.max(...values, 1);
+  const safeValues =
+    values.length
+      ? values
+      : [0, 0, 0, 0, 0, 0, 0];
+
+  const max =
+    Math.max(
+      ...safeValues,
+      1
+    );
 
   const width = 700;
   const height = 220;
 
-  const points = values.map((value, index) => {
-    const x =
-      (index / (values.length - 1)) *
-      (width - 30) +
-      15;
+  const points =
+    safeValues.map(
+      (
+        value,
+        index
+      ) => {
+        const x =
+          safeValues.length === 1
+            ? width / 2
+            : (
+                index /
+                (safeValues.length - 1)
+              ) *
+                (width - 30) +
+              15;
 
-    const y =
-      height -
-      20 -
-      (value / max) * (height - 50);
+        const y =
+          height -
+          20 -
+          (
+            value /
+            max
+          ) *
+            (height - 50);
 
-    return {
-      x,
-      y,
-      value
-    };
-  });
+        return {
+          x,
+          y,
+          value
+        };
+      }
+    );
 
-  const line = points
-    .map((point, index) =>
-      `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`
-    )
-    .join(" ");
+  const line =
+    points
+      .map(
+        (
+          point,
+          index
+        ) =>
+          `${
+            index === 0
+              ? "M"
+              : "L"
+          } ${point.x} ${point.y}`
+      )
+      .join(" ");
 
   const area =
-    `M ${points[0].x} ${height - 20} ` +
-    points.map((point) => `L ${point.x} ${point.y}`).join(" ") +
-    ` L ${points[points.length - 1].x} ${height - 20} Z`;
+    `M ${points[0].x} ${
+      height - 20
+    } ` +
+    points
+      .map(
+        (point) =>
+          `L ${point.x} ${point.y}`
+      )
+      .join(" ") +
+    ` L ${
+      points[
+        points.length - 1
+      ].x
+    } ${
+      height - 20
+    } Z`;
 
   container.innerHTML = `
     <svg
@@ -882,34 +1621,60 @@ function renderSalesChart() {
       preserveAspectRatio="none"
     >
 
-      <line class="chart-grid-line"
-        x1="0" y1="35"
-        x2="${width}" y2="35"></line>
+      <line
+        class="chart-grid-line"
+        x1="0"
+        y1="35"
+        x2="${width}"
+        y2="35"
+      ></line>
 
-      <line class="chart-grid-line"
-        x1="0" y1="90"
-        x2="${width}" y2="90"></line>
+      <line
+        class="chart-grid-line"
+        x1="0"
+        y1="90"
+        x2="${width}"
+        y2="90"
+      ></line>
 
-      <line class="chart-grid-line"
-        x1="0" y1="145"
-        x2="${width}" y2="145"></line>
+      <line
+        class="chart-grid-line"
+        x1="0"
+        y1="145"
+        x2="${width}"
+        y2="145"
+      ></line>
 
-      <line class="chart-grid-line"
-        x1="0" y1="${height - 20}"
-        x2="${width}" y2="${height - 20}"></line>
+      <line
+        class="chart-grid-line"
+        x1="0"
+        y1="${height - 20}"
+        x2="${width}"
+        y2="${height - 20}"
+      ></line>
 
-      <path class="chart-area" d="${area}"></path>
+      <path
+        class="chart-area"
+        d="${area}"
+      ></path>
 
-      <path class="chart-line" d="${line}"></path>
+      <path
+        class="chart-line"
+        d="${line}"
+      ></path>
 
-      ${points.map(point => `
-        <circle
-          class="chart-point"
-          cx="${point.x}"
-          cy="${point.y}"
-          r="4"
-        ></circle>
-      `).join("")}
+      ${points
+        .map(
+          (point) => `
+            <circle
+              class="chart-point"
+              cx="${point.x}"
+              cy="${point.y}"
+              r="4"
+            ></circle>
+          `
+        )
+        .join("")}
 
     </svg>
 
@@ -926,14 +1691,17 @@ function renderSalesChart() {
 }
 
 function getChartValues() {
-  const dashboard = state.dashboard;
+  const dashboard =
+    state.dashboard;
 
   if (
     dashboard?.chart &&
-    Array.isArray(dashboard.chart)
+    Array.isArray(
+      dashboard.chart
+    )
   ) {
     return dashboard.chart.map(
-      item =>
+      (item) =>
         Number(
           item.amount ??
           item.value ??
@@ -942,78 +1710,115 @@ function getChartValues() {
     );
   }
 
-  /*
-    Quando o backend não envia série histórica,
-    mostramos os últimos 7 dias calculados
-    a partir dos pagamentos reais disponíveis.
-  */
+  const days =
+    Array.from(
+      {
+        length: 7
+      },
+      (_, index) => {
+        const date =
+          new Date();
 
-  const days = Array.from(
-    { length: 7 },
-    (_, index) => {
-      const date = new Date();
-
-      date.setHours(0, 0, 0, 0);
-
-      date.setDate(
-        date.getDate() - (6 - index)
-      );
-
-      return date;
-    }
-  );
-
-  return days.map((day) => {
-
-    const next = new Date(day);
-
-    next.setDate(next.getDate() + 1);
-
-    return successfulPayments()
-      .filter(payment => {
-        const date = new Date(
-          payment.createdAt ||
-          payment.paidAt ||
-          payment.updatedAt
+        date.setHours(
+          0,
+          0,
+          0,
+          0
         );
 
-        return date >= day && date < next;
-      })
-      .reduce(
-        (sum, payment) =>
-          sum +
-          Number(
-            payment.amount ||
-            payment.total ||
-            0
-          ),
-        0
+        date.setDate(
+          date.getDate() -
+            (6 - index)
+        );
+
+        return date;
+      }
+    );
+
+  return days.map(
+    (day) => {
+      const next =
+        new Date(day);
+
+      next.setDate(
+        next.getDate() + 1
       );
-  });
+
+      return successfulPayments()
+        .filter(
+          (payment) => {
+            const date =
+              new Date(
+                payment.createdAt ||
+                payment.paidAt ||
+                payment.updatedAt
+              );
+
+            return (
+              date >= day &&
+              date < next
+            );
+          }
+        )
+        .reduce(
+          (
+            sum,
+            payment
+          ) =>
+            sum +
+            Number(
+              payment.amount ||
+              payment.total ||
+              0
+            ),
+          0
+        );
+    }
+  );
 }
 
 function renderRecentPayments() {
-  const container = $("#recentPayments");
+  const container =
+    $("#recentPayments");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
-  const payments = [...state.payments]
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || b.updatedAt || 0) -
-        new Date(a.createdAt || a.updatedAt || 0)
-    )
-    .slice(0, 8);
+  const payments =
+    [...state.payments]
+      .sort(
+        (a, b) =>
+          new Date(
+            b.createdAt ||
+            b.updatedAt ||
+            0
+          ) -
+          new Date(
+            a.createdAt ||
+            a.updatedAt ||
+            0
+          )
+      )
+      .slice(0, 8);
 
   if (!payments.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">↔</div>
-        <h3>Nenhuma transação ainda</h3>
+
+        <div class="empty-icon">
+          ↔
+        </div>
+
+        <h3>
+          Nenhuma transação ainda
+        </h3>
+
         <p>
           Quando receber o primeiro pagamento,
           ele aparecerá aqui.
         </p>
+
       </div>
     `;
 
@@ -1022,6 +1827,7 @@ function renderRecentPayments() {
 
   container.innerHTML = `
     <div class="table-scroll">
+
       <table class="data-table">
 
         <thead>
@@ -1036,10 +1842,13 @@ function renderRecentPayments() {
         </thead>
 
         <tbody>
-          ${payments.map(paymentRow).join("")}
+          ${payments
+            .map(paymentRow)
+            .join("")}
         </tbody>
 
       </table>
+
     </div>
   `;
 }
@@ -1060,19 +1869,28 @@ function paymentRow(payment) {
     payment._id ||
     "—";
 
-  const status = payment.status;
+  const status =
+    payment.status;
 
   return `
     <tr>
 
       <td>
+
         <div class="customer-cell">
+
           <div class="customer-mini-avatar">
-            ${escapeHTML(initials(customer))}
+            ${escapeHTML(
+              initials(customer)
+            )}
           </div>
 
           <div>
-            <strong>${escapeHTML(customer)}</strong>
+
+            <strong>
+              ${escapeHTML(customer)}
+            </strong>
+
             <span>
               ${escapeHTML(
                 payment.customer?.mobile ||
@@ -1080,12 +1898,18 @@ function paymentRow(payment) {
                 "Cliente"
               )}
             </span>
+
           </div>
+
         </div>
+
       </td>
 
       <td class="muted">
-        ${escapeHTML(String(reference).slice(0, 24))}
+        ${escapeHTML(
+          String(reference)
+            .slice(0, 24)
+        )}
       </td>
 
       <td class="amount-cell">
@@ -1097,8 +1921,12 @@ function paymentRow(payment) {
       </td>
 
       <td>
-        <span class="status ${statusClass(status)}">
-          ${escapeHTML(statusLabel(status))}
+        <span
+          class="status ${statusClass(status)}"
+        >
+          ${escapeHTML(
+            statusLabel(status)
+          )}
         </span>
       </td>
 
@@ -1110,13 +1938,19 @@ function paymentRow(payment) {
       </td>
 
       <td>
+
         <button
           class="small-action"
-          data-payment-id="${escapeHTML(payment._id || payment.id || "")}"
+          data-payment-id="${escapeHTML(
+            payment._id ||
+            payment.id ||
+            ""
+          )}"
           data-view-payment
         >
           Ver
         </button>
+
       </td>
 
     </tr>
@@ -1130,10 +1964,15 @@ function paymentRow(payment) {
 async function renderPayments() {
   pageContent.innerHTML = `
     <div class="page-header">
+
       <div>
         <h2>Pagamentos</h2>
-        <p>Controle todas as transações do seu negócio.</p>
+
+        <p>
+          Controle todas as transações do seu negócio.
+        </p>
       </div>
+
     </div>
 
     <div class="panel table-panel">
@@ -1141,22 +1980,50 @@ async function renderPayments() {
       <div class="filters">
 
         <div class="search-box">
+
           <span>⌕</span>
+
           <input
             id="paymentSearch"
             type="search"
             placeholder="Pesquisar por cliente ou referência..."
           >
+
         </div>
 
-        <select id="paymentStatusFilter" class="filter-select">
-          <option value="">Todos os estados</option>
-          <option value="SUCCEEDED">Pagos</option>
-          <option value="PENDING">Pendentes</option>
-          <option value="PROCESSING">Processando</option>
-          <option value="FAILED">Falhados</option>
-          <option value="UNKNOWN">Desconhecidos</option>
-          <option value="REFUNDED">Reembolsados</option>
+        <select
+          id="paymentStatusFilter"
+          class="filter-select"
+        >
+
+          <option value="">
+            Todos os estados
+          </option>
+
+          <option value="SUCCEEDED">
+            Pagos
+          </option>
+
+          <option value="PENDING">
+            Pendentes
+          </option>
+
+          <option value="PROCESSING">
+            Processando
+          </option>
+
+          <option value="FAILED">
+            Falhados
+          </option>
+
+          <option value="UNKNOWN">
+            Desconhecidos
+          </option>
+
+          <option value="REFUNDED">
+            Reembolsados
+          </option>
+
         </select>
 
       </div>
@@ -1170,65 +2037,89 @@ async function renderPayments() {
 
   renderPaymentsTable();
 
-  $("#paymentSearch").addEventListener(
+  $("#paymentSearch")?.addEventListener(
     "input",
     renderPaymentsTable
   );
 
-  $("#paymentStatusFilter").addEventListener(
-    "change",
-    renderPaymentsTable
-  );
+  $("#paymentStatusFilter")
+    ?.addEventListener(
+      "change",
+      renderPaymentsTable
+    );
 }
 
 function renderPaymentsTable() {
-  const container = $("#paymentsTable");
+  const container =
+    $("#paymentsTable");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const query =
-    ($("#paymentSearch")?.value || "")
+    (
+      $("#paymentSearch")
+        ?.value || ""
+    )
       .toLowerCase()
       .trim();
 
   const statusFilter =
-    $("#paymentStatusFilter")?.value || "";
+    $("#paymentStatusFilter")
+      ?.value || "";
 
-  const payments = state.payments.filter(payment => {
+  const payments =
+    state.payments.filter(
+      (payment) => {
+        const text = [
+          payment.customer?.name,
+          payment.customerName,
+          payment.customer?.mobile,
+          payment.mobile,
+          payment.reference,
+          payment.merchantReference,
+          payment.providerPaymentId,
+          payment._id
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-    const text = [
-      payment.customer?.name,
-      payment.customerName,
-      payment.customer?.mobile,
-      payment.mobile,
-      payment.reference,
-      payment.merchantReference,
-      payment.providerPaymentId,
-      payment._id
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
+        const matchesSearch =
+          !query ||
+          text.includes(query);
 
-    const matchesSearch =
-      !query ||
-      text.includes(query);
+        const matchesStatus =
+          !statusFilter ||
+          String(
+            payment.status || ""
+          ).toUpperCase() ===
+            statusFilter;
 
-    const matchesStatus =
-      !statusFilter ||
-      String(payment.status || "").toUpperCase() === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
+        return (
+          matchesSearch &&
+          matchesStatus
+        );
+      }
+    );
 
   if (!payments.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">↔</div>
-        <h3>Nenhum pagamento encontrado</h3>
+
+        <div class="empty-icon">
+          ↔
+        </div>
+
+        <h3>
+          Nenhum pagamento encontrado
+        </h3>
+
         <p>
           Não existem transações correspondentes aos filtros.
         </p>
+
       </div>
     `;
 
@@ -1237,6 +2128,7 @@ function renderPaymentsTable() {
 
   container.innerHTML = `
     <div class="table-scroll">
+
       <table class="data-table">
 
         <thead>
@@ -1253,99 +2145,127 @@ function renderPaymentsTable() {
 
         <tbody>
 
-          ${payments.map(payment => {
+          ${payments
+            .map(
+              (payment) => {
+                const customer =
+                  payment.customer?.name ||
+                  payment.customerName ||
+                  "Cliente";
 
-            const customer =
-              payment.customer?.name ||
-              payment.customerName ||
-              "Cliente";
+                return `
+                  <tr>
 
-            return `
-              <tr>
+                    <td>
 
-                <td>
-                  <div class="customer-cell">
+                      <div class="customer-cell">
 
-                    <div class="customer-mini-avatar">
-                      ${escapeHTML(initials(customer))}
-                    </div>
+                        <div class="customer-mini-avatar">
+                          ${escapeHTML(
+                            initials(
+                              customer
+                            )
+                          )}
+                        </div>
 
-                    <div>
-                      <strong>${escapeHTML(customer)}</strong>
-                      <span>
-                        ${escapeHTML(
-                          payment.customer?.mobile ||
-                          payment.mobile ||
+                        <div>
+
+                          <strong>
+                            ${escapeHTML(
+                              customer
+                            )}
+                          </strong>
+
+                          <span>
+                            ${escapeHTML(
+                              payment.customer?.mobile ||
+                              payment.mobile ||
+                              "—"
+                            )}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    </td>
+
+                    <td class="muted">
+                      ${escapeHTML(
+                        String(
+                          payment.merchantReference ||
+                          payment.reference ||
+                          payment._id ||
                           "—"
+                        ).slice(0, 22)
+                      )}
+                    </td>
+
+                    <td class="muted">
+                      ${escapeHTML(
+                        payment.paymentMethod ||
+                        payment.method ||
+                        "—"
+                      )}
+                    </td>
+
+                    <td class="amount-cell">
+                      ${formatKz(
+                        payment.amount ||
+                        payment.total ||
+                        0
+                      )}
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status ${statusClass(
+                          payment.status
+                        )}"
+                      >
+                        ${escapeHTML(
+                          statusLabel(
+                            payment.status
+                          )
                         )}
                       </span>
-                    </div>
 
-                  </div>
-                </td>
+                    </td>
 
-                <td class="muted">
-                  ${escapeHTML(
-                    String(
-                      payment.merchantReference ||
-                      payment.reference ||
-                      payment._id ||
-                      "—"
-                    ).slice(0, 22)
-                  )}
-                </td>
+                    <td class="muted">
+                      ${formatDateTime(
+                        payment.createdAt ||
+                        payment.updatedAt
+                      )}
+                    </td>
 
-                <td class="muted">
-                  ${escapeHTML(
-                    payment.paymentMethod ||
-                    payment.method ||
-                    "—"
-                  )}
-                </td>
+                    <td>
 
-                <td class="amount-cell">
-                  ${formatKz(
-                    payment.amount ||
-                    payment.total ||
-                    0
-                  )}
-                </td>
+                      <button
+                        class="small-action"
+                        data-payment-id="${escapeHTML(
+                          payment._id ||
+                          payment.id ||
+                          ""
+                        )}"
+                        data-view-payment
+                      >
+                        Ver
+                      </button>
 
-                <td>
-                  <span class="status ${statusClass(payment.status)}">
-                    ${escapeHTML(
-                      statusLabel(payment.status)
-                    )}
-                  </span>
-                </td>
+                    </td>
 
-                <td class="muted">
-                  ${formatDateTime(
-                    payment.createdAt ||
-                    payment.updatedAt
-                  )}
-                </td>
-
-                <td>
-                  <button
-                    class="small-action"
-                    data-payment-id="${escapeHTML(
-                      payment._id ||
-                      payment.id ||
-                      ""
-                    )}"
-                    data-view-payment
-                  >
-                    Ver
-                  </button>
-                </td>
-
-              </tr>
-            `;
-          }).join("")}
+                  </tr>
+                `;
+              }
+            )
+            .join("")}
 
         </tbody>
+
       </table>
+
     </div>
   `;
 }
@@ -1354,37 +2274,55 @@ function renderPaymentsTable() {
    PAYMENT DETAILS
 ========================================================= */
 
-document.addEventListener("click", async (event) => {
-  const button =
-    event.target.closest("[data-view-payment]");
+document.addEventListener(
+  "click",
+  async (event) => {
+    const button =
+      event.target.closest(
+        "[data-view-payment]"
+      );
 
-  if (!button) return;
+    if (!button) {
+      return;
+    }
 
-  const id = button.dataset.paymentId;
+    const id =
+      button.dataset.paymentId;
 
-  if (!id) return;
+    if (!id) {
+      return;
+    }
 
-  try {
-    const data =
-      await apiRequest(`/payments/${encodeURIComponent(id)}`);
+    try {
+      const data =
+        await apiRequest(
+          `/payments/${encodeURIComponent(
+            id
+          )}`
+        );
 
-    const payment =
-      data?.payment ||
-      data;
+      const payment =
+        data?.payment ||
+        data;
 
-    openPaymentModal(payment);
-
-  } catch (error) {
-    showToast(
-      error.message ||
-      "Não foi possível carregar o pagamento.",
-      "error"
-    );
+      openPaymentModal(
+        payment
+      );
+    } catch (error) {
+      showToast(
+        error.message ||
+        "Não foi possível carregar o pagamento.",
+        "error"
+      );
+    }
   }
-});
+);
 
-function openPaymentModal(payment) {
-  const status = payment.status;
+function openPaymentModal(
+  payment
+) {
+  const status =
+    payment.status;
 
   const amount =
     payment.amount ||
@@ -1399,14 +2337,18 @@ function openPaymentModal(payment) {
   const net =
     payment.netAmount ??
     Math.max(
-      Number(amount) - Number(fee),
+      Number(amount) -
+        Number(fee),
       0
     );
 
   openModal(`
     <div class="modal-header">
+
       <div>
-        <h3>Detalhes do pagamento</h3>
+        <h3>
+          Detalhes do pagamento
+        </h3>
       </div>
 
       <button
@@ -1415,6 +2357,7 @@ function openPaymentModal(payment) {
       >
         ×
       </button>
+
     </div>
 
     <div class="modal-body">
@@ -1422,11 +2365,19 @@ function openPaymentModal(payment) {
       <div class="entity-card">
 
         <div class="entity-card-top">
-          <div class="entity-icon">Kz</div>
 
-          <span class="status ${statusClass(status)}">
-            ${escapeHTML(statusLabel(status))}
+          <div class="entity-icon">
+            Kz
+          </div>
+
+          <span
+            class="status ${statusClass(status)}"
+          >
+            ${escapeHTML(
+              statusLabel(status)
+            )}
           </span>
+
         </div>
 
         <div class="entity-price">
@@ -1444,71 +2395,127 @@ function openPaymentModal(payment) {
       <div class="form-grid">
 
         <div class="form-group">
-          <label class="form-label">Cliente</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Cliente
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${escapeHTML(
               payment.customer?.name ||
               payment.customerName ||
               "—"
             )}
           </div>
+
         </div>
 
         <div class="form-group">
-          <label class="form-label">Telefone</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Telefone
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${escapeHTML(
               payment.customer?.mobile ||
               payment.mobile ||
               "—"
             )}
           </div>
+
         </div>
 
         <div class="form-group">
-          <label class="form-label">Referência</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Referência
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${escapeHTML(
               payment.merchantReference ||
               payment.reference ||
               "—"
             )}
           </div>
+
         </div>
 
         <div class="form-group">
-          <label class="form-label">Método</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Método
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${escapeHTML(
               payment.paymentMethod ||
               payment.method ||
               "—"
             )}
           </div>
+
         </div>
 
         <div class="form-group">
-          <label class="form-label">Taxa Honey Pay</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Taxa Honey Pay
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${formatKz(fee)}
           </div>
+
         </div>
 
         <div class="form-group">
-          <label class="form-label">Valor líquido</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Valor líquido
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${formatKz(net)}
           </div>
+
         </div>
 
         <div class="form-group full">
-          <label class="form-label">Data</label>
-          <div class="form-input" style="padding-top:11px">
+
+          <label class="form-label">
+            Data
+          </label>
+
+          <div
+            class="form-input"
+            style="padding-top:11px"
+          >
             ${formatDateTime(
               payment.createdAt ||
               payment.updatedAt
             )}
           </div>
+
         </div>
 
       </div>
@@ -1518,22 +2525,28 @@ function openPaymentModal(payment) {
     <div class="modal-footer">
 
       ${
-        ["SUCCEEDED", "SUCCESS", "PAID"].includes(
-          String(status || "").toUpperCase()
+        [
+          "SUCCEEDED",
+          "SUCCESS",
+          "PAID"
+        ].includes(
+          String(
+            status || ""
+          ).toUpperCase()
         )
-        ? `
-          <button
-            class="secondary-btn"
-            data-refund-payment="${escapeHTML(
-              payment._id ||
-              payment.id ||
-              ""
-            )}"
-          >
-            Reembolsar
-          </button>
-        `
-        : ""
+          ? `
+            <button
+              class="secondary-btn"
+              data-refund-payment="${escapeHTML(
+                payment._id ||
+                payment.id ||
+                ""
+              )}"
+            >
+              Reembolsar
+            </button>
+          `
+          : ""
       }
 
       <button
@@ -1547,71 +2560,88 @@ function openPaymentModal(payment) {
   `);
 }
 
-document.addEventListener("click", (event) => {
+/* =========================================================
+   CLOSE MODAL
+========================================================= */
 
-  if (
-    event.target.closest("[data-close-modal]")
-  ) {
-    closeModal();
+document.addEventListener(
+  "click",
+  (event) => {
+    if (
+      event.target.closest(
+        "[data-close-modal]"
+      )
+    ) {
+      closeModal();
+    }
   }
-
-});
+);
 
 /* =========================================================
    REFUND
 ========================================================= */
 
-document.addEventListener("click", async (event) => {
+document.addEventListener(
+  "click",
+  async (event) => {
+    const button =
+      event.target.closest(
+        "[data-refund-payment]"
+      );
 
-  const button =
-    event.target.closest("[data-refund-payment]");
-
-  if (!button) return;
-
-  const id =
-    button.dataset.refundPayment;
-
-  if (!id) return;
-
-  const confirmed =
-    window.confirm(
-      "Tem certeza que deseja solicitar o reembolso deste pagamento?"
-    );
-
-  if (!confirmed) return;
-
-  try {
-
-    await apiRequest(
-      `/payments/${encodeURIComponent(id)}/refund`,
-      {
-        method: "POST"
-      }
-    );
-
-    closeModal();
-
-    showToast(
-      "Pedido de reembolso enviado."
-    );
-
-    await loadPayments();
-
-    if (state.currentRoute === "payments") {
-      renderPaymentsTable();
+    if (!button) {
+      return;
     }
 
-  } catch (error) {
+    const id =
+      button.dataset.refundPayment;
 
-    showToast(
-      error.message ||
-      "Não foi possível processar o reembolso.",
-      "error"
-    );
+    if (!id) {
+      return;
+    }
 
+    const confirmed =
+      window.confirm(
+        "Tem certeza que deseja solicitar o reembolso deste pagamento?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await apiRequest(
+        `/payments/${encodeURIComponent(
+          id
+        )}/refund`,
+        {
+          method: "POST"
+        }
+      );
+
+      closeModal();
+
+      showToast(
+        "Pedido de reembolso enviado."
+      );
+
+      await loadPayments();
+
+      if (
+        state.currentRoute ===
+        "payments"
+      ) {
+        renderPaymentsTable();
+      }
+    } catch (error) {
+      showToast(
+        error.message ||
+        "Não foi possível processar o reembolso.",
+        "error"
+      );
+    }
   }
-
-});
+);
 
 /* =========================================================
    ORDERS
@@ -1622,10 +2652,13 @@ async function renderOrders() {
     <div class="page-header">
 
       <div>
+
         <h2>Pedidos</h2>
+
         <p>
           Crie e acompanhe os pedidos dos seus clientes.
         </p>
+
       </div>
 
       <button
@@ -1642,12 +2675,15 @@ async function renderOrders() {
       <div class="filters">
 
         <div class="search-box">
+
           <span>⌕</span>
+
           <input
             id="orderSearch"
             type="search"
             placeholder="Pesquisar pedido ou cliente..."
           >
+
         </div>
 
       </div>
@@ -1662,56 +2698,74 @@ async function renderOrders() {
   renderOrdersTable();
 
   $("#orderSearch")
-    .addEventListener(
+    ?.addEventListener(
       "input",
       renderOrdersTable
     );
 
   $("#newOrderButton")
-    .addEventListener(
+    ?.addEventListener(
       "click",
       openCreateOrderModal
     );
 }
 
 function renderOrdersTable() {
-  const container = $("#ordersTable");
+  const container =
+    $("#ordersTable");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const query =
-    ($("#orderSearch")?.value || "")
+    (
+      $("#orderSearch")
+        ?.value || ""
+    )
       .toLowerCase()
       .trim();
 
   const orders =
-    state.orders.filter(order => {
+    state.orders.filter(
+      (order) => {
+        if (!query) {
+          return true;
+        }
 
-      if (!query) return true;
+        const text = [
+          order.reference,
+          order.orderNumber,
+          order.customer?.name,
+          order.customerName,
+          order._id
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-      const text = [
-        order.reference,
-        order.orderNumber,
-        order.customer?.name,
-        order.customerName,
-        order._id
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return text.includes(query);
-    });
+        return text.includes(
+          query
+        );
+      }
+    );
 
   if (!orders.length) {
-
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">▣</div>
-        <h3>Nenhum pedido encontrado</h3>
+
+        <div class="empty-icon">
+          ▣
+        </div>
+
+        <h3>
+          Nenhum pedido encontrado
+        </h3>
+
         <p>
           Crie o seu primeiro pedido para começar a vender.
         </p>
+
       </div>
     `;
 
@@ -1724,6 +2778,7 @@ function renderOrdersTable() {
       <table class="data-table">
 
         <thead>
+
           <tr>
             <th>Pedido</th>
             <th>Cliente</th>
@@ -1731,72 +2786,94 @@ function renderOrdersTable() {
             <th>Estado</th>
             <th>Data</th>
           </tr>
+
         </thead>
 
         <tbody>
 
-          ${orders.map(order => {
+          ${orders
+            .map(
+              (order) => {
+                const customer =
+                  order.customer?.name ||
+                  order.customerName ||
+                  "Cliente";
 
-            const customer =
-              order.customer?.name ||
-              order.customerName ||
-              "Cliente";
+                return `
+                  <tr>
 
-            return `
-              <tr>
-
-                <td>
-                  <strong>
-                    ${escapeHTML(
-                      order.reference ||
-                      order.orderNumber ||
-                      order._id ||
-                      "—"
-                    )}
-                  </strong>
-                </td>
-
-                <td>
-                  <div class="customer-cell">
-
-                    <div class="customer-mini-avatar">
-                      ${escapeHTML(initials(customer))}
-                    </div>
-
-                    <div>
+                    <td>
                       <strong>
-                        ${escapeHTML(customer)}
+                        ${escapeHTML(
+                          order.reference ||
+                          order.orderNumber ||
+                          order._id ||
+                          "—"
+                        )}
                       </strong>
-                    </div>
+                    </td>
 
-                  </div>
-                </td>
+                    <td>
 
-                <td class="amount-cell">
-                  ${formatKz(
-                    order.total ||
-                    order.amount ||
-                    0
-                  )}
-                </td>
+                      <div class="customer-cell">
 
-                <td>
-                  <span class="status ${statusClass(order.status)}">
-                    ${escapeHTML(
-                      statusLabel(order.status)
-                    )}
-                  </span>
-                </td>
+                        <div class="customer-mini-avatar">
+                          ${escapeHTML(
+                            initials(
+                              customer
+                            )
+                          )}
+                        </div>
 
-                <td class="muted">
-                  ${formatDateTime(
-                    order.createdAt
-                  )}
-                </td>
+                        <div>
 
-              </tr>
-            `;
-          }).join("")}
+                          <strong>
+                            ${escapeHTML(
+                              customer
+                            )}
+                          </strong>
+
+                        </div>
+
+                      </div>
+
+                    </td>
+
+                    <td class="amount-cell">
+                      ${formatKz(
+                        order.total ||
+                        order.amount ||
+                        0
+                      )}
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status ${statusClass(
+                          order.status
+                        )}"
+                      >
+                        ${escapeHTML(
+                          statusLabel(
+                            order.status
+                          )
+                        )}
+                      </span>
+
+                    </td>
+
+                    <td class="muted">
+                      ${formatDateTime(
+                        order.createdAt
+                      )}
+                    </td>
+
+                  </tr>
+                `;
+              }
+            )
+            .join("")}
 
         </tbody>
 
@@ -1810,7 +2887,9 @@ function openCreateOrderModal() {
   openModal(`
     <div class="modal-header">
 
-      <h3>Novo pedido</h3>
+      <h3>
+        Novo pedido
+      </h3>
 
       <button
         class="modal-close"
@@ -1828,6 +2907,7 @@ function openCreateOrderModal() {
         <div class="form-grid">
 
           <div class="form-group">
+
             <label class="form-label">
               Nome do cliente
             </label>
@@ -1838,9 +2918,11 @@ function openCreateOrderModal() {
               required
               placeholder="Ex.: João Manuel"
             >
+
           </div>
 
           <div class="form-group">
+
             <label class="form-label">
               Telefone
             </label>
@@ -1851,9 +2933,11 @@ function openCreateOrderModal() {
               required
               placeholder="923000000"
             >
+
           </div>
 
           <div class="form-group">
+
             <label class="form-label">
               Valor
             </label>
@@ -1867,9 +2951,11 @@ function openCreateOrderModal() {
               required
               placeholder="25000"
             >
+
           </div>
 
           <div class="form-group">
+
             <label class="form-label">
               Referência
             </label>
@@ -1879,9 +2965,11 @@ function openCreateOrderModal() {
               class="form-input"
               placeholder="Opcional"
             >
+
           </div>
 
           <div class="form-group full">
+
             <label class="form-label">
               Descrição
             </label>
@@ -1891,6 +2979,7 @@ function openCreateOrderModal() {
               class="form-textarea"
               placeholder="Descrição do pedido"
             ></textarea>
+
           </div>
 
         </div>
@@ -1920,22 +3009,31 @@ function openCreateOrderModal() {
   `);
 
   $("#createOrderForm")
-    .addEventListener(
+    ?.addEventListener(
       "submit",
       submitCreateOrder
     );
 }
 
-async function submitCreateOrder(event) {
+async function submitCreateOrder(
+  event
+) {
   event.preventDefault();
 
   const form =
-    new FormData(event.target);
+    new FormData(
+      event.target
+    );
 
   const amount =
-    Number(form.get("amount"));
+    Number(
+      form.get("amount")
+    );
 
-  if (!Number.isInteger(amount) || amount <= 0) {
+  if (
+    !Number.isInteger(amount) ||
+    amount <= 0
+  ) {
     showToast(
       "O valor deve ser um número inteiro positivo.",
       "error"
@@ -1945,42 +3043,54 @@ async function submitCreateOrder(event) {
   }
 
   try {
+    await apiRequest(
+      "/orders",
+      {
+        method: "POST",
 
-    await apiRequest("/orders", {
-      method: "POST",
-      body: JSON.stringify({
-        customerName:
-          form.get("customerName"),
+        body: JSON.stringify({
+          customerName:
+            form.get(
+              "customerName"
+            ),
 
-        customerMobile:
-          form.get("customerMobile"),
+          customerMobile:
+            form.get(
+              "customerMobile"
+            ),
 
-        amount,
+          amount,
 
-        reference:
-          form.get("reference") || undefined,
+          reference:
+            form.get(
+              "reference"
+            ) ||
+            undefined,
 
-        description:
-          form.get("description") || undefined
-      })
-    });
+          description:
+            form.get(
+              "description"
+            ) ||
+            undefined
+        })
+      }
+    );
 
     closeModal();
 
-    showToast("Pedido criado com sucesso.");
+    showToast(
+      "Pedido criado com sucesso."
+    );
 
     await loadOrders();
 
     renderOrdersTable();
-
   } catch (error) {
-
     showToast(
       error.message ||
       "Não foi possível criar o pedido.",
       "error"
     );
-
   }
 }
 
@@ -1993,10 +3103,13 @@ async function renderProducts() {
     <div class="page-header">
 
       <div>
+
         <h2>Produtos</h2>
+
         <p>
           Organize aquilo que vende e acompanhe os preços.
         </p>
+
       </div>
 
       <button
@@ -2008,7 +3121,10 @@ async function renderProducts() {
 
     </div>
 
-    <div id="productsGrid" class="cards-grid"></div>
+    <div
+      id="productsGrid"
+      class="cards-grid"
+    ></div>
   `;
 
   await loadProducts();
@@ -2016,28 +3132,43 @@ async function renderProducts() {
   renderProductsGrid();
 
   $("#newProductButton")
-    .addEventListener(
+    ?.addEventListener(
       "click",
       openCreateProductModal
     );
 }
 
 function renderProductsGrid() {
-  const container = $("#productsGrid");
+  const container =
+    $("#productsGrid");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   if (!state.products.length) {
-
     container.innerHTML = `
-      <div class="panel" style="grid-column:1/-1">
+      <div
+        class="panel"
+        style="grid-column:1/-1"
+      >
+
         <div class="empty-state">
-          <div class="empty-icon">◇</div>
-          <h3>Nenhum produto</h3>
+
+          <div class="empty-icon">
+            ◇
+          </div>
+
+          <h3>
+            Nenhum produto
+          </h3>
+
           <p>
             Crie produtos para acelerar a criação dos seus pedidos.
           </p>
+
         </div>
+
       </div>
     `;
 
@@ -2045,63 +3176,69 @@ function renderProductsGrid() {
   }
 
   container.innerHTML =
-    state.products.map(product => `
+    state.products
+      .map(
+        (product) => `
+          <div class="entity-card">
 
-      <div class="entity-card">
+            <div class="entity-card-top">
 
-        <div class="entity-card-top">
+              <div class="entity-icon">
+                ◇
+              </div>
 
-          <div class="entity-icon">
-            ◇
+              <span
+                class="status ${
+                  product.active === false
+                    ? "failed"
+                    : "success"
+                }"
+              >
+                ${
+                  product.active === false
+                    ? "Inativo"
+                    : "Ativo"
+                }
+              </span>
+
+            </div>
+
+            <h3>
+              ${escapeHTML(
+                product.name ||
+                product.title ||
+                "Produto"
+              )}
+            </h3>
+
+            <p>
+              ${escapeHTML(
+                product.description ||
+                "Sem descrição."
+              )}
+            </p>
+
+            <div class="entity-price">
+              ${formatKz(
+                product.price ||
+                product.amount ||
+                0
+              )}
+            </div>
+
           </div>
-
-          <span class="status ${
-            product.active === false
-              ? "failed"
-              : "success"
-          }">
-            ${
-              product.active === false
-                ? "Inativo"
-                : "Ativo"
-            }
-          </span>
-
-        </div>
-
-        <h3>
-          ${escapeHTML(
-            product.name ||
-            product.title ||
-            "Produto"
-          )}
-        </h3>
-
-        <p>
-          ${escapeHTML(
-            product.description ||
-            "Sem descrição."
-          )}
-        </p>
-
-        <div class="entity-price">
-          ${formatKz(
-            product.price ||
-            product.amount ||
-            0
-          )}
-        </div>
-
-      </div>
-
-    `).join("");
+        `
+      )
+      .join("");
 }
 
 function openCreateProductModal() {
   openModal(`
     <div class="modal-header">
 
-      <h3>Novo produto</h3>
+      <h3>
+        Novo produto
+      </h3>
 
       <button
         class="modal-close"
@@ -2209,26 +3346,36 @@ function openCreateProductModal() {
   `);
 
   $("#createProductForm")
-    .addEventListener(
+    ?.addEventListener(
       "submit",
       submitCreateProduct
     );
 }
 
-async function submitCreateProduct(event) {
+async function submitCreateProduct(
+  event
+) {
   event.preventDefault();
 
   const form =
-    new FormData(event.target);
+    new FormData(
+      event.target
+    );
 
   const price =
-    Number(form.get("price"));
+    Number(
+      form.get("price")
+    );
 
   const stock =
-    Number(form.get("stock") || 0);
+    Number(
+      form.get("stock") || 0
+    );
 
-  if (!Number.isInteger(price) || price <= 0) {
-
+  if (
+    !Number.isInteger(price) ||
+    price <= 0
+  ) {
     showToast(
       "O preço deve ser um número inteiro positivo.",
       "error"
@@ -2238,17 +3385,27 @@ async function submitCreateProduct(event) {
   }
 
   try {
+    await apiRequest(
+      "/products",
+      {
+        method: "POST",
 
-    await apiRequest("/products", {
-      method: "POST",
-      body: JSON.stringify({
-        name: form.get("name"),
-        price,
-        stock,
-        description:
-          form.get("description") || undefined
-      })
-    });
+        body: JSON.stringify({
+          name:
+            form.get("name"),
+
+          price,
+
+          stock,
+
+          description:
+            form.get(
+              "description"
+            ) ||
+            undefined
+        })
+      }
+    );
 
     closeModal();
 
@@ -2259,15 +3416,12 @@ async function submitCreateProduct(event) {
     await loadProducts();
 
     renderProductsGrid();
-
   } catch (error) {
-
     showToast(
       error.message ||
       "Não foi possível criar o produto.",
       "error"
     );
-
   }
 }
 
@@ -2280,10 +3434,13 @@ async function renderCustomers() {
     <div class="page-header">
 
       <div>
+
         <h2>Clientes</h2>
+
         <p>
           Consulte os seus clientes e o histórico de compras.
         </p>
+
       </div>
 
     </div>
@@ -2316,45 +3473,53 @@ async function renderCustomers() {
   renderCustomersTable();
 
   $("#customerSearch")
-    .addEventListener(
+    ?.addEventListener(
       "input",
       renderCustomersTable
     );
 }
 
 function renderCustomersTable() {
-
   const container =
     $("#customersTable");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const query =
-    ($("#customerSearch")?.value || "")
+    (
+      $("#customerSearch")
+        ?.value || ""
+    )
       .toLowerCase()
       .trim();
 
   const customers =
-    state.customers.filter(customer => {
+    state.customers.filter(
+      (customer) => {
+        if (!query) {
+          return true;
+        }
 
-      if (!query) return true;
+        const text = [
+          customer.name,
+          customer.fullName,
+          customer.email,
+          customer.mobile,
+          customer.phone
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-      const text = [
-        customer.name,
-        customer.fullName,
-        customer.email,
-        customer.mobile,
-        customer.phone
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return text.includes(query);
-    });
+        return text.includes(
+          query
+        );
+      }
+    );
 
   if (!customers.length) {
-
     container.innerHTML = `
       <div class="empty-state">
 
@@ -2362,7 +3527,9 @@ function renderCustomersTable() {
           ♙
         </div>
 
-        <h3>Nenhum cliente encontrado</h3>
+        <h3>
+          Nenhum cliente encontrado
+        </h3>
 
         <p>
           Os clientes aparecerão aqui depois das primeiras vendas.
@@ -2380,6 +3547,7 @@ function renderCustomersTable() {
       <table class="data-table">
 
         <thead>
+
           <tr>
             <th>Cliente</th>
             <th>Telefone</th>
@@ -2387,75 +3555,78 @@ function renderCustomersTable() {
             <th>Total gasto</th>
             <th>Registado</th>
           </tr>
+
         </thead>
 
         <tbody>
 
-          ${customers.map(customer => `
+          ${customers
+            .map(
+              (customer) => `
+                <tr>
 
-            <tr>
+                  <td>
 
-              <td>
+                    <div class="customer-cell">
 
-                <div class="customer-cell">
+                      <div class="customer-mini-avatar">
+                        ${escapeHTML(
+                          initials(
+                            customer.name ||
+                            customer.fullName
+                          )
+                        )}
+                      </div>
 
-                  <div class="customer-mini-avatar">
+                      <div>
+
+                        <strong>
+                          ${escapeHTML(
+                            customer.name ||
+                            customer.fullName ||
+                            "Cliente"
+                          )}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                  <td class="muted">
                     ${escapeHTML(
-                      initials(
-                        customer.name ||
-                        customer.fullName
-                      )
+                      customer.mobile ||
+                      customer.phone ||
+                      "—"
                     )}
-                  </div>
+                  </td>
 
-                  <div>
+                  <td class="muted">
+                    ${escapeHTML(
+                      customer.email ||
+                      "—"
+                    )}
+                  </td>
 
-                    <strong>
-                      ${escapeHTML(
-                        customer.name ||
-                        customer.fullName ||
-                        "Cliente"
-                      )}
-                    </strong>
+                  <td class="amount-cell">
+                    ${formatKz(
+                      customer.totalSpent ||
+                      customer.totalPurchases ||
+                      0
+                    )}
+                  </td>
 
-                  </div>
+                  <td class="muted">
+                    ${formatDate(
+                      customer.createdAt
+                    )}
+                  </td>
 
-                </div>
-
-              </td>
-
-              <td class="muted">
-                ${escapeHTML(
-                  customer.mobile ||
-                  customer.phone ||
-                  "—"
-                )}
-              </td>
-
-              <td class="muted">
-                ${escapeHTML(
-                  customer.email ||
-                  "—"
-                )}
-              </td>
-
-              <td class="amount-cell">
-                ${formatKz(
-                  customer.totalSpent ||
-                  customer.totalPurchases ||
-                  0
-                )}
-              </td>
-
-              <td class="muted">
-                ${formatDate(
-                  customer.createdAt
-                )}
-              </td>
-
-            </tr>
-
-          `).join("")}
+                </tr>
+              `
+            )
+            .join("")}
 
         </tbody>
 
@@ -2474,7 +3645,10 @@ async function renderLinks() {
     <div class="page-header">
 
       <div>
-        <h2>Links de pagamento</h2>
+
+        <h2>
+          Links de pagamento
+        </h2>
 
         <p>
           Venda através de WhatsApp, Instagram, Facebook ou qualquer canal.
@@ -2491,7 +3665,10 @@ async function renderLinks() {
 
     </div>
 
-    <div id="linksGrid" class="cards-grid"></div>
+    <div
+      id="linksGrid"
+      class="cards-grid"
+    ></div>
   `;
 
   await loadLinks();
@@ -2499,21 +3676,21 @@ async function renderLinks() {
   renderLinksGrid();
 
   $("#newLinkButton")
-    .addEventListener(
+    ?.addEventListener(
       "click",
       openCreateLinkModal
     );
 }
 
 function renderLinksGrid() {
-
   const container =
     $("#linksGrid");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   if (!state.links.length) {
-
     container.innerHTML = `
       <div
         class="panel"
@@ -2526,7 +3703,9 @@ function renderLinksGrid() {
             ↗
           </div>
 
-          <h3>Nenhum link de pagamento</h3>
+          <h3>
+            Nenhum link de pagamento
+          </h3>
 
           <p>
             Crie um link e envie diretamente para os seus clientes.
@@ -2541,127 +3720,146 @@ function renderLinksGrid() {
   }
 
   container.innerHTML =
-    state.links.map(link => {
+    state.links
+      .map(
+        (link) => {
+          const token =
+            link.token ||
+            link.code ||
+            link.shortCode ||
+            "";
 
-      const token =
-        link.token ||
-        link.code ||
-        link.shortCode ||
-        "";
+          const url =
+            link.url ||
+            `${window.location.origin}/pay/${token}`;
 
-      const url =
-        link.url ||
-        `${window.location.origin}/pay/${token}`;
+          return `
+            <div class="entity-card">
 
-      return `
-        <div class="entity-card">
+              <div class="entity-card-top">
 
-          <div class="entity-card-top">
+                <div class="entity-icon">
+                  ↗
+                </div>
 
-            <div class="entity-icon">
-              ↗
+                <span
+                  class="status ${
+                    link.active === false
+                      ? "failed"
+                      : "success"
+                  }"
+                >
+                  ${
+                    link.active === false
+                      ? "Inativo"
+                      : "Ativo"
+                  }
+                </span>
+
+              </div>
+
+              <h3>
+                ${escapeHTML(
+                  link.name ||
+                  link.title ||
+                  "Link de pagamento"
+                )}
+              </h3>
+
+              <p>
+                ${escapeHTML(
+                  link.description ||
+                  "Link Honey Pay"
+                )}
+              </p>
+
+              <div class="entity-price">
+                ${formatKz(
+                  link.amount ||
+                  link.price ||
+                  0
+                )}
+              </div>
+
+              <div
+                style="
+                  margin-top:14px;
+                  display:flex;
+                  gap:7px
+                "
+              >
+
+                <button
+                  class="secondary-btn"
+                  style="flex:1"
+                  data-copy-link="${escapeHTML(
+                    url
+                  )}"
+                >
+                  Copiar
+                </button>
+
+                <a
+                  class="primary-btn"
+                  style="
+                    display:grid;
+                    place-items:center
+                  "
+                  href="${escapeHTML(url)}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Abrir
+                </a>
+
+              </div>
+
             </div>
-
-            <span class="status ${
-              link.active === false
-                ? "failed"
-                : "success"
-            }">
-              ${
-                link.active === false
-                  ? "Inativo"
-                  : "Ativo"
-              }
-            </span>
-
-          </div>
-
-          <h3>
-            ${escapeHTML(
-              link.name ||
-              link.title ||
-              "Link de pagamento"
-            )}
-          </h3>
-
-          <p>
-            ${escapeHTML(
-              link.description ||
-              "Link Honey Pay"
-            )}
-          </p>
-
-          <div class="entity-price">
-            ${formatKz(
-              link.amount ||
-              link.price ||
-              0
-            )}
-          </div>
-
-          <div style="margin-top:14px;display:flex;gap:7px">
-
-            <button
-              class="secondary-btn"
-              style="flex:1"
-              data-copy-link="${escapeHTML(url)}"
-            >
-              Copiar
-            </button>
-
-            <a
-              class="primary-btn"
-              style="display:grid;place-items:center"
-              href="${escapeHTML(url)}"
-              target="_blank"
-              rel="noopener"
-            >
-              Abrir
-            </a>
-
-          </div>
-
-        </div>
-      `;
-    }).join("");
+          `;
+        }
+      )
+      .join("");
 }
 
-document.addEventListener("click", async event => {
+document.addEventListener(
+  "click",
+  async (event) => {
+    const button =
+      event.target.closest(
+        "[data-copy-link]"
+      );
 
-  const button =
-    event.target.closest("[data-copy-link]");
+    if (!button) {
+      return;
+    }
 
-  if (!button) return;
+    const url =
+      button.dataset.copyLink;
 
-  const url =
-    button.dataset.copyLink;
+    try {
+      await navigator.clipboard.writeText(
+        url
+      );
 
-  try {
-
-    await navigator.clipboard.writeText(url);
-
-    showToast(
-      "Link copiado para a área de transferência."
-    );
-
-  } catch {
-
-    showToast(
-      "Não foi possível copiar o link.",
-      "error"
-    );
-
+      showToast(
+        "Link copiado para a área de transferência."
+      );
+    } catch {
+      showToast(
+        "Não foi possível copiar o link.",
+        "error"
+      );
+    }
   }
-
-});
+);
 
 function openCreateLinkModal() {
-
   openModal(`
-
     <div class="modal-header">
 
-      <h3>Criar link de pagamento</h3>
+      <h3>
+        Criar link de pagamento
+      </h3>
 
       <button
         class="modal-close"
@@ -2763,28 +3961,34 @@ function openCreateLinkModal() {
       </div>
 
     </form>
-
   `);
 
   $("#createLinkForm")
-    .addEventListener(
+    ?.addEventListener(
       "submit",
       submitCreateLink
     );
 }
 
-async function submitCreateLink(event) {
-
+async function submitCreateLink(
+  event
+) {
   event.preventDefault();
 
   const form =
-    new FormData(event.target);
+    new FormData(
+      event.target
+    );
 
   const amount =
-    Number(form.get("amount"));
+    Number(
+      form.get("amount")
+    );
 
-  if (!Number.isInteger(amount) || amount <= 0) {
-
+  if (
+    !Number.isInteger(amount) ||
+    amount <= 0
+  ) {
     showToast(
       "O valor deve ser um número inteiro positivo.",
       "error"
@@ -2794,22 +3998,27 @@ async function submitCreateLink(event) {
   }
 
   try {
-
     await apiRequest(
       "/payment-links",
       {
         method: "POST",
 
         body: JSON.stringify({
-          name: form.get("name"),
+          name:
+            form.get("name"),
+
           amount,
 
           description:
-            form.get("description") ||
+            form.get(
+              "description"
+            ) ||
             undefined,
 
           expiresAt:
-            form.get("expiresAt") ||
+            form.get(
+              "expiresAt"
+            ) ||
             undefined
         })
       }
@@ -2824,15 +4033,12 @@ async function submitCreateLink(event) {
     await loadLinks();
 
     renderLinksGrid();
-
   } catch (error) {
-
     showToast(
       error.message ||
       "Não foi possível criar o link.",
       "error"
     );
-
   }
 }
 
@@ -2841,13 +4047,14 @@ async function submitCreateLink(event) {
 ========================================================= */
 
 async function renderReports() {
-
   pageContent.innerHTML = `
     <div class="page-header">
 
       <div>
 
-        <h2>Relatórios</h2>
+        <h2>
+          Relatórios
+        </h2>
 
         <p>
           Analise vendas, pagamentos e taxas Honey Pay.
@@ -2867,6 +4074,7 @@ async function renderReports() {
     <div class="stats-grid">
 
       <div class="stat-card">
+
         <span class="stat-label">
           Volume recebido
         </span>
@@ -2876,9 +4084,11 @@ async function renderReports() {
             calculatedRevenue()
           )}
         </div>
+
       </div>
 
       <div class="stat-card">
+
         <span class="stat-label">
           Pagamentos
         </span>
@@ -2888,9 +4098,11 @@ async function renderReports() {
             state.payments.length
           )}
         </div>
+
       </div>
 
       <div class="stat-card">
+
         <span class="stat-label">
           Taxas Honey Pay
         </span>
@@ -2900,9 +4112,11 @@ async function renderReports() {
             calculatedFees()
           )}
         </div>
+
       </div>
 
       <div class="stat-card">
+
         <span class="stat-label">
           Líquido estimado
         </span>
@@ -2913,6 +4127,7 @@ async function renderReports() {
             calculatedFees()
           )}
         </div>
+
       </div>
 
     </div>
@@ -2923,7 +4138,9 @@ async function renderReports() {
 
         <div>
 
-          <h3>Resumo das transações</h3>
+          <h3>
+            Resumo das transações
+          </h3>
 
           <span>
             Dados disponíveis no painel
@@ -2943,21 +4160,21 @@ async function renderReports() {
   renderReportTable();
 
   $("#exportCsvButton")
-    .addEventListener(
+    ?.addEventListener(
       "click",
       exportPaymentsCSV
     );
 }
 
 function renderReportTable() {
-
   const container =
     $("#reportTable");
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   if (!state.payments.length) {
-
     container.innerHTML = `
       <div class="empty-state">
 
@@ -2965,7 +4182,9 @@ function renderReportTable() {
           ▥
         </div>
 
-        <h3>Sem dados</h3>
+        <h3>
+          Sem dados
+        </h3>
 
         <p>
           Ainda não existem pagamentos para gerar o relatório.
@@ -2978,7 +4197,6 @@ function renderReportTable() {
   }
 
   container.innerHTML = `
-
     <div class="table-scroll">
 
       <table class="data-table">
@@ -2998,71 +4216,83 @@ function renderReportTable() {
 
         <tbody>
 
-          ${state.payments.map(payment => {
+          ${state.payments
+            .map(
+              (payment) => {
+                const amount =
+                  Number(
+                    payment.amount ||
+                    payment.total ||
+                    0
+                  );
 
-            const amount =
-              Number(
-                payment.amount ||
-                payment.total ||
-                0
-              );
+                const fee =
+                  Number(
+                    payment.feeAmount ||
+                    payment.honeyPayFee ||
+                    0
+                  );
 
-            const fee =
-              Number(
-                payment.feeAmount ||
-                payment.honeyPayFee ||
-                0
-              );
+                return `
+                  <tr>
 
-            return `
+                    <td class="muted">
+                      ${formatDateTime(
+                        payment.createdAt
+                      )}
+                    </td>
 
-              <tr>
+                    <td>
+                      ${escapeHTML(
+                        payment.reference ||
+                        payment.merchantReference ||
+                        "—"
+                      )}
+                    </td>
 
-                <td class="muted">
-                  ${formatDateTime(
-                    payment.createdAt
-                  )}
-                </td>
+                    <td class="amount-cell">
+                      ${formatKz(
+                        amount
+                      )}
+                    </td>
 
-                <td>
-                  ${escapeHTML(
-                    payment.reference ||
-                    payment.merchantReference ||
-                    "—"
-                  )}
-                </td>
+                    <td>
+                      ${formatKz(
+                        fee
+                      )}
+                    </td>
 
-                <td class="amount-cell">
-                  ${formatKz(amount)}
-                </td>
+                    <td class="amount-cell">
+                      ${formatKz(
+                        Math.max(
+                          amount -
+                            fee,
+                          0
+                        )
+                      )}
+                    </td>
 
-                <td>
-                  ${formatKz(fee)}
-                </td>
+                    <td>
 
-                <td class="amount-cell">
-                  ${formatKz(
-                    Math.max(
-                      amount - fee,
-                      0
-                    )
-                  )}
-                </td>
+                      <span
+                        class="status ${statusClass(
+                          payment.status
+                        )}"
+                      >
+                        ${escapeHTML(
+                          statusLabel(
+                            payment.status
+                          )
+                        )}
+                      </span>
 
-                <td>
+                    </td>
 
-                  <span class="status ${statusClass(payment.status)}">
-                    ${escapeHTML(
-                      statusLabel(payment.status)
-                    )}
-                  </span>
-
-                </td>
-
-              </tr>
-
-            `;
-          }).join("")}
+                  </tr>
+                `;
+              }
+            )
+            .join("")}
 
         </tbody>
 
@@ -3073,9 +4303,7 @@ function renderReportTable() {
 }
 
 function exportPaymentsCSV() {
-
   if (!state.payments.length) {
-
     showToast(
       "Não existem pagamentos para exportar.",
       "warning"
@@ -3096,82 +4324,109 @@ function exportPaymentsCSV() {
     ]
   ];
 
-  state.payments.forEach(payment => {
+  state.payments.forEach(
+    (payment) => {
+      const amount =
+        Number(
+          payment.amount ||
+          payment.total ||
+          0
+        );
 
-    const amount =
-      Number(
-        payment.amount ||
-        payment.total ||
-        0
-      );
+      const fee =
+        Number(
+          payment.feeAmount ||
+          payment.honeyPayFee ||
+          0
+        );
 
-    const fee =
-      Number(
-        payment.feeAmount ||
-        payment.honeyPayFee ||
-        0
-      );
+      rows.push([
+        formatDateTime(
+          payment.createdAt
+        ),
 
-    rows.push([
-      formatDateTime(
-        payment.createdAt
-      ),
+        payment.reference ||
+        payment.merchantReference ||
+        "",
 
-      payment.reference ||
-      payment.merchantReference ||
-      "",
+        payment.customer?.name ||
+        payment.customerName ||
+        "",
 
-      payment.customer?.name ||
-      payment.customerName ||
-      "",
+        amount,
 
-      amount,
+        fee,
 
-      fee,
+        Math.max(
+          amount - fee,
+          0
+        ),
 
-      Math.max(
-        amount - fee,
-        0
-      ),
-
-      statusLabel(
-        payment.status
-      )
-    ]);
-  });
+        statusLabel(
+          payment.status
+        )
+      ]);
+    }
+  );
 
   const csv =
-    rows.map(row =>
-      row.map(value =>
-        `"${String(value ?? "").replaceAll('"', '""')}"`
-      ).join(",")
-    ).join("\n");
+    rows
+      .map(
+        (row) =>
+          row
+            .map(
+              (value) =>
+                `"${String(
+                  value ?? ""
+                ).replaceAll(
+                  '"',
+                  '""'
+                )}"`
+            )
+            .join(",")
+      )
+      .join("\n");
 
   const blob =
     new Blob(
-      ["\uFEFF" + csv],
+      [
+        "\uFEFF" +
+          csv
+      ],
       {
-        type: "text/csv;charset=utf-8;"
+        type:
+          "text/csv;charset=utf-8;"
       }
     );
 
   const url =
-    URL.createObjectURL(blob);
+    URL.createObjectURL(
+      blob
+    );
 
   const link =
-    document.createElement("a");
+    document.createElement(
+      "a"
+    );
 
   link.href = url;
-  link.download =
-    `honey-pay-pagamentos-${new Date().toISOString().slice(0,10)}.csv`;
 
-  document.body.appendChild(link);
+  link.download =
+    `honey-pay-pagamentos-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+
+  document.body.appendChild(
+    link
+  );
 
   link.click();
 
   link.remove();
 
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(
+    url
+  );
 
   showToast(
     "Relatório CSV exportado."
@@ -3183,17 +4438,17 @@ function exportPaymentsCSV() {
 ========================================================= */
 
 async function renderSettings() {
-
   const merchant =
     state.merchant || {};
 
   pageContent.innerHTML = `
-
     <div class="page-header">
 
       <div>
 
-        <h2>Definições</h2>
+        <h2>
+          Definições
+        </h2>
 
         <p>
           Configure a sua conta e o seu negócio.
@@ -3209,7 +4464,9 @@ async function renderSettings() {
 
         <div>
 
-          <h3>Perfil do negócio</h3>
+          <h3>
+            Perfil do negócio
+          </h3>
 
           <span>
             Informação da sua conta Honey Pay
@@ -3321,7 +4578,9 @@ async function renderSettings() {
 
         <div>
 
-          <h3>Taxa Honey Pay</h3>
+          <h3>
+            Taxa Honey Pay
+          </h3>
 
           <span>
             Modelo de cobrança atual
@@ -3335,32 +4594,43 @@ async function renderSettings() {
 
       </div>
 
-      <div style="padding:19px;color:#6b7280;font-size:11px;line-height:1.7">
+      <div
+        style="
+          padding:19px;
+          color:#6b7280;
+          font-size:11px;
+          line-height:1.7
+        "
+      >
         A Honey Pay aplica uma taxa de 0,80% sobre o valor das transações
         elegíveis, de acordo com as regras configuradas no backend.
       </div>
 
     </div>
-
   `;
 
   $("#settingsForm")
-    .addEventListener(
+    ?.addEventListener(
       "submit",
       saveSettings
     );
 }
 
-async function saveSettings(event) {
-
+async function saveSettings(
+  event
+) {
   event.preventDefault();
 
   const form =
-    new FormData(event.target);
+    new FormData(
+      event.target
+    );
 
   const payload = {
     businessName:
-      form.get("businessName"),
+      form.get(
+        "businessName"
+      ),
 
     email:
       form.get("email"),
@@ -3370,17 +4640,17 @@ async function saveSettings(event) {
   };
 
   try {
+    await apiRequest(
+      "/me",
+      {
+        method: "PUT",
 
-    /*
-      Endpoint opcional de perfil.
-      Se o backend já possuir PUT /me,
-      a atualização será persistida.
-    */
-
-    await apiRequest("/me", {
-      method: "PUT",
-      body: JSON.stringify(payload)
-    });
+        body:
+          JSON.stringify(
+            payload
+          )
+      }
+    );
 
     state.merchant = {
       ...state.merchant,
@@ -3392,15 +4662,12 @@ async function saveSettings(event) {
     showToast(
       "Definições guardadas."
     );
-
   } catch (error) {
-
     showToast(
       error.message ||
       "Não foi possível guardar as alterações.",
       "error"
     );
-
   }
 }
 
@@ -3408,13 +4675,14 @@ async function saveSettings(event) {
    QUICK ACTIONS
 ========================================================= */
 
-function handleQuickAction(event) {
-
+function handleQuickAction(
+  event
+) {
   const action =
-    event.currentTarget.dataset.action;
+    event.currentTarget
+      .dataset.action;
 
   switch (action) {
-
     case "create-order":
       openCreateOrderModal();
       break;
@@ -3428,17 +4696,19 @@ function handleQuickAction(event) {
       break;
 
     case "payments":
-      window.location.hash = "payments";
+      window.location.hash =
+        "payments";
       break;
 
     case "customers":
-      window.location.hash = "customers";
+      window.location.hash =
+        "customers";
       break;
 
     case "reports":
-      window.location.hash = "reports";
+      window.location.hash =
+        "reports";
       break;
-
   }
 }
 
@@ -3446,23 +4716,34 @@ function handleQuickAction(event) {
    ROUTER
 ========================================================= */
 
-async function renderRoute(route) {
+async function renderRoute(
+  route
+) {
+  if (!pageContent) {
+    return;
+  }
 
   pageContent.innerHTML = `
     <div class="panel">
+
       <div class="empty-state">
+
         <div
           class="skeleton loading-block"
-          style="width:100%;max-width:600px;margin:auto"
+          style="
+            width:100%;
+            max-width:600px;
+            margin:auto
+          "
         ></div>
+
       </div>
+
     </div>
   `;
 
   try {
-
     switch (route) {
-
       case "dashboard":
         await renderDashboard();
         break;
@@ -3497,12 +4778,13 @@ async function renderRoute(route) {
 
       default:
         await renderDashboard();
-
+        break;
     }
-
   } catch (error) {
-
-    console.error(error);
+    console.error(
+      "Erro ao renderizar rota:",
+      error
+    );
 
     pageContent.innerHTML = `
       <div class="panel">
@@ -3513,7 +4795,9 @@ async function renderRoute(route) {
             !
           </div>
 
-          <h3>Não foi possível carregar esta página</h3>
+          <h3>
+            Não foi possível carregar esta página
+          </h3>
 
           <p>
             ${escapeHTML(
@@ -3522,11 +4806,13 @@ async function renderRoute(route) {
             )}
           </p>
 
-          <div style="margin-top:15px">
+          <div
+            style="margin-top:15px"
+          >
 
             <button
               class="primary-btn"
-              onclick="location.reload()"
+              id="retryRouteButton"
             >
               Tentar novamente
             </button>
@@ -3538,6 +4824,14 @@ async function renderRoute(route) {
       </div>
     `;
 
+    $("#retryRouteButton")
+      ?.addEventListener(
+        "click",
+        () =>
+          renderRoute(
+            state.currentRoute
+          )
+      );
   }
 }
 
@@ -3546,18 +4840,45 @@ async function renderRoute(route) {
 ========================================================= */
 
 $("#logoutButton")
-  .addEventListener(
+  ?.addEventListener(
     "click",
     () => {
-
       const confirmed =
         window.confirm(
           "Tem certeza que deseja terminar a sessão?"
         );
 
-      if (!confirmed) return;
+      if (!confirmed) {
+        return;
+      }
 
-      redirectLogin();
+      /*
+        O cookie HttpOnly será removido pelo backend
+        através do endpoint de logout, se existir.
+
+        Tentamos primeiro /auth/logout.
+      */
+
+      apiRequest(
+        "/auth/logout",
+        {
+          method: "POST"
+        }
+      )
+        .catch(
+          () => {
+            /*
+              Mesmo que o backend ainda não tenha
+              endpoint de logout, limpamos a sessão
+              local e voltamos ao login.
+            */
+          }
+        )
+        .finally(
+          () => {
+            redirectLogin();
+          }
+        );
     }
   );
 
@@ -3566,18 +4887,19 @@ $("#logoutButton")
 ========================================================= */
 
 $("#refreshButton")
-  .addEventListener(
+  ?.addEventListener(
     "click",
     async () => {
-
       const button =
         $("#refreshButton");
 
-      button.disabled = true;
-      button.style.transform = "rotate(180deg)";
+      if (button) {
+        button.disabled = true;
+        button.style.transform =
+          "rotate(180deg)";
+      }
 
       try {
-
         await renderRoute(
           state.currentRoute
         );
@@ -3585,54 +4907,177 @@ $("#refreshButton")
         showToast(
           "Painel atualizado."
         );
-
+      } catch (error) {
+        console.error(
+          "Erro ao atualizar painel:",
+          error
+        );
       } finally {
+        setTimeout(
+          () => {
+            if (button) {
+              button.disabled =
+                false;
 
-        setTimeout(() => {
-          button.disabled = false;
-          button.style.transform = "";
-        }, 300);
-
+              button.style.transform =
+                "";
+            }
+          },
+          300
+        );
       }
     }
   );
 
 /* =========================================================
-   STARTUP
+   STARTUP / BOOT
 ========================================================= */
+
+/*
+  ESTE É O PONTO MAIS IMPORTANTE DA CORREÇÃO.
+
+  ANTIGO:
+
+      if (!getToken()) {
+          redirectLogin();
+          return;
+      }
+
+  Isso causava o loop porque o token moderno está
+  no cookie HttpOnly e não no localStorage.
+
+  NOVO:
+
+      await loadMerchant();
+
+  /api/me recebe o cookie automaticamente porque
+  apiRequest() usa:
+
+      credentials: "include"
+
+  Se /api/me retornar 200:
+      abre o painel.
+
+  Se /api/me retornar 401:
+      vai para /login.
+
+  Outros endpoints do dashboard não bloqueiam a abertura.
+*/
+
+let bootPromise = null;
 
 async function boot() {
   /*
-    Não permitir painel privado sem autenticação.
+    Evita executar boot duas vezes.
   */
-  if (!getToken()) {
-    redirectLogin();
-    return;
+  if (bootPromise) {
+    return bootPromise;
   }
 
-  try {
-    // Disparamos o carregamento do comerciante em segundo plano (sem bloquear o arranque visual)
-    loadMerchant().catch(err => {
-      console.warn("Aviso ao carregar perfil do comerciante:", err);
-    });
+  bootPromise =
+    (async () => {
+      try {
+        state.loading = true;
 
-  } catch (error) {
-    console.error("Falha ao iniciar Honey Pay:", error);
-  } finally {
-    // Revelamos a app e removemos o loader imediatamente, 
-    // permitindo que o painel abra logo (e os dados apareçam à medida que o dashboard responde)
-    app.classList.remove("hidden");
+        /*
+          Primeiro validamos a sessão real
+          no servidor.
 
-    setTimeout(() => {
-      loader.classList.add("hide");
-    }, 250);
+          NÃO verificamos localStorage.
+        */
+        await loadMerchant();
 
-    navigate();
-  }
+        /*
+          Se chegamos aqui, o backend confirmou
+          a sessão.
+        */
+        state.authenticated =
+          true;
+
+        /*
+          Agora podemos mostrar o painel.
+        */
+        if (app) {
+          app.classList.remove(
+            "hidden"
+          );
+        }
+
+        /*
+          Retiramos o loader.
+        */
+        if (loader) {
+          loader.classList.add(
+            "hide"
+          );
+        }
+
+        /*
+          Só depois da autenticação
+          inicializamos a rota.
+        */
+        navigate();
+
+        state.booted = true;
+
+      } catch (error) {
+        console.error(
+          "Falha ao iniciar Honey Pay:",
+          error
+        );
+
+        /*
+          Se apiRequest já recebeu 401,
+          redirectLogin() já foi chamado.
+
+          Para outros erros de autenticação,
+          não abrimos o painel privado.
+        */
+        if (
+          !redirectingToLogin
+        ) {
+          redirectLogin();
+        }
+
+      } finally {
+        state.loading = false;
+      }
+    })();
+
+  return bootPromise;
 }
 
+/* =========================================================
+   DOM READY
+========================================================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  boot
-);
+if (
+  document.readyState ===
+  "loading"
+) {
+  document.addEventListener(
+    "DOMContentLoaded",
+    boot,
+    {
+      once: true
+    }
+  );
+} else {
+  boot();
+}
+
+/* =========================================================
+   DEBUG
+========================================================= */
+
+window.HoneyPay =
+  window.HoneyPay || {};
+
+window.HoneyPay.state =
+  state;
+
+window.HoneyPay.boot =
+  boot;
+
+window.HoneyPay.logout =
+  redirectLogin;
