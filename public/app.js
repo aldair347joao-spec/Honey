@@ -3602,20 +3602,25 @@ $("#refreshButton")
 ========================================================= */
 
 async function boot() {
-
   /*
     Não permitir painel privado sem autenticação.
   */
-
   if (!getToken()) {
     redirectLogin();
     return;
   }
 
   try {
+    // Disparamos o carregamento do comerciante em segundo plano (sem bloquear o arranque visual)
+    loadMerchant().catch(err => {
+      console.warn("Aviso ao carregar perfil do comerciante:", err);
+    });
 
-    await loadMerchant();
-
+  } catch (error) {
+    console.error("Falha ao iniciar Honey Pay:", error);
+  } finally {
+    // Revelamos a app e removemos o loader imediatamente, 
+    // permitindo que o painel abra logo (e os dados apareçam à medida que o dashboard responde)
     app.classList.remove("hidden");
 
     setTimeout(() => {
@@ -3623,21 +3628,9 @@ async function boot() {
     }, 250);
 
     navigate();
-
-  } catch (error) {
-
-    console.error(
-      "Falha ao iniciar Honey Pay:",
-      error
-    );
-
-    loader.classList.add("hide");
-
-    app.classList.remove("hidden");
-
-    navigate();
   }
 }
+
 
 document.addEventListener(
   "DOMContentLoaded",
