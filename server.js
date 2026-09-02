@@ -1729,31 +1729,44 @@ const PaymentSchema =
           ''
       },
 
-      providerFailureCode: {
+            providerFailureCode: {
         type:
           String,
 
         default:
           ''
-      }
-            providerReferenceEntity: {
-        type: String,
-        default: ''
+      },
+
+      providerReferenceEntity: {
+        type:
+          String,
+
+        default:
+          ''
       },
 
       providerReferenceNumber: {
-        type: String,
-        default: ''
+        type:
+          String,
+
+        default:
+          ''
       },
 
       checkoutUrl: {
-        type: String,
-        default: ''
+        type:
+          String,
+
+        default:
+          ''
       },
 
       providerRaw: {
-        type: mongoose.Schema.Types.Mixed,
-        default: null
+        type:
+          mongoose.Schema.Types.Mixed,
+
+        default:
+          null
       }
     },
 
@@ -1840,7 +1853,7 @@ const PaymentLinkSchema =
 
         default:
           null
-      }
+      },
            productId: {
         type:
           mongoose.Schema.Types.ObjectId,
