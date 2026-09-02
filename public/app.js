@@ -1453,14 +1453,893 @@ async function renderOrders() {
 }
 
 async function renderProducts() {
-  await renderSimpleCollection(
-    "products",
-    "Produtos",
-    "products",
-    "product"
+
+  await loadProducts();
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+        <h2>
+          Produtos
+        </h2>
+
+        <p>
+          Crie e gerencie os produtos
+          que pretende vender.
+        </p>
+      </div>
+
+      <button
+        class="primary-btn"
+        id="newProductButton"
+      >
+        + Novo produto
+      </button>
+
+    </div>
+
+    <div
+      id="resourceContent"
+      class="panel"
+    ></div>
+
+  `;
+
+  renderProductList();
+
+  $("#newProductButton")
+    ?.addEventListener(
+      "click",
+      openProductForm
+    );
+}
+function openProductForm() {
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+
+        <h2>
+          Novo produto
+        </h2>
+
+        <p>
+          Crie um produto para vender
+          através do Honey Pay.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <form
+        id="productForm"
+        style="padding:20px"
+      >
+
+        <div class="form-grid">
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Nome do produto
+            </label>
+
+            <input
+              class="form-input"
+              name="name"
+              required
+              maxlength="150"
+              placeholder="Ex.: T-shirt Honey"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Preço
+            </label>
+
+            <input
+              class="form-input"
+              name="price"
+              type="number"
+              min="1"
+              step="1"
+              required
+              placeholder="25000"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label class="form-label">
+              SKU
+            </label>
+
+            <input
+              class="form-input"
+              name="sku"
+              maxlength="100"
+              placeholder="TSHIRT-001"
+            >
+
+          </div>
+
+          <div class="form-group">
+
+            <label class="form-label">
+              Stock
+            </label>
+
+            <input
+              class="form-input"
+              name="stock"
+              type="number"
+              min="0"
+              step="1"
+              placeholder="Opcional"
+            >
+
+          </div>
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Descrição
+          </label>
+
+          <textarea
+            class="form-input"
+            name="description"
+            rows="5"
+            maxlength="2000"
+            placeholder="Descrição do produto"
+          ></textarea>
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Imagem
+          </label>
+
+          <input
+            class="form-input"
+            name="image"
+            type="url"
+            placeholder="https://..."
+          >
+
+        </div>
+
+        <div
+          style="
+            display:flex;
+            gap:12px;
+            margin-top:20px;
+          "
+        >
+
+          <button
+            type="submit"
+            class="primary-btn"
+          >
+            Criar produto
+          </button>
+
+          <button
+            type="button"
+            class="secondary-btn"
+            id="cancelProduct"
+          >
+            Cancelar
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+  $("#productForm")
+    ?.addEventListener(
+      "submit",
+      createProduct
+    );
+
+  $("#cancelProduct")
+    ?.addEventListener(
+      "click",
+      () => {
+        location.hash =
+          "#products";
+      }
+    );
+}
+function renderProductList() {
+
+  const container =
+    $("#resourceContent");
+
+  if (!container) {
+    return;
+  }
+
+  if (
+    !state.products.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <h3>
+          Nenhum produto
+        </h3>
+
+        <p>
+          Crie o primeiro produto
+          para começar a vender.
+        </p>
+
+        <button
+          class="primary-btn"
+          id="emptyNewProduct"
+        >
+          + Criar produto
+        </button>
+
+      </div>
+    `;
+
+    $("#emptyNewProduct")
+      ?.addEventListener(
+        "click",
+        openProductForm
+      );
+
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="table-scroll">
+
+      <table class="data-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Produto
+            </th>
+
+            <th>
+              Preço
+            </th>
+
+            <th>
+              Stock
+            </th>
+
+            <th>
+              Estado
+            </th>
+
+            <th>
+              Ações
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${state.products
+            .map(
+              (product) => `
+
+                <tr>
+
+                  <td>
+
+                    <strong>
+                      ${escapeHTML(
+                        product.name
+                      )}
+                    </strong>
+
+                    ${
+                      product.sku
+                        ? `
+                          <br>
+                          <small>
+                            ${escapeHTML(
+                              product.sku
+                            )}
+                          </small>
+                        `
+                        : ""
+                    }
+
+                  </td>
+
+                  <td class="amount-cell">
+
+                    ${formatKz(
+                      product.price
+                    )}
+
+                  </td>
+
+                  <td>
+
+                    ${
+                      product.stock ===
+                      null
+                        ? "∞"
+                        : formatNumber(
+                            product.stock
+                          )
+                    }
+
+                  </td>
+
+                  <td>
+
+                    <span
+                      class="status ${
+                        product.active
+                          ? "success"
+                          : "failed"
+                      }"
+                    >
+
+                      ${
+                        product.active
+                          ? "Ativo"
+                          : "Inativo"
+                      }
+
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    <button
+                      class="primary-btn"
+                      data-product-link="${escapeHTML(
+                        String(
+                          product._id
+                        )
+                      )}"
+                    >
+                      Criar link
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              `
+            )
+            .join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  `;
+
+  container
+    .querySelectorAll(
+      "[data-product-link]"
+    )
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const product =
+              state.products.find(
+                (item) =>
+                  String(
+                    item._id
+                  ) ===
+                  String(
+                    button.dataset
+                      .productLink
+                  )
+              );
+
+            if (
+              product
+            ) {
+
+              openPaymentLinkForm(
+                product
+              );
+            }
+          }
+        );
+      }
+    );
+}
+function openPaymentLinkForm(
+  product
+) {
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+
+        <h2>
+          Criar link de pagamento
+        </h2>
+
+        <p>
+          ${escapeHTML(
+            product.name
+          )}
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <form
+        id="paymentLinkForm"
+        style="padding:20px"
+      >
+
+        <div class="form-group">
+
+          <label class="form-label">
+            Título
+          </label>
+
+          <input
+            class="form-input"
+            name="title"
+            required
+            value="${escapeHTML(
+              product.name
+            )}"
+          >
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Descrição
+          </label>
+
+          <textarea
+            class="form-input"
+            name="description"
+            rows="4"
+          >${escapeHTML(
+            product.description ||
+            ""
+          )}</textarea>
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Valor
+          </label>
+
+          <input
+            class="form-input"
+            name="amount"
+            type="number"
+            min="1"
+            step="1"
+            required
+            value="${Number(
+              product.price
+            )}"
+          >
+
+        </div>
+
+        <button
+          type="submit"
+          class="primary-btn"
+          style="margin-top:20px"
+        >
+          Gerar link de pagamento
+        </button>
+
+      </form>
+
+    </div>
+  `;
+
+  $("#paymentLinkForm")
+    ?.addEventListener(
+      "submit",
+      async (
+        event
+      ) => {
+
+        event.preventDefault();
+
+        const form =
+          new FormData(
+            event.target
+          );
+
+        try {
+
+          const data =
+            await request(
+              "/payment-links",
+              {
+                method:
+                  "POST",
+
+                body:
+                  JSON.stringify({
+
+                    title:
+                      form.get(
+                        "title"
+                      ),
+
+                    description:
+                      form.get(
+                        "description"
+                      ),
+
+                    amount:
+                      Number(
+                        form.get(
+                          "amount"
+                        )
+                      ),
+
+                    productId:
+                      product._id
+                  })
+              }
+            );
+
+          showToast(
+            "Link de pagamento criado."
+          );
+
+          showCreatedLink(
+            data
+          );
+
+        } catch (
+          error
+        ) {
+
+          showToast(
+            error.message,
+            "error"
+          );
+        }
+      }
+    );
+}
+function showCreatedLink(
+  data
+) {
+
+  const url =
+    data.url ||
+    data.link?.url ||
+    `${location.origin}/pay/${data.link?.token}`;
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+
+        <h2>
+          Link criado
+        </h2>
+
+        <p>
+          A cobrança está pronta
+          para partilhar.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <div
+        style="
+          padding:24px;
+          text-align:center;
+        "
+      >
+
+        <h3>
+          Link de pagamento
+        </h3>
+
+        <div
+          style="
+            display:flex;
+            gap:10px;
+            margin:20px 0;
+          "
+        >
+
+          <input
+            id="generatedPaymentUrl"
+            class="form-input"
+            readonly
+            value="${escapeHTML(
+              url
+            )}"
+          >
+
+          <button
+            class="primary-btn"
+            id="copyPaymentUrl"
+          >
+            Copiar
+          </button>
+
+        </div>
+
+        <div
+          id="dashboardQr"
+          style="
+            margin:25px auto;
+            width:240px;
+            min-height:240px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+          "
+        ></div>
+
+        <p>
+          Partilhe este link pelo
+          WhatsApp, Facebook, Instagram
+          ou onde vende.
+        </p>
+
+        <div
+          style="
+            display:flex;
+            gap:12px;
+            justify-content:center;
+            flex-wrap:wrap;
+            margin-top:20px;
+          "
+        >
+
+          <a
+            class="primary-btn"
+            href="${escapeHTML(
+              url
+            )}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Abrir checkout
+          </a>
+
+          <button
+            class="secondary-btn"
+            id="backLinks"
+          >
+            Ver meus links
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  $("#copyPaymentUrl")
+    ?.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await navigator.clipboard.writeText(
+            url
+          );
+
+          showToast(
+            "Link copiado."
+          );
+
+        } catch {
+
+          showToast(
+            "Não foi possível copiar o link.",
+            "error"
+          );
+        }
+      }
+    );
+
+  $("#backLinks")
+    ?.addEventListener(
+      "click",
+      () => {
+        location.hash =
+          "#links";
+      }
+    );
+
+  renderDashboardQr(
+    url
   );
 }
 
+function renderDashboardQr(
+  url
+) {
+
+  const container =
+    $("#dashboardQr");
+
+  if (!container) {
+    return;
+  }
+
+  const img =
+    document.createElement(
+      "img"
+    );
+
+  img.alt =
+    "QR Code Honey Pay";
+
+  img.width =
+    220;
+
+  img.height =
+    220;
+
+  img.src =
+    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+      url
+    )}`;
+
+  container.appendChild(
+    img
+  );
+}
+async function createProduct(
+  event
+) {
+
+  event.preventDefault();
+
+  const form =
+    new FormData(
+      event.target
+    );
+
+  const payload = {
+
+    name:
+      String(
+        form.get("name") ||
+        ""
+      ).trim(),
+
+    description:
+      String(
+        form.get("description") ||
+        ""
+      ).trim(),
+
+    sku:
+      String(
+        form.get("sku") ||
+        ""
+      ).trim(),
+
+    price:
+      Number(
+        form.get("price")
+      ),
+
+    image:
+      String(
+        form.get("image") ||
+        ""
+      ).trim(),
+
+    stock:
+      form.get("stock")
+        ? Number(
+            form.get("stock")
+          )
+        : null
+  };
+
+  try {
+
+    await request(
+      "/products",
+      {
+        method:
+          "POST",
+
+        body:
+          JSON.stringify(
+            payload
+          )
+      }
+    );
+
+    showToast(
+      "Produto criado com sucesso."
+    );
+
+    await loadProducts();
+
+    location.hash =
+      "#products";
+
+  } catch (
+    error
+  ) {
+
+    showToast(
+      error.message,
+      "error"
+    );
+  }
+}
 async function renderCustomers() {
   await renderSimpleCollection(
     "customers",
@@ -1471,14 +2350,410 @@ async function renderCustomers() {
 }
 
 async function renderLinks() {
-  await renderSimpleCollection(
-    "links",
-    "Links de pagamento",
-    "links",
-    "link"
-  );
-}
 
+  await loadLinks();
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+
+        <h2>
+          Links de pagamento
+        </h2>
+
+        <p>
+          Links que pode partilhar
+          diretamente com os seus clientes.
+        </p>
+
+      </div>
+
+      <button
+        class="primary-btn"
+        id="newPaymentLink"
+      >
+        + Novo link
+      </button>
+
+    </div>
+
+    <div
+      id="resourceContent"
+      class="panel"
+    ></div>
+  `;
+
+  renderLinksList();
+
+  $("#newPaymentLink")
+    ?.addEventListener(
+      "click",
+      openManualPaymentLinkForm
+    );
+}
+function renderLinksList() {
+
+  const container =
+    $("#resourceContent");
+
+  if (!container) {
+    return;
+  }
+
+  if (
+    !state.links.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <h3>
+          Nenhum link criado
+        </h3>
+
+        <p>
+          Crie um link e envie-o
+          aos seus clientes.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = `
+
+    <div class="table-scroll">
+
+      <table class="data-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Nome
+            </th>
+
+            <th>
+              Valor
+            </th>
+
+            <th>
+              Estado
+            </th>
+
+            <th>
+              Link
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${state.links
+            .map(
+              (link) => {
+
+                const url =
+                  `${location.origin}/pay/${link.token}`;
+
+                return `
+
+                  <tr>
+
+                    <td>
+
+                      <strong>
+                        ${escapeHTML(
+                          link.title
+                        )}
+                      </strong>
+
+                      ${
+                        link.description
+                          ? `
+                            <br>
+                            <small>
+                              ${escapeHTML(
+                                link.description
+                              )}
+                            </small>
+                          `
+                          : ""
+                      }
+
+                    </td>
+
+                    <td class="amount-cell">
+
+                      ${formatKz(
+                        link.amount
+                      )}
+
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status ${
+                          link.active
+                            ? "success"
+                            : "failed"
+                        }"
+                      >
+
+                        ${
+                          link.active
+                            ? "Ativo"
+                            : "Desativado"
+                        }
+
+                      </span>
+
+                    </td>
+
+                    <td>
+
+                      <button
+                        class="primary-btn"
+                        data-copy-link="${escapeHTML(
+                          url
+                        )}"
+                      >
+                        Copiar
+                      </button>
+
+                      <a
+                        class="secondary-btn"
+                        href="${escapeHTML(
+                          url
+                        )}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Abrir
+                      </a>
+
+                    </td>
+
+                  </tr>
+                `;
+              }
+            )
+            .join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  `;
+
+  container
+    .querySelectorAll(
+      "[data-copy-link]"
+    )
+    .forEach(
+      (
+        button
+      ) => {
+
+        button.addEventListener(
+          "click",
+          async () => {
+
+            try {
+
+              await navigator.clipboard.writeText(
+                button.dataset
+                  .copyLink
+              );
+
+              showToast(
+                "Link copiado."
+              );
+
+            } catch {
+
+              showToast(
+                "Não foi possível copiar o link.",
+                "error"
+              );
+            }
+          }
+        );
+      }
+    );
+}
+function openManualPaymentLinkForm() {
+
+  pageContent.innerHTML = `
+
+    <div class="page-header">
+
+      <div>
+
+        <h2>
+          Novo link de pagamento
+        </h2>
+
+        <p>
+          Crie uma cobrança personalizada.
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="panel">
+
+      <form
+        id="manualPaymentLinkForm"
+        style="padding:20px"
+      >
+
+        <div class="form-group">
+
+          <label class="form-label">
+            Título
+          </label>
+
+          <input
+            class="form-input"
+            name="title"
+            required
+            maxlength="150"
+            placeholder="Ex.: Pedido #1042"
+          >
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Descrição
+          </label>
+
+          <textarea
+            class="form-input"
+            name="description"
+            rows="4"
+          ></textarea>
+
+        </div>
+
+        <div
+          class="form-group"
+          style="margin-top:20px"
+        >
+
+          <label class="form-label">
+            Valor em Kz
+          </label>
+
+          <input
+            class="form-input"
+            name="amount"
+            type="number"
+            min="1"
+            step="1"
+            required
+            placeholder="25000"
+          >
+
+        </div>
+
+        <button
+          class="primary-btn"
+          type="submit"
+          style="margin-top:20px"
+        >
+          Gerar link
+        </button>
+
+      </form>
+
+    </div>
+  `;
+
+  $("#manualPaymentLinkForm")
+    ?.addEventListener(
+      "submit",
+      async (
+        event
+      ) => {
+
+        event.preventDefault();
+
+        const form =
+          new FormData(
+            event.target
+          );
+
+        try {
+
+          const data =
+            await request(
+              "/payment-links",
+              {
+                method:
+                  "POST",
+
+                body:
+                  JSON.stringify({
+
+                    title:
+                      form.get(
+                        "title"
+                      ),
+
+                    description:
+                      form.get(
+                        "description"
+                      ),
+
+                    amount:
+                      Number(
+                        form.get(
+                          "amount"
+                        )
+                      )
+                  })
+              }
+            );
+
+          showToast(
+            "Link criado."
+          );
+
+          showCreatedLink(
+            data
+          );
+
+          await loadLinks();
+
+        } catch (
+          error
+        ) {
+
+          showToast(
+            error.message,
+            "error"
+          );
+        }
+      }
+    );
+}
 async function renderSimpleCollection(
   route,
   title,
