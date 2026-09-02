@@ -1736,6 +1736,25 @@ const PaymentSchema =
         default:
           ''
       }
+            providerReferenceEntity: {
+        type: String,
+        default: ''
+      },
+
+      providerReferenceNumber: {
+        type: String,
+        default: ''
+      },
+
+      checkoutUrl: {
+        type: String,
+        default: ''
+      },
+
+      providerRaw: {
+        type: mongoose.Schema.Types.Mixed,
+        default: null
+      }
     },
 
     {
@@ -1822,6 +1841,48 @@ const PaymentLinkSchema =
         default:
           null
       }
+           productId: {
+        type:
+          mongoose.Schema.Types.ObjectId,
+
+        ref:
+          'Product',
+
+        default:
+          null
+      },
+
+      bitpayLinkId: {
+        type:
+          String,
+
+        default:
+          ''
+      },
+
+      bitpayUrl: {
+        type:
+          String,
+
+        default:
+          ''
+      },
+
+      qrSvg: {
+        type:
+          String,
+
+        default:
+          ''
+      },
+
+      qrUrl: {
+        type:
+          String,
+
+        default:
+          ''
+      } 
     },
 
     {
@@ -4536,24 +4597,6 @@ app.get(
   )
 );
 
-app.post(
-  '/api/payment-links',
-
-  authenticate,
-
-  requireMerchant,
-
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
-      const title =
-        cleanString(
-          req.body.title,
-          150
-        );
-
       const amount =
         Number(
           req.body.amount
@@ -4616,7 +4659,189 @@ app.post(
     }
   )
 );
+/* =========================================================
+   CREATE REAL HONEY PAY PAYMENT LINK
+   ========================================================= */
 
+app.post(
+  '/api/payment-links',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const title =
+        cleanString(
+          req.body.title,
+          150
+        );
+
+      const description =
+        cleanString(
+          req.body.description,
+          2000
+        );
+
+      const amount =
+        Math.round(
+          Number(
+            req.body.amount
+          )
+        );
+
+      const productId =
+        cleanString(
+          req.body.productId,
+          100
+        );
+
+      if (
+        !title ||
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Título e valor válidos são obrigatórios.'
+          });
+      }
+
+      let product = null;
+
+      if (productId) {
+
+        if (
+          !isValidObjectId(
+            productId
+          )
+        ) {
+          return res
+            .status(400)
+            .json({
+              success: false,
+              error:
+                'Produto inválido.'
+            });
+        }
+
+        product =
+          await Product.findOne({
+            _id:
+              productId,
+
+            merchantId:
+              req.merchantId,
+
+            active:
+              true
+          });
+
+        if (!product) {
+          return res
+            .status(404)
+            .json({
+              success: false,
+              error:
+                'Produto não encontrado.'
+            });
+        }
+      }
+
+      /*
+       ========================================================
+       1. CRIAR LINK LOCAL
+       ========================================================
+      */
+
+      const token =
+        generateToken();
+
+      const link =
+        await PaymentLink.create({
+          merchantId:
+            req.merchantId,
+
+          token,
+
+          title,
+
+          description,
+
+          amount,
+
+          currency:
+            'AOA',
+
+          active:
+            true,
+
+          productId:
+            product
+              ? product._id
+              : null
+        });
+
+      /*
+       ========================================================
+       2. URL PÚBLICA HONEY PAY
+       ========================================================
+      */
+
+      const honeyUrl =
+        `${APP_BASE_URL}/pay/${link.token}`;
+
+      /*
+       ========================================================
+       3. QR URL
+       ========================================================
+      */
+
+      /*
+       O QR aponta para o checkout Honey Pay.
+       O checkout posteriormente cria o payment_intent
+       real na BitPay.
+      */
+
+      link.qrUrl =
+        honeyUrl;
+
+      await link.save();
+
+      return res
+        .status(201)
+        .json({
+          success:
+            true,
+
+          link,
+
+          url:
+            honeyUrl,
+
+          qrUrl:
+            honeyUrl,
+
+          honeyPayFee: {
+            bps:
+              HONEY_PAY_FEE_BPS,
+
+            percent:
+              HONEY_PAY_FEE_BPS /
+              100
+          }
+        });
+    }
+  )
+);
 app.delete(
   '/api/payment-links/:id',
 
@@ -4792,7 +5017,618 @@ app.get(
     }
   )
 );
+/* =========================================================
+   PUBLIC PAYMENT LINK -> REAL BITPAY PAYMENT
+   ========================================================= */
 
+app.post(
+  '/api/public/payment-links/:token/pay',
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const token =
+        cleanString(
+          req.params.token,
+          200
+        );
+
+      if (!token) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Token de pagamento inválido.'
+          });
+      }
+
+      /*
+       ======================================================
+       1. LOCALIZAR LINK
+       ======================================================
+      */
+
+      const link =
+        await PaymentLink.findOne({
+          token,
+
+          active:
+            true
+        });
+
+      if (!link) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Link de pagamento não encontrado.'
+          });
+      }
+
+      if (
+        link.expiresAt &&
+        new Date(
+          link.expiresAt
+        ).getTime() <
+          Date.now()
+      ) {
+        return res
+          .status(410)
+          .json({
+            success: false,
+            error:
+              'Este link expirou.'
+          });
+      }
+
+      /*
+       ======================================================
+       2. DADOS DO CLIENTE
+       ======================================================
+      */
+
+      const customerName =
+        cleanString(
+          req.body.customerName,
+          150
+        );
+
+      const customerEmail =
+        normalizeEmail(
+          req.body.customerEmail
+        );
+
+      const customerMobile =
+        cleanString(
+          req.body.customerMobile,
+          30
+        );
+
+      const paymentMethod =
+        cleanString(
+          req.body.paymentMethod ||
+            'multicaixa_express',
+          50
+        );
+
+      if (!customerName) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Nome do cliente é obrigatório.'
+          });
+      }
+
+      const allowedMethods = [
+        'multicaixa_express',
+        'multicaixa_reference'
+      ];
+
+      if (
+        !allowedMethods.includes(
+          paymentMethod
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Método de pagamento inválido.'
+          });
+      }
+
+      if (
+        paymentMethod ===
+          'multicaixa_express' &&
+        !customerMobile
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Número de telemóvel é obrigatório para Multicaixa Express.'
+          });
+      }
+
+      /*
+       ======================================================
+       3. MERCHANT
+       ======================================================
+      */
+
+      const merchant =
+        await Merchant.findById(
+          link.merchantId
+        ).lean();
+
+      if (!merchant) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Comerciante não encontrado.'
+          });
+      }
+
+      /*
+       ======================================================
+       4. CUSTOMER
+       ======================================================
+      */
+
+      let customer = null;
+
+      if (
+        customerEmail
+      ) {
+
+        customer =
+          await Customer.findOne({
+            merchantId:
+              link.merchantId,
+
+            email:
+              customerEmail
+          });
+
+      }
+
+      if (!customer) {
+
+        customer =
+          await Customer.create({
+            merchantId:
+              link.merchantId,
+
+            name:
+              customerName,
+
+            email:
+              customerEmail,
+
+            phone:
+              customerMobile
+          });
+
+      } else {
+
+        customer.name =
+          customerName ||
+          customer.name;
+
+        customer.phone =
+          customerMobile ||
+          customer.phone;
+
+        await customer.save();
+      }
+
+      /*
+       ======================================================
+       5. CRIAR ORDER
+       ======================================================
+      */
+
+      const orderReference =
+        generateReference(
+          'HP'
+        );
+
+      const order =
+        await Order.create({
+          merchantId:
+            link.merchantId,
+
+          customerId:
+            customer._id,
+
+          reference:
+            orderReference,
+
+          items: [
+            {
+              productId:
+                link.productId ||
+                null,
+
+              name:
+                link.title,
+
+              quantity:
+                1,
+
+              unitPrice:
+                link.amount,
+
+              total:
+                link.amount
+            }
+          ],
+
+          subtotal:
+            link.amount,
+
+          total:
+            link.amount,
+
+          currency:
+            'AOA',
+
+          status:
+            'PAYMENT_PROCESSING',
+
+          customerSnapshot: {
+            name:
+              customerName,
+
+            email:
+              customerEmail,
+
+            phone:
+              customerMobile
+          }
+        });
+
+      /*
+       ======================================================
+       6. METADATA BITPAY
+       ======================================================
+      */
+
+      const metadata = {
+
+        honey_pay:
+          'true',
+
+        honey_pay_version:
+          '3.4.0',
+
+        order_id:
+          String(
+            order._id
+          ),
+
+        order_reference:
+          orderReference,
+
+        merchant_id:
+          String(
+            link.merchantId
+          ),
+
+        payment_link_id:
+          String(
+            link._id
+          ),
+
+        payment_link_token:
+          link.token
+      };
+
+      /*
+       ======================================================
+       7. PAYLOAD BITPAY
+       ======================================================
+      */
+
+      const bitpayPayload = {
+
+        amount:
+          Math.round(
+            link.amount
+          ),
+
+        currency:
+          'AOA',
+
+        payment_method:
+          paymentMethod,
+
+        merchant_reference:
+          orderReference,
+
+        metadata
+      };
+
+      if (
+        paymentMethod ===
+        'multicaixa_express'
+      ) {
+
+        bitpayPayload.customer = {
+          mobile:
+            customerMobile
+        };
+
+      }
+
+      /*
+       ======================================================
+       8. IDEMPOTENCY
+       ======================================================
+      */
+
+      const idempotencyKey =
+        `honey-order-${String(
+          order._id
+        )}`;
+
+      /*
+       ======================================================
+       9. BITPAY REAL
+       ======================================================
+      */
+
+      let bitpayResponse;
+
+      try {
+
+        bitpayResponse =
+          await bitpayRequest(
+            '/payment_intents',
+            {
+              method:
+                'POST',
+
+              headers: {
+                'Idempotency-Key':
+                  idempotencyKey
+              },
+
+              body:
+                bitpayPayload
+            }
+          );
+
+      } catch (error) {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+              status:
+                'FAILED'
+            }
+          }
+        );
+
+        throw error;
+      }
+
+      /*
+       ======================================================
+       10. ID BITPAY
+       ======================================================
+      */
+
+      const providerPaymentId =
+        bitpayResponse.id ||
+        bitpayResponse.payment_intent ||
+        '';
+
+      if (!providerPaymentId) {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+              status:
+                'FAILED'
+            }
+          }
+        );
+
+        return res
+          .status(502)
+          .json({
+            success: false,
+            error:
+              'A BitPay não devolveu o identificador do pagamento.'
+          });
+      }
+
+      /*
+       ======================================================
+       11. EXTRAIR REFERÊNCIA
+       ======================================================
+      */
+
+      const providerReference =
+        bitpayResponse.reference ||
+        bitpayResponse.multicaixa_reference ||
+        null;
+
+      const referenceEntity =
+        providerReference?.entity ||
+        bitpayResponse.entity ||
+        '';
+
+      const referenceNumber =
+        providerReference?.number ||
+        bitpayResponse.reference_number ||
+        bitpayResponse.number ||
+        '';
+
+      const checkoutUrl =
+        bitpayResponse.checkout_url ||
+        bitpayResponse.checkoutUrl ||
+        bitpayResponse.url ||
+        '';
+
+      /*
+       ======================================================
+       12. CRIAR PAYMENT LOCAL
+       ======================================================
+      */
+
+      const payment =
+        await Payment.create({
+
+          merchantId:
+            link.merchantId,
+
+          orderId:
+            order._id,
+
+          customerId:
+            customer._id,
+
+          reference:
+            orderReference,
+
+          provider:
+            'bitpay',
+
+          providerPaymentId,
+
+          paymentMethod,
+
+          amount:
+            link.amount,
+
+          feeAmount:
+            calculateFee(
+              link.amount
+            ),
+
+          netAmount:
+            calculateNet(
+              link.amount
+            ),
+
+          currency:
+            'AOA',
+
+          status:
+            String(
+              bitpayResponse.status ||
+                'PENDING'
+            ).toUpperCase() ===
+              'PROCESSING'
+              ? 'PROCESSING'
+              : 'PENDING',
+
+          providerRawStatus:
+            String(
+              bitpayResponse.status ||
+                'PENDING'
+            ).toUpperCase(),
+
+          providerReferenceEntity:
+            referenceEntity,
+
+          providerReferenceNumber:
+            referenceNumber,
+
+          checkoutUrl,
+
+          providerRaw:
+            bitpayResponse
+        });
+
+      /*
+       ======================================================
+       13. DEVOLVER AO CHECKOUT
+       ======================================================
+      */
+
+            return res
+        .status(201)
+        .json({
+
+          success:
+            true,
+
+          payment: {
+
+            id:
+              String(
+                payment._id
+              ),
+
+            reference:
+              payment.reference,
+
+            status:
+              payment.status,
+
+            amount:
+              payment.amount,
+
+            currency:
+              payment.currency,
+
+            paymentMethod:
+              payment.paymentMethod,
+
+            providerPaymentId:
+              payment.providerPaymentId,
+
+            multicaixaReference: {
+              entity:
+                payment.providerReferenceEntity,
+
+              number:
+                payment.providerReferenceNumber
+            },
+
+            checkoutUrl:
+              payment.checkoutUrl
+          },
+
+          bitpay: {
+            id:
+              providerPaymentId,
+
+            status:
+              bitpayResponse.status ||
+              'PENDING'
+          },
+
+          honeyPayFee: {
+            bps:
+              HONEY_PAY_FEE_BPS,
+
+            percent:
+              HONEY_PAY_FEE_BPS /
+              100,
+
+            amount:
+              calculateFee(
+                link.amount
+              )
+          }
+        });
 /* =========================================================
    REPORTS
 ========================================================= */
