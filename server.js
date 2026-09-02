@@ -4256,6 +4256,84 @@ app.get(
     }
   )
 );
+/* =========================================================
+   PUBLIC PAYMENT STATUS
+========================================================= */
+
+app.get(
+  '/api/public/payments/:id/status',
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const payment =
+        await Payment.findOne({
+          provider:
+            'bitpay',
+
+          providerPaymentId:
+            cleanString(
+              req.params.id,
+              200
+            )
+        }).lean();
+
+      if (!payment) {
+
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Pagamento não encontrado.'
+          });
+      }
+
+      return res.json({
+
+        success:
+          true,
+
+        payment: {
+
+          id:
+            String(
+              payment._id
+            ),
+
+          status:
+            payment.status,
+
+          providerStatus:
+            payment.providerRawStatus,
+
+          reference:
+            payment.reference,
+
+          multicaixaReference: {
+
+            entity:
+              payment.providerReferenceEntity,
+
+            number:
+              payment.providerReferenceNumber
+          },
+
+          checkoutUrl:
+            payment.checkoutUrl,
+
+          paidAt:
+            payment.paidAt
+        }
+      });
+    }
+  )
+);
 
 /* =========================================================
    CREATE BITPAY PAYMENT
