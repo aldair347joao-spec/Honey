@@ -761,6 +761,155 @@ function startPaymentStream(
     return;
   }
 
+  let attempts =
+    0;
+
+  const maxAttempts =
+    120;
+
+  const check =
+    async () => {
+
+      try {
+
+        const response =
+          await fetch(
+            `/api/public/payments/${encodeURIComponent(
+              providerPaymentId
+            )}/status`,
+            {
+              cache:
+                "no-store"
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (
+          !response.ok
+        ) {
+          throw new Error(
+            data.error ||
+            "Erro ao consultar pagamento."
+          );
+        }
+
+        const payment =
+          data.payment;
+
+        const status =
+          String(
+            payment.status ||
+            ""
+          ).toUpperCase();
+
+        const live =
+          $("liveStatus");
+
+        if (
+          status ===
+            "PAID"
+        ) {
+
+          if (live) {
+
+            live.innerHTML = `
+              <strong>
+                ✓ Pagamento confirmado.
+              </strong>
+            `;
+          }
+
+          return;
+        }
+
+        if (
+          status ===
+            "FAILED"
+        ) {
+
+          if (live) {
+
+            live.textContent =
+              "O pagamento falhou.";
+          }
+
+          return;
+        }
+
+        if (
+          status ===
+            "REFUNDED"
+        ) {
+
+          if (live) {
+
+            live.textContent =
+              "O pagamento foi reembolsado.";
+          }
+
+          return;
+        }
+
+        if (live) {
+
+          live.textContent =
+            status ===
+              "PROCESSING"
+
+              ? "Pagamento em processamento..."
+
+              : "A aguardar confirmação...";
+        }
+
+        attempts++;
+
+        if (
+          attempts <
+          maxAttempts
+        ) {
+
+          setTimeout(
+            check,
+            3000
+          );
+        }
+
+      } catch (
+        error
+      ) {
+
+        console.warn(
+          "Payment status:",
+          error
+        );
+
+        attempts++;
+
+        if (
+          attempts <
+          maxAttempts
+        ) {
+
+          setTimeout(
+            check,
+            5000
+          );
+        }
+      }
+    };
+
+  check();
+}
+  {
+
+  if (
+    !providerPaymentId
+  ) {
+    return;
+  }
+
   if (
     eventSource
   ) {
