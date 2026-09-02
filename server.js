@@ -4735,14 +4735,10 @@ app.post(
           req.body.description,
           2000
         );
-
       const amount =
-        Math.round(
-          Number(
-            req.body.amount
-          )
+        Number(
+          req.body.amount
         );
-
       const productId =
         cleanString(
           req.body.productId,
