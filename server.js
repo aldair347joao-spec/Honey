@@ -2507,7 +2507,25 @@ async function processBitPayPaymentEvent(
       calculateNet(
         payment.amount
       );
+    const webhookReference =
+      eventObject?.reference ||
+      eventObject?.multicaixa_reference ||
+      null;
 
+    if (
+      webhookReference
+    ) {
+
+      payment.providerReferenceEntity =
+        webhookReference.entity ||
+        payment.providerReferenceEntity ||
+        '';
+
+      payment.providerReferenceNumber =
+        webhookReference.number ||
+        payment.providerReferenceNumber ||
+        '';
+    }
     payment.status =
       'PAID';
 
