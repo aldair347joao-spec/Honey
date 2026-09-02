@@ -1,86 +1,330 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
+<!DOCTYPE html><html lang="pt">
+<head>  <meta charset="UTF-8"><meta
+name="viewport"
+content="width=device-width,initial-scale=1"
 
-  <meta charset="UTF-8">
+«»
 
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
-  >
-
-  <title>Pagamento — Honey Pay</title>
-
-  <style>
+  <title>Pagamento — Honey Pay</title>  <style>
 
     * {
       box-sizing:
         border-box;
     }
 
+    :root {
+      --bg:
+        #f5f6fa;
+
+      --card:
+        #ffffff;
+
+      --text:
+        #111827;
+
+      --muted:
+        #6b7280;
+
+      --border:
+        #e5e7eb;
+
+      --primary:
+        #111827;
+
+      --primary-hover:
+        #1f2937;
+
+      --success:
+        #047857;
+
+      --danger:
+        #b91c1c;
+
+      --warning:
+        #92400e;
+    }
+
     body {
       margin:
         0;
 
+      min-height:
+        100vh;
+
       background:
-        #f5f6fa;
+        var(--bg);
 
       font-family:
         Arial,
+        Helvetica,
         sans-serif;
 
       color:
-        #111827;
+        var(--text);
+    }
+
+    button,
+    input,
+    select {
+      font:
+        inherit;
     }
 
     .wrap {
       width:
-        min(560px, calc(100% - 30px));
+        min(
+          560px,
+          calc(100% - 30px)
+        );
 
       margin:
-        50px auto;
+        40px auto;
     }
 
     .card {
       background:
-        white;
+        var(--card);
 
       padding:
         28px;
+
+      border:
+        1px solid var(--border);
 
       border-radius:
         18px;
 
       box-shadow:
         0 15px 50px
-        rgba(0,0,0,.08);
+        rgba(
+          0,
+          0,
+          0,
+          .08
+        );
     }
 
-    h1 {
-      margin-top:
-        0;
+    .brand {
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      gap:
+        10px;
+
+      margin-bottom:
+        24px;
     }
 
-    .amount {
+    .brand-icon {
+      width:
+        42px;
+
+      height:
+        42px;
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        center;
+
+      border-radius:
+        12px;
+
+      background:
+        #111827;
+
+      color:
+        #ffffff;
+
       font-size:
-        34px;
+        22px;
+    }
+
+    .brand-name {
+      font-size:
+        20px;
 
       font-weight:
         800;
+    }
+
+    .merchant {
+      margin:
+        0 0 8px;
+
+      font-size:
+        15px;
+
+      color:
+        var(--muted);
+    }
+
+    h1 {
+      margin:
+        0 0 10px;
+
+      font-size:
+        25px;
+
+      line-height:
+        1.25;
+    }
+
+    .description {
+      margin:
+        0;
+
+      color:
+        var(--muted);
+
+      line-height:
+        1.6;
+    }
+
+    .amount {
+      margin:
+        22px 0;
+
+      font-size:
+        36px;
+
+      line-height:
+        1;
+
+      font-weight:
+        800;
+    }
+
+    .product {
+      padding:
+        18px;
 
       margin:
         20px 0;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        14px;
+
+      background:
+        #fafafa;
+    }
+
+    .product-name {
+      font-weight:
+        800;
+
+      margin-bottom:
+        5px;
+    }
+
+    .product-description {
+      color:
+        var(--muted);
+
+      font-size:
+        14px;
+
+      line-height:
+        1.5;
+    }
+
+    .qr-section {
+      margin:
+        22px 0;
+
+      padding:
+        18px;
+
+      text-align:
+        center;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        14px;
+    }
+
+    .qr-title {
+      font-weight:
+        800;
+
+      margin-bottom:
+        12px;
+    }
+
+    #qrContainer {
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        center;
+
+      min-height:
+        20px;
+    }
+
+    #qrContainer img {
+      display:
+        block;
+
+      width:
+        220px;
+
+      height:
+        220px;
+
+      max-width:
+        100%;
+
+      border-radius:
+        8px;
+    }
+
+    .qr-note {
+      margin:
+        12px 0 0;
+
+      color:
+        var(--muted);
+
+      font-size:
+        12px;
+
+      line-height:
+        1.5;
+    }
+
+    .field {
+      margin-top:
+        15px;
     }
 
     label {
       display:
         block;
 
-      margin-top:
-        12px;
+      margin-bottom:
+        7px;
+
+      font-size:
+        14px;
 
       font-weight:
-        600;
+        700;
     }
 
     input,
@@ -89,7 +333,7 @@
         100%;
 
       padding:
-        13px;
+        13px 14px;
 
       border:
         1px solid #d1d5db;
@@ -97,8 +341,29 @@
       border-radius:
         10px;
 
-      margin-top:
-        6px;
+      outline:
+        none;
+
+      background:
+        #ffffff;
+
+      color:
+        var(--text);
+    }
+
+    input:focus,
+    select:focus {
+      border-color:
+        #6b7280;
+
+      box-shadow:
+        0 0 0 3px
+        rgba(
+          17,
+          24,
+          39,
+          .08
+        );
     }
 
     button {
@@ -118,16 +383,32 @@
         10px;
 
       background:
-        #111827;
+        var(--primary);
 
       color:
-        white;
+        #ffffff;
 
       font-weight:
         800;
 
       cursor:
         pointer;
+
+      transition:
+        .15s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background:
+        var(--primary-hover);
+    }
+
+    button:disabled {
+      opacity:
+        .55;
+
+      cursor:
+        not-allowed;
     }
 
     .message {
@@ -140,107 +421,301 @@
 
     .error {
       color:
-        #b91c1c;
+        var(--danger);
     }
 
     .success {
       color:
-        #047857;
+        var(--success);
+    }
+
+    .warning {
+      color:
+        var(--warning);
     }
 
     .reference {
-      background:
-        #f3f4f6;
+      margin-top:
+        15px;
 
       padding:
+        16px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        #f3f4f6;
+    }
+
+    .reference-row {
+      margin-top:
+        8px;
+    }
+
+    .reference-label {
+      color:
+        var(--muted);
+
+      font-size:
+        13px;
+    }
+
+    .reference-value {
+      font-size:
+        20px;
+
+      font-weight:
+        800;
+
+      word-break:
+        break-word;
+    }
+
+    .status-box {
+      margin-top:
         15px;
+
+      padding:
+        14px;
 
       border-radius:
         10px;
 
-      margin-top:
-        15px;
+      background:
+        #f3f4f6;
+
+      font-size:
+        14px;
     }
 
-  </style>
+    .loading {
+      text-align:
+        center;
 
-</head>
+      padding:
+        30px 0;
 
-<body>
+      color:
+        var(--muted);
+    }
 
-<div class="wrap">
+    .hidden {
+      display:
+        none !important;
+    }
 
-  <div
+    .footer {
+      margin-top:
+        20px;
+
+      text-align:
+        center;
+
+      color:
+        var(--muted);
+
+      font-size:
+        12px;
+    }
+
+    .secure {
+      display:
+        flex;
+
+      justify-content:
+        center;
+
+      align-items:
+        center;
+
+      gap:
+        6px;
+
+      margin-top:
+        12px;
+    }
+
+    @media (
+      max-width: 480px
+    ) {
+
+      .wrap {
+        width:
+          calc(100% - 20px);
+
+        margin:
+          20px auto;
+      }
+
+      .card {
+        padding:
+          20px;
+      }
+
+      .amount {
+        font-size:
+          31px;
+      }
+
+      #qrContainer img {
+        width:
+          190px;
+
+        height:
+          190px;
+      }
+
+    }
+
+  </style></head><body><div class="wrap">  <div
     class="card"
     id="checkout"
+  ><div class="brand">
+
+  <div class="brand-icon">
+    🍯
+  </div>
+
+  <div class="brand-name">
+    Honey Pay
+  </div>
+
+</div>
+
+<div
+  id="loading"
+  class="loading"
+>
+  A carregar pagamento...
+</div>
+
+<div
+  id="checkoutContent"
+  class="hidden"
+>
+
+  <p
+    id="merchant"
+    class="merchant"
+  >
+    A carregar...
+  </p>
+
+  <h1 id="title">
+    ...
+  </h1>
+
+  <p
+    id="description"
+    class="description"
+  ></p>
+
+  <div
+    id="product"
+    class="product hidden"
   >
 
-    <h1>
-      🍯 Honey Pay
-    </h1>
-
-    <h2 id="merchant">
-      A carregar...
-    </h2>
-
-    <h3 id="title">
-      ...
-    </h3>
-
-    <p id="description"></p>
+    <div
+      id="productName"
+      class="product-name"
+    ></div>
 
     <div
-      class="amount"
-      id="amount"
-    >
-      ...
-    </div>
-<div
-  id="qrContainer"
-  style="
-    margin:20px auto;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-  "
-></div>
-    <form
-      id="paymentForm"
-    >
+      id="productDescription"
+      class="product-description"
+    ></div>
 
-      <label>
+  </div>
+
+  <div
+    id="amount"
+    class="amount"
+  >
+    ...
+  </div>
+
+  <div
+    id="qrSection"
+    class="qr-section"
+  >
+
+    <div class="qr-title">
+      QR Code de pagamento
+    </div>
+
+    <div
+      id="qrContainer"
+    ></div>
+
+    <p class="qr-note">
+      Aponte a câmara do seu telefone para abrir este pagamento.
+    </p>
+
+  </div>
+
+  <form
+    id="paymentForm"
+  >
+
+    <div class="field">
+
+      <label for="customerName">
         Nome
       </label>
 
       <input
         id="customerName"
+        name="customerName"
+        autocomplete="name"
         required
       >
 
-      <label>
+    </div>
+
+    <div class="field">
+
+      <label for="customerEmail">
         Email
       </label>
 
       <input
         id="customerEmail"
+        name="customerEmail"
         type="email"
+        autocomplete="email"
       >
 
-      <label>
+    </div>
+
+    <div class="field">
+
+      <label for="customerMobile">
         Telefone
       </label>
 
       <input
         id="customerMobile"
+        name="customerMobile"
+        inputmode="tel"
+        autocomplete="tel"
         placeholder="923000000"
       >
 
-      <label>
+    </div>
+
+    <div class="field">
+
+      <label for="paymentMethod">
         Método de pagamento
       </label>
 
       <select
         id="paymentMethod"
+        name="paymentMethod"
         required
       >
 
@@ -258,61 +733,118 @@
 
       </select>
 
-      <button
-        id="payButton"
-      >
-        Pagar agora
-      </button>
+    </div>
 
-    </form>
+    <button
+      id="payButton"
+      type="submit"
+    >
+      Pagar agora
+    </button>
 
-    <div
-      id="message"
-      class="message"
-    ></div>
+  </form>
 
+  <div
+    id="message"
+    class="message"
+  ></div>
+
+  <div
+    class="secure"
+  >
+    🔒 Pagamento processado de forma segura
   </div>
 
 </div>
 
-<script>
+<div
+  id="footer"
+  class="footer"
+>
+  Powered by Honey Pay
+</div>
+
+  </div></div><script>
 
 "use strict";
 
-const token =
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const pathParts =
   location.pathname
     .split("/")
-    .filter(Boolean)
-    .pop();
+    .filter(Boolean);
+
+const token =
+  pathParts.length
+    ? pathParts[
+        pathParts.length - 1
+      ]
+    : "";
 
 const $ =
-  (id) =>
-    document.getElementById(id);
+  (
+    id
+  ) =>
+    document.getElementById(
+      id
+    );
 
-let paymentData = null;
-let currentPayment = null;
-let eventSource = null;
+let paymentData =
+  null;
+
+let currentPayment =
+  null;
+
+let pollingTimer =
+  null;
+
+let pollingAttempts =
+  0;
+
+const MAX_POLLING_ATTEMPTS =
+  120;
+
+const INITIAL_POLLING_INTERVAL =
+  3000;
+
+const ERROR_POLLING_INTERVAL =
+  5000;
+
+/* =========================================================
+   HELPERS
+========================================================= */
 
 function formatKz(
   value
 ) {
+
+  const number =
+    Number(
+      value || 0
+    );
+
   return (
     new Intl.NumberFormat(
       "pt-AO"
     ).format(
-      Number(
-        value || 0
-      )
+      number
     ) +
     " Kz"
   );
+
 }
 
 function escapeHTML(
   value
 ) {
+
   return String(
-    value || ""
+    value == null
+      ? ""
+      : value
   )
     .replace(
       /&/g,
@@ -334,21 +866,48 @@ function escapeHTML(
       /'/g,
       "&#039;"
     );
+
+}
+
+function normalizeStatus(
+  status
+) {
+
+  return String(
+    status || ""
+  )
+    .trim()
+    .toUpperCase();
+
 }
 
 function statusLabel(
   status
 ) {
 
+  const normalized =
+    normalizeStatus(
+      status
+    );
+
   const map = {
 
     PENDING:
       "A aguardar pagamento",
 
+    PAYMENT_PENDING:
+      "A aguardar pagamento",
+
     PROCESSING:
       "Pagamento em processamento",
 
+    PAYMENT_PROCESSING:
+      "Pagamento em processamento",
+
     SUCCEEDED:
+      "Pagamento confirmado",
+
+    SUCCESS:
       "Pagamento confirmado",
 
     PAID:
@@ -363,21 +922,113 @@ function statusLabel(
     CANCELLED:
       "Pagamento cancelado",
 
-    UNKNOWN:
-      "A confirmar pagamento"
+    REFUNDED:
+      "Pagamento reembolsado"
+
   };
 
   return (
     map[
-      String(
-        status || ""
-      ).toUpperCase()
+      normalized
     ] ||
-    "Estado desconhecido"
+    "A confirmar pagamento"
   );
+
 }
 
-async function load() {
+function isFinalStatus(
+  status
+) {
+
+  const normalized =
+    normalizeStatus(
+      status
+    );
+
+  return [
+    "PAID",
+    "SUCCEEDED",
+    "SUCCESS",
+    "FAILED",
+    "EXPIRED",
+    "CANCELLED",
+    "REFUNDED"
+  ].includes(
+    normalized
+  );
+
+}
+
+function showMessage(
+  message,
+  type
+) {
+
+  const element =
+    $("message");
+
+  if (!element) {
+    return;
+  }
+
+  element.className =
+    "message " +
+    (
+      type || ""
+    );
+
+  element.textContent =
+    message || "";
+
+}
+
+function stopPolling() {
+
+  if (
+    pollingTimer
+  ) {
+
+    clearTimeout(
+      pollingTimer
+    );
+
+    pollingTimer =
+      null;
+
+  }
+
+}
+
+function schedulePolling(
+  callback,
+  delay
+) {
+
+  stopPolling();
+
+  pollingTimer =
+    setTimeout(
+      callback,
+      delay
+    );
+
+}
+
+/* =========================================================
+   LOAD PUBLIC PAYMENT LINK
+========================================================= */
+
+async function loadPaymentLink() {
+
+  if (!token) {
+
+    showLoadError(
+      "Link de pagamento inválido."
+    );
+
+    return;
+
+  }
 
   try {
 
@@ -387,71 +1038,186 @@ async function load() {
           token
         )}`,
         {
-          credentials:
-            "include"
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json"
+          },
+
+          cache:
+            "no-store"
         }
       );
 
-    const data =
-      await response.json();
+    let data =
+      null;
+
+    try {
+
+      data =
+        await response.json();
+
+    } catch {
+
+      data =
+        null;
+
+    }
 
     if (!response.ok) {
+
       throw new Error(
-        data.error ||
-        "Link inválido."
+        data?.error ||
+        data?.message ||
+        "Este link de pagamento não está disponível."
       );
+
     }
 
     paymentData =
       data;
 
-    const merchantName =
-      data.merchant?.businessName ||
-      data.merchant?.name ||
-      "Honey Pay";
-
-    $("merchant")
-      .textContent =
-      merchantName;
-
-    $("title")
-      .textContent =
-      data.link.title;
-
-    $("description")
-      .textContent =
-      data.link.description ||
-      "";
-
-    $("amount")
-      .textContent =
-      formatKz(
-        data.link.amount
-      );
-
-    renderQr(
-      `${location.origin}/pay/${encodeURIComponent(
-        token
-      )}`
+    renderPaymentLink(
+      data
     );
 
   } catch (
     error
   ) {
 
-    $("checkout")
-      .innerHTML = `
-        <h1>
-          Pagamento indisponível
-        </h1>
+    console.error(
+      "Honey Pay checkout:",
+      error
+    );
 
-        <p>
-          ${escapeHTML(
-            error.message
-          )}
-        </p>
-      `;
+    showLoadError(
+      error.message ||
+      "Não foi possível carregar o pagamento."
+    );
+
   }
+
+}
+
+/* =========================================================
+   RENDER PAYMENT LINK
+========================================================= */
+
+function renderPaymentLink(
+  data
+) {
+
+  const link =
+    data?.link ||
+    data;
+
+  const merchant =
+    data?.merchant ||
+    {};
+
+  if (!link) {
+
+    showLoadError(
+      "Pagamento não encontrado."
+    );
+
+    return;
+
+  }
+
+  const merchantName =
+    merchant.businessName ||
+    merchant.name ||
+    "Honey Pay";
+
+  $("merchant")
+    .textContent =
+    merchantName;
+
+  $("title")
+    .textContent =
+    link.title ||
+    "Pagamento";
+
+  $("description")
+    .textContent =
+    link.description ||
+    "";
+
+  $("amount")
+    .textContent =
+    formatKz(
+      link.amount
+    );
+
+  /*
+   Produto pode vir diretamente no
+   endpoint público.
+  */
+
+  const product =
+    data?.product ||
+    link.product ||
+    null;
+
+  if (
+    product
+  ) {
+
+    $("productName")
+      .textContent =
+      product.name ||
+      link.title ||
+      "";
+
+    $("productDescription")
+      .textContent =
+      product.description ||
+      "";
+
+    $("product")
+      .classList
+      .remove(
+        "hidden"
+      );
+
+  }
+
+  /*
+   Preferimos QR fornecido pelo backend.
+
+   Se o backend ainda devolver apenas
+   qrUrl como URL do checkout, geramos
+   temporariamente o QR visual no browser.
+  */
+
+  const paymentUrl =
+    link.url ||
+    `${location.origin}/pay/${encodeURIComponent(
+      token
+    )}`;
+
+  renderQr(
+    link.qrCode ||
+    link.qrUrl ||
+    paymentUrl,
+    paymentUrl
+  );
+
+  $("loading")
+    .classList
+    .add(
+      "hidden"
+    );
+
+  $("checkoutContent")
+    .classList
+    .remove(
+      "hidden"
+    );
+
 }
 
 /* =========================================================
@@ -459,6 +1225,90 @@ async function load() {
 ========================================================= */
 
 function renderQr(
+  qrValue,
+  fallbackValue
+) {
+
+  const container =
+    $("qrContainer");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML =
+    "";
+
+  /*
+   Se o backend fornecer uma imagem
+   real, utilizamos diretamente.
+  */
+
+  if (
+    typeof qrValue ===
+      "string" &&
+    (
+      qrValue.startsWith(
+        "data:image/"
+      ) ||
+      qrValue.startsWith(
+        "https://"
+      ) ||
+      qrValue.startsWith(
+        "http://"
+      )
+    ) &&
+    (
+      qrValue.includes(
+        ".png"
+      ) ||
+      qrValue.includes(
+        ".svg"
+      ) ||
+      qrValue.startsWith(
+        "data:image/"
+      )
+    )
+  ) {
+
+    const img =
+      document.createElement(
+        "img"
+      );
+
+    img.src =
+      qrValue;
+
+    img.alt =
+      "QR Code de pagamento Honey Pay";
+
+    img.loading =
+      "eager";
+
+    img.onerror =
+      () => {
+
+        renderExternalQr(
+          fallbackValue
+        );
+
+      };
+
+    container.appendChild(
+      img
+    );
+
+    return;
+
+  }
+
+  renderExternalQr(
+    fallbackValue
+  );
+
+}
+
+function renderExternalQr(
   value
 ) {
 
@@ -468,6 +1318,17 @@ function renderQr(
   if (!container) {
     return;
   }
+
+  /*
+   Compatibilidade temporária.
+
+   O QR contém somente a URL pública
+   do Honey Pay.
+
+   O próximo passo de backend pode
+   substituir isto por QR gerado
+   internamente sem alterar o checkout.
+  */
 
   const img =
     document.createElement(
@@ -480,26 +1341,18 @@ function renderQr(
   img.loading =
     "eager";
 
-  img.style.width =
-    "220px";
+  img.width =
+    220;
 
-  img.style.height =
-    "220px";
-
-  img.style.maxWidth =
-    "100%";
-
-  /*
-   Serviço externo apenas para representação
-   visual do QR.
-   O conteúdo codificado é exclusivamente
-   o URL público Honey Pay.
-  */
+  img.height =
+    220;
 
   img.src =
-    `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+    "https://api.qrserver.com/v1/create-qr-code/?" +
+    "size=300x300&data=" +
+    encodeURIComponent(
       value
-    )}`;
+    );
 
   container.innerHTML =
     "";
@@ -507,124 +1360,202 @@ function renderQr(
   container.appendChild(
     img
   );
+
 }
 
 /* =========================================================
-   PAYMENT
+   CREATE PAYMENT
 ========================================================= */
 
-$("paymentForm")
-  .addEventListener(
-    "submit",
-    async (
-      event
-    ) => {
+async function createPayment(
+  event
+) {
 
-      event.preventDefault();
+  event.preventDefault();
 
-      const button =
-        $("payButton");
+  if (!token) {
 
-      button.disabled =
-        true;
+    showMessage(
+      "Link de pagamento inválido.",
+      "error"
+    );
 
-      button.textContent =
-        "A processar...";
+    return;
 
-      $("message")
-        .className =
-        "message";
+  }
 
-      $("message")
-        .textContent =
-        "A criar pagamento seguro...";
+  const button =
+    $("payButton");
 
-      try {
+  button.disabled =
+    true;
 
-        const response =
-          await fetch(
-            `/api/public/payment-links/${encodeURIComponent(
-              token
-            )}/pay`,
-            {
-              method:
-                "POST",
+  button.textContent =
+    "A processar...";
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                Accept:
-                  "application/json"
-              },
-
-              body:
-                JSON.stringify({
-
-                  paymentMethod:
-                    $("paymentMethod")
-                      .value,
-
-                  customerName:
-                    $("customerName")
-                      .value
-                      .trim(),
-
-                  customerEmail:
-                    $("customerEmail")
-                      .value
-                      .trim(),
-
-                  customerMobile:
-                    $("customerMobile")
-                      .value
-                      .trim()
-                })
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-            "Não foi possível criar o pagamento."
-          );
-        }
-
-        currentPayment =
-          data.payment;
-
-        renderPayment(
-          data.payment
-        );
-
-        startPaymentStream(
-          data.payment
-            .providerPaymentId
-        );
-
-      } catch (
-        error
-      ) {
-
-        $("message")
-          .className =
-          "message error";
-
-        $("message")
-          .textContent =
-          error.message;
-
-        button.disabled =
-          false;
-
-        button.textContent =
-          "Tentar novamente";
-      }
-    }
+  showMessage(
+    "A criar pagamento seguro...",
+    ""
   );
+
+  try {
+
+    const customerName =
+      $("customerName")
+        .value
+        .trim();
+
+    const customerEmail =
+      $("customerEmail")
+        .value
+        .trim();
+
+    const customerMobile =
+      $("customerMobile")
+        .value
+        .trim();
+
+    const paymentMethod =
+      $("paymentMethod")
+        .value;
+
+    if (!customerName) {
+
+      throw new Error(
+        "Introduza o seu nome."
+      );
+
+    }
+
+    const response =
+      await fetch(
+        `/api/public/payment-links/${encodeURIComponent(
+          token
+        )}/pay`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Accept:
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+
+              paymentMethod:
+                paymentMethod,
+
+              customerName:
+                customerName,
+
+              customerEmail:
+                customerEmail,
+
+              customerMobile:
+                customerMobile
+
+            })
+        }
+      );
+
+    let data =
+      null;
+
+    try {
+
+      data =
+        await response.json();
+
+    } catch {
+
+      data =
+        null;
+
+    }
+
+    if (!response.ok) {
+
+      throw new Error(
+        data?.error ||
+        data?.message ||
+        "Não foi possível criar o pagamento."
+      );
+
+    }
+
+    currentPayment =
+      data?.payment ||
+      data;
+
+    if (!currentPayment) {
+
+      throw new Error(
+        "O servidor não devolveu os dados do pagamento."
+      );
+
+    }
+
+    renderPayment(
+      currentPayment
+    );
+
+    /*
+     O backend é a fonte oficial.
+     Não abrimos SSE diretamente no browser.
+    */
+
+    const providerPaymentId =
+      currentPayment.providerPaymentId ||
+      currentPayment.providerPayment?.id ||
+      currentPayment.providerId ||
+      null;
+
+    if (
+      providerPaymentId
+    ) {
+
+      startPaymentPolling(
+        providerPaymentId
+      );
+
+    } else {
+
+      showMessage(
+        "Pagamento criado. A aguardar confirmação...",
+        "success"
+      );
+
+    }
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Honey Pay payment:",
+      error
+    );
+
+    showMessage(
+      error.message ||
+      "Não foi possível processar o pagamento.",
+      "error"
+    );
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Tentar novamente";
+
+  }
+
+}
 
 /* =========================================================
    PAYMENT VIEW
@@ -635,13 +1566,14 @@ function renderPayment(
 ) {
 
   const status =
-    String(
+    normalizeStatus(
       payment.status ||
       "PENDING"
-    ).toUpperCase();
+    );
 
   let html = `
-    <div class="payment-status">
+
+    <div class="status-box">
 
       <strong>
         ${escapeHTML(
@@ -660,48 +1592,73 @@ function renderPayment(
         )}
       </strong>
 
-      <br><br>
+    </div>
+
   `;
 
+  const reference =
+    payment.multicaixaReference ||
+    payment.reference ||
+    null;
+
   if (
-    payment.multicaixaReference &&
+    reference &&
     (
-      payment.multicaixaReference.entity ||
-      payment.multicaixaReference.number
+      reference.entity ||
+      reference.number ||
+      reference.reference
     )
   ) {
 
+    const entity =
+      reference.entity ||
+      "";
+
+    const number =
+      reference.number ||
+      reference.reference ||
+      "";
+
     html += `
+
       <div class="reference">
 
         <strong>
           Referência Multicaixa
         </strong>
 
-        <br><br>
+        <div class="reference-row">
 
-        Entidade:
-        <strong>
-          ${escapeHTML(
-            payment
-              .multicaixaReference
-              .entity
-          )}
-        </strong>
+          <div class="reference-label">
+            Entidade
+          </div>
 
-        <br>
+          <div class="reference-value">
+            ${escapeHTML(
+              entity
+            )}
+          </div>
 
-        Número:
-        <strong>
-          ${escapeHTML(
-            payment
-              .multicaixaReference
-              .number
-          )}
-        </strong>
+        </div>
+
+        <div class="reference-row">
+
+          <div class="reference-label">
+            Número
+          </div>
+
+          <div class="reference-value">
+            ${escapeHTML(
+              number
+            )}
+          </div>
+
+        </div>
 
       </div>
+
     `;
+
   }
 
   if (
@@ -709,29 +1666,36 @@ function renderPayment(
   ) {
 
     html += `
-      <br>
 
-      <a
-        href="${escapeHTML(
-          payment.checkoutUrl
-        )}"
-        target="_blank"
-        rel="noopener noreferrer"
+      <div
+        class="status-box"
       >
-        Abrir checkout BitPay
-      </a>
+
+        <a
+          href="${escapeHTML(
+            payment.checkoutUrl
+          )}"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Abrir checkout BitPay
+        </a>
+
+      </div>
+
     `;
+
   }
 
   html += `
 
-      <br><br>
-
-      <span id="liveStatus">
-        A aguardar confirmação...
-      </span>
-
+    <div
+      id="liveStatus"
+      class="status-box"
+    >
+      A aguardar confirmação do pagamento...
     </div>
+
   `;
 
   $("message")
@@ -743,323 +1707,465 @@ function renderPayment(
     html;
 
   $("paymentForm")
-    .style.display =
-    "none";
+    .classList
+    .add(
+      "hidden"
+    );
+
 }
 
 /* =========================================================
-   REAL-TIME BITPAY
+   POLLING
 ========================================================= */
 
-function startPaymentStream(
+function startPaymentPolling(
+  providerPaymentId
+) {
+
+  stopPolling();
+
+  pollingAttempts =
+    0;
+
+  pollPaymentStatus(
+    providerPaymentId
+  );
+
+}
+
+async function pollPaymentStatus(
   providerPaymentId
 ) {
 
   if (
     !providerPaymentId
   ) {
+
     return;
+
   }
 
-  let attempts =
-    0;
-
-  const maxAttempts =
-    120;
-
-  const check =
-    async () => {
-
-      try {
-
-        const response =
-          await fetch(
-            `/api/public/payments/${encodeURIComponent(
-              providerPaymentId
-            )}/status`,
-            {
-              cache:
-                "no-store"
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (
-          !response.ok
-        ) {
-          throw new Error(
-            data.error ||
-            "Erro ao consultar pagamento."
-          );
-        }
-
-        const payment =
-          data.payment;
-
-        const status =
-          String(
-            payment.status ||
-            ""
-          ).toUpperCase();
-
-        const live =
-          $("liveStatus");
-
-        if (
-          status ===
-            "PAID"
-        ) {
-
-          if (live) {
-
-            live.innerHTML = `
-              <strong>
-                ✓ Pagamento confirmado.
-              </strong>
-            `;
-          }
-
-          return;
-        }
-
-        if (
-          status ===
-            "FAILED"
-        ) {
-
-          if (live) {
-
-            live.textContent =
-              "O pagamento falhou.";
-          }
-
-          return;
-        }
-
-        if (
-          status ===
-            "REFUNDED"
-        ) {
-
-          if (live) {
-
-            live.textContent =
-              "O pagamento foi reembolsado.";
-          }
-
-          return;
-        }
-
-        if (live) {
-
-          live.textContent =
-            status ===
-              "PROCESSING"
-
-              ? "Pagamento em processamento..."
-
-              : "A aguardar confirmação...";
-        }
-
-        attempts++;
-
-        if (
-          attempts <
-          maxAttempts
-        ) {
-
-          setTimeout(
-            check,
-            3000
-          );
-        }
-
-      } catch (
-        error
-      ) {
-
-        console.warn(
-          "Payment status:",
-          error
-        );
-
-        attempts++;
-
-        if (
-          attempts <
-          maxAttempts
-        ) {
-
-          setTimeout(
-            check,
-            5000
-          );
-        }
-      }
-    };
-
-  check();
-}
-  {
-
-  if (
-    !providerPaymentId
-  ) {
-    return;
-  }
-
-  if (
-    eventSource
-  ) {
-    try {
-      eventSource.close();
-    } catch {}
-  }
-
-  const streamUrl =
-    `https://api-sandbox.bitpay.ao/v1/public/payments/${encodeURIComponent(
-      providerPaymentId
-    )}/events`;
-
-  /*
-   Em produção, o BITPAY_BASE_URL deve ser
-   api.bitpay.ao/v1.
-
-   O browser não recebe a secret key.
-   O endpoint público SSE da BitPay é usado
-   apenas para acompanhar o pagamento.
-  */
+  pollingAttempts++;
 
   try {
 
-    eventSource =
-      new EventSource(
-        streamUrl
+    const response =
+      await fetch(
+        `/api/public/payments/${encodeURIComponent(
+          providerPaymentId
+        )}/status`,
+        {
+          method:
+            "GET",
+
+          headers: {
+            Accept:
+              "application/json"
+          },
+
+          cache:
+            "no-store"
+        }
       );
 
-    eventSource.addEventListener(
-      "payment.succeeded",
-      (
-        event
-      ) => {
+    let data =
+      null;
 
-        let data = {};
+    try {
 
-        try {
-          data =
-            JSON.parse(
-              event.data
-            );
-        } catch {}
+      data =
+        await response.json();
 
-        markPaymentSucceeded(
-          data
-        );
-      }
+    } catch {
+
+      data =
+        null;
+
+    }
+
+    if (!response.ok) {
+
+      throw new Error(
+        data?.error ||
+        data?.message ||
+        "Não foi possível consultar o pagamento."
+      );
+
+    }
+
+    const payment =
+      data?.payment ||
+      data;
+
+    if (
+      payment
+    ) {
+
+      currentPayment =
+        payment;
+
+    }
+
+    const status =
+      normalizeStatus(
+        payment?.status
+      );
+
+    updateLiveStatus(
+      status,
+      payment
     );
 
-    eventSource.addEventListener(
-      "payment.failed",
-      (
-        event
-      ) => {
+    /*
+     PAID / FAILED / EXPIRED /
+     CANCELLED / REFUNDED são estados
+     finais. Paramos o polling.
+    */
 
-        let data = {};
+    if (
+      isFinalStatus(
+        status
+      )
+    ) {
 
-        try {
-          data =
-            JSON.parse(
-              event.data
-            );
-        } catch {}
+      stopPolling();
 
-        markPaymentFailed(
-          data
-        );
+      handleFinalStatus(
+        status,
+        payment
+      );
+
+      return;
+
+    }
+
+    if (
+      pollingAttempts <
+      MAX_POLLING_ATTEMPTS
+    ) {
+
+      schedulePolling(
+        () =>
+          pollPaymentStatus(
+            providerPaymentId
+          ),
+        INITIAL_POLLING_INTERVAL
+      );
+
+    } else {
+
+      const live =
+        $("liveStatus");
+
+      if (live) {
+
+        live.textContent =
+          "O pagamento ainda está a ser confirmado. Pode manter esta página aberta.";
+
       }
-    );
 
-    eventSource.onerror =
-      () => {
+      /*
+       Não marcamos como falhado.
+       O webhook pode ainda estar a processar.
+      */
 
-        /*
-         Não marcamos como pago.
-         O webhook continua sendo a fonte
-         definitiva de verdade.
-        */
-
-        const live =
-          $("liveStatus");
-
-        if (live) {
-          live.textContent =
-            "A aguardar confirmação do pagamento...";
-        }
-      };
+    }
 
   } catch (
     error
   ) {
 
     console.warn(
-      "SSE:",
+      "Honey Pay payment status:",
       error
     );
+
+    if (
+      pollingAttempts <
+      MAX_POLLING_ATTEMPTS
+    ) {
+
+      schedulePolling(
+        () =>
+          pollPaymentStatus(
+            providerPaymentId
+          ),
+        ERROR_POLLING_INTERVAL
+      );
+
+    } else {
+
+      const live =
+        $("liveStatus");
+
+      if (live) {
+
+        live.textContent =
+          "Não foi possível atualizar o estado neste momento. A confirmação continua a ser processada.";
+
+      }
+
+    }
+
   }
+
 }
 
-function markPaymentSucceeded(
-  data
-) {
+/* =========================================================
+   LIVE STATUS
+========================================================= */
 
-  if (
-    eventSource
-  ) {
-    eventSource.close();
-  }
+function updateLiveStatus(
+  status,
+  payment
+) {
 
   const live =
     $("liveStatus");
 
-  if (live) {
-
-    live.innerHTML = `
-      <strong>
-        ✓ Pagamento confirmado.
-      </strong>
-    `;
+  if (!live) {
+    return;
   }
-}
-
-function markPaymentFailed(
-  data
-) {
 
   if (
-    eventSource
+    status ===
+      "PAID" ||
+    status ===
+      "SUCCEEDED" ||
+    status ===
+      "SUCCESS"
   ) {
-    eventSource.close();
+
+    live.className =
+      "status-box success";
+
+    live.innerHTML =
+      "<strong>✓ Pagamento confirmado.</strong>";
+
+    return;
+
   }
 
-  const live =
-    $("liveStatus");
+  if (
+    status ===
+      "FAILED"
+  ) {
 
-  if (live) {
+    live.className =
+      "status-box error";
 
     live.textContent =
-      "O pagamento não foi concluído.";
+      "O pagamento falhou.";
+
+    return;
+
   }
+
+  if (
+    status ===
+      "EXPIRED"
+  ) {
+
+    live.className =
+      "status-box warning";
+
+    live.textContent =
+      "O pagamento expirou.";
+
+    return;
+
+  }
+
+  if (
+    status ===
+      "CANCELLED"
+  ) {
+
+    live.className =
+      "status-box warning";
+
+    live.textContent =
+      "O pagamento foi cancelado.";
+
+    return;
+
+  }
+
+  if (
+    status ===
+      "REFUNDED"
+  ) {
+
+    live.className =
+      "status-box warning";
+
+    live.textContent =
+      "O pagamento foi reembolsado.";
+
+    return;
+
+  }
+
+  if (
+    status ===
+      "PROCESSING" ||
+    status ===
+      "PAYMENT_PROCESSING"
+  ) {
+
+    live.className =
+      "status-box";
+
+    live.textContent =
+      "Pagamento em processamento...";
+
+    return;
+
+  }
+
+  live.className =
+    "status-box";
+
+  live.textContent =
+    "A aguardar confirmação do pagamento...";
+
 }
+
+/* =========================================================
+   FINAL STATUS
+========================================================= */
+
+function handleFinalStatus(
+  status,
+  payment
+) {
+
+  const normalized =
+    normalizeStatus(
+      status
+    );
+
+  const button =
+    $("payButton");
+
+  if (
+    normalized ===
+      "PAID" ||
+    normalized ===
+      "SUCCEEDED" ||
+    normalized ===
+      "SUCCESS"
+  ) {
+
+    if (button) {
+
+      button.disabled =
+        true;
+
+      button.textContent =
+        "Pagamento confirmado";
+
+    }
+
+    return;
+
+  }
+
+  if (button) {
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Tentar novamente";
+
+  }
+
+}
+
+/* =========================================================
+   LOAD ERROR
+========================================================= */
+
+function showLoadError(
+  message
+) {
+
+  $("loading")
+    .classList
+    .add(
+      "hidden"
+    );
+
+  $("checkoutContent")
+    .classList
+    .add(
+      "hidden"
+    );
+
+  $("footer")
+    .textContent =
+    "Honey Pay";
+
+  const existing =
+    $("loadError");
+
+  if (
+    existing
+  ) {
+
+    existing.textContent =
+      message;
+
+    return;
+
+  }
+
+  const error =
+    document.createElement(
+      "div"
+    );
+
+  error.id =
+    "loadError";
+
+  error.className =
+    "message error";
+
+  error.textContent =
+    message;
+
+  $("checkout")
+    .appendChild(
+      error
+    );
+
+}
+
+/* =========================================================
+   CLEANUP
+========================================================= */
+
+window.addEventListener(
+  "beforeunload",
+  () => {
+
+    stopPolling();
+
+  }
+);
 
 /* =========================================================
    START
 ========================================================= */
 
-load();
+$("paymentForm")
+  .addEventListener(
+    "submit",
+    createPayment
+  );
 
-</script>
+loadPaymentLink();
 
-</body>
+</script></body>
 </html>
