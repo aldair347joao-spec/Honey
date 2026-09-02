@@ -2,18 +2,20 @@
 ============================================================
 HONEY PAY
 MAIN SERVER
-V3.1.0
-PRODUCTION BACKEND
+V3.2.0
+STABLE AUTH / MERCHANT API
 ============================================================
 
-FOCO ATUAL
+OBJECTIVOS
 ------------------------------------------------------------
-- Login exclusivo com Google OAuth
-- JWT
+- Google OAuth como único login
+- JWT em cookie HttpOnly
+- Sessão persistente
+- /api/me como fonte oficial da sessão
+- Sem redirect automático das APIs para /login
+- /login separado do dashboard privado
 - MongoDB / Mongoose
-- Criação automática de User
-- Criação automática de Merchant
-- /api/me
+- Merchant criado automaticamente no primeiro login
 - Dashboard
 - Customers
 - Products
@@ -21,29 +23,43 @@ FOCO ATUAL
 - Payments
 - Payment Links
 - Reports
-- BitPay
-- BitPay Webhooks
-- Refunds
-- Audit Logs
-- Public Checkout
-- Static Frontend
-- Security / Rate Limit
-- Idempotency
+- Public checkout
+- Segurança
+- Rate limit
+- CORS
+- Helmet
 
-FRONTEND
+FLUXO
 ------------------------------------------------------------
-public/index.html
-public/app.js
 
-GOOGLE OAUTH
-------------------------------------------------------------
-GOOGLE_CLIENT_ID
-GOOGLE_CLIENT_SECRET
-GOOGLE_CALLBACK_URL
-
+Google
+  ↓
+/api/auth/google
+  ↓
+Google OAuth
+  ↓
+/api/auth/google/callback
+  ↓
 JWT
+  ↓
+HttpOnly Cookie: honey_pay_token
+  ↓
+/
+  ↓
+public/app.js
+  ↓
+/api/me
+  ↓
+Dashboard
+
+IMPORTANTE
 ------------------------------------------------------------
-JWT_SECRET
+Nenhuma API protegida redireciona para /login.
+
+401 é devolvido como JSON.
+
+É o frontend que decide quando deve ir para /login.
+
 ============================================================
 */
 
@@ -61,16 +77,27 @@ const crypto = require('crypto');
 const path = require('path');
 
 /* =========================================================
-   CONFIGURATION
+   APP
 ========================================================= */
 
 const app = express();
 
-const PORT = Number(process.env.PORT || 10000);
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const PORT = Number(
+  process.env.PORT || 10000
+);
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const JWT_SECRET = process.env.JWT_SECRET;
+const NODE_ENV =
+  process.env.NODE_ENV || 'development';
+
+/* =========================================================
+   ENVIRONMENT
+========================================================= */
+
+const MONGODB_URI =
+  process.env.MONGODB_URI;
+
+const JWT_SECRET =
+  process.env.JWT_SECRET;
 
 const GOOGLE_CLIENT_ID =
   process.env.GOOGLE_CLIENT_ID || '';
@@ -78,9 +105,18 @@ const GOOGLE_CLIENT_ID =
 const GOOGLE_CLIENT_SECRET =
   process.env.GOOGLE_CLIENT_SECRET || '';
 
+const APP_BASE_URL =
+  process.env.APP_BASE_URL ||
+  `http://localhost:${PORT}`;
+
 const GOOGLE_CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
-  `${process.env.APP_BASE_URL || `http://localhost:${PORT}`}/api/auth/google/callback`;
+  `${APP_BASE_URL}/api/auth/google/callback`;
+
+const HONEY_PAY_FEE_BPS =
+  Number(
+    process.env.HONEY_PAY_FEE_BPS || 80
+  );
 
 const BITPAY_BASE_URL =
   process.env.BITPAY_BASE_URL ||
@@ -92,37 +128,40 @@ const BITPAY_SECRET_KEY =
 const BITPAY_WEBHOOK_SECRET =
   process.env.BITPAY_WEBHOOK_SECRET || '';
 
-const APP_BASE_URL =
-  process.env.APP_BASE_URL ||
-  `http://localhost:${PORT}`;
-
-const HONEY_PAY_FEE_BPS = Number(
-  process.env.HONEY_PAY_FEE_BPS || 80
-);
-
 const BITPAY_MULTI_MERCHANT_ENABLED =
   String(
     process.env.BITPAY_MULTI_MERCHANT_ENABLED ||
       'false'
   ).toLowerCase() === 'true';
 
+/* =========================================================
+   PATHS
+========================================================= */
+
 const FRONTEND_DIR =
   path.join(__dirname, 'public');
 
 const INDEX_FILE =
-  path.join(FRONTEND_DIR, 'index.html');
+  path.join(
+    FRONTEND_DIR,
+    'index.html'
+  );
 
 const CHECKOUT_FILE =
-  path.join(FRONTEND_DIR, 'checkout.html');
+  path.join(
+    FRONTEND_DIR,
+    'checkout.html'
+  );
 
 /* =========================================================
-   REQUIRED ENVIRONMENT
+   REQUIRED ENV
 ========================================================= */
 
 if (!MONGODB_URI) {
   console.error(
     'ERRO: MONGODB_URI não configurado.'
   );
+
   process.exit(1);
 }
 
@@ -130,6 +169,7 @@ if (!JWT_SECRET) {
   console.error(
     'ERRO: JWT_SECRET não configurado.'
   );
+
   process.exit(1);
 }
 
@@ -148,14 +188,17 @@ if (
 
 app.disable('x-powered-by');
 
-app.set('trust proxy', 1);
+app.set(
+  'trust proxy',
+  1
+);
 
 app.use(
   helmet({
+    contentSecurityPolicy: false,
     crossOriginResourcePolicy: {
       policy: 'cross-origin'
-    },
-    contentSecurityPolicy: false
+    }
   })
 );
 
@@ -166,34 +209,35 @@ app.use(
   })
 );
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    error:
-      'Muitas requisições. Tente novamente mais tarde.'
-  }
-});
-
-app.use('/api', apiLimiter);
-
 /* =========================================================
-   WEBHOOK RAW BODY
+   RATE LIMIT
 ========================================================= */
 
-app.post(
-  '/api/webhooks/bitpay',
-  express.raw({
-    type: 'application/json'
-  }),
-  handleBitPayWebhook
+const apiLimiter =
+  rateLimit({
+    windowMs:
+      15 * 60 * 1000,
+
+    max: 1000,
+
+    standardHeaders: true,
+
+    legacyHeaders: false,
+
+    message: {
+      success: false,
+      error:
+        'Muitas requisições. Tente novamente mais tarde.'
+    }
+  });
+
+app.use(
+  '/api',
+  apiLimiter
 );
 
 /* =========================================================
-   BODY PARSERS
+   BODY
 ========================================================= */
 
 app.use(
@@ -213,29 +257,18 @@ app.use(
    DATABASE
 ========================================================= */
 
-mongoose.set('strictQuery', true);
-
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    console.log(
-      'MongoDB conectado com sucesso.'
-    );
-  })
-  .catch((error) => {
-    console.error(
-      'Erro ao conectar MongoDB:',
-      error
-    );
-
-    process.exit(1);
-  });
+mongoose.set(
+  'strictQuery',
+  true
+);
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function normalizeEmail(email) {
+function normalizeEmail(
+  email
+) {
   return String(email || '')
     .trim()
     .toLowerCase();
@@ -250,10 +283,6 @@ function cleanString(
     .slice(0, max);
 }
 
-function isValidObjectId(id) {
-  return mongoose.Types.ObjectId.isValid(id);
-}
-
 function generateToken() {
   return crypto
     .randomBytes(24)
@@ -263,61 +292,94 @@ function generateToken() {
 function generateReference(
   prefix = 'HP'
 ) {
-  const date = new Date()
-    .toISOString()
-    .replace(/\D/g, '')
-    .slice(0, 14);
+  const timestamp =
+    new Date()
+      .toISOString()
+      .replace(/\D/g, '')
+      .slice(0, 14);
 
-  const random = crypto
-    .randomBytes(4)
-    .toString('hex')
-    .toUpperCase();
+  const random =
+    crypto
+      .randomBytes(4)
+      .toString('hex')
+      .toUpperCase();
 
-  return `${prefix}-${date}-${random}`;
+  return `${prefix}-${timestamp}-${random}`;
 }
 
-function calculateFee(amount) {
-  const numeric = Number(amount);
+function calculateFee(
+  amount
+) {
+  const value =
+    Number(amount);
 
   if (
-    !Number.isInteger(numeric) ||
-    numeric < 0
+    !Number.isFinite(value) ||
+    value < 0
   ) {
-    throw new Error(
-      'Valor financeiro inválido.'
-    );
+    return 0;
   }
 
   return Math.round(
-    (numeric * HONEY_PAY_FEE_BPS) /
+    value *
+      HONEY_PAY_FEE_BPS /
       10000
   );
 }
 
+function isValidObjectId(
+  id
+) {
+  return mongoose.Types.ObjectId.isValid(
+    id
+  );
+}
+
+function asyncHandler(
+  fn
+) {
+  return function (
+    req,
+    res,
+    next
+  ) {
+    Promise.resolve(
+      fn(req, res, next)
+    ).catch(next);
+  };
+}
+
 /* =========================================================
-   COOKIE HELPERS
+   COOKIE
 ========================================================= */
 
-function parseCookies(req) {
+function parseCookies(
+  req
+) {
   const header =
     req.headers.cookie || '';
 
   const cookies = {};
 
-  for (const part of header.split(';')) {
-    const index = part.indexOf('=');
+  for (
+    const part of header.split(';')
+  ) {
+    const index =
+      part.indexOf('=');
 
     if (index === -1) {
       continue;
     }
 
-    const key = part
-      .slice(0, index)
-      .trim();
+    const key =
+      part
+        .slice(0, index)
+        .trim();
 
-    const value = part
-      .slice(index + 1)
-      .trim();
+    const value =
+      part
+        .slice(index + 1)
+        .trim();
 
     if (!key) {
       continue;
@@ -325,9 +387,12 @@ function parseCookies(req) {
 
     try {
       cookies[key] =
-        decodeURIComponent(value);
+        decodeURIComponent(
+          value
+        );
     } catch {
-      cookies[key] = value;
+      cookies[key] =
+        value;
     }
   }
 
@@ -340,20 +405,18 @@ function serializeCookie(
   options = {}
 ) {
   const parts = [
-    `${name}=${encodeURIComponent(value)}`
+    `${name}=${encodeURIComponent(
+      value
+    )}`
   ];
 
-  if (options.maxAge !== undefined) {
+  if (
+    options.maxAge !== undefined
+  ) {
     parts.push(
       `Max-Age=${Math.floor(
         Number(options.maxAge)
       )}`
-    );
-  }
-
-  if (options.domain) {
-    parts.push(
-      `Domain=${options.domain}`
     );
   }
 
@@ -363,18 +426,16 @@ function serializeCookie(
     );
   }
 
-  if (options.expires) {
+  if (options.httpOnly) {
     parts.push(
-      `Expires=${options.expires.toUTCString()}`
+      'HttpOnly'
     );
   }
 
-  if (options.httpOnly) {
-    parts.push('HttpOnly');
-  }
-
   if (options.secure) {
-    parts.push('Secure');
+    parts.push(
+      'Secure'
+    );
   }
 
   if (options.sameSite) {
@@ -397,18 +458,28 @@ function setAuthCookie(
       token,
       {
         httpOnly: true,
+
         secure:
-          NODE_ENV === 'production',
+          NODE_ENV ===
+          'production',
+
         sameSite: 'Lax',
+
         path: '/',
+
         maxAge:
-          30 * 24 * 60 * 60
+          30 *
+          24 *
+          60 *
+          60
       }
     )
   );
 }
 
-function clearAuthCookie(res) {
+function clearAuthCookie(
+  res
+) {
   res.setHeader(
     'Set-Cookie',
     serializeCookie(
@@ -416,10 +487,15 @@ function clearAuthCookie(res) {
       '',
       {
         httpOnly: true,
+
         secure:
-          NODE_ENV === 'production',
+          NODE_ENV ===
+          'production',
+
         sameSite: 'Lax',
+
         path: '/',
+
         maxAge: 0
       }
     )
@@ -430,26 +506,42 @@ function clearAuthCookie(res) {
    JWT
 ========================================================= */
 
-function signJWT(user) {
+function signJWT(
+  user
+) {
   return jwt.sign(
     {
-      sub: String(user._id),
-      email: user.email,
-      role: user.role || 'merchant'
+      sub:
+        String(user._id),
+
+      email:
+        user.email,
+
+      role:
+        user.role ||
+        'merchant'
     },
+
     JWT_SECRET,
+
     {
-      expiresIn: '30d'
+      expiresIn:
+        '30d'
     }
   );
 }
 
-function getBearerToken(req) {
+function getBearerToken(
+  req
+) {
   const header =
-    req.headers.authorization || '';
+    req.headers.authorization ||
+    '';
 
   if (
-    !header.startsWith('Bearer ')
+    !header.startsWith(
+      'Bearer '
+    )
   ) {
     return null;
   }
@@ -459,7 +551,9 @@ function getBearerToken(req) {
     .trim();
 }
 
-function getAuthToken(req) {
+function getAuthToken(
+  req
+) {
   const bearer =
     getBearerToken(req);
 
@@ -476,6 +570,23 @@ function getAuthToken(req) {
   );
 }
 
+/* =========================================================
+   AUTHENTICATION
+========================================================= */
+
+/*
+IMPORTANT:
+
+Este middleware NUNCA faz redirect.
+
+Uma API protegida devolve:
+
+401 JSON
+
+O public/app.js é responsável por decidir
+se deve mandar o utilizador para /login.
+*/
+
 function authenticate(
   req,
   res,
@@ -486,11 +597,13 @@ function authenticate(
       getAuthToken(req);
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        error:
-          'Autenticação necessária.'
-      });
+      return res
+        .status(401)
+        .json({
+          success: false,
+          error:
+            'Autenticação necessária.'
+        });
     }
 
     const payload =
@@ -499,50 +612,47 @@ function authenticate(
         JWT_SECRET
       );
 
-    if (!payload.sub) {
-      return res.status(401).json({
-        success: false,
-        error:
-          'Token inválido.'
-      });
+    if (
+      !payload ||
+      !payload.sub
+    ) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          error:
+            'Token inválido.'
+        });
     }
 
     req.userId =
-      payload.sub;
+      String(payload.sub);
 
     req.userEmail =
       payload.email || '';
 
     req.userRole =
-      payload.role || 'merchant';
+      payload.role ||
+      'merchant';
 
     req.authToken =
       token;
 
     next();
-  } catch {
-    return res.status(401).json({
-      success: false,
-      error:
-        'Sessão inválida ou expirada.'
-    });
+
+  } catch (error) {
+    return res
+      .status(401)
+      .json({
+        success: false,
+        error:
+          'Sessão inválida ou expirada.'
+      });
   }
 }
 
-function asyncHandler(fn) {
-  return function wrapped(
-    req,
-    res,
-    next
-  ) {
-    Promise.resolve(
-      fn(req, res, next)
-    ).catch(next);
-  };
-}
-
 /* =========================================================
-   GOOGLE OAUTH HELPERS
+   GOOGLE OAUTH
 ========================================================= */
 
 function createOAuthState() {
@@ -550,12 +660,18 @@ function createOAuthState() {
     {
       purpose:
         'google_oauth',
+
       nonce:
-        crypto.randomBytes(16).toString('hex')
+        crypto
+          .randomBytes(16)
+          .toString('hex')
     },
+
     JWT_SECRET,
+
     {
-      expiresIn: '10m'
+      expiresIn:
+        '10m'
     }
   );
 }
@@ -570,11 +686,12 @@ function verifyOAuthState(
         JWT_SECRET
       );
 
-    return (
+    return Boolean(
       payload &&
       payload.purpose ===
         'google_oauth'
     );
+
   } catch {
     return false;
   }
@@ -655,16 +772,14 @@ async function exchangeGoogleCode(
         ? JSON.parse(text)
         : {};
   } catch {
-    data = {
-      raw: text
-    };
+    data = {};
   }
 
   if (!response.ok) {
     throw new Error(
       data.error_description ||
-        data.error ||
-        'Não foi possível autenticar com o Google.'
+      data.error ||
+      'Falha na autenticação Google.'
     );
   }
 
@@ -678,8 +793,6 @@ async function getGoogleUser(
     await fetch(
       'https://www.googleapis.com/oauth2/v3/userinfo',
       {
-        method: 'GET',
-
         headers: {
           Authorization:
             `Bearer ${accessToken}`
@@ -703,9 +816,8 @@ async function getGoogleUser(
 
   if (!response.ok) {
     throw new Error(
-      data.error_description ||
-        data.error ||
-        'Não foi possível obter o perfil Google.'
+      data.error ||
+      'Não foi possível obter o perfil Google.'
     );
   }
 
@@ -732,16 +844,6 @@ const UserSchema =
         lowercase: true,
         trim: true,
         index: true
-      },
-
-      /*
-      Mantido apenas para compatibilidade
-      com utilizadores antigos.
-      O login atual é exclusivamente Google.
-      */
-      passwordHash: {
-        type: String,
-        default: null
       },
 
       googleId: {
@@ -783,6 +885,7 @@ const UserSchema =
         default: null
       }
     },
+
     {
       timestamps: true
     }
@@ -794,9 +897,13 @@ const MerchantSchema =
       userId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'User',
-        unique: true,
+
         required: true,
+
+        unique: true,
+
         index: true
       },
 
@@ -855,6 +962,7 @@ const MerchantSchema =
         default: true
       }
     },
+
     {
       timestamps: true
     }
@@ -866,8 +974,11 @@ const CustomerSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Merchant',
+
         required: true,
+
         index: true
       },
 
@@ -909,15 +1020,11 @@ const CustomerSchema =
         default: null
       }
     },
+
     {
       timestamps: true
     }
   );
-
-CustomerSchema.index({
-  merchantId: 1,
-  email: 1
-});
 
 const ProductSchema =
   new mongoose.Schema(
@@ -925,8 +1032,11 @@ const ProductSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Merchant',
+
         required: true,
+
         index: true
       },
 
@@ -972,15 +1082,11 @@ const ProductSchema =
         default: null
       }
     },
+
     {
       timestamps: true
     }
   );
-
-ProductSchema.index({
-  merchantId: 1,
-  createdAt: -1
-});
 
 const OrderSchema =
   new mongoose.Schema(
@@ -988,17 +1094,21 @@ const OrderSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Merchant',
+
         required: true,
+
         index: true
       },
 
       customerId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Customer',
-        default: null,
-        index: true
+
+        default: null
       },
 
       reference: {
@@ -1012,7 +1122,9 @@ const OrderSchema =
           productId: {
             type:
               mongoose.Schema.Types.ObjectId,
+
             ref: 'Product',
+
             default: null
           },
 
@@ -1054,6 +1166,7 @@ const OrderSchema =
 
       status: {
         type: String,
+
         enum: [
           'PENDING',
           'PAYMENT_PROCESSING',
@@ -1063,7 +1176,9 @@ const OrderSchema =
           'REFUNDED',
           'PARTIALLY_REFUNDED'
         ],
+
         default: 'PENDING',
+
         index: true
       },
 
@@ -1078,15 +1193,11 @@ const OrderSchema =
         default: null
       }
     },
+
     {
       timestamps: true
     }
   );
-
-OrderSchema.index({
-  merchantId: 1,
-  createdAt: -1
-});
 
 const PaymentSchema =
   new mongoose.Schema(
@@ -1094,23 +1205,31 @@ const PaymentSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Merchant',
+
         required: true,
+
         index: true
       },
 
       orderId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Order',
+
         required: true,
+
         index: true
       },
 
       customerId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Customer',
+
         default: null
       },
 
@@ -1133,11 +1252,7 @@ const PaymentSchema =
 
       paymentMethod: {
         type: String,
-        enum: [
-          'multicaixa_express',
-          'multicaixa_reference'
-        ],
-        required: true
+        default: 'multicaixa_express'
       },
 
       amount: {
@@ -1163,52 +1278,31 @@ const PaymentSchema =
 
       status: {
         type: String,
+
         enum: [
           'PENDING',
           'PROCESSING',
-          'SUCCEEDED',
+          'PAID',
           'FAILED',
-          'EXPIRED',
-          'UNKNOWN',
           'CANCELLED',
-          'PARTIALLY_REFUNDED',
           'REFUNDED'
         ],
+
         default: 'PENDING',
+
         index: true
       },
 
-      idempotencyKey: {
-        type: String,
-        unique: true,
-        index: true
-      },
-
-      providerPayload: {
-        type:
-          mongoose.Schema.Types.Mixed,
-        default: null
-      },
-
-      failureReason: {
-        type: String,
-        default: ''
-      },
-
-      succeededAt: {
+      paidAt: {
         type: Date,
         default: null
       }
     },
+
     {
       timestamps: true
     }
   );
-
-PaymentSchema.index({
-  merchantId: 1,
-  createdAt: -1
-});
 
 const PaymentLinkSchema =
   new mongoose.Schema(
@@ -1216,8 +1310,11 @@ const PaymentLinkSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
+
         ref: 'Merchant',
+
         required: true,
+
         index: true
       },
 
@@ -1256,113 +1353,9 @@ const PaymentLinkSchema =
       expiresAt: {
         type: Date,
         default: null
-      },
-
-      totalPayments: {
-        type: Number,
-        default: 0
-      },
-
-      totalReceived: {
-        type: Number,
-        default: 0
       }
     },
-    {
-      timestamps: true
-    }
-  );
 
-const WebhookEventSchema =
-  new mongoose.Schema(
-    {
-      provider: {
-        type: String,
-        required: true
-      },
-
-      eventId: {
-        type: String,
-        required: true,
-        unique: true,
-        index: true
-      },
-
-      eventType: {
-        type: String,
-        default: ''
-      },
-
-      payload: {
-        type:
-          mongoose.Schema.Types.Mixed,
-        default: null
-      },
-
-      processed: {
-        type: Boolean,
-        default: false
-      },
-
-      processedAt: {
-        type: Date,
-        default: null
-      },
-
-      error: {
-        type: String,
-        default: ''
-      }
-    },
-    {
-      timestamps: true
-    }
-  );
-
-const AuditLogSchema =
-  new mongoose.Schema(
-    {
-      merchantId: {
-        type:
-          mongoose.Schema.Types.ObjectId,
-        ref: 'Merchant',
-        default: null,
-        index: true
-      },
-
-      userId: {
-        type:
-          mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        default: null
-      },
-
-      action: {
-        type: String,
-        required: true
-      },
-
-      entity: {
-        type: String,
-        default: ''
-      },
-
-      entityId: {
-        type: String,
-        default: ''
-      },
-
-      metadata: {
-        type:
-          mongoose.Schema.Types.Mixed,
-        default: {}
-      },
-
-      ip: {
-        type: String,
-        default: ''
-      }
-    },
     {
       timestamps: true
     }
@@ -1373,71 +1366,57 @@ const AuditLogSchema =
 ========================================================= */
 
 const User =
+  mongoose.models.User ||
   mongoose.model(
     'User',
     UserSchema
   );
 
 const Merchant =
+  mongoose.models.Merchant ||
   mongoose.model(
     'Merchant',
     MerchantSchema
   );
 
 const Customer =
+  mongoose.models.Customer ||
   mongoose.model(
     'Customer',
     CustomerSchema
   );
 
 const Product =
+  mongoose.models.Product ||
   mongoose.model(
     'Product',
     ProductSchema
   );
 
 const Order =
+  mongoose.models.Order ||
   mongoose.model(
     'Order',
     OrderSchema
   );
 
 const Payment =
+  mongoose.models.Payment ||
   mongoose.model(
     'Payment',
     PaymentSchema
   );
 
 const PaymentLink =
+  mongoose.models.PaymentLink ||
   mongoose.model(
     'PaymentLink',
     PaymentLinkSchema
   );
 
-const WebhookEvent =
-  mongoose.model(
-    'WebhookEvent',
-    WebhookEventSchema
-  );
-
-const AuditLog =
-  mongoose.model(
-    'AuditLog',
-    AuditLogSchema
-  );
-
 /* =========================================================
-   MERCHANT HELPERS
+   MERCHANT MIDDLEWARE
 ========================================================= */
-
-async function getMerchantForUser(
-  userId
-) {
-  return Merchant.findOne({
-    userId,
-    active: true
-  });
-}
 
 async function requireMerchant(
   req,
@@ -1446,77 +1425,59 @@ async function requireMerchant(
 ) {
   try {
     const merchant =
-      await getMerchantForUser(
-        req.userId
-      );
+      await Merchant.findOne({
+        userId: req.userId,
+        active: true
+      }).lean();
 
     if (!merchant) {
-      return res.status(404).json({
-        success: false,
-        error:
-          'Perfil de comerciante não encontrado.'
-      });
+      return res
+        .status(403)
+        .json({
+          success: false,
+          error:
+            'Conta de comerciante não encontrada.'
+        });
     }
 
     req.merchant =
       merchant;
 
+    req.merchantId =
+      merchant._id;
+
     next();
+
   } catch (error) {
     next(error);
   }
 }
 
 /* =========================================================
-   AUDIT
+   HEALTH
 ========================================================= */
 
-async function audit(
-  req,
-  action,
-  entity = '',
-  entityId = '',
-  metadata = {}
-) {
-  try {
-    await AuditLog.create({
-      merchantId:
-        req.merchant?._id ||
-        null,
-
-      userId:
-        req.userId ||
-        null,
-
-      action,
-
-      entity,
-
-      entityId:
-        String(entityId || ''),
-
-      metadata,
-
-      ip:
-        req.ip || ''
+app.get(
+  '/api/health',
+  (req, res) => {
+    res.json({
+      success: true,
+      service: 'Honey Pay',
+      version: '3.2.0',
+      status: 'ok',
+      database:
+        mongoose.connection.readyState ===
+        1
+          ? 'connected'
+          : 'disconnected'
     });
-  } catch (error) {
-    console.error(
-      'Audit log error:',
-      error.message
-    );
   }
-}
+);
 
 /* =========================================================
-   GOOGLE AUTH
+   AUTH - GOOGLE
 ========================================================= */
 
-/*
-GET /api/auth/google
-
-Inicia o fluxo OAuth.
-*/
 app.get(
   '/api/auth/google',
   (req, res) => {
@@ -1524,88 +1485,56 @@ app.get(
       !GOOGLE_CLIENT_ID ||
       !GOOGLE_CLIENT_SECRET
     ) {
-      return res.status(503).json({
-        success: false,
-        error:
-          'Login Google não está configurado no servidor.'
-      });
+      return res
+        .status(503)
+        .send(
+          'Google OAuth não está configurado no servidor.'
+        );
     }
 
-    const url =
-      buildGoogleAuthorizationUrl();
-
-    return res.redirect(url);
+    return res.redirect(
+      buildGoogleAuthorizationUrl()
+    );
   }
 );
 
-/*
-GET /api/auth/google/callback
+/* =========================================================
+   AUTH - CALLBACK
+========================================================= */
 
-Recebe o retorno do Google.
-*/
 app.get(
   '/api/auth/google/callback',
+
   asyncHandler(
     async (req, res) => {
+      const {
+        code,
+        state,
+        error
+      } = req.query;
+
+      if (error) {
+        return res.redirect(
+          '/login?error=google_cancelled'
+        );
+      }
+
+      if (!code) {
+        return res.redirect(
+          '/login?error=missing_code'
+        );
+      }
+
+      if (
+        !state ||
+        !verifyOAuthState(state)
+      ) {
+        return res.redirect(
+          '/login?error=invalid_state'
+        );
+      }
+
       try {
-        const code =
-          cleanString(
-            req.query.code,
-            5000
-          );
-
-        const state =
-          cleanString(
-            req.query.state,
-            5000
-          );
-
-        const googleError =
-          cleanString(
-            req.query.error,
-            500
-          );
-
-        if (googleError) {
-          console.error(
-            'Google OAuth:',
-            googleError
-          );
-
-          return res.redirect(
-            '/?google_error=' +
-              encodeURIComponent(
-                googleError
-              )
-          );
-        }
-
-        if (!code) {
-          return res.redirect(
-            '/?google_error=missing_code'
-          );
-        }
-
-        if (!state) {
-          return res.redirect(
-            '/?google_error=missing_state'
-          );
-        }
-
-        if (
-          !verifyOAuthState(
-            state
-          )
-        ) {
-          return res.redirect(
-            '/?google_error=invalid_state'
-          );
-        }
-
-        /*
-        Troca authorization code
-        por access token.
-        */
         const tokens =
           await exchangeGoogleCode(
             code
@@ -1615,14 +1544,10 @@ app.get(
           !tokens.access_token
         ) {
           throw new Error(
-            'Google não devolveu access token.'
+            'Google não devolveu access_token.'
           );
         }
 
-        /*
-        Obtém o perfil diretamente
-        através da API oficial do Google.
-        */
         const googleUser =
           await getGoogleUser(
             tokens.access_token
@@ -1633,110 +1558,84 @@ app.get(
             googleUser.email
           );
 
-        const name =
-          cleanString(
-            googleUser.name ||
-              googleUser.given_name ||
-              'Comerciante',
-            120
-          );
-
-        const avatar =
-          cleanString(
-            googleUser.picture ||
-              '',
-            1000
-          );
-
-        const googleId =
-          cleanString(
-            googleUser.sub ||
-              '',
-            300
-          );
-
-        if (
-          !email ||
-          !googleId
-        ) {
+        if (!email) {
           throw new Error(
-            'O Google não forneceu dados suficientes para criar a conta.'
+            'A conta Google não possui email válido.'
           );
         }
 
-        /*
-        O email precisa estar confirmado
-        pelo Google.
-        */
         if (
-          googleUser.email_verified !==
-          true
+          googleUser.email_verified === false
         ) {
           throw new Error(
-            'O email da conta Google não está verificado.'
+            'O email Google não está verificado.'
           );
         }
 
-        /*
-        Procura utilizador por Google ID
-        primeiro.
-        */
         let user =
           await User.findOne({
-            googleId
+            $or: [
+              {
+                googleId:
+                  googleUser.sub
+              },
+              {
+                email
+              }
+            ]
           });
-
-        /*
-        Se não encontrar pelo Google ID,
-        procura pelo email.
-
-        Isto permite que contas antigas
-        sejam associadas ao Google.
-        */
-        if (!user) {
-          user =
-            await User.findOne({
-              email
-            });
-        }
-
-        let isNewUser = false;
 
         if (!user) {
           user =
             await User.create({
-              name,
+              name:
+                cleanString(
+                  googleUser.name ||
+                  email.split('@')[0],
+                  150
+                ),
+
               email,
-              googleId,
-              avatar,
+
+              googleId:
+                googleUser.sub,
+
+              avatar:
+                googleUser.picture ||
+                '',
+
               authProvider:
                 'google',
+
               role:
                 'merchant',
-              active: true,
+
+              active:
+                true,
+
               lastLoginAt:
                 new Date()
             });
 
-          isNewUser = true;
         } else {
-          if (!user.active) {
-            return res.redirect(
-              '/?google_error=account_disabled'
-            );
-          }
-
           user.name =
-            name || user.name;
+            cleanString(
+              googleUser.name ||
+              user.name ||
+              email,
+              150
+            );
 
           user.email =
             email;
 
           user.googleId =
-            googleId;
+            googleUser.sub;
 
           user.avatar =
-            avatar || user.avatar;
+            googleUser.picture ||
+            user.avatar ||
+            '';
 
           user.authProvider =
             'google';
@@ -1747,13 +1646,16 @@ app.get(
           await user.save();
         }
 
-        /*
-        Cria o Merchant automaticamente
-        no primeiro login.
-        */
+        if (!user.active) {
+          return res.redirect(
+            '/login?error=account_disabled'
+          );
+        }
+
         let merchant =
           await Merchant.findOne({
-            userId: user._id
+            userId:
+              user._id
           });
 
         if (!merchant) {
@@ -1763,7 +1665,11 @@ app.get(
                 user._id,
 
               businessName:
-                name,
+                cleanString(
+                  googleUser.name ||
+                  email.split('@')[0],
+                  150
+                ),
 
               country:
                 'AO',
@@ -1782,36 +1688,26 @@ app.get(
         const token =
           signJWT(user);
 
-        /*
-        O JWT fica num cookie HttpOnly.
-        O public/app.js pode chamar
-        /api/me normalmente.
-        */
         setAuthCookie(
           res,
           token
         );
 
         /*
-        Também guardamos informações
-        temporárias no log, sem guardar
-        tokens Google.
-        */
-        console.log(
-          `Google login: ${email} | ${
-            isNewUser
-              ? 'novo utilizador'
-              : 'utilizador existente'
-          }`
-        );
+        IMPORTANTE:
 
-        /*
-        O painel continua sendo
-        public/index.html.
+        O callback NÃO envia token pela URL.
+
+        O token fica exclusivamente no cookie
+        HttpOnly.
+
+        O app.js depois chama /api/me.
         */
+
         return res.redirect(
           '/'
         );
+
       } catch (error) {
         console.error(
           'Google OAuth callback error:',
@@ -1819,25 +1715,20 @@ app.get(
         );
 
         return res.redirect(
-          '/?google_error=' +
-            encodeURIComponent(
-              error.message ||
-                'google_auth_failed'
-            )
+          '/login?error=google_auth_failed'
         );
       }
     }
   )
 );
 
-/*
-GET /api/auth/status
+/* =========================================================
+   AUTH STATUS
+========================================================= */
 
-Permite ao frontend verificar
-se existe sessão.
-*/
 app.get(
   '/api/auth/status',
+
   asyncHandler(
     async (req, res) => {
       const token =
@@ -1857,19 +1748,25 @@ app.get(
             JWT_SECRET
           );
 
+        if (
+          !payload ||
+          !payload.sub
+        ) {
+          return res.json({
+            success: true,
+            authenticated: false
+          });
+        }
+
         const user =
           await User.findById(
             payload.sub
-          ).select(
-            '-passwordHash'
-          );
+          ).lean();
 
         if (
           !user ||
           !user.active
         ) {
-          clearAuthCookie(res);
-
           return res.json({
             success: true,
             authenticated: false
@@ -1878,12 +1775,29 @@ app.get(
 
         return res.json({
           success: true,
-          authenticated: true,
-          user
-        });
-      } catch {
-        clearAuthCookie(res);
 
+          authenticated:
+            true,
+
+          user: {
+            id:
+              String(user._id),
+
+            name:
+              user.name,
+
+            email:
+              user.email,
+
+            avatar:
+              user.avatar || '',
+
+            role:
+              user.role
+          }
+        });
+
+      } catch {
         return res.json({
           success: true,
           authenticated: false
@@ -1893,104 +1807,263 @@ app.get(
   )
 );
 
-/*
-POST /api/auth/logout
-*/
+/* =========================================================
+   LOGOUT
+========================================================= */
+
 app.post(
   '/api/auth/logout',
   (req, res) => {
-    clearAuthCookie(res);
+    clearAuthCookie(
+      res
+    );
 
-    res.json({
+    return res.json({
       success: true
     });
   }
 );
 
 /* =========================================================
-   /api/me
+   CURRENT USER
 ========================================================= */
 
 app.get(
   '/api/me',
+
   authenticate,
+
   asyncHandler(
     async (req, res) => {
       const user =
         await User.findById(
           req.userId
-        ).select(
-          '-passwordHash'
-        );
+        ).lean();
 
-      if (!user) {
-        clearAuthCookie(res);
-
-        return res.status(404).json({
-          success: false,
-          error:
-            'Utilizador não encontrado.'
-        });
-      }
-
-      if (!user.active) {
-        clearAuthCookie(res);
-
-        return res.status(403).json({
-          success: false,
-          error:
-            'Conta desativada.'
-        });
+      if (
+        !user ||
+        !user.active
+      ) {
+        return res
+          .status(401)
+          .json({
+            success: false,
+            error:
+              'Utilizador não encontrado ou inativo.'
+          });
       }
 
       const merchant =
-        await getMerchantForUser(
-          req.userId
-        );
+        await Merchant.findOne({
+          userId:
+            user._id
+        }).lean();
+
+      if (!merchant) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            error:
+              'Merchant não encontrado.'
+          });
+      }
 
       return res.json({
         success: true,
 
         user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
-          role: user.role,
-          authProvider:
-            user.authProvider
+          id:
+            String(user._id),
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          avatar:
+            user.avatar || '',
+
+          role:
+            user.role
         },
 
-        merchant: merchant
-          ? {
-              id:
-                merchant._id,
+        merchant: {
+          id:
+            String(merchant._id),
 
-              businessName:
-                merchant.businessName,
+          businessName:
+            merchant.businessName,
 
-              phone:
-                merchant.phone,
+          phone:
+            merchant.phone,
 
-              nif:
-                merchant.nif,
+          nif:
+            merchant.nif,
 
-              address:
-                merchant.address,
+          address:
+            merchant.address,
 
-              city:
-                merchant.city,
+          city:
+            merchant.city,
 
-              country:
-                merchant.country,
+          country:
+            merchant.country,
 
-              currency:
-                merchant.currency,
+          currency:
+            merchant.currency,
 
-              provider:
-                merchant.provider
+          provider:
+            merchant.provider,
+
+          active:
+            merchant.active
+        }
+      });
+    }
+  )
+);
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+app.get(
+  '/api/dashboard',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (req, res) => {
+      const merchantId =
+        req.merchantId;
+
+      const [
+        totalOrders,
+        paidOrders,
+        pendingOrders,
+        totalCustomers,
+        totalProducts,
+        totalLinks
+      ] =
+        await Promise.all([
+          Order.countDocuments({
+            merchantId
+          }),
+
+          Order.countDocuments({
+            merchantId,
+
+            status:
+              'PAID'
+          }),
+
+          Order.countDocuments({
+            merchantId,
+
+            status:
+              'PENDING'
+          }),
+
+          Customer.countDocuments({
+            merchantId
+          }),
+
+          Product.countDocuments({
+            merchantId,
+            active: true
+          }),
+
+          PaymentLink.countDocuments({
+            merchantId,
+            active: true
+          })
+        ]);
+
+      const paidResult =
+        await Payment.aggregate([
+          {
+            $match: {
+              merchantId,
+
+              status:
+                'PAID'
             }
-          : null
+          },
+
+          {
+            $group: {
+              _id: null,
+
+              total: {
+                $sum:
+                  '$amount'
+              },
+
+              fees: {
+                $sum:
+                  '$feeAmount'
+              },
+
+              net: {
+                $sum:
+                  '$netAmount'
+              }
+            }
+          }
+        ]);
+
+      const totals =
+        paidResult[0] || {
+          total: 0,
+          fees: 0,
+          net: 0
+        };
+
+      const recentOrders =
+        await Order.find({
+          merchantId
+        })
+          .sort({
+            createdAt: -1
+          })
+          .limit(10)
+          .lean();
+
+      return res.json({
+        success: true,
+
+        dashboard: {
+          totalOrders,
+
+          paidOrders,
+
+          pendingOrders,
+
+          totalCustomers,
+
+          totalProducts,
+
+          totalLinks,
+
+          totalRevenue:
+            totals.total || 0,
+
+          totalFees:
+            totals.fees || 0,
+
+          netRevenue:
+            totals.net || 0,
+
+          currency:
+            req.merchant.currency ||
+            'AOA',
+
+          recentOrders
+        }
       });
     }
   )
@@ -2000,25 +2073,13 @@ app.get(
    MERCHANT
 ========================================================= */
 
-app.get(
-  '/api/merchant',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      res.json({
-        success: true,
-        merchant:
-          req.merchant
-      });
-    }
-  )
-);
-
 app.patch(
   '/api/merchant',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
       const allowed = [
@@ -2029,6 +2090,8 @@ app.patch(
         'city'
       ];
 
+      const update = {};
+
       for (
         const field of allowed
       ) {
@@ -2036,27 +2099,31 @@ app.patch(
           req.body[field] !==
           undefined
         ) {
-          req.merchant[field] =
+          update[field] =
             cleanString(
               req.body[field],
-              300
+              500
             );
         }
       }
 
-      await req.merchant.save();
+      const merchant =
+        await Merchant.findByIdAndUpdate(
+          req.merchantId,
 
-      await audit(
-        req,
-        'MERCHANT_UPDATED',
-        'Merchant',
-        req.merchant._id
-      );
+          {
+            $set:
+              update
+          },
 
-      res.json({
+          {
+            new: true
+          }
+        ).lean();
+
+      return res.json({
         success: true,
-        merchant:
-          req.merchant
+        merchant
       });
     }
   )
@@ -2068,100 +2135,87 @@ app.patch(
 
 app.get(
   '/api/customers',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
-      const page =
-        Math.max(
-          1,
-          Number(
-            req.query.page || 1
-          )
-        );
+      const customers =
+        await Customer.find({
+          merchantId:
+            req.merchantId
+        })
+          .sort({
+            createdAt: -1
+          })
+          .lean();
 
-      const limit =
-        Math.min(
-          100,
-          Math.max(
-            1,
-            Number(
-              req.query.limit ||
-                25
-            )
-          )
-        );
+      return res.json({
+        success: true,
+        customers
+      });
+    }
+  )
+);
 
-      const skip =
-        (page - 1) *
-        limit;
+app.post(
+  '/api/customers',
 
-      const filter = {
-        merchantId:
-          req.merchant._id
-      };
+  authenticate,
 
-      const search =
+  requireMerchant,
+
+  asyncHandler(
+    async (req, res) => {
+      const name =
         cleanString(
-          req.query.search,
-          100
+          req.body.name,
+          150
         );
 
-      if (search) {
-        filter.$or = [
-          {
-            name: {
-              $regex: search,
-              $options: 'i'
-            }
-          },
-          {
-            email: {
-              $regex: search,
-              $options: 'i'
-            }
-          },
-          {
-            phone: {
-              $regex: search,
-              $options: 'i'
-            }
-          }
-        ];
+      if (!name) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Nome do cliente é obrigatório.'
+          });
       }
 
-      const [
-        items,
-        total
-      ] =
-        await Promise.all([
-          Customer.find(filter)
-            .sort({
-              updatedAt: -1
-            })
-            .skip(skip)
-            .limit(limit)
-            .lean(),
+      const customer =
+        await Customer.create({
+          merchantId:
+            req.merchantId,
 
-          Customer.countDocuments(
-            filter
-          )
-        ]);
+          name,
 
-      res.json({
-        success: true,
-        items,
+          email:
+            normalizeEmail(
+              req.body.email
+            ),
 
-        pagination: {
-          page,
-          limit,
-          total,
-          pages:
-            Math.ceil(
-              total / limit
+          phone:
+            cleanString(
+              req.body.phone,
+              50
+            ),
+
+          notes:
+            cleanString(
+              req.body.notes,
+              1000
             )
-        }
-      });
+        });
+
+      return res
+        .status(201)
+        .json({
+          success: true,
+          customer
+        });
     }
   )
 );
@@ -2172,21 +2226,24 @@ app.get(
 
 app.get(
   '/api/products',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
       const products =
         await Product.find({
           merchantId:
-            req.merchant._id
+            req.merchantId
         })
           .sort({
             createdAt: -1
           })
           .lean();
 
-      res.json({
+      return res.json({
         success: true,
         products
       });
@@ -2196,20 +2253,17 @@ app.get(
 
 app.post(
   '/api/products',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
       const name =
         cleanString(
           req.body.name,
-          200
-        );
-
-      const description =
-        cleanString(
-          req.body.description,
-          2000
+          150
         );
 
       const price =
@@ -2219,26 +2273,30 @@ app.post(
 
       if (
         !name ||
-        !Number.isInteger(
-          price
-        ) ||
+        !Number.isFinite(price) ||
         price <= 0
       ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Nome e preço válido são obrigatórios.'
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Nome e preço válidos são obrigatórios.'
+          });
       }
 
       const product =
         await Product.create({
           merchantId:
-            req.merchant._id,
+            req.merchantId,
 
           name,
 
-          description,
+          description:
+            cleanString(
+              req.body.description,
+              2000
+            ),
 
           sku:
             cleanString(
@@ -2259,36 +2317,34 @@ app.post(
 
           stock:
             req.body.stock ===
-              null ||
+            null ||
             req.body.stock ===
-              undefined ||
+            undefined ||
             req.body.stock ===
-              ''
+            ''
               ? null
               : Number(
                   req.body.stock
                 )
         });
 
-      await audit(
-        req,
-        'PRODUCT_CREATED',
-        'Product',
-        product._id
-      );
-
-      res.status(201).json({
-        success: true,
-        product
-      });
+      return res
+        .status(201)
+        .json({
+          success: true,
+          product
+        });
     }
   )
 );
 
-app.patch(
+app.delete(
   '/api/products/:id',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
       if (
@@ -2296,156 +2352,47 @@ app.patch(
           req.params.id
         )
       ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Produto inválido.'
-        });
-      }
-
-      const product =
-        await Product.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchant._id
-        });
-
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Produto não encontrado.'
-        });
-      }
-
-      if (
-        req.body.name !==
-        undefined
-      ) {
-        product.name =
-          cleanString(
-            req.body.name,
-            200
-          );
-      }
-
-      if (
-        req.body.description !==
-        undefined
-      ) {
-        product.description =
-          cleanString(
-            req.body.description,
-            2000
-          );
-      }
-
-      if (
-        req.body.price !==
-        undefined
-      ) {
-        const price =
-          Number(
-            req.body.price
-          );
-
-        if (
-          !Number.isInteger(
-            price
-          ) ||
-          price <= 0
-        ) {
-          return res.status(400).json({
+        return res
+          .status(400)
+          .json({
             success: false,
             error:
-              'Preço inválido.'
+              'Produto inválido.'
           });
-        }
-
-        product.price =
-          price;
       }
 
-      if (
-        req.body.sku !==
-        undefined
-      ) {
-        product.sku =
-          cleanString(
-            req.body.sku,
-            100
-          );
-      }
-
-      if (
-        req.body.image !==
-        undefined
-      ) {
-        product.image =
-          cleanString(
-            req.body.image,
-            1000
-          );
-      }
-
-      if (
-        req.body.active !==
-        undefined
-      ) {
-        product.active =
-          Boolean(
-            req.body.active
-          );
-      }
-
-      await product.save();
-
-      res.json({
-        success: true,
-        product
-      });
-    }
-  )
-);
-
-app.delete(
-  '/api/products/:id',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
       const product =
-        await Product.findOne({
-          _id:
-            req.params.id,
+        await Product.findOneAndUpdate(
+          {
+            _id:
+              req.params.id,
 
-          merchantId:
-            req.merchant._id
-        });
+            merchantId:
+              req.merchantId
+          },
+
+          {
+            $set: {
+              active: false
+            }
+          },
+
+          {
+            new: true
+          }
+        );
 
       if (!product) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Produto não encontrado.'
-        });
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Produto não encontrado.'
+          });
       }
 
-      product.active =
-        false;
-
-      await product.save();
-
-      await audit(
-        req,
-        'PRODUCT_DEACTIVATED',
-        'Product',
-        product._id
-      );
-
-      res.json({
+      return res.json({
         success: true
       });
     }
@@ -2456,423 +2403,60 @@ app.delete(
    ORDERS
 ========================================================= */
 
-app.post(
-  '/api/orders',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const customerInput =
-        req.body.customer ||
-        {};
-
-      const itemsInput =
-        Array.isArray(
-          req.body.items
-        )
-          ? req.body.items
-          : [];
-
-      if (
-        !itemsInput.length
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'O pedido precisa ter pelo menos um item.'
-        });
-      }
-
-      let customer = null;
-
-      const customerName =
-        cleanString(
-          customerInput.name,
-          200
-        );
-
-      const customerEmail =
-        normalizeEmail(
-          customerInput.email
-        );
-
-      const customerPhone =
-        cleanString(
-          customerInput.phone,
-          50
-        );
-
-      if (!customerName) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Nome do cliente é obrigatório.'
-        });
-      }
-
-      if (customerEmail) {
-        customer =
-          await Customer.findOne({
-            merchantId:
-              req.merchant._id,
-
-            email:
-              customerEmail
-          });
-      }
-
-      if (
-        !customer &&
-        customerPhone
-      ) {
-        customer =
-          await Customer.findOne({
-            merchantId:
-              req.merchant._id,
-
-            phone:
-              customerPhone
-          });
-      }
-
-      if (!customer) {
-        customer =
-          await Customer.create({
-            merchantId:
-              req.merchant._id,
-
-            name:
-              customerName,
-
-            email:
-              customerEmail,
-
-            phone:
-              customerPhone
-          });
-      } else {
-        customer.name =
-          customerName;
-
-        if (
-          customerEmail
-        ) {
-          customer.email =
-            customerEmail;
-        }
-
-        if (
-          customerPhone
-        ) {
-          customer.phone =
-            customerPhone;
-        }
-
-        await customer.save();
-      }
-
-      const items = [];
-
-      let subtotal = 0;
-
-      for (
-        const input of itemsInput
-      ) {
-        const quantity =
-          Number(
-            input.quantity ||
-              1
-          );
-
-        if (
-          !Number.isInteger(
-            quantity
-          ) ||
-          quantity <= 0
-        ) {
-          return res.status(400).json({
-            success: false,
-            error:
-              'Quantidade inválida.'
-          });
-        }
-
-        let product = null;
-
-        if (
-          input.productId &&
-          isValidObjectId(
-            input.productId
-          )
-        ) {
-          product =
-            await Product.findOne({
-              _id:
-                input.productId,
-
-              merchantId:
-                req.merchant._id,
-
-              active:
-                true
-            });
-        }
-
-        const unitPrice =
-          product
-            ? product.price
-            : Number(
-                input.unitPrice
-              );
-
-        const name =
-          product
-            ? product.name
-            : cleanString(
-                input.name,
-                200
-              );
-
-        if (
-          !name ||
-          !Number.isInteger(
-            unitPrice
-          ) ||
-          unitPrice <= 0
-        ) {
-          return res.status(400).json({
-            success: false,
-            error:
-              'Item de pedido inválido.'
-          });
-        }
-
-        const total =
-          unitPrice *
-          quantity;
-
-        subtotal +=
-          total;
-
-        items.push({
-          productId:
-            product
-              ? product._id
-              : null,
-
-          name,
-
-          quantity,
-
-          unitPrice,
-
-          total
-        });
-      }
-
-      const order =
-        await Order.create({
-          merchantId:
-            req.merchant._id,
-
-          customerId:
-            customer._id,
-
-          reference:
-            generateReference(
-              'ORD'
-            ),
-
-          items,
-
-          subtotal,
-
-          total:
-            subtotal,
-
-          currency:
-            'AOA',
-
-          status:
-            'PENDING',
-
-          customerSnapshot: {
-            name:
-              customerName,
-
-            email:
-              customerEmail,
-
-            phone:
-              customerPhone
-          }
-        });
-
-      customer.totalOrders +=
-        1;
-
-      customer.lastOrderAt =
-        new Date();
-
-      await customer.save();
-
-      await audit(
-        req,
-        'ORDER_CREATED',
-        'Order',
-        order._id,
-        {
-          amount:
-            order.total
-        }
-      );
-
-      res.status(201).json({
-        success: true,
-        order
-      });
-    }
-  )
-);
-
 app.get(
   '/api/orders',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
-      const page =
-        Math.max(
-          1,
-          Number(
-            req.query.page ||
-              1
-          )
-        );
-
-      const limit =
-        Math.min(
-          100,
-          Math.max(
-            1,
-            Number(
-              req.query.limit ||
-                25
-            )
-          )
-        );
-
-      const skip =
-        (page - 1) *
-        limit;
-
-      const filter = {
-        merchantId:
-          req.merchant._id
-      };
-
-      if (
-        req.query.status &&
-        [
-          'PENDING',
-          'PAYMENT_PROCESSING',
-          'PAID',
-          'FAILED',
-          'CANCELLED',
-          'REFUNDED',
-          'PARTIALLY_REFUNDED'
-        ].includes(
-          req.query.status
-        )
-      ) {
-        filter.status =
-          req.query.status;
-      }
-
-      const [
-        orders,
-        total
-      ] =
-        await Promise.all([
-          Order.find(filter)
-            .populate(
-              'customerId',
-              'name email phone'
-            )
-            .sort({
-              createdAt: -1
-            })
-            .skip(skip)
-            .limit(limit)
-            .lean(),
-
-          Order.countDocuments(
-            filter
-          )
-        ]);
-
-      res.json({
-        success: true,
-        orders,
-
-        pagination: {
-          page,
-          limit,
-          total,
-          pages:
-            Math.ceil(
-              total / limit
-            )
-        }
-      });
-    }
-  )
-);
-
-app.get(
-  '/api/orders/:id',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const order =
-        await Order.findOne({
-          _id:
-            req.params.id,
-
+      const orders =
+        await Order.find({
           merchantId:
-            req.merchant._id
-        })
-          .populate(
-            'customerId',
-            'name email phone totalOrders totalSpent'
-          )
-          .lean();
-
-      if (!order) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Pedido não encontrado.'
-        });
-      }
-
-      const payments =
-        await Payment.find({
-          orderId:
-            order._id,
-
-          merchantId:
-            req.merchant._id
+            req.merchantId
         })
           .sort({
             createdAt: -1
           })
+          .limit(500)
           .lean();
 
-      res.json({
+      return res.json({
         success: true,
-        order,
+        orders
+      });
+    }
+  )
+);
+
+/* =========================================================
+   PAYMENTS
+========================================================= */
+
+app.get(
+  '/api/payments',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (req, res) => {
+      const payments =
+        await Payment.find({
+          merchantId:
+            req.merchantId
+        })
+          .sort({
+            createdAt: -1
+          })
+          .limit(500)
+          .lean();
+
+      return res.json({
+        success: true,
         payments
       });
     }
@@ -2883,16 +2467,46 @@ app.get(
    PAYMENT LINKS
 ========================================================= */
 
+app.get(
+  '/api/payment-links',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (req, res) => {
+      const links =
+        await PaymentLink.find({
+          merchantId:
+            req.merchantId
+        })
+          .sort({
+            createdAt: -1
+          })
+          .lean();
+
+      return res.json({
+        success: true,
+        links
+      });
+    }
+  )
+);
+
 app.post(
   '/api/payment-links',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
       const title =
         cleanString(
           req.body.title,
-          200
+          150
         );
 
       const amount =
@@ -2902,22 +2516,24 @@ app.post(
 
       if (
         !title ||
-        !Number.isInteger(
+        !Number.isFinite(
           amount
         ) ||
         amount <= 0
       ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Título e valor válido são obrigatórios.'
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Título e valor são obrigatórios.'
+          });
       }
 
       const link =
         await PaymentLink.create({
           merchantId:
-            req.merchant._id,
+            req.merchantId,
 
           token:
             generateToken(),
@@ -2936,1115 +2552,78 @@ app.post(
             'AOA',
 
           active:
-            true,
-
-          expiresAt:
-            req.body.expiresAt
-              ? new Date(
-                  req.body.expiresAt
-                )
-              : null
-        });
-
-      const url =
-        `${APP_BASE_URL.replace(
-          /\/$/,
-          ''
-        )}/pay/${link.token}`;
-
-      await audit(
-        req,
-        'PAYMENT_LINK_CREATED',
-        'PaymentLink',
-        link._id,
-        {
-          amount
-        }
-      );
-
-      res.status(201).json({
-        success: true,
-        link,
-        url
-      });
-    }
-  )
-);
-
-app.get(
-  '/api/payment-links',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const links =
-        await PaymentLink.find({
-          merchantId:
-            req.merchant._id
-        })
-          .sort({
-            createdAt: -1
-          })
-          .lean();
-
-      const items =
-        links.map(
-          (link) => ({
-            ...link,
-
-            url:
-              `${APP_BASE_URL.replace(
-                /\/$/,
-                ''
-              )}/pay/${link.token}`
-          })
-        );
-
-      res.json({
-        success: true,
-        links:
-          items
-      });
-    }
-  )
-);
-
-app.patch(
-  '/api/payment-links/:id',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const link =
-        await PaymentLink.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchant._id
-        });
-
-      if (!link) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Link não encontrado.'
-        });
-      }
-
-      if (
-        req.body.active !==
-        undefined
-      ) {
-        link.active =
-          Boolean(
-            req.body.active
-          );
-      }
-
-      if (
-        req.body.title !==
-        undefined
-      ) {
-        link.title =
-          cleanString(
-            req.body.title,
-            200
-          );
-      }
-
-      if (
-        req.body.description !==
-        undefined
-      ) {
-        link.description =
-          cleanString(
-            req.body.description,
-            2000
-          );
-      }
-
-      await link.save();
-
-      res.json({
-        success: true,
-        link
-      });
-    }
-  )
-);
-
-/* =========================================================
-   BITPAY CLIENT
-========================================================= */
-
-async function bitpayRequest(
-  endpoint,
-  options = {}
-) {
-  if (!BITPAY_SECRET_KEY) {
-    throw new Error(
-      'BITPAY_SECRET_KEY não configurado.'
-    );
-  }
-
-  const url =
-    `${BITPAY_BASE_URL.replace(
-      /\/$/,
-      ''
-    )}${endpoint}`;
-
-  const headers = {
-    Authorization:
-      `Bearer ${BITPAY_SECRET_KEY}`,
-
-    'Content-Type':
-      'application/json',
-
-    Accept:
-      'application/json',
-
-    ...(options.headers || {})
-  };
-
-  const response =
-    await fetch(
-      url,
-      {
-        method:
-          options.method ||
-          'GET',
-
-        headers,
-
-        body:
-          options.body
-      }
-    );
-
-  const text =
-    await response.text();
-
-  let data;
-
-  try {
-    data =
-      text
-        ? JSON.parse(text)
-        : {};
-  } catch {
-    data = {
-      raw: text
-    };
-  }
-
-  if (!response.ok) {
-    const message =
-      data?.error?.message ||
-      data?.message ||
-      data?.error ||
-      `BitPay HTTP ${response.status}`;
-
-    const error =
-      new Error(
-        String(message)
-      );
-
-    error.status =
-      response.status;
-
-    error.providerResponse =
-      data;
-
-    throw error;
-  }
-
-  return data;
-}
-
-/* =========================================================
-   BITPAY PAYMENT CREATION
-========================================================= */
-
-async function createBitPayPayment({
-  amount,
-  paymentMethod,
-  customerPhone,
-  merchantReference,
-  metadata,
-  idempotencyKey
-}) {
-  const payload = {
-    amount,
-
-    currency:
-      'AOA',
-
-    payment_method:
-      paymentMethod,
-
-    merchant_reference:
-      merchantReference,
-
-    metadata:
-      metadata || {}
-  };
-
-  if (
-    paymentMethod ===
-    'multicaixa_express'
-  ) {
-    payload.customer = {
-      mobile:
-        customerPhone
-    };
-  }
-
-  return bitpayRequest(
-    '/payment_intents',
-    {
-      method:
-        'POST',
-
-      headers: {
-        'Idempotency-Key':
-          idempotencyKey
-      },
-
-      body:
-        JSON.stringify(
-          payload
-        )
-    }
-  );
-}
-
-/* =========================================================
-   PAYMENT CREATION
-========================================================= */
-
-app.post(
-  '/api/payments',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const orderId =
-        req.body.orderId;
-
-      const paymentMethod =
-        req.body.paymentMethod ||
-        'multicaixa_express';
-
-      if (
-        !isValidObjectId(
-          orderId
-        )
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Pedido inválido.'
-        });
-      }
-
-      if (
-        ![
-          'multicaixa_express',
-          'multicaixa_reference'
-        ].includes(
-          paymentMethod
-        )
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Método de pagamento inválido.'
-        });
-      }
-
-      const order =
-        await Order.findOne({
-          _id:
-            orderId,
-
-          merchantId:
-            req.merchant._id
-        });
-
-      if (!order) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Pedido não encontrado.'
-        });
-      }
-
-      if (
-        order.status ===
-        'PAID'
-      ) {
-        return res.status(409).json({
-          success: false,
-          error:
-            'Este pedido já está pago.'
-        });
-      }
-
-      if (
-        paymentMethod ===
-          'multicaixa_express' &&
-        !cleanString(
-          req.body.customerPhone,
-          30
-        )
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'O número de telemóvel é obrigatório para Multicaixa Express.'
-        });
-      }
-
-      const existingActivePayment =
-        await Payment.findOne({
-          orderId:
-            order._id,
-
-          merchantId:
-            req.merchant._id,
-
-          status: {
-            $in: [
-              'PENDING',
-              'PROCESSING',
-              'UNKNOWN'
-            ]
-          }
-        });
-
-      if (
-        existingActivePayment
-      ) {
-        return res.status(409).json({
-          success: false,
-          error:
-            'Já existe um pagamento ativo ou em reconciliação para este pedido.',
-
-          payment:
-            existingActivePayment
-        });
-      }
-
-      if (
-        !BITPAY_MULTI_MERCHANT_ENABLED &&
-        req.merchant
-          .providerSettlementReady
-      ) {
-        return res.status(503).json({
-          success: false,
-          error:
-            'A configuração de settlement do comerciante requer ativação do modo multi-merchant da BitPay.'
-        });
-      }
-
-      const idempotencyKey =
-        cleanString(
-          req.headers[
-            'idempotency-key'
-          ],
-          200
-        ) ||
-        crypto.randomUUID();
-
-      const existingByKey =
-        await Payment.findOne({
-          idempotencyKey
-        });
-
-      if (existingByKey) {
-        return res.json({
-          success: true,
-          payment:
-            existingByKey,
-
-          idempotent:
             true
         });
-      }
 
-      const feeAmount =
-        calculateFee(
-          order.total
-        );
-
-      const payment =
-        await Payment.create({
-          merchantId:
-            req.merchant._id,
-
-          orderId:
-            order._id,
-
-          customerId:
-            order.customerId,
-
-          reference:
-            order.reference,
-
-          provider:
-            'bitpay',
-
-          paymentMethod,
-
-          amount:
-            order.total,
-
-          feeAmount,
-
-          netAmount:
-            order.total -
-            feeAmount,
-
-          currency:
-            'AOA',
-
-          status:
-            'PENDING',
-
-          idempotencyKey
-        });
-
-      order.status =
-        'PAYMENT_PROCESSING';
-
-      await order.save();
-
-      try {
-        const providerResponse =
-          await createBitPayPayment({
-            amount:
-              order.total,
-
-            paymentMethod,
-
-            customerPhone:
-              cleanString(
-                req.body.customerPhone,
-                30
-              ) ||
-              order
-                .customerSnapshot
-                ?.phone ||
-              '',
-
-            merchantReference:
-              order.reference,
-
-            metadata: {
-              honeyPayPaymentId:
-                String(
-                  payment._id
-                ),
-
-              honeyPayOrderId:
-                String(
-                  order._id
-                ),
-
-              honeyPayMerchantId:
-                String(
-                  req.merchant
-                    ._id
-                )
-            },
-
-            idempotencyKey
-          });
-
-        payment.providerPaymentId =
-          providerResponse?.id ||
-          providerResponse
-            ?.data?.id ||
-          '';
-
-        payment.providerPayload =
-          providerResponse;
-
-        payment.status =
-          mapBitPayStatus(
-            providerResponse?.status ||
-              providerResponse
-                ?.data?.status ||
-              'PENDING'
-          );
-
-        await payment.save();
-
-        res.status(201).json({
+      return res
+        .status(201)
+        .json({
           success: true,
+          link,
 
-          payment: {
-            id:
-              payment._id,
-
-            orderId:
-              payment.orderId,
-
-            providerPaymentId:
-              payment.providerPaymentId,
-
-            reference:
-              payment.reference,
-
-            amount:
-              payment.amount,
-
-            feeAmount:
-              payment.feeAmount,
-
-            netAmount:
-              payment.netAmount,
-
-            currency:
-              payment.currency,
-
-            paymentMethod:
-              payment.paymentMethod,
-
-            status:
-              payment.status
-          },
-
-          provider:
-            providerResponse
+          url:
+            `${APP_BASE_URL}/pay/${link.token}`
         });
-      } catch (error) {
-        payment.status =
-          'FAILED';
-
-        payment.failureReason =
-          error.message ||
-          'Erro no provedor.';
-
-        payment.providerPayload =
-          error.providerResponse ||
-          null;
-
-        await payment.save();
-
-        order.status =
-          'FAILED';
-
-        await order.save();
-
-        await audit(
-          req,
-          'PAYMENT_CREATION_FAILED',
-          'Payment',
-          payment._id,
-          {
-            error:
-              error.message
-          }
-        );
-
-        return res.status(
-          error.status ===
-            400
-            ? 400
-            : 502
-        ).json({
-          success: false,
-          error:
-            error.message ||
-            'Não foi possível criar o pagamento.',
-
-          paymentId:
-            payment._id
-        });
-      }
     }
   )
 );
 
-/* =========================================================
-   PAYMENTS
-========================================================= */
+app.delete(
+  '/api/payment-links/:id',
 
-app.get(
-  '/api/payments',
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
-      const page =
-        Math.max(
-          1,
-          Number(
-            req.query.page ||
-              1
-          )
-        );
-
-      const limit =
-        Math.min(
-          100,
-          Math.max(
-            1,
-            Number(
-              req.query.limit ||
-                25
-            )
-          )
-        );
-
-      const filter = {
-        merchantId:
-          req.merchant._id
-      };
-
       if (
-        req.query.status
-      ) {
-        filter.status =
-          req.query.status;
-      }
-
-      const [
-        payments,
-        total
-      ] =
-        await Promise.all([
-          Payment.find(filter)
-            .populate(
-              'customerId',
-              'name email phone'
-            )
-            .populate(
-              'orderId',
-              'reference total status'
-            )
-            .sort({
-              createdAt: -1
-            })
-            .skip(
-              (page - 1) *
-                limit
-            )
-            .limit(limit)
-            .lean(),
-
-          Payment.countDocuments(
-            filter
-          )
-        ]);
-
-      res.json({
-        success: true,
-        payments,
-
-        pagination: {
-          page,
-          limit,
-          total,
-          pages:
-            Math.ceil(
-              total / limit
-            )
-        }
-      });
-    }
-  )
-);
-
-app.get(
-  '/api/payments/:id',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const payment =
-        await Payment.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchant._id
-        })
-          .populate(
-            'orderId',
-            'reference total status items customerSnapshot'
-          )
-          .populate(
-            'customerId',
-            'name email phone'
-          )
-          .lean();
-
-      if (!payment) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Pagamento não encontrado.'
-        });
-      }
-
-      res.json({
-        success: true,
-        payment
-      });
-    }
-  )
-);
-
-/* =========================================================
-   REFUND
-========================================================= */
-
-app.post(
-  '/api/payments/:id/refund',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const payment =
-        await Payment.findOne({
-          _id:
-            req.params.id,
-
-          merchantId:
-            req.merchant._id
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Pagamento não encontrado.'
-        });
-      }
-
-      if (
-        ![
-          'SUCCEEDED',
-          'PARTIALLY_REFUNDED'
-        ].includes(
-          payment.status
+        !isValidObjectId(
+          req.params.id
         )
       ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Só pagamentos confirmados podem ser reembolsados.'
-        });
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Link inválido.'
+          });
       }
 
-      if (
-        !payment.providerPaymentId
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Pagamento sem ID do provedor.'
-        });
-      }
-
-      const amount =
-        req.body.amount ===
-        undefined
-          ? payment.amount
-          : Number(
-              req.body.amount
-            );
-
-      if (
-        !Number.isInteger(
-          amount
-        ) ||
-        amount <= 0 ||
-        amount >
-          payment.amount
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Valor de reembolso inválido.'
-        });
-      }
-
-      try {
-        const response =
-          await bitpayRequest(
-            '/refunds',
-            {
-              method:
-                'POST',
-
-              headers: {
-                'Idempotency-Key':
-                  `refund-${payment._id}-${amount}`
-              },
-
-              body:
-                JSON.stringify({
-                  payment_id:
-                    payment.providerPaymentId,
-
-                  amount,
-
-                  currency:
-                    'AOA',
-
-                  metadata: {
-                    honeyPayPaymentId:
-                      String(
-                        payment._id
-                      )
-                  }
-                })
-            }
-          );
-
-        await audit(
-          req,
-          'REFUND_CREATED',
-          'Payment',
-          payment._id,
+      const link =
+        await PaymentLink.findOneAndUpdate(
           {
-            amount
+            _id:
+              req.params.id,
+
+            merchantId:
+              req.merchantId
+          },
+
+          {
+            $set: {
+              active: false
+            }
+          },
+
+          {
+            new: true
           }
         );
 
-        res.json({
-          success: true,
-          refund:
-            response
-        });
-      } catch (error) {
-        return res.status(502).json({
-          success: false,
-          error:
-            error.message ||
-            'Não foi possível criar o reembolso.'
-        });
+      if (!link) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Link não encontrado.'
+          });
       }
-    }
-  )
-);
 
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-app.get(
-  '/api/dashboard',
-  authenticate,
-  requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const merchantId =
-        req.merchant._id;
-
-      const [
-        successful,
-        pending,
-        failed,
-        customers,
-        orders,
-        links
-      ] =
-        await Promise.all([
-          Payment.aggregate([
-            {
-              $match: {
-                merchantId,
-                status:
-                  'SUCCEEDED'
-              }
-            },
-
-            {
-              $group: {
-                _id:
-                  null,
-
-                count: {
-                  $sum: 1
-                },
-
-                gross: {
-                  $sum:
-                    '$amount'
-                },
-
-                fees: {
-                  $sum:
-                    '$feeAmount'
-                },
-
-                net: {
-                  $sum:
-                    '$netAmount'
-                }
-              }
-            }
-          ]),
-
-          Payment.aggregate([
-            {
-              $match: {
-                merchantId,
-
-                status: {
-                  $in: [
-                    'PENDING',
-                    'PROCESSING',
-                    'UNKNOWN'
-                  ]
-                }
-              }
-            },
-
-            {
-              $group: {
-                _id:
-                  null,
-
-                count: {
-                  $sum: 1
-                },
-
-                amount: {
-                  $sum:
-                    '$amount'
-                }
-              }
-            }
-          ]),
-
-          Payment.aggregate([
-            {
-              $match: {
-                merchantId,
-
-                status: {
-                  $in: [
-                    'FAILED',
-                    'EXPIRED'
-                  ]
-                }
-              }
-            },
-
-            {
-              $group: {
-                _id:
-                  null,
-
-                count: {
-                  $sum: 1
-                },
-
-                amount: {
-                  $sum:
-                    '$amount'
-                }
-              }
-            }
-          ]),
-
-          Customer.countDocuments({
-            merchantId
-          }),
-
-          Order.countDocuments({
-            merchantId
-          }),
-
-          PaymentLink.countDocuments({
-            merchantId,
-
-            active:
-              true
-          })
-        ]);
-
-      const successfulData =
-        successful[0] || {
-          count: 0,
-          gross: 0,
-          fees: 0,
-          net: 0
-        };
-
-      const pendingData =
-        pending[0] || {
-          count: 0,
-          amount: 0
-        };
-
-      const failedData =
-        failed[0] || {
-          count: 0,
-          amount: 0
-        };
-
-      const recentPayments =
-        await Payment.find({
-          merchantId
-        })
-          .populate(
-            'customerId',
-            'name email phone'
-          )
-          .populate(
-            'orderId',
-            'reference total'
-          )
-          .sort({
-            createdAt: -1
-          })
-          .limit(10)
-          .lean();
-
-      res.json({
-        success: true,
-
-        stats: {
-          successfulPayments:
-            successfulData.count,
-
-          grossVolume:
-            successfulData.gross,
-
-          honeyPayFees:
-            successfulData.fees,
-
-          netVolume:
-            successfulData.net,
-
-          pendingPayments:
-            pendingData.count,
-
-          pendingAmount:
-            pendingData.amount,
-
-          failedPayments:
-            failedData.count,
-
-          failedAmount:
-            failedData.amount,
-
-          customers,
-
-          orders,
-
-          activePaymentLinks:
-            links
-        },
-
-        recentPayments
+      return res.json({
+        success: true
       });
     }
   )
@@ -4055,136 +2634,80 @@ app.get(
 ========================================================= */
 
 app.get(
-  '/api/reports/overview',
+  '/api/reports',
+
   authenticate,
+
   requireMerchant,
+
   asyncHandler(
     async (req, res) => {
-      const merchantId =
-        req.merchant._id;
-
-      const days =
-        Math.min(
-          365,
-          Math.max(
-            1,
-            Number(
-              req.query.days ||
-                30
-            )
-          )
-        );
-
-      const start =
-        new Date();
-
-      start.setDate(
-        start.getDate() -
-          days
-      );
-
-      const report =
-        await Payment.aggregate([
-          {
-            $match: {
-              merchantId,
-
-              createdAt: {
-                $gte:
-                  start
+      const [
+        payments,
+        orders
+      ] =
+        await Promise.all([
+          Payment.aggregate([
+            {
+              $match: {
+                merchantId:
+                  req.merchantId
               }
-            }
-          },
+            },
 
-          {
-            $group: {
-              _id: {
-                year: {
-                  $year:
-                    '$createdAt'
+            {
+              $group: {
+                _id:
+                  '$status',
+
+                count: {
+                  $sum: 1
                 },
 
-                month: {
-                  $month:
-                    '$createdAt'
-                },
-
-                day: {
-                  $dayOfMonth:
-                    '$createdAt'
-                }
-              },
-
-              transactions: {
-                $sum: 1
-              },
-
-              succeeded: {
-                $sum: {
-                  $cond: [
-                    {
-                      $eq: [
-                        '$status',
-                        'SUCCEEDED'
-                      ]
-                    },
-
-                    1,
-
-                    0
-                  ]
-                }
-              },
-
-              volume: {
-                $sum: {
-                  $cond: [
-                    {
-                      $eq: [
-                        '$status',
-                        'SUCCEEDED'
-                      ]
-                    },
-
-                    '$amount',
-
-                    0
-                  ]
-                }
-              },
-
-              fees: {
-                $sum: {
-                  $cond: [
-                    {
-                      $eq: [
-                        '$status',
-                        'SUCCEEDED'
-                      ]
-                    },
-
-                    '$feeAmount',
-
-                    0
-                  ]
+                amount: {
+                  $sum:
+                    '$amount'
                 }
               }
             }
-          },
+          ]),
 
-          {
-            $sort: {
-              '_id.year': 1,
-              '_id.month': 1,
-              '_id.day': 1
+          Order.aggregate([
+            {
+              $match: {
+                merchantId:
+                  req.merchantId
+              }
+            },
+
+            {
+              $group: {
+                _id:
+                  '$status',
+
+                count: {
+                  $sum: 1
+                },
+
+                amount: {
+                  $sum:
+                    '$total'
+                }
+              }
             }
-          }
+          ])
         ]);
 
-      res.json({
+      return res.json({
         success: true,
-        days,
-        report
+
+        reports: {
+          payments,
+          orders,
+          currency:
+            req.merchant.currency ||
+            'AOA'
+        }
       });
     }
   )
@@ -4196,6 +2719,7 @@ app.get(
 
 app.get(
   '/api/public/payment-links/:token',
+
   asyncHandler(
     async (req, res) => {
       const link =
@@ -4205,41 +2729,44 @@ app.get(
 
           active:
             true
-        })
-          .populate(
-            'merchantId',
-            'businessName phone currency'
-          )
-          .lean();
+        }).lean();
 
       if (!link) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Link de pagamento não encontrado.'
-        });
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Link de pagamento não encontrado.'
+          });
       }
 
       if (
         link.expiresAt &&
-        new Date(
-          link.expiresAt
-        ) <
-          new Date()
+        new Date(link.expiresAt)
+          .getTime() <
+          Date.now()
       ) {
-        return res.status(410).json({
-          success: false,
-          error:
-            'Este link de pagamento expirou.'
-        });
+        return res
+          .status(410)
+          .json({
+            success: false,
+            error:
+              'Este link expirou.'
+          });
       }
 
-      res.json({
+      const merchant =
+        await Merchant.findById(
+          link.merchantId
+        ).lean();
+
+      return res.json({
         success: true,
 
         link: {
           id:
-            link._id,
+            String(link._id),
 
           token:
             link.token,
@@ -4254,1063 +2781,85 @@ app.get(
             link.amount,
 
           currency:
-            link.currency,
-
-          merchant:
-            link.merchantId
-              ? {
-                  id:
-                    link
-                      .merchantId
-                      ._id,
-
-                  businessName:
-                    link
-                      .merchantId
-                      .businessName
-                }
-              : null
-        }
-      });
-    }
-  )
-);
-
-/* =========================================================
-   PUBLIC PAYMENT
-========================================================= */
-
-app.post(
-  '/api/public/payment-links/:token/pay',
-  asyncHandler(
-    async (req, res) => {
-      const link =
-        await PaymentLink.findOne({
-          token:
-            req.params.token,
-
-          active:
-            true
-        });
-
-      if (!link) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Link não encontrado.'
-        });
-      }
-
-      if (
-        link.expiresAt &&
-        new Date(
-          link.expiresAt
-        ) <
-          new Date()
-      ) {
-        return res.status(410).json({
-          success: false,
-          error:
-            'Este link expirou.'
-        });
-      }
-
-      const merchant =
-        await Merchant.findOne({
-          _id:
-            link.merchantId,
-
-          active:
-            true
-        });
-
-      if (!merchant) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Comerciante indisponível.'
-        });
-      }
-
-      const customerName =
-        cleanString(
-          req.body.customerName,
-          200
-        );
-
-      const customerEmail =
-        normalizeEmail(
-          req.body.customerEmail
-        );
-
-      const customerPhone =
-        cleanString(
-          req.body.customerPhone,
-          30
-        );
-
-      const paymentMethod =
-        req.body.paymentMethod ||
-        'multicaixa_express';
-
-      if (!customerName) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Nome é obrigatório.'
-        });
-      }
-
-      if (
-        paymentMethod ===
-          'multicaixa_express' &&
-        !customerPhone
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Telemóvel é obrigatório para Multicaixa Express.'
-        });
-      }
-
-      let customer = null;
-
-      if (customerEmail) {
-        customer =
-          await Customer.findOne({
-            merchantId:
-              merchant._id,
-
-            email:
-              customerEmail
-          });
-      }
-
-      if (
-        !customer &&
-        customerPhone
-      ) {
-        customer =
-          await Customer.findOne({
-            merchantId:
-              merchant._id,
-
-            phone:
-              customerPhone
-          });
-      }
-
-      if (!customer) {
-        customer =
-          await Customer.create({
-            merchantId:
-              merchant._id,
-
-            name:
-              customerName,
-
-            email:
-              customerEmail,
-
-            phone:
-              customerPhone
-          });
-      }
-
-      const order =
-        await Order.create({
-          merchantId:
-            merchant._id,
-
-          customerId:
-            customer._id,
-
-          reference:
-            generateReference(
-              'ORD'
-            ),
-
-          items: [
-            {
-              productId:
-                null,
-
-              name:
-                link.title,
-
-              quantity:
-                1,
-
-              unitPrice:
-                link.amount,
-
-              total:
-                link.amount
-            }
-          ],
-
-          subtotal:
-            link.amount,
-
-          total:
-            link.amount,
-
-          currency:
-            'AOA',
-
-          status:
-            'PAYMENT_PROCESSING',
-
-          customerSnapshot: {
-            name:
-              customerName,
-
-            email:
-              customerEmail,
-
-            phone:
-              customerPhone
-          }
-        });
-
-      customer.totalOrders +=
-        1;
-
-      customer.lastOrderAt =
-        new Date();
-
-      await customer.save();
-
-      const idempotencyKey =
-        crypto.randomUUID();
-
-      const feeAmount =
-        calculateFee(
-          order.total
-        );
-
-      const payment =
-        await Payment.create({
-          merchantId:
-            merchant._id,
-
-          orderId:
-            order._id,
-
-          customerId:
-            customer._id,
-
-          reference:
-            order.reference,
-
-          provider:
-            'bitpay',
-
-          paymentMethod,
-
-          amount:
-            order.total,
-
-          feeAmount,
-
-          netAmount:
-            order.total -
-            feeAmount,
-
-          currency:
-            'AOA',
-
-          status:
-            'PENDING',
-
-          idempotencyKey
-        });
-
-      try {
-        const providerResponse =
-          await createBitPayPayment({
-            amount:
-              order.total,
-
-            paymentMethod,
-
-            customerPhone,
-
-            merchantReference:
-              order.reference,
-
-            metadata: {
-              honeyPayPaymentId:
-                String(
-                  payment._id
-                ),
-
-              honeyPayOrderId:
-                String(
-                  order._id
-                ),
-
-              honeyPayMerchantId:
+            link.currency
+        },
+
+        merchant: merchant
+          ? {
+              id:
                 String(
                   merchant._id
                 ),
 
-              paymentLinkId:
-                String(
-                  link._id
-                )
-            },
+              businessName:
+                merchant.businessName,
 
-            idempotencyKey
-          });
+              phone:
+                merchant.phone,
 
-        payment.providerPaymentId =
-          providerResponse?.id ||
-          providerResponse
-            ?.data?.id ||
-          '';
-
-        payment.providerPayload =
-          providerResponse;
-
-        payment.status =
-          mapBitPayStatus(
-            providerResponse?.status ||
-              providerResponse
-                ?.data?.status ||
-              'PENDING'
-          );
-
-        await payment.save();
-
-        link.totalPayments +=
-          1;
-
-        await link.save();
-
-        res.status(201).json({
-          success: true,
-
-          order: {
-            id:
-              order._id,
-
-            reference:
-              order.reference,
-
-            total:
-              order.total
-          },
-
-          payment: {
-            id:
-              payment._id,
-
-            providerPaymentId:
-              payment.providerPaymentId,
-
-            status:
-              payment.status,
-
-            paymentMethod:
-              payment.paymentMethod
-          },
-
-          provider:
-            providerResponse
-        });
-      } catch (error) {
-        payment.status =
-          'FAILED';
-
-        payment.failureReason =
-          error.message ||
-          '';
-
-        payment.providerPayload =
-          error.providerResponse ||
-          null;
-
-        await payment.save();
-
-        order.status =
-          'FAILED';
-
-        await order.save();
-
-        return res.status(502).json({
-          success: false,
-          error:
-            error.message ||
-            'Falha ao criar pagamento.'
-        });
-      }
+              currency:
+                merchant.currency
+            }
+          : null
+      });
     }
   )
 );
 
 /* =========================================================
-   BITPAY STATUS
+   PUBLIC CHECKOUT
 ========================================================= */
 
-function mapBitPayStatus(
-  status
-) {
-  const normalized =
-    String(status || '')
-      .toUpperCase();
+app.get(
+  '/pay/:token',
 
-  const allowed = [
-    'PENDING',
-    'PROCESSING',
-    'SUCCEEDED',
-    'FAILED',
-    'EXPIRED',
-    'UNKNOWN',
-    'CANCELLED',
-    'PARTIALLY_REFUNDED',
-    'REFUNDED'
-  ];
-
-  return allowed.includes(
-    normalized
-  )
-    ? normalized
-    : 'PENDING';
-}
-
-/* =========================================================
-   BITPAY WEBHOOK SECURITY
-========================================================= */
-
-function parseBitPaySignature(
-  header
-) {
-  const result = {};
-
-  const value =
-    String(header || '');
-
-  for (
-    const part of
-      value.split(',')
-  ) {
-    const [key, val] =
-      part
-        .trim()
-        .split('=');
-
-    if (
-      key &&
-      val
-    ) {
-      result[key] =
-        val;
-    }
-  }
-
-  return result;
-}
-
-function verifyBitPayWebhook(
-  rawBody,
-  signatureHeader
-) {
-  if (
-    !BITPAY_WEBHOOK_SECRET
-  ) {
-    return false;
-  }
-
-  const parsed =
-    parseBitPaySignature(
-      signatureHeader
-    );
-
-  const timestamp =
-    parsed.t;
-
-  const signature =
-    parsed.v1;
-
-  if (
-    !timestamp ||
-    !signature
-  ) {
-    return false;
-  }
-
-  const timestampNumber =
-    Number(timestamp);
-
-  if (
-    !Number.isFinite(
-      timestampNumber
-    )
-  ) {
-    return false;
-  }
-
-  const age =
-    Math.abs(
-      Date.now() -
-        timestampNumber *
-          1000
-    );
-
-  if (
-    age >
-    10 * 60 * 1000
-  ) {
-    return false;
-  }
-
-  const signedPayload =
-    `${timestamp}.${rawBody.toString(
-      'utf8'
-    )}`;
-
-  const expected =
-    crypto
-      .createHmac(
-        'sha256',
-        BITPAY_WEBHOOK_SECRET
-      )
-      .update(
-        signedPayload
-      )
-      .digest('hex');
-
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(
-        expected,
-        'utf8'
-      ),
-      Buffer.from(
-        signature,
-        'utf8'
-      )
-    );
-  } catch {
-    return false;
-  }
-}
-
-/* =========================================================
-   BITPAY WEBHOOK
-========================================================= */
-
-async function handleBitPayWebhook(
-  req,
-  res
-) {
-  try {
-    const rawBody =
-      Buffer.isBuffer(
-        req.body
-      )
-        ? req.body
-        : Buffer.from(
-            JSON.stringify(
-              req.body || {}
-            )
-          );
-
-    const signature =
-      req.headers[
-        'bitpay-signature'
-      ];
-
-    if (
-      !verifyBitPayWebhook(
-        rawBody,
-        signature
-      )
-    ) {
-      return res.status(401).json({
-        success: false,
-        error:
-          'Assinatura inválida.'
-      });
-    }
-
-    let payload;
-
-    try {
-      payload =
-        JSON.parse(
-          rawBody.toString(
-            'utf8'
-          )
-        );
-    } catch {
-      return res.status(400).json({
-        success: false,
-        error:
-          'Webhook JSON inválido.'
-      });
-    }
-
-    const eventId =
-      payload.id ||
-      payload.event_id ||
-      payload.eventId;
-
-    const eventType =
-      payload.type ||
-      payload.event ||
-      payload.event_type ||
-      '';
-
-    if (!eventId) {
-      return res.status(400).json({
-        success: false,
-        error:
-          'Webhook sem identificador de evento.'
-      });
-    }
-
-    const existing =
-      await WebhookEvent.findOne({
-        eventId
-      });
-
-    if (existing) {
-      return res.status(200).json({
-        success: true,
-        duplicate:
-          true
-      });
-    }
-
-    await WebhookEvent.create({
-      provider:
-        'bitpay',
-
-      eventId,
-
-      eventType,
-
-      payload,
-
-      processed:
-        false
-    });
-
-    const providerPaymentId =
-      payload.payment_id ||
-      payload.paymentId ||
-      payload.data
-        ?.payment_id ||
-      payload.data
-        ?.paymentId ||
-      payload.data?.id ||
-      '';
-
-    const merchantReference =
-      payload.merchant_reference ||
-      payload.merchantReference ||
-      payload.data
-        ?.merchant_reference ||
-      payload.data
-        ?.merchantReference ||
-      '';
-
-    let payment =
-      null;
-
-    if (
-      providerPaymentId
-    ) {
-      payment =
-        await Payment.findOne({
-          providerPaymentId
-        });
-    }
-
-    if (
-      !payment &&
-      merchantReference
-    ) {
-      payment =
-        await Payment.findOne({
-          reference:
-            merchantReference
-        });
-    }
-
-    if (!payment) {
-      await WebhookEvent.updateOne(
-        {
-          eventId
-        },
-        {
-          processed:
-            true,
-
-          processedAt:
-            new Date(),
-
-          error:
-            'Pagamento correspondente ainda não encontrado.'
-        }
-      );
-
-      return res.status(200).json({
-        success: true,
-        processed:
-          false
-      });
-    }
-
-    if (
-      providerPaymentId &&
-      !payment.providerPaymentId
-    ) {
-      payment.providerPaymentId =
-        providerPaymentId;
-    }
-
-    const incomingStatus =
-      payload.status ||
-      payload.data?.status ||
-      eventTypeToStatus(
-        eventType
-      );
-
-    const mappedStatus =
-      mapBitPayStatus(
-        incomingStatus
-      );
-
-    payment.status =
-      mappedStatus;
-
-    payment.providerPayload =
-      payload;
-
-    if (
-      mappedStatus ===
-      'FAILED'
-    ) {
-      payment.failureReason =
-        payload.failure_reason ||
-        payload.error
-          ?.message ||
-        payload.data
-          ?.error
-          ?.message ||
-        'Pagamento falhou.';
-    }
-
-    if (
-      mappedStatus ===
-      'SUCCEEDED'
-    ) {
-      payment.succeededAt =
-        payment.succeededAt ||
-        new Date();
-    }
-
-    await payment.save();
-
-    const order =
-      await Order.findById(
-        payment.orderId
-      );
-
-    if (order) {
+  asyncHandler(
+    async (req, res) => {
       if (
-        mappedStatus ===
-        'SUCCEEDED'
-      ) {
-        order.status =
-          'PAID';
-
-        order.paidAt =
-          order.paidAt ||
-          new Date();
-
-        await order.save();
-
-        if (
-          payment.customerId
-        ) {
-          await Customer.updateOne(
-            {
-              _id:
-                payment.customerId
-            },
-            {
-              $inc: {
-                totalSpent:
-                  payment.amount
-              }
-            }
-          );
-        }
-      } else if (
-        [
-          'FAILED',
-          'EXPIRED'
-        ].includes(
-          mappedStatus
+        require('fs').existsSync(
+          CHECKOUT_FILE
         )
       ) {
-        if (
-          order.status !==
-          'PAID'
-        ) {
-          order.status =
-            'FAILED';
-
-          await order.save();
-        }
+        return res.sendFile(
+          CHECKOUT_FILE
+        );
       }
+
+      return res.status(404).send(
+        'Checkout não configurado.'
+      );
     }
-
-    await WebhookEvent.updateOne(
-      {
-        eventId
-      },
-      {
-        processed:
-          true,
-
-        processedAt:
-          new Date(),
-
-        error:
-          ''
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      processed:
-        true
-    });
-  } catch (error) {
-    console.error(
-      'BitPay webhook error:',
-      error
-    );
-
-    return res.status(500).json({
-      success: false,
-      error:
-        'Erro interno.'
-    });
-  }
-}
-
-function eventTypeToStatus(
-  type
-) {
-  switch (
-    String(type || '')
-      .toLowerCase()
-  ) {
-    case 'payment.succeeded':
-    case 'reference.paid':
-      return 'SUCCEEDED';
-
-    case 'payment.failed':
-      return 'FAILED';
-
-    case 'payment.unknown':
-      return 'UNKNOWN';
-
-    case 'payment.reconciled':
-      return 'SUCCEEDED';
-
-    case 'payment.created':
-      return 'PENDING';
-
-    default:
-      return 'PENDING';
-  }
-}
+  )
+);
 
 /* =========================================================
-   PAYMENT REFRESH
+   BITPAY CONFIG STATUS
 ========================================================= */
 
-app.post(
-  '/api/payments/:id/refresh',
+app.get(
+  '/api/bitpay/status',
+
   authenticate,
+
   requireMerchant,
-  asyncHandler(
-    async (req, res) => {
-      const payment =
-        await Payment.findOne({
-          _id:
-            req.params.id,
 
-          merchantId:
-            req.merchant._id
-        });
-
-      if (!payment) {
-        return res.status(404).json({
-          success: false,
-          error:
-            'Pagamento não encontrado.'
-        });
-      }
-
-      if (
-        !payment.providerPaymentId
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            'Este pagamento ainda não possui ID no provedor.'
-        });
-      }
-
-      try {
-        const providerResponse =
-          await bitpayRequest(
-            `/payment_intents/${encodeURIComponent(
-              payment.providerPaymentId
-            )}`
-          );
-
-        const status =
-          mapBitPayStatus(
-            providerResponse?.status ||
-              providerResponse
-                ?.data?.status
-          );
-
-        payment.status =
-          status;
-
-        payment.providerPayload =
-          providerResponse;
-
-        if (
-          status ===
-          'SUCCEEDED'
-        ) {
-          payment.succeededAt =
-            payment.succeededAt ||
-            new Date();
-
-          const order =
-            await Order.findById(
-              payment.orderId
-            );
-
-          if (
-            order &&
-            order.status !==
-              'PAID'
-          ) {
-            order.status =
-              'PAID';
-
-            order.paidAt =
-              new Date();
-
-            await order.save();
-          }
-        }
-
-        await payment.save();
-
-        res.json({
-          success: true,
-          payment,
-          provider:
-            providerResponse
-        });
-      } catch (error) {
-        res.status(502).json({
-          success: false,
-          error:
-            error.message ||
-            'Não foi possível consultar o provedor.'
-        });
-      }
-    }
-  )
-);
-
-/* =========================================================
-   HEALTH
-========================================================= */
-
-app.get(
-  '/health',
-  asyncHandler(
-    async (req, res) => {
-      const mongoReady =
-        mongoose.connection
-          .readyState ===
-        1;
-
-      res.status(
-        mongoReady
-          ? 200
-          : 503
-      ).json({
-        success:
-          mongoReady,
-
-        service:
-          'Honey Pay API',
-
-        version:
-          '3.1.0',
-
-        environment:
-          NODE_ENV,
-
-        database:
-          mongoReady
-            ? 'connected'
-            : 'disconnected',
-
-        googleOAuth:
-          Boolean(
-            GOOGLE_CLIENT_ID &&
-              GOOGLE_CLIENT_SECRET
-          ),
-
-        frontend:
-          'public/index.html',
-
-        timestamp:
-          new Date().toISOString()
-      });
-    }
-  )
-);
-
-/* =========================================================
-   API STATUS
-========================================================= */
-
-app.get(
-  '/api',
   (req, res) => {
-    res.json({
+    return res.json({
       success: true,
-      name:
-        'Honey Pay API',
-      version:
-        '3.1.0',
-      status:
-        'operational',
 
-      authentication:
-        'Google OAuth',
+      configured:
+        Boolean(
+          BITPAY_SECRET_KEY
+        ),
 
-      frontend:
-        'public/index.html'
+      baseUrl:
+        BITPAY_BASE_URL,
+
+      feeBps:
+        HONEY_PAY_FEE_BPS,
+
+      multiMerchant:
+        BITPAY_MULTI_MERCHANT_ENABLED
     });
   }
 );
@@ -5335,35 +2884,221 @@ app.use(
 );
 
 /* =========================================================
-   PUBLIC CHECKOUT
+   LOGIN PAGE
 ========================================================= */
 
-app.get(
-  '/pay/:token',
-  (req, res) => {
-    res.sendFile(
-      CHECKOUT_FILE,
-      (error) => {
-        if (error) {
-          console.error(
-            'Checkout error:',
-            error
-          );
+/*
+NÃO servir index.html em /login.
 
-          res.status(404).send(
-            'Checkout não encontrado.'
-          );
-        }
-      }
-    );
+Este era um dos pontos que podia provocar o loop.
+
+Agora /login é uma página independente.
+*/
+
+app.get(
+  '/login',
+  (req, res) => {
+    const error =
+      cleanString(
+        req.query.error,
+        100
+      );
+
+    let message =
+      'Entre no Honey Pay com a sua conta Google.';
+
+    if (
+      error ===
+      'google_cancelled'
+    ) {
+      message =
+        'O login Google foi cancelado.';
+    }
+
+    if (
+      error ===
+      'google_auth_failed'
+    ) {
+      message =
+        'Não foi possível concluir o login Google.';
+    }
+
+    if (
+      error ===
+      'invalid_state'
+    ) {
+      message =
+        'A sessão de autenticação expirou. Tente novamente.';
+    }
+
+    if (
+      error ===
+      'account_disabled'
+    ) {
+      message =
+        'Esta conta está desativada.';
+    }
+
+    res
+      .status(200)
+      .type('html')
+      .send(
+        `<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Honey Pay — Entrar</title>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background: #080808;
+  color: #fff;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 40px;
+  border-radius: 24px;
+  background: #111;
+  border: 1px solid rgba(255,255,255,.09);
+  box-shadow:
+    0 30px 80px rgba(0,0,0,.45);
+}
+
+.logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5c542;
+  color: #111;
+  font-size: 27px;
+  font-weight: 900;
+  margin-bottom: 26px;
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+}
+
+p {
+  color: #999;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+.google-button {
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 15px 18px;
+  background: #fff;
+  color: #111;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.google-button:hover {
+  opacity: .92;
+}
+
+.error {
+  margin-bottom: 20px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: rgba(255,70,70,.12);
+  border: 1px solid rgba(255,70,70,.2);
+  color: #ff9b9b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-card">
+
+  <div class="logo">
+    H
+  </div>
+
+  <h1>
+    Bem-vindo ao Honey Pay
+  </h1>
+
+  <p>
+    Gerencie pagamentos, clientes,
+    produtos e links de pagamento
+    num único lugar.
+  </p>
+
+  ${
+    error
+      ? `<div class="error">${message}</div>`
+      : ''
+  }
+
+  <a
+    class="google-button"
+    href="/api/auth/google"
+  >
+    <span>G</span>
+    Continuar com Google
+  </a>
+
+</div>
+
+</body>
+</html>`
+      );
   }
 );
 
 /* =========================================================
-   SPA FRONTEND ROUTES
+   SPA ROUTES
 ========================================================= */
 
-const FRONTEND_ROUTES = [
+/*
+IMPORTANTE:
+
+Somente páginas privadas recebem index.html.
+
+Não colocar /login aqui.
+*/
+
+const SPA_ROUTES = [
   '/',
   '/dashboard',
   '/merchant',
@@ -5373,31 +3108,17 @@ const FRONTEND_ROUTES = [
   '/products',
   '/payment-links',
   '/reports',
-  '/settings',
-  '/login'
+  '/settings'
 ];
 
 for (
-  const route of
-    FRONTEND_ROUTES
+  const route of SPA_ROUTES
 ) {
   app.get(
     route,
     (req, res) => {
       res.sendFile(
-        INDEX_FILE,
-        (error) => {
-          if (error) {
-            console.error(
-              'Frontend error:',
-              error
-            );
-
-            res.status(404).send(
-              'Frontend não encontrado.'
-            );
-          }
-        }
+        INDEX_FILE
       );
     }
   );
@@ -5410,20 +3131,48 @@ for (
 app.use(
   '/api',
   (req, res) => {
-    res.status(404).json({
-      success: false,
-
-      error:
-        'API_ROUTE_NOT_FOUND',
-
-      path:
-        req.originalUrl
-    });
+    return res
+      .status(404)
+      .json({
+        success: false,
+        error:
+          'API_ROUTE_NOT_FOUND',
+        path:
+          req.originalUrl
+      });
   }
 );
 
 /* =========================================================
-   GLOBAL ERROR HANDLER
+   FRONTEND FALLBACK
+========================================================= */
+
+app.use(
+  (req, res) => {
+    if (
+      req.method !==
+      'GET'
+    ) {
+      return res
+        .status(404)
+        .send('Not Found');
+    }
+
+    /*
+    Não transformar caminhos desconhecidos
+    em index.html indiscriminadamente.
+
+    Isso evita mascarar erros de rota.
+    */
+
+    return res
+      .status(404)
+      .send('Página não encontrada.');
+  }
+);
+
+/* =========================================================
+   ERROR HANDLER
 ========================================================= */
 
 app.use(
@@ -5434,7 +3183,7 @@ app.use(
     next
   ) => {
     console.error(
-      'Unhandled server error:',
+      'SERVER ERROR:',
       error
     );
 
@@ -5444,167 +3193,97 @@ app.use(
       return next(error);
     }
 
-    if (
-      error.name ===
-      'ValidationError'
-    ) {
-      return res.status(400).json({
+    return res
+      .status(
+        error.status ||
+        500
+      )
+      .json({
         success: false,
 
         error:
-          'Dados inválidos.',
-
-        details:
-          Object.values(
-            error.errors
-          ).map(
-            (item) =>
-              item.message
-          )
+          NODE_ENV ===
+          'production'
+            ? 'Erro interno do servidor.'
+            : error.message
       });
-    }
-
-    if (
-      error.code ===
-      11000
-    ) {
-      return res.status(409).json({
-        success: false,
-
-        error:
-          'Este registo já existe.'
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-
-      error:
-        NODE_ENV ===
-        'production'
-          ? 'Erro interno do servidor.'
-          : error.message
-    });
   }
 );
 
 /* =========================================================
-   START SERVER
+   DATABASE + SERVER
 ========================================================= */
 
-const server =
-  app.listen(
-    PORT,
-    () => {
-      console.log(
-        '===================================================='
-      );
-
-      console.log(
-        'HONEY PAY'
-      );
-
-      console.log(
-        '===================================================='
-      );
-
-      console.log(
-        `API: http://localhost:${PORT}/api`
-      );
-
-      console.log(
-        `Frontend: ${INDEX_FILE}`
-      );
-
-      console.log(
-        `Environment: ${NODE_ENV}`
-      );
-
-      console.log(
-        `Google OAuth: ${
-          GOOGLE_CLIENT_ID &&
-          GOOGLE_CLIENT_SECRET
-            ? 'CONFIGURADO'
-            : 'NÃO CONFIGURADO'
-        }`
-      );
-
-      console.log(
-        `Google Callback: ${GOOGLE_CALLBACK_URL}`
-      );
-
-      console.log(
-        `BitPay: ${BITPAY_BASE_URL}`
-      );
-
-      console.log(
-        `Honey Pay fee: ${HONEY_PAY_FEE_BPS} bps`
-      );
-
-      console.log(
-        `Multi-merchant BitPay: ${
-          BITPAY_MULTI_MERCHANT_ENABLED
-            ? 'ENABLED'
-            : 'DISABLED'
-        }`
-      );
-
-      console.log(
-        '===================================================='
-      );
-    }
-  );
-
-/* =========================================================
-   PROCESS SAFETY
-========================================================= */
-
-process.on(
-  'unhandledRejection',
-  (reason) => {
-    console.error(
-      'Unhandled Promise Rejection:',
-      reason
-    );
-  }
-);
-
-process.on(
-  'uncaughtException',
-  (error) => {
-    console.error(
-      'Uncaught Exception:',
-      error
-    );
-  }
-);
-
-/* =========================================================
-   GRACEFUL SHUTDOWN
-========================================================= */
-
-async function shutdown(
-  signal
-) {
-  console.log(
-    `${signal} recebido. Encerrando Honey Pay...`
-  );
-
+async function startServer() {
   try {
-    await mongoose.connection.close();
+    await mongoose.connect(
+      MONGODB_URI
+    );
 
-    server.close(
+    console.log(
+      'MongoDB conectado com sucesso.'
+    );
+
+    app.listen(
+      PORT,
       () => {
         console.log(
-          'Honey Pay encerrado corretamente.'
+          '============================================================'
         );
 
-        process.exit(0);
+        console.log(
+          'HONEY PAY V3.2.0'
+        );
+
+        console.log(
+          '============================================================'
+        );
+
+        console.log(
+          `Servidor: ${APP_BASE_URL}`
+        );
+
+        console.log(
+          `Google Callback: ${GOOGLE_CALLBACK_URL}`
+        );
+
+        console.log(
+          `BitPay: ${BITPAY_BASE_URL}`
+        );
+
+        console.log(
+          `Honey Pay fee: ${HONEY_PAY_FEE_BPS} bps`
+        );
+
+        console.log(
+          `Multi-merchant BitPay: ${
+            BITPAY_MULTI_MERCHANT_ENABLED
+              ? 'ENABLED'
+              : 'DISABLED'
+          }`
+        );
+
+        console.log(
+          'Auth: Google OAuth + HttpOnly Cookie'
+        );
+
+        console.log(
+          'Session endpoint: /api/me'
+        );
+
+        console.log(
+          'Login: /login'
+        );
+
+        console.log(
+          '============================================================'
+        );
       }
     );
+
   } catch (error) {
     console.error(
-      'Erro durante shutdown:',
+      'Falha ao iniciar Honey Pay:',
       error
     );
 
@@ -5612,14 +3291,10 @@ async function shutdown(
   }
 }
 
-process.on(
-  'SIGTERM',
-  () =>
-    shutdown('SIGTERM')
-);
+startServer();
 
-process.on(
-  'SIGINT',
-  () =>
-    shutdown('SIGINT')
-);
+/* =========================================================
+   EXPORT
+========================================================= */
+
+module.exports = app;
