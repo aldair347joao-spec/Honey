@@ -1698,13 +1698,31 @@ async function createPayment(event) {
       currentPayment.providerId ||
       null;
 
-    if (providerPaymentId) {
+    if (
+  providerPaymentId
+) {
 
-      startPaymentPolling(
-        providerPaymentId
-      );
+  const sseStarted =
+    startPaymentSSE(
+      providerPaymentId
+    );
 
-    } else {
+  if (
+    !sseStarted
+  ) {
+
+    startPaymentPolling(
+      providerPaymentId
+    );
+  }
+
+} else {
+
+  showMessage(
+    "Pagamento criado. A aguardar confirmação...",
+    "success"
+  );
+}
 
       showMessage(
         "Pagamento criado. A aguardar confirmação...",
