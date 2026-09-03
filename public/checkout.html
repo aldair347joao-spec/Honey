@@ -1453,7 +1453,10 @@ function renderPaymentLink(data) {
     paymentUrl,
     paymentUrl
   );
-
+renderQr(
+  data?.link?.qrSvg ||
+  ""
+);
   $("loading")
     .classList
     .add("hidden");
@@ -1468,8 +1471,7 @@ function renderPaymentLink(data) {
    ========================================================= */
 
 function renderQr(
-  qrValue,
-  fallbackValue
+  qrValue
 ) {
 
   const container =
@@ -1482,81 +1484,98 @@ function renderQr(
   container.innerHTML = "";
 
   if (
-    typeof qrValue === "string" &&
-    (
-      qrValue.startsWith("data:image/") ||
-      qrValue.startsWith("https://") ||
-      qrValue.startsWith("http://")
-    ) &&
-    (
-      qrValue.includes(".png") ||
-      qrValue.includes(".svg") ||
-      qrValue.startsWith("data:image/")
-    )
+    typeof qrValue ===
+    "string" &&
+    qrValue.trim()
   ) {
 
-    const img =
-      document.createElement("img");
+    const value =
+      qrValue.trim();
 
-    img.src = qrValue;
+    if (
+      value.startsWith(
+        "<svg"
+      )
+    ) {
 
-    img.alt =
-      "QR Code de pagamento Honey Pay";
+      container.innerHTML =
+        value;
 
-    img.loading = "eager";
+      const svg =
+        container.querySelector(
+          "svg"
+        );
 
-    img.onerror = () => {
-      renderExternalQr(
-        fallbackValue
+      if (svg) {
+
+        svg.removeAttribute(
+          "width"
+        );
+
+        svg.removeAttribute(
+          "height"
+        );
+
+        svg.style.width =
+          "220px";
+
+        svg.style.height =
+          "220px";
+
+        svg.style.maxWidth =
+          "100%";
+      }
+
+      return;
+    }
+
+    if (
+      value.startsWith(
+        "data:image/"
+      )
+    ) {
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+      img.src =
+        value;
+
+      img.alt =
+        "QR Code BitPay";
+
+      img.width =
+        220;
+
+      img.height =
+        220;
+
+      container.appendChild(
+        img
       );
-    };
 
-    container.appendChild(img);
-
-    return;
+      return;
+    }
   }
 
-  renderExternalQr(
-    fallbackValue
-  );
+  container.innerHTML =
+    `
+      <div
+        style="
+          padding:20px;
+          font-size:10px;
+          color:#98a2b3;
+          text-align:center;
+        "
+      >
+        QR Code ainda não disponível.
+      </div>
+    `;
 }
 
-function renderExternalQr(value) {
 
-  const container =
-    $("qrContainer");
-
-  if (!container) {
-    return;
-  }
-
-  const img =
-    document.createElement("img");
-
-  img.alt =
-    "QR Code de pagamento Honey Pay";
-
-  img.loading = "eager";
-
-  img.width = 220;
-  img.height = 220;
-
-  img.src =
-    "https://api.qrserver.com/v1/create-qr-code/?" +
-    "size=300x300&data=" +
-    encodeURIComponent(value);
-
-  img.onerror = () => {
-    container.innerHTML =
-      "<span style=\"font-size:9px;color:#98a2b3;text-align:center\">" +
-      "QR Code temporariamente indisponível" +
-      "</span>";
-  };
-
-  container.innerHTML = "";
-
-  container.appendChild(img);
-}
 
 /* =========================================================
    CREATE PAYMENT
@@ -1845,7 +1864,168 @@ function renderPayment(payment) {
 /* =========================================================
    POLLING
    ========================================================= */
+/* =========================================================
+   BITPAY REAL-TIME SSE
+   ========================================================= */
 
+let paymentEventSource =
+  null;
+
+function stopPaymentSSE() {
+
+  if (
+    paymentEventSource
+  ) {
+
+    try {
+      paymentEventSource.close();
+    } catch {}
+
+    paymentEventSource =
+      null;
+  }
+}
+
+
+function startPaymentSSE(
+  providerPaymentId
+) {
+
+  if (
+    !providerPaymentId
+  ) {
+    return false;
+  }
+
+  stopPaymentSSE();
+
+  const url =
+    `/api/public/payments/${encodeURIComponent(
+      providerPaymentId
+    )}/events`;
+
+  try {
+
+    const source =
+      new EventSource(
+        url
+      );
+
+    paymentEventSource =
+      source;
+
+    source.addEventListener(
+      "payment.succeeded",
+      event => {
+
+        try {
+
+          const provider =
+            JSON.parse(
+              event.data
+            );
+
+          renderLiveProviderStatus(
+            provider
+          );
+
+        } catch {
+
+          updateLiveStatus(
+            "Pagamento confirmado."
+          );
+        }
+
+        source.close();
+
+        paymentEventSource =
+          null;
+
+        stopPolling();
+      }
+    );
+
+    source.addEventListener(
+      "payment.failed",
+      event => {
+
+        try {
+
+          const provider =
+            JSON.parse(
+              event.data
+            );
+
+          renderLiveProviderStatus(
+            provider
+          );
+
+        } catch {
+
+          updateLiveStatus(
+            "O pagamento falhou."
+          );
+        }
+
+        source.close();
+
+        paymentEventSource =
+          null;
+
+        stopPolling();
+      }
+    );
+
+    source.addEventListener(
+      "payment.reconciled",
+      event => {
+
+        try {
+
+          const provider =
+            JSON.parse(
+              event.data
+            );
+
+          renderLiveProviderStatus(
+            provider
+          );
+
+        } catch {}
+
+      }
+    );
+
+    source.onerror =
+      () => {
+
+        source.close();
+
+        paymentEventSource =
+          null;
+
+        /*
+        SSE é experiência em tempo real.
+        O polling continua como fallback.
+        */
+
+        startPaymentPolling(
+          providerPaymentId
+        );
+      };
+
+    return true;
+
+  } catch (error) {
+
+    console.warn(
+      "SSE BitPay:",
+      error
+    );
+
+    return false;
+  }
+}
 function startPaymentPolling(
   providerPaymentId
 ) {
