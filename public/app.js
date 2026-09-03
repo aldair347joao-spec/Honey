@@ -1,48 +1,28 @@
 /*
- * ============================================================
- * HONEY PAY
- * MERCHANT PANEL
- * ============================================================
- *
- * FRONTEND ESTÁVEL
- *
- * PRINCÍPIOS:
- * - Um único boot()
- * - Nenhum try órfão
- * - Nenhum loop de loader
- * - API sempre com timeout
- * - Sessão através de cookie HttpOnly
- * - /api/auth/status para verificar sessão
- * - /api/me para carregar utilizador/comerciante
- * - Dashboard só é carregado depois da sessão
- * - Falhas de API aparecem na interface
- * - Bank Accounts respeita o contrato atual do server.js
- *
- * ============================================================
- */
+============================================================
+HONEY PAY
+MERCHANT PANEL
+STABLE VERSION
+FRONTEND / SESSION / DASHBOARD / PAYMENTS
+============================================================
+*/
 
 "use strict";
 
-/* ============================================================
-   CONFIGURAÇÃO
-   ============================================================ */
+/* =========================================================
+   CONFIG
+========================================================= */
 
 const API_BASE = "/api";
 const API_TIMEOUT = 10000;
 const BOOT_TIMEOUT = 15000;
 
-/* ============================================================
-   ESTADO GLOBAL
-   ============================================================ */
-
 const state = {
   authenticated: false,
-
-  user: null,
   merchant: null,
+  user: null,
 
-  dashboard: {},
-
+  dashboard: null,
   payments: [],
   orders: [],
   products: [],
@@ -53,15 +33,16 @@ const state = {
   currentRoute: "dashboard",
 
   booted: false,
-  rendering: false,
+  loading: false,
   refreshing: false,
 
-  paymentTimer: null
+  paymentRefreshTimer: null,
+  dashboardRefreshTimer: null
 };
 
-/* ============================================================
-   ROTAS
-   ============================================================ */
+/* =========================================================
+   ROUTES
+========================================================= */
 
 const ROUTES = {
   dashboard: {
@@ -110,43 +91,26 @@ const ROUTES = {
   }
 };
 
-/* ============================================================
-   DOM
-   ============================================================ */
+/* =========================================================
+   DOM HELPERS
+========================================================= */
 
-const $ = selector => document.querySelector(selector);
-
-const app = $("#app");
-const loader = $("#appLoader");
-const pageContent = $("#pageContent");
-
-const modalOverlay = $("#modalOverlay");
-const modal = $("#modal");
-
-const toastContainer = $("#toastContainer");
-
-/* ============================================================
-   HELPERS
-   ============================================================ */
+function $(selector) {
+  return document.querySelector(selector);
+}
 
 function escapeHTML(value) {
   return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function normalizeArray(value, keys = []) {
+function normalizeArray(value) {
   if (Array.isArray(value)) {
     return value;
-  }
-
-  for (const key of keys) {
-    if (Array.isArray(value?.[key])) {
-      return value[key];
-    }
   }
 
   if (Array.isArray(value?.data)) {
@@ -239,1390 +203,54 @@ function getMerchantName() {
   return (
     state.merchant?.businessName ||
     state.merchant?.name ||
+    state.merchant?.companyName ||
+    state.user?.businessName ||
     state.user?.name ||
     state.user?.email ||
     "Meu negócio"
   );
 }
 
-function getErrorMessage(
-  error,
-  fallback = "Ocorreu um erro."
-) {
+function getErrorMessage(error, fallback = "Ocorreu um erro.") {
   if (!error) {
     return fallback;
   }
 
-  return String(
+  return (
     error.message ||
-      error.error ||
-      error.data?.message ||
-      error.data?.error ||
-      fallback
+    error.error ||
+    error.data?.message ||
+    error.data?.error ||
+    fallback
   );
 }
 
-function createTimeoutError() {
-  const error = new Error(
-    "O servidor demorou demasiado tempo a responder."
-  );
-
-  error.status = 408;
-  error.code = "REQUEST_TIMEOUT";
-
-  return error;
-}
-
-/* ============================================================
-   TOAST
-   ============================================================ */
-
-function showToast(message, type = "info") {
-  if (!toastContainer) {
-    return;
-  }
-
-  const toast = document.createElement("div");
-
-  toast.className = `toast ${type}`;
-
-  toast.innerHTML = `
-    <div class="toast-content">
-      <strong>
-        ${
-          type === "success"
-            ? "Sucesso"
-            : type === "error"
-              ? "Erro"
-              : "Honey Pay"
-        }
-      </strong>
-
-      <span>
-        ${escapeHTML(message)}
-      </span>
-    </div>
-
-    <button
-      type="button"
-      class="toast-close"
-      aria-label="Fechar"
-    >
-      ×
-    </button>
-  `;
-
-  toast
-    .querySelector(".toast-close")
-    ?.addEventListener("click", () => {
-      toast.remove();
-    });
-
-  toastContainer.appendChild(toast);
-
-  setTimeout(() => {
-    toast.remove();
-  }, 5000);
-}
-
-/* ============================================================
-   API CORE
-   ============================================================ */
-
-async function request(
-  path,
-  options = {},
-  config = {}
-) {
-  const timeout = Number(
-    config.timeout || API_TIMEOUT
-  );
-
-  const controller = new AbortController();
-
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeout);
-
-  const finalOptions = {
-    credentials: "include",
-    cache: "no-store",
-    ...options,
-
-    signal:
-      options.signal ||
-      controller.signal,
-
-    headers: {
-      Accept: "application/json",
-
-      ...(options.body
-        ? {
-            "Content-Type":
-              "application/json"
-          }
-        : {}),
-
-      ...(options.headers || {})
-    }
-  };
-
-  let response;
-
-  try {
-    response = await fetch(
-      path.startsWith("http")
-        ? path
-        : `${API_BASE}${path}`,
-      finalOptions
-    );
-  } catch (error) {
-    if (
-      error?.name ===
-      "AbortError"
-    ) {
-      throw createTimeoutError();
-    }
-
-    const networkError =
-      new Error(
-        "Não foi possível contactar o servidor."
-      );
-
-    networkError.code =
-      "NETWORK_ERROR";
-
-    throw networkError;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-
-  let data = null;
-
-  const contentType =
-    response.headers.get(
-      "content-type"
-    ) || "";
-
-  try {
-    if (
-      contentType
-        .toLowerCase()
-        .includes("application/json")
-    ) {
-      data =
-        await response.json();
-    } else {
-      data =
-        await response.text();
-    }
-  } catch {
-    data = null;
-  }
-
-  /* 401 */
-
-  if (response.status === 401) {
-    const error =
-      new Error(
-        data?.message ||
-          data?.error ||
-          "Sessão expirada."
-      );
-
-    error.status = 401;
-    error.data = data;
-
-    if (
-      config.redirectOn401 !== false
-    ) {
-      redirectToLogin();
-    }
-
-    throw error;
-  }
-
-  /* Outros erros HTTP */
-
-  if (!response.ok) {
-    const error =
-      new Error(
-        data?.message ||
-          data?.error ||
-          data?.details ||
-          `Erro HTTP ${response.status}`
-      );
-
-    error.status =
-      response.status;
-
-    error.data = data;
-
-    throw error;
-  }
-
-  return data;
-}
-
-/* ============================================================
-   HTTP HELPERS
-   ============================================================ */
-
-function get(path, config = {}) {
-  return request(
-    path,
-    {
-      method: "GET"
-    },
-    config
-  );
-}
-
-function post(
-  path,
-  body = {},
-  config = {}
-) {
-  return request(
-    path,
-    {
-      method: "POST",
-      body: JSON.stringify(body)
-    },
-    config
-  );
-}
-
-function put(
-  path,
-  body = {},
-  config = {}
-) {
-  return request(
-    path,
-    {
-      method: "PUT",
-      body: JSON.stringify(body)
-    },
-    config
-  );
-}
-
-function patch(
-  path,
-  body = {},
-  config = {}
-) {
-  return request(
-    path,
-    {
-      method: "PATCH",
-      body: JSON.stringify(body)
-    },
-    config
-  );
-}
-
-function del(path, config = {}) {
-  return request(
-    path,
-    {
-      method: "DELETE"
-    },
-    config
-  );
-}
-
-/* ============================================================
-   AUTENTICAÇÃO
-   ============================================================ */
-
-async function checkSession() {
-  try {
-    const data =
-      await get(
-        "/auth/status",
-        {
-          timeout: 7000,
-          redirectOn401: false
-        }
-      );
-
-    const authenticated =
-      Boolean(
-        data?.authenticated
-      );
-
-    state.authenticated =
-      authenticated;
-
-    return authenticated;
-  } catch (error) {
-    console.warn(
-      "Honey Pay: falha ao verificar sessão.",
-      error
-    );
-
-    state.authenticated =
-      false;
-
-    return false;
-  }
-}
-
-function redirectToLogin() {
-  if (
-    window.location.pathname ===
-    "/login"
-  ) {
-    return;
-  }
-
-  if (
-    window.__honeyRedirecting
-  ) {
-    return;
-  }
-
-  window.__honeyRedirecting =
-    true;
-
-  window.location.replace(
-    "/login"
-  );
-}
-
-async function loadCurrentUser() {
-  const data =
-    await get(
-      "/me",
-      {
-        timeout: 8000
-      }
-    );
-
-  state.user =
-    data?.user || null;
-
-  state.merchant =
-    data?.merchant || null;
-
-  updateMerchantUI();
-
-  return data;
-}
-
-/* ============================================================
-   LOADER / APP VISIBILITY
-   ============================================================ */
-
-function showLoader() {
-  if (!loader) {
-    return;
-  }
-
-  loader.style.display = "";
-
-  loader.classList.remove(
-    "hide"
-  );
-}
-
-function hideLoader() {
-  if (!loader) {
-    return;
-  }
-
-  loader.classList.add(
-    "hide"
-  );
-
-  loader.style.pointerEvents =
-    "none";
-
-  setTimeout(() => {
-    if (!loader) {
-      return;
-    }
-
-    loader.style.display =
-      "none";
-  }, 350);
-}
-
-function revealApplication() {
-  if (app) {
-    app.classList.remove(
-      "hidden"
-    );
-
-    app.removeAttribute(
-      "aria-hidden"
-    );
-  }
-
-  hideLoader();
-}
-
-function forceHideLoader() {
-  if (!loader) {
-    return;
-  }
-
-  loader.classList.add(
-    "hide"
-  );
-
-  loader.style.display =
-    "none";
-}
-
-/* ============================================================
-   MERCHANT UI
-   ============================================================ */
-
-function updateMerchantUI() {
-  const name =
-    getMerchantName();
-
-  const email =
-    state.merchant?.email ||
-    state.user?.email ||
-    "—";
-
-  const avatar =
-    initials(name);
-
-  const merchantName =
-    $("#merchantName");
-
-  const merchantEmail =
-    $("#merchantEmail");
-
-  const topMerchantName =
-    $("#topMerchantName");
-
-  const merchantAvatar =
-    $("#merchantAvatar");
-
-  const topAvatar =
-    $("#topAvatar");
-
-  if (merchantName) {
-    merchantName.textContent =
-      name;
-  }
-
-  if (merchantEmail) {
-    merchantEmail.textContent =
-      email;
-  }
-
-  if (topMerchantName) {
-    topMerchantName.textContent =
-      name;
-  }
-
-  if (merchantAvatar) {
-    merchantAvatar.textContent =
-      avatar;
-  }
-
-  if (topAvatar) {
-    topAvatar.textContent =
-      avatar;
-  }
-}
-
-/* ============================================================
-   ROUTING
-   ============================================================ */
-
-function getCurrentRoute() {
-  const hash =
-    window.location.hash
-      .replace(/^#/, "")
-      .trim();
-
-  if (ROUTES[hash]) {
-    return hash;
-  }
-
-  return "dashboard";
-}
-
-function updateNavigation(route) {
-  document
-    .querySelectorAll(
-      ".nav-item[data-route]"
-    )
-    .forEach(item => {
-      item.classList.toggle(
-        "active",
-        item.dataset.route ===
-          route
-      );
-    });
-
-  const config =
-    ROUTES[route] ||
-    ROUTES.dashboard;
-
-  const parent =
-    $("#breadcrumbParent");
-
-  const title =
-    $("#pageTitle");
-
-  if (parent) {
-    parent.textContent =
-      config.parent;
-  }
-
-  if (title) {
-    title.textContent =
-      config.title;
-  }
-}
-
-function navigate(route) {
-  if (!ROUTES[route]) {
-    route = "dashboard";
-  }
-
-  const hash =
-    `#${route}`;
-
-  if (
-    window.location.hash !==
-    hash
-  ) {
-    window.location.hash =
-      hash;
-  } else {
-    void renderRoute(
-      route,
-      true
-    );
-  }
-}
-
-/* ============================================================
-   SIDEBAR
-   ============================================================ */
-
-function setupSidebar() {
-  const sidebar =
-    $("#sidebar");
-
-  const overlay =
-    $("#sidebarOverlay");
-
-  const menuButton =
-    $("#menuButton");
-
-  const closeButton =
-    $("#sidebarClose");
-
-  function openSidebar() {
-    sidebar?.classList.add(
-      "open"
-    );
-
-    overlay?.classList.add(
-      "show"
-    );
-
-    document.body.classList.add(
-      "sidebar-open"
-    );
-  }
-
-  function closeSidebar() {
-    sidebar?.classList.remove(
-      "open"
-    );
-
-    overlay?.classList.remove(
-      "show"
-    );
-
-    document.body.classList.remove(
-      "sidebar-open"
-    );
-  }
-
-  menuButton?.addEventListener(
-    "click",
-    openSidebar
-  );
-
-  closeButton?.addEventListener(
-    "click",
-    closeSidebar
-  );
-
-  overlay?.addEventListener(
-    "click",
-    closeSidebar
-  );
-
-  document.addEventListener(
-    "click",
-    event => {
-      if (
-        event.target.closest(
-          ".nav-item,.brand"
-        )
-      ) {
-        closeSidebar();
-      }
-    }
-  );
-}
-
-/* ============================================================
-   ROUTING EVENTS
-   ============================================================ */
-
-function setupRouting() {
-  window.addEventListener(
-    "hashchange",
-    () => {
-      if (
-        state.authenticated
-      ) {
-        void renderRoute(
-          getCurrentRoute()
-        );
-      }
-    }
-  );
-
-  document
-    .querySelectorAll(
-      ".nav-item[data-route]"
-    )
-    .forEach(item => {
-      item.addEventListener(
-        "click",
-        event => {
-          event.preventDefault();
-
-          navigate(
-            item.dataset.route
-          );
-        }
-      );
-    });
-
-  $(".brand")?.addEventListener(
-    "click",
-    event => {
-      event.preventDefault();
-
-      navigate("dashboard");
-    }
-  );
-}
-
-/* ============================================================
-   MODAL
-   ============================================================ */
-
-function setupModal() {
-  modalOverlay?.addEventListener(
-    "click",
-    event => {
-      if (
-        event.target ===
-        modalOverlay
-      ) {
-        closeModal();
-      }
-    }
-  );
-
-  document.addEventListener(
-    "click",
-    event => {
-      if (
-        event.target.closest(
-          "[data-close-modal]"
-        )
-      ) {
-        closeModal();
-      }
-    }
-  );
-
-  document.addEventListener(
-    "keydown",
-    event => {
-      if (
-        event.key ===
-        "Escape"
-      ) {
-        closeModal();
-      }
-    }
-  );
-}
-
-function openModal(
-  title,
-  content
-) {
-  if (
-    !modalOverlay ||
-    !modal
-  ) {
-    return;
-  }
-
-  modal.innerHTML = `
-    <div class="modal-header">
-
-      <div>
-        <span class="eyebrow">
-          Honey Pay
-        </span>
-
-        <h3>
-          ${escapeHTML(title)}
-        </h3>
-      </div>
-
-      <button
-        type="button"
-        class="modal-close"
-        data-close-modal
-        aria-label="Fechar"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div class="modal-body">
-      ${content}
-    </div>
-  `;
-
-  modalOverlay.classList.remove(
-    "hidden"
-  );
-
-  modalOverlay.classList.add(
-    "show"
-  );
-
-  modalOverlay.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-}
-
-function closeModal() {
-  if (!modalOverlay) {
-    return;
-  }
-
-  modalOverlay.classList.remove(
-    "show"
-  );
-
-  modalOverlay.classList.add(
-    "hidden"
-  );
-
-  modalOverlay.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-  if (modal) {
-    modal.innerHTML = "";
-  }
-}
-
-/* ============================================================
-   ERROS DE PÁGINA
-   ============================================================ */
-
-function renderPageError(
-  title,
-  message,
-  retry
-) {
-  if (!pageContent) {
-    return;
-  }
-
-  pageContent.innerHTML = `
-    <div class="error-state">
-
-      <div class="error-icon">
-        !
-      </div>
-
-      <h2>
-        ${escapeHTML(title)}
-      </h2>
-
-      <p>
-        ${escapeHTML(message)}
-      </p>
-
-      <button
-        id="pageRetry"
-        class="btn primary"
-        type="button"
-      >
-        Tentar novamente
-      </button>
-
-    </div>
-  `;
-
-  $("#pageRetry")?.addEventListener(
-    "click",
-    () => {
-      void retry();
-    }
-  );
-}
-
-function renderBootError(error) {
-  revealApplication();
-
-  renderPageError(
-    "O painel está disponível",
-    getErrorMessage(
-      error,
-      "Não foi possível carregar os dados do painel."
-    ),
-    async () => {
-      if (pageContent) {
-        pageContent.innerHTML = "";
-      }
-
-      await boot(true);
-    }
-  );
-}
-
-/* ============================================================
-   DASHBOARD
-   ============================================================ */
-
-async function loadDashboard() {
-  const data =
-    await get(
-      "/dashboard"
-    );
-
-  state.dashboard =
-    data?.dashboard ||
-    data?.data ||
-    {};
-
-  return state.dashboard;
-}
-
-function dashboardValue(
-  ...values
-) {
-  for (
-    const value of values
-  ) {
-    if (
-      value !==
-        undefined &&
-      value !== null &&
-      value !== ""
-    ) {
-      return value;
-    }
-  }
-
-  return 0;
-}
-
-function renderSimpleChart() {
-  const successful =
-    state.payments
-      .filter(payment =>
-        [
-          "PAID",
-          "SUCCEEDED",
-          "SUCCESS"
-        ].includes(
-          String(
-            payment.status ||
-              ""
-          ).toUpperCase()
-        )
-      )
-      .slice(0, 7)
-      .reverse();
-
-  if (
-    !successful.length
-  ) {
-    return `
-      <div class="empty-state">
-        <strong>
-          Ainda não existem vendas
-        </strong>
-
-        <span>
-          Quando houver pagamentos concluídos,
-          o gráfico aparecerá aqui.
-        </span>
-      </div>
-    `;
-  }
-
-  const max =
-    Math.max(
-      ...successful.map(
-        payment =>
-          Number(
-            payment.amount ||
-              0
-          )
-      ),
-      1
-    );
-
-  return `
-    <div
-      style="
-        display:flex;
-        align-items:flex-end;
-        gap:8px;
-        height:180px;
-        padding:10px 0;
-      "
-    >
-      ${successful
-        .map(payment => {
-          const amount =
-            Number(
-              payment.amount ||
-                0
-            );
-
-          const height =
-            Math.max(
-              12,
-              Math.round(
-                (amount /
-                  max) *
-                  145
-              )
-            );
-
-          return `
-            <div
-              title="${escapeHTML(
-                formatKz(amount)
-              )}"
-              style="
-                flex:1;
-                height:${height}px;
-                border-radius:
-                  8px 8px 2px 2px;
-                background:
-                  currentColor;
-                opacity:.75;
-              "
-            ></div>
-          `;
-        })
-        .join("")}
-    </div>
-  `;
-}
-
-function renderRecentPayments() {
-  const container =
-    $("#recentPayments");
-
-  if (!container) {
-    return;
-  }
-
-  const payments =
-    state.payments
-      .slice(0, 6);
-
-  if (!payments.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <strong>
-          Ainda não existem pagamentos
-        </strong>
-
-        <span>
-          Os teus pagamentos aparecerão aqui.
-        </span>
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    payments
-      .map(payment => {
-        const customerName =
-          payment.customer?.name ||
-          payment.customerName ||
-          payment.reference ||
-          "Pagamento";
-
-        return `
-          <div class="recent-item">
-
-            <div class="recent-icon">
-              ${escapeHTML(
-                initials(
-                  customerName
-                )
-              )}
-            </div>
-
-            <div class="recent-main">
-
-              <strong>
-                ${escapeHTML(
-                  customerName
-                )}
-              </strong>
-
-              <span>
-                ${formatDateTime(
-                  payment.createdAt ||
-                    payment.updatedAt
-                )}
-              </span>
-
-            </div>
-
-            <div class="recent-side">
-
-              <strong>
-                ${formatKz(
-                  payment.amount
-                )}
-              </strong>
-
-              <span
-                class="
-                  status
-                  ${statusClass(
-                    payment.status
-                  )}
-                "
-              >
-                ${escapeHTML(
-                  statusLabel(
-                    payment.status
-                  )
-                )}
-              </span>
-
-            </div>
-
-          </div>
-        `;
-      })
-      .join("");
-}
-
-function renderDashboard() {
-  const data =
-    state.dashboard ||
-    {};
-
-  const revenue =
-    dashboardValue(
-      data.totalRevenue,
-      data.revenue,
-      data.totalSales
-    );
-
-  const transactions =
-    dashboardValue(
-      data.totalOrders,
-      data.totalTransactions,
-      state.payments.length
-    );
-
-  const fees =
-    dashboardValue(
-      data.totalFees,
-      data.fees
-    );
-
-  const pending =
-    dashboardValue(
-      data.pendingOrders,
-      data.pending,
-      state.payments.filter(
-        payment =>
-          [
-            "PENDING",
-            "PROCESSING"
-          ].includes(
-            String(
-              payment.status ||
-                ""
-            ).toUpperCase()
-          )
-      ).length
-    );
-
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <span class="eyebrow">
-          Visão geral
-        </span>
-
-        <h2>
-          Bom dia,
-          ${escapeHTML(
-            getMerchantName()
-          )}
-        </h2>
-
-        <p>
-          Acompanha o teu negócio
-          e os pagamentos em tempo real.
-        </p>
-
-      </div>
-
-      <div class="page-actions">
-
-        <button
-          class="btn primary"
-          data-route-action="links"
-          type="button"
-        >
-          Criar link de pagamento
-        </button>
-
-      </div>
-
-    </div>
-
-    <div class="stats-grid">
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Receita
-        </span>
-
-        <strong id="statRevenue">
-          ${formatKz(revenue)}
-        </strong>
-
-        <span class="stat-meta">
-          Total recebido
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Transações
-        </span>
-
-        <strong id="statTransactions">
-          ${formatNumber(
-            transactions
-          )}
-        </strong>
-
-        <span class="stat-meta">
-          Pagamentos registados
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Taxas
-        </span>
-
-        <strong id="statFees">
-          ${formatKz(fees)}
-        </strong>
-
-        <span class="stat-meta">
-          Taxas processadas
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Pendentes
-        </span>
-
-        <strong id="statPending">
-          ${formatNumber(
-            pending
-          )}
-        </strong>
-
-        <span class="stat-meta">
-          A aguardar confirmação
-        </span>
-
-      </article>
-
-    </div>
-
-    <div class="dashboard-grid">
-
-      <section class="panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h3>
-              Atividade de pagamentos
-            </h3>
-
-            <p>
-              Estado atual das últimas transações.
-            </p>
-
-          </div>
-
-          <button
-            class="btn secondary"
-            data-route-action="payments"
-            type="button"
-          >
-            Ver pagamentos
-          </button>
-
-        </div>
-
-        <div
-          id="recentPayments"
-          class="recent-list"
-        ></div>
-
-      </section>
-
-      <section class="panel">
-
-        <div class="panel-header">
-
-          <div>
-
-            <h3>
-              Vendas
-            </h3>
-
-            <p>
-              Resumo visual das vendas.
-            </p>
-
-          </div>
-
-        </div>
-
-        <div
-          id="salesChart"
-          class="sales-chart"
-        >
-          ${renderSimpleChart()}
-        </div>
-
-      </section>
-
-    </div>
-  `;
-
-  renderRecentPayments();
-
-  pageContent
-    .querySelectorAll(
-      "[data-route-action]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          navigate(
-            button.dataset
-              .routeAction
-          );
-        }
-      );
-    });
-}
-
-/* ============================================================
+/* =========================================================
    STATUS
-   ============================================================ */
+========================================================= */
 
 function statusLabel(status) {
-  const value =
-    String(
-      status || ""
-    ).toUpperCase();
+  const value = String(status || "").toUpperCase();
 
   const labels = {
     PENDING: "Pendente",
-    PROCESSING:
-      "Em processamento",
+    PROCESSING: "Em processamento",
     PAID: "Pago",
-    SUCCEEDED:
-      "Concluído",
-    SUCCESS:
-      "Concluído",
-    FAILED:
-      "Falhou",
-    EXPIRED:
-      "Expirado",
-    CANCELLED:
-      "Cancelado",
-    REFUNDED:
-      "Reembolsado",
-    ACTIVE:
-      "Ativo",
-    INACTIVE:
-      "Inativo"
+    SUCCEEDED: "Concluído",
+    SUCCESS: "Concluído",
+    FAILED: "Falhou",
+    EXPIRED: "Expirado",
+    CANCELLED: "Cancelado",
+    REFUNDED: "Reembolsado",
+    ACTIVE: "Ativo",
+    INACTIVE: "Inativo"
   };
 
-  return (
-    labels[value] ||
-    status ||
-    "—"
-  );
+  return labels[value] || status || "—";
 }
 
 function statusClass(status) {
-  const value =
-    String(
-      status || ""
-    ).toUpperCase();
+  const value = String(status || "").toUpperCase();
 
   if (
     [
@@ -1648,8 +276,8 @@ function statusClass(status) {
 
   if (
     [
-      "PENDING",
-      "PROCESSING"
+      "PROCESSING",
+      "PENDING"
     ].includes(value)
   ) {
     return "warning";
@@ -1658,794 +286,1528 @@ function statusClass(status) {
   return "neutral";
 }
 
-/* ============================================================
-   PAGAMENTOS
-   ============================================================ */
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(message, type = "info") {
+  const container = $("#toastContainer");
+
+  if (!container) {
+    return;
+  }
+
+  const toast = document.createElement("div");
+
+  toast.className = `toast ${type}`;
+
+  toast.innerHTML = `
+    <div class="toast-content">
+      <strong>
+        ${
+          type === "success"
+            ? "Sucesso"
+            : type === "error"
+              ? "Erro"
+              : "Honey Pay"
+        }
+      </strong>
+
+      <span>${escapeHTML(message)}</span>
+    </div>
+
+    <button
+      type="button"
+      class="toast-close"
+      aria-label="Fechar"
+    >
+      ×
+    </button>
+  `;
+
+  toast
+    .querySelector(".toast-close")
+    ?.addEventListener("click", () => {
+      toast.remove();
+    });
+
+  container.appendChild(toast);
+
+  window.setTimeout(() => {
+    toast.remove();
+  }, 5000);
+}
+
+/* =========================================================
+   REQUEST TIMEOUT
+========================================================= */
+
+function createTimeoutController(timeout = API_TIMEOUT) {
+  const controller = new AbortController();
+
+  const timer = window.setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  return {
+    controller,
+    cleanup() {
+      window.clearTimeout(timer);
+    }
+  };
+}
+
+/* =========================================================
+   API CORE
+========================================================= */
+
+async function request(
+  path,
+  options = {},
+  config = {}
+) {
+  const {
+    authRequired = true,
+    redirectOn401 = true,
+    timeout = API_TIMEOUT
+  } = config;
+
+  const timeoutControl =
+    createTimeoutController(timeout);
+
+  const headers = {
+    Accept: "application/json",
+    ...(options.body
+      ? {
+          "Content-Type": "application/json"
+        }
+      : {}),
+    ...(options.headers || {})
+  };
+
+  const requestOptions = {
+    credentials: "include",
+    cache: "no-store",
+    ...options,
+    headers
+  };
+
+  if (!requestOptions.signal) {
+    requestOptions.signal =
+      timeoutControl.controller.signal;
+  }
+
+  let response;
+
+  try {
+    response = await fetch(
+      path.startsWith("http")
+        ? path
+        : `${API_BASE}${path}`,
+      requestOptions
+    );
+  } catch (error) {
+    timeoutControl.cleanup();
+
+    if (error?.name === "AbortError") {
+      const timeoutError = new Error(
+        "O servidor demorou demasiado tempo a responder."
+      );
+
+      timeoutError.status = 408;
+      timeoutError.code = "REQUEST_TIMEOUT";
+
+      throw timeoutError;
+    }
+
+    throw new Error(
+      "Não foi possível contactar o servidor."
+    );
+  }
+
+  timeoutControl.cleanup();
+
+  let data = null;
+
+  const contentType =
+    response.headers.get("content-type") || "";
+
+  try {
+    if (
+      contentType
+        .toLowerCase()
+        .includes("application/json")
+    ) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+
+      data = text || null;
+    }
+  } catch {
+    data = null;
+  }
+
+  if (response.status === 401) {
+    state.authenticated = false;
+
+    if (
+      authRequired &&
+      redirectOn401
+    ) {
+      redirectToLogin();
+    }
+
+    const error = new Error(
+      data?.message ||
+        data?.error ||
+        "Sessão expirada."
+    );
+
+    error.status = 401;
+    error.data = data;
+
+    throw error;
+  }
+
+  if (!response.ok) {
+    const error = new Error(
+      data?.message ||
+        data?.error ||
+        data?.details ||
+        `Erro HTTP ${response.status}`
+    );
+
+    error.status = response.status;
+    error.data = data;
+
+    throw error;
+  }
+
+  return data;
+}
+
+async function get(path, config = {}) {
+  return request(
+    path,
+    {
+      method: "GET"
+    },
+    config
+  );
+}
+
+async function post(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "POST",
+      body: JSON.stringify(body)
+    },
+    config
+  );
+}
+
+async function put(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "PUT",
+      body: JSON.stringify(body)
+    },
+    config
+  );
+}
+
+async function patch(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    },
+    config
+  );
+}
+
+async function del(
+  path,
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "DELETE"
+    },
+    config
+  );
+}
+
+/* =========================================================
+   SESSION
+========================================================= */
+
+async function loadSession() {
+  try {
+    const data = await get(
+      "/me",
+      {
+        authRequired: false,
+        redirectOn401: false,
+        timeout: 8000
+      }
+    );
+
+    if (!data) {
+      return false;
+    }
+
+    state.user =
+      data.user ||
+      data.data?.user ||
+      null;
+
+    state.merchant =
+      data.merchant ||
+      data.data?.merchant ||
+      state.user?.merchant ||
+      null;
+
+    state.authenticated = true;
+
+    updateMerchantUI();
+
+    return true;
+  } catch (error) {
+    if (error?.status === 401) {
+      state.authenticated = false;
+      return false;
+    }
+
+    console.warn(
+      "Honey Pay: não foi possível carregar /me.",
+      error
+    );
+
+    return false;
+  }
+}
+
+function redirectToLogin() {
+  if (
+    window.location.pathname === "/login"
+  ) {
+    return;
+  }
+
+  if (window.__honeyRedirecting) {
+    return;
+  }
+
+  window.__honeyRedirecting = true;
+
+  window.location.replace("/login");
+}
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+function getApp() {
+  return document.getElementById("app");
+}
+
+function getLoader() {
+  return document.getElementById("appLoader");
+}
+
+function revealApplication() {
+  const app = getApp();
+  const loader = getLoader();
+
+  if (app) {
+    app.classList.remove("hidden");
+    app.removeAttribute("aria-hidden");
+  }
+
+  if (loader) {
+    loader.classList.add("hide");
+
+    loader.style.pointerEvents = "none";
+
+    window.setTimeout(() => {
+      loader.style.display = "none";
+    }, 450);
+  }
+}
+
+function forceHideLoader() {
+  const loader = getLoader();
+
+  if (!loader) {
+    return;
+  }
+
+  loader.classList.add("hide");
+  loader.style.display = "none";
+  loader.style.visibility = "hidden";
+  loader.style.opacity = "0";
+  loader.style.pointerEvents = "none";
+}
+
+function showLoader() {
+  const loader = getLoader();
+
+  if (!loader) {
+    return;
+  }
+
+  loader.style.display = "";
+  loader.style.visibility = "";
+  loader.style.opacity = "";
+  loader.style.pointerEvents = "";
+
+  loader.classList.remove("hide");
+}
+
+/* =========================================================
+   MERCHANT UI
+========================================================= */
+
+function updateMerchantUI() {
+  const name = getMerchantName();
+
+  const email =
+    state.merchant?.email ||
+    state.user?.email ||
+    "—";
+
+  const avatar = initials(name);
+
+  const merchantName =
+    $("#merchantName");
+
+  const merchantEmail =
+    $("#merchantEmail");
+
+  const topMerchantName =
+    $("#topMerchantName");
+
+  const merchantAvatar =
+    $("#merchantAvatar");
+
+  const topAvatar =
+    $("#topAvatar");
+
+  if (merchantName) {
+    merchantName.textContent = name;
+  }
+
+  if (merchantEmail) {
+    merchantEmail.textContent = email;
+  }
+
+  if (topMerchantName) {
+    topMerchantName.textContent = name;
+  }
+
+  if (merchantAvatar) {
+    merchantAvatar.textContent = avatar;
+  }
+
+  if (topAvatar) {
+    topAvatar.textContent = avatar;
+  }
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function getCurrentRoute() {
+  const hash = window.location.hash
+    .replace("#", "")
+    .trim();
+
+  if (ROUTES[hash]) {
+    return hash;
+  }
+
+  return "dashboard";
+}
+
+function updateNavigation(route) {
+  document
+    .querySelectorAll(".nav-item[data-route]")
+    .forEach(item => {
+      item.classList.toggle(
+        "active",
+        item.dataset.route === route
+      );
+    });
+
+  const config =
+    ROUTES[route] ||
+    ROUTES.dashboard;
+
+  const parent =
+    $("#breadcrumbParent");
+
+  const title =
+    $("#pageTitle");
+
+  if (parent) {
+    parent.textContent =
+      config.parent;
+  }
+
+  if (title) {
+    title.textContent =
+      config.title;
+  }
+}
+
+function setupRouting() {
+  window.addEventListener(
+    "hashchange",
+    async () => {
+      if (!state.authenticated) {
+        return;
+      }
+
+      const route =
+        getCurrentRoute();
+
+      state.currentRoute =
+        route;
+
+      updateNavigation(route);
+
+      try {
+        await renderRoute(route);
+      } catch (error) {
+        console.error(
+          "Honey Pay route error:",
+          error
+        );
+
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar esta página."
+          )
+        );
+      }
+    }
+  );
+}
+
+function setupSidebar() {
+  document
+    .querySelectorAll(".nav-item[data-route]")
+    .forEach(item => {
+      item.addEventListener(
+        "click",
+        event => {
+          const route =
+            item.dataset.route;
+
+          if (!ROUTES[route]) {
+            return;
+          }
+
+          event.preventDefault();
+
+          window.location.hash =
+            route;
+        }
+      );
+    });
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function setupModal() {
+  const overlay =
+    $("#modalOverlay");
+
+  if (!overlay) {
+    return;
+  }
+
+  overlay.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target === overlay
+      ) {
+        closeModal();
+      }
+    }
+  );
+
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key === "Escape"
+      ) {
+        closeModal();
+      }
+    }
+  );
+}
+
+function openModal(content) {
+  const overlay =
+    $("#modalOverlay");
+
+  const modal =
+    $("#modal");
+
+  if (!overlay || !modal) {
+    return;
+  }
+
+  modal.innerHTML = content;
+
+  overlay.classList.remove("hidden");
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+}
+
+function closeModal() {
+  const overlay =
+    $("#modalOverlay");
+
+  if (!overlay) {
+    return;
+  }
+
+  overlay.classList.add("hidden");
+
+  overlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+}
+
+/* =========================================================
+   REFRESH
+========================================================= */
+
+function setupRefreshButton() {
+  const button =
+    $("#refreshButton");
+
+  if (!button) {
+    return;
+  }
+
+  button.addEventListener(
+    "click",
+    async () => {
+      if (state.refreshing) {
+        return;
+      }
+
+      state.refreshing = true;
+
+      button.disabled = true;
+
+      try {
+        await renderRoute(
+          state.currentRoute ||
+            getCurrentRoute(),
+          true
+        );
+
+        showToast(
+          "Dados atualizados.",
+          "success"
+        );
+      } catch (error) {
+        showToast(
+          getErrorMessage(
+            error,
+            "Não foi possível atualizar."
+          ),
+          "error"
+        );
+      } finally {
+        state.refreshing = false;
+        button.disabled = false;
+      }
+    }
+  );
+}
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function setupLogout() {
+  const buttons =
+    document.querySelectorAll(
+      "[data-action='logout'], #logoutButton, #logoutBtn"
+    );
+
+  buttons.forEach(button => {
+    button.addEventListener(
+      "click",
+      async event => {
+        event.preventDefault();
+
+        try {
+          await post(
+            "/auth/logout",
+            {},
+            {
+              authRequired: false,
+              redirectOn401: false,
+              timeout: 5000
+            }
+          );
+        } catch (error) {
+          console.warn(
+            "Logout:",
+            error
+          );
+        }
+
+        state.authenticated = false;
+
+        window.location.replace(
+          "/login"
+        );
+      }
+    );
+  });
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+async function loadDashboard() {
+  const data = await get(
+    "/dashboard",
+    {
+      timeout: 9000
+    }
+  );
+
+  state.dashboard =
+    data?.dashboard ||
+    data?.data?.dashboard ||
+    data?.data ||
+    data ||
+    null;
+
+  return state.dashboard;
+}
+
+function dashboardCard(
+  label,
+  value,
+  icon = ""
+) {
+  return `
+    <div class="stat-card">
+      <div class="stat-card-icon">
+        ${escapeHTML(icon)}
+      </div>
+
+      <div class="stat-card-content">
+        <span class="stat-label">
+          ${escapeHTML(label)}
+        </span>
+
+        <strong class="stat-value">
+          ${escapeHTML(value)}
+        </strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderDashboard(data) {
+  const dashboard =
+    data ||
+    state.dashboard ||
+    {};
+
+  const totalOrders =
+    Number(
+      dashboard.totalOrders || 0
+    );
+
+  const paidOrders =
+    Number(
+      dashboard.paidOrders || 0
+    );
+
+  const pendingOrders =
+    Number(
+      dashboard.pendingOrders || 0
+    );
+
+  const customers =
+    Number(
+      dashboard.totalCustomers || 0
+    );
+
+  const products =
+    Number(
+      dashboard.totalProducts || 0
+    );
+
+  const links =
+    Number(
+      dashboard.totalLinks || 0
+    );
+
+  const revenue =
+    Number(
+      dashboard.totalRevenue || 0
+    );
+
+  const fees =
+    Number(
+      dashboard.totalFees || 0
+    );
+
+  const netRevenue =
+    Number(
+      dashboard.netRevenue ?? revenue - fees
+    );
+
+  const recentOrders =
+    normalizeArray(
+      dashboard.recentOrders
+    );
+
+  return `
+    <div class="page-header">
+      <div>
+        <h1>Visão geral</h1>
+        <p>
+          Acompanhe o desempenho do seu negócio.
+        </p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+
+      ${dashboardCard(
+        "Receita total",
+        formatKz(revenue),
+        "₣"
+      )}
+
+      ${dashboardCard(
+        "Receita líquida",
+        formatKz(netRevenue),
+        "↗"
+      )}
+
+      ${dashboardCard(
+        "Pedidos",
+        formatNumber(totalOrders),
+        "▣"
+      )}
+
+      ${dashboardCard(
+        "Pagamentos concluídos",
+        formatNumber(paidOrders),
+        "✓"
+      )}
+
+      ${dashboardCard(
+        "Pendentes",
+        formatNumber(pendingOrders),
+        "◷"
+      )}
+
+      ${dashboardCard(
+        "Clientes",
+        formatNumber(customers),
+        "◉"
+      )}
+
+      ${dashboardCard(
+        "Produtos",
+        formatNumber(products),
+        "□"
+      )}
+
+      ${dashboardCard(
+        "Links",
+        formatNumber(links),
+        "↗"
+      )}
+
+    </div>
+
+    <div class="content-grid">
+
+      <section class="panel">
+
+        <div class="panel-header">
+          <div>
+            <h2>Pedidos recentes</h2>
+            <p>
+              Últimas movimentações da sua conta.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="btn secondary"
+            data-route-link="orders"
+          >
+            Ver todos
+          </button>
+        </div>
+
+        ${
+          recentOrders.length
+            ? `
+              <div class="table-wrap">
+                <table class="data-table">
+
+                  <thead>
+                    <tr>
+                      <th>Pedido</th>
+                      <th>Cliente</th>
+                      <th>Valor</th>
+                      <th>Estado</th>
+                      <th>Data</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+
+                    ${recentOrders
+                      .slice(0, 10)
+                      .map(order => {
+                        const id =
+                          order._id ||
+                          order.id ||
+                          order.orderId ||
+                          "—";
+
+                        const customer =
+                          order.customerName ||
+                          order.customer?.name ||
+                          order.name ||
+                          order.customerEmail ||
+                          "Cliente";
+
+                        const amount =
+                          order.amount ??
+                          order.total ??
+                          order.value ??
+                          0;
+
+                        const status =
+                          order.status ||
+                          "PENDING";
+
+                        return `
+                          <tr>
+
+                            <td>
+                              ${escapeHTML(
+                                String(id).slice(-10)
+                              )}
+                            </td>
+
+                            <td>
+                              ${escapeHTML(
+                                customer
+                              )}
+                            </td>
+
+                            <td>
+                              ${escapeHTML(
+                                formatKz(amount)
+                              )}
+                            </td>
+
+                            <td>
+                              <span
+                                class="status ${statusClass(
+                                  status
+                                )}"
+                              >
+                                ${escapeHTML(
+                                  statusLabel(status)
+                                )}
+                              </span>
+                            </td>
+
+                            <td>
+                              ${escapeHTML(
+                                formatDateTime(
+                                  order.createdAt ||
+                                    order.date ||
+                                    order.updatedAt
+                                )
+                              )}
+                            </td>
+
+                          </tr>
+                        `;
+                      })
+                      .join("")}
+
+                  </tbody>
+                </table>
+              </div>
+            `
+            : `
+              <div class="empty-state">
+                <div class="empty-icon">◌</div>
+                <h3>Ainda não existem pedidos</h3>
+                <p>
+                  Os pedidos dos seus clientes aparecerão aqui.
+                </p>
+              </div>
+            `
+        }
+
+      </section>
+
+      <section class="panel">
+
+        <div class="panel-header">
+          <div>
+            <h2>Resumo financeiro</h2>
+            <p>
+              Estado atual da sua conta.
+            </p>
+          </div>
+        </div>
+
+        <div class="summary-list">
+
+          <div class="summary-row">
+            <span>Receita bruta</span>
+            <strong>
+              ${escapeHTML(
+                formatKz(revenue)
+              )}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Taxas Honey Pay</span>
+            <strong>
+              ${escapeHTML(
+                formatKz(fees)
+              )}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Receita líquida</span>
+            <strong>
+              ${escapeHTML(
+                formatKz(netRevenue)
+              )}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Taxa atual</span>
+            <strong>
+              ${escapeHTML(
+                String(
+                  dashboard.honeyPayFeePercent ??
+                  "0.80"
+                )
+              )}%
+            </strong>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  `;
+}
+
+/* =========================================================
+   PAYMENTS
+========================================================= */
 
 async function loadPayments() {
-  const data =
-    await get(
-      "/payments"
-    );
+  const data = await get(
+    "/payments",
+    {
+      timeout: 9000
+    }
+  );
 
   state.payments =
     normalizeArray(
-      data,
-      ["payments"]
+      data?.payments ??
+      data?.data?.payments ??
+      data?.data ??
+      data
     );
-
-  updatePendingBadge();
 
   return state.payments;
 }
 
-function updatePendingBadge() {
-  const pending =
-    state.payments.filter(
-      payment =>
-        [
-          "PENDING",
-          "PROCESSING"
-        ].includes(
-          String(
-            payment.status ||
-              ""
-          ).toUpperCase()
-        )
-    ).length;
-
-  const badge =
-    $("#pendingBadge");
-
-  if (badge) {
-    badge.textContent =
-      String(pending);
-
-    badge.classList.toggle(
-      "hidden",
-      pending === 0
-    );
-  }
-
-  $("#notificationDot")
-    ?.classList.toggle(
-      "active",
-      pending > 0
-    );
-}
-
-function paymentMethodLabel(
-  method
-) {
-  const value =
-    String(
-      method || ""
-    ).toLowerCase();
-
-  const labels = {
-    multicaixa_express:
-      "Multicaixa Express",
-
-    multicaixa_reference:
-      "Referência",
-
-    multicaixa:
-      "Multicaixa",
-
-    bank_transfer:
-      "Transferência",
-
-    transfer:
-      "Transferência"
-  };
-
-  return (
-    labels[value] ||
-    method ||
-    "—"
-  );
-}
-
 function renderPayments() {
-  pageContent.innerHTML = `
+  const payments =
+    state.payments || [];
+
+  return `
     <div class="page-header">
-
       <div>
-
-        <span class="eyebrow">
-          Financeiro
-        </span>
-
-        <h2>
-          Pagamentos
-        </h2>
-
+        <h1>Pagamentos</h1>
         <p>
-          Acompanha os pagamentos recebidos
-          pelo teu negócio.
+          Consulte os pagamentos recebidos.
         </p>
-
       </div>
-
-      <div class="page-actions">
-
-        <button
-          id="paymentsRefresh"
-          class="btn secondary"
-          type="button"
-        >
-          Atualizar
-        </button>
-
-      </div>
-
     </div>
 
     <section class="panel">
 
-      <div class="table-wrap">
+      ${
+        payments.length
+          ? `
+            <div class="table-wrap">
 
-        <table class="data-table">
+              <table class="data-table">
 
-          <thead>
+                <thead>
+                  <tr>
+                    <th>Referência</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
 
-            <tr>
-              <th>Referência</th>
-              <th>Cliente</th>
-              <th>Método</th>
-              <th>Valor</th>
-              <th>Estado</th>
-              <th>Data</th>
-            </tr>
+                <tbody>
 
-          </thead>
+                  ${payments
+                    .map(payment => {
+                      const id =
+                        payment._id ||
+                        payment.id ||
+                        payment.reference ||
+                        "—";
 
-          <tbody
-            id="paymentsTableBody"
-          ></tbody>
+                      const customer =
+                        payment.customerName ||
+                        payment.customer?.name ||
+                        payment.customerEmail ||
+                        "Cliente";
 
-        </table>
+                      const amount =
+                        payment.amount ||
+                        payment.total ||
+                        0;
 
-      </div>
+                      const status =
+                        payment.status ||
+                        "PENDING";
 
-    </section>
-  `;
-
-  renderPaymentsTable();
-
-  $("#paymentsRefresh")
-    ?.addEventListener(
-      "click",
-      () => {
-        void refreshPayments(
-          true
-        );
-      }
-    );
-}
-
-function renderPaymentsTable() {
-  const body =
-    $("#paymentsTableBody");
-
-  if (!body) {
-    return;
-  }
-
-  if (
-    !state.payments.length
-  ) {
-    body.innerHTML = `
-      <tr>
-
-        <td colspan="6">
-
-          <div class="empty-state">
-
-            <strong>
-              Ainda não existem pagamentos
-            </strong>
-
-            <span>
-              Os pagamentos aparecerão aqui.
-            </span>
-
-          </div>
-
-        </td>
-
-      </tr>
-    `;
-
-    return;
-  }
-
-  body.innerHTML =
-    state.payments
-      .map(payment => {
-        return `
-          <tr>
-
-            <td>
-              <strong>
-                ${escapeHTML(
-                  payment.reference ||
-                    payment.providerPaymentId ||
-                    payment._id ||
-                    "—"
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${escapeHTML(
-                payment.customer?.name ||
-                  payment.customerName ||
-                  payment.customer?.email ||
-                  "Cliente"
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                paymentMethodLabel(
-                  payment.paymentMethod
-                )
-              )}
-            </td>
-
-            <td>
-              <strong>
-                ${formatKz(
-                  payment.amount
-                )}
-              </strong>
-            </td>
-
-            <td>
-              <span
-                class="
-                  status
-                  ${statusClass(
-                    payment.status
-                  )}
-                "
-              >
-                ${escapeHTML(
-                  statusLabel(
-                    payment.status
-                  )
-                )}
-              </span>
-            </td>
-
-            <td>
-              ${formatDateTime(
-                payment.createdAt ||
-                  payment.updatedAt
-              )}
-            </td>
-
-          </tr>
-        `;
-      })
-      .join("");
-}
-
-async function refreshPayments(
-  showMessage = true
-) {
-  if (state.refreshing) {
-    return;
-  }
-
-  state.refreshing =
-    true;
-
-  try {
-    await loadPayments();
-
-    if (
-      state.currentRoute ===
-      "payments"
-    ) {
-      renderPaymentsTable();
-    }
-
-    if (
-      state.currentRoute ===
-      "dashboard"
-    ) {
-      renderRecentPayments();
-
-      const pending =
-        state.payments.filter(
-          payment =>
-            [
-              "PENDING",
-              "PROCESSING"
-            ].includes(
-              String(
-                payment.status ||
-                  ""
-              ).toUpperCase()
-            )
-        ).length;
-
-      const pendingElement =
-        $("#statPending");
-
-      if (pendingElement) {
-        pendingElement.textContent =
-          formatNumber(
-            pending
-          );
-      }
-
-      const chart =
-        $("#salesChart");
-
-      if (chart) {
-        chart.innerHTML =
-          renderSimpleChart();
-      }
-    }
-
-    if (showMessage) {
-      showToast(
-        "Pagamentos atualizados.",
-        "success"
-      );
-    }
-  } catch (error) {
-    if (showMessage) {
-      showToast(
-        getErrorMessage(error),
-        "error"
-      );
-    }
-  } finally {
-    state.refreshing =
-      false;
-  }
-}
-
-/* ============================================================
-   PEDIDOS
-   ============================================================ */
-
-async function loadOrders() {
-  const data =
-    await get(
-      "/orders"
-    );
-
-  state.orders =
-    normalizeArray(
-      data,
-      ["orders"]
-    );
-
-  return state.orders;
-}
-
-function renderOrders() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <span class="eyebrow">
-          Operações
-        </span>
-
-        <h2>
-          Pedidos
-        </h2>
-
-        <p>
-          Consulta os pedidos associados
-          aos pagamentos.
-        </p>
-
-      </div>
-
-    </div>
-
-    <section class="panel">
-
-      <div class="table-wrap">
-
-        <table class="data-table">
-
-          <thead>
-
-            <tr>
-              <th>Pedido</th>
-              <th>Cliente</th>
-              <th>Valor</th>
-              <th>Estado</th>
-              <th>Data</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            ${
-              state.orders.length
-                ? state.orders
-                    .map(order => {
                       return `
                         <tr>
 
                           <td>
-                            <strong>
-                              ${escapeHTML(
-                                order.reference ||
-                                  order.orderNumber ||
-                                  order._id ||
-                                  "—"
-                              )}
-                            </strong>
-                          </td>
-
-                          <td>
                             ${escapeHTML(
-                              order.customerSnapshot?.name ||
-                                order.customer?.name ||
-                                order.customerName ||
-                                "Cliente"
+                              String(id).slice(-12)
                             )}
                           </td>
 
                           <td>
-                            <strong>
-                              ${formatKz(
-                                order.total ??
-                                  order.amount
-                              )}
-                            </strong>
+                            ${escapeHTML(
+                              customer
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              formatKz(amount)
+                            )}
                           </td>
 
                           <td>
                             <span
-                              class="
+                              class="status ${statusClass(
                                 status
-                                ${statusClass(
-                                  order.status
-                                )}
-                              "
+                              )}"
                             >
                               ${escapeHTML(
-                                statusLabel(
-                                  order.status
-                                )
+                                statusLabel(status)
                               )}
                             </span>
                           </td>
 
                           <td>
-                            ${formatDateTime(
-                              order.createdAt ||
-                                order.updatedAt
+                            ${escapeHTML(
+                              formatDateTime(
+                                payment.createdAt ||
+                                  payment.date
+                              )
                             )}
                           </td>
 
                         </tr>
                       `;
                     })
-                    .join("")
-                : `
-                    <tr>
+                    .join("")}
 
-                      <td colspan="5">
+                </tbody>
 
-                        <div class="empty-state">
+              </table>
 
-                          <strong>
-                            Ainda não existem pedidos
-                          </strong>
-
-                          <span>
-                            Os pedidos aparecerão aqui.
-                          </span>
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-                  `
-            }
-
-          </tbody>
-
-        </table>
-
-      </div>
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              <div class="empty-icon">◌</div>
+              <h3>Nenhum pagamento</h3>
+              <p>
+                Ainda não existem pagamentos registados.
+              </p>
+            </div>
+          `
+      }
 
     </section>
   `;
 }
 
-/* ============================================================
-   PRODUTOS
-   ============================================================ */
+/* =========================================================
+   ORDERS
+========================================================= */
+
+async function loadOrders() {
+  const data = await get(
+    "/orders",
+    {
+      timeout: 9000
+    }
+  );
+
+  state.orders =
+    normalizeArray(
+      data?.orders ??
+      data?.data?.orders ??
+      data?.data ??
+      data
+    );
+
+  return state.orders;
+}
+
+function renderOrders() {
+  const orders =
+    state.orders || [];
+
+  return `
+    <div class="page-header">
+      <div>
+        <h1>Pedidos</h1>
+        <p>
+          Todos os pedidos recebidos através do Honey Pay.
+        </p>
+      </div>
+    </div>
+
+    <section class="panel">
+
+      ${
+        orders.length
+          ? `
+            <div class="table-wrap">
+
+              <table class="data-table">
+
+                <thead>
+                  <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Valor</th>
+                    <th>Estado</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  ${orders
+                    .map(order => {
+                      const id =
+                        order._id ||
+                        order.id ||
+                        order.orderId ||
+                        "—";
+
+                      const customer =
+                        order.customerName ||
+                        order.customer?.name ||
+                        order.customerEmail ||
+                        "Cliente";
+
+                      const amount =
+                        order.amount ??
+                        order.total ??
+                        0;
+
+                      const status =
+                        order.status ||
+                        "PENDING";
+
+                      return `
+                        <tr>
+
+                          <td>
+                            ${escapeHTML(
+                              String(id).slice(-12)
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              customer
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              formatKz(amount)
+                            )}
+                          </td>
+
+                          <td>
+                            <span
+                              class="status ${statusClass(
+                                status
+                              )}"
+                            >
+                              ${escapeHTML(
+                                statusLabel(status)
+                              )}
+                            </span>
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              formatDateTime(
+                                order.createdAt ||
+                                  order.date
+                              )
+                            )}
+                          </td>
+
+                        </tr>
+                      `;
+                    })
+                    .join("")}
+
+                </tbody>
+
+              </table>
+
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              <div class="empty-icon">◌</div>
+              <h3>Nenhum pedido</h3>
+              <p>
+                Os pedidos dos seus clientes aparecerão aqui.
+              </p>
+            </div>
+          `
+      }
+
+    </section>
+  `;
+}
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
 
 async function loadProducts() {
-  const data =
-    await get(
-      "/products"
-    );
+  const data = await get(
+    "/products",
+    {
+      timeout: 9000
+    }
+  );
 
   state.products =
     normalizeArray(
-      data,
-      ["products"]
+      data?.products ??
+      data?.data?.products ??
+      data?.data ??
+      data
     );
 
   return state.products;
 }
 
 function renderProducts() {
-  pageContent.innerHTML = `
+  const products =
+    state.products || [];
+
+  return `
     <div class="page-header">
 
       <div>
-
-        <span class="eyebrow">
-          Catálogo
-        </span>
-
-        <h2>
-          Produtos
-        </h2>
-
+        <h1>Produtos</h1>
         <p>
-          Cria produtos e transforma-os
-          em links de pagamento.
+          Gerencie os produtos e serviços vendidos.
         </p>
-
       </div>
 
       <button
-        id="newProductButton"
-        class="btn primary"
         type="button"
+        class="btn primary"
+        id="newProductButton"
       >
-        Novo produto
+        + Novo produto
       </button>
 
     </div>
 
     <section class="panel">
 
-      <div
-        id="resourceContent"
-      ></div>
+      ${
+        products.length
+          ? `
+            <div class="cards-grid">
+
+              ${products
+                .map(product => {
+                  const id =
+                    product._id ||
+                    product.id;
+
+                  return `
+                    <article class="product-card">
+
+                      <div class="product-card-body">
+
+                        <h3>
+                          ${escapeHTML(
+                            product.name ||
+                            "Produto"
+                          )}
+                        </h3>
+
+                        <p>
+                          ${escapeHTML(
+                            product.description ||
+                            "Sem descrição."
+                          )}
+                        </p>
+
+                        <strong>
+                          ${escapeHTML(
+                            formatKz(
+                              product.price ||
+                              product.amount ||
+                              0
+                            )
+                          )}
+                        </strong>
+
+                      </div>
+
+                      <div class="product-card-actions">
+
+                        <button
+                          type="button"
+                          class="btn danger"
+                          data-delete-product="${escapeHTML(
+                            id
+                          )}"
+                        >
+                          Eliminar
+                        </button>
+
+                      </div>
+
+                    </article>
+                  `;
+                })
+                .join("")}
+
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              <div class="empty-icon">□</div>
+              <h3>Nenhum produto</h3>
+              <p>
+                Crie o seu primeiro produto.
+              </p>
+            </div>
+          `
+      }
 
     </section>
   `;
+}
 
-  renderProductList();
-
+function setupProductActions() {
   $("#newProductButton")
     ?.addEventListener(
       "click",
-      openProductForm
+      () => {
+        openProductModal();
+      }
     );
-}
 
-function renderProductList() {
-  const container =
-    $("#resourceContent");
-
-  if (!container) {
-    return;
-  }
-
-  if (!state.products.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <strong>
-          Ainda não tens produtos
-        </strong>
-
-        <span>
-          Cria o primeiro produto
-          para começares a vender.
-        </span>
-
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="table-wrap">
-
-      <table class="data-table">
-
-        <thead>
-
-          <tr>
-            <th>Produto</th>
-            <th>SKU</th>
-            <th>Preço</th>
-            <th>Stock</th>
-            <th>Estado</th>
-            <th>Ações</th>
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${state.products
-            .map(product => {
-              const id =
-                product._id ||
-                product.id;
-
-              return `
-                <tr>
-
-                  <td>
-
-                    <strong>
-                      ${escapeHTML(
-                        product.name
-                      )}
-                    </strong>
-
-                    ${
-                      product.description
-                        ? `
-                            <small>
-                              ${escapeHTML(
-                                product.description
-                              )}
-                            </small>
-                          `
-                        : ""
-                    }
-
-                  </td>
-
-                  <td>
-                    ${escapeHTML(
-                      product.sku ||
-                        "—"
-                    )}
-                  </td>
-
-                  <td>
-                    <strong>
-                      ${formatKz(
-                        product.price
-                      )}
-                    </strong>
-                  </td>
-
-                  <td>
-                    ${
-                      product.stock ==
-                      null
-                        ? "—"
-                        : escapeHTML(
-                            product.stock
-                          )
-                    }
-                  </td>
-
-                  <td>
-
-                    <span
-                      class="
-                        status
-                        ${
-                          product.active ===
-                          false
-                            ? "neutral"
-                            : "success"
-                        }
-                      "
-                    >
-                      ${
-                        product.active ===
-                        false
-                          ? "Inativo"
-                          : "Ativo"
-                      }
-                    </span>
-
-                  </td>
-
-                  <td>
-
-                    <button
-                      class="btn small secondary"
-                      data-product-link="${escapeHTML(
-                        id
-                      )}"
-                      type="button"
-                    >
-                      Criar link
-                    </button>
-
-                    <button
-                      class="btn small danger"
-                      data-product-delete="${escapeHTML(
-                        id
-                      )}"
-                      type="button"
-                    >
-                      Desativar
-                    </button>
-
-                  </td>
-
-                </tr>
-              `;
-            })
-            .join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-  `;
-
-  container
+  document
     .querySelectorAll(
-      "[data-product-link]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          const id =
-            button.dataset
-              .productLink;
-
-          const product =
-            state.products.find(
-              item =>
-                String(
-                  item._id ||
-                    item.id
-                ) ===
-                String(id)
-            );
-
-          if (product) {
-            openPaymentLinkForm(
-              product
-            );
-          }
-        }
-      );
-    });
-
-  container
-    .querySelectorAll(
-      "[data-product-delete]"
+      "[data-delete-product]"
     )
     .forEach(button => {
       button.addEventListener(
         "click",
         async () => {
           const id =
-            button.dataset
-              .productDelete;
+            button.dataset.deleteProduct;
+
+          if (!id) {
+            return;
+          }
 
           if (
             !window.confirm(
-              "Queres desativar este produto?"
+              "Eliminar este produto?"
             )
           ) {
             return;
@@ -2458,18 +1820,23 @@ function renderProductList() {
               )}`
             );
 
-            await loadProducts();
-
-            renderProducts();
-
             showToast(
-              "Produto desativado.",
+              "Produto eliminado.",
               "success"
             );
+
+            await loadProducts();
+
+            renderPage(
+              renderProducts()
+            );
+
+            setupProductActions();
           } catch (error) {
             showToast(
               getErrorMessage(
-                error
+                error,
+                "Não foi possível eliminar o produto."
               ),
               "error"
             );
@@ -2479,122 +1846,100 @@ function renderProductList() {
     });
 }
 
-function openProductForm() {
-  openModal(
-    "Novo produto",
-    `
-      <form
-        id="productForm"
-        class="form-grid"
+function openProductModal() {
+  openModal(`
+    <div class="modal-header">
+      <div>
+        <h2>Novo produto</h2>
+        <p>
+          Adicione um produto ou serviço.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeProductModal"
       >
+        ×
+      </button>
+    </div>
 
-        <label>
+    <form id="productForm">
 
-          <span>
-            Nome
-          </span>
-
-          <input
-            name="name"
-            required
-            maxlength="150"
-          >
-
+      <div class="form-group">
+        <label for="productName">
+          Nome
         </label>
 
-        <label>
+        <input
+          id="productName"
+          name="name"
+          required
+          maxlength="120"
+        />
+      </div>
 
-          <span>
-            Preço (Kz)
-          </span>
-
-          <input
-            name="price"
-            type="number"
-            min="1"
-            step="1"
-            required
-          >
-
+      <div class="form-group">
+        <label for="productDescription">
+          Descrição
         </label>
 
-        <label>
+        <textarea
+          id="productDescription"
+          name="description"
+          maxlength="500"
+        ></textarea>
+      </div>
 
-          <span>
-            SKU
-          </span>
-
-          <input
-            name="sku"
-            maxlength="80"
-          >
-
+      <div class="form-group">
+        <label for="productPrice">
+          Preço
         </label>
 
-        <label>
+        <input
+          id="productPrice"
+          name="price"
+          type="number"
+          min="0"
+          step="1"
+          required
+        />
+      </div>
 
-          <span>
-            Stock
-          </span>
+      <div class="modal-actions">
 
-          <input
-            name="stock"
-            type="number"
-            min="0"
-            step="1"
-          >
+        <button
+          type="button"
+          class="btn secondary"
+          id="cancelProduct"
+        >
+          Cancelar
+        </button>
 
-        </label>
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Criar produto
+        </button>
 
-        <label class="full">
+      </div>
 
-          <span>
-            Descrição
-          </span>
+    </form>
+  `);
 
-          <textarea
-            name="description"
-            rows="4"
-          ></textarea>
+  $("#closeProductModal")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
 
-        </label>
-
-        <label class="full">
-
-          <span>
-            Imagem
-          </span>
-
-          <input
-            name="image"
-            type="url"
-            placeholder="https://..."
-          >
-
-        </label>
-
-        <div class="form-actions full">
-
-          <button
-            type="button"
-            class="btn secondary"
-            data-close-modal
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            class="btn primary"
-          >
-            Criar produto
-          </button>
-
-        </div>
-
-      </form>
-    `
-  );
+  $("#cancelProduct")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
 
   $("#productForm")
     ?.addEventListener(
@@ -2605,751 +1950,329 @@ function openProductForm() {
         const form =
           event.currentTarget;
 
-        const data =
+        const formData =
           new FormData(form);
 
-        const body = {
-          name: String(
-            data.get("name") ||
+        const name =
+          String(
+            formData.get("name") || ""
+          ).trim();
+
+        const description =
+          String(
+            formData.get("description") ||
               ""
-          ).trim(),
+          ).trim();
 
-          price: Number(
-            data.get("price")
-          ),
+        const price =
+          Number(
+            formData.get("price") || 0
+          );
 
-          sku:
-            String(
-              data.get("sku") ||
-                ""
-            ).trim() ||
-            undefined,
+        if (!name) {
+          showToast(
+            "Informe o nome do produto.",
+            "error"
+          );
+          return;
+        }
 
-          stock:
-            data.get("stock") ===
-            ""
-              ? undefined
-              : Number(
-                  data.get(
-                    "stock"
-                  )
-                ),
+        if (price < 0) {
+          showToast(
+            "O preço não pode ser negativo.",
+            "error"
+          );
+          return;
+        }
 
-          description:
-            String(
-              data.get(
-                "description"
-              ) || ""
-            ).trim() ||
-            undefined,
+        const submit =
+          form.querySelector(
+            "[type='submit']"
+          );
 
-          image:
-            String(
-              data.get("image") ||
-                ""
-            ).trim() ||
-            undefined
-        };
+        if (submit) {
+          submit.disabled = true;
+        }
 
         try {
           await post(
             "/products",
-            body
+            {
+              name,
+              description,
+              price
+            }
           );
 
           closeModal();
-
-          await loadProducts();
-
-          renderProducts();
 
           showToast(
             "Produto criado com sucesso.",
             "success"
           );
+
+          await loadProducts();
+
+          renderPage(
+            renderProducts()
+          );
+
+          setupProductActions();
         } catch (error) {
           showToast(
             getErrorMessage(
-              error
+              error,
+              "Não foi possível criar o produto."
             ),
             "error"
           );
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+          }
         }
       }
     );
 }
 
-/* ============================================================
-   CLIENTES
-   ============================================================ */
+/* =========================================================
+   CUSTOMERS
+========================================================= */
 
 async function loadCustomers() {
-  const data =
-    await get(
-      "/customers"
-    );
+  const data = await get(
+    "/customers",
+    {
+      timeout: 9000
+    }
+  );
 
   state.customers =
     normalizeArray(
-      data,
-      ["customers"]
+      data?.customers ??
+      data?.data?.customers ??
+      data?.data ??
+      data
     );
 
   return state.customers;
 }
 
 function renderCustomers() {
-  pageContent.innerHTML = `
+  const customers =
+    state.customers || [];
+
+  return `
     <div class="page-header">
 
       <div>
-
-        <span class="eyebrow">
-          Clientes
-        </span>
-
-        <h2>
-          Clientes
-        </h2>
-
+        <h1>Clientes</h1>
         <p>
-          Consulta os clientes associados
-          às tuas vendas.
+          Clientes associados às suas vendas.
         </p>
-
-      </div>
-
-    </div>
-
-    <section class="panel">
-
-      <div class="table-wrap">
-
-        <table class="data-table">
-
-          <thead>
-
-            <tr>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Telefone</th>
-              <th>Última atividade</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            ${
-              state.customers.length
-                ? state.customers
-                    .map(customer => {
-                      return `
-                        <tr>
-
-                          <td>
-                            <strong>
-                              ${escapeHTML(
-                                customer.name ||
-                                  customer.fullName ||
-                                  "Cliente"
-                              )}
-                            </strong>
-                          </td>
-
-                          <td>
-                            ${escapeHTML(
-                              customer.email ||
-                                "—"
-                            )}
-                          </td>
-
-                          <td>
-                            ${escapeHTML(
-                              customer.phone ||
-                                customer.mobile ||
-                                "—"
-                            )}
-                          </td>
-
-                          <td>
-                            ${formatDateTime(
-                              customer.updatedAt ||
-                                customer.createdAt
-                            )}
-                          </td>
-
-                        </tr>
-                      `;
-                    })
-                    .join("")
-                : `
-                    <tr>
-
-                      <td colspan="4">
-
-                        <div class="empty-state">
-
-                          <strong>
-                            Ainda não existem clientes
-                          </strong>
-
-                          <span>
-                            Os clientes aparecerão aqui.
-                          </span>
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-                  `
-            }
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </section>
-  `;
-}
-
-/* ============================================================
-   LINKS DE PAGAMENTO
-   ============================================================ */
-
-async function loadLinks() {
-  const data =
-    await get(
-      "/payment-links"
-    );
-
-  state.links =
-    normalizeArray(
-      data,
-      ["links"]
-    );
-
-  return state.links;
-}
-
-function paymentLinkToken(
-  link
-) {
-  return (
-    link?.token ||
-    link?.code ||
-    ""
-  );
-}
-
-function paymentLinkUrl(
-  link
-) {
-  if (!link) {
-    return "";
-  }
-
-  if (link.url) {
-    return link.url;
-  }
-
-  if (link.honeyUrl) {
-    return link.honeyUrl;
-  }
-
-  const token =
-    paymentLinkToken(
-      link
-    );
-
-  if (!token) {
-    return "";
-  }
-
-  return `${window.location.origin}/pay/${encodeURIComponent(
-    token
-  )}`;
-}
-
-function renderLinks() {
-  pageContent.innerHTML = `
-    <div class="page-header">
-
-      <div>
-
-        <span class="eyebrow">
-          Vendas
-        </span>
-
-        <h2>
-          Links de pagamento
-        </h2>
-
-        <p>
-          Cria links para partilhar
-          no WhatsApp, Instagram,
-          Facebook e outros canais.
-        </p>
-
       </div>
 
       <button
-        id="newPaymentLinkButton"
-        class="btn primary"
         type="button"
+        class="btn primary"
+        id="newCustomerButton"
       >
-        Novo link
+        + Novo cliente
       </button>
 
     </div>
 
     <section class="panel">
 
-      <div
-        id="linksContent"
-      ></div>
+      ${
+        customers.length
+          ? `
+            <div class="table-wrap">
+
+              <table class="data-table">
+
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  ${customers
+                    .map(customer => {
+                      return `
+                        <tr>
+
+                          <td>
+                            ${escapeHTML(
+                              customer.name ||
+                              customer.fullName ||
+                              "—"
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              customer.email ||
+                              "—"
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              customer.phone ||
+                              "—"
+                            )}
+                          </td>
+
+                          <td>
+                            ${escapeHTML(
+                              formatDate(
+                                customer.createdAt
+                              )
+                            )}
+                          </td>
+
+                        </tr>
+                      `;
+                    })
+                    .join("")}
+
+                </tbody>
+
+              </table>
+
+            </div>
+          `
+          : `
+            <div class="empty-state">
+              <div class="empty-icon">◉</div>
+              <h3>Nenhum cliente</h3>
+              <p>
+                Os clientes aparecerão aqui.
+              </p>
+            </div>
+          `
+      }
 
     </section>
   `;
+}
 
-  renderLinksList();
-
-  $("#newPaymentLinkButton")
+function setupCustomerActions() {
+  $("#newCustomerButton")
     ?.addEventListener(
       "click",
-      () => {
-        void loadBankAccounts()
-          .then(() =>
-            openPaymentLinkForm()
-          )
-          .catch(() =>
-            openPaymentLinkForm()
-          );
-      }
+      openCustomerModal
     );
 }
 
-function renderLinksList() {
-  const container =
-    $("#linksContent");
+function openCustomerModal() {
+  openModal(`
+    <div class="modal-header">
 
-  if (!container) {
-    return;
-  }
-
-  if (!state.links.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <strong>
-          Ainda não existem links
-        </strong>
-
-        <span>
-          Cria um link e envia-o
-          diretamente aos teus clientes.
-        </span>
-
+      <div>
+        <h2>Novo cliente</h2>
+        <p>
+          Adicione os dados do cliente.
+        </p>
       </div>
-    `;
 
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="table-wrap">
-
-      <table class="data-table">
-
-        <thead>
-
-          <tr>
-            <th>Link</th>
-            <th>Valor</th>
-            <th>Estado</th>
-            <th>Criado</th>
-            <th>Ações</th>
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${state.links
-            .map(link => {
-              const url =
-                paymentLinkUrl(
-                  link
-                );
-
-              const active =
-                link.active !==
-                false;
-
-              return `
-                <tr>
-
-                  <td>
-
-                    <strong>
-                      ${escapeHTML(
-                        link.title ||
-                          link.name ||
-                          "Link de pagamento"
-                      )}
-                    </strong>
-
-                    <small>
-                      ${escapeHTML(
-                        url
-                      )}
-                    </small>
-
-                  </td>
-
-                  <td>
-                    <strong>
-                      ${formatKz(
-                        link.amount
-                      )}
-                    </strong>
-                  </td>
-
-                  <td>
-
-                    <span
-                      class="
-                        status
-                        ${
-                          active
-                            ? "success"
-                            : "neutral"
-                        }
-                      "
-                    >
-                      ${
-                        active
-                          ? "Ativo"
-                          : "Inativo"
-                      }
-                    </span>
-
-                  </td>
-
-                  <td>
-                    ${formatDateTime(
-                      link.createdAt
-                    )}
-                  </td>
-
-                  <td>
-
-                    <div
-                      class="table-actions"
-                    >
-
-                      <button
-                        class="btn small secondary"
-                        data-copy-link="${escapeHTML(
-                          url
-                        )}"
-                        type="button"
-                      >
-                        Copiar
-                      </button>
-
-                      <button
-                        class="btn small secondary"
-                        data-open-link="${escapeHTML(
-                          url
-                        )}"
-                        type="button"
-                      >
-                        Abrir
-                      </button>
-
-                      ${
-                        active
-                          ? `
-                              <button
-                                class="btn small danger"
-                                data-delete-link="${escapeHTML(
-                                  link._id ||
-                                    link.id
-                                )}"
-                                type="button"
-                              >
-                                Desativar
-                              </button>
-                            `
-                          : ""
-                      }
-
-                    </div>
-
-                  </td>
-
-                </tr>
-              `;
-            })
-            .join("")}
-
-        </tbody>
-
-      </table>
+      <button
+        type="button"
+        class="modal-close"
+        id="closeCustomerModal"
+      >
+        ×
+      </button>
 
     </div>
-  `;
 
-  container
-    .querySelectorAll(
-      "[data-copy-link]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          void copyText(
-            button.dataset
-              .copyLink
-          );
-        }
-      );
-    });
+    <form id="customerForm">
 
-  container
-    .querySelectorAll(
-      "[data-open-link]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          const url =
-            button.dataset
-              .openLink;
+      <div class="form-group">
 
-          if (url) {
-            window.open(
-              url,
-              "_blank",
-              "noopener,noreferrer"
-            );
-          }
-        }
-      );
-    });
-
-  container
-    .querySelectorAll(
-      "[data-delete-link]"
-    )
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          void deletePaymentLink(
-            button.dataset
-              .deleteLink
-          );
-        }
-      );
-    });
-}
-
-async function deletePaymentLink(
-  id
-) {
-  if (!id) {
-    return;
-  }
-
-  if (
-    !window.confirm(
-      "Queres realmente desativar este link de pagamento?"
-    )
-  ) {
-    return;
-  }
-
-  try {
-    await del(
-      `/payment-links/${encodeURIComponent(
-        id
-      )}`
-    );
-
-    await loadLinks();
-
-    renderLinks();
-
-    showToast(
-      "Link desativado.",
-      "success"
-    );
-  } catch (error) {
-    showToast(
-      getErrorMessage(
-        error
-      ),
-      "error"
-    );
-  }
-}
-
-function openPaymentLinkForm(
-  product = null
-) {
-  const accounts =
-    state.bankAccounts.filter(
-      account =>
-        account.active !==
-        false
-    );
-
-  const options =
-    accounts
-      .map(account => {
-        const id =
-          account._id ||
-          account.id;
-
-        const label =
-          account.alias ||
-          account.bankName ||
-          "Conta bancária";
-
-        return `
-          <option
-            value="${escapeHTML(
-              id
-            )}"
-          >
-            ${escapeHTML(
-              label
-            )}
-            ${
-              account.isDefault
-                ? " — principal"
-                : ""
-            }
-          </option>
-        `;
-      })
-      .join("");
-
-  openModal(
-    "Novo link de pagamento",
-    `
-      <form
-        id="paymentLinkForm"
-        class="form-grid"
-      >
-
-        <label class="full">
-
-          <span>
-            Título
-          </span>
-
-          <input
-            name="title"
-            required
-            maxlength="150"
-            value="${escapeHTML(
-              product?.name ||
-                ""
-            )}"
-          >
-
+        <label for="customerName">
+          Nome
         </label>
 
-        <label class="full">
+        <input
+          id="customerName"
+          name="name"
+          required
+          maxlength="120"
+        />
 
-          <span>
-            Descrição
-          </span>
+      </div>
 
-          <textarea
-            name="description"
-            rows="3"
-          >${escapeHTML(
-            product?.description ||
-              ""
-          )}</textarea>
+      <div class="form-group">
 
+        <label for="customerEmail">
+          Email
         </label>
 
-        <label>
+        <input
+          id="customerEmail"
+          name="email"
+          type="email"
+          maxlength="180"
+        />
 
-          <span>
-            Valor (Kz)
-          </span>
+      </div>
 
-          <input
-            name="amount"
-            type="number"
-            min="1"
-            step="1"
-            required
-            value="${
-              product
-                ? escapeHTML(
-                    product.price
-                  )
-                : ""
-            }"
-          >
+      <div class="form-group">
 
+        <label for="customerPhone">
+          Telefone
         </label>
 
-        <label>
+        <input
+          id="customerPhone"
+          name="phone"
+          maxlength="40"
+        />
 
-          <span>
-            Conta bancária
-          </span>
+      </div>
 
-          <select
-            name="bankAccountId"
-          >
+      <div class="modal-actions">
 
-            <option value="">
-              Selecionar conta
-            </option>
+        <button
+          type="button"
+          class="btn secondary"
+          id="cancelCustomer"
+        >
+          Cancelar
+        </button>
 
-            ${options}
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Criar cliente
+        </button>
 
-          </select>
+      </div>
 
-        </label>
+    </form>
+  `);
 
-        <div class="form-actions full">
+  $("#closeCustomerModal")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
 
-          <button
-            type="button"
-            class="btn secondary"
-            data-close-modal
-          >
-            Cancelar
-          </button>
+  $("#cancelCustomer")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
 
-          <button
-            type="submit"
-            class="btn primary"
-          >
-            Criar link
-          </button>
-
-        </div>
-
-      </form>
-    `
-  );
-
-  $("#paymentLinkForm")
+  $("#customerForm")
     ?.addEventListener(
       "submit",
       async event => {
@@ -3361,193 +2284,731 @@ function openPaymentLinkForm(
         const data =
           new FormData(form);
 
-        const body = {
-          title: String(
-            data.get("title") ||
-              ""
-          ).trim(),
+        const name =
+          String(
+            data.get("name") || ""
+          ).trim();
 
-          description:
-            String(
-              data.get(
-                "description"
-              ) || ""
-            ).trim(),
+        const email =
+          String(
+            data.get("email") || ""
+          ).trim();
 
-          amount: Number(
-            data.get("amount")
-          ),
+        const phone =
+          String(
+            data.get("phone") || ""
+          ).trim();
 
-          bankAccountId:
-            String(
-              data.get(
-                "bankAccountId"
-              ) || ""
-            ).trim() ||
-            undefined
-        };
+        if (!name) {
+          showToast(
+            "Informe o nome do cliente.",
+            "error"
+          );
+          return;
+        }
 
-        if (product) {
-          body.productId =
-            product._id ||
-            product.id;
+        const submit =
+          form.querySelector(
+            "[type='submit']"
+          );
+
+        if (submit) {
+          submit.disabled = true;
         }
 
         try {
-          const result =
-            await post(
-              "/payment-links",
-              body
-            );
-
-          await loadLinks();
+          await post(
+            "/customers",
+            {
+              name,
+              email,
+              phone
+            }
+          );
 
           closeModal();
 
-          showCreatedLink(
-            result?.link ||
-              result
-          );
-
           showToast(
-            "Link criado com sucesso.",
+            "Cliente criado com sucesso.",
             "success"
           );
+
+          await loadCustomers();
+
+          renderPage(
+            renderCustomers()
+          );
+
+          setupCustomerActions();
         } catch (error) {
           showToast(
             getErrorMessage(
-              error
+              error,
+              "Não foi possível criar o cliente."
             ),
             "error"
           );
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+          }
         }
       }
     );
 }
 
-function showCreatedLink(
-  link
-) {
-  const url =
-    link?.url ||
-    link?.honeyUrl ||
-    paymentLinkUrl(
-      link
-    );
+/* =========================================================
+   PAYMENT LINKS
+========================================================= */
 
-  const qr =
-    link?.qrSvg ||
-    "";
-
-  openModal(
-    "Link criado",
-    `
-      <div class="success-result">
-
-        <div class="success-icon">
-          ✓
-        </div>
-
-        <h3>
-          O teu link está pronto
-        </h3>
-
-        <p>
-          Envia este link ao cliente
-          para ele efetuar o pagamento.
-        </p>
-
-        <div
-          class="generated-link-box"
-        >
-
-          <input
-            id="generatedPaymentUrl"
-            value="${escapeHTML(
-              url
-            )}"
-            readonly
-          >
-
-          <button
-            id="copyPaymentUrl"
-            class="btn secondary"
-            type="button"
-          >
-            Copiar
-          </button>
-
-        </div>
-
-        ${
-          qr
-            ? `
-                <div
-                  class="qr-preview"
-                >
-                  ${
-                    String(qr)
-                      .trim()
-                      .startsWith(
-                        "<svg"
-                      )
-                      ? qr
-                      : `
-                          <img
-                            src="${escapeHTML(
-                              qr
-                            )}"
-                            alt="QR Code"
-                          >
-                        `
-                  }
-                </div>
-              `
-            : ""
-        }
-
-        <div class="result-actions">
-
-          <button
-            id="openCreatedCheckout"
-            class="btn primary"
-            type="button"
-          >
-            Abrir checkout
-          </button>
-
-          <button
-            id="backLinks"
-            class="btn secondary"
-            type="button"
-          >
-            Voltar aos links
-          </button>
-
-        </div>
-
-      </div>
-    `
+async function loadLinks() {
+  const data = await get(
+    "/payment-links",
+    {
+      timeout: 9000
+    }
   );
 
-  $("#copyPaymentUrl")
-    ?.addEventListener(
-      "click",
-      () => {
-        void copyText(
-          url
-        );
-      }
+  state.links =
+    normalizeArray(
+      data?.links ??
+      data?.data?.links ??
+      data?.data ??
+      data
     );
 
-  $("#openCreatedCheckout")
+  return state.links;
+}
+
+function renderLinks() {
+  const links =
+    state.links || [];
+
+  return `
+    <div class="page-header">
+
+      <div>
+        <h1>Links de pagamento</h1>
+        <p>
+          Crie links para receber pagamentos através das redes sociais.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="newLinkButton"
+      >
+        + Criar link
+      </button>
+
+    </div>
+
+    <section class="panel">
+
+      ${
+        links.length
+          ? `
+            <div class="cards-grid">
+
+              ${links
+                .map(link => {
+                  const id =
+                    link._id ||
+                    link.id ||
+                    "";
+
+                  const url =
+                    link.url ||
+                    link.honeyUrl ||
+                    link.checkoutUrl ||
+                    "";
+
+                  return `
+                    <article class="link-card">
+
+                      <div class="link-card-body">
+
+                        <div class="link-status">
+                          <span
+                            class="status ${statusClass(
+                              link.status ||
+                              (link.active === false
+                                ? "INACTIVE"
+                                : "ACTIVE")
+                            )}"
+                          >
+                            ${escapeHTML(
+                              statusLabel(
+                                link.status ||
+                                (link.active === false
+                                  ? "INACTIVE"
+                                  : "ACTIVE")
+                              )
+                            )}
+                          </span>
+                        </div>
+
+                        <h3>
+                          ${escapeHTML(
+                            link.title ||
+                            "Link de pagamento"
+                          )}
+                        </h3>
+
+                        <p>
+                          ${escapeHTML(
+                            link.description ||
+                            "Sem descrição."
+                          )}
+                        </p>
+
+                        <strong>
+                          ${escapeHTML(
+                            formatKz(
+                              link.amount || 0
+                            )
+                          )}
+                        </strong>
+
+                        ${
+                          url
+                            ? `
+                              <div class="link-url">
+                                ${escapeHTML(url)}
+                              </div>
+                            `
+                            : ""
+                        }
+
+                      </div>
+
+                      <div class="link-card-actions">
+
+                        ${
+                          url
+                            ? `
+                              <button
+                                type="button"
+                                class="btn secondary"
+                                data-copy-link="${escapeHTML(
+                                  url
+                                )}"
+                              >
+                                Copiar
+                              </button>
+                            `
+                            : ""
+                        }
+
+                        <button
+                          type="button"
+                          class="btn danger"
+                          data-delete-link="${escapeHTML(
+                            id
+                          )}"
+                        >
+                          Desativar
+                        </button>
+
+                      </div>
+
+                    </article>
+                  `;
+                })
+                .join("")}
+
+            </div>
+          `
+          : `
+            <div class="empty-state">
+
+              <div class="empty-icon">
+                ↗
+              </div>
+
+              <h3>
+                Nenhum link de pagamento
+              </h3>
+
+              <p>
+                Crie um link e envie-o aos seus clientes pelo WhatsApp, Instagram ou Facebook.
+              </p>
+
+            </div>
+          `
+      }
+
+    </section>
+  `;
+}
+
+function setupLinkActions() {
+  $("#newLinkButton")
     ?.addEventListener(
       "click",
-      () => {
-        if (!url) {
+      openLinkModal
+    );
+
+  document
+    .querySelectorAll(
+      "[data-copy-link]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const url =
+            button.dataset.copyLink;
+
+          if (!url) {
+            return;
+          }
+
+          try {
+            await navigator.clipboard.writeText(
+              url
+            );
+
+            showToast(
+              "Link copiado.",
+              "success"
+            );
+          } catch {
+            showToast(
+              "Não foi possível copiar automaticamente.",
+              "error"
+            );
+          }
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-delete-link]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const id =
+            button.dataset.deleteLink;
+
+          if (!id) {
+            return;
+          }
+
+          if (
+            !window.confirm(
+              "Desativar este link?"
+            )
+          ) {
+            return;
+          }
+
+          try {
+            await del(
+              `/payment-links/${encodeURIComponent(
+                id
+              )}`
+            );
+
+            showToast(
+              "Link desativado.",
+              "success"
+            );
+
+            await loadLinks();
+
+            renderPage(
+              renderLinks()
+            );
+
+            setupLinkActions();
+          } catch (error) {
+            showToast(
+              getErrorMessage(
+                error,
+                "Não foi possível desativar o link."
+              ),
+              "error"
+            );
+          }
+        }
+      );
+    });
+}
+
+function openLinkModal() {
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <h2>Criar link de pagamento</h2>
+        <p>
+          Crie um link público para o seu cliente pagar.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeLinkModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <form id="linkForm">
+
+      <div class="form-group">
+
+        <label for="linkTitle">
+          Título
+        </label>
+
+        <input
+          id="linkTitle"
+          name="title"
+          required
+          maxlength="160"
+          placeholder="Ex.: Venda de produto"
+        />
+
+      </div>
+
+      <div class="form-group">
+
+        <label for="linkDescription">
+          Descrição
+        </label>
+
+        <textarea
+          id="linkDescription"
+          name="description"
+          maxlength="500"
+          placeholder="Descrição opcional"
+        ></textarea>
+
+      </div>
+
+      <div class="form-group">
+
+        <label for="linkAmount">
+          Valor
+        </label>
+
+        <input
+          id="linkAmount"
+          name="amount"
+          type="number"
+          min="1"
+          step="1"
+          required
+          placeholder="0"
+        />
+
+      </div>
+
+      <div class="form-group">
+
+        <label for="linkBankAccount">
+          Conta bancária
+        </label>
+
+        <select
+          id="linkBankAccount"
+          name="bankAccountId"
+        >
+
+          <option value="">
+            Selecionar conta
+          </option>
+
+          ${state.bankAccounts
+            .map(account => {
+              const id =
+                account._id ||
+                account.id;
+
+              return `
+                <option value="${escapeHTML(id)}">
+                  ${escapeHTML(
+                    account.alias ||
+                    account.bankName ||
+                    "Conta bancária"
+                  )}
+                </option>
+              `;
+            })
+            .join("")}
+
+        </select>
+
+      </div>
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn secondary"
+          id="cancelLink"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Criar link
+        </button>
+
+      </div>
+
+    </form>
+  `);
+
+  $("#closeLinkModal")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+  $("#cancelLink")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+  $("#linkForm")
+    ?.addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
+
+        const form =
+          event.currentTarget;
+
+        const formData =
+          new FormData(form);
+
+        const title =
+          String(
+            formData.get("title") ||
+              ""
+          ).trim();
+
+        const description =
+          String(
+            formData.get(
+              "description"
+            ) || ""
+          ).trim();
+
+        const amount =
+          Number(
+            formData.get("amount") ||
+              0
+          );
+
+        const bankAccountId =
+          String(
+            formData.get(
+              "bankAccountId"
+            ) || ""
+          ).trim();
+
+        if (!title) {
+          showToast(
+            "Informe o título.",
+            "error"
+          );
           return;
         }
 
+        if (
+          !Number.isFinite(amount) ||
+          amount <= 0
+        ) {
+          showToast(
+            "Informe um valor válido.",
+            "error"
+          );
+          return;
+        }
+
+        const submit =
+          form.querySelector(
+            "[type='submit']"
+          );
+
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "A criar...";
+        }
+
+        try {
+          const payload = {
+            title,
+            description,
+            amount
+          };
+
+          if (bankAccountId) {
+            payload.bankAccountId =
+              bankAccountId;
+          }
+
+          const result =
+            await post(
+              "/payment-links",
+              payload
+            );
+
+          closeModal();
+
+          await loadLinks();
+
+          renderPage(
+            renderLinks()
+          );
+
+          setupLinkActions();
+
+          showToast(
+            result?.message ||
+              "Link criado com sucesso.",
+            "success"
+          );
+
+          if (
+            result?.url ||
+            result?.honeyUrl
+          ) {
+            openLinkResultModal(
+              result
+            );
+          }
+        } catch (error) {
+          showToast(
+            getErrorMessage(
+              error,
+              "Não foi possível criar o link."
+            ),
+            "error"
+          );
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent =
+              "Criar link";
+          }
+        }
+      }
+    );
+}
+
+function openLinkResultModal(result) {
+  const url =
+    result?.url ||
+    result?.honeyUrl ||
+    "";
+
+  if (!url) {
+    return;
+  }
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <h2>Link criado</h2>
+        <p>
+          O seu link está pronto para partilhar.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeLinkResult"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="form-group">
+
+      <label>
+        Link público
+      </label>
+
+      <input
+        value="${escapeHTML(url)}"
+        readonly
+        id="createdLinkUrl"
+      />
+
+    </div>
+
+    <div class="modal-actions">
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="copyCreatedLink"
+      >
+        Copiar link
+      </button>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="openCreatedLink"
+      >
+        Abrir link
+      </button>
+
+    </div>
+  `);
+
+  $("#closeLinkResult")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+  $("#copyCreatedLink")
+    ?.addEventListener(
+      "click",
+      async () => {
+        try {
+          await navigator.clipboard.writeText(
+            url
+          );
+
+          showToast(
+            "Link copiado.",
+            "success"
+          );
+        } catch {
+          showToast(
+            "Não foi possível copiar.",
+            "error"
+          );
+        }
+      }
+    );
+
+  $("#openCreatedLink")
+    ?.addEventListener(
+      "click",
+      () => {
         window.open(
           url,
           "_blank",
@@ -3555,333 +3016,213 @@ function showCreatedLink(
         );
       }
     );
-
-  $("#backLinks")
-    ?.addEventListener(
-      "click",
-      () => {
-        closeModal();
-        navigate("links");
-      }
-    );
 }
 
-/* ============================================================
-   CONTAS BANCÁRIAS
-   ============================================================ */
+/* =========================================================
+   BANK ACCOUNTS
+========================================================= */
 
 async function loadBankAccounts() {
-  const data =
-    await get(
-      "/bank-accounts"
-    );
+  const data = await get(
+    "/bank-accounts",
+    {
+      timeout: 9000
+    }
+  );
 
   state.bankAccounts =
     normalizeArray(
-      data,
-      [
-        "accounts",
-        "bankAccounts"
-      ]
+      data?.accounts ??
+      data?.data?.accounts ??
+      data?.data ??
+      data
     );
 
   return state.bankAccounts;
 }
 
-function bankAccountId(
-  account
-) {
-  return (
-    account?._id ||
-    account?.id ||
-    ""
-  );
-}
-
 function renderBankAccounts() {
-  pageContent.innerHTML = `
+  const accounts =
+    state.bankAccounts || [];
+
+  return `
     <div class="page-header">
 
       <div>
-
-        <span class="eyebrow">
-          Recebimentos
-        </span>
-
-        <h2>
-          Contas bancárias
-        </h2>
-
+        <h1>Contas bancárias</h1>
         <p>
-          Configura as contas que os teus
-          clientes poderão utilizar para
-          efetuar pagamentos.
+          Configure as contas onde os seus clientes irão efectuar transferências.
         </p>
-
       </div>
 
       <button
-        id="newBankAccountButton"
-        class="btn primary"
         type="button"
+        class="btn primary"
+        id="newBankAccountButton"
       >
-        Adicionar conta
+        + Adicionar conta
       </button>
 
     </div>
 
     <section class="panel">
 
-      <div class="panel-header">
+      ${
+        accounts.length
+          ? `
+            <div class="cards-grid">
 
-        <div>
+              ${accounts
+                .map(account => {
+                  const id =
+                    account._id ||
+                    account.id ||
+                    "";
 
-          <h3>
-            As minhas contas
-          </h3>
+                  const defaultAccount =
+                    Boolean(
+                      account.isDefault
+                    );
 
-          <p>
-            Mantém os dados bancários atualizados.
-          </p>
+                  return `
+                    <article class="bank-card">
 
-        </div>
+                      <div class="bank-card-header">
 
-      </div>
-
-      <div
-        id="bankAccountsContent"
-      ></div>
-
-    </section>
-  `;
-
-  renderBankAccountList();
-
-  $("#newBankAccountButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        openBankAccountForm();
-      }
-    );
-}
-
-function renderBankAccountList() {
-  const container =
-    $("#bankAccountsContent");
-
-  if (!container) {
-    return;
-  }
-
-  if (
-    !state.bankAccounts.length
-  ) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <strong>
-          Nenhuma conta bancária configurada
-        </strong>
-
-        <span>
-          Adiciona uma conta para começares
-          a receber pagamentos.
-        </span>
-
-        <button
-          id="emptyAddBankAccount"
-          class="btn primary"
-          type="button"
-        >
-          Adicionar conta
-        </button>
-
-      </div>
-    `;
-
-    $("#emptyAddBankAccount")
-      ?.addEventListener(
-        "click",
-        () => {
-          openBankAccountForm();
-        }
-      );
-
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="bank-account-grid">
-
-      ${state.bankAccounts
-        .map(account => {
-          const id =
-            bankAccountId(
-              account
-            );
-
-          const active =
-            account.active !==
-            false;
-
-          return `
-            <article
-              class="bank-account-card"
-            >
-
-              <div
-                class="bank-account-head"
-              >
-
-                <div>
-
-                  <span class="eyebrow">
-                    ${escapeHTML(
-                      account.alias ||
-                        "Conta bancária"
-                    )}
-                  </span>
-
-                  <h3>
-                    ${escapeHTML(
-                      account.bankName ||
-                        account.bank ||
-                        "Banco"
-                    )}
-                  </h3>
-
-                </div>
-
-                <span
-                  class="
-                    status
-                    ${
-                      active
-                        ? "success"
-                        : "neutral"
-                    }
-                  "
-                >
-                  ${
-                    active
-                      ? "Ativa"
-                      : "Inativa"
-                  }
-                </span>
-
-              </div>
-
-              <div
-                class="bank-account-details"
-              >
-
-                <div>
-
-                  <span>
-                    Titular
-                  </span>
-
-                  <strong>
-                    ${escapeHTML(
-                      account.accountHolder ||
-                        "—"
-                    )}
-                  </strong>
-
-                </div>
-
-                <div>
-
-                  <span>
-                    Número
-                  </span>
-
-                  <strong>
-                    ${escapeHTML(
-                      account.accountNumber ||
-                        "—"
-                    )}
-                  </strong>
-
-                </div>
-
-                <div>
-
-                  <span>
-                    IBAN
-                  </span>
-
-                  <strong>
-                    ${escapeHTML(
-                      account.iban ||
-                        "—"
-                    )}
-                  </strong>
-
-                </div>
-
-                ${
-                  account.isDefault
-                    ? `
                         <div>
+                          <h3>
+                            ${escapeHTML(
+                              account.alias ||
+                              account.bankName ||
+                              "Conta bancária"
+                            )}
+                          </h3>
 
-                          <span>
-                            Principal
-                          </span>
-
-                          <strong>
-                            Sim
-                          </strong>
+                          ${
+                            defaultAccount
+                              ? `
+                                <span class="status success">
+                                  Principal
+                                </span>
+                              `
+                              : ""
+                          }
 
                         </div>
-                      `
-                    : ""
-                }
 
-              </div>
+                      </div>
 
-              <div
-                class="table-actions"
-              >
+                      <div class="bank-card-body">
 
-                <button
-                  class="btn small secondary"
-                  data-edit-bank="${escapeHTML(
-                    id
-                  )}"
-                  type="button"
-                >
-                  Editar
-                </button>
+                        <div>
+                          <span>Banco</span>
+                          <strong>
+                            ${escapeHTML(
+                              account.bankName ||
+                              "—"
+                            )}
+                          </strong>
+                        </div>
 
-                ${
-                  active
-                    ? `
+                        <div>
+                          <span>Titular</span>
+                          <strong>
+                            ${escapeHTML(
+                              account.accountHolder ||
+                              "—"
+                            )}
+                          </strong>
+                        </div>
+
+                        <div>
+                          <span>Conta</span>
+                          <strong>
+                            ${escapeHTML(
+                              account.accountNumber ||
+                              account.iban ||
+                              "—"
+                            )}
+                          </strong>
+                        </div>
+
+                      </div>
+
+                      <div class="bank-card-actions">
+
                         <button
-                          class="btn small danger"
+                          type="button"
+                          class="btn secondary"
+                          data-edit-bank="${escapeHTML(
+                            id
+                          )}"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          class="btn danger"
                           data-delete-bank="${escapeHTML(
                             id
                           )}"
-                          type="button"
                         >
-                          Desativar
+                          Remover
                         </button>
-                      `
-                    : ""
-                }
 
+                      </div>
+
+                    </article>
+                  `;
+                })
+                .join("")}
+
+            </div>
+          `
+          : `
+            <div class="empty-state">
+
+              <div class="empty-icon">
+                $
               </div>
 
-            </article>
-          `;
-        })
-        .join("")}
+              <h3>
+                Nenhuma conta bancária
+              </h3>
 
-    </div>
+              <p>
+                Adicione pelo menos uma conta para começar a receber pagamentos.
+              </p>
+
+              <button
+                type="button"
+                class="btn primary"
+                id="emptyAddBank"
+              >
+                Adicionar conta
+              </button>
+
+            </div>
+          `
+      }
+
+    </section>
   `;
+}
 
-  container
+function setupBankAccountActions() {
+  $("#newBankAccountButton")
+    ?.addEventListener(
+      "click",
+      () => openBankAccountModal()
+    );
+
+  $("#emptyAddBank")
+    ?.addEventListener(
+      "click",
+      () => openBankAccountModal()
+    );
+
+  document
     .querySelectorAll(
       "[data-edit-bank]"
     )
@@ -3890,22 +3231,19 @@ function renderBankAccountList() {
         "click",
         () => {
           const id =
-            button.dataset
-              .editBank;
+            button.dataset.editBank;
 
           const account =
             state.bankAccounts.find(
               item =>
                 String(
-                  bankAccountId(
-                    item
-                  )
-                ) ===
-                String(id)
+                  item._id ||
+                  item.id
+                ) === String(id)
             );
 
           if (account) {
-            openBankAccountForm(
+            openBankAccountModal(
               account
             );
           }
@@ -3913,218 +3251,245 @@ function renderBankAccountList() {
       );
     });
 
-  container
+  document
     .querySelectorAll(
       "[data-delete-bank]"
     )
     .forEach(button => {
       button.addEventListener(
         "click",
-        () => {
-          void deleteBankAccount(
-            button.dataset
-              .deleteBank
-          );
+        async () => {
+          const id =
+            button.dataset.deleteBank;
+
+          if (!id) {
+            return;
+          }
+
+          if (
+            !window.confirm(
+              "Remover esta conta bancária?"
+            )
+          ) {
+            return;
+          }
+
+          try {
+            await del(
+              `/bank-accounts/${encodeURIComponent(
+                id
+              )}`
+            );
+
+            showToast(
+              "Conta removida.",
+              "success"
+            );
+
+            await loadBankAccounts();
+
+            renderPage(
+              renderBankAccounts()
+            );
+
+            setupBankAccountActions();
+          } catch (error) {
+            showToast(
+              getErrorMessage(
+                error,
+                "Não foi possível remover a conta."
+              ),
+              "error"
+            );
+          }
         }
       );
     });
 }
 
-/*
- * IMPORTANTE:
- *
- * O server.js atual utiliza:
- *
- * POST /api/bank-accounts
- *
- * PUT /api/bank-accounts/:id
- *
- * DELETE /api/bank-accounts/:id
- *
- * Campos:
- *
- * bankName
- * accountNumber
- * iban
- * accountHolder
- * alias
- * isDefault
- *
- * Portanto este formulário usa exatamente
- * esse contrato.
- */
-
-function openBankAccountForm(
+function openBankAccountModal(
   account = null
 ) {
-  const editing =
-    Boolean(account);
+  const editing = Boolean(account);
 
-  openModal(
-    editing
-      ? "Editar conta bancária"
-      : "Adicionar conta bancária",
+  const id =
+    account?._id ||
+    account?.id ||
+    "";
 
-    `
-      <form
-        id="bankAccountForm"
-        class="form-grid"
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <h2>
+          ${
+            editing
+              ? "Editar conta bancária"
+              : "Adicionar conta bancária"
+          }
+        </h2>
+
+        <p>
+          Estes dados serão apresentados ao cliente no checkout.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeBankModal"
       >
+        ×
+      </button>
 
-        <label>
+    </div>
 
-          <span>
-            Banco
-          </span>
+    <form id="bankAccountForm">
 
-          <input
-            name="bankName"
-            required
-            maxlength="120"
-            value="${escapeHTML(
-              account?.bankName ||
-                ""
-            )}"
-          >
+      <div class="form-group">
 
+        <label for="bankName">
+          Banco
         </label>
 
-        <label>
+        <input
+          id="bankName"
+          name="bankName"
+          required
+          maxlength="120"
+          value="${escapeHTML(
+            account?.bankName || ""
+          )}"
+          placeholder="Ex.: BFA"
+        />
 
-          <span>
-            Número da conta
-          </span>
+      </div>
 
-          <input
-            name="accountNumber"
-            maxlength="80"
-            value="${escapeHTML(
-              account?.accountNumber ||
-                ""
-            )}"
-          >
+      <div class="form-group">
 
+        <label for="bankAccountNumber">
+          Número da conta
         </label>
 
-        <label>
+        <input
+          id="bankAccountNumber"
+          name="accountNumber"
+          maxlength="80"
+          value="${escapeHTML(
+            account?.accountNumber || ""
+          )}"
+        />
 
-          <span>
-            IBAN
-          </span>
+      </div>
 
-          <input
-            name="iban"
-            maxlength="80"
-            value="${escapeHTML(
-              account?.iban ||
-                ""
-            )}"
-            placeholder="AO06..."
-          >
+      <div class="form-group">
 
+        <label for="bankIban">
+          IBAN
         </label>
 
-        <label>
+        <input
+          id="bankIban"
+          name="iban"
+          maxlength="80"
+          value="${escapeHTML(
+            account?.iban || ""
+          )}"
+        />
 
-          <span>
-            Titular
-          </span>
+      </div>
 
-          <input
-            name="accountHolder"
-            required
-            maxlength="160"
-            value="${escapeHTML(
-              account?.accountHolder ||
-                ""
-            )}"
-          >
+      <div class="form-group">
 
+        <label for="bankHolder">
+          Titular da conta
         </label>
 
-        <label>
+        <input
+          id="bankHolder"
+          name="accountHolder"
+          required
+          maxlength="160"
+          value="${escapeHTML(
+            account?.accountHolder || ""
+          )}"
+        />
 
-          <span>
-            Nome apresentado
-          </span>
+      </div>
 
-          <input
-            name="alias"
-            maxlength="120"
-            value="${escapeHTML(
-              account?.alias ||
-                account?.displayName ||
-                ""
-            )}"
-            placeholder="Ex.: BFA principal"
-          >
+      <div class="form-group">
 
+        <label for="bankAlias">
+          Nome da conta
         </label>
 
-        <label>
+        <input
+          id="bankAlias"
+          name="alias"
+          maxlength="100"
+          value="${escapeHTML(
+            account?.alias || ""
+          )}"
+          placeholder="Ex.: Conta principal"
+        />
 
-          <span>
-            Conta principal
-          </span>
+      </div>
 
-          <select
-            name="isDefault"
-          >
+      <label class="checkbox-row">
 
-            <option
-              value="false"
-              ${
-                account?.isDefault
-                  ? ""
-                  : "selected"
-              }
-            >
-              Não
-            </option>
+        <input
+          type="checkbox"
+          name="isDefault"
+          ${
+            account?.isDefault
+              ? "checked"
+              : ""
+          }
+        />
 
-            <option
-              value="true"
-              ${
-                account?.isDefault
-                  ? "selected"
-                  : ""
-              }
-            >
-              Sim
-            </option>
+        <span>
+          Definir como conta principal
+        </span>
 
-          </select>
+      </label>
 
-        </label>
+      <div class="modal-actions">
 
-        <div
-          class="form-actions full"
+        <button
+          type="button"
+          class="btn secondary"
+          id="cancelBank"
         >
+          Cancelar
+        </button>
 
-          <button
-            type="button"
-            class="btn secondary"
-            data-close-modal
-          >
-            Cancelar
-          </button>
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          ${
+            editing
+              ? "Guardar alterações"
+              : "Adicionar conta"
+          }
+        </button>
 
-          <button
-            type="submit"
-            class="btn primary"
-          >
-            ${
-              editing
-                ? "Guardar alterações"
-                : "Adicionar conta"
-            }
-          </button>
+      </div>
 
-        </div>
+    </form>
+  `);
 
-      </form>
-    `
-  );
+  $("#closeBankModal")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+
+  $("#cancelBank")
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
 
   $("#bankAccountForm")
     ?.addEventListener(
@@ -4135,341 +3500,230 @@ function openBankAccountForm(
         const form =
           event.currentTarget;
 
-        const data =
+        const formData =
           new FormData(form);
 
-        const body = {
-          bankName:
-            String(
-              data.get(
-                "bankName"
-              ) || ""
-            ).trim(),
+        const bankName =
+          String(
+            formData.get(
+              "bankName"
+            ) || ""
+          ).trim();
 
-          accountNumber:
-            String(
-              data.get(
-                "accountNumber"
-              ) || ""
-            ).trim(),
+        const accountNumber =
+          String(
+            formData.get(
+              "accountNumber"
+            ) || ""
+          ).trim();
 
-          iban:
-            String(
-              data.get(
-                "iban"
-              ) || ""
-            ).trim(),
+        const iban =
+          String(
+            formData.get("iban") ||
+              ""
+          ).trim();
 
-          accountHolder:
-            String(
-              data.get(
-                "accountHolder"
-              ) || ""
-            ).trim(),
+        const accountHolder =
+          String(
+            formData.get(
+              "accountHolder"
+            ) || ""
+          ).trim();
 
-          alias:
-            String(
-              data.get(
-                "alias"
-              ) || ""
-            ).trim(),
+        const alias =
+          String(
+            formData.get("alias") ||
+              ""
+          ).trim();
 
-          isDefault:
-            data.get(
-              "isDefault"
-            ) === "true"
-        };
+        const isDefault =
+          formData.get(
+            "isDefault"
+          ) === "on";
 
-        if (
-          !body.bankName ||
-          !body.accountHolder ||
-          (
-            !body.accountNumber &&
-            !body.iban
-          )
-        ) {
+        if (!bankName) {
           showToast(
-            "Banco, titular e número da conta ou IBAN são obrigatórios.",
+            "Informe o banco.",
             "error"
           );
-
           return;
         }
 
+        if (
+          !accountNumber &&
+          !iban
+        ) {
+          showToast(
+            "Informe o número da conta ou IBAN.",
+            "error"
+          );
+          return;
+        }
+
+        if (!accountHolder) {
+          showToast(
+            "Informe o titular da conta.",
+            "error"
+          );
+          return;
+        }
+
+        const submit =
+          form.querySelector(
+            "[type='submit']"
+          );
+
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "A guardar...";
+        }
+
         try {
+          const payload = {
+            bankName,
+            accountNumber,
+            iban,
+            accountHolder,
+            alias,
+            isDefault
+          };
+
           if (editing) {
-            const id =
-              bankAccountId(
-                account
-              );
-
-            if (!id) {
-              throw new Error(
-                "ID da conta bancária não encontrado."
-              );
-            }
-
-            /*
-             * CORRETO:
-             *
-             * PUT /api/bank-accounts/:id
-             *
-             * Não usar PATCH.
-             */
-
             await put(
               `/bank-accounts/${encodeURIComponent(
                 id
               )}`,
-              body
+              payload
             );
           } else {
             await post(
               "/bank-accounts",
-              body
+              payload
             );
           }
 
           closeModal();
 
-          await loadBankAccounts();
-
-          renderBankAccounts();
-
           showToast(
             editing
-              ? "Conta bancária atualizada."
-              : "Conta bancária adicionada.",
+              ? "Conta actualizada."
+              : "Conta adicionada.",
             "success"
           );
-        } catch (error) {
-          console.error(
-            "Honey Pay bank account:",
-            error
+
+          await loadBankAccounts();
+
+          renderPage(
+            renderBankAccounts()
           );
 
+          setupBankAccountActions();
+        } catch (error) {
           showToast(
             getErrorMessage(
-              error
+              error,
+              "Não foi possível guardar a conta."
             ),
             "error"
           );
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+          }
         }
       }
     );
 }
 
-async function deleteBankAccount(
-  id
-) {
-  if (!id) {
-    return;
-  }
+/* =========================================================
+   REPORTS
+========================================================= */
 
-  if (
-    !window.confirm(
-      "Queres realmente remover esta conta bancária?"
-    )
-  ) {
-    return;
-  }
-
-  try {
-    await del(
-      `/bank-accounts/${encodeURIComponent(
-        id
-      )}`
-    );
-
-    await loadBankAccounts();
-
-    renderBankAccounts();
-
-    showToast(
-      "Conta bancária desativada.",
-      "success"
-    );
-  } catch (error) {
-    showToast(
-      getErrorMessage(
-        error
-      ),
-      "error"
-    );
-  }
+async function loadReports() {
+  return get(
+    "/reports",
+    {
+      timeout: 9000
+    }
+  );
 }
 
-/* ============================================================
-   RELATÓRIOS
-   ============================================================ */
-
 async function renderReports() {
-  if (
-    !state.payments.length
-  ) {
-    try {
-      await loadPayments();
-    } catch {
-      /* relatório pode continuar vazio */
-    }
+  let data = null;
+
+  try {
+    data =
+      await loadReports();
+  } catch (error) {
+    console.warn(
+      "Reports:",
+      error
+    );
+
+    data = {};
   }
 
-  const successful =
-    state.payments.filter(
-      payment =>
-        [
-          "PAID",
-          "SUCCEEDED",
-          "SUCCESS"
-        ].includes(
-          String(
-            payment.status ||
-              ""
-          ).toUpperCase()
-        )
-    );
+  const report =
+    data?.reports ||
+    data?.data?.reports ||
+    data?.data ||
+    data ||
+    {};
 
-  const pending =
-    state.payments.filter(
-      payment =>
-        [
-          "PENDING",
-          "PROCESSING"
-        ].includes(
-          String(
-            payment.status ||
-              ""
-          ).toUpperCase()
-        )
-    );
-
-  const failed =
-    state.payments.filter(
-      payment =>
-        [
-          "FAILED",
-          "CANCELLED",
-          "EXPIRED"
-        ].includes(
-          String(
-            payment.status ||
-              ""
-          ).toUpperCase()
-        )
-    );
-
-  const revenue =
-    successful.reduce(
-      (sum, payment) =>
-        sum +
-        Number(
-          payment.amount ||
-            0
-        ),
-      0
-    );
-
-  const average =
-    successful.length
-      ? revenue /
-        successful.length
-      : 0;
-
-  pageContent.innerHTML = `
+  return `
     <div class="page-header">
 
       <div>
-
-        <span class="eyebrow">
-          Gestão
-        </span>
-
-        <h2>
-          Relatórios
-        </h2>
-
+        <h1>Relatórios</h1>
         <p>
-          Resumo do desempenho financeiro
-          da tua conta.
+          Visão financeira e operacional do seu negócio.
         </p>
-
       </div>
 
     </div>
 
     <div class="stats-grid">
 
-      <article class="stat-card">
+      ${dashboardCard(
+        "Receita",
+        formatKz(
+          report.totalRevenue ??
+          state.dashboard?.totalRevenue ??
+          0
+        ),
+        "₣"
+      )}
 
-        <span class="stat-label">
-          Receita
-        </span>
+      ${dashboardCard(
+        "Pedidos",
+        formatNumber(
+          report.totalOrders ??
+          state.dashboard?.totalOrders ??
+          0
+        ),
+        "▣"
+      )}
 
-        <strong>
-          ${formatKz(
-            revenue
-          )}
-        </strong>
+      ${dashboardCard(
+        "Clientes",
+        formatNumber(
+          report.totalCustomers ??
+          state.dashboard?.totalCustomers ??
+          0
+        ),
+        "◉"
+      )}
 
-        <span class="stat-meta">
-          Pagamentos concluídos
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Concluídos
-        </span>
-
-        <strong>
-          ${formatNumber(
-            successful.length
-          )}
-        </strong>
-
-        <span class="stat-meta">
-          Transações pagas
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Pendentes
-        </span>
-
-        <strong>
-          ${formatNumber(
-            pending.length
-          )}
-        </strong>
-
-        <span class="stat-meta">
-          Em processamento
-        </span>
-
-      </article>
-
-      <article class="stat-card">
-
-        <span class="stat-label">
-          Falhados
-        </span>
-
-        <strong>
-          ${formatNumber(
-            failed.length
-          )}
-        </strong>
-
-        <span class="stat-meta">
-          Não concluídos
-        </span>
-
-      </article>
+      ${dashboardCard(
+        "Produtos",
+        formatNumber(
+          report.totalProducts ??
+          state.dashboard?.totalProducts ??
+          0
+        ),
+        "□"
+      )}
 
     </div>
 
@@ -4478,66 +3732,56 @@ async function renderReports() {
       <div class="panel-header">
 
         <div>
+          <h2>
+            Resumo
+          </h2>
 
-          <h3>
-            Indicadores
-          </h3>
-
+          <p>
+            Dados disponíveis no período actual.
+          </p>
         </div>
 
       </div>
 
-      <div
-        class="settings-list"
-      >
+      <div class="summary-list">
 
-        <div>
-
-          <span>
-            Taxa de sucesso
-          </span>
-
+        <div class="summary-row">
+          <span>Receita bruta</span>
           <strong>
-            ${
-              state.payments.length
-                ? Math.round(
-                    (successful.length /
-                      state.payments
-                        .length) *
-                      100
-                  )
-                : 0
-            }%
-          </strong>
-
-        </div>
-
-        <div>
-
-          <span>
-            Total de transações
-          </span>
-
-          <strong>
-            ${formatNumber(
-              state.payments.length
+            ${escapeHTML(
+              formatKz(
+                report.totalRevenue ??
+                state.dashboard?.totalRevenue ??
+                0
+              )
             )}
           </strong>
-
         </div>
 
-        <div>
-
-          <span>
-            Ticket médio
-          </span>
-
+        <div class="summary-row">
+          <span>Taxas</span>
           <strong>
-            ${formatKz(
-              average
+            ${escapeHTML(
+              formatKz(
+                report.totalFees ??
+                state.dashboard?.totalFees ??
+                0
+              )
             )}
           </strong>
+        </div>
 
+        <div class="summary-row">
+          <span>Receita líquida</span>
+          <strong>
+            ${escapeHTML(
+              formatKz(
+                report.netRevenue ??
+                state.dashboard?.netRevenue ??
+                0
+              )
+            )}
+          </strong>
         </div>
 
       </div>
@@ -4546,32 +3790,22 @@ async function renderReports() {
   `;
 }
 
-/* ============================================================
-   DEFINIÇÕES
-   ============================================================ */
+/* =========================================================
+   SETTINGS
+========================================================= */
 
 function renderSettings() {
   const merchant =
-    state.merchant ||
-    {};
+    state.merchant || {};
 
-  pageContent.innerHTML = `
+  return `
     <div class="page-header">
 
       <div>
-
-        <span class="eyebrow">
-          Conta
-        </span>
-
-        <h2>
-          Definições
-        </h2>
-
+        <h1>Definições</h1>
         <p>
-          Atualiza os dados do teu negócio.
+          Configure os dados do seu negócio.
         </p>
-
       </div>
 
     </div>
@@ -4581,125 +3815,110 @@ function renderSettings() {
       <div class="panel-header">
 
         <div>
-
-          <h3>
+          <h2>
             Dados do negócio
-          </h3>
+          </h2>
 
           <p>
-            Estas informações podem aparecer
-            no checkout.
+            Estas informações podem ser apresentadas aos seus clientes.
           </p>
-
         </div>
 
       </div>
 
-      <form
-        id="settingsForm"
-        class="form-grid"
-      >
+      <form id="settingsForm">
 
-        <label class="full">
+        <div class="form-grid">
 
-          <span>
-            Nome do negócio
-          </span>
+          <div class="form-group">
 
-          <input
-            name="businessName"
-            required
-            value="${escapeHTML(
-              merchant.businessName ||
+            <label for="settingsBusinessName">
+              Nome do negócio
+            </label>
+
+            <input
+              id="settingsBusinessName"
+              name="businessName"
+              value="${escapeHTML(
+                merchant.businessName ||
+                merchant.name ||
                 ""
-            )}"
-          >
+              )}"
+            />
 
-        </label>
+          </div>
 
-        <label>
+          <div class="form-group">
 
-          <span>
-            Email
-          </span>
+            <label for="settingsPhone">
+              Telefone
+            </label>
 
-          <input
-            value="${escapeHTML(
-              state.user?.email ||
+            <input
+              id="settingsPhone"
+              name="phone"
+              value="${escapeHTML(
+                merchant.phone ||
                 ""
-            )}"
-            disabled
-          >
+              )}"
+            />
 
-        </label>
+          </div>
 
-        <label>
+          <div class="form-group">
 
-          <span>
-            Telefone
-          </span>
+            <label for="settingsNif">
+              NIF
+            </label>
 
-          <input
-            name="phone"
-            value="${escapeHTML(
-              merchant.phone ||
+            <input
+              id="settingsNif"
+              name="nif"
+              value="${escapeHTML(
+                merchant.nif ||
                 ""
-            )}"
-          >
+              )}"
+            />
 
-        </label>
+          </div>
 
-        <label>
+          <div class="form-group">
 
-          <span>
-            NIF
-          </span>
+            <label for="settingsCity">
+              Cidade
+            </label>
 
-          <input
-            name="nif"
-            value="${escapeHTML(
-              merchant.nif ||
+            <input
+              id="settingsCity"
+              name="city"
+              value="${escapeHTML(
+                merchant.city ||
                 ""
-            )}"
-          >
+              )}"
+            />
 
-        </label>
+          </div>
 
-        <label>
+          <div class="form-group full">
 
-          <span>
-            Cidade
-          </span>
+            <label for="settingsAddress">
+              Morada
+            </label>
 
-          <input
-            name="city"
-            value="${escapeHTML(
-              merchant.city ||
+            <input
+              id="settingsAddress"
+              name="address"
+              value="${escapeHTML(
+                merchant.address ||
                 ""
-            )}"
-          >
+              )}"
+            />
 
-        </label>
+          </div>
 
-        <label class="full">
+        </div>
 
-          <span>
-            Morada
-          </span>
-
-          <input
-            name="address"
-            value="${escapeHTML(
-              merchant.address ||
-                ""
-            )}"
-          >
-
-        </label>
-
-        <div
-          class="form-actions full"
-        >
+        <div class="modal-actions">
 
           <button
             type="submit"
@@ -4714,292 +3933,392 @@ function renderSettings() {
 
     </section>
   `;
+}
 
+function setupSettingsActions() {
   $("#settingsForm")
     ?.addEventListener(
       "submit",
-      saveSettings
-    );
-}
+      async event => {
+        event.preventDefault();
 
-async function saveSettings(
-  event
-) {
-  event.preventDefault();
+        const form =
+          event.currentTarget;
 
-  const form =
-    event.currentTarget;
+        const data =
+          new FormData(form);
 
-  const data =
-    new FormData(form);
+        const payload = {
+          businessName:
+            String(
+              data.get(
+                "businessName"
+              ) || ""
+            ).trim(),
 
-  const body = {
-    businessName:
-      String(
-        data.get(
-          "businessName"
-        ) || ""
-      ).trim(),
+          phone:
+            String(
+              data.get("phone") ||
+                ""
+            ).trim(),
 
-    phone:
-      String(
-        data.get(
-          "phone"
-        ) || ""
-      ).trim(),
+          nif:
+            String(
+              data.get("nif") ||
+                ""
+            ).trim(),
 
-    nif:
-      String(
-        data.get(
-          "nif"
-        ) || ""
-      ).trim(),
+          city:
+            String(
+              data.get("city") ||
+                ""
+            ).trim(),
 
-    city:
-      String(
-        data.get(
-          "city"
-        ) || ""
-      ).trim(),
+          address:
+            String(
+              data.get("address") ||
+                ""
+            ).trim()
+        };
 
-    address:
-      String(
-        data.get(
-          "address"
-        ) || ""
-      ).trim()
-  };
+        const submit =
+          form.querySelector(
+            "[type='submit']"
+          );
 
-  try {
-    const data =
-      await patch(
-        "/merchant",
-        body
-      );
-
-    state.merchant =
-      data?.merchant ||
-      state.merchant;
-
-    updateMerchantUI();
-
-    showToast(
-      "Definições guardadas.",
-      "success"
-    );
-  } catch (error) {
-    showToast(
-      getErrorMessage(
-        error
-      ),
-      "error"
-    );
-  }
-}
-
-/* ============================================================
-   LOGOUT
-   ============================================================ */
-
-function setupLogout() {
-  $("#logoutButton")
-    ?.addEventListener(
-      "click",
-      async () => {
-        if (
-          !window.confirm(
-            "Queres terminar a sessão?"
-          )
-        ) {
-          return;
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "A guardar...";
         }
 
         try {
-          await post(
-            "/auth/logout",
-            {}
-          );
-        } catch {
-          /*
-           * Mesmo que a API falhe,
-           * o frontend termina a sessão.
-           */
-        }
+          const result =
+            await patch(
+              "/merchant",
+              payload
+            );
 
-        state.authenticated =
-          false;
+          state.merchant =
+            result?.merchant ||
+            result?.data?.merchant ||
+            {
+              ...state.merchant,
+              ...payload
+            };
 
-        stopPaymentRefresh();
-
-        forceHideLoader();
-
-        window.location.replace(
-          "/login"
-        );
-      }
-    );
-}
-
-/* ============================================================
-   REFRESH BUTTON
-   ============================================================ */
-
-function setupRefreshButton() {
-  $("#refreshButton")
-    ?.addEventListener(
-      "click",
-      async () => {
-        const button =
-          $("#refreshButton");
-
-        button?.classList.add(
-          "loading"
-        );
-
-        try {
-          await renderRoute(
-            state.currentRoute,
-            true
-          );
+          updateMerchantUI();
 
           showToast(
-            "Painel atualizado.",
+            "Definições actualizadas.",
             "success"
           );
         } catch (error) {
           showToast(
             getErrorMessage(
-              error
+              error,
+              "Não foi possível guardar as definições."
             ),
             "error"
           );
         } finally {
-          button?.classList.remove(
-            "loading"
-          );
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent =
+              "Guardar alterações";
+          }
         }
       }
     );
 }
 
-/* ============================================================
-   BACKGROUND REFRESH
-   ============================================================ */
+/* =========================================================
+   PAGE RENDER
+========================================================= */
 
-function startPaymentRefresh() {
-  stopPaymentRefresh();
+function renderPage(html) {
+  const content =
+    $("#pageContent");
 
-  state.paymentTimer =
-    setInterval(
-      () => {
-        if (
-          !state.authenticated
-        ) {
-          return;
-        }
-
-        void refreshPayments(
-          false
-        );
-      },
-      15000
-    );
-}
-
-function stopPaymentRefresh() {
-  if (
-    state.paymentTimer
-  ) {
-    clearInterval(
-      state.paymentTimer
-    );
-  }
-
-  state.paymentTimer =
-    null;
-}
-
-/* ============================================================
-   COPY
-   ============================================================ */
-
-async function copyText(
-  text
-) {
-  if (!text) {
+  if (!content) {
     return;
   }
 
-  try {
-    if (
-      navigator.clipboard &&
-      window.isSecureContext
-    ) {
-      await navigator.clipboard.writeText(
-        text
-      );
+  content.innerHTML =
+    html;
+}
 
-      showToast(
-        "Copiado para a área de transferência.",
-        "success"
-      );
+function renderLoading() {
+  renderPage(`
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>
+        A carregar...
+      </p>
+    </div>
+  `);
+}
 
-      return;
+function renderError(message) {
+  renderPage(`
+    <div class="error-state">
+
+      <div class="error-icon">
+        !
+      </div>
+
+      <h2>
+        Não foi possível carregar esta página
+      </h2>
+
+      <p>
+        ${escapeHTML(message)}
+      </p>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="retryPage"
+      >
+        Tentar novamente
+      </button>
+
+    </div>
+  `);
+
+  $("#retryPage")
+    ?.addEventListener(
+      "click",
+      () => {
+        renderRoute(
+          state.currentRoute,
+          true
+        );
+      }
+    );
+}
+
+/* =========================================================
+   ROUTE LOADER
+========================================================= */
+
+async function renderRoute(
+  route,
+  force = false
+) {
+  const target =
+    ROUTES[route]
+      ? route
+      : "dashboard";
+
+  state.currentRoute =
+    target;
+
+  updateNavigation(target);
+
+  if (!force) {
+    renderLoading();
+  }
+
+  switch (target) {
+    case "dashboard": {
+      try {
+        const dashboard =
+          await loadDashboard();
+
+        renderPage(
+          renderDashboard(
+            dashboard
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Dashboard:",
+          error
+        );
+
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar o dashboard."
+          )
+        );
+      }
+
+      break;
     }
 
-    throw new Error(
-      "Clipboard API indisponível."
-    );
-  } catch {
-    const textarea =
-      document.createElement(
-        "textarea"
-      );
+    case "payments": {
+      try {
+        await loadPayments();
 
-    textarea.value =
-      text;
+        renderPage(
+          renderPayments()
+        );
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os pagamentos."
+          )
+        );
+      }
 
-    textarea.style.position =
-      "fixed";
-
-    textarea.style.opacity =
-      "0";
-
-    document.body.appendChild(
-      textarea
-    );
-
-    textarea.focus();
-    textarea.select();
-
-    try {
-      document.execCommand(
-        "copy"
-      );
-
-      showToast(
-        "Copiado para a área de transferência.",
-        "success"
-      );
-    } catch {
-      showToast(
-        "Não foi possível copiar automaticamente.",
-        "error"
-      );
+      break;
     }
 
-    textarea.remove();
+    case "orders": {
+      try {
+        await loadOrders();
+
+        renderPage(
+          renderOrders()
+        );
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os pedidos."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "products": {
+      try {
+        await loadProducts();
+
+        renderPage(
+          renderProducts()
+        );
+
+        setupProductActions();
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os produtos."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "customers": {
+      try {
+        await loadCustomers();
+
+        renderPage(
+          renderCustomers()
+        );
+
+        setupCustomerActions();
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os clientes."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "links": {
+      try {
+        await Promise.all([
+          loadLinks(),
+          loadBankAccounts()
+        ]);
+
+        renderPage(
+          renderLinks()
+        );
+
+        setupLinkActions();
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os links."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "bank-accounts": {
+      try {
+        await loadBankAccounts();
+
+        renderPage(
+          renderBankAccounts()
+        );
+
+        setupBankAccountActions();
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar as contas bancárias."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "reports": {
+      try {
+        const html =
+          await renderReports();
+
+        renderPage(html);
+      } catch (error) {
+        renderError(
+          getErrorMessage(
+            error,
+            "Não foi possível carregar os relatórios."
+          )
+        );
+      }
+
+      break;
+    }
+
+    case "settings": {
+      renderPage(
+        renderSettings()
+      );
+
+      setupSettingsActions();
+
+      break;
+    }
+
+    default: {
+      renderPage(
+        renderDashboard(
+          state.dashboard
+        )
+      );
+    }
   }
 }
 
-/* ============================================================
+/* =========================================================
    BANK ACCOUNT NAVIGATION
-   ============================================================ */
+========================================================= */
 
 function ensureBankAccountsNavigation() {
   const existing =
     document.querySelector(
-      '.nav-item[data-route="bank-accounts"]'
+      ".nav-item[data-route='bank-accounts']"
     );
 
   if (existing) {
@@ -5008,35 +4327,28 @@ function ensureBankAccountsNavigation() {
 
   const nav =
     document.querySelector(
-      ".nav"
+      ".sidebar-nav, .nav-list, nav"
     );
 
   if (!nav) {
     return;
   }
 
-  const section =
-    nav.querySelector(
-      ".nav-section"
-    ) || nav;
+  const item =
+    document.createElement("a");
 
-  const link =
-    document.createElement(
-      "a"
-    );
-
-  link.href =
+  item.href =
     "#bank-accounts";
 
-  link.className =
+  item.className =
     "nav-item";
 
-  link.dataset.route =
+  item.dataset.route =
     "bank-accounts";
 
-  link.innerHTML = `
+  item.innerHTML = `
     <span class="nav-icon">
-      ▤
+      $
     </span>
 
     <span>
@@ -5044,188 +4356,178 @@ function ensureBankAccountsNavigation() {
     </span>
   `;
 
-  link.addEventListener(
+  item.addEventListener(
     "click",
     event => {
       event.preventDefault();
 
-      navigate(
-        "bank-accounts"
-      );
+      window.location.hash =
+        "bank-accounts";
     }
   );
 
-  section.appendChild(
-    link
-  );
+  nav.appendChild(item);
 }
 
-/* ============================================================
-   ROUTER PRINCIPAL
-   ============================================================ */
+/* =========================================================
+   BACKGROUND REFRESH
+========================================================= */
 
-async function renderRoute(
-  route,
-  forceReload = false
-) {
-  if (!ROUTES[route]) {
-    route = "dashboard";
-  }
-
+function startPaymentRefresh() {
   if (
-    state.rendering &&
-    !forceReload
+    state.paymentRefreshTimer
   ) {
     return;
   }
 
-  state.currentRoute =
-    route;
+  state.paymentRefreshTimer =
+    window.setInterval(
+      async () => {
+        if (
+          !state.authenticated ||
+          document.hidden
+        ) {
+          return;
+        }
 
-  updateNavigation(
-    route
-  );
+        try {
+          await loadPayments();
 
-  if (!pageContent) {
-    return;
-  }
+          if (
+            state.currentRoute ===
+            "payments"
+          ) {
+            renderPage(
+              renderPayments()
+            );
+          }
+        } catch (error) {
+          console.warn(
+            "Background payment refresh:",
+            error
+          );
+        }
+      },
+      30000
+    );
+}
 
-  state.rendering =
-    true;
-
-  pageContent.classList.add(
-    "is-loading"
-  );
-
-  try {
-    switch (route) {
-      case "dashboard":
-        await Promise.all([
-          loadDashboard(),
-          loadPayments()
-        ]);
-
-        renderDashboard();
-
-        break;
-
-      case "payments":
-        await loadPayments();
-
-        renderPayments();
-
-        break;
-
-      case "orders":
-        await loadOrders();
-
-        renderOrders();
-
-        break;
-
-      case "products":
-        await loadProducts();
-
-        renderProducts();
-
-        break;
-
-      case "customers":
-        await loadCustomers();
-
-        renderCustomers();
-
-        break;
-
-      case "links":
-        await Promise.all([
-          loadLinks(),
-          loadBankAccounts()
-        ]);
-
-        renderLinks();
-
-        break;
-
-      case "bank-accounts":
-        await loadBankAccounts();
-
-        renderBankAccounts();
-
-        break;
-
-      case "reports":
-        await renderReports();
-
-        break;
-
-      case "settings":
-        renderSettings();
-
-        break;
-
-      default:
-        await loadDashboard();
-        await loadPayments();
-
-        renderDashboard();
-    }
-  } catch (error) {
-    console.error(
-      "Honey Pay route error:",
-      error
+function stopPaymentRefresh() {
+  if (
+    state.paymentRefreshTimer
+  ) {
+    window.clearInterval(
+      state.paymentRefreshTimer
     );
 
-    if (
-      error?.status === 401
-    ) {
-      return;
-    }
-
-    renderPageError(
-      "Não foi possível carregar esta página",
-      getErrorMessage(
-        error
-      ),
-      () =>
-        renderRoute(
-          state.currentRoute,
-          true
-        )
-    );
-  } finally {
-    pageContent.classList.remove(
-      "is-loading"
-    );
-
-    state.rendering =
-      false;
+    state.paymentRefreshTimer =
+      null;
   }
 }
 
-/* ============================================================
-   ÚNICO BOOT
-   ============================================================
- *
- * ATENÇÃO:
- *
- * NÃO EXISTE OUTRO boot() NESTE ARQUIVO.
- *
- * ============================================================
- */
+/* =========================================================
+   BOOT ERROR
+========================================================= */
+
+function renderBootError(error) {
+  const content =
+    $("#pageContent");
+
+  if (!content) {
+    return;
+  }
+
+  const message =
+    getErrorMessage(
+      error,
+      "Não foi possível carregar os dados do painel."
+    );
+
+  content.innerHTML = `
+    <div class="error-state">
+
+      <div class="error-icon">
+        !
+      </div>
+
+      <h2>
+        O painel está disponível
+      </h2>
+
+      <p>
+        ${escapeHTML(message)}
+      </p>
+
+      <div
+        style="
+          display:flex;
+          gap:10px;
+          flex-wrap:wrap;
+          justify-content:center;
+          margin-top:18px;
+        "
+      >
+
+        <button
+          type="button"
+          class="btn primary"
+          id="bootRetry"
+        >
+          Tentar novamente
+        </button>
+
+        <button
+          type="button"
+          class="btn secondary"
+          id="bootRefresh"
+        >
+          Actualizar página
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  $("#bootRetry")
+    ?.addEventListener(
+      "click",
+      async () => {
+        const button =
+          $("#bootRetry");
+
+        if (button) {
+          button.disabled = true;
+          button.textContent =
+            "A tentar...";
+        }
+
+        try {
+          await boot(true);
+        } catch (retryError) {
+          renderBootError(
+            retryError
+          );
+        }
+      }
+    );
+
+  $("#bootRefresh")
+    ?.addEventListener(
+      "click",
+      () => {
+        window.location.reload();
+      }
+    );
+}
+
+/* =========================================================
+   DEFINITIVE BOOT
+========================================================= */
 
 let bootPromise = null;
 
-async function boot(
-  force = false
-) {
-  if (
-    bootPromise &&
-    !force
-  ) {
-    return bootPromise;
-  }
-
+async function boot(force = false) {
   if (
     state.booted &&
     !force
@@ -5233,55 +4535,64 @@ async function boot(
     return;
   }
 
-  if (force) {
-    state.booted =
-      false;
+  if (
+    bootPromise &&
+    !force
+  ) {
+    return bootPromise;
   }
-
-  state.booted =
-    true;
-
-  showLoader();
-
-  const emergencyTimer =
-    setTimeout(
-      () => {
-        console.error(
-          "Honey Pay: boot excedeu o tempo máximo."
-        );
-
-        /*
-         * GARANTIA ABSOLUTA:
-         * nunca deixar o loader preso.
-         */
-        revealApplication();
-
-        if (
-          pageContent &&
-          !pageContent.innerHTML.trim()
-        ) {
-          renderPageError(
-            "O painel demorou demasiado tempo",
-            "O servidor não respondeu dentro do tempo esperado.",
-            () =>
-              boot(true)
-          );
-        }
-      },
-      BOOT_TIMEOUT
-    );
 
   bootPromise =
     (async () => {
+      state.loading = true;
+
+      /*
+       * PRIMEIRA GARANTIA:
+       * o painel é revelado imediatamente.
+       *
+       * Nenhuma API pode controlar o loader.
+       */
+      revealApplication();
+
+      /*
+       * SEGUNDA GARANTIA:
+       * mesmo se alguma operação ficar presa,
+       * o loader desaparece no máximo em 15 segundos.
+       */
+      const emergencyTimer =
+        window.setTimeout(
+          () => {
+            console.warn(
+              "Honey Pay: emergency boot timeout."
+            );
+
+            revealApplication();
+
+            const content =
+              $("#pageContent");
+
+            if (
+              content &&
+              !content.innerHTML.trim()
+            ) {
+              renderBootError(
+                new Error(
+                  "O servidor demorou demasiado tempo a responder."
+                )
+              );
+            }
+          },
+          BOOT_TIMEOUT
+        );
+
       try {
         /*
-         * ==================================================
-         * 1. SESSÃO
-         * ==================================================
+         * Sessão.
+         *
+         * Usamos /me como fonte principal.
          */
-
         const authenticated =
-          await checkSession();
+          await loadSession();
 
         if (!authenticated) {
           forceHideLoader();
@@ -5295,105 +4606,43 @@ async function boot(
           true;
 
         /*
-         * ==================================================
-         * 2. MOSTRAR O PAINEL
-         * ==================================================
-         *
-         * MUITO IMPORTANTE:
-         *
-         * O painel é mostrado ANTES de carregar
-         * dados do MongoDB.
-         *
-         * Portanto:
-         *
-         * MongoDB lento
-         * API lenta
-         * Dashboard com erro
-         *
-         * NÃO CONSEGUEM PRENDER O LOADER.
-         *
-         * ==================================================
+         * A interface fica configurada
+         * antes de qualquer carregamento pesado.
          */
-
-        revealApplication();
-
-        /*
-         * ==================================================
-         * 3. CONFIGURAÇÃO DA INTERFACE
-         * ==================================================
-         */
-
         ensureBankAccountsNavigation();
 
         setupSidebar();
-
         setupModal();
-
         setupRefreshButton();
-
         setupLogout();
-
         setupRouting();
 
         /*
-         * ==================================================
-         * 4. UTILIZADOR / MERCHANT
-         * ==================================================
+         * Garantimos que o loader desapareça
+         * antes do carregamento do conteúdo.
          */
-
-        try {
-          await loadCurrentUser();
-        } catch (error) {
-          console.error(
-            "Honey Pay /me:",
-            error
-          );
-
-          if (
-            error?.status === 401
-          ) {
-            state.authenticated =
-              false;
-
-            redirectToLogin();
-
-            return false;
-          }
-
-          renderBootError(
-            error
-          );
-
-          return false;
-        }
+        revealApplication();
 
         /*
-         * ==================================================
-         * 5. ROTA INICIAL
-         * ==================================================
+         * Carregamos apenas a rota actual.
          */
-
         const route =
           getCurrentRoute();
 
-        /*
-         * ==================================================
-         * 6. CONTEÚDO
-         * ==================================================
-         */
+        state.currentRoute =
+          route;
 
         await renderRoute(
           route,
-          true
+          false
         );
 
         /*
-         * ==================================================
-         * 7. ATUALIZAÇÃO AUTOMÁTICA
-         * ==================================================
+         * Actualização periódica.
          */
-
         startPaymentRefresh();
+
+        state.booted = true;
 
         return true;
       } catch (error) {
@@ -5403,22 +4652,9 @@ async function boot(
         );
 
         /*
-         * GARANTIA:
-         * qualquer erro passa pelo loader.
+         * Nunca deixar o loader preso.
          */
-
         revealApplication();
-
-        if (
-          error?.status === 401
-        ) {
-          state.authenticated =
-            false;
-
-          redirectToLogin();
-
-          return false;
-        }
 
         renderBootError(
           error
@@ -5426,70 +4662,165 @@ async function boot(
 
         return false;
       } finally {
-        clearTimeout(
+        window.clearTimeout(
           emergencyTimer
         );
 
         /*
-         * SEGURANÇA FINAL.
-         *
-         * Não importa onde o boot terminou:
-         * o loader nunca fica permanentemente
-         * no ecrã.
+         * GARANTIA FINAL.
          */
-
         revealApplication();
+
+        state.loading = false;
       }
     })();
 
   try {
     return await bootPromise;
   } finally {
-    bootPromise =
-      null;
+    bootPromise = null;
   }
 }
 
-/* ============================================================
-   API GLOBAL
-   ============================================================ */
+/* =========================================================
+   SYNCHRONOUS FAILSAFE
+========================================================= */
 
-window.HoneyPay = {
-  state,
+/*
+ * Esta parte executa imediatamente quando o ficheiro JS
+ * começa a ser interpretado.
+ *
+ * Assim, mesmo que uma chamada à API demore,
+ * o HTML principal não fica escondido.
+ */
 
-  boot,
+(function immediateFailsafe() {
+  try {
+    const app =
+      document.getElementById(
+        "app"
+      );
 
-  session:
-    checkSession,
+    const loader =
+      document.getElementById(
+        "appLoader"
+      );
 
-  navigate,
+    if (app) {
+      app.classList.remove(
+        "hidden"
+      );
 
-  refreshPayments,
+      app.removeAttribute(
+        "aria-hidden"
+      );
+    }
 
-  loadDashboard,
+    if (loader) {
+      loader.classList.add(
+        "hide"
+      );
 
-  loadBankAccounts,
+      loader.style.pointerEvents =
+        "none";
+    }
 
-  loadLinks
-};
+    window.__HONEY_JS_STARTED__ =
+      true;
+  } catch (error) {
+    console.error(
+      "Honey Pay immediate failsafe:",
+      error
+    );
+  }
+})();
 
-/* ============================================================
+/* =========================================================
    START
-   ============================================================ */
+========================================================= */
 
+function startHoneyPay() {
+  /*
+   * Não iniciar duas vezes.
+   */
+  if (
+    window.__HONEY_PAY_STARTED__
+  ) {
+    return;
+  }
+
+  window.__HONEY_PAY_STARTED__ =
+    true;
+
+  boot().catch(error => {
+    console.error(
+      "Honey Pay fatal boot:",
+      error
+    );
+
+    /*
+     * Última barreira contra loader infinito.
+     */
+    revealApplication();
+
+    renderBootError(
+      error
+    );
+  });
+}
+
+/*
+ * O script está com defer no index.html,
+ * mas também suportamos execução directa.
+ */
 if (
   document.readyState ===
   "loading"
 ) {
   document.addEventListener(
     "DOMContentLoaded",
-    () => {
-      void boot();
-    },
+    startHoneyPay,
     {
       once: true
     }
   );
 } else {
-  void boot();
+  startHoneyPay();
 }
+
+/* =========================================================
+   GLOBAL ERROR SAFETY NET
+========================================================= */
+
+window.addEventListener(
+  "error",
+  event => {
+    console.error(
+      "Honey Pay global error:",
+      event.error ||
+        event.message
+    );
+
+    /*
+     * Um erro JavaScript em qualquer outro
+     * módulo não deve voltar a esconder o painel.
+     */
+    revealApplication();
+  }
+);
+
+window.addEventListener(
+  "unhandledrejection",
+  event => {
+    console.error(
+      "Honey Pay unhandled rejection:",
+      event.reason
+    );
+
+    revealApplication();
+  }
+);
+
+/* =========================================================
+   END
+========================================================= */
