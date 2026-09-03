@@ -1775,7 +1775,76 @@ const PaymentSchema =
         true
     }
   );
+/* =========================================================
+   BANK ACCOUNT
+   ========================================================= */
 
+const BankAccountSchema =
+  new mongoose.Schema(
+    {
+      merchantId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Merchant',
+        required: true,
+        index: true
+      },
+
+      bankName: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 120
+      },
+
+      accountNumber: {
+        type: String,
+        default: '',
+        trim: true,
+        maxlength: 80
+      },
+
+      iban: {
+        type: String,
+        default: '',
+        trim: true,
+        maxlength: 80
+      },
+
+      accountHolder: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 160
+      },
+
+      alias: {
+        type: String,
+        default: '',
+        trim: true,
+        maxlength: 120
+      },
+
+      active: {
+        type: Boolean,
+        default: true,
+        index: true
+      },
+
+      isDefault: {
+        type: Boolean,
+        default: false,
+        index: true
+      }
+    },
+    {
+      timestamps: true
+    }
+  );
+
+BankAccountSchema.index({
+  merchantId: 1,
+  active: 1
+});
 const PaymentLinkSchema =
   new mongoose.Schema(
     {
@@ -1864,7 +1933,19 @@ const PaymentLinkSchema =
         default:
           null
       },
+bankAccountId: {
+  type:
+    mongoose.Schema.Types.ObjectId,
 
+  ref:
+    'BankAccount',
+
+  default:
+    null,
+
+  index:
+    true
+},
       bitpayLinkId: {
         type:
           String,
@@ -2039,7 +2120,12 @@ const Payment =
     'Payment',
     PaymentSchema
   );
-
+const BankAccount =
+  mongoose.models.BankAccount ||
+  mongoose.model(
+    'BankAccount',
+    BankAccountSchema
+  );
 const PaymentLink =
   mongoose.models.PaymentLink ||
   mongoose.model(
@@ -4668,7 +4754,434 @@ app.post(
     }
   )
 );
+/* =========================================================
+   BANK ACCOUNTS API
+   ========================================================= */
 
+/*
+GET BANK ACCOUNTS
+*/
+
+app.get(
+  '/api/bank-accounts',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const accounts =
+        await BankAccount
+          .find({
+            merchantId:
+              req.merchantId
+          })
+          .sort({
+            isDefault: -1,
+            createdAt: -1
+          })
+          .lean();
+
+      return res.json({
+        success:
+          true,
+
+        accounts
+      });
+    }
+  )
+);
+
+
+/*
+CREATE BANK ACCOUNT
+*/
+
+app.post(
+  '/api/bank-accounts',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const bankName =
+        cleanString(
+          req.body.bankName,
+          120
+        );
+
+      const accountNumber =
+        cleanString(
+          req.body.accountNumber,
+          80
+        );
+
+      const iban =
+        cleanString(
+          req.body.iban,
+          80
+        );
+
+      const accountHolder =
+        cleanString(
+          req.body.accountHolder,
+          160
+        );
+
+      const alias =
+        cleanString(
+          req.body.alias,
+          120
+        );
+
+      const isDefault =
+        Boolean(
+          req.body.isDefault
+        );
+
+      if (
+        !bankName ||
+        !accountHolder ||
+        (
+          !accountNumber &&
+          !iban
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Banco, titular e número da conta ou IBAN são obrigatórios.'
+          });
+      }
+
+      if (isDefault) {
+
+        await BankAccount.updateMany(
+          {
+            merchantId:
+              req.merchantId,
+
+            active:
+              true
+          },
+
+          {
+            $set: {
+              isDefault:
+                false
+            }
+          }
+        );
+      }
+
+      const account =
+        await BankAccount.create({
+
+          merchantId:
+            req.merchantId,
+
+          bankName,
+
+          accountNumber,
+
+          iban,
+
+          accountHolder,
+
+          alias,
+
+          isDefault,
+
+          active:
+            true
+        });
+
+      return res
+        .status(201)
+        .json({
+          success:
+            true,
+
+          account
+        });
+    }
+  )
+);
+
+
+/*
+UPDATE BANK ACCOUNT
+*/
+
+app.patch(
+  '/api/bank-accounts/:id',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      if (
+        !isValidObjectId(
+          req.params.id
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Conta bancária inválida.'
+          });
+      }
+
+      const account =
+        await BankAccount.findOne({
+          _id:
+            req.params.id,
+
+          merchantId:
+            req.merchantId
+        });
+
+      if (!account) {
+
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Conta bancária não encontrada.'
+          });
+      }
+
+      const bankName =
+        cleanString(
+          req.body.bankName ??
+            account.bankName,
+          120
+        );
+
+      const accountNumber =
+        cleanString(
+          req.body.accountNumber ??
+            account.accountNumber,
+          80
+        );
+
+      const iban =
+        cleanString(
+          req.body.iban ??
+            account.iban,
+          80
+        );
+
+      const accountHolder =
+        cleanString(
+          req.body.accountHolder ??
+            account.accountHolder,
+          160
+        );
+
+      const alias =
+        cleanString(
+          req.body.alias ??
+            account.alias,
+          120
+        );
+
+      const isDefault =
+        req.body.isDefault !==
+        undefined
+          ? Boolean(
+              req.body.isDefault
+            )
+          : account.isDefault;
+
+      if (
+        !bankName ||
+        !accountHolder ||
+        (
+          !accountNumber &&
+          !iban
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Banco, titular e número da conta ou IBAN são obrigatórios.'
+          });
+      }
+
+      if (isDefault) {
+
+        await BankAccount.updateMany(
+          {
+            merchantId:
+              req.merchantId,
+
+            _id: {
+              $ne:
+                account._id
+            },
+
+            active:
+              true
+          },
+
+          {
+            $set: {
+              isDefault:
+                false
+            }
+          }
+        );
+      }
+
+      account.bankName =
+        bankName;
+
+      account.accountNumber =
+        accountNumber;
+
+      account.iban =
+        iban;
+
+      account.accountHolder =
+        accountHolder;
+
+      account.alias =
+        alias;
+
+      account.isDefault =
+        isDefault;
+
+      await account.save();
+
+      return res.json({
+        success:
+          true,
+
+        account
+      });
+    }
+  )
+);
+
+
+/*
+DELETE / DEACTIVATE BANK ACCOUNT
+*/
+
+app.delete(
+  '/api/bank-accounts/:id',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      if (
+        !isValidObjectId(
+          req.params.id
+        )
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Conta bancária inválida.'
+          });
+      }
+
+      const account =
+        await BankAccount.findOneAndUpdate(
+          {
+            _id:
+              req.params.id,
+
+            merchantId:
+              req.merchantId
+          },
+
+          {
+            $set: {
+              active:
+                false,
+
+              isDefault:
+                false
+            }
+          },
+
+          {
+            new:
+              true
+          }
+        );
+
+      if (!account) {
+
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Conta bancária não encontrada.'
+          });
+      }
+
+      return res.json({
+        success:
+          true,
+
+        account
+      });
+    }
+  )
+);
 /* =========================================================
    PAYMENT LINKS
 ========================================================= */
@@ -4801,88 +5314,251 @@ app.post(
       }
 
       /*
-       ========================================================
-       1. CRIAR LINK LOCAL
-       ========================================================
-      */
+=========================================================
+CREATE PAYMENT LINK
+=========================================================
+Honey Pay mantém o seu próprio token comercial.
 
-      const token =
-        generateToken();
+Quando possível, também cria um Pay by Link real
+na BitPay.
 
-      const link =
-        await PaymentLink.create({
-          merchantId:
-            req.merchantId,
+O link Honey Pay continua sendo a URL pública oficial.
+=========================================================
+*/
 
-          token,
+const bankAccountId =
+  cleanString(
+    req.body.bankAccountId,
+    100
+  );
 
-          title,
+let bankAccount = null;
 
-          description,
+if (bankAccountId) {
+  if (!isValidObjectId(bankAccountId)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Conta bancária inválida.'
+    });
+  }
 
-          amount,
+  bankAccount =
+    await BankAccount.findOne({
+      _id: bankAccountId,
+      merchantId: req.merchantId,
+      active: true
+    });
 
-          currency:
-            'AOA',
+  if (!bankAccount) {
+    return res.status(404).json({
+      success: false,
+      error:
+        'Conta bancária não encontrada ou inativa.'
+    });
+  }
+}
 
-          active:
-            true,
+const token =
+  generateToken();
 
-          productId:
-            product
-              ? product._id
-              : null
-        });
+const link =
+  await PaymentLink.create({
+    merchantId:
+      req.merchantId,
 
-      /*
-       ========================================================
-       2. URL PÚBLICA HONEY PAY
-       ========================================================
-      */
+    token,
 
-      const honeyUrl =
-        `${APP_BASE_URL}/pay/${link.token}`;
+    title,
 
-      /*
-       ========================================================
-       3. QR URL
-       ========================================================
-      */
+    description,
 
-      /*
-       O QR aponta para o checkout Honey Pay.
-       O checkout posteriormente cria o payment_intent
-       real na BitPay.
-      */
+    amount:
+      Math.round(amount),
 
-      link.qrUrl =
-        honeyUrl;
+    currency:
+      'AOA',
 
-      await link.save();
+    active:
+      true,
 
-      return res
-        .status(201)
-        .json({
-          success:
-            true,
+    productId:
+      product
+        ? product._id
+        : null,
 
-          link,
+    bankAccountId:
+      bankAccount
+        ? bankAccount._id
+        : null
+  });
 
-          url:
-            honeyUrl,
+const honeyUrl =
+  `${APP_BASE_URL}/pay/${link.token}`;
 
-          qrUrl:
-            honeyUrl,
+/*
+=========================================================
+BITPAY PAY BY LINK
+=========================================================
+*/
 
-          honeyPayFee: {
-            bps:
-              HONEY_PAY_FEE_BPS,
+let bitpayLink = null;
 
-            percent:
-              HONEY_PAY_FEE_BPS /
-              100
+try {
+  bitpayLink =
+    await bitpayRequest(
+      '/payment_links',
+      {
+        method: 'POST',
+
+        headers: {
+          'Idempotency-Key':
+            `honey-link-${String(
+              link._id
+            )}`
+        },
+
+        body: {
+          amount:
+            Math.round(amount),
+
+          description:
+            description
+              ? `${title} - ${description}`
+              : title
+        }
+      }
+    );
+} catch (error) {
+
+  /*
+  Não apagamos o link Honey Pay.
+
+  A plataforma pode continuar usando
+  Payment Intents no checkout.
+
+  O erro fica registado para diagnóstico.
+  */
+
+  console.error(
+    'BitPay Pay by Link:',
+    error.message
+  );
+}
+
+/*
+=========================================================
+GUARDAR BITPAY LINK
+=========================================================
+*/
+
+if (bitpayLink) {
+
+  link.bitpayLinkId =
+    String(
+      bitpayLink.id ||
+      bitpayLink.code ||
+      ''
+    );
+
+  link.bitpayUrl =
+    String(
+      bitpayLink.url ||
+      ''
+    );
+}
+
+/*
+=========================================================
+QR BITPAY
+=========================================================
+*/
+
+if (
+  link.bitpayLinkId
+) {
+
+  try {
+
+    const qrResponse =
+      await bitpayRequest(
+        `/payment_links/${encodeURIComponent(
+          link.bitpayLinkId
+        )}/qr`,
+        {
+          method: 'GET',
+          headers: {
+            Accept:
+              'image/svg+xml'
           }
-        });
+        }
+      );
+
+    if (
+      typeof qrResponse ===
+      'string'
+    ) {
+      link.qrSvg =
+        qrResponse;
+    }
+
+  } catch (error) {
+
+    console.error(
+      'BitPay QR:',
+      error.message
+    );
+  }
+}
+
+/*
+=========================================================
+QR / URL PÚBLICA
+=========================================================
+*/
+
+link.qrUrl =
+  link.bitpayUrl ||
+  honeyUrl;
+
+await link.save();
+
+return res
+  .status(201)
+  .json({
+
+    success:
+      true,
+
+    link,
+
+    url:
+      honeyUrl,
+
+    honeyUrl,
+
+    bitpayUrl:
+      link.bitpayUrl || '',
+
+    bitpayLinkId:
+      link.bitpayLinkId || '',
+
+    qrSvg:
+      link.qrSvg || '',
+
+    qrUrl:
+      link.qrUrl || honeyUrl,
+
+    honeyPayFee: {
+      bps:
+        HONEY_PAY_FEE_BPS,
+
+      percent:
+        HONEY_PAY_FEE_BPS / 100,
+
+      amount:
+        calculateFee(amount)
+    }
+  });
     }
   )
 );
@@ -4979,6 +5655,12 @@ app.get(
         }).lean();
 
       if (!link) {
+        bankAccountId:
+  link.bankAccountId
+    ? String(
+        link.bankAccountId
+      )
+    : null,
         return res
           .status(404)
           .json({
@@ -5012,11 +5694,48 @@ app.get(
         await Merchant.findById(
           link.merchantId
         ).lean();
+let bankAccount = null;
 
+if (link.bankAccountId) {
+  bankAccount =
+    await BankAccount.findOne({
+      _id:
+        link.bankAccountId,
+
+      merchantId:
+        link.merchantId,
+
+      active:
+        true
+    }).lean();
+}
       return res.json({
         success:
           true,
+bankAccount:
+  bankAccount
+    ? {
+        id:
+          String(
+            bankAccount._id
+          ),
 
+        bankName:
+          bankAccount.bankName,
+
+        accountNumber:
+          bankAccount.accountNumber,
+
+        iban:
+          bankAccount.iban,
+
+        accountHolder:
+          bankAccount.accountHolder,
+
+        alias:
+          bankAccount.alias
+      }
+    : null,
         link: {
           id:
             String(
