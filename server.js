@@ -5853,29 +5853,7 @@ QR BITPAY
 =========================================================
 */
 
-if (
-  link.bitpayLinkId
-) {
-
-  try {
-
-    const qrResponse =
-      await bitpayRequest(
-        `/payment_links/${encodeURIComponent(
-          link.bitpayLinkId
-        )}/qr`,
-        {
-          method: 'GET',
-          headers: {
-            Accept:
-              'image/svg+xml'
-          }
-        }
-      );
-
-    if (
-  link.bitpayLinkId
-) {
+if (link.bitpayLinkId) {
 
   try {
 
@@ -5885,8 +5863,7 @@ if (
           link.bitpayLinkId
         )}/qr`,
         {
-          method:
-            'GET',
+          method: 'GET',
 
           headers: {
             Accept:
@@ -5896,25 +5873,29 @@ if (
       );
 
     if (
+      qrResponse &&
+      typeof qrResponse.contentType === 'string' &&
       qrResponse.contentType
-        .includes(
-          'image/svg+xml'
-        )
+        .toLowerCase()
+        .includes('image/svg+xml')
     ) {
 
       link.qrSvg =
-        qrResponse.text;
+        qrResponse.text || '';
+
     }
 
   } catch (error) {
 
     console.error(
       'BitPay QR:',
-      error.message
+      error && error.message
+        ? error.message
+        : error
     );
   }
 }
-
+        
 /*
 =========================================================
 QR / URL PÚBLICA
@@ -5931,13 +5912,11 @@ return res
   .status(201)
   .json({
 
-    success:
-      true,
+    success: true,
 
     link,
 
-    url:
-      honeyUrl,
+    url: honeyUrl,
 
     honeyUrl,
 
@@ -5951,9 +5930,10 @@ return res
       link.qrSvg || '',
 
     qrUrl:
-  link.qrUrl || '',
+      link.qrUrl || '',
 
     honeyPayFee: {
+
       bps:
         HONEY_PAY_FEE_BPS,
 
