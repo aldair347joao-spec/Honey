@@ -1981,7 +1981,12 @@ const BankAccountSchema =
         trim: true,
         maxlength: 120
       },
-
+phone: {
+  type: String,
+  default: '',
+  trim: true,
+  maxlength: 40
+},
       active: {
         type: Boolean,
         default: true,
@@ -5086,7 +5091,141 @@ app.post(
 /*
 UPDATE BANK ACCOUNT
 */
+app.put(
+  '/api/bank-accounts/:id',
 
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      if (
+        !isValidObjectId(
+          req.params.id
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Conta bancária inválida.'
+          });
+      }
+
+      const account =
+        await BankAccount.findOne({
+          _id:
+            req.params.id,
+
+          merchantId:
+            req.merchantId
+        });
+
+      if (!account) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            error:
+              'Conta bancária não encontrada.'
+          });
+      }
+
+      const bankName =
+        cleanString(
+          req.body.bankName,
+          120
+        );
+
+      const accountNumber =
+        cleanString(
+          req.body.accountNumber,
+          80
+        );
+
+      const iban =
+        cleanString(
+          req.body.iban,
+          80
+        );
+
+      const accountHolder =
+        cleanString(
+          req.body.accountHolder,
+          160
+        );
+
+      const alias =
+        cleanString(
+          req.body.alias ||
+          req.body.displayName,
+          120
+        );
+
+      const phone =
+        cleanString(
+          req.body.phone,
+          40
+        );
+
+      const active =
+        req.body.active !== undefined
+          ? Boolean(req.body.active)
+          : true;
+
+      if (
+        !bankName ||
+        !accountHolder ||
+        (
+          !accountNumber &&
+          !iban
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            error:
+              'Banco, titular e número da conta ou IBAN são obrigatórios.'
+          });
+      }
+
+      account.bankName =
+        bankName;
+
+      account.accountNumber =
+        accountNumber;
+
+      account.iban =
+        iban;
+
+      account.accountHolder =
+        accountHolder;
+
+      account.alias =
+        alias;
+
+      account.phone =
+        phone;
+
+      account.active =
+        active;
+
+      await account.save();
+
+      return res.json({
+        success: true,
+        account
+      });
+    }
+  )
+);
 app.patch(
   '/api/bank-accounts/:id',
 
