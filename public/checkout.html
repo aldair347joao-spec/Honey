@@ -1,25 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-AO">
+<!DOCTYPE html><html lang="pt-AO">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1,viewport-fit=cover"
-  >
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">  <title>Pagamento — Honey Pay</title><meta
+name="description"
+content="Pagamento seguro processado pela Honey Pay."
 
-  <title>Pagamento — Honey Pay</title>
-
-  <meta
-    name="description"
-    content="Pagamento seguro processado pela Honey Pay."
-  >
+«»
 
   <style>
-    /* =====================================================
-       HONEY PAY CHECKOUT
-       PREMIUM CHECKOUT V2
-       ===================================================== */
-
     :root {
       --navy: #08111f;
       --navy-2: #101c2e;
@@ -80,6 +68,7 @@
       min-height: 100vh;
       margin: 0;
       padding: 25px 16px;
+
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -117,10 +106,6 @@
     .hidden {
       display: none !important;
     }
-
-    /* =====================================================
-       WRAPPER
-       ===================================================== */
 
     .wrap {
       width: min(590px, 100%);
@@ -163,10 +148,6 @@
       padding: 30px;
     }
 
-    /* =====================================================
-       BRAND
-       ===================================================== */
-
     .brand {
       display: flex;
       align-items: center;
@@ -207,16 +188,15 @@
 
     .brand-subtitle {
       margin-top: 2px;
+
       color: var(--muted);
+
       font-size: 8px;
       font-weight: 700;
+
       text-transform: uppercase;
       letter-spacing: .12em;
     }
-
-    /* =====================================================
-       LOADING
-       ===================================================== */
 
     .loading {
       min-height: 220px;
@@ -227,7 +207,6 @@
       justify-content: center;
 
       color: var(--muted);
-
       font-size: 11px;
     }
 
@@ -251,10 +230,6 @@
         transform: rotate(360deg);
       }
     }
-
-    /* =====================================================
-       MERCHANT / TITLE
-       ===================================================== */
 
     .merchant {
       margin: 0 0 7px;
@@ -287,21 +262,14 @@
       line-height: 1.65;
     }
 
-    /* =====================================================
-       AMOUNT
-       ===================================================== */
-
     .amount-box {
       position: relative;
       overflow: hidden;
 
       margin: 22px 0;
-
       padding: 20px;
 
-      border:
-        1px solid #f1df9e;
-
+      border: 1px solid #f1df9e;
       border-radius: 16px;
 
       background:
@@ -325,8 +293,7 @@
 
       border-radius: 50%;
 
-      background:
-        rgba(245,184,0,.08);
+      background: rgba(245,184,0,.08);
     }
 
     .amount-label {
@@ -355,10 +322,6 @@
       letter-spacing: -.055em;
     }
 
-    /* =====================================================
-       PRODUCT
-       ===================================================== */
-
     .product {
       padding: 17px;
       margin: 19px 0;
@@ -386,10 +349,6 @@
       font-size: 9px;
       line-height: 1.55;
     }
-
-    /* =====================================================
-       QR
-       ===================================================== */
 
     .qr-section {
       padding: 19px;
@@ -437,9 +396,7 @@
 
       padding: 9px;
 
-      border:
-        1px solid var(--border);
-
+      border: 1px solid var(--border);
       border-radius: 15px;
 
       background: white;
@@ -448,11 +405,15 @@
         0 8px 24px rgba(16,24,40,.06);
     }
 
-    #qrContainer img {
+    #qrContainer img,
+    #qrContainer svg {
       display: block;
 
       width: 100%;
       height: 100%;
+
+      max-width: 220px;
+      max-height: 220px;
 
       object-fit: contain;
 
@@ -467,10 +428,6 @@
       font-size: 8px;
       line-height: 1.5;
     }
-
-    /* =====================================================
-       FORM
-       ===================================================== */
 
     #paymentForm {
       margin-top: 22px;
@@ -508,7 +465,6 @@
       outline: none;
 
       color: var(--text);
-
       background: #fff;
 
       font-size: 10px;
@@ -540,7 +496,6 @@
 
     select {
       cursor: pointer;
-
       appearance: none;
 
       background-image:
@@ -568,10 +523,6 @@
       padding-right: 35px;
     }
 
-    /* =====================================================
-       PAY BUTTON
-       ===================================================== */
-
     #payButton {
       position: relative;
 
@@ -579,7 +530,6 @@
       min-height: 48px;
 
       margin-top: 21px;
-
       padding: 0 18px;
 
       display: flex;
@@ -615,7 +565,6 @@
 
     #payButton:hover:not(:disabled) {
       filter: brightness(1.035);
-
       transform: translateY(-1px);
 
       box-shadow:
@@ -632,10 +581,6 @@
       cursor: not-allowed;
       box-shadow: none;
     }
-
-    /* =====================================================
-       MESSAGES
-       ===================================================== */
 
     .message {
       margin-top: 14px;
@@ -676,10 +621,6 @@
 
       background: var(--orange-soft);
     }
-
-    /* =====================================================
-       PAYMENT STATUS
-       ===================================================== */
 
     .status-box {
       margin-top: 11px;
@@ -728,13 +669,8 @@
       text-underline-offset: 3px;
     }
 
-    /* =====================================================
-       REFERENCE
-       ===================================================== */
-
     .reference {
       margin-top: 12px;
-
       padding: 17px;
 
       border: 1px solid #f1df9e;
@@ -750,7 +686,6 @@
 
     .reference > strong {
       font-family: var(--heading);
-
       font-size: 10px;
     }
 
@@ -780,10 +715,6 @@
 
       word-break: break-word;
     }
-
-    /* =====================================================
-       SECURE
-       ===================================================== */
 
     .secure {
       margin-top: 17px;
@@ -818,10 +749,6 @@
       font-weight: 900;
     }
 
-    /* =====================================================
-       FOOTER
-       ===================================================== */
-
     .footer {
       padding: 17px 0 0;
 
@@ -831,10 +758,6 @@
 
       font-size: 8px;
     }
-
-    /* =====================================================
-       LOAD ERROR
-       ===================================================== */
 
     #loadError {
       padding: 15px;
@@ -849,10 +772,6 @@
       font-size: 10px;
       line-height: 1.55;
     }
-
-    /* =====================================================
-       RESPONSIVE
-       ===================================================== */
 
     @media (max-width: 600px) {
       body {
@@ -893,6 +812,7 @@
 
       .card {
         min-height: 100vh;
+
         border: 0;
         border-radius: 0;
       }
@@ -919,1600 +839,1587 @@
         transition-duration: .01ms !important;
       }
     }
-  </style>
-</head>
+  </style></head><body>  <div class="wrap"><div class="card" id="checkout">
 
-<body>
+  <div class="checkout-inner">
 
-  <div class="wrap">
+    <div class="brand">
 
-    <div
-      class="card"
-      id="checkout"
-    >
+      <div class="brand-icon">
+        🍯
+      </div>
 
-      <div class="checkout-inner">
-
-        <!-- BRAND -->
-
-        <div class="brand">
-
-          <div class="brand-icon">
-            🍯
-          </div>
-
-          <div>
-            <div class="brand-name">
-              Honey Pay
-            </div>
-
-            <div class="brand-subtitle">
-              Pagamento seguro
-            </div>
-          </div>
-
+      <div>
+        <div class="brand-name">
+          Honey Pay
         </div>
 
-        <!-- LOADING -->
+        <div class="brand-subtitle">
+          Pagamento seguro
+        </div>
+      </div>
+
+    </div>
+
+    <div id="loading" class="loading">
+
+      <div class="loading-spinner"></div>
+
+      <div>
+        A carregar pagamento...
+      </div>
+
+    </div>
+
+    <div id="checkoutContent" class="hidden">
+
+      <p id="merchant" class="merchant">
+        A carregar...
+      </p>
+
+      <h1 id="title">
+        Pagamento
+      </h1>
+
+      <p id="description" class="description"></p>
+
+      <div id="product" class="product hidden">
+
+        <div id="productName" class="product-name"></div>
 
         <div
-          id="loading"
-          class="loading"
-        >
-          <div class="loading-spinner"></div>
-          <div>
-            A carregar pagamento...
-          </div>
+          id="productDescription"
+          class="product-description"
+        ></div>
+
+      </div>
+
+      <div class="amount-box">
+
+        <div class="amount-label">
+          Valor a pagar
         </div>
 
-        <!-- CHECKOUT CONTENT -->
-
-        <div
-          id="checkoutContent"
-          class="hidden"
-        >
-
-          <p
-            id="merchant"
-            class="merchant"
-          >
-            A carregar...
-          </p>
-
-          <h1 id="title">
-            Pagamento
-          </h1>
-
-          <p
-            id="description"
-            class="description"
-          ></p>
-
-          <!-- PRODUCT -->
-
-          <div
-            id="product"
-            class="product hidden"
-          >
-
-            <div
-              id="productName"
-              class="product-name"
-            ></div>
-
-            <div
-              id="productDescription"
-              class="product-description"
-            ></div>
-
-          </div>
-
-          <!-- AMOUNT -->
-
-          <div class="amount-box">
-
-            <div class="amount-label">
-              Valor a pagar
-            </div>
-
-            <div
-              id="amount"
-              class="amount"
-            >
-              ...
-            </div>
-
-          </div>
-
-          <!-- QR -->
-
-          <div
-            id="qrSection"
-            class="qr-section"
-          >
-
-            <div class="qr-title">
-              Pague através do QR Code
-            </div>
-
-            <div class="qr-subtitle">
-              Abra a câmara do seu telefone e leia o código.
-            </div>
-
-            <div
-              id="qrContainer"
-            ></div>
-
-            <p class="qr-note">
-              O QR Code abre este pagamento Honey Pay.
-            </p>
-
-          </div>
-
-          <!-- FORM -->
-
-          <form id="paymentForm">
-
-            <div class="field">
-
-              <label for="customerName">
-                Nome completo
-              </label>
-
-              <input
-                id="customerName"
-                name="customerName"
-                autocomplete="name"
-                placeholder="Digite o seu nome"
-                required
-              >
-
-            </div>
-
-            <div class="field">
-
-              <label for="customerEmail">
-                Email
-              </label>
-
-              <input
-                id="customerEmail"
-                name="customerEmail"
-                type="email"
-                autocomplete="email"
-                placeholder="exemplo@email.com"
-              >
-
-            </div>
-
-            <div class="field">
-
-              <label for="customerMobile">
-                Telefone
-              </label>
-
-              <input
-                id="customerMobile"
-                name="customerMobile"
-                inputmode="tel"
-                autocomplete="tel"
-                placeholder="923 000 000"
-              >
-
-            </div>
-
-            <div class="field">
-
-              <label for="paymentMethod">
-                Método de pagamento
-              </label>
-
-              <select
-                id="paymentMethod"
-                name="paymentMethod"
-              >
-
-                <option value="multicaixa_express">
-                  Multicaixa Express
-                </option>
-
-                <option value="multicaixa_reference">
-                  Referência Multicaixa
-                </option>
-
-              </select>
-
-            </div>
-
-            <button
-              id="payButton"
-              type="submit"
-            >
-              Pagar agora
-            </button>
-
-          </form>
-
-          <!-- MESSAGE -->
-
-          <div
-            id="message"
-            class="message"
-          ></div>
-
-          <div class="secure">
-            Pagamento processado de forma segura
-          </div>
-
-        </div>
-
-        <div
-          id="footer"
-          class="footer"
-        >
-          Powered by Honey Pay
+        <div id="amount" class="amount">
+          ...
         </div>
 
       </div>
 
+      <div id="qrSection" class="qr-section">
+
+        <div class="qr-title">
+          Pague através do QR Code
+        </div>
+
+        <div class="qr-subtitle">
+          Abra a câmara do seu telefone e leia o código.
+        </div>
+
+        <div id="qrContainer"></div>
+
+        <p class="qr-note">
+          O QR Code abre este pagamento Honey Pay.
+        </p>
+
+      </div>
+
+      <form id="paymentForm">
+
+        <div class="field">
+
+          <label for="customerName">
+            Nome completo
+          </label>
+
+          <input
+            id="customerName"
+            name="customerName"
+            autocomplete="name"
+            placeholder="Digite o seu nome"
+            required
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="customerEmail">
+            Email
+          </label>
+
+          <input
+            id="customerEmail"
+            name="customerEmail"
+            type="email"
+            autocomplete="email"
+            placeholder="exemplo@email.com"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="customerMobile">
+            Telefone
+          </label>
+
+          <input
+            id="customerMobile"
+            name="customerMobile"
+            inputmode="tel"
+            autocomplete="tel"
+            placeholder="923 000 000"
+          >
+
+        </div>
+
+        <div class="field">
+
+          <label for="paymentMethod">
+            Método de pagamento
+          </label>
+
+          <select
+            id="paymentMethod"
+            name="paymentMethod"
+          >
+
+            <option value="multicaixa_express">
+              Multicaixa Express
+            </option>
+
+            <option value="multicaixa_reference">
+              Referência Multicaixa
+            </option>
+
+          </select>
+
+        </div>
+
+        <button
+          id="payButton"
+          type="submit"
+        >
+          Pagar agora
+        </button>
+
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div class="secure">
+        Pagamento processado de forma segura
+      </div>
+
+    </div>
+
+    <div id="footer" class="footer">
+      Powered by Honey Pay
     </div>
 
   </div>
 
-<script>
-"use strict";
+</div>
 
-/* =========================================================
-   HONEY PAY CHECKOUT
-   FUNCTIONAL PAYMENT FLOW
-   ========================================================= */
+  </div>  <script>
+    "use strict";
 
-const pathParts =
-  location.pathname
-    .split("/")
-    .filter(Boolean);
+    /*
+     * =========================================================
+     * HONEY PAY CHECKOUT
+     * CLEAN / SYNTAX-SAFE VERSION
+     * =========================================================
+     */
 
-const token =
-  pathParts.length
-    ? pathParts[pathParts.length - 1]
-    : "";
+    const pathParts = location.pathname
+      .split("/")
+      .filter(Boolean);
 
-const $ = (id) =>
-  document.getElementById(id);
+    const token = pathParts.length
+      ? pathParts[pathParts.length - 1]
+      : "";
 
-let paymentData = null;
-let currentPayment = null;
-let pollingTimer = null;
-let pollingAttempts = 0;
+    const $ = function (id) {
+      return document.getElementById(id);
+    };
 
-const MAX_POLLING_ATTEMPTS = 120;
-const INITIAL_POLLING_INTERVAL = 3000;
-const ERROR_POLLING_INTERVAL = 5000;
+    let paymentData = null;
+    let currentPayment = null;
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
+    let pollingTimer = null;
+    let pollingAttempts = 0;
 
-function formatKz(value) {
-  const number = Number(value || 0);
+    let paymentEventSource = null;
+    let sseFallbackStarted = false;
 
-  return (
-    new Intl.NumberFormat("pt-AO")
-      .format(number) +
-    " Kz"
-  );
-}
+    const MAX_POLLING_ATTEMPTS = 120;
+    const INITIAL_POLLING_INTERVAL = 3000;
+    const ERROR_POLLING_INTERVAL = 5000;
 
-function escapeHTML(value) {
-  return String(value == null ? "" : value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
 
-function normalizeStatus(status) {
-  return String(status || "")
-    .trim()
-    .toUpperCase();
-}
+    /*
+     * =========================================================
+     * HELPERS
+     * =========================================================
+     */
 
-function statusLabel(status) {
-  const normalized = normalizeStatus(status);
+    function formatKz(value) {
+      const number = Number(value || 0);
 
-  const map = {
-    PENDING:
-      "A aguardar pagamento",
-
-    PAYMENT_PENDING:
-      "A aguardar pagamento",
-
-    PROCESSING:
-      "Pagamento em processamento",
-
-    PAYMENT_PROCESSING:
-      "Pagamento em processamento",
-
-    SUCCEEDED:
-      "Pagamento confirmado",
-
-    SUCCESS:
-      "Pagamento confirmado",
-
-    PAID:
-      "Pagamento confirmado",
-
-    FAILED:
-      "Pagamento falhou",
-
-    EXPIRED:
-      "Pagamento expirado",
-
-    CANCELLED:
-      "Pagamento cancelado",
-
-    REFUNDED:
-      "Pagamento reembolsado"
-  };
-
-  return (
-    map[normalized] ||
-    "A confirmar pagamento"
-  );
-}
-
-function isFinalStatus(status) {
-  return [
-    "PAID",
-    "SUCCEEDED",
-    "SUCCESS",
-    "FAILED",
-    "EXPIRED",
-    "CANCELLED",
-    "REFUNDED"
-  ].includes(
-    normalizeStatus(status)
-  );
-}
-
-function showMessage(message, type) {
-  const element = $("message");
-
-  if (!element) {
-    return;
-  }
-
-  element.className =
-    "message " +
-    (type || "");
-
-  element.textContent =
-    message || "";
-}
-
-function stopPolling() {
-  if (pollingTimer) {
-    clearTimeout(pollingTimer);
-    pollingTimer = null;
-  }
-}
-
-function schedulePolling(callback, delay) {
-  stopPolling();
-
-  pollingTimer =
-    setTimeout(
-      callback,
-      delay
-    );
-}
-
-/* =========================================================
-   LOAD PAYMENT LINK
-   ========================================================= */
-
-async function loadPaymentLink() {
-
-  if (!token) {
-    showLoadError(
-      "Link de pagamento inválido."
-    );
-
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        `/api/public/payment-links/${encodeURIComponent(token)}`,
-        {
-          method: "GET",
-          headers: {
-            Accept:
-              "application/json"
-          },
-          cache: "no-store"
-        }
-      );
-
-    let data = null;
-
-    try {
-      data =
-        await response.json();
-    } catch {
-      data = null;
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-        data?.message ||
-        "Este link de pagamento não está disponível."
+      return (
+        new Intl.NumberFormat("pt-AO").format(number) +
+        " Kz"
       );
     }
 
-    paymentData = data;
 
-    renderPaymentLink(data);
+    function escapeHTML(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
 
-  } catch (error) {
 
-    console.error(
-      "Honey Pay checkout:",
-      error
-    );
+    function normalizeStatus(status) {
+      return String(status || "")
+        .trim()
+        .toUpperCase();
+    }
 
-    showLoadError(
-      error.message ||
-      "Não foi possível carregar o pagamento."
-    );
-  }
-}
 
-/* =========================================================
-   RENDER PAYMENT LINK
-   ========================================================= */
+    function statusLabel(status) {
+      const normalized = normalizeStatus(status);
 
-function renderPaymentLink(data) {
+      const map = {
+        PENDING: "A aguardar pagamento",
+        PAYMENT_PENDING: "A aguardar pagamento",
+        PROCESSING: "Pagamento em processamento",
+        PAYMENT_PROCESSING: "Pagamento em processamento",
+        SUCCEEDED: "Pagamento confirmado",
+        SUCCESS: "Pagamento confirmado",
+        PAID: "Pagamento confirmado",
+        FAILED: "Pagamento falhou",
+        EXPIRED: "Pagamento expirado",
+        CANCELLED: "Pagamento cancelado",
+        REFUNDED: "Pagamento reembolsado"
+      };
 
-  const link =
-    data?.link ||
-    data;
+      return map[normalized] || "A confirmar pagamento";
+    }
 
-  const merchant =
-    data?.merchant ||
-    {};
 
-  if (!link) {
+    function isFinalStatus(status) {
+      return [
+        "PAID",
+        "SUCCEEDED",
+        "SUCCESS",
+        "FAILED",
+        "EXPIRED",
+        "CANCELLED",
+        "REFUNDED"
+      ].includes(normalizeStatus(status));
+    }
 
-    showLoadError(
-      "Pagamento não encontrado."
-    );
 
-    return;
-  }
+    function showMessage(message, type) {
+      const element = $("message");
 
-  const merchantName =
-    merchant.businessName ||
-    merchant.name ||
-    "Honey Pay";
-
-  $("merchant")
-    .textContent =
-    merchantName;
-
-  $("title")
-    .textContent =
-    link.title ||
-    "Pagamento";
-
-  $("description")
-    .textContent =
-    link.description ||
-    "";
-
-  $("amount")
-    .textContent =
-    formatKz(
-      link.amount
-    );
-
-  const product =
-    data?.product ||
-    link.product ||
-    null;
-
-  if (product) {
-
-    $("productName")
-      .textContent =
-      product.name ||
-      link.title ||
-      "";
-
-    $("productDescription")
-      .textContent =
-      product.description ||
-      "";
-
-    $("product")
-      .classList
-      .remove("hidden");
-  }
-
-  const paymentUrl =
-    link.url ||
-    `${location.origin}/pay/${encodeURIComponent(token)}`;
-
-  renderQr(
-  link.qrSvg ||
-  ""
-);
-  $("loading")
-    .classList
-    .add("hidden");
-
-  $("checkoutContent")
-    .classList
-    .remove("hidden");
-}
-
-/* =========================================================
-   QR
-   ========================================================= */
-
-function renderQr(
-  qrValue
-) {
-
-  const container =
-    $("qrContainer");
-
-  if (!container) {
-    return;
-  }
-
-  container.innerHTML = "";
-
-  if (
-    typeof qrValue ===
-    "string" &&
-    qrValue.trim()
-  ) {
-
-    const value =
-      qrValue.trim();
-
-    if (
-      value.startsWith(
-        "<svg"
-      )
-    ) {
-
-      container.innerHTML =
-        value;
-
-      const svg =
-        container.querySelector(
-          "svg"
-        );
-
-      if (svg) {
-
-        svg.removeAttribute(
-          "width"
-        );
-
-        svg.removeAttribute(
-          "height"
-        );
-
-        svg.style.width =
-          "220px";
-
-        svg.style.height =
-          "220px";
-
-        svg.style.maxWidth =
-          "100%";
+      if (!element) {
+        return;
       }
 
-      return;
+      element.className = "message " + (type || "");
+      element.textContent = message || "";
     }
 
-    if (
-      value.startsWith(
-        "data:image/"
-      )
-    ) {
 
-      const img =
-        document.createElement(
-          "img"
+    function stopPolling() {
+      if (pollingTimer !== null) {
+        clearTimeout(pollingTimer);
+        pollingTimer = null;
+      }
+    }
+
+
+    function schedulePolling(callback, delay) {
+      stopPolling();
+
+      pollingTimer = setTimeout(function () {
+        callback();
+      }, delay);
+    }
+
+
+    function safeJsonParse(text) {
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        return null;
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * LOAD PAYMENT LINK
+     * =========================================================
+     */
+
+    async function loadPaymentLink() {
+
+      if (!token) {
+        showLoadError("Link de pagamento inválido.");
+        return;
+      }
+
+      try {
+
+        const response = await fetch(
+          "/api/public/payment-links/" +
+          encodeURIComponent(token),
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json"
+            },
+            cache: "no-store"
+          }
         );
+
+        const rawText = await response.text();
+        const data = safeJsonParse(rawText);
+
+        if (!response.ok) {
+
+          throw new Error(
+            data && (data.error || data.message)
+              ? (data.error || data.message)
+              : "Este link de pagamento não está disponível."
+          );
+        }
+
+        if (!data) {
+          throw new Error(
+            "O servidor devolveu uma resposta inválida."
+          );
+        }
+
+        paymentData = data;
+
+        renderPaymentLink(data);
+
+      } catch (error) {
+
+        console.error(
+          "Honey Pay checkout:",
+          error
+        );
+
+        showLoadError(
+          error && error.message
+            ? error.message
+            : "Não foi possível carregar o pagamento."
+        );
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * RENDER PAYMENT LINK
+     * =========================================================
+     */
+
+    function renderPaymentLink(data) {
+
+      const link = data && data.link
+        ? data.link
+        : data;
+
+      const merchant = data && data.merchant
+        ? data.merchant
+        : {};
+
+      if (!link) {
+        showLoadError("Pagamento não encontrado.");
+        return;
+      }
+
+      const merchantName =
+        merchant.businessName ||
+        merchant.name ||
+        "Honey Pay";
+
+      const merchantElement = $("merchant");
+
+      if (merchantElement) {
+        merchantElement.textContent = merchantName;
+      }
+
+      const titleElement = $("title");
+
+      if (titleElement) {
+        titleElement.textContent =
+          link.title || "Pagamento";
+      }
+
+      const descriptionElement = $("description");
+
+      if (descriptionElement) {
+        descriptionElement.textContent =
+          link.description || "";
+      }
+
+      const amountElement = $("amount");
+
+      if (amountElement) {
+        amountElement.textContent =
+          formatKz(link.amount);
+      }
+
+      const product =
+        (data && data.product) ||
+        link.product ||
+        null;
+
+      if (product) {
+
+        const productName = $("productName");
+
+        if (productName) {
+          productName.textContent =
+            product.name ||
+            link.title ||
+            "";
+        }
+
+        const productDescription =
+          $("productDescription");
+
+        if (productDescription) {
+          productDescription.textContent =
+            product.description ||
+            "";
+        }
+
+        const productElement = $("product");
+
+        if (productElement) {
+          productElement.classList.remove("hidden");
+        }
+      }
+
+      renderQr(
+        link.qrSvg ||
+        link.qrCode ||
+        link.qr ||
+        ""
+      );
+
+      const loading = $("loading");
+
+      if (loading) {
+        loading.classList.add("hidden");
+      }
+
+      const content = $("checkoutContent");
+
+      if (content) {
+        content.classList.remove("hidden");
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * QR CODE
+     * =========================================================
+     */
+
+    function renderQr(qrValue) {
+
+      const container = $("qrContainer");
+
+      if (!container) {
+        return;
+      }
+
+      container.innerHTML = "";
+
+      if (
+        typeof qrValue !== "string" ||
+        !qrValue.trim()
+      ) {
+
+        container.innerHTML =
+          '<div style="' +
+          'padding:20px;' +
+          'font-size:10px;' +
+          'color:#98a2b3;' +
+          'text-align:center;' +
+          '">' +
+          "QR Code ainda não disponível." +
+          "</div>";
+
+        return;
+      }
+
+      const value = qrValue.trim();
+
+      if (value.indexOf("<svg") === 0) {
+
+        container.innerHTML = value;
+
+        const svg = container.querySelector("svg");
+
+        if (svg) {
+
+          svg.removeAttribute("width");
+          svg.removeAttribute("height");
+
+          svg.style.width = "220px";
+          svg.style.height = "220px";
+          svg.style.maxWidth = "100%";
+          svg.style.maxHeight = "100%";
+        }
+
+        return;
+      }
+
+      if (value.indexOf("data:image/") === 0) {
+
+        const img = document.createElement("img");
+
+        img.src = value;
+        img.alt = "QR Code Honey Pay";
+
+        container.appendChild(img);
+
+        return;
+      }
+
+      const img = document.createElement("img");
 
       img.src =
-        value;
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(value);
 
-      img.alt =
-        "QR Code BitPay";
+      img.alt = "QR Code Honey Pay";
 
-      img.width =
-        220;
-
-      img.height =
-        220;
-
-      container.appendChild(
-        img
-      );
-
-      return;
-    }
-  }
-
-  container.innerHTML =
-    `
-      <div
-        style="
-          padding:20px;
-          font-size:10px;
-          color:#98a2b3;
-          text-align:center;
-        "
-      >
-        QR Code ainda não disponível.
-      </div>
-    `;
-}
-
-
-
-/* =========================================================
-   CREATE PAYMENT
-   ========================================================= */
-
-async function createPayment(event) {
-
-  event.preventDefault();
-
-  if (!token) {
-    showMessage(
-      "Link de pagamento inválido.",
-      "error"
-    );
-
-    return;
-  }
-
-  const button =
-    $("payButton");
-
-  if (button) {
-    button.disabled = true;
-    button.textContent =
-      "A processar...";
-  }
-
-  showMessage(
-    "A criar pagamento seguro...",
-    ""
-  );
-
-  try {
-
-    const customerName =
-      $("customerName")
-        .value
-        .trim();
-
-    const customerEmail =
-      $("customerEmail")
-        .value
-        .trim();
-
-    const customerMobile =
-      $("customerMobile")
-        .value
-        .trim();
-
-    const paymentMethod =
-      $("paymentMethod")
-        .value;
-
-    if (!customerName) {
-
-      throw new Error(
-        "Introduza o seu nome."
-      );
+      container.appendChild(img);
     }
 
-    const response =
-      await fetch(
-        `/api/public/payment-links/${encodeURIComponent(token)}/pay`,
-        {
-          method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
+    /*
+     * =========================================================
+     * CREATE PAYMENT
+     * =========================================================
+     */
 
-            Accept:
-              "application/json"
-          },
+    async function createPayment(event) {
 
-          body:
-            JSON.stringify({
-              paymentMethod,
-              customerName,
-              customerEmail,
-              customerMobile
-            })
-        }
-      );
+      event.preventDefault();
 
-    let data = null;
+      if (!token) {
 
-    try {
-
-      data =
-        await response.json();
-
-    } catch {
-
-      data = null;
-    }
-
-    if (!response.ok) {
-
-      throw new Error(
-        data?.error ||
-        data?.message ||
-        "Não foi possível criar o pagamento."
-      );
-    }
-
-    currentPayment =
-      data?.payment ||
-      data;
-
-    if (!currentPayment) {
-
-      throw new Error(
-        "O servidor não devolveu os dados do pagamento."
-      );
-    }
-
-    renderPayment(
-      currentPayment
-    );
-
-    const providerPaymentId =
-      currentPayment.providerPaymentId ||
-      currentPayment.providerPayment?.id ||
-      currentPayment.providerId ||
-      null;
-
-    if (providerPaymentId) {
-
-      const sseStarted =
-        startPaymentSSE(
-          providerPaymentId
+        showMessage(
+          "Link de pagamento inválido.",
+          "error"
         );
 
-      if (!sseStarted) {
-
-        startPaymentPolling(
-          providerPaymentId
-        );
+        return;
       }
 
-    } else {
+      const button = $("payButton");
+
+      if (button) {
+        button.disabled = true;
+        button.textContent = "A processar...";
+      }
 
       showMessage(
-        "Pagamento criado. A aguardar confirmação...",
-        "success"
-      );
-    }
-
-  } catch (error) {
-
-    console.error(
-      "Honey Pay payment:",
-      error
-    );
-
-    showMessage(
-      error.message ||
-      "Não foi possível processar o pagamento.",
-      "error"
-    );
-
-    if (button) {
-
-      button.disabled = false;
-
-      button.textContent =
-        "Tentar novamente";
-    }
-  }
-}
-
-/* =========================================================
-   PAYMENT VIEW
-   ========================================================= */
-
-function renderPayment(payment) {
-
-  const status =
-    normalizeStatus(
-      payment.status ||
-      "PENDING"
-    );
-
-  let html = `
-    <div class="status-box">
-
-      <strong>
-        ${escapeHTML(
-          statusLabel(status)
-        )}
-      </strong>
-
-      <br>
-
-      Valor:
-      <strong>
-        ${formatKz(
-          payment.amount
-        )}
-      </strong>
-
-    </div>
-  `;
-
-  const reference =
-    payment.multicaixaReference ||
-    payment.reference ||
-    null;
-
-  if (
-    reference &&
-    (
-      reference.entity ||
-      reference.number ||
-      reference.reference
-    )
-  ) {
-
-    const entity =
-      reference.entity ||
-      "";
-
-    const number =
-      reference.number ||
-      reference.reference ||
-      "";
-
-    html += `
-      <div class="reference">
-
-        <strong>
-          Referência Multicaixa
-        </strong>
-
-        <div class="reference-row">
-
-          <div class="reference-label">
-            Entidade
-          </div>
-
-          <div class="reference-value">
-            ${escapeHTML(entity)}
-          </div>
-
-        </div>
-
-        <div class="reference-row">
-
-          <div class="reference-label">
-            Número
-          </div>
-
-          <div class="reference-value">
-            ${escapeHTML(number)}
-          </div>
-
-        </div>
-
-      </div>
-    `;
-  }
-
-  if (payment.checkoutUrl) {
-
-    html += `
-      <div class="status-box">
-
-        <a
-          href="${escapeHTML(payment.checkoutUrl)}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Abrir checkout de pagamento
-        </a>
-
-      </div>
-    `;
-  }
-
-  html += `
-    <div
-      id="liveStatus"
-      class="status-box"
-    >
-      A aguardar confirmação do pagamento...
-    </div>
-  `;
-
-  $("message")
-    .className =
-    "message success";
-
-  $("message")
-    .innerHTML =
-    html;
-
-  $("paymentForm")
-    .classList
-    .add("hidden");
-}
-
-/* =========================================================
-   POLLING
-   ========================================================= */
-/* =========================================================
-   BITPAY REAL-TIME SSE
-   ========================================================= */
-
-let paymentEventSource =
-  null;
-
-function stopPaymentSSE() {
-
-  if (
-    paymentEventSource
-  ) {
-
-    try {
-      paymentEventSource.close();
-    } catch {}
-
-    paymentEventSource =
-      null;
-  }
-}
-
-function startPaymentSSE(
-  providerPaymentId
-) {
-
-  if (!providerPaymentId) {
-    return false;
-  }
-
-  stopPaymentSSE();
-
-  const url =
-    `/api/public/payments/${encodeURIComponent(
-      providerPaymentId
-    )}/events`;
-
-  try {
-
-    const source =
-      new EventSource(
-        url
+        "A criar pagamento seguro.",
+        ""
       );
 
-    paymentEventSource =
-      source;
+      try {
 
-    /*
-    ========================================================
-    SNAPSHOT INICIAL BITPAY
-    ========================================================
-    */
+        const nameElement = $("customerName");
+        const emailElement = $("customerEmail");
+        const mobileElement = $("customerMobile");
+        const methodElement = $("paymentMethod");
 
-    source.onmessage =
-      event => {
+        const customerName =
+          nameElement
+            ? nameElement.value.trim()
+            : "";
 
-        try {
+        const customerEmail =
+          emailElement
+            ? emailElement.value.trim()
+            : "";
 
-          const provider =
-            JSON.parse(
-              event.data
-            );
+        const customerMobile =
+          mobileElement
+            ? mobileElement.value.trim()
+            : "";
 
-          renderLiveProviderStatus(
-            provider
+        const paymentMethod =
+          methodElement
+            ? methodElement.value
+            : "multicaixa_express";
+
+        if (!customerName) {
+
+          throw new Error(
+            "Introduza o seu nome."
           );
+        }
 
-          const status =
-            String(
-              provider?.status ||
-              ""
-            ).toUpperCase();
+        const response = await fetch(
+          "/api/public/payment-links/" +
+          encodeURIComponent(token) +
+          "/pay",
+          {
+            method: "POST",
 
-          if (
-            status ===
-            "SUCCEEDED"
-          ) {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json"
+            },
 
-            handleFinalStatus(
-              "PAID",
-              provider
-            );
-
-            source.close();
-
-            paymentEventSource =
-              null;
-
-            stopPolling();
+            body: JSON.stringify({
+              paymentMethod: paymentMethod,
+              customerName: customerName,
+              customerEmail: customerEmail,
+              customerMobile: customerMobile
+            })
           }
-
-        } catch (error) {
-
-          console.warn(
-            "BitPay SSE snapshot:",
-            error
-          );
-        }
-      };
-
-    /*
-    ========================================================
-    PAYMENT SUCCEEDED
-    ========================================================
-    */
-
-    source.addEventListener(
-      "payment.succeeded",
-      event => {
-
-        try {
-
-          const provider =
-            JSON.parse(
-              event.data
-            );
-
-          renderLiveProviderStatus(
-            provider
-          );
-
-          handleFinalStatus(
-            "PAID",
-            provider
-          );
-
-        } catch (error) {
-
-          console.warn(
-            "BitPay payment.succeeded:",
-            error
-          );
-
-          updateLiveStatus(
-            "PAID"
-          );
-        }
-
-        source.close();
-
-        paymentEventSource =
-          null;
-
-        stopPolling();
-      }
-    );
-
-    /*
-    ========================================================
-    PAYMENT FAILED
-    ========================================================
-    */
-
-    source.addEventListener(
-      "payment.failed",
-      event => {
-
-        try {
-
-          const provider =
-            JSON.parse(
-              event.data
-            );
-
-          renderLiveProviderStatus(
-            provider
-          );
-
-          handleFinalStatus(
-            "FAILED",
-            provider
-          );
-
-        } catch (error) {
-
-          console.warn(
-            "BitPay payment.failed:",
-            error
-          );
-
-          updateLiveStatus(
-            "FAILED"
-          );
-        }
-
-        source.close();
-
-        paymentEventSource =
-          null;
-
-        stopPolling();
-      }
-    );
-
-    /*
-    ========================================================
-    PAYMENT RECONCILED
-    ========================================================
-    */
-
-    source.addEventListener(
-      "payment.reconciled",
-      event => {
-
-        try {
-
-          const provider =
-            JSON.parse(
-              event.data
-            );
-
-          renderLiveProviderStatus(
-            provider
-          );
-
-          const status =
-            String(
-              provider?.status ||
-              ""
-            ).toUpperCase();
-
-          if (
-            status ===
-            "SUCCEEDED"
-          ) {
-
-            handleFinalStatus(
-              "PAID",
-              provider
-            );
-
-            source.close();
-
-            paymentEventSource =
-              null;
-
-            stopPolling();
-          }
-
-        } catch (error) {
-
-          console.warn(
-            "BitPay payment.reconciled:",
-            error
-          );
-        }
-      }
-    );
-
-    /*
-    ========================================================
-    SSE ERROR
-    ========================================================
-    */
-
-    source.onerror =
-      () => {
-
-        source.close();
-
-        paymentEventSource =
-          null;
-
-        startPaymentPolling(
-          providerPaymentId
         );
-      };
 
-    return true;
+        const rawText = await response.text();
+        const data = safeJsonParse(rawText);
 
-  } catch (error) {
+        if (!response.ok) {
 
-    console.warn(
-      "SSE BitPay:",
-      error
-    );
-
-    paymentEventSource =
-      null;
-
-    return false;
-  }
-}
-
-function startPaymentPolling(
-  providerPaymentId
-) {
-
-  stopPolling();
-
-  pollingAttempts = 0;
-
-  pollPaymentStatus(
-    providerPaymentId
-  );
-}
-
-async function pollPaymentStatus(
-  providerPaymentId
-) {
-
-  if (!providerPaymentId) {
-    return;
-  }
-
-  pollingAttempts++;
-
-  try {
-
-    const response =
-      await fetch(
-        `/api/public/payments/${encodeURIComponent(providerPaymentId)}/status`,
-        {
-          method: "GET",
-
-          headers: {
-            Accept:
-              "application/json"
-          },
-
-          cache: "no-store"
+          throw new Error(
+            data && (data.error || data.message)
+              ? (data.error || data.message)
+              : "Não foi possível criar o pagamento."
+          );
         }
-      );
 
-    let data = null;
+        currentPayment =
+          data && data.payment
+            ? data.payment
+            : data;
 
-    try {
-      data =
-        await response.json();
-    } catch {
-      data = null;
+        if (!currentPayment) {
+
+          throw new Error(
+            "O servidor não devolveu os dados do pagamento."
+          );
+        }
+
+        renderPayment(currentPayment);
+
+        const providerPaymentId =
+          currentPayment.providerPaymentId ||
+          (
+            currentPayment.providerPayment &&
+            currentPayment.providerPayment.id
+          ) ||
+          currentPayment.providerId ||
+          null;
+
+        if (providerPaymentId) {
+
+          const started =
+            startPaymentSSE(providerPaymentId);
+
+          if (!started) {
+            startPaymentPolling(providerPaymentId);
+          }
+
+        } else {
+
+          showMessage(
+            "Pagamento criado. A aguardar confirmação.",
+            "success"
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Honey Pay payment:",
+          error
+        );
+
+        showMessage(
+          error && error.message
+            ? error.message
+            : "Não foi possível processar o pagamento.",
+          "error"
+        );
+
+        if (button) {
+
+          button.disabled = false;
+          button.textContent = "Tentar novamente";
+        }
+      }
     }
 
-    if (!response.ok) {
 
-      throw new Error(
-        data?.error ||
-        data?.message ||
-        "Não foi possível consultar o pagamento."
-      );
-    }
+    /*
+     * =========================================================
+     * PAYMENT VIEW
+     * =========================================================
+     */
 
-    const payment =
-      data?.payment ||
-      data;
+    function renderPayment(payment) {
 
-    if (payment) {
-      currentPayment =
-        payment;
-    }
-
-    const status =
-      normalizeStatus(
-        payment?.status
+      const status = normalizeStatus(
+        payment && payment.status
+          ? payment.status
+          : "PENDING"
       );
 
-    updateLiveStatus(
-      status,
-      payment
-    );
+      let html =
+        '<div class="status-box">' +
 
-    if (
-      isFinalStatus(status)
-    ) {
+          "<strong>" +
+            escapeHTML(statusLabel(status)) +
+          "</strong>" +
+
+          "<br>" +
+
+          "Valor: " +
+
+          "<strong>" +
+            escapeHTML(
+              formatKz(
+                payment && payment.amount
+                  ? payment.amount
+                  : 0
+              )
+            ) +
+          "</strong>" +
+
+        "</div>";
+
+      const reference =
+        payment &&
+        (
+          payment.multicaixaReference ||
+          payment.reference
+        )
+          ? (
+              payment.multicaixaReference ||
+              payment.reference
+            )
+          : null;
+
+      if (
+        reference &&
+        (
+          reference.entity ||
+          reference.number ||
+          reference.reference
+        )
+      ) {
+
+        const entity =
+          reference.entity || "";
+
+        const number =
+          reference.number ||
+          reference.reference ||
+          "";
+
+        html +=
+          '<div class="reference">' +
+
+            "<strong>" +
+              "Referência Multicaixa" +
+            "</strong>" +
+
+            '<div class="reference-row">' +
+
+              '<div class="reference-label">' +
+                "Entidade" +
+              "</div>" +
+
+              '<div class="reference-value">' +
+                escapeHTML(entity) +
+              "</div>" +
+
+            "</div>" +
+
+            '<div class="reference-row">' +
+
+              '<div class="reference-label">' +
+                "Número" +
+              "</div>" +
+
+              '<div class="reference-value">' +
+                escapeHTML(number) +
+              "</div>" +
+
+            "</div>" +
+
+          "</div>";
+      }
+
+      if (
+        payment &&
+        payment.checkoutUrl
+      ) {
+
+        html +=
+          '<div class="status-box">' +
+
+            '<a href="' +
+              escapeHTML(payment.checkoutUrl) +
+              '" target="_blank" ' +
+              'rel="noopener noreferrer">' +
+
+              "Abrir checkout de pagamento" +
+
+            "</a>" +
+
+          "</div>";
+      }
+
+      html +=
+        '<div id="liveStatus" class="status-box">' +
+          "A aguardar confirmação do pagamento..." +
+        "</div>";
+
+      const message = $("message");
+
+      if (message) {
+
+        message.className =
+          "message success";
+
+        message.innerHTML = html;
+      }
+
+      const form = $("paymentForm");
+
+      if (form) {
+        form.classList.add("hidden");
+      }
+
+      if (isFinalStatus(status)) {
+        handleFinalStatus(status, payment);
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * SSE
+     * =========================================================
+     */
+
+    function stopPaymentSSE() {
+
+      if (paymentEventSource !== null) {
+
+        try {
+          paymentEventSource.close();
+        } catch (error) {
+          console.warn(
+            "Erro ao fechar SSE:",
+            error
+          );
+        }
+
+        paymentEventSource = null;
+      }
+    }
+
+
+    function startPaymentSSE(providerPaymentId) {
+
+      if (!providerPaymentId) {
+        return false;
+      }
+
+      if (
+        typeof EventSource ===
+        "undefined"
+      ) {
+        return false;
+      }
+
+      stopPaymentSSE();
+
+      sseFallbackStarted = false;
+
+      const url =
+        "/api/public/payments/" +
+        encodeURIComponent(providerPaymentId) +
+        "/events";
+
+      try {
+
+        const source =
+          new EventSource(url);
+
+        paymentEventSource = source;
+
+
+        source.onmessage =
+          function (event) {
+
+            try {
+
+              const provider =
+                safeJsonParse(event.data);
+
+              if (!provider) {
+                return;
+              }
+
+              renderLiveProviderStatus(provider);
+
+              const status =
+                normalizeStatus(provider.status);
+
+              if (
+                status === "SUCCEEDED" ||
+                status === "SUCCESS" ||
+                status === "PAID"
+              ) {
+
+                handleFinalStatus(
+                  "PAID",
+                  provider
+                );
+
+                stopPaymentSSE();
+                stopPolling();
+              }
+
+            } catch (error) {
+
+              console.warn(
+                "BitPay SSE snapshot:",
+                error
+              );
+            }
+          };
+
+
+        source.addEventListener(
+          "payment.succeeded",
+          function (event) {
+
+            try {
+
+              const provider =
+                safeJsonParse(event.data) || {};
+
+              renderLiveProviderStatus(provider);
+
+              handleFinalStatus(
+                "PAID",
+                provider
+              );
+
+            } catch (error) {
+
+              console.warn(
+                "BitPay payment.succeeded:",
+                error
+              );
+
+              updateLiveStatus("PAID");
+            }
+
+            stopPaymentSSE();
+            stopPolling();
+          }
+        );
+
+
+        source.addEventListener(
+          "payment.failed",
+          function (event) {
+
+            try {
+
+              const provider =
+                safeJsonParse(event.data) || {};
+
+              renderLiveProviderStatus(provider);
+
+              handleFinalStatus(
+                "FAILED",
+                provider
+              );
+
+            } catch (error) {
+
+              console.warn(
+                "BitPay payment.failed:",
+                error
+              );
+
+              updateLiveStatus("FAILED");
+            }
+
+            stopPaymentSSE();
+            stopPolling();
+          }
+        );
+
+
+        source.addEventListener(
+          "payment.reconciled",
+          function (event) {
+
+            try {
+
+              const provider =
+                safeJsonParse(event.data) || {};
+
+              renderLiveProviderStatus(provider);
+
+              const status =
+                normalizeStatus(provider.status);
+
+              if (
+                status === "SUCCEEDED" ||
+                status === "SUCCESS" ||
+                status === "PAID"
+              ) {
+
+                handleFinalStatus(
+                  "PAID",
+                  provider
+                );
+
+                stopPaymentSSE();
+                stopPolling();
+              }
+
+            } catch (error) {
+
+              console.warn(
+                "BitPay payment.reconciled:",
+                error
+              );
+            }
+          }
+        );
+
+
+        source.onerror =
+          function () {
+
+            stopPaymentSSE();
+
+            if (!sseFallbackStarted) {
+
+              sseFallbackStarted = true;
+
+              startPaymentPolling(
+                providerPaymentId
+              );
+            }
+          };
+
+        return true;
+
+      } catch (error) {
+
+        console.warn(
+          "SSE BitPay indisponível:",
+          error
+        );
+
+        paymentEventSource = null;
+
+        return false;
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * POLLING
+     * =========================================================
+     */
+
+    function startPaymentPolling(providerPaymentId) {
+
+      if (!providerPaymentId) {
+        return;
+      }
 
       stopPolling();
 
-      handleFinalStatus(
-        status,
-        payment
-      );
+      pollingAttempts = 0;
 
-      return;
+      pollPaymentStatus(providerPaymentId);
     }
 
-    if (
-      pollingAttempts <
-      MAX_POLLING_ATTEMPTS
-    ) {
 
-      schedulePolling(
-        () =>
-          pollPaymentStatus(
-            providerPaymentId
-          ),
-        INITIAL_POLLING_INTERVAL
-      );
+    async function pollPaymentStatus(providerPaymentId) {
 
-    } else {
+      if (!providerPaymentId) {
+        return;
+      }
+
+      pollingAttempts += 1;
+
+      try {
+
+        const response = await fetch(
+          "/api/public/payments/" +
+          encodeURIComponent(providerPaymentId) +
+          "/status",
+          {
+            method: "GET",
+
+            headers: {
+              Accept: "application/json"
+            },
+
+            cache: "no-store"
+          }
+        );
+
+        const rawText =
+          await response.text();
+
+        const data =
+          safeJsonParse(rawText);
+
+        if (!response.ok) {
+
+          throw new Error(
+            data && (data.error || data.message)
+              ? (data.error || data.message)
+              : "Não foi possível consultar o pagamento."
+          );
+        }
+
+        const payment =
+          data && data.payment
+            ? data.payment
+            : data;
+
+        if (payment) {
+          currentPayment = payment;
+        }
+
+        const status =
+          normalizeStatus(
+            payment && payment.status
+          );
+
+        updateLiveStatus(
+          status,
+          payment
+        );
+
+        if (isFinalStatus(status)) {
+
+          stopPolling();
+
+          handleFinalStatus(
+            status,
+            payment
+          );
+
+          return;
+        }
+
+        if (
+          pollingAttempts <
+          MAX_POLLING_ATTEMPTS
+        ) {
+
+          schedulePolling(
+            function () {
+              pollPaymentStatus(
+                providerPaymentId
+              );
+            },
+            INITIAL_POLLING_INTERVAL
+          );
+
+        } else {
+
+          const live =
+            $("liveStatus");
+
+          if (live) {
+
+            live.className =
+              "status-box warning";
+
+            live.textContent =
+              "O pagamento ainda está a ser confirmado. Pode manter esta página aberta.";
+          }
+        }
+
+      } catch (error) {
+
+        console.warn(
+          "Honey Pay payment status:",
+          error
+        );
+
+        if (
+          pollingAttempts <
+          MAX_POLLING_ATTEMPTS
+        ) {
+
+          schedulePolling(
+            function () {
+              pollPaymentStatus(
+                providerPaymentId
+              );
+            },
+            ERROR_POLLING_INTERVAL
+          );
+
+        } else {
+
+          const live =
+            $("liveStatus");
+
+          if (live) {
+
+            live.className =
+              "status-box warning";
+
+            live.textContent =
+              "Não foi possível atualizar o estado neste momento. A confirmação continua a ser processada.";
+          }
+        }
+      }
+    }
+
+
+    /*
+     * =========================================================
+     * LIVE PROVIDER STATUS
+     * =========================================================
+     */
+
+    function renderLiveProviderStatus(provider) {
+
+      if (!provider) {
+        return;
+      }
+
+      const status =
+        normalizeStatus(provider.status);
+
+      if (status) {
+        updateLiveStatus(
+          status,
+          provider
+        );
+      }
+    }
+
+
+    function updateLiveStatus(status, payment) {
 
       const live =
         $("liveStatus");
 
-      if (live) {
+      if (!live) {
+        return;
+      }
+
+      const normalized =
+        normalizeStatus(status);
+
+      if (
+        normalized === "PAID" ||
+        normalized === "SUCCEEDED" ||
+        normalized === "SUCCESS"
+      ) {
+
+        live.className =
+          "status-box success";
+
+        live.innerHTML =
+          "<strong>✓ Pagamento confirmado.</strong>";
+
+        return;
+      }
+
+      if (
+        normalized === "FAILED"
+      ) {
+
+        live.className =
+          "status-box error";
 
         live.textContent =
-          "O pagamento ainda está a ser confirmado. Pode manter esta página aberta.";
+          "O pagamento falhou.";
+
+        return;
+      }
+
+      if (
+        normalized === "EXPIRED"
+      ) {
+
+        live.className =
+          "status-box warning";
+
+        live.textContent =
+          "O pagamento expirou.";
+
+        return;
+      }
+
+      if (
+        normalized === "CANCELLED"
+      ) {
+
+        live.className =
+          "status-box warning";
+
+        live.textContent =
+          "O pagamento foi cancelado.";
+
+        return;
+      }
+
+      if (
+        normalized === "REFUNDED"
+      ) {
+
+        live.className =
+          "status-box warning";
+
+        live.textContent =
+          "O pagamento foi reembolsado.";
+
+        return;
+      }
+
+      if (
+        normalized === "PROCESSING" ||
+        normalized === "PAYMENT_PROCESSING"
+      ) {
+
+        live.className =
+          "status-box";
+
+        live.textContent =
+          "Pagamento em processamento...";
+
+        return;
+      }
+
+      live.className =
+        "status-box";
+
+      live.textContent =
+        "A aguardar confirmação do pagamento...";
+    }
+
+
+    /*
+     * =========================================================
+     * FINAL STATUS
+     * =========================================================
+     */
+
+    function handleFinalStatus(status, payment) {
+
+      const normalized =
+        normalizeStatus(status);
+
+      const button =
+        $("payButton");
+
+      if (
+        normalized === "PAID" ||
+        normalized === "SUCCEEDED" ||
+        normalized === "SUCCESS"
+      ) {
+
+        if (button) {
+
+          button.disabled = true;
+
+          button.textContent =
+            "Pagamento confirmado";
+        }
+
+        updateLiveStatus(
+          "PAID",
+          payment
+        );
+
+        return;
+      }
+
+      if (normalized === "FAILED") {
+
+        if (button) {
+
+          button.disabled = false;
+
+          button.textContent =
+            "Tentar novamente";
+        }
+
+        updateLiveStatus(
+          "FAILED",
+          payment
+        );
+
+        return;
+      }
+
+      if (normalized === "EXPIRED") {
+
+        if (button) {
+
+          button.disabled = false;
+
+          button.textContent =
+            "Tentar novamente";
+        }
+
+        updateLiveStatus(
+          "EXPIRED",
+          payment
+        );
+
+        return;
+      }
+
+      if (button) {
+
+        button.disabled = false;
+
+        button.textContent =
+          "Tentar novamente";
       }
     }
 
-  } catch (error) {
 
-    console.warn(
-      "Honey Pay payment status:",
-      error
-    );
+    /*
+     * =========================================================
+     * LOAD ERROR
+     * =========================================================
+     */
 
-    if (
-      pollingAttempts <
-      MAX_POLLING_ATTEMPTS
-    ) {
+    function showLoadError(message) {
 
-      schedulePolling(
-        () =>
-          pollPaymentStatus(
-            providerPaymentId
-          ),
-        ERROR_POLLING_INTERVAL
-      );
+      const loading =
+        $("loading");
 
-    } else {
+      if (loading) {
+        loading.classList.add("hidden");
+      }
 
-      const live =
-        $("liveStatus");
+      const content =
+        $("checkoutContent");
 
-      if (live) {
+      if (content) {
+        content.classList.add("hidden");
+      }
 
-        live.textContent =
-          "Não foi possível atualizar o estado neste momento. A confirmação continua a ser processada.";
+      const footer =
+        $("footer");
+
+      if (footer) {
+        footer.textContent = "Honey Pay";
+      }
+
+      const existing =
+        $("loadError");
+
+      if (existing) {
+
+        existing.textContent =
+          message || "Erro ao carregar pagamento.";
+
+        return;
+      }
+
+      const error =
+        document.createElement("div");
+
+      error.id =
+        "loadError";
+
+      error.textContent =
+        message || "Erro ao carregar pagamento.";
+
+      const inner =
+        document.querySelector(
+          "#checkout .checkout-inner"
+        );
+
+      if (inner) {
+        inner.appendChild(error);
       }
     }
-  }
-}
 
-/* =========================================================
-   LIVE STATUS
-   ========================================================= */
 
-function updateLiveStatus(
-  status,
-  payment
-) {
+    /*
+     * =========================================================
+     * CLEANUP
+     * =========================================================
+     */
 
-  const live =
-    $("liveStatus");
+    window.addEventListener(
+      "beforeunload",
+      function () {
 
-  if (!live) {
-    return;
-  }
-
-  if (
-    status === "PAID" ||
-    status === "SUCCEEDED" ||
-    status === "SUCCESS"
-  ) {
-
-    live.className =
-      "status-box success";
-
-    live.innerHTML =
-      "<strong>✓ Pagamento confirmado.</strong>";
-
-    return;
-  }
-
-  if (status === "FAILED") {
-
-    live.className =
-      "status-box error";
-
-    live.textContent =
-      "O pagamento falhou.";
-
-    return;
-  }
-
-  if (status === "EXPIRED") {
-
-    live.className =
-      "status-box warning";
-
-    live.textContent =
-      "O pagamento expirou.";
-
-    return;
-  }
-
-  if (status === "CANCELLED") {
-
-    live.className =
-      "status-box warning";
-
-    live.textContent =
-      "O pagamento foi cancelado.";
-
-    return;
-  }
-
-  if (status === "REFUNDED") {
-
-    live.className =
-      "status-box warning";
-
-    live.textContent =
-      "O pagamento foi reembolsado.";
-
-    return;
-  }
-
-  if (
-    status === "PROCESSING" ||
-    status === "PAYMENT_PROCESSING"
-  ) {
-
-    live.className =
-      "status-box";
-
-    live.textContent =
-      "Pagamento em processamento...";
-
-    return;
-  }
-
-  live.className =
-    "status-box";
-
-  live.textContent =
-    "A aguardar confirmação do pagamento...";
-}
-
-/* =========================================================
-   FINAL STATUS
-   ========================================================= */
-
-function handleFinalStatus(
-  status,
-  payment
-) {
-
-  const normalized =
-    normalizeStatus(status);
-
-  const button =
-    $("payButton");
-
-  if (
-    normalized === "PAID" ||
-    normalized === "SUCCEEDED" ||
-    normalized === "SUCCESS"
-  ) {
-
-    if (button) {
-
-      button.disabled = true;
-
-      button.textContent =
-        "Pagamento confirmado";
-    }
-
-    return;
-  }
-
-  if (button) {
-
-    button.disabled = false;
-
-    button.textContent =
-      "Tentar novamente";
-  }
-}
-
-/* =========================================================
-   LOAD ERROR
-   ========================================================= */
-
-function showLoadError(message) {
-
-  $("loading")
-    .classList
-    .add("hidden");
-
-  $("checkoutContent")
-    .classList
-    .add("hidden");
-
-  $("footer")
-    .textContent =
-    "Honey Pay";
-
-  const existing =
-    $("loadError");
-
-  if (existing) {
-
-    existing.textContent =
-      message;
-
-    return;
-  }
-
-  const error =
-    document.createElement(
-      "div"
+        stopPolling();
+        stopPaymentSSE();
+      }
     );
 
-  error.id =
-    "loadError";
 
-  error.textContent =
-    message;
+    /*
+     * =========================================================
+     * INITIALIZATION
+     * =========================================================
+     */
 
-  $("checkout")
-    .querySelector(".checkout-inner")
-    .appendChild(error);
-}
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
 
-/* =========================================================
-   CLEANUP
-   ========================================================= */
+        const form =
+          $("paymentForm");
 
-window.addEventListener(
-  "beforeunload",
-  () => {
-    stopPolling();
-  }
-);
+        if (form) {
 
-/* =========================================================
-   START
-   ========================================================= */
+          form.addEventListener(
+            "submit",
+            createPayment
+          );
+        }
 
-$("paymentForm")
-  .addEventListener(
-    "submit",
-    createPayment
-  );
+        loadPaymentLink();
+      }
+    );
 
-loadPaymentLink();
-</script>
-
-</body>
+  </script></body>
 </html>
