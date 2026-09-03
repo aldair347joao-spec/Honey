@@ -2439,7 +2439,87 @@ async function bitpayRequest(
 
   return data;
 }
+async function bitpayRequestRaw(
+  endpoint,
+  options = {}
+) {
 
+  if (!BITPAY_SECRET_KEY) {
+    throw new Error(
+      'BITPAY_SECRET_KEY não configurado.'
+    );
+  }
+
+  const url =
+    `${BITPAY_BASE_URL}${endpoint}`;
+
+  const headers = {
+    Authorization:
+      `Bearer ${BITPAY_SECRET_KEY}`,
+
+    ...(options.headers || {})
+  };
+
+  const response =
+    await fetch(
+      url,
+      {
+        method:
+          options.method ||
+          'GET',
+
+        headers,
+
+        body:
+          options.body
+            ? JSON.stringify(
+                options.body
+              )
+            : undefined
+      }
+    );
+
+  const text =
+    await response.text();
+
+  if (!response.ok) {
+
+    let data = null;
+
+    try {
+      data =
+        text
+          ? JSON.parse(text)
+          : null;
+    } catch {}
+
+    const message =
+      data?.error?.message ||
+      data?.message ||
+      data?.error ||
+      text ||
+      `BitPay HTTP ${response.status}`;
+
+    const error =
+      new Error(message);
+
+    error.status =
+      response.status;
+
+    error.bitpay =
+      data || text;
+
+    throw error;
+  }
+
+  return {
+    text,
+    contentType:
+      response.headers.get(
+        'content-type'
+      ) || ''
+  };
+}
 /*
 Verificação da assinatura BitPay.
 
@@ -5750,11 +5830,14 @@ GUARDAR BITPAY LINK
 
 if (bitpayLink) {
 
+  const bitpayCode =
+    bitpayLink.code ||
+    bitpayLink.id ||
+    '';
+
   link.bitpayLinkId =
     String(
-      bitpayLink.id ||
-      bitpayLink.code ||
-      ''
+      bitpayCode
     );
 
   link.bitpayUrl =
@@ -5791,11 +5874,36 @@ if (
       );
 
     if (
-      typeof qrResponse ===
-      'string'
+  link.bitpayLinkId
+) {
+
+  try {
+
+    const qrResponse =
+      await bitpayRequestRaw(
+        `/payment_links/${encodeURIComponent(
+          link.bitpayLinkId
+        )}/qr`,
+        {
+          method:
+            'GET',
+
+          headers: {
+            Accept:
+              'image/svg+xml'
+          }
+        }
+      );
+
+    if (
+      qrResponse.contentType
+        .includes(
+          'image/svg+xml'
+        )
     ) {
+
       link.qrSvg =
-        qrResponse;
+        qrResponse.text;
     }
 
   } catch (error) {
@@ -5815,7 +5923,7 @@ QR / URL PÚBLICA
 
 link.qrUrl =
   link.bitpayUrl ||
-  honeyUrl;
+  '';
 
 await link.save();
 
@@ -5843,7 +5951,7 @@ return res
       link.qrSvg || '',
 
     qrUrl:
-      link.qrUrl || honeyUrl,
+  link.qrUrl || '',
 
     honeyPayFee: {
       bps:
