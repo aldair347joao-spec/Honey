@@ -5813,12 +5813,6 @@ app.get(
         }).lean();
 
       if (!link) {
-        bankAccountId:
-  link.bankAccountId
-    ? String(
-        link.bankAccountId
-      )
-    : null,
         return res
           .status(404)
           .json({
