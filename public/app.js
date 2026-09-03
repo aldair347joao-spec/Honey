@@ -3249,29 +3249,58 @@ function openBankAccountForm(account = null) {
       };
 
       try {
-        if (editing) {
+        try {
 
-  const id =
-    bankAccountId(
-      account
+  if (editing) {
+
+    const id =
+      bankAccountId(
+        account
+      );
+
+    if (!id) {
+      throw new Error(
+        "ID da conta bancária não encontrado."
+      );
+    }
+
+    await patch(
+      `/bank-accounts/${encodeURIComponent(id)}`,
+      body
     );
 
-  if (!id) {
-    throw new Error(
-      "ID da conta bancária não encontrado."
+  } else {
+
+    await post(
+      "/bank-accounts",
+      body
     );
+
   }
 
-  await patch(
-    `/bank-accounts/${encodeURIComponent(id)}`,
-    body
+  closeModal();
+
+  await loadBankAccounts();
+
+  renderBankAccounts();
+
+  showToast(
+    editing
+      ? "Conta bancária atualizada."
+      : "Conta bancária adicionada.",
+    "success"
   );
 
-} else {
+} catch (error) {
 
-  await post(
-    "/bank-accounts",
-    body
+  console.error(
+    "Honey Pay bank account:",
+    error
+  );
+
+  showToast(
+    getErrorMessage(error),
+    "error"
   );
 }
             else {
