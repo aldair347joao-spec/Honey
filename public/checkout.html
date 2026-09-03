@@ -1448,13 +1448,7 @@ function renderPaymentLink(data) {
     `${location.origin}/pay/${encodeURIComponent(token)}`;
 
   renderQr(
-    link.qrCode ||
-    link.qrUrl ||
-    paymentUrl,
-    paymentUrl
-  );
-renderQr(
-  data?.link?.qrSvg ||
+  link.qrSvg ||
   ""
 );
   $("loading")
@@ -1586,7 +1580,6 @@ async function createPayment(event) {
   event.preventDefault();
 
   if (!token) {
-
     showMessage(
       "Link de pagamento inválido.",
       "error"
@@ -1598,9 +1591,11 @@ async function createPayment(event) {
   const button =
     $("payButton");
 
-  button.disabled = true;
-  button.textContent =
-    "A processar...";
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "A processar...";
+  }
 
   showMessage(
     "A criar pagamento seguro...",
@@ -1662,9 +1657,12 @@ async function createPayment(event) {
     let data = null;
 
     try {
+
       data =
         await response.json();
+
     } catch {
+
       data = null;
     }
 
@@ -1698,31 +1696,21 @@ async function createPayment(event) {
       currentPayment.providerId ||
       null;
 
-    if (
-  providerPaymentId
-) {
+    if (providerPaymentId) {
 
-  const sseStarted =
-    startPaymentSSE(
-      providerPaymentId
-    );
+      const sseStarted =
+        startPaymentSSE(
+          providerPaymentId
+        );
 
-  if (
-    !sseStarted
-  ) {
+      if (!sseStarted) {
 
-    startPaymentPolling(
-      providerPaymentId
-    );
-  }
+        startPaymentPolling(
+          providerPaymentId
+        );
+      }
 
-} else {
-
-  showMessage(
-    "Pagamento criado. A aguardar confirmação...",
-    "success"
-  );
-}
+    } else {
 
       showMessage(
         "Pagamento criado. A aguardar confirmação...",
@@ -1743,9 +1731,13 @@ async function createPayment(event) {
       "error"
     );
 
-    button.disabled = false;
-    button.textContent =
-      "Tentar novamente";
+    if (button) {
+
+      button.disabled = false;
+
+      button.textContent =
+        "Tentar novamente";
+    }
   }
 }
 
@@ -1904,7 +1896,6 @@ function stopPaymentSSE() {
   }
 }
 
-
 function startPaymentSSE(
   providerPaymentId
 ) {
@@ -1932,7 +1923,7 @@ function startPaymentSSE(
 
     /*
     ========================================================
-    BITPAY SSE — SNAPSHOT INICIAL
+    SNAPSHOT INICIAL BITPAY
     ========================================================
     */
 
@@ -1953,16 +1944,16 @@ function startPaymentSSE(
           const status =
             String(
               provider?.status ||
-              ''
+              ""
             ).toUpperCase();
 
           if (
             status ===
-            'SUCCEEDED'
+            "SUCCEEDED"
           ) {
 
             handleFinalStatus(
-              'PAID',
+              "PAID",
               provider
             );
 
@@ -2101,7 +2092,7 @@ function startPaymentSSE(
           const status =
             String(
               provider?.status ||
-              ''
+              ""
             ).toUpperCase();
 
           if (
@@ -2146,14 +2137,6 @@ function startPaymentSSE(
         paymentEventSource =
           null;
 
-        /*
-        SSE é apenas o canal
-        de atualização em tempo real.
-
-        O polling continua como
-        mecanismo de fallback.
-        */
-
         startPaymentPolling(
           providerPaymentId
         );
@@ -2174,6 +2157,7 @@ function startPaymentSSE(
     return false;
   }
 }
+
 function startPaymentPolling(
   providerPaymentId
 ) {
