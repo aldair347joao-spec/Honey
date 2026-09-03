@@ -1908,7 +1908,51 @@ function stopPaymentSSE() {
 function startPaymentSSE(
   providerPaymentId
 ) {
+source.onmessage = event => {
 
+  try {
+
+    const provider =
+      JSON.parse(
+        event.data
+      );
+
+    renderLiveProviderStatus(
+      provider
+    );
+
+    const status =
+      String(
+        provider?.status ||
+        ''
+      ).toUpperCase();
+
+    if (
+      status ===
+      'SUCCEEDED'
+    ) {
+
+      handleFinalStatus(
+        'PAID',
+        provider
+      );
+
+      source.close();
+
+      paymentEventSource =
+        null;
+
+      stopPolling();
+    }
+
+  } catch (error) {
+
+    console.warn(
+      'BitPay SSE snapshot:',
+      error
+    );
+  }
+};
   if (
     !providerPaymentId
   ) {
