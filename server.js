@@ -197,6 +197,164 @@ const BITPAY_WEBHOOK_TOLERANCE_SECONDS =
   10 * 60;
 
 /* =========================================================
+   PUBLIC BITPAY PAYMENT SSE
+   ========================================================= */
+
+app.get(
+  '/api/public/payments/:id/events',
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const providerPaymentId =
+        cleanString(
+          req.params.id,
+          200
+        );
+
+      if (
+        !providerPaymentId
+      ) {
+
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Pagamento inválido.'
+          });
+      }
+
+      const url =
+        `${BITPAY_BASE_URL}/public/payments/${encodeURIComponent(
+          providerPaymentId
+        )}/events`;
+
+      const response =
+        await fetch(
+          url,
+          {
+            method:
+              'GET',
+
+            headers: {
+              Accept:
+                'text/event-stream'
+            }
+          }
+        );
+
+      if (
+        !response.ok ||
+        !response.body
+      ) {
+
+        const text =
+          await response.text();
+
+        return res
+          .status(
+            response.status ||
+            502
+          )
+          .send(
+            text ||
+            'SSE BitPay indisponível.'
+          );
+      }
+
+      res.statusCode =
+        200;
+
+      res.setHeader(
+        'Content-Type',
+        'text/event-stream'
+      );
+
+      res.setHeader(
+        'Cache-Control',
+        'no-cache, no-transform'
+      );
+
+      res.setHeader(
+        'Connection',
+        'keep-alive'
+      );
+
+      res.setHeader(
+        'X-Accel-Buffering',
+        'no'
+      );
+
+      if (
+        res.flushHeaders
+      ) {
+        res.flushHeaders();
+      }
+
+      const reader =
+        response.body.getReader();
+
+      req.on(
+        'close',
+        () => {
+
+          try {
+            reader.cancel();
+          } catch {}
+        }
+      );
+
+      try {
+
+        while (
+          true
+        ) {
+
+          const {
+            done,
+            value
+          } =
+            await reader.read();
+
+          if (
+            done
+          ) {
+            break;
+          }
+
+          res.write(
+            Buffer.from(
+              value
+            )
+          );
+        }
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+          'BitPay SSE proxy:',
+          error.message
+        );
+
+      } finally {
+
+        try {
+          res.end();
+        } catch {}
+      }
+    }
+  )
+);
+
+/* =========================================================
    PATHS
 ========================================================= */
 
