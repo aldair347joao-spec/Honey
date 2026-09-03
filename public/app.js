@@ -2674,13 +2674,31 @@ function openBankAccountForm(account = null) {
 
       try {
         if (editing) {
-          const id = bankAccountId(account);
 
-          await patch(
-            `/bank-accounts/${encodeURIComponent(id)}`,
-            body
-          );
-        } else {
+  const id =
+    bankAccountId(
+      account
+    );
+
+  if (!id) {
+    throw new Error(
+      "ID da conta bancária não encontrado."
+    );
+  }
+
+  await patch(
+    `/bank-accounts/${encodeURIComponent(id)}`,
+    body
+  );
+
+} else {
+
+  await post(
+    "/bank-accounts",
+    body
+  );
+}
+            else {
           await post(
             "/bank-accounts",
             body
