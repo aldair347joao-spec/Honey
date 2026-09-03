@@ -1913,6 +1913,10 @@ function openManualPaymentLinkForm() {
         amount: Number(
           formData.get("amount")
         ),
+         bankAccountId:
+  formData.get(
+    "bankAccountId"
+  ) || undefined,
         expiresAt:
           expiresAtValue
             ? new Date(
@@ -1993,7 +1997,73 @@ function openPaymentLinkForm(product) {
             required
           >
         </label>
+<label class="full">
+  <span>Conta bancária para transferência</span>
 
+  <select
+    name="bankAccountId"
+  >
+
+    <option value="">
+      Sem conta bancária específica
+    </option>
+
+    ${
+      (state.bankAccounts || [])
+        .filter(
+          account =>
+            account.active !== false
+        )
+        .map(
+          account => {
+
+            const id =
+              bankAccountId(
+                account
+              );
+
+            const name =
+              account.bankName ||
+              account.bank ||
+              "Banco";
+
+            const number =
+              account.accountNumber ||
+              account.iban ||
+              account.number ||
+              "";
+
+            const selected =
+              account.isDefault
+                ? "selected"
+                : "";
+
+            return `
+              <option
+                value="${escapeHTML(id)}"
+                ${selected}
+              >
+                ${escapeHTML(name)}
+                ${
+                  number
+                    ? ` — ${escapeHTML(number)}`
+                    : ""
+                }
+              </option>
+            `;
+          }
+        )
+        .join("")
+    }
+
+  </select>
+
+  <small>
+    Esta conta será apresentada para transferências bancárias diretas.
+    A liquidação dos pagamentos BitPay continua dependente da configuração
+    do comerciante na BitPay.
+  </small>
+</label>
         <div class="form-actions full">
 
           <button
@@ -2076,13 +2146,8 @@ function showCreatedLink(data) {
     );
 
   const qrSource =
-    data?.qrSvg ||
-    data?.qrUrl ||
-    (
-      url
-        ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(url)}`
-        : ""
-    );
+  data?.qrSvg ||
+  "";
 
   openModal(
     "Link criado",
