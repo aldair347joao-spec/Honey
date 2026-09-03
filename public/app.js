@@ -296,64 +296,146 @@ function showToast(message, type = "info") {
    API
 ========================================================= */
 
+/* =========================================================
+   HONEY PAY — API CORE
+   V5.0 — STABLE BOOT / TIMEOUT / SESSION
+   ========================================================= */
+
+const API_TIMEOUT = 12000;
+
+function createTimeoutSignal(timeout = API_TIMEOUT) {
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, timeout);
+
+  return {
+    signal: controller.signal,
+    cleanup: () => clearTimeout(timer)
+  };
+}
+
 async function request(path, options = {}, config = {}) {
   const {
     authRequired = true,
-    redirectOn401 = true
+    redirectOn401 = true,
+    timeout = API_TIMEOUT
   } = config;
 
   const finalOptions = {
     credentials: "include",
+    cache: "no-store",
     ...options,
     headers: {
       Accept: "application/json",
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.body
+        ? {
+            "Content-Type": "application/json"
+          }
+        : {}),
       ...(options.headers || {})
     }
   };
+
+  /*
+   * IMPORTANTE:
+   * Nunca permitir que um fetch bloqueie
+   * o painel indefinidamente.
+   */
+
+  const timeoutControl =
+    createTimeoutSignal(timeout);
+
+  /*
+   * Não substituir um signal fornecido
+   * explicitamente pelo chamador.
+   */
+
+  if (!finalOptions.signal) {
+    finalOptions.signal =
+      timeoutControl.signal;
+  }
 
   let response;
 
   try {
     response = await fetch(
-      path.startsWith("http") ? path : `${API_BASE}${path}`,
+      path.startsWith("http")
+        ? path
+        : `${API_BASE}${path}`,
       finalOptions
     );
   } catch (error) {
+    if (error?.name === "AbortError") {
+      const timeoutError =
+        new Error(
+          "O servidor demorou demasiado tempo a responder."
+        );
+
+      timeoutError.code =
+        "REQUEST_TIMEOUT";
+
+      timeoutError.status =
+        408;
+
+      throw timeoutError;
+    }
+
     throw new Error(
       "Não foi possível contactar o servidor. Verifica a ligação à Internet."
     );
+  } finally {
+    timeoutControl.cleanup();
   }
 
   let data = null;
 
-  const contentType = response.headers.get("content-type") || "";
+  const contentType =
+    response.headers.get(
+      "content-type"
+    ) || "";
 
-  if (contentType.includes("application/json")) {
-    try {
-      data = await response.json();
-    } catch {
-      data = null;
+  try {
+    if (
+      contentType
+        .toLowerCase()
+        .includes("application/json")
+    ) {
+      data =
+        await response.json();
+    } else {
+      const text =
+        await response.text();
+
+      data =
+        text || null;
     }
-  } else {
-    try {
-      const text = await response.text();
-      data = text || null;
-    } catch {
-      data = null;
-    }
+  } catch {
+    data = null;
   }
 
+  /*
+   * 401 = sessão inválida/expirada.
+   */
+
   if (response.status === 401) {
-    if (authRequired && redirectOn401) {
+    if (
+      authRequired &&
+      redirectOn401
+    ) {
+      state.authenticated =
+        false;
+
       redirectToLogin();
     }
 
-    const error = new Error(
-      data?.message ||
-      data?.error ||
-      "Sessão expirada."
-    );
+    const error =
+      new Error(
+        data?.message ||
+        data?.error ||
+        "Sessão expirada."
+      );
 
     error.status = 401;
     error.data = data;
@@ -361,15 +443,22 @@ async function request(path, options = {}, config = {}) {
     throw error;
   }
 
-  if (!response.ok) {
-    const error = new Error(
-      data?.message ||
-      data?.error ||
-      data?.details ||
-      `Erro HTTP ${response.status}`
-    );
+  /*
+   * Outros erros HTTP.
+   */
 
-    error.status = response.status;
+  if (!response.ok) {
+    const error =
+      new Error(
+        data?.message ||
+        data?.error ||
+        data?.details ||
+        `Erro HTTP ${response.status}`
+      );
+
+    error.status =
+      response.status;
+
     error.data = data;
 
     throw error;
@@ -378,38 +467,82 @@ async function request(path, options = {}, config = {}) {
   return data;
 }
 
-async function get(path, config) {
-  return request(path, {
-    method: "GET"
-  }, config);
+
+/* =========================================================
+   HTTP HELPERS
+========================================================= */
+
+async function get(
+  path,
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "GET"
+    },
+    config
+  );
 }
 
-async function post(path, body, config) {
-  return request(path, {
-    method: "POST",
-    body: JSON.stringify(body ?? {})
-  }, config);
+async function post(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "POST",
+      body: JSON.stringify(body)
+    },
+    config
+  );
 }
 
-async function patch(path, body, config) {
-  return request(path, {
-    method: "PATCH",
-    body: JSON.stringify(body ?? {})
-  }, config);
+async function patch(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "PATCH",
+      body: JSON.stringify(body)
+    },
+    config
+  );
 }
 
-async function put(path, body, config) {
-  return request(path, {
-    method: "PUT",
-    body: JSON.stringify(body ?? {})
-  }, config);
+async function put(
+  path,
+  body = {},
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "PUT",
+      body: JSON.stringify(body)
+    },
+    config
+  );
 }
 
-async function del(path, config) {
-  return request(path, {
-    method: "DELETE"
-  }, config);
+async function del(
+  path,
+  config = {}
+) {
+  return request(
+    path,
+    {
+      method: "DELETE"
+    },
+    config
+  );
 }
+
 
 /* =========================================================
    AUTH
@@ -417,28 +550,66 @@ async function del(path, config) {
 
 async function checkSession() {
   try {
-    const data = await get("/auth/status", {
-      authRequired: false,
-      redirectOn401: false
-    });
+    const data =
+      await get(
+        "/auth/status",
+        {
+          authRequired: false,
+          redirectOn401: false,
+          timeout: 8000
+        }
+      );
 
     const authenticated =
-      Boolean(data?.authenticated) ||
-      Boolean(data?.loggedIn) ||
-      Boolean(data?.user) ||
-      Boolean(data?.data?.authenticated);
+      Boolean(
+        data?.authenticated
+      ) ||
+      Boolean(
+        data?.loggedIn
+      ) ||
+      Boolean(
+        data?.user
+      ) ||
+      Boolean(
+        data?.data?.authenticated
+      );
 
-    state.authenticated = authenticated;
+    state.authenticated =
+      authenticated;
 
     return authenticated;
-  } catch {
-    state.authenticated = false;
+
+  } catch (error) {
+
+    /*
+     * Timeout/erro de rede não deve
+     * bloquear o browser para sempre.
+     */
+
+    console.warn(
+      "Honey Pay: falha ao verificar sessão.",
+      error
+    );
+
+    state.authenticated =
+      false;
+
     return false;
   }
 }
 
+
 async function loadCurrentUser() {
-  const data = await get("/me");
+
+  const data =
+    await get(
+      "/me",
+      {
+        authRequired: true,
+        redirectOn401: true,
+        timeout: 10000
+      }
+    );
 
   state.user =
     data?.user ||
@@ -458,48 +629,453 @@ async function loadCurrentUser() {
   return data;
 }
 
+
+/* =========================================================
+   LOGIN REDIRECT
+========================================================= */
+
 function redirectToLogin() {
-  if (window.location.pathname === "/login") return;
 
-  if (window.__honeyRedirecting) return;
+  if (
+    window.location.pathname ===
+    "/login"
+  ) {
+    return;
+  }
 
-  window.__honeyRedirecting = true;
+  if (
+    window.__honeyRedirecting
+  ) {
+    return;
+  }
 
-  window.location.replace("/login");
+  window.__honeyRedirecting =
+    true;
+
+  window.location.replace(
+    "/login"
+  );
 }
+
+
+/* =========================================================
+   LOADER
+========================================================= */
 
 function showApp() {
-  if (!app) return;
 
-  app.classList.remove("hidden");
-  app.removeAttribute("aria-hidden");
+  if (!app) {
+    return;
+  }
+
+  app.classList.remove(
+    "hidden"
+  );
+
+  app.removeAttribute(
+    "aria-hidden"
+  );
 }
 
-function hideLoader() {
-  if (!loader) return;
 
-  loader.classList.add("hide");
+function hideLoader() {
+
+  if (!loader) {
+    return;
+  }
+
+  loader.classList.add(
+    "hide"
+  );
+
+  /*
+   * Garantir que o loader desapareça
+   * mesmo que a animação CSS não exista.
+   */
 
   setTimeout(() => {
-    loader.style.display = "none";
+
+    if (!loader) {
+      return;
+    }
+
+    loader.style.display =
+      "none";
+
   }, 450);
 }
 
-function showLoader() {
-  if (!loader) return;
 
-  loader.style.display = "";
-  loader.classList.remove("hide");
+function showLoader() {
+
+  if (!loader) {
+    return;
+  }
+
+  loader.style.display =
+    "";
+
+  loader.classList.remove(
+    "hide"
+  );
 }
 
+
+/*
+ * NOVO:
+ * A aplicação passa a ficar visível
+ * independentemente do carregamento
+ * dos dados.
+ */
+
 function revealApplication() {
+
   showApp();
 
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      hideLoader();
-    });
+
+    hideLoader();
+
   });
+}
+
+
+/* =========================================================
+   SAFE BOOT ERROR
+========================================================= */
+
+function renderBootError(
+  error
+) {
+
+  if (!pageContent) {
+    return;
+  }
+
+  const message =
+    getErrorMessage(
+      error,
+      "Não foi possível carregar os dados do painel."
+    );
+
+  pageContent.innerHTML = `
+    <div class="error-state">
+
+      <div class="error-icon">
+        !
+      </div>
+
+      <h2>
+        O painel está disponível
+      </h2>
+
+      <p>
+        ${escapeHTML(message)}
+      </p>
+
+      <div
+        style="
+          display:flex;
+          gap:10px;
+          flex-wrap:wrap;
+          justify-content:center;
+          margin-top:18px;
+        "
+      >
+
+        <button
+          id="bootRetry"
+          class="btn primary"
+          type="button"
+        >
+          Tentar novamente
+        </button>
+
+        <button
+          id="bootRefresh"
+          class="btn secondary"
+          type="button"
+        >
+          Atualizar página
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  $("#bootRetry")
+    ?.addEventListener(
+      "click",
+      async () => {
+
+        const button =
+          $("#bootRetry");
+
+        if (button) {
+          button.disabled =
+            true;
+
+          button.textContent =
+            "A tentar...";
+        }
+
+        try {
+
+          await initialiseDashboard(
+            true
+          );
+
+        } catch (retryError) {
+
+          console.error(
+            "Honey Pay retry:",
+            retryError
+          );
+
+          renderBootError(
+            retryError
+          );
+        }
+      }
+    );
+
+  $("#bootRefresh")
+    ?.addEventListener(
+      "click",
+      () => {
+        window.location.reload();
+      }
+    );
+}
+
+
+/* =========================================================
+   SAFE DASHBOARD INITIALISATION
+========================================================= */
+
+async function initialiseDashboard(
+  retry = false
+) {
+
+  /*
+   * O painel já está visível.
+   * Nenhuma API pode escondê-lo.
+   */
+
+  revealApplication();
+
+  /*
+   * Sessão.
+   */
+
+  const authenticated =
+    await checkSession();
+
+  if (!authenticated) {
+
+    redirectToLogin();
+
+    return false;
+  }
+
+  state.authenticated =
+    true;
+
+  /*
+   * Configuração da interface.
+   * Nenhuma destas operações deve impedir
+   * a abertura visual do painel.
+   */
+
+  ensureBankAccountsNavigation();
+
+  setupSidebar();
+  setupModal();
+  setupRefreshButton();
+  setupLogout();
+  setupRouting();
+
+  /*
+   * Utilizador.
+   *
+   * Se falhar, mostramos erro controlado,
+   * mas não deixamos o loader preso.
+   */
+
+  try {
+
+    await loadCurrentUser();
+
+  } catch (error) {
+
+    console.error(
+      "Honey Pay /me:",
+      error
+    );
+
+    if (
+      error?.status === 401
+    ) {
+
+      state.authenticated =
+        false;
+
+      redirectToLogin();
+
+      return false;
+    }
+
+    renderBootError(
+      error
+    );
+
+    return false;
+  }
+
+  /*
+   * Rota inicial.
+   */
+
+  const route =
+    getCurrentRoute();
+
+  /*
+   * Agora carregamos o conteúdo.
+   * O loader já desapareceu.
+   */
+
+  try {
+
+    await renderRoute(
+      route
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Honey Pay route:",
+      error
+    );
+
+    renderBootError(
+      error
+    );
+  }
+
+  /*
+   * Atualização automática.
+   */
+
+  startPaymentRefresh();
+
+  return true;
+}
+
+
+/* =========================================================
+   BOOT DEFINITIVO
+========================================================= */
+
+async function boot() {
+
+  if (
+    state.booted
+  ) {
+    return;
+  }
+
+  state.booted =
+    true;
+
+  state.loading =
+    true;
+
+  showLoader();
+
+  /*
+   * FAIL-SAFE:
+   *
+   * Mesmo que alguma promessa fique
+   * bloqueada por uma condição inesperada,
+   * o painel nunca poderá permanecer
+   * no loader indefinidamente.
+   */
+
+  const emergencyTimer =
+    setTimeout(() => {
+
+      console.warn(
+        "Honey Pay: boot excedeu o tempo máximo."
+      );
+
+      revealApplication();
+
+      if (
+        pageContent &&
+        !pageContent.innerHTML.trim()
+      ) {
+
+        renderBootError(
+          new Error(
+            "O servidor demorou demasiado tempo a responder."
+          )
+        );
+      }
+
+    }, 15000);
+
+  try {
+
+    await initialiseDashboard();
+
+  } catch (error) {
+
+    console.error(
+      "Honey Pay boot error:",
+      error
+    );
+
+    /*
+     * Nunca deixar o utilizador preso
+     * no loader.
+     */
+
+    revealApplication();
+
+    if (
+      error?.status === 401
+    ) {
+
+      state.authenticated =
+        false;
+
+      redirectToLogin();
+
+      return;
+    }
+
+    renderBootError(
+      error
+    );
+
+  } finally {
+
+    clearTimeout(
+      emergencyTimer
+    );
+
+    /*
+     * GARANTIA ABSOLUTA:
+     * o loader nunca permanece aberto
+     * depois do boot.
+     */
+
+    revealApplication();
+
+    state.loading =
+      false;
+  }
 }
 
 /* =========================================================
