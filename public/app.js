@@ -3250,13 +3250,9 @@ function openBankAccountForm(account = null) {
 
       try {
         try {
-
+try {
   if (editing) {
-
-    const id =
-      bankAccountId(
-        account
-      );
+    const id = bankAccountId(account);
 
     if (!id) {
       throw new Error(
@@ -3268,14 +3264,11 @@ function openBankAccountForm(account = null) {
       `/bank-accounts/${encodeURIComponent(id)}`,
       body
     );
-
   } else {
-
     await post(
       "/bank-accounts",
       body
     );
-
   }
 
   closeModal();
@@ -3292,42 +3285,12 @@ function openBankAccountForm(account = null) {
   );
 
 } catch (error) {
-
-  console.error(
-    "Honey Pay bank account:",
-    error
-  );
-
   showToast(
     getErrorMessage(error),
     "error"
   );
 }
-            else {
-          await post(
-            "/bank-accounts",
-            body
-          );
-        }
-
-        closeModal();
-
-        await loadBankAccounts();
-
-        renderBankAccounts();
-
-        showToast(
-          editing
-            ? "Conta bancária atualizada."
-            : "Conta bancária adicionada.",
-          "success"
-        );
-      } catch (error) {
-        showToast(
-          getErrorMessage(error),
-          "error"
-        );
-      }
+  
     }
   );
 }
