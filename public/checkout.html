@@ -1908,54 +1908,8 @@ function stopPaymentSSE() {
 function startPaymentSSE(
   providerPaymentId
 ) {
-source.onmessage = event => {
 
-  try {
-
-    const provider =
-      JSON.parse(
-        event.data
-      );
-
-    renderLiveProviderStatus(
-      provider
-    );
-
-    const status =
-      String(
-        provider?.status ||
-        ''
-      ).toUpperCase();
-
-    if (
-      status ===
-      'SUCCEEDED'
-    ) {
-
-      handleFinalStatus(
-        'PAID',
-        provider
-      );
-
-      source.close();
-
-      paymentEventSource =
-        null;
-
-      stopPolling();
-    }
-
-  } catch (error) {
-
-    console.warn(
-      'BitPay SSE snapshot:',
-      error
-    );
-  }
-};
-  if (
-    !providerPaymentId
-  ) {
+  if (!providerPaymentId) {
     return false;
   }
 
@@ -1976,6 +1930,65 @@ source.onmessage = event => {
     paymentEventSource =
       source;
 
+    /*
+    ========================================================
+    BITPAY SSE — SNAPSHOT INICIAL
+    ========================================================
+    */
+
+    source.onmessage =
+      event => {
+
+        try {
+
+          const provider =
+            JSON.parse(
+              event.data
+            );
+
+          renderLiveProviderStatus(
+            provider
+          );
+
+          const status =
+            String(
+              provider?.status ||
+              ''
+            ).toUpperCase();
+
+          if (
+            status ===
+            'SUCCEEDED'
+          ) {
+
+            handleFinalStatus(
+              'PAID',
+              provider
+            );
+
+            source.close();
+
+            paymentEventSource =
+              null;
+
+            stopPolling();
+          }
+
+        } catch (error) {
+
+          console.warn(
+            "BitPay SSE snapshot:",
+            error
+          );
+        }
+      };
+
+    /*
+    ========================================================
+    PAYMENT SUCCEEDED
+    ========================================================
+    */
+
     source.addEventListener(
       "payment.succeeded",
       event => {
@@ -1991,10 +2004,20 @@ source.onmessage = event => {
             provider
           );
 
-        } catch {
+          handleFinalStatus(
+            "PAID",
+            provider
+          );
+
+        } catch (error) {
+
+          console.warn(
+            "BitPay payment.succeeded:",
+            error
+          );
 
           updateLiveStatus(
-            "Pagamento confirmado."
+            "PAID"
           );
         }
 
@@ -2006,6 +2029,12 @@ source.onmessage = event => {
         stopPolling();
       }
     );
+
+    /*
+    ========================================================
+    PAYMENT FAILED
+    ========================================================
+    */
 
     source.addEventListener(
       "payment.failed",
@@ -2022,10 +2051,20 @@ source.onmessage = event => {
             provider
           );
 
-        } catch {
+          handleFinalStatus(
+            "FAILED",
+            provider
+          );
+
+        } catch (error) {
+
+          console.warn(
+            "BitPay payment.failed:",
+            error
+          );
 
           updateLiveStatus(
-            "O pagamento falhou."
+            "FAILED"
           );
         }
 
@@ -2037,6 +2076,12 @@ source.onmessage = event => {
         stopPolling();
       }
     );
+
+    /*
+    ========================================================
+    PAYMENT RECONCILED
+    ========================================================
+    */
 
     source.addEventListener(
       "payment.reconciled",
@@ -2053,10 +2098,45 @@ source.onmessage = event => {
             provider
           );
 
-        } catch {}
+          const status =
+            String(
+              provider?.status ||
+              ''
+            ).toUpperCase();
 
+          if (
+            status ===
+            "SUCCEEDED"
+          ) {
+
+            handleFinalStatus(
+              "PAID",
+              provider
+            );
+
+            source.close();
+
+            paymentEventSource =
+              null;
+
+            stopPolling();
+          }
+
+        } catch (error) {
+
+          console.warn(
+            "BitPay payment.reconciled:",
+            error
+          );
+        }
       }
     );
+
+    /*
+    ========================================================
+    SSE ERROR
+    ========================================================
+    */
 
     source.onerror =
       () => {
@@ -2067,8 +2147,11 @@ source.onmessage = event => {
           null;
 
         /*
-        SSE é experiência em tempo real.
-        O polling continua como fallback.
+        SSE é apenas o canal
+        de atualização em tempo real.
+
+        O polling continua como
+        mecanismo de fallback.
         */
 
         startPaymentPolling(
@@ -2084,6 +2167,9 @@ source.onmessage = event => {
       "SSE BitPay:",
       error
     );
+
+    paymentEventSource =
+      null;
 
     return false;
   }
