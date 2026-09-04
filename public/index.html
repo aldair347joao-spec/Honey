@@ -1,597 +1,205 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Honey Pay — Painel</title>
 
-  <meta
-    name="theme-color"
-    content="#111827"
-  >
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Painel profissional Honey Pay">
 
-  <meta
-    name="description"
-    content="Painel profissional Honey Pay"
-  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  >
-
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
-  >
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-
-  <link
-    rel="stylesheet"
-    href="/style.css"
-  >
-
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
-  <!-- =====================================================
-       APP LOADER
-  ====================================================== -->
-
-  <div
-    id="appLoader"
-    class="app-loader"
-  >
-
+  <!-- APP LOADER -->
+  <div id="appLoader" class="app-loader">
     <div class="loader-brand">
-
-      <div class="brand-mark">
-        H
-      </div>
-
+      <div class="brand-mark">H</div>
       <div>
-
-        <strong>
-          Honey Pay
-        </strong>
-
-        <span>
-          A carregar painel...
-        </span>
-
+        <strong>Honey Pay</strong>
+        <span>A carregar painel...</span>
       </div>
-
     </div>
-
     <div class="loader-line">
       <span></span>
     </div>
-
   </div>
 
+  <!-- TOAST -->
+  <div id="toastContainer" class="toast-container"></div>
 
-  <!-- =====================================================
-       TOAST
-  ====================================================== -->
+  <!-- APP -->
+  <div id="app" class="app hidden">
 
-  <div
-    id="toastContainer"
-    class="toast-container"
-    aria-live="polite"
-    aria-atomic="true"
-  ></div>
+    <!-- SIDEBAR OVERLAY MOBILE -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-
-  <!-- =====================================================
-       APP
-  ====================================================== -->
-
-  <div
-    id="app"
-    class="app hidden"
-    aria-hidden="true"
-  >
-
-    <!-- ===================================================
-         SIDEBAR OVERLAY
-    ==================================================== -->
-
-    <div
-      id="sidebarOverlay"
-      class="sidebar-overlay"
-    ></div>
-
-
-    <!-- ===================================================
-         SIDEBAR
-    ==================================================== -->
-
-    <aside
-      id="sidebar"
-      class="sidebar"
-    >
-
-      <!-- SIDEBAR TOP -->
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
 
       <div class="sidebar-top">
 
-        <a
-          href="#dashboard"
-          class="brand"
-        >
-
-          <div class="brand-mark">
-            H
-          </div>
+        <a href="#dashboard" class="brand">
+          <div class="brand-mark">H</div>
 
           <div class="brand-copy">
-
-            <strong>
-              Honey Pay
-            </strong>
-
-            <span>
-              Merchant
-            </span>
-
+            <strong>Honey Pay</strong>
+            <span>Merchant</span>
           </div>
-
         </a>
 
-        <button
-          id="sidebarClose"
-          class="icon-btn mobile-only"
-          type="button"
-          aria-label="Fechar menu"
-        >
+        <button id="sidebarClose" class="icon-btn mobile-only" aria-label="Fechar menu">
           ×
         </button>
 
       </div>
 
-
-      <!-- =================================================
-           MERCHANT MINI PROFILE
-      ================================================== -->
-
       <div class="merchant-mini">
-
-        <div
-          id="merchantAvatar"
-          class="merchant-avatar"
-        >
-          H
-        </div>
+        <div id="merchantAvatar" class="merchant-avatar">H</div>
 
         <div class="merchant-mini-info">
-
-          <strong id="merchantName">
-            Meu negócio
-          </strong>
-
-          <span id="merchantEmail">
-            —
-          </span>
-
+          <strong id="merchantName">Meu negócio</strong>
+          <span id="merchantEmail">—</span>
         </div>
 
         <span class="online-dot"></span>
-
       </div>
 
-
-      <!-- =================================================
-           NAVIGATION
-      ================================================== -->
-
-      <nav
-        class="nav"
-        aria-label="Navegação principal"
-      >
-
-        <!-- WORKSPACE -->
+      <nav class="nav">
 
         <div class="nav-section">
+          <span class="nav-label">Workspace</span>
 
-          <span class="nav-label">
-            Workspace
-          </span>
-
-
-          <a
-            href="#dashboard"
-            class="nav-item active"
-            data-route="dashboard"
-          >
-
-            <span class="nav-icon">
-              ⌂
-            </span>
-
-            <span>
-              Dashboard
-            </span>
-
+          <a href="#dashboard" class="nav-item active" data-route="dashboard">
+            <span class="nav-icon">⌂</span>
+            <span>Dashboard</span>
           </a>
 
-
-          <a
-            href="#payments"
-            class="nav-item"
-            data-route="payments"
-          >
-
-            <span class="nav-icon">
-              ↔
-            </span>
-
-            <span>
-              Pagamentos
-            </span>
-
-            <span
-              id="pendingBadge"
-              class="nav-badge hidden"
-            >
-              0
-            </span>
-
+          <a href="#payments" class="nav-item" data-route="payments">
+            <span class="nav-icon">↔</span>
+            <span>Pagamentos</span>
+            <span id="pendingBadge" class="nav-badge hidden">0</span>
           </a>
 
-
-          <a
-            href="#orders"
-            class="nav-item"
-            data-route="orders"
-          >
-
-            <span class="nav-icon">
-              ▣
-            </span>
-
-            <span>
-              Pedidos
-            </span>
-
+          <a href="#orders" class="nav-item" data-route="orders">
+            <span class="nav-icon">▣</span>
+            <span>Pedidos</span>
           </a>
 
-
-          <a
-            href="#products"
-            class="nav-item"
-            data-route="products"
-          >
-
-            <span class="nav-icon">
-              ◇
-            </span>
-
-            <span>
-              Produtos
-            </span>
-
+          <a href="#products" class="nav-item" data-route="products">
+            <span class="nav-icon">◇</span>
+            <span>Produtos</span>
           </a>
 
-
-          <a
-            href="#customers"
-            class="nav-item"
-            data-route="customers"
-          >
-
-            <span class="nav-icon">
-              ♙
-            </span>
-
-            <span>
-              Clientes
-            </span>
-
+          <a href="#customers" class="nav-item" data-route="customers">
+            <span class="nav-icon">♙</span>
+            <span>Clientes</span>
           </a>
 
-
-          <a
-            href="#links"
-            class="nav-item"
-            data-route="links"
-          >
-
-            <span class="nav-icon">
-              ↗
-            </span>
-
-            <span>
-              Links de pagamento
-            </span>
-
+          <a href="#links" class="nav-item" data-route="links">
+            <span class="nav-icon">↗</span>
+            <span>Links de pagamento</span>
           </a>
-
-
-          <!-- CONTAS BANCÁRIAS -->
-
-          <a
-            href="#bank-accounts"
-            class="nav-item"
-            data-route="bank-accounts"
-          >
-
-            <span class="nav-icon">
-              ▤
-            </span>
-
-            <span>
-              Contas bancárias
-            </span>
-
-          </a>
-
         </div>
 
-
-        <!-- GESTÃO -->
-
         <div class="nav-section">
+          <span class="nav-label">Gestão</span>
 
-          <span class="nav-label">
-            Gestão
-          </span>
-
-
-          <a
-            href="#reports"
-            class="nav-item"
-            data-route="reports"
-          >
-
-            <span class="nav-icon">
-              ▥
-            </span>
-
-            <span>
-              Relatórios
-            </span>
-
+          <a href="#reports" class="nav-item" data-route="reports">
+            <span class="nav-icon">▥</span>
+            <span>Relatórios</span>
           </a>
 
-
-          <a
-            href="#settings"
-            class="nav-item"
-            data-route="settings"
-          >
-
-            <span class="nav-icon">
-              ⚙
-            </span>
-
-            <span>
-              Definições
-            </span>
-
+          <a href="#settings" class="nav-item" data-route="settings">
+            <span class="nav-icon">⚙</span>
+            <span>Definições</span>
           </a>
-
         </div>
 
       </nav>
 
-
-      <!-- =================================================
-           SIDEBAR BOTTOM
-      ================================================== -->
-
       <div class="sidebar-bottom">
 
         <div class="support-card">
-
-          <div class="support-icon">
-            ?
-          </div>
+          <div class="support-icon">?</div>
 
           <div>
-
-            <strong>
-              Precisa de ajuda?
-            </strong>
-
-            <span>
-              Fale com o suporte Honey Pay.
-            </span>
-
+            <strong>Precisa de ajuda?</strong>
+            <span>Fale com o suporte Honey Pay.</span>
           </div>
-
         </div>
 
-
-        <button
-          id="logoutButton"
-          class="logout-btn"
-          type="button"
-        >
-
-          <span>
-            ↪
-          </span>
-
+        <button id="logoutButton" class="logout-btn">
+          <span>↪</span>
           Terminar sessão
-
         </button>
 
       </div>
 
     </aside>
 
-
-    <!-- ===================================================
-         MAIN
-    ==================================================== -->
-
+    <!-- MAIN -->
     <main class="main">
 
-
-      <!-- =================================================
-           TOPBAR
-      ================================================== -->
-
+      <!-- TOPBAR -->
       <header class="topbar">
 
         <div class="topbar-left">
-
-          <button
-            id="menuButton"
-            class="icon-btn menu-button"
-            type="button"
-            aria-label="Abrir menu"
-          >
+          <button id="menuButton" class="icon-btn menu-button">
             ☰
           </button>
 
           <div>
-
-            <span
-              id="breadcrumbParent"
-              class="breadcrumb-parent"
-            >
-              Workspace
-            </span>
-
-            <h1 id="pageTitle">
-              Dashboard
-            </h1>
-
+            <span id="breadcrumbParent" class="breadcrumb-parent">Workspace</span>
+            <h1 id="pageTitle">Dashboard</h1>
           </div>
-
         </div>
-
-
-        <!-- TOPBAR RIGHT -->
 
         <div class="topbar-right">
 
-
-          <!-- REFRESH -->
-
-          <button
-            id="refreshButton"
-            class="top-action"
-            type="button"
-            title="Atualizar"
-            aria-label="Atualizar painel"
-          >
+          <button id="refreshButton" class="top-action" title="Atualizar">
             ↻
           </button>
 
-
-          <!-- NOTIFICATIONS -->
-
-          <button
-            class="top-action notification-button"
-            type="button"
-            title="Notificações"
-            aria-label="Notificações"
-          >
-
+          <button class="top-action notification-button" title="Notificações">
             ♢
-
-            <span
-              id="notificationDot"
-            ></span>
-
+            <span id="notificationDot"></span>
           </button>
 
-
-          <!-- PROFILE -->
-
           <div class="top-profile">
-
-            <div
-              id="topAvatar"
-              class="avatar"
-            >
-              H
-            </div>
+            <div id="topAvatar" class="avatar">H</div>
 
             <div class="top-profile-text">
-
-              <strong
-                id="topMerchantName"
-              >
-                Meu negócio
-              </strong>
-
-              <span>
-                Administrador
-              </span>
-
+              <strong id="topMerchantName">Meu negócio</strong>
+              <span>Administrador</span>
             </div>
 
-            <span class="profile-chevron">
-              ⌄
-            </span>
-
+            <span class="profile-chevron">⌄</span>
           </div>
 
         </div>
 
       </header>
 
-
-      <!-- =================================================
-           PAGE CONTENT
-      ================================================== -->
-
-      <section
-        id="pageContent"
-        class="page-content"
-      ></section>
+      <!-- CONTENT -->
+      <section id="pageContent" class="page-content"></section>
 
     </main>
 
   </div>
 
-
-  <!-- =====================================================
-       MODAL
-  ====================================================== -->
-
-  <div
-    id="modalOverlay"
-    class="modal-overlay hidden"
-    aria-hidden="true"
-  >
-
-    <div
-      id="modal"
-      class="modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modalTitle"
-    ></div>
-
+  <!-- MODAL -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div id="modal" class="modal"></div>
   </div>
 
-
-  <!-- =====================================================
-       APP JS
-  ====================================================== -->
-
-  <script
-    src="/app.js"
-    defer
-  ></script>
-
+  <script src="/app.js" defer></script>
 </body>
-
 </html>
