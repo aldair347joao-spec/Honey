@@ -252,20 +252,6 @@ svg {
   background: #46556b;
 }
 
-
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-*::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #cbd2dc;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background: #adb7c5;
-}
-
 /* =========================================================
    APP LOADER
    ========================================================= */
@@ -5538,23 +5524,6 @@ textarea:disabled {
   color: var(--hp-muted);
   font-size: 8px;
   line-height: 1.6;
-}
-
-
-/* =========================================================
-   ACCESSIBILITY / REDUCED MOTION
-========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .honey-dashboard *,
-  .honey-dashboard *::before,
-  .honey-dashboard *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: .001ms !important;
-  }
 }
 
 
