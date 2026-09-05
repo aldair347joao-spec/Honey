@@ -1046,193 +1046,879 @@ function renderDashboard() {
     return;
   }
 
-  const data =
-    state.dashboard || {};
+  const data = state.dashboard || {};
 
-  const revenue =
-    dashboardValue(
-      data.revenue,
-      data.totalRevenue,
-      data.sales,
-      data.totalSales
-    );
+  const revenue = dashboardValue(
+    data.revenue,
+    data.totalRevenue,
+    data.sales,
+    data.totalSales
+  );
 
-  const transactions =
-    dashboardValue(
-      data.transactions,
-      data.totalTransactions,
-      data.transactionCount,
-      state.payments.length
-    );
+  const transactions = dashboardValue(
+    data.transactions,
+    data.totalTransactions,
+    data.transactionCount,
+    state.payments.length
+  );
 
-  const fees =
-    dashboardValue(
-      data.fees,
-      data.totalFees,
-      data.feeAmount
-    );
+  const fees = dashboardValue(
+    data.fees,
+    data.totalFees,
+    data.feeAmount
+  );
 
-  const pending =
-    state.payments.filter(
-      payment =>
-        [
-          "PENDING",
-          "PROCESSING"
-        ].includes(
-          String(
-            payment.status || ""
-          ).toUpperCase()
-        )
-    ).length;
+  const pending = state.payments.filter(
+    payment =>
+      ["PENDING", "PROCESSING"].includes(
+        String(payment.status || "").toUpperCase()
+      )
+  ).length;
+
+  const merchantName = escapeHTML(getMerchantName());
 
   pageContent.innerHTML = `
-    <div class="page-header">
+    <div class="honey-dashboard">
 
-      <div>
-        <span class="eyebrow">
-          Visão geral
-        </span>
+      <!-- =====================================================
+           HERO
+      ====================================================== -->
+      <section class="honey-hero">
 
-        <h2>
-          Bom dia, ${escapeHTML(
-            getMerchantName()
-          )}
-        </h2>
+        <div class="honey-hero-grid"></div>
+        <div class="honey-hero-glow honey-hero-glow-one"></div>
+        <div class="honey-hero-glow honey-hero-glow-two"></div>
 
-        <p>
-          Acompanha o teu negócio e os pagamentos em tempo real.
-        </p>
-      </div>
+        <div class="honey-hero-content">
 
-      <div class="page-actions">
+          <span class="honey-kicker">
+            <span class="honey-kicker-dot"></span>
+            Visão geral do negócio
+          </span>
 
-        <button
-          class="btn primary"
-          data-route="links"
-          type="button"
-        >
-          Criar link de pagamento
-        </button>
+          <h2>
+            Bom dia, ${merchantName}
+          </h2>
 
-      </div>
+          <p>
+            Receba pagamentos, acompanhe as suas cobranças
+            e tenha o seu negócio sempre sob controlo.
+          </p>
 
-    </div>
+          <div class="honey-hero-actions">
 
-    <div class="stats-grid">
+            <button
+              class="honey-main-action"
+              data-route="links"
+              type="button"
+            >
+              <span class="honey-action-icon">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M12 5V19M5 12H19"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+              Criar cobrança
+              <svg class="honey-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
 
-      <article class="stat-card">
-        <span class="stat-label">
-          Receita
-        </span>
+            <button
+              class="honey-secondary-action"
+              data-route="payments"
+              type="button"
+            >
+              Ver pagamentos
+            </button>
 
-        <strong id="statRevenue">
-          ${formatKz(revenue)}
-        </strong>
+          </div>
 
-        <span class="stat-meta">
-          Total recebido
-        </span>
-      </article>
+          <div class="honey-hero-trust">
+            <span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 3L19 6V11C19 15.5 16.1 19.2 12 21C7.9 19.2 5 15.5 5 11V6L12 3Z"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M9 12L11 14L15 10"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              Gestão simples
+            </span>
 
-      <article class="stat-card">
-        <span class="stat-label">
-          Transações
-        </span>
+            <span>
+              <i></i>
+              Pagamentos em tempo real
+            </span>
+          </div>
 
-        <strong id="statTransactions">
-          ${formatNumber(
-            transactions
-          )}
-        </strong>
+        </div>
 
-        <span class="stat-meta">
-          Pagamentos registados
-        </span>
-      </article>
+        <!-- PAYMENT VISUAL -->
+        <div class="honey-payment-stage">
 
-      <article class="stat-card">
-        <span class="stat-label">
-          Taxas
-        </span>
+          <div class="honey-orbit honey-orbit-one"></div>
+          <div class="honey-orbit honey-orbit-two"></div>
 
-        <strong id="statFees">
-          ${formatKz(fees)}
-        </strong>
+          <div class="honey-payment-card">
 
-        <span class="stat-meta">
-          Taxas processadas
-        </span>
-      </article>
+            <div class="honey-payment-top">
+              <div>
+                <span>Pagamento recebido</span>
+                <strong>Hoje</strong>
+              </div>
 
-      <article class="stat-card">
-        <span class="stat-label">
-          Pendentes
-        </span>
+              <div class="honey-payment-check">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M6 12.5L10.2 16.5L18 8"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+            </div>
 
-        <strong id="statPending">
-          ${formatNumber(pending)}
-        </strong>
+            <div class="honey-payment-amount">
+              ${formatKz(revenue)}
+            </div>
 
-        <span class="stat-meta">
-          A aguardar confirmação
-        </span>
-      </article>
+            <div class="honey-payment-divider"></div>
 
-    </div>
+            <div class="honey-payment-methods">
 
-    <div class="dashboard-grid">
+              <div class="honey-mini-method">
+                <span class="honey-method-icon unitel">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect
+                      x="6"
+                      y="3"
+                      width="12"
+                      height="18"
+                      rx="3"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                    />
+                    <path
+                      d="M9 7H15M10 17H14"
+                      stroke="currentColor"
+                      stroke-width="1.7"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </span>
+                <span>Unitel Money</span>
+              </div>
 
-      <section class="panel">
+              <div class="honey-mini-method">
+                <span class="honey-method-icon qr">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 4H10V10H4V4ZM14 4H20V10H14V4ZM4 14H10V20H4V14Z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                    />
+                    <path
+                      d="M14 14H16V16H14V14ZM18 14H20V18H18V14ZM14 18H16V20H14V18ZM16 16H18V18H16V16Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+                <span>QR Code</span>
+              </div>
 
-        <div class="panel-header">
+            </div>
+
+            <div class="honey-payment-status">
+              <span class="honey-status-pulse"></span>
+              Pagamento confirmado
+            </div>
+
+          </div>
+
+          <div class="honey-floating-badge honey-floating-one">
+            <span class="honey-floating-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span>
+              <small>Link de pagamento</small>
+              <strong>Pronto para partilhar</strong>
+            </span>
+          </div>
+
+          <div class="honey-floating-badge honey-floating-two">
+            <span class="honey-floating-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 12H8L10 7L14 17L16 12H20"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <span>
+              <small>Estado</small>
+              <strong>Activo</strong>
+            </span>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           STATS
+      ====================================================== -->
+      <section class="honey-stats">
+
+        <article class="honey-stat-card honey-stat-main">
+
+          <div class="honey-stat-head">
+            <span class="honey-stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 19V5M4 19H20"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M7 15L10 11L13 13L19 7"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+
+            <span class="honey-stat-label">
+              Receita total
+            </span>
+          </div>
+
+          <strong id="statRevenue">
+            ${formatKz(revenue)}
+          </strong>
+
+          <span class="honey-stat-meta">
+            Total recebido
+          </span>
+
+          <div class="honey-stat-line">
+            <span></span>
+          </div>
+
+        </article>
+
+
+        <article class="honey-stat-card">
+
+          <div class="honey-stat-head">
+            <span class="honey-stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M7 4H17C18.1 4 19 4.9 19 6V18C19 19.1 18.1 20 17 20H7C5.9 20 5 19.1 5 18V6C5 4.9 5.9 4 7 4Z"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M8 8H16M8 12H16M8 16H12"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+
+            <span class="honey-stat-label">
+              Transações
+            </span>
+          </div>
+
+          <strong id="statTransactions">
+            ${formatNumber(transactions)}
+          </strong>
+
+          <span class="honey-stat-meta">
+            Pagamentos registados
+          </span>
+
+        </article>
+
+
+        <article class="honey-stat-card">
+
+          <div class="honey-stat-head">
+            <span class="honey-stat-icon muted">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="8"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+                <path
+                  d="M12 8V12L15 14"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+
+            <span class="honey-stat-label">
+              Pendentes
+            </span>
+          </div>
+
+          <strong id="statPending">
+            ${formatNumber(pending)}
+          </strong>
+
+          <span class="honey-stat-meta">
+            A aguardar confirmação
+          </span>
+
+        </article>
+
+
+        <article class="honey-stat-card">
+
+          <div class="honey-stat-head">
+            <span class="honey-stat-icon neutral">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 7H19M7 11H17M9 15H15"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                />
+                <rect
+                  x="4"
+                  y="4"
+                  width="16"
+                  height="16"
+                  rx="3"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                />
+              </svg>
+            </span>
+
+            <span class="honey-stat-label">
+              Taxas
+            </span>
+          </div>
+
+          <strong id="statFees">
+            ${formatKz(fees)}
+          </strong>
+
+          <span class="honey-stat-meta">
+            Taxas processadas
+          </span>
+
+        </article>
+
+      </section>
+
+
+      <!-- =====================================================
+           PAYMENT METHODS
+      ====================================================== -->
+      <section class="honey-methods-section">
+
+        <div class="honey-section-heading">
 
           <div>
+            <span class="honey-kicker dark">
+              Formas de pagamento
+            </span>
+
             <h3>
-              Atividade de pagamentos
+              Uma cobrança.<br />
+              <span>Várias formas de pagar.</span>
             </h3>
 
             <p>
-              Estado atual das últimas transações.
+              Dê aos seus clientes mais liberdade para pagar
+              através dos canais que já utilizam.
             </p>
           </div>
 
+          <div class="honey-section-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+        </div>
+
+
+        <div class="honey-methods-grid">
+
+          <!-- UNITEL MONEY -->
+          <article class="honey-method-card">
+            <div class="honey-method-number">01</div>
+
+            <div class="honey-large-icon unitel">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <rect
+                  x="13"
+                  y="6"
+                  width="22"
+                  height="36"
+                  rx="6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M18 12H30"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <circle
+                  cx="24"
+                  cy="35"
+                  r="2"
+                  fill="currentColor"
+                />
+                <path
+                  d="M8 21C6.7 22.8 6 25.2 6 27.5C6 29.8 6.7 32.2 8 34"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M40 21C41.3 22.8 42 25.2 42 27.5C42 29.8 41.3 32.2 40 34"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+
+            <div class="honey-method-copy">
+              <h4>Unitel Money</h4>
+              <p>Pagamentos móveis de forma simples.</p>
+            </div>
+
+            <span class="honey-method-arrow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </article>
+
+
+          <!-- QR CODE -->
+          <article class="honey-method-card">
+            <div class="honey-method-number">02</div>
+
+            <div class="honey-large-icon qr">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path
+                  d="M6 6H19V19H6V6ZM29 6H42V19H29V6ZM6 29H19V42H6V29Z"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M30 29H34V33H30V29ZM38 29H42V37H38V29ZM30 38H34V42H30V38ZM34 33H38V37H34V33Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+
+            <div class="honey-method-copy">
+              <h4>QR Code</h4>
+              <p>Deixe o cliente digitalizar e pagar.</p>
+            </div>
+
+            <span class="honey-method-arrow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </article>
+
+
+          <!-- REFERENCE -->
+          <article class="honey-method-card">
+            <div class="honey-method-number">03</div>
+
+            <div class="honey-large-icon reference">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <rect
+                  x="8"
+                  y="6"
+                  width="32"
+                  height="36"
+                  rx="5"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M15 15H33M15 21H33M15 27H28"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M27 33L30 36L36 29"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="honey-method-copy">
+              <h4>Referência</h4>
+              <p>Uma forma prática de identificar o pagamento.</p>
+            </div>
+
+            <span class="honey-method-arrow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </article>
+
+
+          <!-- PAYMENT LINK -->
+          <article class="honey-method-card honey-method-featured">
+            <div class="honey-method-number">04</div>
+
+            <div class="honey-large-icon link">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path
+                  d="M20 28L28 20"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M17 34L13.5 37.5C10.7 40.3 6.2 40.3 3.4 37.5C.6 34.7.6 30.2 3.4 27.4L10.5 20.3C13.3 17.5 17.8 17.5 20.6 20.3"
+                  transform="translate(4 -4)"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M31 14L34.5 10.5C37.3 7.7 41.8 7.7 44.6 10.5C47.4 13.3 47.4 17.8 44.6 20.6L37.5 27.7C34.7 30.5 30.2 30.5 27.4 27.7"
+                  transform="translate(-4 4)"
+                  stroke="currentColor"
+                  stroke-width="2.3"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+
+            <div class="honey-method-copy">
+              <span class="honey-featured-label">Mais simples</span>
+              <h4>Link de pagamento</h4>
+              <p>
+                Crie uma cobrança e partilhe pelo WhatsApp,
+                Instagram ou onde quiser.
+              </p>
+            </div>
+
+            <span class="honey-method-arrow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </article>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           HOW IT WORKS
+      ====================================================== -->
+      <section class="honey-flow-section">
+
+        <div class="honey-section-heading centered">
+
+          <span class="honey-kicker dark">
+            Como funciona
+          </span>
+
+          <h3>
+            Crie. Partilhe. <span>Receba.</span>
+          </h3>
+
+          <p>
+            Uma experiência simples para si e para os seus clientes.
+          </p>
+
+        </div>
+
+
+        <div class="honey-flow">
+
+          <div class="honey-flow-line">
+            <span></span>
+          </div>
+
+          <article class="honey-flow-step">
+            <div class="honey-flow-icon">
+              <span>01</span>
+              <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path
+                  d="M16 6V26M6 16H26"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <h4>Crie a cobrança</h4>
+            <p>
+              Defina o valor e os detalhes da venda.
+            </p>
+          </article>
+
+          <article class="honey-flow-step">
+            <div class="honey-flow-icon">
+              <span>02</span>
+              <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path
+                  d="M7 16H25M18 9L25 16L18 23"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h4>Partilhe</h4>
+            <p>
+              Envie o link pelo canal que já utiliza.
+            </p>
+          </article>
+
+          <article class="honey-flow-step">
+            <div class="honey-flow-icon">
+              <span>03</span>
+              <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path
+                  d="M7 17L13 23L25 10"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h4>Cliente paga</h4>
+            <p>
+              Escolhe a forma de pagamento disponível.
+            </p>
+          </article>
+
+          <article class="honey-flow-step">
+            <div class="honey-flow-icon success">
+              <span>04</span>
+              <svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path
+                  d="M7 16L13 22L25 10"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h4>Pagamento confirmado</h4>
+            <p>
+              Acompanhe o estado directamente no seu painel.
+            </p>
+          </article>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           RECENT ACTIVITY + CHART
+      ====================================================== -->
+      <section class="honey-activity-grid">
+
+        <div class="honey-panel">
+
+          <div class="honey-panel-header">
+
+            <div>
+              <span class="honey-kicker dark">
+                Actividade
+              </span>
+              <h3>Pagamentos recentes</h3>
+              <p>Veja o que está a acontecer no seu negócio.</p>
+            </div>
+
+            <button
+              class="honey-panel-link"
+              data-route="payments"
+              type="button"
+            >
+              Ver todos
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12H19M13 6L19 12L13 18"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+
+          </div>
+
+          <div
+            id="recentPayments"
+            class="recent-list honey-recent-list"
+          ></div>
+
+        </div>
+
+
+        <div class="honey-panel">
+
+          <div class="honey-panel-header">
+
+            <div>
+              <span class="honey-kicker dark">
+                Desempenho
+              </span>
+              <h3>Vendas</h3>
+              <p>Resumo dos pagamentos concluídos.</p>
+            </div>
+
+          </div>
+
+          <div
+            id="salesChart"
+            class="simple-chart honey-sales-chart"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           FINAL CTA
+      ====================================================== -->
+      <section class="honey-final-cta">
+
+        <div class="honey-final-pattern"></div>
+
+        <div class="honey-final-content">
+
+          <span class="honey-kicker">
+            Pronto para começar?
+          </span>
+
+          <h3>
+            Transforme uma venda<br />
+            numa cobrança simples.
+          </h3>
+
+          <p>
+            Crie o seu primeiro link de pagamento
+            e partilhe com os seus clientes.
+          </p>
+
           <button
-            class="btn secondary"
-            data-route="payments"
+            class="honey-main-action"
+            data-route="links"
             type="button"
           >
-            Ver pagamentos
+            Criar cobrança
+            <svg class="honey-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12H19M13 6L19 12L13 18"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </button>
 
         </div>
 
-        <div
-          id="recentPayments"
-          class="recent-list"
-        ></div>
-
-      </section>
-
-      <section class="panel">
-
-        <div class="panel-header">
-
-          <div>
-            <h3>
-              Vendas
-            </h3>
-
-            <p>
-              Resumo visual das vendas.
-            </p>
-          </div>
-
+        <div class="honey-final-symbol" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-
-        <div
-          id="salesChart"
-          class="simple-chart"
-        ></div>
 
       </section>
 
@@ -1241,12 +1927,10 @@ function renderDashboard() {
 
   renderRecentPayments();
 
-  const chart =
-    $("#salesChart");
+  const chart = $("#salesChart");
 
   if (chart) {
-    chart.innerHTML =
-      renderSimpleChart();
+    chart.innerHTML = renderSimpleChart();
   }
 }
 
