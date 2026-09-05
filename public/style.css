@@ -4098,93 +4098,223 @@ textarea:disabled {
 
 
 /* =========================================================
-   STATS
-========================================================= */
-
-.honey-stats {
-  display: grid;
-  grid-template-columns: 1.4fr repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 42px;
-}
+   HONEY PAY — STAT CARDS
+   ========================================================= */
 
 .honey-stat-card {
   position: relative;
   overflow: hidden;
   min-height: 138px;
   padding: 19px;
-  border: 1px solid var(--hp-border);
-  border-radius: 16px;
-  background: rgba(255,255,255,.94);
-  box-shadow: var(--hp-shadow-sm);
-  transition:
-    transform .22s ease,
-    box-shadow .22s ease,
-    border-color .22s ease;
-}
 
-.honey-stat-card:hover {
-  transform: translateY(-3px);
-  border-color: #d9dee7;
-  box-shadow: var(--hp-shadow);
-}
+  border: 1px solid rgba(255,255,255,.075);
+  border-radius: 17px;
 
-.honey-stat-main {
   background:
     radial-gradient(
       circle at 100% 0,
-      rgba(245,184,0,.11),
-      transparent 38%
+      rgba(245,184,0,.075),
+      transparent 34%
     ),
-    #fff;
+    linear-gradient(
+      145deg,
+      #111c2d 0%,
+      #101a2a 55%,
+      #0e1827 100%
+    );
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
+  opacity: 0;
+  transform: translateY(12px);
+
+  animation:
+    honeyCardEnter .55s cubic-bezier(.22,1,.36,1) forwards;
+
+  transition:
+    transform .28s cubic-bezier(.22,1,.36,1),
+    border-color .28s ease,
+    box-shadow .28s ease,
+    background .28s ease;
 }
 
-.honey-stat-head {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+/* entrada em sequência */
+
+.honey-stat-card:nth-child(1) {
+  animation-delay: .08s;
 }
+
+.honey-stat-card:nth-child(2) {
+  animation-delay: .15s;
+}
+
+.honey-stat-card:nth-child(3) {
+  animation-delay: .22s;
+}
+
+.honey-stat-card:nth-child(4) {
+  animation-delay: .29s;
+}
+
+
+/* brilho ambiente */
+
+.honey-stat-card::before {
+  content: "";
+
+  position: absolute;
+  width: 170px;
+  height: 170px;
+
+  top: -100px;
+  right: -90px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(245,184,0,.13),
+      transparent 68%
+    );
+
+  opacity: .55;
+
+  transition:
+    transform .5s ease,
+    opacity .4s ease;
+}
+
+
+/* linha decorativa */
+
+.honey-stat-card::after {
+  content: "";
+
+  position: absolute;
+
+  left: 19px;
+  right: 19px;
+  bottom: 13px;
+
+  height: 2px;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(245,184,0,.08),
+      rgba(245,184,0,.5),
+      rgba(245,184,0,.08)
+    );
+
+  opacity: .7;
+}
+
+
+/* hover */
+
+.honey-stat-card:hover {
+  transform: translateY(-4px);
+
+  border-color:
+    rgba(245,184,0,.20);
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.12),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #142136 0%,
+      #111d30 55%,
+      #0f1929 100%
+    );
+
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.22),
+    0 0 0 1px rgba(245,184,0,.025);
+}
+
+.honey-stat-card:hover::before {
+  transform: scale(1.25);
+  opacity: .85;
+}
+
+
+/* ícone */
 
 .honey-stat-icon {
   width: 32px;
   height: 32px;
+
   display: grid;
   place-items: center;
+
+  border: 1px solid rgba(245,184,0,.14);
   border-radius: 10px;
-  color: #a47700;
-  background: var(--hp-gold-soft);
+
+  color: #f5c84b;
+
+  background:
+    rgba(245,184,0,.085);
+
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease;
 }
 
-.honey-stat-icon.muted {
-  color: #b57910;
-  background: #fff8eb;
+.honey-stat-card:hover .honey-stat-icon {
+  transform:
+    translateY(-2px)
+    scale(1.04);
+
+  background:
+    rgba(245,184,0,.13);
+
+  box-shadow:
+    0 8px 20px rgba(245,184,0,.08);
 }
 
-.honey-stat-icon.neutral {
-  color: #667085;
-  background: #f3f5f8;
-}
 
-.honey-stat-icon svg {
-  width: 16px;
-  height: 16px;
-}
+/* texto */
 
 .honey-stat-label {
-  color: var(--hp-text-3);
+  color: #91a0b5;
   font-size: 9px;
   font-weight: 700;
 }
 
 .honey-stat-card > strong {
   display: block;
+
   margin-top: 17px;
-  color: var(--hp-text);
+
+  color: #f5f7fb;
+
   font-family: var(--hp-heading);
   font-size: 24px;
   font-weight: 800;
   line-height: 1;
+
   letter-spacing: -.045em;
+
+  transition:
+    color .25s ease,
+    transform .25s ease;
+}
+
+.honey-stat-card:hover > strong {
+  color: #fff;
+
+  transform:
+    translateX(2px);
 }
 
 .honey-stat-main > strong {
@@ -4193,41 +4323,27 @@ textarea:disabled {
 
 .honey-stat-meta {
   display: block;
+
   margin-top: 9px;
-  color: var(--hp-muted);
+
+  color: #728198;
   font-size: 8px;
 }
 
-.honey-stat-line {
-  position: absolute;
-  left: 19px;
-  right: 19px;
-  bottom: 13px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #f1f3f6;
-}
 
-.honey-stat-line span {
-  display: block;
-  width: 48%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #f5b800, #ffdb66);
-  animation: honeyLineGrow 1.2s ease both;
-}
+/* animação de entrada */
 
-@keyframes honeyLineGrow {
+@keyframes honeyCardEnter {
   from {
-    width: 0;
+    opacity: 0;
+    transform: translateY(12px) scale(.985);
   }
 
   to {
-    width: 48%;
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
-
 
 /* =========================================================
    SECTION HEADINGS
