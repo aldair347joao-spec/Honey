@@ -27,11 +27,11 @@
   --hp-gold-border: #f3d979;
 
   --hp-white: #ffffff;
-  --hp-bg: #f5f7fb;
-  --hp-bg-2: #eef2f7;
-  --hp-surface: #ffffff;
-  --hp-surface-2: #fafbfd;
-  --hp-surface-3: #f4f6f9;
+  --hp-bg: #0a111d;
+--hp-bg-2: #0e1726;
+--hp-surface: #111c2d;
+--hp-surface-2: #142136;
+--hp-surface-3: #18263b;
 
   --hp-text: #101828;
   --hp-text-2: #344054;
@@ -144,19 +144,31 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   font-family: var(--hp-font);
-  color: var(--hp-text);
+  color: #f5f7fb;
+
   background:
     radial-gradient(
-      circle at 82% -10%,
-      rgba(245, 184, 0, .055),
-      transparent 30%
+      circle at 82% -8%,
+      rgba(245, 184, 0, .10),
+      transparent 25%
     ),
     radial-gradient(
-      circle at 12% 35%,
-      rgba(46, 144, 250, .025),
+      circle at 18% 18%,
+      rgba(46, 144, 250, .055),
       transparent 28%
     ),
-    var(--hp-bg);
+    radial-gradient(
+      circle at 55% 100%,
+      rgba(245, 184, 0, .035),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #080f1a 0%,
+      #0b1422 48%,
+      #0e1828 100%
+    );
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -4894,4 +4906,225 @@ textarea:disabled {
   .honey-dashboard .honey-activity-grid {
     grid-template-columns: 1fr;
   }
+}
+/* =========================================================
+   HONEY PAY — DARK DASHBOARD ENVIRONMENT
+   ========================================================= */
+
+.main {
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(245, 184, 0, .045),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 10% 55%,
+      rgba(46, 144, 250, .025),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      #0a111d 0%,
+      #0c1523 50%,
+      #0a111d 100%
+    );
+}
+
+.page-content {
+  color: #f4f7fb;
+}
+
+/* Dashboard principal */
+
+.honey-dashboard {
+  position: relative;
+  isolation: isolate;
+  color: #f4f7fb;
+}
+
+.honey-dashboard::before {
+  content: "";
+  position: fixed;
+  inset: 76px 0 0 var(--sidebar-width);
+  z-index: -1;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at 72% 8%,
+      rgba(245, 184, 0, .055),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 20% 45%,
+      rgba(46, 144, 250, .025),
+      transparent 28%
+    );
+}
+
+/* Topbar integrada no novo ambiente */
+
+.topbar {
+  border-bottom-color: rgba(255,255,255,.065);
+  background: rgba(10,17,29,.82);
+  color: #f5f7fb;
+}
+
+.breadcrumb-parent {
+  color: #718096;
+}
+
+.topbar h1 {
+  color: #f7f9fc;
+}
+
+.top-action,
+.icon-btn {
+  border-color: rgba(255,255,255,.075);
+  color: #cbd5e1;
+  background: rgba(255,255,255,.045);
+  box-shadow:
+    0 4px 16px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.top-action:hover,
+.icon-btn:hover {
+  border-color: rgba(245,184,0,.22);
+  background: rgba(255,255,255,.07);
+  color: #fff;
+}
+
+.top-profile {
+  border-left-color: rgba(255,255,255,.075);
+}
+
+/* Texto das secções */
+
+.honey-dashboard .honey-section-heading h3,
+.honey-dashboard .honey-section-heading h2,
+.honey-dashboard h3,
+.honey-dashboard h4 {
+  color: #f5f7fb;
+}
+
+.honey-dashboard p {
+  color: #94a3b8;
+}
+
+/* Cards de estatísticas */
+
+.honey-dashboard .honey-stat-card {
+  border-color: rgba(255,255,255,.065);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.065),
+      rgba(255,255,255,.025)
+    );
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.honey-dashboard .honey-stat-card:hover {
+  border-color: rgba(245,184,0,.18);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.085),
+      rgba(255,255,255,.035)
+    );
+}
+
+/* Métodos de pagamento */
+
+.honey-dashboard .honey-method-card {
+  border-color: rgba(255,255,255,.065);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.065),
+      rgba(255,255,255,.025)
+    );
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.honey-dashboard .honey-method-card:hover {
+  border-color: rgba(245,184,0,.20);
+  transform: translateY(-4px);
+}
+
+.honey-dashboard .honey-method-featured {
+  border-color: rgba(245,184,0,.20);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(245,184,0,.10),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.075),
+      rgba(255,255,255,.025)
+    );
+}
+
+/* Actividade e gráfico */
+
+.honey-dashboard .honey-panel {
+  border-color: rgba(255,255,255,.065);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.065),
+      rgba(255,255,255,.025)
+    );
+  box-shadow:
+    0 15px 40px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.honey-dashboard .honey-panel-link {
+  color: var(--hp-gold-2);
+}
+
+.honey-dashboard .honey-panel-link:hover {
+  color: #ffe08a;
+}
+
+/* Elementos de actividade */
+
+.honey-dashboard .recent-list,
+.honey-dashboard .honey-recent-list {
+  color: #e2e8f0;
+}
+
+/* Flow */
+
+.honey-dashboard .honey-flow-step {
+  color: #dbe4ef;
+}
+
+.honey-dashboard .honey-flow-step p {
+  color: #8190a5;
+}
+
+/* Pequenos separadores */
+
+.honey-dashboard .honey-section-mark {
+  background: var(--hp-gold);
+  box-shadow:
+    0 0 18px rgba(245,184,0,.22);
+}
+
+/* CTA final */
+
+.honey-dashboard .honey-final-cta {
+  box-shadow:
+    0 20px 55px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.04);
 }
