@@ -973,9 +973,9 @@ svg {
 
 .page-content {
   width: 100%;
-  max-width: 1540px;
+  max-width: none;
   min-height: calc(100vh - var(--topbar-height));
-  margin: 0 auto;
+  margin: 0;
   padding: 30px 32px 64px;
   animation: hp-page-enter .32s ease both;
 }
@@ -4792,5 +4792,106 @@ textarea:disabled {
 
   .honey-flow-step p {
     max-width: 230px;
+  }
+}
+/* =========================================================
+   HONEY PAY — DASHBOARD WIDTH & LAYOUT OVERRIDE
+   ========================================================= */
+
+.page-content > .honey-dashboard {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.honey-dashboard {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.honey-dashboard .honey-hero,
+.honey-dashboard .honey-stats,
+.honey-dashboard .honey-methods-section,
+.honey-dashboard .honey-flow-section,
+.honey-dashboard .honey-activity-grid,
+.honey-dashboard .honey-final-cta {
+  width: 100%;
+  max-width: none;
+}
+
+.honey-dashboard .honey-hero-grid,
+.honey-dashboard .honey-methods-grid,
+.honey-dashboard .honey-stats,
+.honey-dashboard .honey-activity-grid {
+  width: 100%;
+  max-width: none;
+}
+
+.honey-dashboard .honey-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.honey-dashboard .honey-methods-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.honey-dashboard .honey-activity-grid {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr);
+}
+
+.honey-dashboard .honey-stat-card,
+.honey-dashboard .honey-method-card,
+.honey-dashboard .honey-panel {
+  min-width: 0;
+}
+
+/* =========================================================
+   LARGE SCREENS
+   ========================================================= */
+
+@media (min-width: 1600px) {
+  .page-content {
+    padding-left: 38px;
+    padding-right: 38px;
+  }
+
+  .honey-dashboard .honey-hero {
+    min-height: 430px;
+  }
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  .honey-dashboard .honey-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .honey-dashboard .honey-methods-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .honey-dashboard .honey-activity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .page-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .honey-dashboard .honey-stats,
+  .honey-dashboard .honey-methods-grid,
+  .honey-dashboard .honey-activity-grid {
+    grid-template-columns: 1fr;
   }
 }
