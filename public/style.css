@@ -33,14 +33,14 @@
 --hp-surface-2: #142136;
 --hp-surface-3: #18263b;
 
-  --hp-text: #101828;
-  --hp-text-2: #344054;
-  --hp-text-3: #667085;
-  --hp-muted: #98a2b3;
-  --hp-muted-2: #b8c0cc;
+    --hp-text: #f5f7fb;
+  --hp-text-2: #d6deea;
+  --hp-text-3: #91a0b5;
+  --hp-muted: #728198;
+  --hp-muted-2: #536176;
 
-  --hp-border: #e4e8ef;
-  --hp-border-strong: #d5dbe5;
+  --hp-border: rgba(255,255,255,.075);
+  --hp-border-strong: rgba(255,255,255,.13);
   --hp-border-dark: rgba(255,255,255,.075);
 
   --hp-green: #12b76a;
@@ -229,16 +229,29 @@ svg {
 /* =========================================================
    SCROLLBARS
    ========================================================= */
-
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd2dc transparent;
+  scrollbar-color: #344257 transparent;
 }
 
 *::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #344257;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #46556b;
+}
+
 
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -817,8 +830,22 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(228,232,239,.85);
-  background: rgba(255,255,255,.88);
+
+  border-bottom: 1px solid rgba(255,255,255,.065);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,17,29,.96),
+      rgba(10,17,29,.88)
+    );
+
+  color: #f5f7fb;
+
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.015),
+    0 8px 30px rgba(0,0,0,.12);
+
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
@@ -861,11 +888,17 @@ svg {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  border: 1px solid var(--hp-border);
+
+  border: 1px solid rgba(255,255,255,.075);
   border-radius: 11px;
-  color: var(--hp-text-2);
-  background: rgba(255,255,255,.94);
-  box-shadow: var(--hp-shadow-xs);
+
+  color: #cbd5e1;
+  background: rgba(255,255,255,.045);
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
   transition:
     border-color var(--transition),
     background var(--transition),
@@ -875,9 +908,10 @@ svg {
 
 .top-action:hover,
 .icon-btn:hover {
-  border-color: var(--hp-border-strong);
-  background: #fff;
-  box-shadow: var(--hp-shadow-sm);
+  border-color: rgba(245,184,0,.20);
+  color: #fff;
+  background: rgba(255,255,255,.075);
+  box-shadow: 0 8px 22px rgba(0,0,0,.16);
   transform: translateY(-1px);
 }
 
@@ -4486,7 +4520,8 @@ textarea:disabled {
 .honey-recent-list .recent-item {
   min-height: 58px;
   padding: 9px 0;
-  border-bottom: 1px solid #eef1f5;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+
   transition:
     padding .2s ease,
     transform .2s ease;
@@ -4504,9 +4539,10 @@ textarea:disabled {
   width: 34px;
   height: 34px;
   border-radius: 11px;
-  color: #977000;
-  background: #fff8dd;
-  border: 1px solid #f2dfa1;
+
+  color: #f5c22a;
+  background: rgba(245,184,0,.075);
+  border: 1px solid rgba(245,184,0,.15);
 }
 
 .honey-recent-list .recent-main strong,
@@ -4533,7 +4569,7 @@ textarea:disabled {
   gap: 7px;
   text-align: center;
   padding: 28px;
-  border: 1px dashed #e1e5eb;
+  border: 1px dashed rgba(255,255,255,.10);
   border-radius: 14px;
   color: var(--hp-text-2);
   background:
@@ -4905,581 +4941,5 @@ textarea:disabled {
   .honey-dashboard .honey-methods-grid,
   .honey-dashboard .honey-activity-grid {
     grid-template-columns: 1fr;
-  }
-}
-/* =========================================================
-   HONEY PAY — DARK FINTECH DASHBOARD
-   FINAL VISUAL OVERRIDE
-   ========================================================= */
-
-:root {
-  --hp-bg: #080f1a;
-  --hp-bg-2: #0c1523;
-
-  --hp-surface: #101a2a;
-  --hp-surface-2: #131f31;
-  --hp-surface-3: #172438;
-
-  --hp-text: #f5f7fb;
-  --hp-text-2: #d6deea;
-  --hp-text-3: #91a0b5;
-
-  --hp-muted: #728198;
-  --hp-muted-2: #536176;
-
-  --hp-border: rgba(255,255,255,.075);
-  --hp-border-strong: rgba(255,255,255,.13);
-}
-
-
-/* =========================================================
-   GLOBAL BACKGROUND
-   ========================================================= */
-
-html {
-  background: #080f1a;
-}
-
-body {
-  min-height: 100vh;
-  color: #f5f7fb;
-
-  background:
-    radial-gradient(
-      900px 500px at 75% -10%,
-      rgba(245,184,0,.075),
-      transparent 60%
-    ),
-    radial-gradient(
-      700px 500px at 5% 45%,
-      rgba(46,144,250,.035),
-      transparent 65%
-    ),
-    linear-gradient(
-      180deg,
-      #080f1a 0%,
-      #0a121f 45%,
-      #080f1a 100%
-    );
-}
-
-
-/* =========================================================
-   MAIN APPLICATION
-   ========================================================= */
-
-.app {
-  background: transparent;
-}
-
-.main {
-  background:
-    radial-gradient(
-      700px 500px at 80% 0%,
-      rgba(245,184,0,.045),
-      transparent 65%
-    ),
-    linear-gradient(
-      180deg,
-      #0a111d 0%,
-      #0b1422 55%,
-      #09111d 100%
-    );
-}
-
-
-/* =========================================================
-   TOPBAR
-   ========================================================= */
-
-.topbar {
-  border-bottom: 1px solid rgba(255,255,255,.065);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(10,17,29,.94),
-      rgba(10,17,29,.84)
-    );
-
-  color: #f5f7fb;
-
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.015),
-    0 8px 30px rgba(0,0,0,.10);
-
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.breadcrumb-parent {
-  color: #6f7d92;
-}
-
-.topbar h1 {
-  color: #f5f7fb;
-}
-
-.top-action,
-.icon-btn {
-  border-color: rgba(255,255,255,.075);
-  color: #cbd5e1;
-  background: rgba(255,255,255,.045);
-
-  box-shadow:
-    0 5px 18px rgba(0,0,0,.14),
-    inset 0 1px 0 rgba(255,255,255,.025);
-}
-
-.top-action:hover,
-.icon-btn:hover {
-  border-color: rgba(245,184,0,.20);
-  color: #fff;
-  background: rgba(255,255,255,.075);
-}
-
-.top-profile {
-  border-left-color: rgba(255,255,255,.075);
-}
-
-
-/* =========================================================
-   PAGE CONTENT
-   ========================================================= */
-
-.page-content {
-  color: #f5f7fb;
-  background: transparent;
-}
-
-
-/* =========================================================
-   DASHBOARD ENVIRONMENT
-   ========================================================= */
-
-.honey-dashboard {
-  position: relative;
-  isolation: isolate;
-  color: #f5f7fb;
-}
-
-.honey-dashboard::before {
-  content: "";
-  position: fixed;
-  inset: var(--topbar-height) 0 0 var(--sidebar-width);
-  z-index: -1;
-  pointer-events: none;
-
-  background:
-    radial-gradient(
-      600px 400px at 80% 5%,
-      rgba(245,184,0,.055),
-      transparent 70%
-    ),
-    radial-gradient(
-      500px 450px at 10% 55%,
-      rgba(46,144,250,.025),
-      transparent 70%
-    );
-}
-
-
-/* =========================================================
-   HERO
-   ========================================================= */
-
-.honey-dashboard .honey-hero {
-  border-color: rgba(255,255,255,.075);
-
-  background:
-    radial-gradient(
-      circle at 85% 15%,
-      rgba(245,184,0,.12),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 10% 90%,
-      rgba(46,144,250,.045),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      #101b2c 0%,
-      #0d1828 52%,
-      #0b1422 100%
-    );
-
-  box-shadow:
-    0 25px 70px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.035);
-}
-
-
-/* =========================================================
-   HERO TEXT
-   ========================================================= */
-
-.honey-dashboard .honey-kicker {
-  color: #f5c22a;
-}
-
-.honey-dashboard .honey-hero h2 {
-  color: #fff;
-}
-
-.honey-dashboard .honey-hero-content > p {
-  color: rgba(255,255,255,.64);
-}
-
-
-/* =========================================================
-   STAT CARDS
-   ========================================================= */
-
-.honey-dashboard .honey-stat-card {
-  border-color: rgba(255,255,255,.065);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.065),
-      rgba(255,255,255,.025)
-    );
-
-  box-shadow:
-    0 15px 40px rgba(0,0,0,.14),
-    inset 0 1px 0 rgba(255,255,255,.025);
-}
-
-.honey-dashboard .honey-stat-card:hover {
-  border-color: rgba(245,184,0,.18);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.085),
-      rgba(255,255,255,.035)
-    );
-
-  box-shadow:
-    0 20px 45px rgba(0,0,0,.20),
-    0 0 0 1px rgba(245,184,0,.025);
-}
-
-.honey-dashboard .honey-stat-main {
-  background:
-    radial-gradient(
-      circle at 100% 0,
-      rgba(245,184,0,.12),
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.075),
-      rgba(255,255,255,.025)
-    );
-}
-
-.honey-dashboard .honey-stat-label {
-  color: #8e9cb0;
-}
-
-.honey-dashboard .honey-stat-card > strong,
-.honey-dashboard .honey-stat-main > strong {
-  color: #f7f9fc;
-}
-
-.honey-dashboard .honey-stat-meta {
-  color: #68778d;
-}
-
-.honey-dashboard .honey-stat-line {
-  background: rgba(255,255,255,.07);
-}
-
-
-/* =========================================================
-   SECTION HEADINGS
-   ========================================================= */
-
-.honey-dashboard .honey-section-heading h3,
-.honey-dashboard .honey-section-heading h2 {
-  color: #f5f7fb;
-}
-
-.honey-dashboard .honey-section-heading h3 span {
-  color: #f5c22a;
-}
-
-.honey-dashboard .honey-section-heading p {
-  color: #8190a5;
-}
-
-
-/* =========================================================
-   PAYMENT METHODS
-   ========================================================= */
-
-.honey-dashboard .honey-method-card {
-  border-color: rgba(255,255,255,.065);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.065),
-      rgba(255,255,255,.025)
-    );
-
-  box-shadow:
-    0 15px 40px rgba(0,0,0,.13),
-    inset 0 1px 0 rgba(255,255,255,.025);
-}
-
-.honey-dashboard .honey-method-card:hover {
-  border-color: rgba(245,184,0,.20);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.085),
-      rgba(255,255,255,.035)
-    );
-
-  box-shadow:
-    0 22px 48px rgba(0,0,0,.20),
-    0 8px 25px rgba(245,184,0,.035);
-}
-
-.honey-dashboard .honey-method-featured {
-  border-color: rgba(245,184,0,.20);
-
-  background:
-    radial-gradient(
-      circle at 100% 0,
-      rgba(245,184,0,.11),
-      transparent 42%
-    ),
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.075),
-      rgba(255,255,255,.025)
-    );
-}
-
-.honey-dashboard .honey-method-number {
-  color: #65748a;
-}
-
-.honey-dashboard .honey-method-copy h4 {
-  color: #f3f6fa;
-}
-
-.honey-dashboard .honey-method-copy p {
-  color: #8290a4;
-}
-
-.honey-dashboard .honey-featured-label {
-  color: #f5c22a;
-}
-
-
-/* =========================================================
-   METHOD ICONS
-   ========================================================= */
-
-.honey-dashboard .honey-large-icon {
-  border-color: rgba(245,184,0,.18);
-  color: #f5c22a;
-  background: rgba(245,184,0,.075);
-}
-
-.honey-dashboard .honey-large-icon.qr {
-  border-color: rgba(255,255,255,.09);
-  color: #e2e8f0;
-  background: rgba(255,255,255,.055);
-}
-
-.honey-dashboard .honey-large-icon.reference {
-  border-color: rgba(255,255,255,.09);
-  color: #aeb9c8;
-  background: rgba(255,255,255,.045);
-}
-
-.honey-dashboard .honey-method-arrow {
-  border-color: rgba(255,255,255,.075);
-  color: #718096;
-  background: rgba(255,255,255,.04);
-}
-
-
-/* =========================================================
-   FLOW
-   ========================================================= */
-
-.honey-dashboard .honey-flow-step h4 {
-  color: #f1f5f9;
-}
-
-.honey-dashboard .honey-flow-step p {
-  color: #78879c;
-}
-
-.honey-dashboard .honey-flow-line {
-  background: rgba(255,255,255,.075);
-}
-
-
-/* =========================================================
-   ACTIVITY + CHART
-   ========================================================= */
-
-.honey-dashboard .honey-panel {
-  border-color: rgba(255,255,255,.065);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.065),
-      rgba(255,255,255,.025)
-    );
-
-  box-shadow:
-    0 18px 45px rgba(0,0,0,.15),
-    inset 0 1px 0 rgba(255,255,255,.025);
-}
-
-.honey-dashboard .honey-panel-header h3 {
-  color: #f5f7fb;
-}
-
-.honey-dashboard .honey-panel-header p {
-  color: #748399;
-}
-
-.honey-dashboard .honey-panel-link {
-  color: #ffcc33;
-}
-
-
-/* =========================================================
-   RECENT PAYMENTS
-   ========================================================= */
-
-.honey-dashboard .honey-recent-list .recent-item {
-  border-bottom-color: rgba(255,255,255,.055);
-}
-
-.honey-dashboard .honey-recent-list .recent-main strong,
-.honey-dashboard .honey-recent-list .recent-side strong {
-  color: #e5ebf2;
-}
-
-.honey-dashboard .honey-recent-list .recent-main span,
-.honey-dashboard .honey-recent-list .recent-side span {
-  color: #718096;
-}
-
-.honey-dashboard .honey-recent-list .recent-icon {
-  color: #f5c22a;
-  background: rgba(245,184,0,.075);
-  border-color: rgba(245,184,0,.15);
-}
-
-
-/* =========================================================
-   EMPTY STATES
-   ========================================================= */
-
-.honey-dashboard .empty-state {
-  border-color: rgba(255,255,255,.10);
-  color: #cbd5e1;
-
-  background:
-    radial-gradient(
-      circle at 50% 0,
-      rgba(245,184,0,.055),
-      transparent 45%
-    );
-}
-
-.honey-dashboard .empty-state span {
-  color: #718096;
-}
-
-
-/* =========================================================
-   GENERAL DASHBOARD TEXT
-   ========================================================= */
-
-.honey-dashboard strong {
-  color: #f3f6fa;
-}
-
-.honey-dashboard p {
-  color: #8997aa;
-}
-
-
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
-
-.honey-dashboard,
-.main {
-  scrollbar-color: #344257 transparent;
-}
-
-.honey-dashboard::-webkit-scrollbar-thumb,
-.main::-webkit-scrollbar-thumb {
-  background: #344257;
-}
-
-.honey-dashboard::-webkit-scrollbar-thumb:hover,
-.main::-webkit-scrollbar-thumb:hover {
-  background: #46556b;
-}
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media (max-width: 900px) {
-
-  .topbar {
-    background: rgba(10,17,29,.94);
-  }
-
-  #menuButton {
-    border-color: rgba(255,255,255,.075);
-    color: #d5deea;
-    background: rgba(255,255,255,.05);
-  }
-
-  #menuButton:hover {
-    border-color: rgba(245,184,0,.20);
-    background: rgba(245,184,0,.07);
-  }
-
-  .page-content {
-    background: transparent;
-  }
-}
-
-
-/* =========================================================
-   SMALL MOBILE
-   ========================================================= */
-
-@media (max-width: 640px) {
-
-  .honey-dashboard::before {
-    inset: var(--topbar-height) 0 0 0;
-  }
-
-  .honey-dashboard .honey-hero {
-    box-shadow:
-      0 18px 45px rgba(0,0,0,.20),
-      inset 0 1px 0 rgba(255,255,255,.035);
   }
 }
