@@ -4421,10 +4421,10 @@ textarea:disabled {
   top: 18px;
 }
 
-
 /* =========================================================
-   PAYMENT METHODS
-========================================================= */
+   HONEY PAY — PAYMENT METHODS
+   PAYMENT ORBIT SYSTEM
+   ========================================================= */
 
 .honey-methods-section {
   position: relative;
@@ -4434,164 +4434,507 @@ textarea:disabled {
 .honey-methods-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
+
+/* =========================================================
+   BASE CARD
+   ========================================================= */
+
 .honey-method-card {
+  --method-color: #f5b800;
+  --method-rgb: 245,184,0;
+
   position: relative;
   min-height: 265px;
   overflow: hidden;
+
   display: flex;
   flex-direction: column;
+
   padding: 22px;
-  border: 1px solid var(--hp-border);
+
+  border: 1px solid rgba(255,255,255,.075);
   border-radius: 19px;
-  background: #fff;
-  box-shadow: var(--hp-shadow-sm);
-  transition:
-    transform .28s ease,
-    box-shadow .28s ease,
-    border-color .28s ease;
-}
 
-.honey-method-card::after {
-  content: "";
-  position: absolute;
-  width: 130px;
-  height: 130px;
-  right: -72px;
-  bottom: -70px;
-  border: 1px solid rgba(245,184,0,.13);
-  border-radius: 50%;
-  transition: transform .4s ease;
-}
+  color: #f5f7fb;
 
-.honey-method-card:hover {
-  transform: translateY(-5px);
-  border-color: #e2d29d;
-  box-shadow:
-    0 18px 40px rgba(16,24,40,.08),
-    0 7px 22px rgba(245,184,0,.06);
-}
-
-.honey-method-card:hover::after {
-  transform: scale(1.5);
-}
-
-.honey-method-featured {
-  border-color: #ead58e;
   background:
     radial-gradient(
       circle at 100% 0,
-      rgba(245,184,0,.13),
+      rgba(var(--method-rgb), .075),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #111c2d 0%,
+      #101a2b 55%,
+      #0e1827 100%
+    );
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
+  opacity: 0;
+
+  animation:
+    honeyMethodEnter .65s cubic-bezier(.22,1,.36,1) forwards;
+
+  transition:
+    transform .35s cubic-bezier(.22,1,.36,1),
+    border-color .35s ease,
+    box-shadow .35s ease,
+    background .35s ease;
+}
+
+
+/* =========================================================
+   ENTRADA SEQUENCIAL
+   ========================================================= */
+
+.honey-method-card:nth-child(1) {
+  animation-delay: .08s;
+}
+
+.honey-method-card:nth-child(2) {
+  animation-delay: .17s;
+}
+
+.honey-method-card:nth-child(3) {
+  animation-delay: .26s;
+}
+
+.honey-method-card:nth-child(4) {
+  animation-delay: .35s;
+}
+
+
+/* =========================================================
+   CORES DOS MÉTODOS
+   ========================================================= */
+
+/* Unitel Money */
+
+.honey-method-card:nth-child(1) {
+  --method-color: #f5b800;
+  --method-rgb: 245,184,0;
+}
+
+
+/* QR Code */
+
+.honey-method-card:nth-child(2) {
+  --method-color: #2e90fa;
+  --method-rgb: 46,144,250;
+}
+
+
+/* Referência */
+
+.honey-method-card:nth-child(3) {
+  --method-color: #8b7cf6;
+  --method-rgb: 139,124,246;
+}
+
+
+/* Link */
+
+.honey-method-card:nth-child(4) {
+  --method-color: #20c997;
+  --method-rgb: 32,201,151;
+}
+
+
+/* =========================================================
+   ORBIT CIRCLE
+   ========================================================= */
+
+.honey-method-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 235px;
+  height: 235px;
+
+  right: -125px;
+  bottom: -130px;
+
+  border:
+    1px solid
+    rgba(var(--method-rgb), .13);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 24px rgba(var(--method-rgb), .018),
+    0 0 0 48px rgba(var(--method-rgb), .012);
+
+  opacity: .75;
+
+  animation:
+    honeyMethodOrbit 29s linear infinite;
+
+  pointer-events: none;
+}
+
+
+/* segundo anel */
+
+.honey-method-card::after {
+  content: "";
+
+  position: absolute;
+
+  width: 155px;
+  height: 155px;
+
+  right: -78px;
+  bottom: -82px;
+
+  border:
+    1px solid
+    rgba(var(--method-rgb), .11);
+
+  border-radius: 50%;
+
+  opacity: .7;
+
+  animation:
+    honeyMethodOrbitReverse 23s linear infinite;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   SHIMMER
+   ========================================================= */
+
+.honey-method-card .honey-method-copy::before {
+  content: "";
+
+  position: absolute;
+
+  top: -140px;
+  left: -120px;
+
+  width: 60px;
+  height: 360px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.055),
+      transparent
+    );
+
+  transform: rotate(25deg);
+
+  animation:
+    honeyMethodShimmer 8s ease-in-out infinite;
+
+  pointer-events: none;
+}
+
+
+/* diferentes tempos */
+
+.honey-method-card:nth-child(1)
+.honey-method-copy::before {
+  animation-delay: 1s;
+}
+
+.honey-method-card:nth-child(2)
+.honey-method-copy::before {
+  animation-delay: 3s;
+}
+
+.honey-method-card:nth-child(3)
+.honey-method-copy::before {
+  animation-delay: 5s;
+}
+
+.honey-method-card:nth-child(4)
+.honey-method-copy::before {
+  animation-delay: 7s;
+}
+
+
+/* =========================================================
+   HOVER
+   ========================================================= */
+
+.honey-method-card:hover {
+  transform: translateY(-5px);
+
+  border-color:
+    rgba(var(--method-rgb), .28);
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(var(--method-rgb), .12),
+      transparent 44%
+    ),
+    linear-gradient(
+      145deg,
+      #142136 0%,
+      #111d30 55%,
+      #0f1929 100%
+    );
+
+  box-shadow:
+    0 20px 42px rgba(0,0,0,.23),
+    0 0 28px rgba(var(--method-rgb), .055);
+}
+
+.honey-method-card:hover::before {
+  opacity: 1;
+}
+
+.honey-method-card:hover::after {
+  opacity: 1;
+}
+
+
+/* =========================================================
+   DESTAQUE UNITEL
+   ========================================================= */
+
+.honey-method-featured {
+  border-color:
+    rgba(245,184,0,.20);
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.12),
       transparent 45%
     ),
     linear-gradient(
-      160deg,
-      #fff,
-      #fffdf5
+      145deg,
+      #142136 0%,
+      #111c2d 55%,
+      #0f1928 100%
     );
 }
 
+
+/* =========================================================
+   NÚMERO
+   ========================================================= */
+
 .honey-method-number {
-  color: #b8c0cc;
+  position: relative;
+  z-index: 2;
+
+  color: #64748b;
+
   font-family: var(--hp-mono);
   font-size: 8px;
   font-weight: 700;
+
   letter-spacing: .1em;
+
+  transition:
+    color .25s ease;
 }
 
+.honey-method-card:hover .honey-method-number {
+  color: var(--method-color);
+}
+
+
+/* =========================================================
+   ÍCONE
+   ========================================================= */
+
 .honey-large-icon {
+  position: relative;
+  z-index: 2;
+
   width: 62px;
   height: 62px;
+
   margin-top: 23px;
+
   display: grid;
   place-items: center;
-  border: 1px solid #f1df9f;
+
+  border:
+    1px solid
+    rgba(var(--method-rgb), .20);
+
   border-radius: 17px;
-  color: #b17d00;
-  background: #fff9e4;
+
+  color: var(--method-color);
+
+  background:
+    rgba(var(--method-rgb), .08);
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
   transition:
-    transform .28s ease,
-    background .28s ease,
-    box-shadow .28s ease;
+    transform .3s cubic-bezier(.22,1,.36,1),
+    background .3s ease,
+    box-shadow .3s ease,
+    border-color .3s ease;
 }
 
 .honey-large-icon svg {
   width: 36px;
   height: 36px;
+
+  transition:
+    transform .3s cubic-bezier(.22,1,.36,1);
 }
 
 .honey-method-card:hover .honey-large-icon {
-  transform: translateY(-3px) rotate(-2deg);
-  background: #fff4c7;
-  box-shadow: 0 10px 22px rgba(245,184,0,.12);
+  transform:
+    translateY(-3px)
+    scale(1.05);
+
+  background:
+    rgba(var(--method-rgb), .13);
+
+  border-color:
+    rgba(var(--method-rgb), .34);
+
+  box-shadow:
+    0 12px 28px rgba(var(--method-rgb), .10);
 }
 
-.honey-large-icon.qr {
-  color: #344054;
-  background: #f4f6f9;
-  border-color: #e4e8ef;
+.honey-method-card:hover .honey-large-icon svg {
+  transform: scale(1.04);
 }
 
-.honey-large-icon.reference {
-  color: #667085;
-  background: #f6f7f9;
-  border-color: #e4e8ef;
-}
 
+/* =========================================================
+   COMPATIBILIDADE DAS VARIAÇÕES ANTIGAS
+   ========================================================= */
+
+.honey-large-icon.qr,
+.honey-large-icon.reference,
 .honey-large-icon.link {
-  color: #a47700;
+  color: var(--method-color);
+  background: rgba(var(--method-rgb), .08);
+  border-color: rgba(var(--method-rgb), .20);
 }
+
+
+/* =========================================================
+   CONTEÚDO
+   ========================================================= */
 
 .honey-method-copy {
   position: relative;
   z-index: 2;
+
   margin-top: 22px;
+
+  overflow: hidden;
 }
 
 .honey-method-copy h4 {
   margin: 0;
+
+  color: #f5f7fb;
+
   font-family: var(--hp-heading);
   font-size: 14px;
   font-weight: 800;
+
   letter-spacing: -.02em;
+
+  transition:
+    color .25s ease,
+    transform .25s ease;
+}
+
+.honey-method-card:hover .honey-method-copy h4 {
+  color: #fff;
+  transform: translateX(1px);
 }
 
 .honey-method-copy p {
   max-width: 210px;
+
   margin: 7px 0 0;
-  color: var(--hp-text-3);
+
+  color: #91a0b5;
+
   font-size: 9px;
   line-height: 1.6;
+
+  transition:
+    color .25s ease;
 }
+
+.honey-method-card:hover .honey-method-copy p {
+  color: #aab6c7;
+}
+
+
+/* =========================================================
+   LABEL DESTAQUE
+   ========================================================= */
 
 .honey-featured-label {
   display: block;
+
   margin-bottom: 5px;
-  color: #b17d00;
+
+  color: #f5c84b;
+
   font-size: 7px;
   font-weight: 850;
+
   text-transform: uppercase;
   letter-spacing: .12em;
 }
 
+
+/* =========================================================
+   ARROW
+   ========================================================= */
+
 .honey-method-arrow {
   position: absolute;
+
+  z-index: 3;
+
   right: 18px;
   bottom: 18px;
+
   width: 29px;
   height: 29px;
+
   display: grid;
   place-items: center;
-  border: 1px solid var(--hp-border);
+
+  border:
+    1px solid
+    rgba(var(--method-rgb), .16);
+
   border-radius: 9px;
-  color: var(--hp-muted);
-  background: #fff;
+
+  color: #728198;
+
+  background:
+    rgba(var(--method-rgb), .055);
+
   transition:
-    transform .22s ease,
-    color .22s ease,
-    background .22s ease;
+    transform .25s ease,
+    color .25s ease,
+    background .25s ease,
+    border-color .25s ease,
+    box-shadow .25s ease;
 }
 
 .honey-method-arrow svg {
@@ -4600,11 +4943,119 @@ textarea:disabled {
 }
 
 .honey-method-card:hover .honey-method-arrow {
-  transform: translateX(3px);
-  color: #8f6800;
-  background: var(--hp-gold-soft);
+  transform: translateX(4px);
+
+  color: var(--method-color);
+
+  background:
+    rgba(var(--method-rgb), .11);
+
+  border-color:
+    rgba(var(--method-rgb), .30);
+
+  box-shadow:
+    0 5px 14px rgba(var(--method-rgb), .08);
 }
 
+
+/* =========================================================
+   ANIMAÇÕES
+   ========================================================= */
+
+@keyframes honeyMethodEnter {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(18px)
+      scale(.975);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+@keyframes honeyMethodOrbit {
+
+  from {
+    transform:
+      rotate(0deg)
+      translateZ(0);
+  }
+
+  to {
+    transform:
+      rotate(360deg)
+      translateZ(0);
+  }
+}
+
+
+@keyframes honeyMethodOrbitReverse {
+
+  from {
+    transform:
+      rotate(360deg)
+      translateZ(0);
+  }
+
+  to {
+    transform:
+      rotate(0deg)
+      translateZ(0);
+  }
+}
+
+
+@keyframes honeyMethodShimmer {
+
+  0%,
+  68%,
+  100% {
+    left: -120px;
+    opacity: 0;
+  }
+
+  76% {
+    opacity: 1;
+  }
+
+  88% {
+    left: calc(100% + 120px);
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .honey-method-card,
+  .honey-method-card::before,
+  .honey-method-card::after,
+  .honey-method-card .honey-method-copy::before {
+    animation: none !important;
+  }
+
+  .honey-method-card {
+    opacity: 1;
+    transform: none;
+  }
+
+  .honey-method-card:hover {
+    transform: none;
+  }
+}
 
 /* =========================================================
    FLOW
