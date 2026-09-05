@@ -5182,12 +5182,116 @@ textarea:disabled {
 }
 
 .honey-panel {
+  position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--hp-border);
+  border: 1px solid rgba(255,255,255,.075);
   border-radius: 19px;
-  background: rgba(255,255,255,.95);
-  box-shadow: var(--hp-shadow-sm);
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.055),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #111c2d 0%,
+      #101a2b 55%,
+      #0e1827 100%
+    );
+
+  color: var(--hp-text);
+
+  box-shadow:
+    0 12px 32px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
+  transition:
+    transform .28s ease,
+    border-color .28s ease,
+    box-shadow .28s ease;
+}
+
+.honey-panel::before {
+  content: "";
+  position: absolute;
+  top: -80%;
+  left: -35%;
+  width: 45%;
+  height: 260%;
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,.035) 45%,
+      rgba(245,184,0,.075) 50%,
+      rgba(255,255,255,.035) 55%,
+      transparent 100%
+    );
+
+  transform: rotate(18deg) translateX(-220%);
+  animation: honeyPanelLight 11s ease-in-out infinite;
+}
+
+.honey-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  border-radius: inherit;
+
+  background:
+    radial-gradient(
+      circle at 90% 15%,
+      rgba(46,144,250,.045),
+      transparent 28%
+    );
+
+  opacity: .8;
+}
+
+.honey-panel:hover {
+  transform: translateY(-3px);
+
+  border-color: rgba(245,184,0,.16);
+
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.20),
+    0 0 0 1px rgba(245,184,0,.025),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.honey-panel-header,
+.honey-recent-list,
+.honey-sales-chart {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes honeyPanelLight {
+  0%,
+  35% {
+    transform: rotate(18deg) translateX(-220%);
+    opacity: 0;
+  }
+
+  45% {
+    opacity: .8;
+  }
+
+  65% {
+    opacity: .8;
+  }
+
+  80%,
+  100% {
+    transform: rotate(18deg) translateX(420%);
+    opacity: 0;
+  }
 }
 
 .honey-panel-header {
