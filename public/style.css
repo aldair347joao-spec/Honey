@@ -1885,6 +1885,7 @@ tbody tr:hover {
 .form-group:nth-child(7) { animation-delay: .20s; }
 .form-group:nth-child(8) { animation-delay: .23s; }
 
+.form-grid > .full,
 .form-group.full,
 .form-full {
   grid-column: 1 / -1;
@@ -1895,32 +1896,46 @@ tbody tr:hover {
    LABELS
    --------------------------------------------------------- */
 
-.form-group label,
+.form-grid > label,
+.form-grid > .form-group,
 .form-label {
   display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
 
-  color: #344054;
+  min-width: 0;
+
+  color: #101828;
   font-size: 10px;
   font-weight: 700;
   line-height: 1.35;
-  letter-spacing: .01em;
 
   transition:
     color .2s ease,
     transform .2s ease;
 }
 
-.form-group:focus-within label,
-.form-group:has(input:focus) label,
-.form-group:has(select:focus) label,
-.form-group:has(textarea:focus) label {
-  color: #b78100;
-  transform: translateX(1px);
+.form-grid > label > span,
+.form-grid > .form-group > label,
+.form-grid > .form-group > span,
+.form-label {
+  color: #344054;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
+.form-grid > label > span {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.form-grid > label:focus-within > span,
+.form-grid > .form-group:focus-within > label,
+.form-grid > .form-group:focus-within > span {
+  color: #b78100;
+}
 
 /* ---------------------------------------------------------
    HELP / DESCRIÇÕES
@@ -2623,22 +2638,28 @@ textarea:disabled {
 }
 
 /* =========================================================
-   MODALS
+   MODALS — LIGHT FINTECH SURFACE
    ========================================================= */
 
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 1000;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 22px;
+
   background: rgba(7,13,24,.58);
+
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
+
   opacity: 1;
   visibility: visible;
+
   transition:
     opacity .2s ease,
     visibility .2s ease;
@@ -2650,16 +2671,29 @@ textarea:disabled {
   pointer-events: none;
 }
 
+
+/* ---------------------------------------------------------
+   MODAL CONTAINER
+   --------------------------------------------------------- */
+
 .modal {
   width: min(100%, 540px);
   max-height: min(90vh, 760px);
+
   overflow: auto;
+
   padding: 23px;
-  border: 1px solid rgba(255,255,255,.12);
+
+  border: 1px solid #e4e7ec;
   border-radius: 19px;
-  background: #fff;
+
+  color: #101828;
+  background: #ffffff;
+
   box-shadow:
-    0 30px 90px rgba(0,0,0,.24);
+    0 30px 90px rgba(0,0,0,.24),
+    0 8px 25px rgba(16,24,40,.08);
+
   animation: hp-modal-in .25s ease both;
 }
 
@@ -2675,46 +2709,200 @@ textarea:disabled {
   }
 }
 
+
+/* ---------------------------------------------------------
+   MODAL HEADER
+   --------------------------------------------------------- */
+
 .modal-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 15px;
-  margin-bottom: 18px;
+
+  margin-bottom: 20px;
 }
 
 .modal-header h2,
 .modal-header h3 {
   margin: 0;
+
+  color: #101828;
+
   font-family: var(--hp-heading);
   font-size: 17px;
   font-weight: 800;
+
+  line-height: 1.2;
   letter-spacing: -.03em;
 }
 
 .modal-header p {
-  margin: 5px 0 0;
-  color: var(--hp-text-3);
+  margin: 6px 0 0;
+
+  color: #667085;
+
   font-size: 9px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
+
+
+/* ---------------------------------------------------------
+   MODAL CLOSE
+   --------------------------------------------------------- */
 
 .modal-close {
   width: 32px;
   height: 32px;
+
   display: grid;
   place-items: center;
-  border: 1px solid var(--hp-border);
+
+  flex: 0 0 32px;
+
+  border: 1px solid #e4e7ec;
   border-radius: 9px;
-  color: var(--hp-text-3);
-  background: #fff;
+
+  color: #667085;
+  background: #ffffff;
+
+  transition:
+    color .2s ease,
+    background .2s ease,
+    border-color .2s ease,
+    transform .2s ease;
 }
 
 .modal-close:hover {
-  color: var(--hp-text);
-  background: var(--hp-surface-3);
+  color: #101828;
+
+  border-color: #d0d5dd;
+  background: #f9fafb;
+
+  transform: translateY(-1px);
 }
 
+
+/* ---------------------------------------------------------
+   MODAL FORM SURFACE
+   --------------------------------------------------------- */
+
+.modal .form-grid {
+  color: #101828;
+}
+
+.modal .form-grid > label {
+  color: #344054;
+}
+
+.modal .form-grid > label > span {
+  color: #344054;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL ACTIONS
+   --------------------------------------------------------- */
+
+.modal .form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  margin-top: 5px;
+  padding-top: 4px;
+}
+
+.modal .form-actions .btn {
+  min-width: 105px;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL SECONDARY BUTTON
+   --------------------------------------------------------- */
+
+.modal .btn.secondary {
+  color: #344054;
+
+  border-color: #d0d5dd;
+  background: #ffffff;
+
+  box-shadow:
+    0 1px 2px rgba(16,24,40,.04);
+}
+
+.modal .btn.secondary:hover {
+  color: #101828;
+
+  border-color: #b8c0cc;
+  background: #f9fafb;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL PRIMARY BUTTON
+   --------------------------------------------------------- */
+
+.modal .btn.primary {
+  color: #101828;
+
+  border-color: #f5b800;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffcc33,
+      #f5b800
+    );
+
+  box-shadow:
+    0 7px 18px rgba(245,184,0,.17),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+.modal .btn.primary:hover {
+  border-color: #d89f00;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffd33e,
+      #d89f00
+    );
+
+  box-shadow:
+    0 10px 24px rgba(245,184,0,.23);
+}
+
+
+/* ---------------------------------------------------------
+   MODAL SCROLLBAR
+   --------------------------------------------------------- */
+
+.modal {
+  scrollbar-color: #c4cad4 transparent;
+}
+
+.modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #c4cad4;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: #aeb6c2;
+}
 /* =========================================================
    TOASTS
    ========================================================= */
