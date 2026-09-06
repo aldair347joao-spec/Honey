@@ -1861,7 +1861,7 @@ tbody tr:hover {
 }
 
 /* =========================================================
-   HONEY PAY — PREMIUM DARK FORMS
+   HONEY PAY — LIGHT FINTECH FORMS
    ========================================================= */
 
 .form-grid {
@@ -1890,6 +1890,11 @@ tbody tr:hover {
   grid-column: 1 / -1;
 }
 
+
+/* ---------------------------------------------------------
+   LABELS
+   --------------------------------------------------------- */
+
 .form-group label,
 .form-label {
   display: flex;
@@ -1897,9 +1902,10 @@ tbody tr:hover {
   gap: 5px;
   margin-bottom: 8px;
 
-  color: #cbd5e1;
+  color: #344054;
   font-size: 10px;
   font-weight: 700;
+  line-height: 1.35;
   letter-spacing: .01em;
 
   transition:
@@ -1911,16 +1917,21 @@ tbody tr:hover {
 .form-group:has(input:focus) label,
 .form-group:has(select:focus) label,
 .form-group:has(textarea:focus) label {
-  color: #f5c84b;
+  color: #b78100;
   transform: translateX(1px);
 }
+
+
+/* ---------------------------------------------------------
+   HELP / DESCRIÇÕES
+   --------------------------------------------------------- */
 
 .form-group small,
 .form-help {
   display: block;
   margin-top: 6px;
 
-  color: #728198;
+  color: #667085;
   font-size: 9px;
   line-height: 1.5;
 
@@ -1929,7 +1940,7 @@ tbody tr:hover {
 
 .form-group:focus-within small,
 .form-group:focus-within .form-help {
-  color: #8d9bb0;
+  color: #475467;
 }
 
 
@@ -1941,29 +1952,26 @@ input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   width: 100%;
-  min-height: 43px;
+  min-height: 44px;
   box-sizing: border-box;
 
   padding: 0 13px;
 
-  border: 1px solid rgba(255,255,255,.075);
+  border: 1px solid #d0d5dd;
   border-radius: 11px;
 
   outline: none;
 
-  color: #f5f7fb;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.045),
-      rgba(255,255,255,.025)
-    );
+  color: #101828;
+
+  background: #ffffff;
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.025);
+    0 1px 2px rgba(16,24,40,.035);
 
   font-family: inherit;
   font-size: 10px;
+  line-height: 1.4;
 
   transition:
     border-color .22s ease,
@@ -1972,10 +1980,17 @@ textarea {
     transform .18s ease;
 }
 
+
+/* ---------------------------------------------------------
+   TEXTAREA
+   --------------------------------------------------------- */
+
 textarea {
   min-height: 112px;
+
   padding-top: 12px;
   padding-bottom: 12px;
+
   resize: vertical;
   line-height: 1.55;
 }
@@ -1987,8 +2002,9 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #536176;
+  color: #98a2b3;
   opacity: 1;
+
   transition:
     color .2s ease,
     opacity .2s ease;
@@ -1996,7 +2012,7 @@ textarea::placeholder {
 
 input:focus::placeholder,
 textarea:focus::placeholder {
-  color: #64748b;
+  color: #b0b8c5;
 }
 
 
@@ -2007,14 +2023,12 @@ textarea:focus::placeholder {
 input:not([type="checkbox"]):not([type="radio"]):hover,
 select:hover,
 textarea:hover {
-  border-color: rgba(255,255,255,.14);
+  border-color: #b8c0cc;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.055),
-      rgba(255,255,255,.032)
-    );
+  background: #ffffff;
+
+  box-shadow:
+    0 2px 5px rgba(16,24,40,.045);
 }
 
 
@@ -2025,18 +2039,13 @@ textarea:hover {
 input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(245,184,0,.68);
+  border-color: #f5b800;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(245,184,0,.055),
-      rgba(255,255,255,.035)
-    );
+  background: #ffffff;
 
   box-shadow:
-    0 0 0 3px rgba(245,184,0,.08),
-    0 8px 24px rgba(0,0,0,.12);
+    0 0 0 3px rgba(245,184,0,.12),
+    0 5px 16px rgba(16,24,40,.06);
 
   transform: translateY(-1px);
 }
@@ -2048,34 +2057,39 @@ textarea:focus {
 
 select {
   cursor: pointer;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 select option {
-  color: #f5f7fb;
-  background: #111c2d;
+  color: #101828;
+  background: #ffffff;
 }
 
 
 /* ---------------------------------------------------------
-   DATE / NUMBER / AUTOFILL
+   DATE / NUMBER / TIME
    --------------------------------------------------------- */
 
 input[type="date"],
 input[type="datetime-local"],
 input[type="time"],
 input[type="number"] {
-  color-scheme: dark;
+  color-scheme: light;
 }
+
+
+/* ---------------------------------------------------------
+   AUTOFILL
+   --------------------------------------------------------- */
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #f5f7fb;
+  -webkit-text-fill-color: #101828;
 
   box-shadow:
-    0 0 0 1000px #111c2d inset,
-    0 0 0 3px rgba(245,184,0,.07);
+    0 0 0 1000px #ffffff inset,
+    0 0 0 3px rgba(245,184,0,.08);
 
   transition: background-color 9999s ease-in-out 0s;
 }
@@ -2090,14 +2104,13 @@ select:disabled,
 textarea:disabled {
   cursor: not-allowed;
 
-  color: #536176;
+  color: #98a2b3;
 
-  border-color: rgba(255,255,255,.045);
+  border-color: #e4e7ec;
 
-  background:
-    rgba(255,255,255,.018);
+  background: #f9fafb;
 
-  opacity: .65;
+  opacity: 1;
 
   transform: none;
 }
@@ -2115,7 +2128,7 @@ textarea:disabled {
 
   min-height: 30px;
 
-  color: #cbd5e1;
+  color: #344054;
   font-size: 10px;
 }
 
@@ -2136,6 +2149,9 @@ textarea:disabled {
 .checkbox-row label,
 .radio-row label {
   margin: 0;
+
+  color: #344054;
+
   cursor: pointer;
 }
 
@@ -2160,7 +2176,7 @@ textarea:disabled {
   width: 15px;
   height: 15px;
 
-  color: #66758b;
+  color: #667085;
 
   transform: translateY(-50%);
   pointer-events: none;
@@ -2172,6 +2188,7 @@ textarea:disabled {
 
 .search-box:focus-within svg {
   color: #f5b800;
+
   transform:
     translateY(-50%)
     scale(1.06);
