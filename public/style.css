@@ -1190,11 +1190,7 @@ svg {
 }
 
 /* =========================================================
-   CARDS
-   ========================================================= */
-/* =========================================================
    INTERNAL APP SURFACES
-   Dashboard uses its own visual system.
    ========================================================= */
 
 .card,
@@ -1203,6 +1199,7 @@ svg {
 .stat-card,
 .table-card {
   position: relative;
+  min-width: 0;
 
   border: 1px solid rgba(255,255,255,.075);
   border-radius: var(--hp-radius);
@@ -1225,11 +1222,6 @@ svg {
   box-shadow:
     0 10px 30px rgba(0,0,0,.12),
     inset 0 1px 0 rgba(255,255,255,.025);
-
-  transition:
-    transform .24s ease,
-    border-color .24s ease,
-    box-shadow .24s ease;
 }
 
 .card,
@@ -1239,17 +1231,17 @@ svg {
 
 .card:hover,
 .panel:hover {
-  border-color: rgba(245,184,0,.13);
+  border-color: rgba(245,184,0,.11);
 
   box-shadow:
-    0 16px 36px rgba(0,0,0,.17),
-    inset 0 1px 0 rgba(255,255,255,.035);
+    0 12px 32px rgba(0,0,0,.15),
+    inset 0 1px 0 rgba(255,255,255,.03);
 }
 /* =========================================================
-   INTERNAL PAGE CONTENT
+   HONEY PAY — INTERNAL PAGES
    ========================================================= */
 
-.page-content:not(:has(.honey-dashboard)) {
+#pageContent {
   color: var(--hp-text);
 }
 
@@ -1258,95 +1250,177 @@ svg {
    PAGE HEADER
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .page-header h2 {
+#pageContent .page-header h2 {
   color: #f5f7fb;
 }
 
-.page-content:not(:has(.honey-dashboard)) .page-header p {
+#pageContent .page-header p {
   color: #91a0b5;
 }
 
-.page-content:not(:has(.honey-dashboard)) .eyebrow {
+#pageContent .eyebrow {
   color: #d8a300;
 }
 
 
 /* ---------------------------------------------------------
-   CARD HEADINGS
+   PANELS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .card h2,
-.page-content:not(:has(.honey-dashboard)) .card h3,
-.page-content:not(:has(.honey-dashboard)) .panel h2,
-.page-content:not(:has(.honey-dashboard)) .panel h3,
-.page-content:not(:has(.honey-dashboard)) .table-card h2,
-.page-content:not(:has(.honey-dashboard)) .table-card h3 {
+#pageContent > .panel {
+  color: #d6deea;
+}
+
+#pageContent > .panel h2,
+#pageContent > .panel h3 {
   color: #f5f7fb;
 }
 
-
-/* ---------------------------------------------------------
-   CARD TEXT
-   --------------------------------------------------------- */
-
-.page-content:not(:has(.honey-dashboard)) .card p,
-.page-content:not(:has(.honey-dashboard)) .panel p,
-.page-content:not(:has(.honey-dashboard)) .table-card p {
+#pageContent > .panel p {
   color: #91a0b5;
 }
 
 
 /* ---------------------------------------------------------
-   EMPTY STATES
+   EMPTY STATE
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .empty-state {
-  color: #f5f7fb;
+#pageContent .empty-state {
+  min-height: 230px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 35px 25px;
+
+  text-align: center;
+
+  color: #d6deea;
 }
 
-.page-content:not(:has(.honey-dashboard)) .empty-state strong {
+#pageContent .empty-state strong {
+  display: block;
+
   color: #f5f7fb;
+
+  font-family: var(--hp-heading);
+  font-size: 13px;
+  font-weight: 750;
 }
 
-.page-content:not(:has(.honey-dashboard)) .empty-state span,
-.page-content:not(:has(.honey-dashboard)) .empty-state p {
-  color: #91a0b5;
+#pageContent .empty-state span {
+  display: block;
+  max-width: 430px;
+
+  color: #728198;
+
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+#pageContent .empty-state .btn {
+  margin-top: 10px;
 }
 
 
 /* ---------------------------------------------------------
-   TABLES
+   DATA TABLE
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) table {
+#pageContent .table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#pageContent .data-table {
+  width: 100%;
+  border-collapse: collapse;
+
   color: #d6deea;
 }
 
-.page-content:not(:has(.honey-dashboard)) thead th {
-  color: #7f8da3;
-  border-bottom-color: rgba(255,255,255,.07);
+#pageContent .data-table thead th {
+  padding: 11px 12px;
+
+  color: #728198;
+
+  border-bottom: 1px solid rgba(255,255,255,.07);
+
+  font-size: 8px;
+  font-weight: 800;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: .08em;
 }
 
-.page-content:not(:has(.honey-dashboard)) tbody td {
-  color: #d6deea;
-  border-bottom-color: rgba(255,255,255,.055);
+#pageContent .data-table tbody td {
+  padding: 14px 12px;
+
+  color: #aebbd0;
+
+  border-bottom: 1px solid rgba(255,255,255,.055);
+
+  font-size: 10px;
+  vertical-align: middle;
 }
 
-.page-content:not(:has(.honey-dashboard)) tbody tr:hover {
+#pageContent .data-table tbody tr {
+  transition:
+    background .2s ease;
+}
+
+#pageContent .data-table tbody tr:hover {
   background: rgba(255,255,255,.025);
 }
 
-.page-content:not(:has(.honey-dashboard)) tbody td strong {
+#pageContent .data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+#pageContent .data-table strong {
+  display: block;
+
   color: #f5f7fb;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#pageContent .data-table small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #66758b;
+
+  font-size: 8px;
+  line-height: 1.4;
 }
 
 
 /* ---------------------------------------------------------
-   TABLE SECONDARY TEXT
+   TABLE ACTIONS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) table small {
-  color: #728198;
+#pageContent .table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#pageContent .table-actions .btn {
+  min-height: 31px;
+
+  padding: 0 10px;
+
+  font-size: 8px;
 }
 
 
@@ -1354,53 +1428,67 @@ svg {
    SECONDARY BUTTONS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .btn.secondary,
-.page-content:not(:has(.honey-dashboard)) .secondary-btn {
-  color: #d6deea;
+#pageContent .btn.secondary {
+  color: #cbd5e1;
 
-  border-color: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.085);
 
-  background:
-    rgba(255,255,255,.045);
+  background: rgba(255,255,255,.045);
 
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.025);
 }
 
-.page-content:not(:has(.honey-dashboard)) .btn.secondary:hover,
-.page-content:not(:has(.honey-dashboard)) .secondary-btn:hover {
+#pageContent .btn.secondary:hover {
   color: #fff;
 
   border-color: rgba(245,184,0,.20);
 
-  background:
-    rgba(245,184,0,.075);
+  background: rgba(245,184,0,.075);
 }
 
 
 /* ---------------------------------------------------------
-   SEARCH / FILTERS
+   SEARCH
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .search-box input,
-.page-content:not(:has(.honey-dashboard)) .filter-bar input,
-.page-content:not(:has(.honey-dashboard)) .filter-bar select {
+#pageContent .search-box input {
   color: #f5f7fb;
 
-  border-color: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.085);
 
-  background:
-    rgba(255,255,255,.045);
+  background: rgba(255,255,255,.045);
 }
 
-.page-content:not(:has(.honey-dashboard)) .search-box input::placeholder,
-.page-content:not(:has(.honey-dashboard)) .filter-bar input::placeholder {
-  color: #728198;
+#pageContent .search-box input::placeholder {
+  color: #66758b;
 }
 
-.page-content:not(:has(.honey-dashboard)) .filter-bar select option {
+
+/* ---------------------------------------------------------
+   FILTERS
+   --------------------------------------------------------- */
+
+#pageContent .filter-bar {
+  color: #cbd5e1;
+}
+
+#pageContent .filter-bar input,
+#pageContent .filter-bar select {
+  color: #f5f7fb;
+
+  border-color: rgba(255,255,255,.085);
+
+  background: rgba(255,255,255,.045);
+}
+
+#pageContent .filter-bar input::placeholder {
+  color: #66758b;
+}
+
+#pageContent .filter-bar select option {
   color: #101828;
-  background: #ffffff;
+  background: #fff;
 }
 
 
@@ -1408,10 +1496,10 @@ svg {
    LINK CARDS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .link-card {
-  border-color: rgba(255,255,255,.075);
-
+#pageContent .link-card {
   color: #f5f7fb;
+
+  border-color: rgba(255,255,255,.075);
 
   background:
     radial-gradient(
@@ -1429,11 +1517,11 @@ svg {
     0 10px 28px rgba(0,0,0,.14);
 }
 
-.page-content:not(:has(.honey-dashboard)) .link-card h3 {
+#pageContent .link-card h3 {
   color: #f5f7fb;
 }
 
-.page-content:not(:has(.honey-dashboard)) .link-card p {
+#pageContent .link-card p {
   color: #91a0b5;
 }
 
@@ -1442,10 +1530,10 @@ svg {
    BANK ACCOUNT CARDS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .bank-account-card {
-  border-color: rgba(255,255,255,.075);
-
+#pageContent .bank-account-card {
   color: #f5f7fb;
+
+  border-color: rgba(255,255,255,.075);
 
   background:
     radial-gradient(
@@ -1458,56 +1546,97 @@ svg {
       #111c2d,
       #0e1827
     );
-
-  box-shadow:
-    0 10px 28px rgba(0,0,0,.14);
 }
 
-.page-content:not(:has(.honey-dashboard)) .bank-account-name {
+#pageContent .bank-account-name {
   color: #f5f7fb;
 }
 
-.page-content:not(:has(.honey-dashboard)) .bank-account-number {
+#pageContent .bank-account-number {
   color: #a0aec0;
 }
 
-.page-content:not(:has(.honey-dashboard)) .bank-account-holder {
+#pageContent .bank-account-holder {
   color: #728198;
 }
 
 
 /* ---------------------------------------------------------
-   URL / MONOSPACE AREAS
+   REPORT CARDS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .link-url {
-  color: #aebbd0;
+#pageContent .report-card {
+  color: #f5f7fb;
 
-  border-color: rgba(255,255,255,.065);
+  border-color: rgba(255,255,255,.075);
 
   background:
-    #0b1422;
+    linear-gradient(
+      145deg,
+      #111c2d,
+      #0e1827
+    );
+}
+
+#pageContent .report-card h3 {
+  color: #f5f7fb;
+}
+
+#pageContent .report-card p {
+  color: #91a0b5;
 }
 
 
 /* ---------------------------------------------------------
-   PAGINATION
+   SETTINGS
    --------------------------------------------------------- */
 
-.page-content:not(:has(.honey-dashboard)) .pagination button {
-  color: #91a0b5;
+#pageContent .settings-nav {
+  color: #d6deea;
 
-  border-color: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.075);
 
-  background: rgba(255,255,255,.035);
+  background:
+    linear-gradient(
+      145deg,
+      #111c2d,
+      #0e1827
+    );
 }
 
-.page-content:not(:has(.honey-dashboard)) .pagination button:hover {
+#pageContent .settings-nav-item {
+  color: #91a0b5;
+}
+
+#pageContent .settings-nav-item:hover {
   color: #fff;
 
-  border-color: rgba(245,184,0,.18);
+  background: rgba(255,255,255,.045);
+}
 
-  background: rgba(245,184,0,.06);
+#pageContent .settings-nav-item.active {
+  color: #101828;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffcc33,
+      #f5b800
+    );
+}
+
+
+/* ---------------------------------------------------------
+   LINK / URL DISPLAY
+   --------------------------------------------------------- */
+
+#pageContent .link-url,
+#pageContent .generated-link-box {
+  color: #cbd5e1;
+
+  border-color: rgba(255,255,255,.075);
+
+  background: #0b1422;
 }
 /* =========================================================
    DASHBOARD
