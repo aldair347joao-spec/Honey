@@ -1192,16 +1192,44 @@ svg {
 /* =========================================================
    CARDS
    ========================================================= */
+/* =========================================================
+   INTERNAL APP SURFACES
+   Dashboard uses its own visual system.
+   ========================================================= */
 
 .card,
 .panel,
 .dashboard-card,
 .stat-card,
 .table-card {
-  border: 1px solid var(--hp-border);
+  position: relative;
+
+  border: 1px solid rgba(255,255,255,.075);
   border-radius: var(--hp-radius);
-  background: rgba(255,255,255,.94);
-  box-shadow: var(--hp-shadow-sm);
+
+  color: var(--hp-text);
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.035),
+      transparent 32%
+    ),
+    linear-gradient(
+      145deg,
+      #111c2d 0%,
+      #101a2b 55%,
+      #0e1827 100%
+    );
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.025);
+
+  transition:
+    transform .24s ease,
+    border-color .24s ease,
+    box-shadow .24s ease;
 }
 
 .card,
@@ -1211,9 +1239,276 @@ svg {
 
 .card:hover,
 .panel:hover {
-  box-shadow: var(--hp-shadow);
+  border-color: rgba(245,184,0,.13);
+
+  box-shadow:
+    0 16px 36px rgba(0,0,0,.17),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+/* =========================================================
+   INTERNAL PAGE CONTENT
+   ========================================================= */
+
+.page-content:not(:has(.honey-dashboard)) {
+  color: var(--hp-text);
 }
 
+
+/* ---------------------------------------------------------
+   PAGE HEADER
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .page-header h2 {
+  color: #f5f7fb;
+}
+
+.page-content:not(:has(.honey-dashboard)) .page-header p {
+  color: #91a0b5;
+}
+
+.page-content:not(:has(.honey-dashboard)) .eyebrow {
+  color: #d8a300;
+}
+
+
+/* ---------------------------------------------------------
+   CARD HEADINGS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .card h2,
+.page-content:not(:has(.honey-dashboard)) .card h3,
+.page-content:not(:has(.honey-dashboard)) .panel h2,
+.page-content:not(:has(.honey-dashboard)) .panel h3,
+.page-content:not(:has(.honey-dashboard)) .table-card h2,
+.page-content:not(:has(.honey-dashboard)) .table-card h3 {
+  color: #f5f7fb;
+}
+
+
+/* ---------------------------------------------------------
+   CARD TEXT
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .card p,
+.page-content:not(:has(.honey-dashboard)) .panel p,
+.page-content:not(:has(.honey-dashboard)) .table-card p {
+  color: #91a0b5;
+}
+
+
+/* ---------------------------------------------------------
+   EMPTY STATES
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .empty-state {
+  color: #f5f7fb;
+}
+
+.page-content:not(:has(.honey-dashboard)) .empty-state strong {
+  color: #f5f7fb;
+}
+
+.page-content:not(:has(.honey-dashboard)) .empty-state span,
+.page-content:not(:has(.honey-dashboard)) .empty-state p {
+  color: #91a0b5;
+}
+
+
+/* ---------------------------------------------------------
+   TABLES
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) table {
+  color: #d6deea;
+}
+
+.page-content:not(:has(.honey-dashboard)) thead th {
+  color: #7f8da3;
+  border-bottom-color: rgba(255,255,255,.07);
+}
+
+.page-content:not(:has(.honey-dashboard)) tbody td {
+  color: #d6deea;
+  border-bottom-color: rgba(255,255,255,.055);
+}
+
+.page-content:not(:has(.honey-dashboard)) tbody tr:hover {
+  background: rgba(255,255,255,.025);
+}
+
+.page-content:not(:has(.honey-dashboard)) tbody td strong {
+  color: #f5f7fb;
+}
+
+
+/* ---------------------------------------------------------
+   TABLE SECONDARY TEXT
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) table small {
+  color: #728198;
+}
+
+
+/* ---------------------------------------------------------
+   SECONDARY BUTTONS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .btn.secondary,
+.page-content:not(:has(.honey-dashboard)) .secondary-btn {
+  color: #d6deea;
+
+  border-color: rgba(255,255,255,.09);
+
+  background:
+    rgba(255,255,255,.045);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.page-content:not(:has(.honey-dashboard)) .btn.secondary:hover,
+.page-content:not(:has(.honey-dashboard)) .secondary-btn:hover {
+  color: #fff;
+
+  border-color: rgba(245,184,0,.20);
+
+  background:
+    rgba(245,184,0,.075);
+}
+
+
+/* ---------------------------------------------------------
+   SEARCH / FILTERS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .search-box input,
+.page-content:not(:has(.honey-dashboard)) .filter-bar input,
+.page-content:not(:has(.honey-dashboard)) .filter-bar select {
+  color: #f5f7fb;
+
+  border-color: rgba(255,255,255,.09);
+
+  background:
+    rgba(255,255,255,.045);
+}
+
+.page-content:not(:has(.honey-dashboard)) .search-box input::placeholder,
+.page-content:not(:has(.honey-dashboard)) .filter-bar input::placeholder {
+  color: #728198;
+}
+
+.page-content:not(:has(.honey-dashboard)) .filter-bar select option {
+  color: #101828;
+  background: #ffffff;
+}
+
+
+/* ---------------------------------------------------------
+   LINK CARDS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .link-card {
+  border-color: rgba(255,255,255,.075);
+
+  color: #f5f7fb;
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.055),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      #111c2d,
+      #0e1827
+    );
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.14);
+}
+
+.page-content:not(:has(.honey-dashboard)) .link-card h3 {
+  color: #f5f7fb;
+}
+
+.page-content:not(:has(.honey-dashboard)) .link-card p {
+  color: #91a0b5;
+}
+
+
+/* ---------------------------------------------------------
+   BANK ACCOUNT CARDS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .bank-account-card {
+  border-color: rgba(255,255,255,.075);
+
+  color: #f5f7fb;
+
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(245,184,0,.05),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #111c2d,
+      #0e1827
+    );
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.14);
+}
+
+.page-content:not(:has(.honey-dashboard)) .bank-account-name {
+  color: #f5f7fb;
+}
+
+.page-content:not(:has(.honey-dashboard)) .bank-account-number {
+  color: #a0aec0;
+}
+
+.page-content:not(:has(.honey-dashboard)) .bank-account-holder {
+  color: #728198;
+}
+
+
+/* ---------------------------------------------------------
+   URL / MONOSPACE AREAS
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .link-url {
+  color: #aebbd0;
+
+  border-color: rgba(255,255,255,.065);
+
+  background:
+    #0b1422;
+}
+
+
+/* ---------------------------------------------------------
+   PAGINATION
+   --------------------------------------------------------- */
+
+.page-content:not(:has(.honey-dashboard)) .pagination button {
+  color: #91a0b5;
+
+  border-color: rgba(255,255,255,.08);
+
+  background: rgba(255,255,255,.035);
+}
+
+.page-content:not(:has(.honey-dashboard)) .pagination button:hover {
+  color: #fff;
+
+  border-color: rgba(245,184,0,.18);
+
+  background: rgba(245,184,0,.06);
+}
 /* =========================================================
    DASHBOARD
    ========================================================= */
