@@ -3588,21 +3588,42 @@ async function deletePaymentLink(
 }
 
 async function openManualPaymentLinkForm() {
-  let accounts =
-    state.bankAccounts;
+  let accounts = state.bankAccounts;
 
   if (!accounts.length) {
     try {
       await loadBankAccounts();
-      accounts =
-        state.bankAccounts;
+      accounts = state.bankAccounts;
     } catch {
       accounts = [];
     }
   }
 
+  const methods = [
+    {
+      value: "multicaixa_express",
+      label: "Multicaixa Express",
+      description: "Pagamento através do Multicaixa Express."
+    },
+    {
+      value: "reference",
+      label: "Pagamento por Referência",
+      description: "O cliente recebe uma referência para pagar."
+    },
+    {
+      value: "unitel_money",
+      label: "UNITEL Money",
+      description: "Pagamento através do UNITEL Money."
+    },
+    {
+      value: "direct_debit",
+      label: "Débito Directo",
+      description: "Pagamento através de débito directo."
+    }
+  ];
+
   openModal(
-    "Novo link de pagamento",
+    "Nova cobrança",
     `
       <form
         id="manualPaymentLinkForm"
@@ -3611,7 +3632,6 @@ async function openManualPaymentLinkForm() {
 
         <label class="full">
           <span>Título</span>
-
           <input
             name="title"
             required
@@ -3632,7 +3652,6 @@ async function openManualPaymentLinkForm() {
 
         <label>
           <span>Valor (Kz)</span>
-
           <input
             name="amount"
             type="number"
@@ -3651,7 +3670,333 @@ async function openManualPaymentLinkForm() {
           >
         </label>
 
-        <label class="full">
+        <!-- =====================================================
+             MODO DA COBRANÇA
+        ====================================================== -->
+
+        <div class="full">
+
+          <span
+            style="
+              display:block;
+              font-weight:700;
+              margin-bottom:10px;
+            "
+          >
+            Como pretende receber esta cobrança?
+          </span>
+
+          <div
+            style="
+              display:grid;
+              grid-template-columns:repeat(
+                auto-fit,
+                minmax(220px, 1fr)
+              );
+              gap:12px;
+            "
+          >
+
+            <label
+              style="
+                display:block;
+                cursor:pointer;
+                margin:0;
+              "
+            >
+              <input
+                type="radio"
+                name="collectionMode"
+                value="remote"
+                checked
+                style="margin-right:8px;"
+              >
+
+              <strong>
+                📱 Enviar ao cliente
+              </strong>
+
+              <span
+                style="
+                  display:block;
+                  margin-top:5px;
+                  color:#667085;
+                  font-size:13px;
+                  line-height:1.45;
+                "
+              >
+                Gere um link para WhatsApp,
+                Instagram, Facebook ou outro canal.
+              </span>
+            </label>
+
+            <label
+              style="
+                display:block;
+                cursor:pointer;
+                margin:0;
+              "
+            >
+              <input
+                type="radio"
+                name="collectionMode"
+                value="in_person"
+                style="margin-right:8px;"
+              >
+
+              <strong>
+                🏪 Pagamento presencial
+              </strong>
+
+              <span
+                style="
+                  display:block;
+                  margin-top:5px;
+                  color:#667085;
+                  font-size:13px;
+                  line-height:1.45;
+                "
+              >
+                O cliente está consigo e a cobrança
+                será feita presencialmente.
+              </span>
+            </label>
+
+          </div>
+
+        </div>
+
+        <!-- =====================================================
+             MODO REMOTO
+        ====================================================== -->
+
+        <div
+          id="remotePaymentOptions"
+          class="full"
+        >
+
+          <span
+            style="
+              display:block;
+              font-weight:700;
+              margin-bottom:10px;
+            "
+          >
+            Como o cliente vai pagar?
+          </span>
+
+          <div
+            style="
+              display:grid;
+              gap:10px;
+            "
+          >
+
+            <label
+              style="
+                display:block;
+                cursor:pointer;
+                margin:0;
+              "
+            >
+              <input
+                type="radio"
+                name="remoteCheckoutMode"
+                value="customer_choice"
+                checked
+                style="margin-right:8px;"
+              >
+
+              <strong>
+                Cliente escolhe
+              </strong>
+
+              <span
+                style="
+                  display:block;
+                  margin:5px 0 0 24px;
+                  color:#667085;
+                  font-size:13px;
+                "
+              >
+                O cliente verá os métodos disponíveis
+                e escolherá como quer pagar.
+              </span>
+            </label>
+
+            <label
+              style="
+                display:block;
+                cursor:pointer;
+                margin:0;
+              "
+            >
+              <input
+                type="radio"
+                name="remoteCheckoutMode"
+                value="single_method"
+                style="margin-right:8px;"
+              >
+
+              <strong>
+                Eu escolho os métodos
+              </strong>
+
+              <span
+                style="
+                  display:block;
+                  margin:5px 0 0 24px;
+                  color:#667085;
+                  font-size:13px;
+                "
+              >
+                Escolha exatamente os métodos que
+                ficarão disponíveis para o cliente.
+              </span>
+            </label>
+
+          </div>
+
+          <div
+            id="remoteMethodsBox"
+            style="
+              display:none;
+              margin-top:14px;
+              padding:14px;
+              border:1px solid #e4e7ec;
+              border-radius:12px;
+              background:#f9fafb;
+            "
+          >
+
+            <strong
+              style="
+                display:block;
+                margin-bottom:10px;
+              "
+            >
+              Métodos permitidos
+            </strong>
+
+            <div
+              style="
+                display:grid;
+                gap:9px;
+              "
+            >
+
+              ${methods
+                .map(
+                  method => `
+                    <label
+                      style="
+                        display:flex;
+                        align-items:flex-start;
+                        gap:8px;
+                        cursor:pointer;
+                        margin:0;
+                      "
+                    >
+                      <input
+                        type="checkbox"
+                        name="paymentMethods"
+                        value="${method.value}"
+                        checked
+                        style="margin-top:3px;"
+                      >
+
+                      <span>
+                        <strong>
+                          ${method.label}
+                        </strong>
+
+                        <small
+                          style="
+                            display:block;
+                            margin-top:2px;
+                            color:#667085;
+                          "
+                        >
+                          ${method.description}
+                        </small>
+                      </span>
+                    </label>
+                  `
+                )
+                .join("")}
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- =====================================================
+             MODO PRESENCIAL
+        ====================================================== -->
+
+        <div
+          id="inPersonPaymentOptions"
+          class="full"
+          style="display:none;"
+        >
+
+          <div
+            style="
+              padding:14px;
+              border:1px solid #e4e7ec;
+              border-radius:12px;
+              background:#f9fafb;
+            "
+          >
+
+            <strong
+              style="
+                display:block;
+                margin-bottom:6px;
+              "
+            >
+              Cobrança presencial
+            </strong>
+
+            <p
+              style="
+                margin:0;
+                color:#667085;
+                font-size:13px;
+                line-height:1.5;
+              "
+            >
+              A cobrança presencial será integrada à
+              AppyPay para gerar uma cobrança real e,
+              quando aplicável, o QR Code em tempo real.
+            </p>
+
+            <p
+              style="
+                margin:10px 0 0;
+                color:#667085;
+                font-size:13px;
+                line-height:1.5;
+              "
+            >
+              Esta opção será ativada assim que o
+              endpoint de cobrança presencial AppyPay
+              estiver ligado ao backend.
+            </p>
+
+          </div>
+
+        </div>
+
+        <!-- =====================================================
+             CONTA BANCÁRIA
+        ====================================================== -->
+
+        <label
+          id="bankAccountField"
+          class="full"
+        >
           <span>
             Conta bancária para transferência
           </span>
@@ -3659,7 +4004,6 @@ async function openManualPaymentLinkForm() {
           <select
             name="bankAccountId"
           >
-
             <option value="">
               Sem conta bancária específica
             </option>
@@ -3667,16 +4011,13 @@ async function openManualPaymentLinkForm() {
             ${accounts
               .filter(
                 account =>
-                  account.active !==
-                  false
+                  account.active !== false
               )
               .map(
                 account => `
                   <option
                     value="${escapeHTML(
-                      getId(
-                        account
-                      )
+                      getId(account)
                     )}"
                   >
                     ${escapeHTML(
@@ -3711,10 +4052,11 @@ async function openManualPaymentLinkForm() {
           </button>
 
           <button
+            id="submitPaymentLink"
             type="submit"
             class="btn primary"
           >
-            Criar link
+            Gerar link
           </button>
 
         </div>
@@ -3723,91 +4065,276 @@ async function openManualPaymentLinkForm() {
     `
   );
 
-  $("#manualPaymentLinkForm")
-    ?.addEventListener(
-      "submit",
-      async event => {
-        event.preventDefault();
+  const form = $("#manualPaymentLinkForm");
 
-        const form =
-          event.currentTarget;
+  if (!form) {
+    return;
+  }
 
-        const formData =
-          new FormData(form);
+  const remoteOptions =
+    $("#remotePaymentOptions");
 
-        const expiresAtValue =
-          formData.get(
-            "expiresAt"
-          );
+  const remoteMethodsBox =
+    $("#remoteMethodsBox");
 
-        const body = {
-          title:
-            String(
-              formData.get(
-                "title"
-              ) || ""
-            ).trim(),
+  const inPersonOptions =
+    $("#inPersonPaymentOptions");
 
-          description:
-            String(
-              formData.get(
-                "description"
-              ) || ""
-            ).trim() ||
-            undefined,
+  const bankAccountField =
+    $("#bankAccountField");
 
-          amount:
-            Number(
-              formData.get(
-                "amount"
-              )
-            ),
+  const submitButton =
+    $("#submitPaymentLink");
 
-          bankAccountId:
-            formData.get(
-              "bankAccountId"
-            ) ||
-            undefined,
+  function updateCollectionModeUI() {
+    const collectionMode =
+      form.querySelector(
+        'input[name="collectionMode"]:checked'
+      )?.value || "remote";
 
-          expiresAt:
-            expiresAtValue
-              ? new Date(
-                  expiresAtValue
-                ).toISOString()
-              : undefined
-        };
+    const isRemote =
+      collectionMode === "remote";
 
-        try {
-          const data =
-            await post(
-              "/payment-links",
-              body
-            );
+    if (remoteOptions) {
+      remoteOptions.style.display =
+        isRemote ? "" : "block";
+    }
 
-          closeModal();
+    if (inPersonOptions) {
+      inPersonOptions.style.display =
+        isRemote ? "none" : "";
+    }
 
-          await loadLinks();
+    if (bankAccountField) {
+      bankAccountField.style.display =
+        isRemote ? "" : "none";
+    }
 
-          showCreatedLink(
-            data?.paymentLink ||
-            data?.data ||
-            data
-          );
+    if (submitButton) {
+      submitButton.textContent =
+        isRemote
+          ? "Gerar link"
+          : "Preparar cobrança presencial";
+    }
 
+    updateRemoteCheckoutModeUI();
+  }
+
+  function updateRemoteCheckoutModeUI() {
+    const checkoutMode =
+      form.querySelector(
+        'input[name="remoteCheckoutMode"]:checked'
+      )?.value || "customer_choice";
+
+    if (remoteMethodsBox) {
+      remoteMethodsBox.style.display =
+        checkoutMode === "single_method"
+          ? ""
+          : "none";
+    }
+  }
+
+  form
+    .querySelectorAll(
+      'input[name="collectionMode"]'
+    )
+    .forEach(input => {
+      input.addEventListener(
+        "change",
+        updateCollectionModeUI
+      );
+    });
+
+  form
+    .querySelectorAll(
+      'input[name="remoteCheckoutMode"]'
+    )
+    .forEach(input => {
+      input.addEventListener(
+        "change",
+        updateRemoteCheckoutModeUI
+      );
+    });
+
+  updateCollectionModeUI();
+
+  form.addEventListener(
+    "submit",
+    async event => {
+      event.preventDefault();
+
+      const formData =
+        new FormData(form);
+
+      const collectionMode =
+        formData.get(
+          "collectionMode"
+        ) || "remote";
+
+      /*
+       * --------------------------------------------------------
+       * COBRANÇA PRESENCIAL
+       * --------------------------------------------------------
+       *
+       * Ainda não chamamos a AppyPay aqui.
+       * O endpoint presencial será criado na próxima etapa.
+       */
+
+      if (
+        collectionMode ===
+        "in_person"
+      ) {
+        showToast(
+          "A cobrança presencial AppyPay será ativada no próximo passo da integração.",
+          "info"
+        );
+
+        return;
+      }
+
+      const remoteCheckoutMode =
+        formData.get(
+          "remoteCheckoutMode"
+        ) || "customer_choice";
+
+      let paymentMethods = [
+        "multicaixa_express",
+        "reference",
+        "unitel_money"
+      ];
+
+      if (
+        remoteCheckoutMode ===
+        "single_method"
+      ) {
+        paymentMethods =
+          formData
+            .getAll(
+              "paymentMethods"
+            )
+            .map(
+              value =>
+                String(value)
+                  .trim()
+            )
+            .filter(Boolean);
+
+        if (
+          !paymentMethods.length
+        ) {
           showToast(
-            "Link criado com sucesso.",
-            "success"
-          );
-        } catch (error) {
-          showToast(
-            getErrorMessage(error),
+            "Seleciona pelo menos um método de pagamento.",
             "error"
           );
+
+          return;
         }
       }
-    );
-}
 
+      const expiresAtValue =
+        formData.get(
+          "expiresAt"
+        );
+
+      const body = {
+        title:
+          String(
+            formData.get(
+              "title"
+            ) || ""
+          ).trim(),
+
+        description:
+          String(
+            formData.get(
+              "description"
+            ) || ""
+          ).trim() ||
+          undefined,
+
+        amount:
+          Number(
+            formData.get(
+              "amount"
+            )
+          ),
+
+        bankAccountId:
+          formData.get(
+            "bankAccountId"
+          ) ||
+          undefined,
+
+        expiresAt:
+          expiresAtValue
+            ? new Date(
+                expiresAtValue
+              ).toISOString()
+            : undefined,
+
+        checkoutMode:
+          remoteCheckoutMode,
+
+        paymentMethods,
+
+        selectedPaymentMethod:
+          remoteCheckoutMode ===
+          "single_method"
+            ? paymentMethods.length === 1
+              ? paymentMethods[0]
+              : undefined
+            : undefined,
+
+        qrEnabled: true
+      };
+
+      try {
+        if (
+          !body.title ||
+          !Number.isFinite(
+            body.amount
+          ) ||
+          body.amount <= 0
+        ) {
+          showToast(
+            "Preenche um título e um valor válido.",
+            "error"
+          );
+
+          return;
+        }
+
+        const data =
+          await post(
+            "/payment-links",
+            body
+          );
+
+        closeModal();
+
+        await loadLinks();
+
+        showCreatedLink(
+          data?.link ||
+          data?.paymentLink ||
+          data?.data ||
+          data
+        );
+
+        showToast(
+          "Link criado com sucesso.",
+          "success"
+        );
+
+      } catch (error) {
+        showToast(
+          getErrorMessage(error),
+          "error"
+        );
+      }
+    }
+  );
+}
 async function openPaymentLinkForm(
   product
 ) {
