@@ -2,7 +2,8 @@
 ============================================================
 HONEY PAY
 MAIN SERVER
-V3.3.0
+V4.0.0
+APPYPAY PAYMENT GATEWAY
 ============================================================
 
 OBJECTIVOS
@@ -23,8 +24,8 @@ OBJECTIVOS
 - Payment Links
 - Reports
 - Public checkout
-- Appypay Angola
-- Appypay Webhooks assinados
+- AppyPay
+- AppyPay Webhook
 - Deduplicação de webhooks
 - Confirmação automática de pagamentos
 - Segurança
@@ -42,14 +43,30 @@ IMPORTANTE
 ------------------------------------------------------------
 A taxa Honey Pay é apenas registada/calculada neste servidor.
 
-A liquidação da BitPay depende da configuração/contrato
-do comerciante na BitPay.
+A liquidação dos pagamentos é feita através do
+gateway/provedor configurado para o comerciante.
 
 Não assumimos split settlement sem suporte contratual/API.
 
 WEBHOOK
 ------------------------------------------------------------
+AppyPay
+   ↓
+POST /api/webhooks/appypay
+   ↓
+Deduplicação event_id
+   ↓
+Atualização do pagamento
+   ↓
+Payment = PAID
+   ↓
+Order = PAID
+   ↓
+Customer atualizado
+   ↓
+Dashboard atualizado
 
+URL DE PRODUÇÃO
 ------------------------------------------------------------
 
 https://honey-pay.onrender.com/api/webhooks/appypay
@@ -253,38 +270,9 @@ app.use(
    BODY PARSING
 ========================================================= */
 
-/*
-IMPORTANTE:
-
-timestamp + "." + RAW_BODY
-
-Por isso guardamos req.rawBody antes
-do JSON.parse.
-
-O express.json continua a funcionar
-normalmente para as restantes APIs.
-*/
-
 app.use(
   express.json({
-    limit: '2mb',
-
-    verify:
-      function (
-        req,
-        res,
-        buffer
-      ) {
-        if (
-          req.originalUrl ===
-          '/api/webhooks/bitpay'
-        ) {
-          req.rawBody =
-            buffer.toString(
-              'utf8'
-            );
-        }
-      }
+    limit: '2mb'
   })
 );
 
@@ -1126,12 +1114,16 @@ const MerchantSchema =
       },
 
       provider: {
-        type:
-          String,
+  type:
+    String,
 
-        default:
-          'bitpay'
-      },
+  default:
+    'appypay',
+
+  enum: [
+    'appypay'
+  ]
+},
 
       providerAccountRef: {
         type:
@@ -4154,84 +4146,6 @@ app.get(
 /* =========================================================
    PUBLIC PAYMENT STATUS
 ========================================================= */
-
-app.get(
-  '/api/public/payments/:id/status',
-
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
-
-      const paymentId =
-  cleanString(
-    req.params.id,
-    200
-  );
-
-const query = {
-  provider: 'appypay'
-};
-
-if (
-  isValidObjectId(
-    paymentId
-  )
-) {
-  query._id =
-    paymentId;
-} else {
-  query.providerPaymentId =
-    paymentId;
-}
-
-const payment =
-  await Payment.findOne(
-    query
-  ).lean();
-      return res.json({
-  success: true,
-
-  payment: {
-    id: String(payment._id),
-
-    status:
-      payment.status,
-
-    provider:
-      payment.provider,
-
-    providerPaymentId:
-      payment.providerPaymentId,
-
-    providerStatus:
-      payment.providerRawStatus,
-
-    paymentMethod:
-      payment.paymentMethod,
-
-    reference: {
-      entity:
-        payment.providerReferenceEntity,
-
-      number:
-        payment.providerReferenceNumber
-    },
-
-    checkoutUrl:
-      payment.checkoutUrl,
-
-    qrCode:
-      payment.providerQrCode,
-
-    paidAt:
-      payment.paidAt
-  }
-});
-    }
-  )
-);
 app.get(
   '/api/public/payments/:id/status',
 
@@ -5367,6 +5281,33 @@ bankAccount:
 
           currency:
             link.currency
+          ,
+paymentMethods:
+  normalizePaymentMethods(
+    link.paymentMethods
+  ),
+
+checkoutMode:
+  link.checkoutMode ||
+  'customer_choice',
+
+selectedPaymentMethod:
+  link.selectedPaymentMethod ||
+  null,
+
+qrEnabled:
+  Boolean(
+    link.qrEnabled
+  ),
+
+qrType:
+  link.qrType ||
+  'appypay',
+
+qrUrl:
+  link.qrUrl ||
+  link.appypayQrUrl ||
+  null
         },
 
         merchant:
@@ -6886,7 +6827,7 @@ async function startServer() {
         );
 
         console.log(
-          'HONEY PAY V3.3.0'
+          'HONEY PAY V4.0.0'
         );
 
         console.log(
@@ -6924,8 +6865,8 @@ async function startServer() {
         );
 
         console.log(
-          'Webhook: POST /api/webhooks/bitpay'
-        );
+  'Webhook: POST /api/webhooks/appypay'
+);
 
         console.log(
           '============================================================'
