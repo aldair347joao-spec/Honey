@@ -2339,38 +2339,41 @@ function updateMobileRequirement() {
           ) ||
           currentPayment.providerId ||
           null;
+        try {
 
-        if (providerPaymentId) {
-  startPaymentPolling(
-    providerPaymentId
-  );
-} else {
-  showMessage(
-    "Pagamento criado. A aguardar confirmação.",
-    "success"
-  );
-}
-      catch (error) {
+          // processamento do pagamento...
 
-        console.error(
-          "Honey Pay payment:",
-          error
-        );
+          if (providerPaymentId) {
+            startPaymentPolling(
+              providerPaymentId
+            );
+          } else {
+            showMessage(
+              "Pagamento criado. A aguardar confirmação.",
+              "success"
+            );
+          }
 
-        showMessage(
-          error && error.message
-            ? error.message
-            : "Não foi possível processar o pagamento.",
-          "error"
-        );
+        } catch (error) {
 
-        if (button) {
+          console.error(
+            "Honey Pay payment:",
+            error
+          );
 
-          button.disabled = false;
-          button.textContent = "Tentar novamente";
+          showMessage(
+            error && error.message
+              ? error.message
+              : "Não foi possível processar o pagamento.",
+            "error"
+          );
+
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Tentar novamente";
+          }
         }
-      }
-    }
+      
 
 
     /*
