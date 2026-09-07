@@ -90,7 +90,15 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
-
+const {
+  PAYMENT_METHODS,
+  PAYMENT_METHOD_LIST,
+  normalizePaymentMethod,
+  normalizePaymentMethods,
+  isConfigured: isAppyPayConfigured,
+  createCharge: createAppyPayCharge,
+  getCharge: getAppyPayCharge
+} = require('./services/appypay');
 /* =========================================================
    APP
 ========================================================= */
@@ -150,51 +158,6 @@ const HONEY_PAY_FEE_BPS =
     process.env.HONEY_PAY_FEE_BPS ||
     80
   );
-
-/*
-============================================================
-BITPAY
-============================================================
-*/
-
-const BITPAY_BASE_URL =
-  process.env.BITPAY_BASE_URL ||
-  'https://api-sandbox.bitpay.ao/v1';
-
-const BITPAY_SECRET_KEY =
-  process.env.BITPAY_SECRET_KEY ||
-  '';
-
-const BITPAY_WEBHOOK_SECRET =
-  process.env.BITPAY_WEBHOOK_SECRET ||
-  '';
-
-const BITPAY_MULTI_MERCHANT_ENABLED =
-  String(
-    process.env.BITPAY_MULTI_MERCHANT_ENABLED ||
-      'false'
-  ).toLowerCase() === 'true';
-
-/*
-Webhook URL oficial do Honey Pay.
-
-Pode ser sobrescrito por BITPAY_WEBHOOK_URL,
-mas o default já corresponde ao teu Render.
-*/
-
-const BITPAY_WEBHOOK_URL =
-  process.env.BITPAY_WEBHOOK_URL ||
-  `${APP_BASE_URL}/api/webhooks/bitpay`;
-
-/*
-Tolerância máxima da assinatura do webhook.
-
-A documentação do BitPay recomenda rejeitar
-assinaturas com timestamp superior a 10 minutos.
-*/
-
-const BITPAY_WEBHOOK_TOLERANCE_SECONDS =
-  10 * 60;
 
 /* =========================================================
    PUBLIC BITPAY PAYMENT SSE
@@ -1790,143 +1753,66 @@ const PaymentSchema =
       },
 
       provider: {
-        type:
-          String,
+  type: String,
+  default: 'appypay',
+  enum: [
+    'appypay'
+  ],
+  index: true
+},
 
-        default:
-          'bitpay'
-      },
+providerPaymentId: {
+  type: String,
+  default: '',
+  index: true
+},
 
-      providerPaymentId: {
-        type:
-          String,
+providerMethod: {
+  type: String,
+  default: '',
+  index: true
+},
 
-        default:
-          '',
+paymentMethod: {
+  type: String,
+  default: 'multicaixa_express',
+  index: true
+},
 
-        index:
-          true
-      },
+providerRawStatus: {
+  type: String,
+  default: ''
+},
 
-      paymentMethod: {
-        type:
-          String,
+providerReferenceEntity: {
+  type: String,
+  default: ''
+},
 
-        default:
-          'multicaixa_express'
-      },
+providerReferenceNumber: {
+  type: String,
+  default: ''
+},
 
-      amount: {
-        type:
-          Number,
+checkoutUrl: {
+  type: String,
+  default: ''
+},
 
-        required:
-          true,
+providerQrCode: {
+  type: String,
+  default: ''
+},
 
-        min:
-          1
-      },
+providerResponse: {
+  type: mongoose.Schema.Types.Mixed,
+  default: null
+},
 
-      feeAmount: {
-        type:
-          Number,
-
-        default:
-          0
-      },
-
-      netAmount: {
-        type:
-          Number,
-
-        default:
-          0
-      },
-
-      currency: {
-        type:
-          String,
-
-        default:
-          'AOA'
-      },
-
-      status: {
-        type:
-          String,
-
-        enum: [
-          'PENDING',
-          'PROCESSING',
-          'PAID',
-          'FAILED',
-          'CANCELLED',
-          'REFUNDED'
-        ],
-
-        default:
-          'PENDING',
-
-        index:
-          true
-      },
-
-      paidAt: {
-        type:
-          Date,
-
-        default:
-          null
-      },
-
-      providerRawStatus: {
-        type:
-          String,
-
-        default:
-          ''
-      },
-
-            providerFailureCode: {
-        type:
-          String,
-
-        default:
-          ''
-      },
-
-      providerReferenceEntity: {
-        type:
-          String,
-
-        default:
-          ''
-      },
-
-      providerReferenceNumber: {
-        type:
-          String,
-
-        default:
-          ''
-      },
-
-      checkoutUrl: {
-        type:
-          String,
-
-        default:
-          ''
-      },
-
-      providerRaw: {
-        type:
-          mongoose.Schema.Types.Mixed,
-
-        default:
-          null
-      }
-    },
+metadata: {
+  type: mongoose.Schema.Types.Mixed,
+  default: {}
+},
 
     {
       timestamps:
@@ -2109,21 +1995,62 @@ bankAccountId: {
   index:
     true
 },
-      bitpayLinkId: {
-        type:
-          String,
+      paymentMethods: {
+  type: [
+    {
+      type: String,
+      enum: [
+        'multicaixa_express',
+        'reference',
+        'unitel_money',
+        'direct_debit'
+      ]
+    }
+  ],
+  default: [
+    'multicaixa_express',
+    'reference',
+    'unitel_money'
+  ]
+},
 
-        default:
-          ''
-      },
+checkoutMode: {
+  type: String,
+  enum: [
+    'customer_choice',
+    'single_method'
+  ],
+  default: 'customer_choice'
+},
 
-      bitpayUrl: {
-        type:
-          String,
+selectedPaymentMethod: {
+  type: String,
+  default: ''
+},
 
-        default:
-          ''
-      },
+qrEnabled: {
+  type: Boolean,
+  default: true
+},
+
+qrType: {
+  type: String,
+  enum: [
+    'checkout',
+    'appypay'
+  ],
+  default: 'appypay'
+},
+
+appypayQrId: {
+  type: String,
+  default: ''
+},
+
+appypayQrUrl: {
+  type: String,
+  default: ''
+},
 
       qrSvg: {
         type:
@@ -4629,68 +4556,71 @@ app.get(
       res
     ) => {
 
-      const payment =
-        await Payment.findOne({
-          provider:
-            'bitpay',
+      const paymentId =
+  cleanString(
+    req.params.id,
+    200
+  );
 
-          providerPaymentId:
-            cleanString(
-              req.params.id,
-              200
-            )
-        }).lean();
+const query = {
+  provider: 'appypay'
+};
 
-      if (!payment) {
+if (
+  isValidObjectId(
+    paymentId
+  )
+) {
+  query._id =
+    paymentId;
+} else {
+  query.providerPaymentId =
+    paymentId;
+}
 
-        return res
-          .status(404)
-          .json({
-            success:
-              false,
-
-            error:
-              'Pagamento não encontrado.'
-          });
-      }
-
+const payment =
+  await Payment.findOne(
+    query
+  ).lean();
       return res.json({
+  success: true,
 
-        success:
-          true,
+  payment: {
+    id: String(payment._id),
 
-        payment: {
+    status:
+      payment.status,
 
-          id:
-            String(
-              payment._id
-            ),
+    provider:
+      payment.provider,
 
-          status:
-            payment.status,
+    providerPaymentId:
+      payment.providerPaymentId,
 
-          providerStatus:
-            payment.providerRawStatus,
+    providerStatus:
+      payment.providerRawStatus,
 
-          reference:
-            payment.reference,
+    paymentMethod:
+      payment.paymentMethod,
 
-          multicaixaReference: {
+    reference: {
+      entity:
+        payment.providerReferenceEntity,
 
-            entity:
-              payment.providerReferenceEntity,
+      number:
+        payment.providerReferenceNumber
+    },
 
-            number:
-              payment.providerReferenceNumber
-          },
+    checkoutUrl:
+      payment.checkoutUrl,
 
-          checkoutUrl:
-            payment.checkoutUrl,
+    qrCode:
+      payment.providerQrCode,
 
-          paidAt:
-            payment.paidAt
-        }
-      });
+    paidAt:
+      payment.paidAt
+  }
+});
     }
   )
 );
@@ -5634,20 +5564,62 @@ app.post(
           req.body.productId,
           100
         );
+const requestedPaymentMethods =
+  normalizePaymentMethods(
+    req.body.paymentMethods
+  );
 
-      if (
-        !title ||
-        !Number.isFinite(amount) ||
-        amount <= 0
-      ) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error:
-              'Título e valor válidos são obrigatórios.'
-          });
-      }
+const paymentMethods =
+  requestedPaymentMethods.length
+    ? requestedPaymentMethods
+    : [
+        PAYMENT_METHODS.MULTICAIXA_EXPRESS,
+        PAYMENT_METHODS.REFERENCE,
+        PAYMENT_METHODS.UNITEL_MONEY
+      ];
+
+const checkoutMode =
+  req.body.checkoutMode ===
+  'single_method'
+    ? 'single_method'
+    : 'customer_choice';
+
+const selectedPaymentMethod =
+  checkoutMode === 'single_method'
+    ? normalizePaymentMethod(
+        req.body.selectedPaymentMethod
+      )
+    : '';
+
+const qrEnabled =
+  req.body.qrEnabled !== false;
+    if (
+  checkoutMode === 'single_method' &&
+  !selectedPaymentMethod
+) {
+  return res
+    .status(400)
+    .json({
+      success: false,
+      error:
+        'Selecione o método de pagamento.'
+    });
+}
+
+if (
+  checkoutMode === 'single_method' &&
+  !paymentMethods.includes(
+    selectedPaymentMethod
+  )
+) {
+  return res
+    .status(400)
+    .json({
+      success: false,
+      error:
+        'O método selecionado não está entre os métodos permitidos.'
+    });
+}
 
       let product = null;
 
@@ -5767,6 +5739,15 @@ const link =
       bankAccount
         ? bankAccount._id
         : null
+    paymentMethods,
+
+checkoutMode,
+
+selectedPaymentMethod,
+
+qrEnabled,
+
+qrType: 'appypay',
   });
 
 const honeyUrl =
