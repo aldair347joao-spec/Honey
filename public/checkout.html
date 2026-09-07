@@ -906,23 +906,24 @@ content="Pagamento seguro processado pela Honey Pay."
 
       </div>
 
-      <div id="qrSection" class="qr-section">
+      <div
+  id="qrSection"
+  class="qr-section hidden"
+>
+  <div class="qr-title">
+    Pague através do QR Code
+  </div>
 
-        <div class="qr-title">
-          Pague através do QR Code
-        </div>
+  <div class="qr-subtitle">
+    Aponte a câmara do seu telefone para o código.
+  </div>
 
-        <div class="qr-subtitle">
-          Abra a câmara do seu telefone e leia o código.
-        </div>
+  <div id="qrContainer"></div>
 
-        <div id="qrContainer"></div>
-
-        <p class="qr-note">
-          O QR Code abre este pagamento Honey Pay.
-        </p>
-
-      </div>
+  <p class="qr-note">
+    O QR Code é fornecido pelo fluxo de pagamento configurado.
+  </p>
+</div>
 
       <form id="paymentForm">
 
@@ -984,14 +985,21 @@ content="Pagamento seguro processado pela Honey Pay."
             id="paymentMethod"
             name="paymentMethod"
           >
+ <option value="multicaixa_express">
+  Multicaixa Express
+</option>
 
-            <option value="multicaixa_express">
-              Multicaixa Express
-            </option>
+<option value="reference">
+  Pagamento por Referência
+</option>
 
-            <option value="multicaixa_reference">
-              Referência Multicaixa
-            </option>
+<option value="unitel_money">
+  UNITEL Money
+</option>
+
+<option value="direct_debit">
+  Débito Directo
+</option>
 
           </select>
 
@@ -1051,7 +1059,7 @@ content="Pagamento seguro processado pela Honey Pay."
     let pollingAttempts = 0;
 
     let paymentEventSource = null;
-    let sseFallbackStarted = false;
+    let sseFallbackStarted = 0;
 
     const MAX_POLLING_ATTEMPTS = 120;
     const INITIAL_POLLING_INTERVAL = 3000;
@@ -1235,104 +1243,282 @@ content="Pagamento seguro processado pela Honey Pay."
      */
 
     function renderPaymentLink(data) {
+  const link =
+    data && data.link
+      ? data.link
+      : data;
 
-      const link = data && data.link
-        ? data.link
-        : data;
+  if (!link) {
+    showLoadError(
+      "Dados do pagamento não encontrados."
+    );
+    return;
+  }
 
-      const merchant = data && data.merchant
-        ? data.merchant
-        : {};
+  const merchant =
+    data && data.merchant
+      ? data.merchant
+      : null;
 
-      if (!link) {
-        showLoadError("Pagamento não encontrado.");
-        return;
-      }
+  const merchantElement =
+    $("merchant");
 
-      const merchantName =
-        merchant.businessName ||
-        merchant.name ||
-        "Honey Pay";
+  if (merchantElement) {
+    merchantElement.textContent =
+      merchant &&
+      merchant.businessName
+        ? merchant.businessName
+        : "Pagamento";
+  }
 
-      const merchantElement = $("merchant");
+  const titleElement =
+    $("title");
 
-      if (merchantElement) {
-        merchantElement.textContent = merchantName;
-      }
+  if (titleElement) {
+    titleElement.textContent =
+      link.title ||
+      "Pagamento";
+  }
 
-      const titleElement = $("title");
+  const descriptionElement =
+    $("description");
 
-      if (titleElement) {
-        titleElement.textContent =
-          link.title || "Pagamento";
-      }
+  if (descriptionElement) {
+    descriptionElement.textContent =
+      link.description ||
+      "";
+  }
 
-      const descriptionElement = $("description");
+  const amountElement =
+    $("amount");
 
-      if (descriptionElement) {
-        descriptionElement.textContent =
-          link.description || "";
-      }
-
-      const amountElement = $("amount");
-
-      if (amountElement) {
-        amountElement.textContent =
-          formatKz(link.amount);
-      }
-
-      const product =
-        (data && data.product) ||
-        link.product ||
-        null;
-
-      if (product) {
-
-        const productName = $("productName");
-
-        if (productName) {
-          productName.textContent =
-            product.name ||
-            link.title ||
-            "";
-        }
-
-        const productDescription =
-          $("productDescription");
-
-        if (productDescription) {
-          productDescription.textContent =
-            product.description ||
-            "";
-        }
-
-        const productElement = $("product");
-
-        if (productElement) {
-          productElement.classList.remove("hidden");
-        }
-      }
-
-      renderQr(
-        link.qrSvg ||
-        link.qrCode ||
-        link.qr ||
-        ""
+  if (amountElement) {
+    amountElement.textContent =
+      formatKz(
+        link.amount
       );
+  }
 
-      const loading = $("loading");
+  const product =
+    (data && data.product) ||
+    link.product ||
+    null;
 
-      if (loading) {
-        loading.classList.add("hidden");
-      }
+  if (product) {
+    const productName =
+      $("productName");
 
-      const content = $("checkoutContent");
-
-      if (content) {
-        content.classList.remove("hidden");
-      }
+    if (productName) {
+      productName.textContent =
+        product.name ||
+        link.title ||
+        "";
     }
 
+    const productDescription =
+      $("productDescription");
+
+    if (productDescription) {
+      productDescription.textContent =
+        product.description ||
+        "";
+    }
+
+    const productElement =
+      $("product");
+
+    if (productElement) {
+      productElement.classList.remove(
+        "hidden"
+      );
+    }
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * PAYMENT METHODS
+   * ---------------------------------------------------------
+   */
+
+  const methodSelect =
+    $("paymentMethod");
+
+  const allowedMethods =
+    Array.isArray(
+      link.paymentMethods
+    )
+      ? link.paymentMethods
+      : [];
+
+  const methodLabels = {
+    multicaixa_express:
+      "Multicaixa Express",
+
+    reference:
+      "Pagamento por Referência",
+
+    unitel_money:
+      "UNITEL Money",
+
+    direct_debit:
+      "Débito Directo"
+  };
+
+  if (methodSelect) {
+    methodSelect.innerHTML = "";
+
+    allowedMethods.forEach(
+      function (method) {
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          method;
+
+        option.textContent =
+          methodLabels[method] ||
+          method;
+
+        methodSelect.appendChild(
+          option
+        );
+      }
+    );
+
+    /*
+     * Caso o servidor não tenha
+     * métodos configurados, usamos
+     * os métodos padrão.
+     */
+
+    if (
+      !allowedMethods.length
+    ) {
+      [
+        "multicaixa_express",
+        "reference",
+        "unitel_money"
+      ].forEach(
+        function (method) {
+          const option =
+            document.createElement(
+              "option"
+            );
+
+          option.value =
+            method;
+
+          option.textContent =
+            methodLabels[method];
+
+          methodSelect.appendChild(
+            option
+          );
+        }
+      );
+    }
+
+    /*
+     * -------------------------------------------------------
+     * SINGLE METHOD
+     * -------------------------------------------------------
+     */
+
+    if (
+      link.checkoutMode ===
+      "single_method"
+    ) {
+      const selected =
+        link.selectedPaymentMethod;
+
+      if (selected) {
+        methodSelect.value =
+          selected;
+      }
+
+      methodSelect.disabled =
+        true;
+    } else {
+      methodSelect.disabled =
+        false;
+
+      if (
+        link.selectedPaymentMethod &&
+        allowedMethods.includes(
+          link.selectedPaymentMethod
+        )
+      ) {
+        methodSelect.value =
+          link.selectedPaymentMethod;
+      }
+    }
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * QR
+   * ---------------------------------------------------------
+   */
+
+  const qrSection =
+    $("qrSection");
+
+  const qrValue =
+    link.qrUrl ||
+    link.qrSvg ||
+    link.qrCode ||
+    link.qr ||
+    "";
+
+  const qrEnabled =
+    Boolean(
+      link.qrEnabled
+    );
+
+  if (
+    qrSection &&
+    qrEnabled &&
+    qrValue
+  ) {
+    qrSection.classList.remove(
+      "hidden"
+    );
+
+    renderQr(
+      qrValue
+    );
+  } else if (qrSection) {
+    qrSection.classList.add(
+      "hidden"
+    );
+  }
+
+  /*
+   * ---------------------------------------------------------
+   * SHOW CHECKOUT
+   * ---------------------------------------------------------
+   */
+
+  const loading =
+    $("loading");
+
+  if (loading) {
+    loading.classList.add(
+      "hidden"
+    );
+  }
+
+  const content =
+    $("checkoutContent");
+
+  if (content) {
+    content.classList.remove(
+      "hidden"
+    );
+  }
+}
 
     /*
      * =========================================================
@@ -1413,7 +1599,38 @@ content="Pagamento seguro processado pela Honey Pay."
       container.appendChild(img);
     }
 
+function updateMobileRequirement() {
+  const method =
+    $("paymentMethod");
 
+  const mobile =
+    $("customerMobile");
+
+  if (!method || !mobile) {
+    return;
+  }
+
+  const requiresMobile =
+    method.value ===
+      "multicaixa_express" ||
+    method.value ===
+      "unitel_money";
+
+  mobile.required =
+    requiresMobile;
+
+  const label =
+    document.querySelector(
+      'label[for="customerMobile"]'
+    );
+
+  if (label) {
+    label.textContent =
+      requiresMobile
+        ? "Telefone *"
+        : "Telefone";
+  }
+}
     /*
      * =========================================================
      * CREATE PAYMENT
@@ -1538,14 +1755,16 @@ content="Pagamento seguro processado pela Honey Pay."
 
         if (providerPaymentId) {
 
-          const started =
-            startPaymentSSE(providerPaymentId);
-
-          if (!started) {
-            startPaymentPolling(providerPaymentId);
-          }
-
-        } else {
+         if (providerPaymentId) {
+  startPaymentPolling(
+    providerPaymentId
+  );
+} else {
+  showMessage(
+    "Pagamento criado. A aguardar confirmação.",
+    "success"
+  );
+}  else {
 
           showMessage(
             "Pagamento criado. A aguardar confirmação.",
@@ -1721,239 +1940,6 @@ content="Pagamento seguro processado pela Honey Pay."
         handleFinalStatus(status, payment);
       }
     }
-
-
-    /*
-     * =========================================================
-     * SSE
-     * =========================================================
-     */
-
-    function stopPaymentSSE() {
-
-      if (paymentEventSource !== null) {
-
-        try {
-          paymentEventSource.close();
-        } catch (error) {
-          console.warn(
-            "Erro ao fechar SSE:",
-            error
-          );
-        }
-
-        paymentEventSource = null;
-      }
-    }
-
-
-    function startPaymentSSE(providerPaymentId) {
-
-      if (!providerPaymentId) {
-        return false;
-      }
-
-      if (
-        typeof EventSource ===
-        "undefined"
-      ) {
-        return false;
-      }
-
-      stopPaymentSSE();
-
-      sseFallbackStarted = false;
-
-      const url =
-        "/api/public/payments/" +
-        encodeURIComponent(providerPaymentId) +
-        "/events";
-
-      try {
-
-        const source =
-          new EventSource(url);
-
-        paymentEventSource = source;
-
-
-        source.onmessage =
-          function (event) {
-
-            try {
-
-              const provider =
-                safeJsonParse(event.data);
-
-              if (!provider) {
-                return;
-              }
-
-              renderLiveProviderStatus(provider);
-
-              const status =
-                normalizeStatus(provider.status);
-
-              if (
-                status === "SUCCEEDED" ||
-                status === "SUCCESS" ||
-                status === "PAID"
-              ) {
-
-                handleFinalStatus(
-                  "PAID",
-                  provider
-                );
-
-                stopPaymentSSE();
-                stopPolling();
-              }
-
-            } catch (error) {
-
-              console.warn(
-                "BitPay SSE snapshot:",
-                error
-              );
-            }
-          };
-
-
-        source.addEventListener(
-          "payment.succeeded",
-          function (event) {
-
-            try {
-
-              const provider =
-                safeJsonParse(event.data) || {};
-
-              renderLiveProviderStatus(provider);
-
-              handleFinalStatus(
-                "PAID",
-                provider
-              );
-
-            } catch (error) {
-
-              console.warn(
-                "BitPay payment.succeeded:",
-                error
-              );
-
-              updateLiveStatus("PAID");
-            }
-
-            stopPaymentSSE();
-            stopPolling();
-          }
-        );
-
-
-        source.addEventListener(
-          "payment.failed",
-          function (event) {
-
-            try {
-
-              const provider =
-                safeJsonParse(event.data) || {};
-
-              renderLiveProviderStatus(provider);
-
-              handleFinalStatus(
-                "FAILED",
-                provider
-              );
-
-            } catch (error) {
-
-              console.warn(
-                "BitPay payment.failed:",
-                error
-              );
-
-              updateLiveStatus("FAILED");
-            }
-
-            stopPaymentSSE();
-            stopPolling();
-          }
-        );
-
-
-        source.addEventListener(
-          "payment.reconciled",
-          function (event) {
-
-            try {
-
-              const provider =
-                safeJsonParse(event.data) || {};
-
-              renderLiveProviderStatus(provider);
-
-              const status =
-                normalizeStatus(provider.status);
-
-              if (
-                status === "SUCCEEDED" ||
-                status === "SUCCESS" ||
-                status === "PAID"
-              ) {
-
-                handleFinalStatus(
-                  "PAID",
-                  provider
-                );
-
-                stopPaymentSSE();
-                stopPolling();
-              }
-
-            } catch (error) {
-
-              console.warn(
-                "BitPay payment.reconciled:",
-                error
-              );
-            }
-          }
-        );
-
-
-        source.onerror =
-          function () {
-
-            stopPaymentSSE();
-
-            if (!sseFallbackStarted) {
-
-              sseFallbackStarted = true;
-
-              startPaymentPolling(
-                providerPaymentId
-              );
-            }
-          };
-
-        return true;
-
-      } catch (error) {
-
-        console.warn(
-          "SSE BitPay indisponível:",
-          error
-        );
-
-        paymentEventSource = null;
-
-        return false;
-      }
-    }
-
-
     /*
      * =========================================================
      * POLLING
@@ -2415,6 +2401,17 @@ content="Pagamento seguro processado pela Honey Pay."
             "submit",
             createPayment
           );
+          const method =
+  $("paymentMethod");
+
+if (method) {
+  method.addEventListener(
+    "change",
+    updateMobileRequirement
+  );
+
+  updateMobileRequirement();
+}
         }
 
         loadPaymentLink();
