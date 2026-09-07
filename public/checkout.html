@@ -1058,9 +1058,6 @@ content="Pagamento seguro processado pela Honey Pay."
     let pollingTimer = null;
     let pollingAttempts = 0;
 
-    let paymentEventSource = null;
-    let sseFallbackStarted = 0;
-
     const MAX_POLLING_ATTEMPTS = 120;
     const INITIAL_POLLING_INTERVAL = 3000;
     const ERROR_POLLING_INTERVAL = 5000;
@@ -1754,8 +1751,6 @@ function updateMobileRequirement() {
           null;
 
         if (providerPaymentId) {
-
-         if (providerPaymentId) {
   startPaymentPolling(
     providerPaymentId
   );
@@ -1764,15 +1759,8 @@ function updateMobileRequirement() {
     "Pagamento criado. A aguardar confirmação.",
     "success"
   );
-}  else {
-
-          showMessage(
-            "Pagamento criado. A aguardar confirmação.",
-            "success"
-          );
-        }
-
-      } catch (error) {
+}
+      catch (error) {
 
         console.error(
           "Honey Pay payment:",
@@ -2373,13 +2361,11 @@ function updateMobileRequirement() {
      */
 
     window.addEventListener(
-      "beforeunload",
-      function () {
-
-        stopPolling();
-        stopPaymentSSE();
-      }
-    );
+  "beforeunload",
+  function () {
+    stopPolling();
+  }
+);
 
 
     /*
