@@ -2185,7 +2185,7 @@ async function processBitPayPaymentEvent(
     payment =
       await Payment.findOne({
         provider:
-          'bitpay',
+          'appypay',
 
         providerPaymentId
       });
@@ -5007,9 +5007,6 @@ CREATE PAYMENT LINK
 =========================================================
 Honey Pay mantém o seu próprio token comercial.
 
-Quando possível, também cria um Pay by Link real
-na BitPay.
-
 O link Honey Pay continua sendo a URL pública oficial.
 =========================================================
 */
@@ -5092,7 +5089,55 @@ qrType: 'appypay',
 const honeyUrl =
   `${APP_BASE_URL}/pay/${link.token}`;
 
+      return res
+        .status(201)
+        .json({
+          success:
+            true,
 
+          link: {
+            id:
+              String(
+                link._id
+              ),
+
+            token:
+              link.token,
+
+            url:
+              honeyUrl,
+
+            title:
+              link.title,
+
+            description:
+              link.description,
+
+            amount:
+              link.amount,
+
+            currency:
+              link.currency,
+
+            paymentMethods:
+              link.paymentMethods,
+
+            checkoutMode:
+              link.checkoutMode,
+
+            selectedPaymentMethod:
+              link.selectedPaymentMethod,
+
+            qrEnabled:
+              link.qrEnabled,
+
+            qrType:
+              link.qrType
+          }
+        });
+    }
+  )
+);
 app.delete(
   '/api/payment-links/:id',
 
