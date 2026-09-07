@@ -35,6 +35,11 @@ content="Pagamento seguro processado pela Honey Pay."
 
     --dark: #07111f;
     --dark-2: #101c2d;
+  --text: #101828;
+--gold: #f6b800;
+--gold-soft: #fff8df;
+--navy: #07111f;
+--gold-2: #ffd84a;
 
     --shadow:
       0 24px 70px rgba(16, 24, 40, .10),
@@ -2344,17 +2349,17 @@ function updateMobileRequirement() {
           // processamento do pagamento...
 
           if (providerPaymentId) {
-            startPaymentPolling(
-              providerPaymentId
-            );
-          } else {
-            showMessage(
-              "Pagamento criado. A aguardar confirmação.",
-              "success"
-            );
-          }
+  startPaymentPolling(
+    providerPaymentId
+  );
+} else {
+  showMessage(
+    "Pagamento criado. A aguardar confirmação.",
+    "success"
+  );
+}
 
-        } catch (error) {
+      } catch (error) {
 
           console.error(
             "Honey Pay payment:",
