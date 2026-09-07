@@ -158,165 +158,6 @@ const HONEY_PAY_FEE_BPS =
     process.env.HONEY_PAY_FEE_BPS ||
     80
   );
-
-/* =========================================================
-   PUBLIC BITPAY PAYMENT SSE
-   ========================================================= */
-
-app.get(
-  '/api/public/payments/:id/events',
-
-  asyncHandler(
-    async (
-      req,
-      res
-    ) => {
-
-      const providerPaymentId =
-        cleanString(
-          req.params.id,
-          200
-        );
-
-      if (
-        !providerPaymentId
-      ) {
-
-        return res
-          .status(400)
-          .json({
-            success:
-              false,
-
-            error:
-              'Pagamento inválido.'
-          });
-      }
-
-      const url =
-        `${BITPAY_BASE_URL}/public/payments/${encodeURIComponent(
-          providerPaymentId
-        )}/events`;
-
-      const response =
-        await fetch(
-          url,
-          {
-            method:
-              'GET',
-
-            headers: {
-              Accept:
-                'text/event-stream'
-            }
-          }
-        );
-
-      if (
-        !response.ok ||
-        !response.body
-      ) {
-
-        const text =
-          await response.text();
-
-        return res
-          .status(
-            response.status ||
-            502
-          )
-          .send(
-            text ||
-            'SSE BitPay indisponível.'
-          );
-      }
-
-      res.statusCode =
-        200;
-
-      res.setHeader(
-        'Content-Type',
-        'text/event-stream'
-      );
-
-      res.setHeader(
-        'Cache-Control',
-        'no-cache, no-transform'
-      );
-
-      res.setHeader(
-        'Connection',
-        'keep-alive'
-      );
-
-      res.setHeader(
-        'X-Accel-Buffering',
-        'no'
-      );
-
-      if (
-        res.flushHeaders
-      ) {
-        res.flushHeaders();
-      }
-
-      const reader =
-        response.body.getReader();
-
-      req.on(
-        'close',
-        () => {
-
-          try {
-            reader.cancel();
-          } catch {}
-        }
-      );
-
-      try {
-
-        while (
-          true
-        ) {
-
-          const {
-            done,
-            value
-          } =
-            await reader.read();
-
-          if (
-            done
-          ) {
-            break;
-          }
-
-          res.write(
-            Buffer.from(
-              value
-            )
-          );
-        }
-
-      } catch (
-        error
-      ) {
-
-        console.error(
-          'BitPay SSE proxy:',
-          error.message
-        );
-
-      } finally {
-
-        try {
-          res.end();
-        } catch {}
-      }
-    }
-  )
-);
-
 /* =========================================================
    PATHS
 ========================================================= */
@@ -1705,13 +1546,10 @@ const PaymentSchema =
       merchantId: {
         type:
           mongoose.Schema.Types.ObjectId,
-
         ref:
           'Merchant',
-
         required:
           true,
-
         index:
           true
       },
@@ -1719,13 +1557,10 @@ const PaymentSchema =
       orderId: {
         type:
           mongoose.Schema.Types.ObjectId,
-
         ref:
           'Order',
-
         required:
           true,
-
         index:
           true
       },
@@ -1733,10 +1568,8 @@ const PaymentSchema =
       customerId: {
         type:
           mongoose.Schema.Types.ObjectId,
-
         ref:
           'Customer',
-
         default:
           null
       },
@@ -1744,75 +1577,165 @@ const PaymentSchema =
       reference: {
         type:
           String,
-
         required:
           true,
-
         index:
           true
       },
 
       provider: {
-  type: String,
-  default: 'appypay',
-  enum: [
-    'appypay'
-  ],
-  index: true
-},
+        type:
+          String,
+        enum: [
+          'appypay'
+        ],
+        default:
+          'appypay',
+        index:
+          true
+      },
 
-providerPaymentId: {
-  type: String,
-  default: '',
-  index: true
-},
+      providerPaymentId: {
+        type:
+          String,
+        default:
+          '',
+        index:
+          true
+      },
 
-providerMethod: {
-  type: String,
-  default: '',
-  index: true
-},
+      providerMethod: {
+        type:
+          String,
+        default:
+          '',
+        index:
+          true
+      },
 
-paymentMethod: {
-  type: String,
-  default: 'multicaixa_express',
-  index: true
-},
+      paymentMethod: {
+        type:
+          String,
+        enum: [
+          'multicaixa_express',
+          'reference',
+          'unitel_money',
+          'direct_debit'
+        ],
+        default:
+          'multicaixa_express',
+        index:
+          true
+      },
 
-providerRawStatus: {
-  type: String,
-  default: ''
-},
+      providerRawStatus: {
+        type:
+          String,
+        default:
+          ''
+      },
 
-providerReferenceEntity: {
-  type: String,
-  default: ''
-},
+      providerReferenceEntity: {
+        type:
+          String,
+        default:
+          ''
+      },
 
-providerReferenceNumber: {
-  type: String,
-  default: ''
-},
+      providerReferenceNumber: {
+        type:
+          String,
+        default:
+          ''
+      },
 
-checkoutUrl: {
-  type: String,
-  default: ''
-},
+      checkoutUrl: {
+        type:
+          String,
+        default:
+          ''
+      },
 
-providerQrCode: {
-  type: String,
-  default: ''
-},
+      providerQrCode: {
+        type:
+          String,
+        default:
+          ''
+      },
 
-providerResponse: {
-  type: mongoose.Schema.Types.Mixed,
-  default: null
-},
+      providerResponse: {
+        type:
+          mongoose.Schema.Types.Mixed,
+        default:
+          null
+      },
 
-metadata: {
-  type: mongoose.Schema.Types.Mixed,
-  default: {}
-},
+      metadata: {
+        type:
+          mongoose.Schema.Types.Mixed,
+        default:
+          {}
+      },
+
+      amount: {
+        type:
+          Number,
+        required:
+          true,
+        min:
+          1
+      },
+
+      feeAmount: {
+        type:
+          Number,
+        default:
+          0,
+        min:
+          0
+      },
+
+      netAmount: {
+        type:
+          Number,
+        default:
+          0,
+        min:
+          0
+      },
+
+      currency: {
+        type:
+          String,
+        default:
+          'AOA'
+      },
+
+      status: {
+        type:
+          String,
+        enum: [
+          'PENDING',
+          'PROCESSING',
+          'PAID',
+          'FAILED',
+          'CANCELLED',
+          'REFUNDED',
+          'PARTIALLY_REFUNDED'
+        ],
+        default:
+          'PENDING',
+        index:
+          true
+      },
+
+      paidAt: {
+        type:
+          Date,
+        default:
+          null
+      }
+    },
 
     {
       timestamps:
@@ -2272,383 +2195,6 @@ async function requireMerchant(
   } catch (error) {
     next(error);
   }
-}
-
-/* =========================================================
-   BITPAY HELPERS
-========================================================= */
-
-/*
-Faz request à API BitPay Angola.
-*/
-
-async function bitpayRequest(
-  endpoint,
-  options = {}
-) {
-  if (!BITPAY_SECRET_KEY) {
-    throw new Error(
-      'BITPAY_SECRET_KEY não configurado.'
-    );
-  }
-
-  const url =
-    `${BITPAY_BASE_URL}${endpoint}`;
-
-  const headers = {
-    Authorization:
-      `Bearer ${BITPAY_SECRET_KEY}`,
-
-    'Content-Type':
-      'application/json',
-
-    ...(options.headers || {})
-  };
-
-  const response =
-    await fetch(
-      url,
-      {
-        method:
-          options.method ||
-          'GET',
-
-        headers,
-
-        body:
-          options.body
-            ? JSON.stringify(
-                options.body
-              )
-            : undefined
-      }
-    );
-
-  const text =
-    await response.text();
-
-  let data = {};
-
-  try {
-    data =
-      text
-        ? JSON.parse(
-            text
-          )
-        : {};
-  } catch {
-    data = {
-      raw:
-        text
-    };
-  }
-
-  if (!response.ok) {
-    const message =
-      data?.error?.message ||
-      data?.message ||
-      data?.error ||
-      `BitPay HTTP ${response.status}`;
-
-    const error =
-      new Error(
-        message
-      );
-
-    error.status =
-      response.status;
-
-    error.bitpay =
-      data;
-
-    throw error;
-  }
-
-  return data;
-}
-async function bitpayRequestRaw(
-  endpoint,
-  options = {}
-) {
-
-  if (!BITPAY_SECRET_KEY) {
-    throw new Error(
-      'BITPAY_SECRET_KEY não configurado.'
-    );
-  }
-
-  const url =
-    `${BITPAY_BASE_URL}${endpoint}`;
-
-  const headers = {
-    Authorization:
-      `Bearer ${BITPAY_SECRET_KEY}`,
-
-    ...(options.headers || {})
-  };
-
-  const response =
-    await fetch(
-      url,
-      {
-        method:
-          options.method ||
-          'GET',
-
-        headers,
-
-        body:
-          options.body
-            ? JSON.stringify(
-                options.body
-              )
-            : undefined
-      }
-    );
-
-  const text =
-    await response.text();
-
-  if (!response.ok) {
-
-    let data = null;
-
-    try {
-      data =
-        text
-          ? JSON.parse(text)
-          : null;
-    } catch {}
-
-    const message =
-      data?.error?.message ||
-      data?.message ||
-      data?.error ||
-      text ||
-      `BitPay HTTP ${response.status}`;
-
-    const error =
-      new Error(message);
-
-    error.status =
-      response.status;
-
-    error.bitpay =
-      data || text;
-
-    throw error;
-  }
-
-  return {
-    text,
-    contentType:
-      response.headers.get(
-        'content-type'
-      ) || ''
-  };
-}
-/*
-Verificação da assinatura BitPay.
-
-Formato:
-
-BitPay-Signature:
-t=1766066400,v1=abcdef...
-
-Mensagem assinada:
-
-timestamp + "." + rawBody
-*/
-
-function verifyBitPaySignature(
-  rawBody,
-  signatureHeader,
-  secret
-) {
-  if (
-    !rawBody ||
-    !signatureHeader ||
-    !secret
-  ) {
-    return false;
-  }
-
-  const match =
-    String(
-      signatureHeader
-    ).match(
-      /t=(\d+),v1=([0-9a-fA-F]+)/
-    );
-
-  if (!match) {
-    return false;
-  }
-
-  const timestamp =
-    Number(
-      match[1]
-    );
-
-  const receivedSignature =
-    match[2].toLowerCase();
-
-  if (
-    !Number.isFinite(
-      timestamp
-    )
-  ) {
-    return false;
-  }
-
-  const now =
-    Math.floor(
-      Date.now() /
-      1000
-    );
-
-  if (
-    Math.abs(
-      now - timestamp
-    ) >
-    BITPAY_WEBHOOK_TOLERANCE_SECONDS
-  ) {
-    return false;
-  }
-
-  const signedPayload =
-    `${timestamp}.${rawBody}`;
-
-  const expectedSignature =
-    crypto
-      .createHmac(
-        'sha256',
-        secret
-      )
-      .update(
-        signedPayload,
-        'utf8'
-      )
-      .digest('hex')
-      .toLowerCase();
-
-  const expectedBuffer =
-    Buffer.from(
-      expectedSignature,
-      'utf8'
-    );
-
-  const receivedBuffer =
-    Buffer.from(
-      receivedSignature,
-      'utf8'
-    );
-
-  if (
-    expectedBuffer.length !==
-    receivedBuffer.length
-  ) {
-    return false;
-  }
-
-  return crypto.timingSafeEqual(
-    expectedBuffer,
-    receivedBuffer
-  );
-}
-
-/*
-Extrai o objecto principal do evento.
-
-A estrutura pode variar entre tipos de evento,
-por isso suportamos data/object/payload.
-*/
-
-function extractBitPayObject(
-  event
-) {
-  if (
-    event &&
-    event.data &&
-    typeof event.data ===
-      'object'
-  ) {
-    return event.data;
-  }
-
-  if (
-    event &&
-    event.object &&
-    typeof event.object ===
-      'object'
-  ) {
-    return event.object;
-  }
-
-  if (
-    event &&
-    event.payload &&
-    typeof event.payload ===
-      'object'
-  ) {
-    return event.payload;
-  }
-
-  return event || {};
-}
-
-/*
-Extrai ID do evento.
-
-*/
-
-function getBitPayEventId(
-  event
-) {
-  return (
-    event?.id ||
-    event?.event_id ||
-    event?.eventId ||
-    event?.data?.event_id ||
-    event?.data?.eventId ||
-    null
-  );
-}
-
-/*
-Extrai payment intent ID.
-*/
-
-function getBitPayPaymentId(
-  eventObject
-) {
-  return (
-    eventObject?.id ||
-    eventObject?.payment_intent ||
-    eventObject?.paymentIntent ||
-    eventObject?.payment_id ||
-    eventObject?.paymentId ||
-    ''
-  );
-}
-
-/*
-Extrai merchant_reference.
-
-É fundamental porque o Honey Pay guarda
-a referência do Order/Payment.
-*/
-
-function getBitPayMerchantReference(
-  eventObject
-) {
-  return (
-    eventObject?.merchant_reference ||
-    eventObject?.merchantReference ||
-    eventObject?.metadata?.merchant_reference ||
-    eventObject?.metadata?.order_reference ||
-    eventObject?.metadata?.reference ||
-    ''
-  );
 }
 
 /* =========================================================
@@ -3123,8 +2669,371 @@ app.get(
 );
 
 /* =========================================================
-   BITPAY WEBHOOK
-========================================================= */
+   APPYPAY WEBHOOK
+   ========================================================= */
+
+app.post(
+  '/api/webhooks/appypay',
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const event =
+        req.body || {};
+
+      /*
+      --------------------------------------------------------
+      SEGREDO OPCIONAL
+      --------------------------------------------------------
+      --------------------------------------------------------
+      Quando a AppyPay fornecer o mecanismo/segredo de
+      assinatura da conta Honey Pay, configuramos aqui.
+      --------------------------------------------------------
+      */
+
+      const configuredSecret =
+        process.env.APPYPAY_WEBHOOK_SECRET ||
+        '';
+
+      if (configuredSecret) {
+
+        const receivedSecret =
+          req.headers[
+            'x-appypay-webhook-secret'
+          ] ||
+          req.headers[
+            'x-webhook-secret'
+          ];
+
+        if (
+          receivedSecret !==
+          configuredSecret
+        ) {
+
+          return res
+            .status(401)
+            .json({
+              success:
+                false,
+
+              error:
+                'Webhook AppyPay não autorizado.'
+            });
+        }
+      }
+
+      /*
+      --------------------------------------------------------
+      EVENT ID
+      --------------------------------------------------------
+      */
+
+      const eventId =
+        String(
+          event?.id ||
+          event?.event_id ||
+          event?.eventId ||
+          event?.notification_id ||
+          event?.notificationId ||
+          crypto
+            .createHash('sha256')
+            .update(
+              JSON.stringify(
+                event
+              )
+            )
+            .digest('hex')
+        );
+
+      const eventType =
+        String(
+          event?.type ||
+          event?.event ||
+          event?.name ||
+          'payment.updated'
+        );
+
+      /*
+      --------------------------------------------------------
+      DEDUPLICAÇÃO
+      --------------------------------------------------------
+      */
+
+      try {
+
+        await WebhookEvent.create({
+
+          eventId,
+
+          type:
+            eventType,
+
+          status:
+            'RECEIVED',
+
+          payload:
+            event
+        });
+
+      } catch (error) {
+
+        if (
+          error?.code ===
+          11000
+        ) {
+
+          return res
+            .status(200)
+            .json({
+              success:
+                true,
+
+              duplicate:
+                true
+            });
+        }
+
+        throw error;
+      }
+
+      /*
+      --------------------------------------------------------
+      PROVIDER PAYMENT ID
+      --------------------------------------------------------
+      */
+
+      const providerPaymentId =
+        String(
+          event?.paymentId ||
+          event?.payment_id ||
+          event?.chargeId ||
+          event?.charge_id ||
+          event?.data?.paymentId ||
+          event?.data?.payment_id ||
+          event?.data?.chargeId ||
+          event?.data?.charge_id ||
+          event?.data?.id ||
+          event?.resource?.id ||
+          event?.object?.id ||
+          ''
+        );
+
+      if (!providerPaymentId) {
+
+        return res
+          .status(200)
+          .json({
+            success:
+              true,
+
+            processed:
+              false,
+
+            reason:
+              'provider_payment_id_not_found'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      STATUS
+      --------------------------------------------------------
+      */
+
+      const rawStatus =
+        String(
+          event?.status ||
+          event?.paymentStatus ||
+          event?.payment_status ||
+          event?.data?.status ||
+          event?.data?.paymentStatus ||
+          event?.data?.payment_status ||
+          event?.resource?.status ||
+          event?.object?.status ||
+          ''
+        ).toUpperCase();
+
+      let localStatus =
+        null;
+
+      if (
+        [
+          'PAID',
+          'SUCCESS',
+          'SUCCEEDED',
+          'COMPLETED',
+          'CONFIRMED'
+        ].includes(
+          rawStatus
+        )
+      ) {
+
+        localStatus =
+          'PAID';
+
+      } else if (
+        [
+          'FAILED',
+          'REJECTED',
+          'DECLINED',
+          'CANCELLED',
+          'EXPIRED'
+        ].includes(
+          rawStatus
+        )
+      ) {
+
+        localStatus =
+          'FAILED';
+
+      } else if (
+        [
+          'PROCESSING',
+          'PENDING',
+          'CREATED',
+          'WAITING'
+        ].includes(
+          rawStatus
+        )
+      ) {
+
+        localStatus =
+          'PROCESSING';
+      }
+
+      /*
+      --------------------------------------------------------
+      PAYMENT
+      --------------------------------------------------------
+      */
+
+      const payment =
+        await Payment.findOne({
+          provider:
+            'appypay',
+
+          providerPaymentId
+        });
+
+      if (!payment) {
+
+        return res
+          .status(200)
+          .json({
+            success:
+              true,
+
+            processed:
+              false,
+
+            reason:
+              'payment_not_found'
+          });
+      }
+
+      if (localStatus) {
+
+        payment.status =
+          localStatus;
+      }
+
+      payment.providerRawStatus =
+        rawStatus ||
+        payment.providerRawStatus;
+
+      payment.providerResponse =
+        event;
+
+      if (
+        localStatus ===
+        'PAID' &&
+        !payment.paidAt
+      ) {
+
+        payment.paidAt =
+          new Date();
+      }
+
+      await payment.save();
+
+      /*
+      --------------------------------------------------------
+      ORDER
+      --------------------------------------------------------
+      */
+
+      if (
+        localStatus ===
+        'PAID'
+      ) {
+
+        await Order.findByIdAndUpdate(
+          payment.orderId,
+
+          {
+            $set: {
+
+              status:
+                'PAID',
+
+              paidAt:
+                payment.paidAt ||
+                new Date()
+            }
+          }
+        );
+
+      } else if (
+        localStatus ===
+        'FAILED'
+      ) {
+
+        await Order.findByIdAndUpdate(
+          payment.orderId,
+
+          {
+            $set: {
+              status:
+                'FAILED'
+            }
+          }
+        );
+      }
+
+      /*
+      --------------------------------------------------------
+      WEBHOOK PROCESSADO
+      --------------------------------------------------------
+      */
+
+      await WebhookEvent.updateOne(
+        {
+          eventId
+        },
+
+        {
+          $set: {
+            status:
+              'PROCESSED'
+          }
+        }
+      );
+
+      return res
+        .status(200)
+        .json({
+          success:
+            true,
+
+          processed:
+            true
+        });
+    }
+  )
+);
 
 /*
 ============================================================
@@ -4624,7 +4533,125 @@ const payment =
     }
   )
 );
+app.get(
+  '/api/public/payments/:id/status',
 
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const paymentId =
+        cleanString(
+          req.params.id,
+          200
+        );
+
+      if (!paymentId) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Pagamento inválido.'
+          });
+      }
+
+      const query = {
+        provider:
+          'appypay'
+      };
+
+      if (
+        isValidObjectId(
+          paymentId
+        )
+      ) {
+
+        query._id =
+          paymentId;
+
+      } else {
+
+        query.providerPaymentId =
+          paymentId;
+      }
+
+      const payment =
+        await Payment.findOne(
+          query
+        ).lean();
+
+      if (!payment) {
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Pagamento não encontrado.'
+          });
+      }
+
+      return res.json({
+
+        success:
+          true,
+
+        payment: {
+
+          id:
+            String(
+              payment._id
+            ),
+
+          status:
+            payment.status,
+
+          provider:
+            payment.provider,
+
+          providerPaymentId:
+            payment.providerPaymentId,
+
+          providerStatus:
+            payment.providerRawStatus,
+
+          paymentMethod:
+            payment.paymentMethod,
+
+          amount:
+            payment.amount,
+
+          currency:
+            payment.currency,
+
+          reference: {
+
+            entity:
+              payment.providerReferenceEntity,
+
+            number:
+              payment.providerReferenceNumber
+          },
+
+          checkoutUrl:
+            payment.checkoutUrl,
+
+          qrCode:
+            payment.providerQrCode,
+
+          paidAt:
+            payment.paidAt
+        }
+      });
+    }
+  )
+);
 /* =========================================================
    CREATE BITPAY PAYMENT
 ========================================================= */
@@ -5738,7 +5765,7 @@ const link =
     bankAccountId:
       bankAccount
         ? bankAccount._id
-        : null
+        : null,
     paymentMethods,
 
 checkoutMode,
@@ -5753,181 +5780,7 @@ qrType: 'appypay',
 const honeyUrl =
   `${APP_BASE_URL}/pay/${link.token}`;
 
-/*
-=========================================================
-BITPAY PAY BY LINK
-=========================================================
-*/
 
-let bitpayLink = null;
-
-try {
-  bitpayLink =
-    await bitpayRequest(
-      '/payment_links',
-      {
-        method: 'POST',
-
-        headers: {
-          'Idempotency-Key':
-            `honey-link-${String(
-              link._id
-            )}`
-        },
-
-        body: {
-          amount:
-            Math.round(amount),
-
-          description:
-            description
-              ? `${title} - ${description}`
-              : title
-        }
-      }
-    );
-} catch (error) {
-
-  /*
-  Não apagamos o link Honey Pay.
-
-  A plataforma pode continuar usando
-  Payment Intents no checkout.
-
-  O erro fica registado para diagnóstico.
-  */
-
-  console.error(
-    'BitPay Pay by Link:',
-    error.message
-  );
-}
-
-/*
-=========================================================
-GUARDAR BITPAY LINK
-=========================================================
-*/
-
-if (bitpayLink) {
-
-  const bitpayCode =
-    bitpayLink.code ||
-    bitpayLink.id ||
-    '';
-
-  link.bitpayLinkId =
-    String(
-      bitpayCode
-    );
-
-  link.bitpayUrl =
-    String(
-      bitpayLink.url ||
-      ''
-    );
-}
-
-/*
-=========================================================
-QR BITPAY
-=========================================================
-*/
-
-if (link.bitpayLinkId) {
-
-  try {
-
-    const qrResponse =
-      await bitpayRequestRaw(
-        `/payment_links/${encodeURIComponent(
-          link.bitpayLinkId
-        )}/qr`,
-        {
-          method: 'GET',
-
-          headers: {
-            Accept:
-              'image/svg+xml'
-          }
-        }
-      );
-
-    if (
-      qrResponse &&
-      typeof qrResponse.contentType === 'string' &&
-      qrResponse.contentType
-        .toLowerCase()
-        .includes('image/svg+xml')
-    ) {
-
-      link.qrSvg =
-        qrResponse.text || '';
-
-    }
-
-  } catch (error) {
-
-    console.error(
-      'BitPay QR:',
-      error && error.message
-        ? error.message
-        : error
-    );
-  }
-}
-        
-/*
-=========================================================
-QR / URL PÚBLICA
-=========================================================
-*/
-
-link.qrUrl =
-  link.bitpayUrl ||
-  '';
-
-await link.save();
-
-return res
-  .status(201)
-  .json({
-
-    success: true,
-
-    link,
-
-    url: honeyUrl,
-
-    honeyUrl,
-
-    bitpayUrl:
-      link.bitpayUrl || '',
-
-    bitpayLinkId:
-      link.bitpayLinkId || '',
-
-    qrSvg:
-      link.qrSvg || '',
-
-    qrUrl:
-      link.qrUrl || '',
-
-    honeyPayFee: {
-
-      bps:
-        HONEY_PAY_FEE_BPS,
-
-      percent:
-        HONEY_PAY_FEE_BPS / 100,
-
-      amount:
-        calculateFee(amount)
-    }
-  });
-    }
-  )
-);
 app.delete(
   '/api/payment-links/:id',
 
@@ -6141,7 +5994,7 @@ bankAccount:
   )
 );
 /* =========================================================
-   PUBLIC PAYMENT LINK -> REAL BITPAY PAYMENT
+   PUBLIC PAYMENT LINK -> APPYPAY PAYMENT
    ========================================================= */
 
 app.post(
@@ -6163,17 +6016,13 @@ app.post(
         return res
           .status(400)
           .json({
-            success: false,
+            success:
+              false,
+
             error:
               'Token de pagamento inválido.'
           });
       }
-
-      /*
-       ======================================================
-       1. LOCALIZAR LINK
-       ======================================================
-      */
 
       const link =
         await PaymentLink.findOne({
@@ -6187,7 +6036,9 @@ app.post(
         return res
           .status(404)
           .json({
-            success: false,
+            success:
+              false,
+
             error:
               'Link de pagamento não encontrado.'
           });
@@ -6203,16 +6054,39 @@ app.post(
         return res
           .status(410)
           .json({
-            success: false,
+            success:
+              false,
+
             error:
               'Este link expirou.'
           });
       }
 
       /*
-       ======================================================
-       2. DADOS DO CLIENTE
-       ======================================================
+      --------------------------------------------------------
+      APPYPAY DEVE ESTAR CONFIGURADO PARA CRIAR UMA COBRANÇA
+      --------------------------------------------------------
+      */
+
+      if (!isAppyPayConfigured()) {
+        return res
+          .status(503)
+          .json({
+            success:
+              false,
+
+            code:
+              'APPYPAY_NOT_CONFIGURED',
+
+            error:
+              'Os pagamentos AppyPay ainda não estão configurados na Honey Pay.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      CLIENTE
+      --------------------------------------------------------
       */
 
       const customerName =
@@ -6232,60 +6106,129 @@ app.post(
           30
         );
 
-      const paymentMethod =
-        cleanString(
-          req.body.paymentMethod ||
-            'multicaixa_express',
-          50
+      let paymentMethod =
+        normalizePaymentMethod(
+          req.body.paymentMethod
         );
 
       if (!customerName) {
         return res
           .status(400)
           .json({
-            success: false,
+            success:
+              false,
+
             error:
               'Nome do cliente é obrigatório.'
           });
       }
 
-      const allowedMethods = [
-        'multicaixa_express',
-        'multicaixa_reference'
+      /*
+      --------------------------------------------------------
+      MÉTODOS PERMITIDOS PELO COMERCIANTE
+      --------------------------------------------------------
+      */
+
+      const allowedMethods =
+        normalizePaymentMethods(
+          link.paymentMethods
+        );
+
+      const fallbackMethods = [
+        PAYMENT_METHODS.MULTICAIXA_EXPRESS,
+        PAYMENT_METHODS.REFERENCE,
+        PAYMENT_METHODS.UNITEL_MONEY
       ];
 
+      const availableMethods =
+        allowedMethods.length
+          ? allowedMethods
+          : fallbackMethods;
+
+      /*
+      --------------------------------------------------------
+      SE O COMERCIANTE DEFINIU UM ÚNICO MÉTODO,
+      O CLIENTE NÃO PODE ALTERÁ-LO.
+      --------------------------------------------------------
+      */
+
       if (
-        !allowedMethods.includes(
+        link.checkoutMode ===
+          'single_method'
+      ) {
+        paymentMethod =
+          normalizePaymentMethod(
+            link.selectedPaymentMethod
+          );
+      }
+
+      if (!paymentMethod) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            code:
+              'PAYMENT_METHOD_REQUIRED',
+
+            error:
+              'Selecione um método de pagamento.'
+          });
+      }
+
+      if (
+        !availableMethods.includes(
           paymentMethod
         )
       ) {
         return res
           .status(400)
           .json({
-            success: false,
+            success:
+              false,
+
+            code:
+              'PAYMENT_METHOD_NOT_ALLOWED',
+
             error:
-              'Método de pagamento inválido.'
+              'Este método de pagamento não está disponível para este link.'
           });
       }
 
+      /*
+      --------------------------------------------------------
+      REGRAS POR MÉTODO
+      --------------------------------------------------------
+      */
+
       if (
-        paymentMethod ===
-          'multicaixa_express' &&
+        (
+          paymentMethod ===
+            PAYMENT_METHODS.MULTICAIXA_EXPRESS ||
+          paymentMethod ===
+            PAYMENT_METHODS.UNITEL_MONEY
+        ) &&
         !customerMobile
       ) {
         return res
           .status(400)
           .json({
-            success: false,
+            success:
+              false,
+
+            code:
+              'CUSTOMER_MOBILE_REQUIRED',
+
             error:
-              'Número de telemóvel é obrigatório para Multicaixa Express.'
+              'O número de telemóvel é obrigatório para este método.'
           });
       }
 
       /*
-       ======================================================
-       3. MERCHANT
-       ======================================================
+      --------------------------------------------------------
+      MERCHANT
+      --------------------------------------------------------
       */
 
       const merchant =
@@ -6297,24 +6240,23 @@ app.post(
         return res
           .status(404)
           .json({
-            success: false,
+            success:
+              false,
+
             error:
               'Comerciante não encontrado.'
           });
       }
 
       /*
-       ======================================================
-       4. CUSTOMER
-       ======================================================
+      --------------------------------------------------------
+      CUSTOMER
+      --------------------------------------------------------
       */
 
       let customer = null;
 
-      if (
-        customerEmail
-      ) {
-
+      if (customerEmail) {
         customer =
           await Customer.findOne({
             merchantId:
@@ -6323,7 +6265,6 @@ app.post(
             email:
               customerEmail
           });
-
       }
 
       if (!customer) {
@@ -6357,9 +6298,9 @@ app.post(
       }
 
       /*
-       ======================================================
-       5. CRIAR ORDER
-       ======================================================
+      --------------------------------------------------------
+      ORDER
+      --------------------------------------------------------
       */
 
       const orderReference =
@@ -6423,18 +6364,18 @@ app.post(
         });
 
       /*
-       ======================================================
-       6. METADATA BITPAY
-       ======================================================
+      --------------------------------------------------------
+      APPYPAY METADATA
+      --------------------------------------------------------
       */
 
       const metadata = {
 
         honey_pay:
-          'true',
+          true,
 
         honey_pay_version:
-          '3.4.0',
+          '4.0.0',
 
         order_id:
           String(
@@ -6459,84 +6400,60 @@ app.post(
       };
 
       /*
-       ======================================================
-       7. PAYLOAD BITPAY
-       ======================================================
+      --------------------------------------------------------
+      APPYPAY CHARGE
+      --------------------------------------------------------
       */
 
-      const bitpayPayload = {
-
-        amount:
-          Math.round(
-            link.amount
-          ),
-
-        currency:
-          'AOA',
-
-        payment_method:
-          paymentMethod,
-
-        merchant_reference:
-          orderReference,
-
-        metadata
-      };
-
-      if (
-        paymentMethod ===
-        'multicaixa_express'
-      ) {
-
-        bitpayPayload.customer = {
-          mobile:
-            customerMobile
-        };
-
-      }
-
-      /*
-       ======================================================
-       8. IDEMPOTENCY
-       ======================================================
-      */
-
-      const idempotencyKey =
-        `honey-order-${String(
-          order._id
-        )}`;
-
-      /*
-       ======================================================
-       9. BITPAY REAL
-       ======================================================
-      */
-
-      let bitpayResponse;
+      let appyPayResponse;
 
       try {
 
-        bitpayResponse =
-          await bitpayRequest(
-            '/payment_intents',
-            {
-              method:
-                'POST',
+        appyPayResponse =
+          await createAppyPayCharge({
 
-              headers: {
-                'Idempotency-Key':
-                  idempotencyKey
-              },
+            amount:
+              Math.round(
+                link.amount
+              ),
 
-              body:
-                bitpayPayload
-            }
-          );
+            currency:
+              'AOA',
+
+            paymentMethod,
+
+            merchantTransactionId:
+              orderReference,
+
+            description:
+              link.description
+                ? `${link.title} - ${link.description}`
+                : link.title,
+
+            customer: {
+              name:
+                customerName,
+
+              email:
+                customerEmail,
+
+              mobile:
+                customerMobile
+            },
+
+            metadata
+          });
 
       } catch (error) {
 
+        console.error(
+          'AppyPay createCharge:',
+          error
+        );
+
         await Order.findByIdAndUpdate(
           order._id,
+
           {
             $set: {
               status:
@@ -6545,24 +6462,47 @@ app.post(
           }
         );
 
-        throw error;
+        return res
+          .status(
+            error?.status >= 400 &&
+            error?.status < 600
+              ? error.status
+              : 503
+          )
+          .json({
+            success:
+              false,
+
+            code:
+              'APPYPAY_PAYMENT_ERROR',
+
+            error:
+              error.message ||
+              'Não foi possível criar o pagamento AppyPay.'
+          });
       }
 
       /*
-       ======================================================
-       10. ID BITPAY
-       ======================================================
+      --------------------------------------------------------
+      PROVIDER DATA
+      --------------------------------------------------------
       */
 
       const providerPaymentId =
-        bitpayResponse.id ||
-        bitpayResponse.payment_intent ||
-        '';
+        String(
+          appyPayResponse?.id ||
+          appyPayResponse?.chargeId ||
+          appyPayResponse?.charge_id ||
+          appyPayResponse?.paymentId ||
+          appyPayResponse?.payment_id ||
+          ''
+        );
 
       if (!providerPaymentId) {
 
         await Order.findByIdAndUpdate(
           order._id,
+
           {
             $set: {
               status:
@@ -6574,44 +6514,77 @@ app.post(
         return res
           .status(502)
           .json({
-            success: false,
+            success:
+              false,
+
+            code:
+              'APPYPAY_ID_MISSING',
+
             error:
-              'A BitPay não devolveu o identificador do pagamento.'
+              'A AppyPay não devolveu o identificador da cobrança.'
           });
       }
 
-      /*
-       ======================================================
-       11. EXTRAIR REFERÊNCIA
-       ======================================================
-      */
-
       const providerReference =
-        bitpayResponse.reference ||
-        bitpayResponse.multicaixa_reference ||
+        appyPayResponse?.reference ||
+        appyPayResponse?.multicaixa_reference ||
         null;
 
       const referenceEntity =
         providerReference?.entity ||
-        bitpayResponse.entity ||
+        appyPayResponse?.entity ||
         '';
 
       const referenceNumber =
         providerReference?.number ||
-        bitpayResponse.reference_number ||
-        bitpayResponse.number ||
+        providerReference?.reference ||
+        appyPayResponse?.reference_number ||
+        appyPayResponse?.number ||
         '';
 
       const checkoutUrl =
-        bitpayResponse.checkout_url ||
-        bitpayResponse.checkoutUrl ||
-        bitpayResponse.url ||
+        appyPayResponse?.checkout_url ||
+        appyPayResponse?.checkoutUrl ||
+        appyPayResponse?.url ||
         '';
 
+      const providerQrCode =
+        appyPayResponse?.qrCode ||
+        appyPayResponse?.qr_code ||
+        appyPayResponse?.qr ||
+        '';
+
+      const rawStatus =
+        String(
+          appyPayResponse?.status ||
+          'PENDING'
+        ).toUpperCase();
+
+      const localStatus =
+        (
+          rawStatus ===
+            'PAID' ||
+          rawStatus ===
+            'SUCCESS' ||
+          rawStatus ===
+            'SUCCEEDED'
+        )
+          ? 'PAID'
+          : (
+              rawStatus ===
+                'FAILED' ||
+              rawStatus ===
+                'REJECTED' ||
+              rawStatus ===
+                'CANCELLED'
+            )
+              ? 'FAILED'
+              : 'PROCESSING';
+
       /*
-       ======================================================
-       12. CRIAR PAYMENT LOCAL
-       ======================================================
+      --------------------------------------------------------
+      PAYMENT LOCAL
+      --------------------------------------------------------
       */
 
       const payment =
@@ -6630,9 +6603,12 @@ app.post(
             orderReference,
 
           provider:
-            'bitpay',
+            'appypay',
 
           providerPaymentId,
+
+          providerMethod:
+            paymentMethod,
 
           paymentMethod,
 
@@ -6653,19 +6629,10 @@ app.post(
             'AOA',
 
           status:
-            String(
-              bitpayResponse.status ||
-                'PENDING'
-            ).toUpperCase() ===
-              'PROCESSING'
-              ? 'PROCESSING'
-              : 'PENDING',
+            localStatus,
 
           providerRawStatus:
-            String(
-              bitpayResponse.status ||
-                'PENDING'
-            ).toUpperCase(),
+            rawStatus,
 
           providerReferenceEntity:
             referenceEntity,
@@ -6675,17 +6642,60 @@ app.post(
 
           checkoutUrl,
 
-          providerRaw:
-            bitpayResponse
+          providerQrCode,
+
+          providerResponse:
+            appyPayResponse,
+
+          metadata
         });
 
       /*
-       ======================================================
-       13. DEVOLVER AO CHECKOUT
-       ======================================================
+      --------------------------------------------------------
+      SE A APPYPAY JÁ DEVOLVEU PAID
+      --------------------------------------------------------
       */
 
-            return res
+      if (
+        payment.status ===
+        'PAID'
+      ) {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+
+          {
+            $set: {
+              status:
+                'PAID',
+
+              paidAt:
+                new Date()
+            }
+          }
+        );
+
+      } else {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+
+          {
+            $set: {
+              status:
+                'PAYMENT_PROCESSING'
+            }
+          }
+        );
+      }
+
+      /*
+      --------------------------------------------------------
+      RESPOSTA
+      --------------------------------------------------------
+      */
+
+      return res
         .status(201)
         .json({
 
@@ -6714,10 +6724,17 @@ app.post(
             paymentMethod:
               payment.paymentMethod,
 
+            provider:
+              'appypay',
+
             providerPaymentId:
               payment.providerPaymentId,
 
+            providerStatus:
+              payment.providerRawStatus,
+
             multicaixaReference: {
+
               entity:
                 payment.providerReferenceEntity,
 
@@ -6726,19 +6743,14 @@ app.post(
             },
 
             checkoutUrl:
-              payment.checkoutUrl
-          },
+              payment.checkoutUrl,
 
-          bitpay: {
-            id:
-              providerPaymentId,
-
-            status:
-              bitpayResponse.status ||
-              'PENDING'
+            qrCode:
+              payment.providerQrCode
           },
 
           honeyPayFee: {
+
             bps:
               HONEY_PAY_FEE_BPS,
 
@@ -6752,8 +6764,8 @@ app.post(
               )
           }
         });
-            }
-    )
+    }
+  )
 );
 /* =========================================================
    REPORTS
@@ -6865,36 +6877,35 @@ app.get(
 );
 
 /* =========================================================
-   BITPAY CONFIG STATUS
-========================================================= */
+   APPYPAY CONFIG STATUS
+   ========================================================= */
 
 app.get(
-  '/api/bitpay/status',
+  '/api/appypay/status',
 
   authenticate,
 
   requireMerchant,
 
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
+
     return res.json({
+
       success:
         true,
 
+      provider:
+        'appypay',
+
       configured:
-        Boolean(
-          BITPAY_SECRET_KEY
-        ),
+        isAppyPayConfigured(),
 
-      webhookConfigured:
-        Boolean(
-          BITPAY_WEBHOOK_SECRET
-        ),
-
-      baseUrl:
-        BITPAY_BASE_URL,
-
-      webhookUrl:
-        BITPAY_WEBHOOK_URL,
+      environment:
+        process.env.APPYPAY_ENV ||
+        'sandbox',
 
       feeBps:
         HONEY_PAY_FEE_BPS,
@@ -6903,8 +6914,54 @@ app.get(
         HONEY_PAY_FEE_BPS /
         100,
 
-      multiMerchant:
-        BITPAY_MULTI_MERCHANT_ENABLED
+      methods: [
+        {
+          id:
+            'multicaixa_express',
+
+          name:
+            'Multicaixa Express',
+
+          available:
+            true
+        },
+
+        {
+          id:
+            'reference',
+
+          name:
+            'Pagamento por Referência',
+
+          available:
+            true
+        },
+
+        {
+          id:
+            'unitel_money',
+
+          name:
+            'UNITEL Money',
+
+          available:
+            true
+        },
+
+        {
+          id:
+            'direct_debit',
+
+          name:
+            'Débito Directo',
+
+          available:
+            true
+        }
+      ],
+
+      qr:
+        true
     });
   }
 );
