@@ -5221,30 +5221,31 @@ async function openPaymentLinkForm(
             </strong>
 
             <p
-              style="
-                margin:0;
-                color:#667085;
-                font-size:13px;
-                line-height:1.5;
-              "
-            >
-              O cliente está consigo.
-              A cobrança presencial será integrada
-              diretamente à AppyPay para gerar a
-              cobrança real e o QR Code em tempo real.
-            </p>
+  style="
+    margin:0;
+    color:#667085;
+    font-size:13px;
+    line-height:1.5;
+  "
+>
+  O cliente está consigo.
+  Crie uma cobrança presencial através
+  da Honey Pay e acompanhe o pagamento
+  em tempo real.
+</p>
 
-            <p
-              style="
-                margin:10px 0 0;
-                color:#667085;
-                font-size:13px;
-                line-height:1.5;
-              "
-            >
-              O QR AppyPay será ativado quando
-              ligarmos o endpoint presencial do backend.
-            </p>
+<p
+  style="
+    margin:10px 0 0;
+    color:#667085;
+    font-size:13px;
+    line-height:1.5;
+  "
+>
+  A Honey Pay gera a cobrança através
+  do sistema de pagamentos integrado
+  e apresenta o QR Code quando disponível.
+</p>
 
           </div>
 
