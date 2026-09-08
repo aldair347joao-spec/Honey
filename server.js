@@ -1539,7 +1539,22 @@ const PaymentSchema =
         default:
           null
       },
+      idempotencyKey: {
+        type:
+          String,
 
+        required:
+          true,
+
+        unique:
+          true,
+
+        index:
+          true,
+
+        trim:
+          true
+      },
       reference: {
         type:
           String,
@@ -5619,6 +5634,8 @@ app.post(
 
           reference:
             orderReference,
+           idempotencyKey:
+      `payment-${orderReference}`,
 
           provider:
             provider,
