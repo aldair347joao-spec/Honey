@@ -4273,25 +4273,150 @@ updatePresentialPaymentMethodUI();
         ) || "remote";
 
       /*
-       * --------------------------------------------------------
-       * COBRANÇA PRESENCIAL
-       * --------------------------------------------------------
-       *
-       * Ainda não chamamos a AppyPay aqui.
-       * O endpoint presencial será criado na próxima etapa.
-       */
+ * --------------------------------------------------------
+ * COBRANÇA PRESENCIAL — HONEY PAY
+ * --------------------------------------------------------
+ */
 
-      if (
-        collectionMode ===
-        "in_person"
-      ) {
-        showToast(
-          "A cobrança presencial AppyPay será ativada no próximo passo da integração.",
-          "info"
-        );
+if (
+  collectionMode ===
+  "in_person"
+) {
+  const title =
+    String(
+      formData.get("title") || ""
+    ).trim();
 
-        return;
-      }
+  const description =
+    String(
+      formData.get("description") || ""
+    ).trim();
+
+  const amount =
+    Number(
+      formData.get("amount")
+    );
+
+  const paymentMethod =
+    String(
+      formData.get(
+        "presentialPaymentMethod"
+      ) ||
+      "multicaixa_express"
+    ).trim();
+
+  const customerMobile =
+    String(
+      formData.get(
+        "customerMobile"
+      ) ||
+      ""
+    ).trim();
+
+  if (!title) {
+    showToast(
+      "Indica o título da cobrança.",
+      "error"
+    );
+    return;
+  }
+
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+    showToast(
+      "Indica um valor válido.",
+      "error"
+    );
+    return;
+  }
+
+  if (
+    paymentMethod ===
+      "multicaixa_express" &&
+    !customerMobile
+  ) {
+    showToast(
+      "Indica o número do Multicaixa Express.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+    submitButton.disabled = true;
+
+    submitButton.textContent =
+      "A criar cobrança...";
+
+    const data =
+      await post(
+        "/merchant/payments/presential",
+        {
+          title,
+          description,
+          amount,
+          paymentMethod,
+          customerMobile,
+
+          /*
+           * O gateway fica no backend.
+           * O cliente vê apenas Honey Pay.
+           */
+          provider: "bitpay"
+        }
+      );
+
+    closeModal();
+
+    const payment =
+      data?.payment;
+
+    if (!payment) {
+      throw new Error(
+        "A Honey Pay não recebeu os dados da cobrança."
+      );
+    }
+
+    showPresentialPaymentResult(
+      payment
+    );
+
+    showToast(
+      "Cobrança criada com sucesso.",
+      "success"
+    );
+
+    /*
+     * Continua a consultar o backend
+     * até o pagamento ser confirmado.
+     */
+    monitorPresentialPayment(
+      payment.id
+    );
+
+  } catch (error) {
+
+    showToast(
+      getErrorMessage(
+        error,
+        "Não foi possível criar a cobrança."
+      ),
+      "error"
+    );
+
+  } finally {
+
+    submitButton.disabled =
+      false;
+
+    submitButton.textContent =
+      "Preparar cobrança presencial";
+  }
+
+  return;
+}
 
       const remoteCheckoutMode =
         formData.get(
