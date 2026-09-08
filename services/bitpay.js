@@ -337,24 +337,39 @@ async function createPaymentIntent({
 }
 async function createQRCode({
   amount,
-  description = 'Pagamento Honey Pay'
+  description = 'Pagamento Honey Pay',
+  idempotencyKey
 }) {
   const normalizedAmount =
     normalizeAmount(amount);
+
+  const body = {
+    amount: normalizedAmount,
+
+    description:
+      String(
+        description ||
+        'Pagamento Honey Pay'
+      )
+        .trim()
+        .slice(0, 255)
+  };
 
   const response =
     await request(
       '/qr_codes',
       {
         method: 'POST',
-        body: JSON.stringify({
-          amount: normalizedAmount,
-          description:
-            String(
-              description ||
-              'Pagamento Honey Pay'
-            ).slice(0, 255)
-        })
+
+        headers: {
+          'Idempotency-Key':
+            createIdempotencyKey(
+              idempotencyKey
+            )
+        },
+
+        body:
+          JSON.stringify(body)
       }
     );
 
@@ -363,6 +378,9 @@ async function createQRCode({
       response?.qr_code ||
       response?.qrCode ||
       response?.svg ||
+      response?.data?.qr_code ||
+      response?.data?.qrCode ||
+      response?.data?.svg ||
       response?.data ||
       response?.raw ||
       '',
@@ -371,6 +389,10 @@ async function createQRCode({
       response?.url ||
       response?.payment_url ||
       response?.paymentUrl ||
+      response?.checkout_url ||
+      response?.checkoutUrl ||
+      response?.data?.url ||
+      response?.data?.payment_url ||
       '',
 
     providerResponse:
