@@ -6121,14 +6121,67 @@ async function renderReports() {
    DEFINIÇÕES
 ========================================================= */
 
-function renderSettings() {
+/* =========================================================
+   DEFINIÇÕES
+========================================================= */
+
+async function renderSettings() {
   const merchant =
     state.merchant || {};
+
+  let bitpay = null;
+
+  try {
+    bitpay =
+      await get(
+        "/bitpay/status",
+        {
+          authRequired: true,
+          redirectOn401: true,
+          timeout: 8000
+        }
+      );
+  } catch (error) {
+    console.warn(
+      "Honey Pay: não foi possível verificar o BitPay.",
+      error
+    );
+
+    bitpay = {
+      enabled: false,
+      webhookConfigured: false,
+      environment: "desconhecido"
+    };
+  }
+
+  const bitpayEnabled =
+    Boolean(
+      bitpay?.enabled
+    );
+
+  const webhookConfigured =
+    Boolean(
+      bitpay?.webhookConfigured
+    );
+
+  const environment =
+    String(
+      bitpay?.environment ||
+      "sandbox"
+    ).toLowerCase();
+
+  const environmentLabel =
+    environment === "production"
+      ? "Produção"
+      : environment === "sandbox"
+        ? "Sandbox"
+        : environment;
 
   pageContent.innerHTML = `
     <div class="page-header">
 
       <div>
+
         <span class="eyebrow">
           Conta
         </span>
@@ -6140,6 +6193,7 @@ function renderSettings() {
         <p>
           Atualiza os dados do teu negócio.
         </p>
+
       </div>
 
     </div>
@@ -6152,6 +6206,7 @@ function renderSettings() {
       >
 
         <label>
+
           <span>
             Nome do negócio
           </span>
@@ -6167,10 +6222,14 @@ function renderSettings() {
             required
             maxlength="160"
           >
+
         </label>
 
         <label>
-          <span>Email</span>
+
+          <span>
+            Email
+          </span>
 
           <input
             name="email"
@@ -6182,10 +6241,14 @@ function renderSettings() {
             )}"
             disabled
           >
+
         </label>
 
         <label>
-          <span>Telefone</span>
+
+          <span>
+            Telefone
+          </span>
 
           <input
             name="phone"
@@ -6196,6 +6259,7 @@ function renderSettings() {
             )}"
             maxlength="40"
           >
+
         </label>
 
         <div class="form-actions full">
@@ -6210,6 +6274,226 @@ function renderSettings() {
         </div>
 
       </form>
+
+    </section>
+
+    <!-- =====================================================
+         BITPAY
+    ====================================================== -->
+
+    <section
+      class="panel"
+      style="margin-top:20px;"
+    >
+
+      <div
+        class="panel-header"
+        style="
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:16px;
+        "
+      >
+
+        <div>
+
+          <span class="eyebrow">
+            Gateway
+          </span>
+
+          <h3>
+            BitPay
+          </h3>
+
+          <p>
+            Estado da integração do gateway de pagamentos.
+          </p>
+
+        </div>
+
+        <div
+          style="
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:7px 11px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:700;
+            background:${bitpayEnabled
+              ? "#ecfdf3"
+              : "#fef3f2"};
+            color:${bitpayEnabled
+              ? "#027a48"
+              : "#b42318"};
+          "
+        >
+
+          <span
+            style="
+              width:8px;
+              height:8px;
+              border-radius:50%;
+              background:${bitpayEnabled
+                ? "#12b76a"
+                : "#f04438"};
+            "
+          ></span>
+
+          ${bitpayEnabled
+            ? "Configurado"
+            : "Não configurado"}
+
+        </div>
+
+      </div>
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(auto-fit,minmax(180px,1fr));
+          gap:12px;
+          margin-top:18px;
+        "
+      >
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #e4e7ec;
+            border-radius:12px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:12px;
+              color:#667085;
+              margin-bottom:5px;
+            "
+          >
+            Ambiente
+          </span>
+
+          <strong>
+            ${escapeHTML(
+              environmentLabel
+            )}
+          </strong>
+
+        </div>
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #e4e7ec;
+            border-radius:12px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:12px;
+              color:#667085;
+              margin-bottom:5px;
+            "
+          >
+            API
+          </span>
+
+          <strong>
+            ${bitpayEnabled
+              ? "Ligada"
+              : "Desligada"}
+          </strong>
+
+        </div>
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #e4e7ec;
+            border-radius:12px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:12px;
+              color:#667085;
+              margin-bottom:5px;
+            "
+          >
+            Webhook
+          </span>
+
+          <strong>
+            ${webhookConfigured
+              ? "Configurado"
+              : "Não configurado"}
+          </strong>
+
+        </div>
+
+        <div
+          style="
+            padding:14px;
+            border:1px solid #e4e7ec;
+            border-radius:12px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:12px;
+              color:#667085;
+              margin-bottom:5px;
+            "
+          >
+            Métodos
+          </span>
+
+          <strong>
+            Multicaixa Express
+          </strong>
+
+          <small
+            style="
+              display:block;
+              color:#667085;
+              margin-top:3px;
+            "
+          >
+            Referência Multicaixa disponível
+          </small>
+
+        </div>
+
+      </div>
+
+      <div
+        style="
+          margin-top:16px;
+          padding:12px 14px;
+          border-radius:10px;
+          background:#f8f9fc;
+          color:#475467;
+          font-size:13px;
+          line-height:1.5;
+        "
+      >
+
+        ${bitpayEnabled
+          ? "O Honey Pay está preparado para utilizar o BitPay como gateway."
+          : "O BitPay ainda não foi reconhecido como configurado pelo servidor."}
+
+      </div>
 
     </section>
   `;
