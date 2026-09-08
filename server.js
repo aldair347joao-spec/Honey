@@ -5304,16 +5304,26 @@ app.post(
 
           try {
             const qrResponse =
-              await createBitPayQRCode({
-                amount:
-                  Math.round(
-                    amount
-                  ),
+  await createBitPayQRCode({
+    amount:
+      Math.round(
+        amount
+      ),
 
-                description:
-                  description ||
-                  title
-              });
+    description:
+      description ||
+      title,
+
+    /*
+     * Cada cobrança Honey Pay
+     * possui uma chave diferente.
+     *
+     * Isto impede conflitos entre
+     * duas cobranças diferentes.
+     */
+    idempotencyKey:
+      `${orderReference}-qr`
+  });
 
             providerQrCode =
               qrResponse?.qrCode ||
@@ -7668,39 +7678,83 @@ app.use(
 ========================================================= */
 
 app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
+  (err, req, res, next) => {
     console.error(
-      'SERVER ERROR:',
-      error
+      "================================================"
     );
 
-    if (
-      res.headersSent
-    ) {
-      return next(
-        error
-      );
-    }
+    console.error(
+      "HONEY PAY INTERNAL ERROR"
+    );
 
-    return res
-      .status(
-        error.status ||
-        500
-      )
+    console.error(
+      "METHOD:",
+      req.method
+    );
+
+    console.error(
+      "URL:",
+      req.originalUrl
+    );
+
+    console.error(
+      "MESSAGE:",
+      err?.message
+    );
+
+    console.error(
+      "STATUS:",
+      err?.status
+    );
+
+    console.error(
+      "CODE:",
+      err?.code
+    );
+
+    console.error(
+      "PROVIDER RESPONSE:",
+      err?.providerResponse
+    );
+
+    console.error(
+      "STACK:",
+      err?.stack
+    );
+
+    console.error(
+      "================================================"
+    );
+
+    const status =
+      Number.isInteger(
+        err?.status
+      ) &&
+      err.status >= 400 &&
+      err.status < 600
+        ? err.status
+        : 500;
+
+    res
+      .status(status)
       .json({
-        success:
-          false,
+        success: false,
+
+        code:
+          err?.code ||
+          "INTERNAL_SERVER_ERROR",
 
         error:
-          NODE_ENV ===
-          'production'
-            ? 'Erro interno do servidor.'
-            : error.message
+          err?.message ||
+          "Erro interno do servidor.",
+
+        /*
+         * Apenas informação segura.
+         * Nunca devolvemos secret key.
+         */
+        requestId:
+          err?.providerResponse?.request_id ||
+          null
       });
   }
 );
