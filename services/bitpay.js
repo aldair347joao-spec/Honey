@@ -98,14 +98,17 @@ function isConfigured() {
   );
 }
 
-function createIdempotencyKey(value) {
-  const raw = String(value || '').trim();
+function createIdempotencyKey(seed = '') {
+  const normalizedSeed =
+    String(seed || '').trim();
 
-  if (raw) {
-    return raw.slice(0, 255);
+  if (normalizedSeed) {
+    return normalizedSeed;
   }
 
-  return `hp-${Date.now()}-${crypto.randomUUID()}`;
+  return `hp-${Date.now()}-${crypto
+    .randomBytes(16)
+    .toString('hex')}`;
 }
 
 async function request(path, options = {}) {
@@ -343,17 +346,10 @@ async function createQRCode({
   const normalizedAmount =
     normalizeAmount(amount);
 
-  const body = {
-    amount: normalizedAmount,
-
-    description:
-      String(
-        description ||
-        'Pagamento Honey Pay'
-      )
-        .trim()
-        .slice(0, 255)
-  };
+  const key =
+    createIdempotencyKey(
+      idempotencyKey
+    );
 
   const response =
     await request(
@@ -362,14 +358,21 @@ async function createQRCode({
         method: 'POST',
 
         headers: {
-          'Idempotency-Key':
-            createIdempotencyKey(
-              idempotencyKey
-            )
+          'Idempotency-Key': key
         },
 
-        body:
-          JSON.stringify(body)
+        body: JSON.stringify({
+          amount:
+            normalizedAmount,
+
+          description:
+            String(
+              description ||
+              'Pagamento Honey Pay'
+            )
+              .trim()
+              .slice(0, 255)
+        })
       }
     );
 
@@ -382,7 +385,6 @@ async function createQRCode({
       response?.data?.qrCode ||
       response?.data?.svg ||
       response?.data ||
-      response?.raw ||
       '',
 
     url:
