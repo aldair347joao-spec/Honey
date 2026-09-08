@@ -253,31 +253,357 @@ async function createCharge({
     );
   }
 
+  const numericAmount =
+    Number(amount);
+
   if (
     !Number.isFinite(
-      Number(amount)
+      numericAmount
     ) ||
-    Number(amount) <= 0
+    numericAmount <= 0
   ) {
     throw new Error(
       'Valor de pagamento inválido.'
     );
   }
 
-  /**
-   * NÃO inventamos aqui o payload final.
-   *
-   * A AppyPay disponibiliza documentação técnica privada
-   * no portal de developers.
-   *
-   * Até termos esse contrato, recusamos a chamada em vez
-   * de criar uma cobrança incorreta.
-   */
-  throw new Error(
-    'AppyPay está preparada, mas o contrato técnico de criação de cobrança ainda não foi configurado.'
-  );
-}
+  if (
+    String(currency)
+      .toUpperCase() !== 'AOA'
+  ) {
+    throw new Error(
+      'A AppyPay aceita apenas AOA nesta integração.'
+    );
+  }
 
+  /*
+  ------------------------------------------------------------
+  CONFIGURAÇÃO
+  ------------------------------------------------------------
+  */
+
+  assertConfigured();
+
+  /*
+  ------------------------------------------------------------
+  merchantTransactionId
+  ------------------------------------------------------------
+
+  A AppyPay exige:
+
+  - máximo 15 caracteres
+  - apenas caracteres alfanuméricos
+  - identificador único
+  */
+
+  const transactionId =
+    String(
+      merchantTransactionId || ''
+    )
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        ''
+      )
+      .slice(
+        0,
+        15
+      );
+
+  if (!transactionId) {
+    throw new Error(
+      'merchantTransactionId é obrigatório para criar uma cobrança AppyPay.'
+    );
+  }
+
+  /*
+  ------------------------------------------------------------
+  PAYMENT METHOD ID
+  ------------------------------------------------------------
+
+  A Honey Pay trabalha com nomes internos:
+
+  multicaixa_express
+  reference
+  unitel_money
+  direct_debit
+
+  A AppyPay trabalha com IDs:
+
+  GPO_{API_KEY}
+  REF_{API_KEY}
+
+  ------------------------------------------------------------
+
+  UNITEL MONEY e DÉBITO DIRECTO ficam protegidos até termos
+  os respectivos IDs/contratos técnicos fornecidos pela AppyPay.
+  */
+
+  let appyPayPaymentMethod;
+
+  switch (method) {
+
+    case PAYMENT_METHODS.MULTICAIXA_EXPRESS:
+
+      appyPayPaymentMethod =
+        `GPO_${APPYPAY_API_KEY}`;
+
+      break;
+
+    case PAYMENT_METHODS.REFERENCE:
+
+      appyPayPaymentMethod =
+        `REF_${APPYPAY_API_KEY}`;
+
+      break;
+
+    case PAYMENT_METHODS.UNITEL_MONEY:
+
+      throw new Error(
+        'UNITEL Money ainda não está configurado no contrato técnico AppyPay da Honey Pay.'
+      );
+
+    case PAYMENT_METHODS.DIRECT_DEBIT:
+
+      throw new Error(
+        'Débito Directo ainda não está configurado no contrato técnico AppyPay da Honey Pay.'
+      );
+
+    case PAYMENT_METHODS.QR:
+
+      throw new Error(
+        'QR não é tratado como método financeiro independente. Deve ser utilizado como canal de apresentação de uma cobrança AppyPay.'
+      );
+
+    default:
+
+      throw new Error(
+        'Método de pagamento AppyPay não suportado.'
+      );
+  }
+
+  if (
+    !APPYPAY_API_KEY
+  ) {
+    throw new Error(
+      'APPYPAY_API_KEY não configurado.'
+    );
+  }
+
+  /*
+  ------------------------------------------------------------
+  PAYMENT INFO
+  ------------------------------------------------------------
+  */
+
+  const paymentInfo = {};
+
+  if (
+    method ===
+      PAYMENT_METHODS.MULTICAIXA_EXPRESS
+  ) {
+
+    const phoneNumber =
+      String(
+        customer?.mobile ||
+        customer?.phone ||
+        customer?.phoneNumber ||
+        ''
+      )
+        .trim();
+
+    if (!phoneNumber) {
+      throw new Error(
+        'O número de telemóvel é obrigatório para pagamentos Multicaixa Express.'
+      );
+    }
+
+    paymentInfo.phoneNumber =
+      phoneNumber;
+  }
+
+  /*
+  ------------------------------------------------------------
+  REFERÊNCIA
+  ------------------------------------------------------------
+
+  Para REF a AppyPay exige referenceNumber e dueDate.
+
+  A Honey Pay pode utilizar o seu identificador interno como
+  referência desde que o formato final seja aceite pela conta
+  AppyPay.
+
+  Mantemos apenas caracteres numéricos para maior compatibilidade.
+  */
+
+  if (
+    method ===
+      PAYMENT_METHODS.REFERENCE
+  ) {
+
+    const referenceNumber =
+      transactionId
+        .replace(
+          /[^0-9]/g,
+          ''
+        )
+        .slice(
+          0,
+          9
+        );
+
+    if (
+      !referenceNumber
+    ) {
+      throw new Error(
+        'Não foi possível gerar o número da referência AppyPay.'
+      );
+    }
+
+    const dueDate =
+      new Date(
+        Date.now() +
+        (
+          24 *
+          60 *
+          60 *
+          1000
+        )
+      ).toISOString();
+
+    paymentInfo.referenceNumber =
+      referenceNumber;
+
+    paymentInfo.dueDate =
+      dueDate;
+  }
+
+  /*
+  ------------------------------------------------------------
+  DESCRIPTION
+  ------------------------------------------------------------
+
+  A documentação AppyPay recomenda descrição curta e sem
+  caracteres especiais.
+
+  */
+
+  const safeDescription =
+    String(
+      description ||
+      'Pagamento Honey Pay'
+    )
+      .replace(
+        /[^a-zA-Z0-9À-ÿ ._-]/g,
+        ''
+      )
+      .trim()
+      .slice(
+        0,
+        100
+      );
+
+  /*
+  ------------------------------------------------------------
+  PAYLOAD APPYPAY
+  ------------------------------------------------------------
+  */
+
+  const payload = {
+
+    amount:
+      numericAmount,
+
+    currency:
+      'AOA',
+
+    description:
+      safeDescription ||
+      'Pagamento Honey Pay',
+
+    merchantTransactionId:
+      transactionId,
+
+    paymentMethod:
+      appyPayPaymentMethod,
+
+    paymentInfo
+  };
+
+  /*
+  ------------------------------------------------------------
+  REQUEST
+  ------------------------------------------------------------
+  */
+
+  const response =
+    await request(
+      '/charges',
+      {
+        method:
+          'POST',
+
+        body:
+          JSON.stringify(
+            payload
+          )
+      }
+    );
+
+  /*
+  ------------------------------------------------------------
+  NORMALIZAÇÃO DA RESPOSTA
+  ------------------------------------------------------------
+
+  Mantemos a resposta original da AppyPay intacta.
+
+  O server.js pode utilizar os campos normalizados abaixo,
+  enquanto providerRawResponse continua disponível para
+  auditoria/debug.
+  */
+
+  return {
+
+    ...response,
+
+    id:
+      response?.id ||
+      response?.chargeId ||
+      response?.charge_id ||
+      null,
+
+    status:
+      response?.status ||
+      response?.responseStatus?.status ||
+      'PENDING',
+
+    reference:
+      response?.reference ||
+      response?.responseStatus?.reference ||
+      (
+        response?.responseStatus?.reference
+          ? response.responseStatus.reference
+          : null
+      ),
+
+    checkoutUrl:
+      response?.checkoutUrl ||
+      response?.checkout_url ||
+      response?.url ||
+      null,
+
+    qrCode:
+      response?.qrCode ||
+      response?.qr_code ||
+      response?.qr ||
+      null,
+
+    providerRawResponse:
+      response,
+
+    honeyPayMetadata:
+      metadata
+  };
+}
 /**
  * ------------------------------------------------------------
  * GET CHARGE
