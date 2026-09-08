@@ -18,13 +18,18 @@
 const crypto = require('crypto');
 
 const BITPAY_ENABLED =
-  String(process.env.BITPAY_ENABLED || 'false').toLowerCase() === 'true';
-
+  String(
+    process.env.BITPAY_ENABLED ??
+    process.env.BITPAY_MULTI_MERCHANT_ENABLED ??
+    'true'
+  ).toLowerCase() === 'true';
 const BITPAY_ENV =
   String(process.env.BITPAY_ENV || 'sandbox').toLowerCase();
 
 const BITPAY_SECRET_KEY =
   process.env.BITPAY_SECRET_KEY || '';
+const BITPAY_WEBHOOK_SECRET =
+  process.env.BITPAY_WEBHOOK_SECRET || '';
 
 const BITPAY_BASE_URL =
   process.env.BITPAY_API_URL ||
@@ -411,9 +416,12 @@ module.exports = {
   createRefund,
 
   config: {
-    enabled: BITPAY_ENABLED,
-    environment: BITPAY_ENV,
-    baseUrl: BITPAY_BASE_URL,
-    timeout: BITPAY_TIMEOUT
-  }
+  enabled: BITPAY_ENABLED,
+  environment: BITPAY_ENV,
+  baseUrl: BITPAY_BASE_URL,
+  timeout: BITPAY_TIMEOUT,
+  webhookConfigured: Boolean(
+    BITPAY_WEBHOOK_SECRET
+  )
+}
 };
