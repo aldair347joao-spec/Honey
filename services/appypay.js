@@ -6,22 +6,29 @@
  * APPYPAY SERVICE
  * ============================================================
  *
- * Este módulo é a única camada que deverá conhecer detalhes
- * específicos da AppyPay.
+ * Integração AppyPay:
  *
- * IMPORTANTE:
- * Enquanto as credenciais/API privadas da Honey Pay não forem
- * fornecidas pela AppyPay, este serviço permanece DESATIVADO.
+ * - OAuth2 Client Credentials
+ * - GPO / Multicaixa Express
+ * - REF / Referência Bancária
+ * - Consulta de cobrança
+ * - Reembolso
  *
- * Não simulamos pagamentos reais.
+ * As credenciais devem existir APENAS nas Environment Variables.
+ *
+ * Nunca colocar Client Secret ou API Keys no GitHub.
  * ============================================================
  */
 
 const APPYPAY_ENABLED =
-  String(process.env.APPYPAY_ENABLED || 'false').toLowerCase() === 'true';
+  String(
+    process.env.APPYPAY_ENABLED || 'false'
+  ).toLowerCase() === 'true';
 
 const APPYPAY_ENV =
-  String(process.env.APPYPAY_ENV || 'sandbox').toLowerCase();
+  String(
+    process.env.APPYPAY_ENV || 'sandbox'
+  ).toLowerCase();
 
 const APPYPAY_BASE_URL =
   process.env.APPYPAY_BASE_URL ||
@@ -31,74 +38,202 @@ const APPYPAY_BASE_URL =
       : 'https://gwy-api-tst.appypay.co.ao/v2.0'
   );
 
-const APPYPAY_ACCESS_TOKEN =
-  process.env.APPYPAY_ACCESS_TOKEN || '';
+/*
+ * ============================================================
+ * CREDENCIAIS
+ * ============================================================
+ */
 
-const APPYPAY_API_KEY =
-  process.env.APPYPAY_API_KEY || '';
+const APPYPAY_CLIENT_ID =
+  String(
+    process.env.APPYPAY_CLIENT_ID || ''
+  ).trim();
+
+const APPYPAY_CLIENT_SECRET =
+  String(
+    process.env.APPYPAY_CLIENT_SECRET || ''
+  ).trim();
+
+const APPYPAY_GPO_API_KEY =
+  String(
+    process.env.APPYPAY_GPO_API_KEY || ''
+  ).trim();
+
+const APPYPAY_REF_API_KEY =
+  String(
+    process.env.APPYPAY_REF_API_KEY || ''
+  ).trim();
 
 const APPYPAY_TIMEOUT =
-  Number(process.env.APPYPAY_TIMEOUT || 15000);
+  Number(
+    process.env.APPYPAY_TIMEOUT || 15000
+  );
 
-/**
- * Métodos internos da Honey Pay.
+/*
+ * ============================================================
+ * OAUTH2
+ * ============================================================
  *
- * Não colocamos IDs privados da AppyPay aqui.
- * Os IDs/credenciais específicos serão configurados quando
- * a AppyPay entregar a configuração da conta.
+ * O endpoint de token é separado do endpoint de charges.
+ *
+ * Mantemos a URL configurável para não prender a aplicação
+ * a um endpoint incorreto caso a AppyPay forneça uma URL
+ * diferente para a conta.
  */
+
+const APPYPAY_TOKEN_URL =
+  process.env.APPYPAY_TOKEN_URL ||
+  (
+    APPYPAY_ENV === 'production'
+      ? 'https://gwy-api.appypay.co.ao/connect/token'
+      : 'https://gwy-api-tst.appypay.co.ao/connect/token'
+  );
+
+/*
+ * Cache do Access Token.
+ *
+ * Não persistimos o token na base de dados.
+ * Ele permanece apenas na memória do processo.
+ */
+
+let accessTokenCache = {
+  token: null,
+  expiresAt: 0
+};
+
+/*
+ * Evita que vários pedidos simultâneos gerem vários tokens.
+ */
+
+let tokenRequestPromise = null;
+
+/*
+ * ============================================================
+ * MÉTODOS
+ * ============================================================
+ */
+
 const PAYMENT_METHODS = Object.freeze({
-  MULTICAIXA_EXPRESS: 'multicaixa_express',
-  REFERENCE: 'reference',
-  UNITEL_MONEY: 'unitel_money',
-  DIRECT_DEBIT: 'direct_debit',
-  QR: 'qr'
+  MULTICAIXA_EXPRESS:
+    'multicaixa_express',
+
+  REFERENCE:
+    'reference',
+
+  UNITEL_MONEY:
+    'unitel_money',
+
+  DIRECT_DEBIT:
+    'direct_debit',
+
+  QR:
+    'qr'
 });
 
-const PAYMENT_METHOD_LIST = Object.freeze(
-  Object.values(PAYMENT_METHODS)
-);
+const PAYMENT_METHOD_LIST =
+  Object.freeze(
+    Object.values(
+      PAYMENT_METHODS
+    )
+  );
 
-function normalizePaymentMethod(value) {
+/*
+ * ============================================================
+ * NORMALIZAÇÃO
+ * ============================================================
+ */
+
+function normalizePaymentMethod(
+  value
+) {
   const method =
-    String(value || '')
+    String(
+      value || ''
+    )
       .trim()
       .toLowerCase();
 
   const aliases = {
-    multicaixa: PAYMENT_METHODS.MULTICAIXA_EXPRESS,
-    multicaixa_express: PAYMENT_METHODS.MULTICAIXA_EXPRESS,
-    gpo: PAYMENT_METHODS.MULTICAIXA_EXPRESS,
 
-    reference: PAYMENT_METHODS.REFERENCE,
-    referencia: PAYMENT_METHODS.REFERENCE,
-    pagamento_referencia: PAYMENT_METHODS.REFERENCE,
+    multicaixa:
+      PAYMENT_METHODS.MULTICAIXA_EXPRESS,
 
-    unitel: PAYMENT_METHODS.UNITEL_MONEY,
-    unitel_money: PAYMENT_METHODS.UNITEL_MONEY,
-    umm: PAYMENT_METHODS.UNITEL_MONEY,
+    multicaixa_express:
+      PAYMENT_METHODS.MULTICAIXA_EXPRESS,
 
-    direct_debit: PAYMENT_METHODS.DIRECT_DEBIT,
-    debito_directo: PAYMENT_METHODS.DIRECT_DEBIT,
-    sdd: PAYMENT_METHODS.DIRECT_DEBIT,
+    gpo:
+      PAYMENT_METHODS.MULTICAIXA_EXPRESS,
 
-    qr: PAYMENT_METHODS.QR,
-    qr_code: PAYMENT_METHODS.QR
+    express:
+      PAYMENT_METHODS.MULTICAIXA_EXPRESS,
+
+    reference:
+      PAYMENT_METHODS.REFERENCE,
+
+    referencia:
+      PAYMENT_METHODS.REFERENCE,
+
+    referência:
+      PAYMENT_METHODS.REFERENCE,
+
+    pagamento_referencia:
+      PAYMENT_METHODS.REFERENCE,
+
+    ref:
+      PAYMENT_METHODS.REFERENCE,
+
+    unitel:
+      PAYMENT_METHODS.UNITEL_MONEY,
+
+    unitel_money:
+      PAYMENT_METHODS.UNITEL_MONEY,
+
+    umm:
+      PAYMENT_METHODS.UNITEL_MONEY,
+
+    direct_debit:
+      PAYMENT_METHODS.DIRECT_DEBIT,
+
+    debito_directo:
+      PAYMENT_METHODS.DIRECT_DEBIT,
+
+    débito_directo:
+      PAYMENT_METHODS.DIRECT_DEBIT,
+
+    sdd:
+      PAYMENT_METHODS.DIRECT_DEBIT,
+
+    qr:
+      PAYMENT_METHODS.QR,
+
+    qr_code:
+      PAYMENT_METHODS.QR
   };
 
-  return aliases[method] || null;
+  return (
+    aliases[method] ||
+    null
+  );
 }
 
-function normalizePaymentMethods(methods) {
-  if (!Array.isArray(methods)) {
+function normalizePaymentMethods(
+  methods
+) {
+  if (
+    !Array.isArray(methods)
+  ) {
     return [];
   }
 
   const result = [];
 
-  for (const value of methods) {
+  for (
+    const value of methods
+  ) {
     const method =
-      normalizePaymentMethod(value);
+      normalizePaymentMethod(
+        value
+      );
 
     if (
       method &&
@@ -111,250 +246,441 @@ function normalizePaymentMethods(methods) {
   return result;
 }
 
+/*
+ * ============================================================
+ * CONFIGURAÇÃO
+ * ============================================================
+ */
+
 function isConfigured() {
+
   return Boolean(
     APPYPAY_ENABLED &&
-    APPYPAY_ACCESS_TOKEN
+    APPYPAY_CLIENT_ID &&
+    APPYPAY_CLIENT_SECRET &&
+    (
+      APPYPAY_GPO_API_KEY ||
+      APPYPAY_REF_API_KEY
+    )
   );
 }
 
 function assertConfigured() {
-  if (!APPYPAY_ENABLED) {
+
+  if (
+    !APPYPAY_ENABLED
+  ) {
     throw new Error(
-      'A integração AppyPay ainda está desativada.'
+      'A integração AppyPay está desativada.'
     );
   }
 
-  if (!APPYPAY_ACCESS_TOKEN) {
+  if (
+    !APPYPAY_CLIENT_ID
+  ) {
     throw new Error(
-      'APPYPAY_ACCESS_TOKEN não configurado.'
+      'APPYPAY_CLIENT_ID não configurado.'
+    );
+  }
+
+  if (
+    !APPYPAY_CLIENT_SECRET
+  ) {
+    throw new Error(
+      'APPYPAY_CLIENT_SECRET não configurado.'
+    );
+  }
+
+  if (
+    !APPYPAY_GPO_API_KEY &&
+    !APPYPAY_REF_API_KEY
+  ) {
+    throw new Error(
+      'Nenhuma API Key GPO/REF da AppyPay foi configurada.'
     );
   }
 }
 
-function buildHeaders(extra = {}) {
-  const headers = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    ...extra
-  };
+/*
+ * ============================================================
+ * HTTP HELPER
+ * ============================================================
+ */
 
-  if (APPYPAY_ACCESS_TOKEN) {
-    headers.Authorization =
-      `Bearer ${APPYPAY_ACCESS_TOKEN}`;
-  }
-
-  if (APPYPAY_API_KEY) {
-    headers['X-API-Key'] =
-      APPYPAY_API_KEY;
-  }
-
-  return headers;
-}
-
-async function request(
-  path,
+async function fetchWithTimeout(
+  url,
   options = {}
 ) {
-  assertConfigured();
 
   const controller =
     new AbortController();
 
   const timeout =
     setTimeout(
-      () => controller.abort(),
+      () => {
+        controller.abort();
+      },
       APPYPAY_TIMEOUT
     );
 
   try {
-    const response =
-      await fetch(
-        `${APPYPAY_BASE_URL}${path}`,
-        {
-          ...options,
-          headers:
-            buildHeaders(
-              options.headers || {}
-            ),
-          signal:
-            controller.signal
-        }
-      );
 
-    const text =
-      await response.text();
-
-    let data = null;
-
-    try {
-      data =
-        text
-          ? JSON.parse(text)
-          : null;
-    } catch {
-      data = {
-        raw: text
-      };
-    }
-
-    if (!response.ok) {
-      const error =
-        new Error(
-          data?.message ||
-          data?.error ||
-          `AppyPay HTTP ${response.status}`
-        );
-
-      error.status =
-        response.status;
-
-      error.providerResponse =
-        data;
-
-      throw error;
-    }
-
-    return data;
+    return await fetch(
+      url,
+      {
+        ...options,
+        signal:
+          controller.signal
+      }
+    );
 
   } finally {
-    clearTimeout(timeout);
+
+    clearTimeout(
+      timeout
+    );
   }
 }
 
-/**
- * ------------------------------------------------------------
- * CREATE CHARGE
- * ------------------------------------------------------------
- *
- * O payload final da AppyPay será adaptado aqui quando a
- * documentação/credenciais da conta Honey Pay estiverem
- * disponíveis.
- *
- * O restante da Honey Pay não deverá conhecer esse formato.
+/*
+ * ============================================================
+ * ACCESS TOKEN
+ * ============================================================
  */
-async function createCharge({
-  amount,
-  currency = 'AOA',
-  paymentMethod,
-  merchantTransactionId,
-  description,
-  customer = {},
-  metadata = {}
-}) {
-  const method =
-    normalizePaymentMethod(
-      paymentMethod
-    );
 
-  if (!method) {
-    throw new Error(
-      'Método de pagamento AppyPay inválido.'
-    );
-  }
-
-  const numericAmount =
-    Number(amount);
-
-  if (
-    !Number.isFinite(
-      numericAmount
-    ) ||
-    numericAmount <= 0
-  ) {
-    throw new Error(
-      'Valor de pagamento inválido.'
-    );
-  }
-
-  if (
-    String(currency)
-      .toUpperCase() !== 'AOA'
-  ) {
-    throw new Error(
-      'A AppyPay aceita apenas AOA nesta integração.'
-    );
-  }
-
-  /*
-  ------------------------------------------------------------
-  CONFIGURAÇÃO
-  ------------------------------------------------------------
-  */
+async function getAccessToken(
+  forceRefresh = false
+) {
 
   assertConfigured();
 
+  const now =
+    Date.now();
+
   /*
-  ------------------------------------------------------------
-  merchantTransactionId
-  ------------------------------------------------------------
+   * Mantemos uma margem de segurança de 60 segundos.
+   */
 
-  A AppyPay exige:
+  if (
+    !forceRefresh &&
+    accessTokenCache.token &&
+    accessTokenCache.expiresAt >
+      now + 60000
+  ) {
 
-  - máximo 15 caracteres
-  - apenas caracteres alfanuméricos
-  - identificador único
-  */
-
-  const transactionId =
-    String(
-      merchantTransactionId || ''
-    )
-      .replace(
-        /[^a-zA-Z0-9]/g,
-        ''
-      )
-      .slice(
-        0,
-        15
-      );
-
-  if (!transactionId) {
-    throw new Error(
-      'merchantTransactionId é obrigatório para criar uma cobrança AppyPay.'
-    );
+    return accessTokenCache.token;
   }
 
   /*
-  ------------------------------------------------------------
-  PAYMENT METHOD ID
-  ------------------------------------------------------------
+   * Se outro pedido já está obtendo o token,
+   * reutilizamos a mesma Promise.
+   */
 
-  A Honey Pay trabalha com nomes internos:
+  if (
+    tokenRequestPromise
+  ) {
 
-  multicaixa_express
-  reference
-  unitel_money
-  direct_debit
+    return tokenRequestPromise;
+  }
 
-  A AppyPay trabalha com IDs:
+  tokenRequestPromise =
+    (async () => {
 
-  GPO_{API_KEY}
-  REF_{API_KEY}
+      const credentials =
+        Buffer.from(
+          `${APPYPAY_CLIENT_ID}:${APPYPAY_CLIENT_SECRET}`
+        ).toString(
+          'base64'
+        );
 
-  ------------------------------------------------------------
+      const response =
+        await fetchWithTimeout(
+          APPYPAY_TOKEN_URL,
+          {
+            method:
+              'POST',
 
-  UNITEL MONEY e DÉBITO DIRECTO ficam protegidos até termos
-  os respectivos IDs/contratos técnicos fornecidos pela AppyPay.
-  */
+            headers: {
+              Accept:
+                'application/json',
 
-  let appyPayPaymentMethod;
+              'Content-Type':
+                'application/x-www-form-urlencoded',
 
-  switch (method) {
+              Authorization:
+                `Basic ${credentials}`
+            },
+
+            body:
+              new URLSearchParams({
+                grant_type:
+                  'client_credentials'
+              }).toString()
+          }
+        );
+
+      const text =
+        await response.text();
+
+      let data = null;
+
+      try {
+
+        data =
+          text
+            ? JSON.parse(text)
+            : null;
+
+      } catch {
+
+        data = {
+          raw: text
+        };
+      }
+
+      if (
+        !response.ok
+      ) {
+
+        const error =
+          new Error(
+            data?.error_description ||
+            data?.message ||
+            data?.error ||
+            `AppyPay OAuth HTTP ${response.status}`
+          );
+
+        error.status =
+          response.status;
+
+        error.providerResponse =
+          data;
+
+        throw error;
+      }
+
+      const token =
+        data?.access_token ||
+        data?.accessToken ||
+        null;
+
+      if (
+        !token
+      ) {
+
+        const error =
+          new Error(
+            'A AppyPay não devolveu um access_token.'
+          );
+
+        error.providerResponse =
+          data;
+
+        throw error;
+      }
+
+      const expiresIn =
+        Number(
+          data?.expires_in ||
+          data?.expiresIn ||
+          3600
+        );
+
+      accessTokenCache = {
+
+        token,
+
+        expiresAt:
+          Date.now() +
+          (
+            Math.max(
+              expiresIn,
+              60
+            ) *
+            1000
+          )
+      };
+
+      return token;
+
+    })();
+
+  try {
+
+    return await tokenRequestPromise;
+
+  } finally {
+
+    tokenRequestPromise =
+      null;
+  }
+}
+
+/*
+ * ============================================================
+ * HEADERS
+ * ============================================================
+ */
+
+async function buildHeaders(
+  extra = {}
+) {
+
+  const token =
+    await getAccessToken();
+
+  return {
+
+    Accept:
+      'application/json',
+
+    'Content-Type':
+      'application/json',
+
+    Authorization:
+      `Bearer ${token}`,
+
+    ...extra
+  };
+}
+
+/*
+ * ============================================================
+ * REQUEST APPYPAY
+ * ============================================================
+ */
+
+async function request(
+  path,
+  options = {},
+  retryOn401 = true
+) {
+
+  assertConfigured();
+
+  let headers =
+    await buildHeaders(
+      options.headers || {}
+    );
+
+  const response =
+    await fetchWithTimeout(
+      `${APPYPAY_BASE_URL}${path}`,
+      {
+        ...options,
+        headers
+      }
+    );
+
+  const text =
+    await response.text();
+
+  let data = null;
+
+  try {
+
+    data =
+      text
+        ? JSON.parse(text)
+        : null;
+
+  } catch {
+
+    data = {
+      raw: text
+    };
+  }
+
+  /*
+   * Se o token expirou, obtemos outro
+   * e repetimos a requisição uma única vez.
+   */
+
+  if (
+    response.status === 401 &&
+    retryOn401
+  ) {
+
+    await getAccessToken(
+      true
+    );
+
+    headers =
+      await buildHeaders(
+        options.headers || {}
+      );
+
+    return request(
+      path,
+      {
+        ...options,
+        headers
+      },
+      false
+    );
+  }
+
+  if (
+    !response.ok
+  ) {
+
+    const error =
+      new Error(
+        data?.message ||
+        data?.error ||
+        data?.responseStatus?.message ||
+        `AppyPay HTTP ${response.status}`
+      );
+
+    error.status =
+      response.status;
+
+    error.providerResponse =
+      data;
+
+    throw error;
+  }
+
+  return data;
+}
+
+/*
+ * ============================================================
+ * PAYMENT METHOD ID
+ * ============================================================
+ */
+
+function getAppyPayPaymentMethod(
+  method
+) {
+
+  switch (
+    method
+  ) {
 
     case PAYMENT_METHODS.MULTICAIXA_EXPRESS:
 
-      appyPayPaymentMethod =
-        `GPO_${APPYPAY_API_KEY}`;
+      if (
+        !APPYPAY_GPO_API_KEY
+      ) {
+        throw new Error(
+          'APPYPAY_GPO_API_KEY não configurado.'
+        );
+      }
 
-      break;
+      return `GPO_${APPYPAY_GPO_API_KEY}`;
 
     case PAYMENT_METHODS.REFERENCE:
 
-      appyPayPaymentMethod =
-        `REF_${APPYPAY_API_KEY}`;
+      if (
+        !APPYPAY_REF_API_KEY
+      ) {
+        throw new Error(
+          'APPYPAY_REF_API_KEY não configurado.'
+        );
+      }
 
-      break;
+      return `REF_${APPYPAY_REF_API_KEY}`;
 
     case PAYMENT_METHODS.UNITEL_MONEY:
 
@@ -371,7 +697,7 @@ async function createCharge({
     case PAYMENT_METHODS.QR:
 
       throw new Error(
-        'QR não é tratado como método financeiro independente. Deve ser utilizado como canal de apresentação de uma cobrança AppyPay.'
+        'QR é um canal de apresentação e não um método financeiro independente nesta integração.'
       );
 
     default:
@@ -380,26 +706,151 @@ async function createCharge({
         'Método de pagamento AppyPay não suportado.'
       );
   }
+}
+
+/*
+ * ============================================================
+ * MERCHANT TRANSACTION ID
+ * ============================================================
+ */
+
+function normalizeMerchantTransactionId(
+  value
+) {
+
+  const result =
+    String(
+      value || ''
+    )
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        ''
+      )
+      .slice(
+        0,
+        15
+      );
 
   if (
-    !APPYPAY_API_KEY
+    !result
   ) {
+
     throw new Error(
-      'APPYPAY_API_KEY não configurado.'
+      'merchantTransactionId é obrigatório.'
     );
   }
 
-  /*
-  ------------------------------------------------------------
-  PAYMENT INFO
-  ------------------------------------------------------------
-  */
+  return result;
+}
+
+/*
+ * ============================================================
+ * DESCRIPTION
+ * ============================================================
+ */
+
+function normalizeDescription(
+  value
+) {
+
+  const result =
+    String(
+      value ||
+      'Pagamento Honey Pay'
+    )
+      .replace(
+        /[^a-zA-Z0-9À-ÿ ._-]/g,
+        ''
+      )
+      .trim()
+      .slice(
+        0,
+        100
+      );
+
+  return (
+    result ||
+    'Pagamento Honey Pay'
+  );
+}
+
+/*
+ * ============================================================
+ * CREATE CHARGE
+ * ============================================================
+ */
+
+async function createCharge({
+  amount,
+  currency = 'AOA',
+  paymentMethod,
+  merchantTransactionId,
+  description,
+  customer = {},
+  metadata = {}
+}) {
+
+  const method =
+    normalizePaymentMethod(
+      paymentMethod
+    );
+
+  if (
+    !method
+  ) {
+
+    throw new Error(
+      'Método de pagamento AppyPay inválido.'
+    );
+  }
+
+  const numericAmount =
+    Number(amount);
+
+  if (
+    !Number.isFinite(
+      numericAmount
+    ) ||
+    numericAmount <= 0
+  ) {
+
+    throw new Error(
+      'Valor de pagamento inválido.'
+    );
+  }
+
+  if (
+    String(currency)
+      .toUpperCase() !==
+    'AOA'
+  ) {
+
+    throw new Error(
+      'A AppyPay utiliza AOA nesta integração.'
+    );
+  }
+
+  const transactionId =
+    normalizeMerchantTransactionId(
+      merchantTransactionId
+    );
+
+  const appyPayPaymentMethod =
+    getAppyPayPaymentMethod(
+      method
+    );
 
   const paymentInfo = {};
 
+  /*
+   * ----------------------------------------------------------
+   * GPO / MULTICAIXA EXPRESS
+   * ----------------------------------------------------------
+   */
+
   if (
     method ===
-      PAYMENT_METHODS.MULTICAIXA_EXPRESS
+    PAYMENT_METHODS.MULTICAIXA_EXPRESS
   ) {
 
     const phoneNumber =
@@ -408,12 +859,14 @@ async function createCharge({
         customer?.phone ||
         customer?.phoneNumber ||
         ''
-      )
-        .trim();
+      ).trim();
 
-    if (!phoneNumber) {
+    if (
+      !phoneNumber
+    ) {
+
       throw new Error(
-        'O número de telemóvel é obrigatório para pagamentos Multicaixa Express.'
+        'O número de telemóvel é obrigatório para Multicaixa Express.'
       );
     }
 
@@ -422,44 +875,45 @@ async function createCharge({
   }
 
   /*
-  ------------------------------------------------------------
-  REFERÊNCIA
-  ------------------------------------------------------------
-
-  Para REF a AppyPay exige referenceNumber e dueDate.
-
-  A Honey Pay pode utilizar o seu identificador interno como
-  referência desde que o formato final seja aceite pela conta
-  AppyPay.
-
-  Mantemos apenas caracteres numéricos para maior compatibilidade.
-  */
+   * ----------------------------------------------------------
+   * REFERÊNCIA
+   * ----------------------------------------------------------
+   */
 
   if (
     method ===
-      PAYMENT_METHODS.REFERENCE
+    PAYMENT_METHODS.REFERENCE
   ) {
 
     const referenceNumber =
-      transactionId
-        .replace(
-          /[^0-9]/g,
-          ''
-        )
-        .slice(
-          0,
-          9
-        );
+      String(
+        customer?.referenceNumber ||
+        transactionId
+      )
+      .replace(
+        /[^0-9]/g,
+        ''
+      )
+      .slice(
+        0,
+        9
+      );
 
     if (
       !referenceNumber
     ) {
+
       throw new Error(
-        'Não foi possível gerar o número da referência AppyPay.'
+        'Não foi possível gerar o número da referência.'
       );
     }
 
+    /*
+     * Vencimento padrão: 24 horas.
+     */
+
     const dueDate =
+      customer?.dueDate ||
       new Date(
         Date.now() +
         (
@@ -478,35 +932,10 @@ async function createCharge({
   }
 
   /*
-  ------------------------------------------------------------
-  DESCRIPTION
-  ------------------------------------------------------------
-
-  A documentação AppyPay recomenda descrição curta e sem
-  caracteres especiais.
-
-  */
-
-  const safeDescription =
-    String(
-      description ||
-      'Pagamento Honey Pay'
-    )
-      .replace(
-        /[^a-zA-Z0-9À-ÿ ._-]/g,
-        ''
-      )
-      .trim()
-      .slice(
-        0,
-        100
-      );
-
-  /*
-  ------------------------------------------------------------
-  PAYLOAD APPYPAY
-  ------------------------------------------------------------
-  */
+   * ----------------------------------------------------------
+   * PAYLOAD
+   * ----------------------------------------------------------
+   */
 
   const payload = {
 
@@ -517,8 +946,9 @@ async function createCharge({
       'AOA',
 
     description:
-      safeDescription ||
-      'Pagamento Honey Pay',
+      normalizeDescription(
+        description
+      ),
 
     merchantTransactionId:
       transactionId,
@@ -530,10 +960,10 @@ async function createCharge({
   };
 
   /*
-  ------------------------------------------------------------
-  REQUEST
-  ------------------------------------------------------------
-  */
+   * ----------------------------------------------------------
+   * CHARGE
+   * ----------------------------------------------------------
+   */
 
   const response =
     await request(
@@ -550,16 +980,19 @@ async function createCharge({
     );
 
   /*
-  ------------------------------------------------------------
-  NORMALIZAÇÃO DA RESPOSTA
-  ------------------------------------------------------------
+   * ----------------------------------------------------------
+   * NORMALIZAÇÃO DA RESPOSTA
+   * ----------------------------------------------------------
+   */
 
-  Mantemos a resposta original da AppyPay intacta.
+  const responseStatus =
+    response?.responseStatus ||
+    {};
 
-  O server.js pode utilizar os campos normalizados abaixo,
-  enquanto providerRawResponse continua disponível para
-  auditoria/debug.
-  */
+  const reference =
+    response?.reference ||
+    responseStatus?.reference ||
+    null;
 
   return {
 
@@ -573,17 +1006,32 @@ async function createCharge({
 
     status:
       response?.status ||
-      response?.responseStatus?.status ||
+      responseStatus?.status ||
       'PENDING',
 
-    reference:
-      response?.reference ||
-      response?.responseStatus?.reference ||
-      (
-        response?.responseStatus?.reference
-          ? response.responseStatus.reference
-          : null
-      ),
+    successful:
+      responseStatus?.successful ??
+      response?.successful ??
+      false,
+
+    responseStatus,
+
+    reference,
+
+    referenceNumber:
+      reference?.referenceNumber ||
+      response?.referenceNumber ||
+      null,
+
+    entity:
+      reference?.entity ||
+      response?.entity ||
+      null,
+
+    dueDate:
+      reference?.dueDate ||
+      response?.dueDate ||
+      null,
 
     checkoutUrl:
       response?.checkoutUrl ||
@@ -604,15 +1052,21 @@ async function createCharge({
       metadata
   };
 }
-/**
- * ------------------------------------------------------------
+
+/*
+ * ============================================================
  * GET CHARGE
- * ------------------------------------------------------------
+ * ============================================================
  */
+
 async function getCharge(
   providerPaymentId
 ) {
-  if (!providerPaymentId) {
+
+  if (
+    !providerPaymentId
+  ) {
+
     throw new Error(
       'providerPaymentId é obrigatório.'
     );
@@ -623,21 +1077,27 @@ async function getCharge(
       providerPaymentId
     )}`,
     {
-      method: 'GET'
+      method:
+        'GET'
     }
   );
 }
 
-/**
- * ------------------------------------------------------------
+/*
+ * ============================================================
  * REFUND
- * ------------------------------------------------------------
+ * ============================================================
  */
+
 async function refundCharge(
   providerPaymentId,
   amount = null
 ) {
-  if (!providerPaymentId) {
+
+  if (
+    !providerPaymentId
+  ) {
+
     throw new Error(
       'providerPaymentId é obrigatório.'
     );
@@ -647,8 +1107,11 @@ async function refundCharge(
 
   if (
     amount !== null &&
-    Number.isFinite(Number(amount))
+    Number.isFinite(
+      Number(amount)
+    )
   ) {
+
     body.amount =
       Number(amount);
   }
@@ -658,27 +1121,66 @@ async function refundCharge(
       providerPaymentId
     )}/refund`,
     {
-      method: 'POST',
+      method:
+        'POST',
+
       body:
-        JSON.stringify(body)
+        JSON.stringify(
+          body
+        )
     }
   );
 }
 
+/*
+ * ============================================================
+ * CLEAR TOKEN
+ * ============================================================
+ *
+ * Útil para testes e para situações em que queremos forçar
+ * uma nova autenticação.
+ * ============================================================
+ */
+
+function clearAccessToken() {
+
+  accessTokenCache = {
+    token: null,
+    expiresAt: 0
+  };
+}
+
+/*
+ * ============================================================
+ * EXPORTS
+ * ============================================================
+ */
+
 module.exports = {
+
   APPYPAY_ENABLED,
+
   APPYPAY_ENV,
+
   APPYPAY_BASE_URL,
 
   PAYMENT_METHODS,
+
   PAYMENT_METHOD_LIST,
 
   normalizePaymentMethod,
+
   normalizePaymentMethods,
 
   isConfigured,
 
+  getAccessToken,
+
+  clearAccessToken,
+
   createCharge,
+
   getCharge,
+
   refundCharge
 };
