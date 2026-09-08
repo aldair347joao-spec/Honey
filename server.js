@@ -4721,7 +4721,702 @@ app.delete(
     }
   )
 );
+/* =========================================================
+   PRESENTIAL PAYMENT -> APPYPAY
+   ---------------------------------------------------------
+   Cobrança criada pelo comerciante no Dashboard.
+   Não cria PaymentLink.
+   Não exige cliente registado.
+========================================================= */
 
+app.post(
+  '/api/merchant/payments/presential',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      /*
+      --------------------------------------------------------
+      DADOS DA COBRANÇA
+      --------------------------------------------------------
+      */
+
+      const title =
+        cleanString(
+          req.body.title,
+          150
+        );
+
+      const description =
+        cleanString(
+          req.body.description,
+          500
+        );
+
+      const amount =
+        Number(
+          req.body.amount
+        );
+
+      const paymentMethod =
+        normalizePaymentMethod(
+          req.body.paymentMethod
+        );
+
+      const customerMobile =
+        cleanString(
+          req.body.customerMobile,
+          30
+        );
+
+      /*
+      --------------------------------------------------------
+      VALIDAÇÕES
+      --------------------------------------------------------
+      */
+
+      if (!title) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            code:
+              'TITLE_REQUIRED',
+
+            error:
+              'Informe o título da cobrança.'
+          });
+      }
+
+      if (
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            code:
+              'INVALID_AMOUNT',
+
+            error:
+              'O valor da cobrança deve ser superior a zero.'
+          });
+      }
+
+      if (!paymentMethod) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            code:
+              'PAYMENT_METHOD_REQUIRED',
+
+            error:
+              'Selecione um método de pagamento.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      MÉTODOS QUE EXIGEM TELEMÓVEL
+      --------------------------------------------------------
+      */
+
+      if (
+        (
+          paymentMethod ===
+            PAYMENT_METHODS.MULTICAIXA_EXPRESS ||
+
+          paymentMethod ===
+            PAYMENT_METHODS.UNITEL_MONEY
+        ) &&
+        !customerMobile
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+
+            code:
+              'CUSTOMER_MOBILE_REQUIRED',
+
+            error:
+              'O número de telemóvel do cliente é obrigatório para este método.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      APPYPAY
+      --------------------------------------------------------
+      */
+
+      if (
+        !isAppyPayConfigured()
+      ) {
+        return res
+          .status(503)
+          .json({
+            success: false,
+
+            code:
+              'APPYPAY_NOT_CONFIGURED',
+
+            error:
+              'Os pagamentos AppyPay ainda não estão configurados na Honey Pay.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      MERCHANT
+      --------------------------------------------------------
+      */
+
+      const merchant =
+        await Merchant.findById(
+          req.merchantId
+        ).lean();
+
+      if (!merchant) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+
+            code:
+              'MERCHANT_NOT_FOUND',
+
+            error:
+              'Comerciante não encontrado.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      ORDER REFERENCE
+      --------------------------------------------------------
+      */
+
+      const orderReference =
+        generateReference(
+          'HP'
+        );
+
+      /*
+      --------------------------------------------------------
+      ORDER
+      --------------------------------------------------------
+      */
+
+      const order =
+        await Order.create({
+
+          merchantId:
+            req.merchantId,
+
+          customerId:
+            null,
+
+          reference:
+            orderReference,
+
+          items: [
+            {
+              productId:
+                null,
+
+              name:
+                title,
+
+              quantity:
+                1,
+
+              unitPrice:
+                amount,
+
+              total:
+                amount
+            }
+          ],
+
+          subtotal:
+            amount,
+
+          total:
+            amount,
+
+          currency:
+            'AOA',
+
+          status:
+            'PAYMENT_PROCESSING',
+
+          customerSnapshot: {
+            name:
+              'Cliente presencial',
+
+            email:
+              '',
+
+            phone:
+              customerMobile
+          }
+        });
+
+      /*
+      --------------------------------------------------------
+      APPYPAY METADATA
+      --------------------------------------------------------
+      */
+
+      const metadata = {
+
+        honey_pay:
+          true,
+
+        honey_pay_version:
+          '4.0.0',
+
+        payment_mode:
+          'in_person',
+
+        order_id:
+          String(
+            order._id
+          ),
+
+        order_reference:
+          orderReference,
+
+        merchant_id:
+          String(
+            req.merchantId
+          ),
+
+        merchant_user_id:
+          String(
+            req.userId
+          )
+      };
+
+      /*
+      --------------------------------------------------------
+      APPYPAY CHARGE
+      --------------------------------------------------------
+      */
+
+      let appyPayResponse;
+
+      try {
+
+        appyPayResponse =
+          await createAppyPayCharge({
+
+            amount:
+              Math.round(
+                amount
+              ),
+
+            currency:
+              'AOA',
+
+            paymentMethod,
+
+            merchantTransactionId:
+              orderReference,
+
+            description:
+              description ||
+              title,
+
+            customer: {
+
+              name:
+                'Cliente presencial',
+
+              email:
+                '',
+
+              mobile:
+                customerMobile
+            },
+
+            metadata
+          });
+
+      } catch (error) {
+
+        console.error(
+          'AppyPay presential createCharge:',
+          error
+        );
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+              status:
+                'FAILED'
+            }
+          }
+        );
+
+        return res
+          .status(
+            error?.status >= 400 &&
+            error?.status < 600
+              ? error.status
+              : 503
+          )
+          .json({
+
+            success:
+              false,
+
+            code:
+              'APPYPAY_PAYMENT_ERROR',
+
+            error:
+              error.message ||
+              'Não foi possível criar a cobrança AppyPay.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      PROVIDER DATA
+      --------------------------------------------------------
+      */
+
+      const providerPaymentId =
+        String(
+          appyPayResponse?.id ||
+          appyPayResponse?.chargeId ||
+          appyPayResponse?.charge_id ||
+          appyPayResponse?.paymentId ||
+          appyPayResponse?.payment_id ||
+          ''
+        );
+
+      if (!providerPaymentId) {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+              status:
+                'FAILED'
+            }
+          }
+        );
+
+        return res
+          .status(502)
+          .json({
+
+            success:
+              false,
+
+            code:
+              'APPYPAY_ID_MISSING',
+
+            error:
+              'A AppyPay não devolveu o identificador da cobrança.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      REFERÊNCIA
+      --------------------------------------------------------
+      */
+
+      const providerReference =
+        appyPayResponse?.reference ||
+        appyPayResponse?.multicaixa_reference ||
+        null;
+
+      const referenceEntity =
+        providerReference?.entity ||
+        appyPayResponse?.entity ||
+        '';
+
+      const referenceNumber =
+        providerReference?.number ||
+        providerReference?.reference ||
+        appyPayResponse?.reference_number ||
+        appyPayResponse?.number ||
+        '';
+
+      /*
+      --------------------------------------------------------
+      CHECKOUT / QR
+      --------------------------------------------------------
+      */
+
+      const checkoutUrl =
+        appyPayResponse?.checkout_url ||
+        appyPayResponse?.checkoutUrl ||
+        appyPayResponse?.url ||
+        '';
+
+      const providerQrCode =
+        appyPayResponse?.qrCode ||
+        appyPayResponse?.qr_code ||
+        appyPayResponse?.qr ||
+        '';
+
+      /*
+      --------------------------------------------------------
+      STATUS
+      --------------------------------------------------------
+      */
+
+      const rawStatus =
+        String(
+          appyPayResponse?.status ||
+          appyPayResponse?.responseStatus?.status ||
+          'PENDING'
+        ).toUpperCase();
+
+      const localStatus =
+        (
+          rawStatus ===
+            'PAID' ||
+
+          rawStatus ===
+            'SUCCESS' ||
+
+          rawStatus ===
+            'SUCCEEDED'
+        )
+
+          ? 'PAID'
+
+          : (
+              rawStatus ===
+                'FAILED' ||
+
+              rawStatus ===
+                'REJECTED' ||
+
+              rawStatus ===
+                'CANCELLED'
+            )
+
+              ? 'FAILED'
+
+              : 'PROCESSING';
+
+      /*
+      --------------------------------------------------------
+      PAYMENT LOCAL
+      --------------------------------------------------------
+      */
+
+      const payment =
+        await Payment.create({
+
+          merchantId:
+            req.merchantId,
+
+          orderId:
+            order._id,
+
+          customerId:
+            null,
+
+          reference:
+            orderReference,
+
+          provider:
+            'appypay',
+
+          providerPaymentId:
+
+            providerPaymentId,
+
+          providerMethod:
+            paymentMethod,
+
+          paymentMethod:
+
+            paymentMethod,
+
+          amount:
+            amount,
+
+          feeAmount:
+            calculateFee(
+              amount
+            ),
+
+          netAmount:
+            calculateNet(
+              amount
+            ),
+
+          currency:
+            'AOA',
+
+          status:
+            localStatus,
+
+          providerRawStatus:
+            rawStatus,
+
+          providerReferenceEntity:
+            referenceEntity,
+
+          providerReferenceNumber:
+            referenceNumber,
+
+          checkoutUrl:
+            checkoutUrl,
+
+          providerQrCode:
+            providerQrCode,
+
+          providerResponse:
+            appyPayResponse,
+
+          metadata:
+            metadata
+        });
+
+      /*
+      --------------------------------------------------------
+      ATUALIZAR ORDER
+      --------------------------------------------------------
+      */
+
+      if (
+        payment.status ===
+        'PAID'
+      ) {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+
+              status:
+                'PAID',
+
+              paidAt:
+                new Date()
+            }
+          }
+        );
+
+      } else {
+
+        await Order.findByIdAndUpdate(
+          order._id,
+          {
+            $set: {
+              status:
+                'PAYMENT_PROCESSING'
+            }
+          }
+        );
+      }
+
+      /*
+      --------------------------------------------------------
+      RESPOSTA
+      --------------------------------------------------------
+      */
+
+      return res
+        .status(201)
+        .json({
+
+          success:
+            true,
+
+          payment: {
+
+            id:
+              String(
+                payment._id
+              ),
+
+            orderId:
+              String(
+                order._id
+              ),
+
+            reference:
+              payment.reference,
+
+            status:
+              payment.status,
+
+            amount:
+              payment.amount,
+
+            currency:
+              payment.currency,
+
+            paymentMethod:
+              payment.paymentMethod,
+
+            provider:
+              'appypay',
+
+            providerPaymentId:
+              payment.providerPaymentId,
+
+            providerStatus:
+              payment.providerRawStatus,
+
+            multicaixaReference: {
+
+              entity:
+                payment.providerReferenceEntity,
+
+              number:
+                payment.providerReferenceNumber
+            },
+
+            checkoutUrl:
+              payment.checkoutUrl,
+
+            qrCode:
+              payment.providerQrCode
+          },
+
+          honeyPayFee: {
+
+            bps:
+              HONEY_PAY_FEE_BPS,
+
+            percent:
+              HONEY_PAY_FEE_BPS /
+              100,
+
+            amount:
+              calculateFee(
+                amount
+              )
+          }
+        });
+    }
+  )
+);
 /* =========================================================
    PUBLIC PAYMENT LINK
 ========================================================= */
