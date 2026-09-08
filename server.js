@@ -4734,11 +4734,19 @@ app.delete(
   )
 );
 /* =========================================================
-   PRESENTIAL PAYMENT -> APPYPAY
+   PRESENTIAL PAYMENT -> MULTI-GATEWAY
    ---------------------------------------------------------
-   Cobrança criada pelo comerciante no Dashboard.
-   Não cria PaymentLink.
-   Não exige cliente registado.
+   Honey Pay suporta:
+   - AppyPay
+   - BitPay
+
+   O provider pode ser enviado no body:
+   provider: "bitpay"
+   provider: "appypay"
+
+   Se não for enviado:
+   - usa BITPAY como fallback se estiver configurado;
+   - caso contrário usa APPYPAY.
 ========================================================= */
 
 app.post(
@@ -4777,16 +4785,54 @@ app.post(
           req.body.amount
         );
 
-      const paymentMethod =
-        normalizePaymentMethod(
-          req.body.paymentMethod
-        );
+      const requestedProvider =
+        cleanString(
+          req.body.provider,
+          30
+        ).toLowerCase();
+
+      const requestedMethod =
+        cleanString(
+          req.body.paymentMethod,
+          50
+        ).toLowerCase();
 
       const customerMobile =
         cleanString(
           req.body.customerMobile,
           30
         );
+
+      /*
+      --------------------------------------------------------
+      NORMALIZAÇÃO DO MÉTODO
+      --------------------------------------------------------
+      */
+
+      let paymentMethod =
+        normalizePaymentMethod(
+          requestedMethod
+        );
+
+      /*
+      BitPay usa:
+      multicaixa_reference
+
+      Honey Pay continua usando:
+      reference
+      */
+
+      if (
+        requestedMethod ===
+          'reference' ||
+        requestedMethod ===
+          'referencia' ||
+        requestedMethod ===
+          'referência'
+      ) {
+        paymentMethod =
+          'reference';
+      }
 
       /*
       --------------------------------------------------------
@@ -4870,28 +4916,6 @@ app.post(
 
       /*
       --------------------------------------------------------
-      APPYPAY
-      --------------------------------------------------------
-      */
-
-      if (
-        !isAppyPayConfigured()
-      ) {
-        return res
-          .status(503)
-          .json({
-            success: false,
-
-            code:
-              'APPYPAY_NOT_CONFIGURED',
-
-            error:
-              'Os pagamentos AppyPay ainda não estão configurados na Honey Pay.'
-          });
-      }
-
-      /*
-      --------------------------------------------------------
       MERCHANT
       --------------------------------------------------------
       */
@@ -4913,6 +4937,115 @@ app.post(
             error:
               'Comerciante não encontrado.'
           });
+      }
+
+      /*
+      --------------------------------------------------------
+      ESCOLHA DO PROVIDER
+      --------------------------------------------------------
+      */
+
+      let provider =
+        requestedProvider;
+
+      if (
+        provider !== 'bitpay' &&
+        provider !== 'appypay'
+      ) {
+        if (
+          isBitPayConfigured()
+        ) {
+          provider =
+            'bitpay';
+        } else if (
+          isAppyPayConfigured()
+        ) {
+          provider =
+            'appypay';
+        } else {
+          return res
+            .status(503)
+            .json({
+              success: false,
+
+              code:
+                'NO_PAYMENT_PROVIDER',
+
+              error:
+                'Nenhum gateway de pagamento está configurado.'
+            });
+        }
+      }
+
+      /*
+      --------------------------------------------------------
+      VERIFICAR PROVIDER
+      --------------------------------------------------------
+      */
+
+      if (
+        provider === 'bitpay' &&
+        !isBitPayConfigured()
+      ) {
+        return res
+          .status(503)
+          .json({
+            success: false,
+
+            code:
+              'BITPAY_NOT_CONFIGURED',
+
+            error:
+              'Os pagamentos BitPay ainda não estão configurados na Honey Pay.'
+          });
+      }
+
+      if (
+        provider === 'appypay' &&
+        !isAppyPayConfigured()
+      ) {
+        return res
+          .status(503)
+          .json({
+            success: false,
+
+            code:
+              'APPYPAY_NOT_CONFIGURED',
+
+            error:
+              'Os pagamentos AppyPay ainda não estão configurados na Honey Pay.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      VALIDAR MÉTODOS SUPORTADOS PELO PROVIDER
+      --------------------------------------------------------
+      */
+
+      if (
+        provider === 'bitpay'
+      ) {
+
+        if (
+          paymentMethod !==
+            PAYMENT_METHODS.MULTICAIXA_EXPRESS &&
+          paymentMethod !==
+            'reference'
+        ) {
+          return res
+            .status(400)
+            .json({
+              success: false,
+
+              code:
+                'BITPAY_METHOD_NOT_SUPPORTED',
+
+              error:
+                'Este método ainda não está disponível através da BitPay.'
+            });
+        }
+
       }
 
       /*
@@ -4989,7 +5122,7 @@ app.post(
 
       /*
       --------------------------------------------------------
-      APPYPAY METADATA
+      METADATA
       --------------------------------------------------------
       */
 
@@ -5020,109 +5153,334 @@ app.post(
         merchant_user_id:
           String(
             req.userId
-          )
+          ),
+
+        provider:
+          provider
       };
 
       /*
       --------------------------------------------------------
-      APPYPAY CHARGE
+      PROVIDER VARIABLES
       --------------------------------------------------------
       */
 
-      let appyPayResponse;
+      let providerResponse =
+        null;
 
-      try {
+      let providerPaymentId =
+        '';
 
-        appyPayResponse =
-          await createAppyPayCharge({
+      let providerMethod =
+        paymentMethod;
 
-            amount:
-              Math.round(
-                amount
-              ),
+      let providerRawStatus =
+        'PENDING';
 
-            currency:
-              'AOA',
+      let checkoutUrl =
+        '';
 
-            paymentMethod,
+      let providerQrCode =
+        '';
 
-            merchantTransactionId:
-              orderReference,
+      let referenceEntity =
+        '';
 
-            description:
-              description ||
-              title,
+      let referenceNumber =
+        '';
 
-            customer: {
+      /*
+      --------------------------------------------------------
+      BITPAY
+      --------------------------------------------------------
+      */
 
-              name:
-                'Cliente presencial',
+      if (
+        provider === 'bitpay'
+      ) {
 
-              email:
-                '',
+        try {
+
+          const bitPayMethod =
+            paymentMethod ===
+              'reference'
+              ? BITPAY_PAYMENT_METHODS.MULTICAIXA_REFERENCE
+              : BITPAY_PAYMENT_METHODS.MULTICAIXA_EXPRESS;
+
+          const bitPayResponse =
+            await createBitPayPaymentIntent({
+
+              amount:
+                Math.round(
+                  amount
+                ),
+
+              currency:
+                'AOA',
+
+              paymentMethod:
+                bitPayMethod,
 
               mobile:
-                customerMobile
-            },
+                customerMobile,
 
-            metadata
-          });
+              merchantReference:
+                orderReference,
 
-      } catch (error) {
+              metadata:
 
-        console.error(
-          'AppyPay presential createCharge:',
-          error
-        );
+                metadata,
 
-        await Order.findByIdAndUpdate(
-          order._id,
-          {
-            $set: {
-              status:
-                'FAILED'
-            }
+              idempotencyKey:
+                orderReference
+            });
+
+          providerResponse =
+            bitPayResponse;
+
+          providerPaymentId =
+            String(
+              bitPayResponse?.id ||
+              ''
+            );
+
+          providerMethod =
+            bitPayMethod;
+
+          providerRawStatus =
+            String(
+              bitPayResponse?.status ||
+              'PENDING'
+            ).toUpperCase();
+
+          /*
+          ------------------------------------------------------
+          REFERÊNCIA BITPAY
+          ------------------------------------------------------
+          */
+
+          const bitPayReference =
+            bitPayResponse?.reference ||
+            null;
+
+          if (
+            bitPayReference &&
+            typeof bitPayReference ===
+              'object'
+          ) {
+
+            referenceEntity =
+              String(
+                bitPayReference.entity ||
+                bitPayReference.entityNumber ||
+                ''
+              );
+
+            referenceNumber =
+              String(
+                bitPayReference.number ||
+                bitPayReference.referenceNumber ||
+                bitPayReference.reference ||
+                ''
+              );
+
+          } else if (
+            bitPayReference
+          ) {
+
+            referenceNumber =
+              String(
+                bitPayReference
+              );
+
           }
-        );
 
-        return res
-          .status(
-            error?.status >= 400 &&
-            error?.status < 600
-              ? error.status
-              : 503
-          )
-          .json({
+        } catch (
+          error
+        ) {
 
-            success:
-              false,
+          console.error(
+            'BitPay presential createPaymentIntent:',
+            error
+          );
 
-            code:
-              'APPYPAY_PAYMENT_ERROR',
+          await Order.findByIdAndUpdate(
+            order._id,
+            {
+              $set: {
+                status:
+                  'FAILED'
+              }
+            }
+          );
 
-            error:
-              error.message ||
-              'Não foi possível criar a cobrança AppyPay.'
-          });
+          return res
+            .status(
+              error?.status >= 400 &&
+              error?.status < 600
+                ? error.status
+                : 503
+            )
+            .json({
+
+              success:
+                false,
+
+              code:
+                'BITPAY_PAYMENT_ERROR',
+
+              error:
+                error.message ||
+                'Não foi possível criar a cobrança BitPay.'
+            });
+        }
       }
 
       /*
       --------------------------------------------------------
-      PROVIDER DATA
+      APPYPAY
       --------------------------------------------------------
       */
 
-      const providerPaymentId =
-        String(
-          appyPayResponse?.id ||
-          appyPayResponse?.chargeId ||
-          appyPayResponse?.charge_id ||
-          appyPayResponse?.paymentId ||
-          appyPayResponse?.payment_id ||
-          ''
-        );
+      if (
+        provider === 'appypay'
+      ) {
 
-      if (!providerPaymentId) {
+        try {
+
+          providerResponse =
+            await createAppyPayCharge({
+
+              amount:
+                Math.round(
+                  amount
+                ),
+
+              currency:
+                'AOA',
+
+              paymentMethod:
+                paymentMethod,
+
+              merchantTransactionId:
+                orderReference,
+
+              description:
+                description ||
+                title,
+
+              customer: {
+
+                name:
+                  'Cliente presencial',
+
+                email:
+                  '',
+
+                mobile:
+                  customerMobile
+              },
+
+              metadata:
+                metadata
+            });
+
+          providerPaymentId =
+            String(
+              providerResponse?.id ||
+              providerResponse?.chargeId ||
+              providerResponse?.charge_id ||
+              providerResponse?.paymentId ||
+              providerResponse?.payment_id ||
+              ''
+            );
+
+          providerRawStatus =
+            String(
+              providerResponse?.status ||
+              providerResponse?.responseStatus?.status ||
+              'PENDING'
+            ).toUpperCase();
+
+          const providerReference =
+            providerResponse?.reference ||
+            providerResponse?.multicaixa_reference ||
+            null;
+
+          referenceEntity =
+            providerReference?.entity ||
+            providerResponse?.entity ||
+            '';
+
+          referenceNumber =
+            providerReference?.number ||
+            providerReference?.reference ||
+            providerResponse?.reference_number ||
+            providerResponse?.number ||
+            '';
+
+          checkoutUrl =
+            providerResponse?.checkout_url ||
+            providerResponse?.checkoutUrl ||
+            providerResponse?.url ||
+            '';
+
+          providerQrCode =
+            providerResponse?.qrCode ||
+            providerResponse?.qr_code ||
+            providerResponse?.qr ||
+            '';
+
+        } catch (
+          error
+        ) {
+
+          console.error(
+            'AppyPay presential createCharge:',
+            error
+          );
+
+          await Order.findByIdAndUpdate(
+            order._id,
+            {
+              $set: {
+                status:
+                  'FAILED'
+              }
+            }
+          );
+
+          return res
+            .status(
+              error?.status >= 400 &&
+              error?.status < 600
+                ? error.status
+                : 503
+            )
+            .json({
+
+              success:
+                false,
+
+              code:
+                'APPYPAY_PAYMENT_ERROR',
+
+              error:
+                error.message ||
+                'Não foi possível criar a cobrança AppyPay.'
+            });
+        }
+      }
+
+      /*
+      --------------------------------------------------------
+      PROVIDER ID OBRIGATÓRIO
+      --------------------------------------------------------
+      */
+
+      if (
+        !providerPaymentId
+      ) {
 
         await Order.findByIdAndUpdate(
           order._id,
@@ -5142,89 +5500,41 @@ app.post(
               false,
 
             code:
-              'APPYPAY_ID_MISSING',
+              'PROVIDER_ID_MISSING',
 
             error:
-              'A AppyPay não devolveu o identificador da cobrança.'
+              `O gateway ${provider} não devolveu o identificador da cobrança.`
           });
       }
 
       /*
       --------------------------------------------------------
-      REFERÊNCIA
+      STATUS LOCAL
       --------------------------------------------------------
       */
-
-      const providerReference =
-        appyPayResponse?.reference ||
-        appyPayResponse?.multicaixa_reference ||
-        null;
-
-      const referenceEntity =
-        providerReference?.entity ||
-        appyPayResponse?.entity ||
-        '';
-
-      const referenceNumber =
-        providerReference?.number ||
-        providerReference?.reference ||
-        appyPayResponse?.reference_number ||
-        appyPayResponse?.number ||
-        '';
-
-      /*
-      --------------------------------------------------------
-      CHECKOUT / QR
-      --------------------------------------------------------
-      */
-
-      const checkoutUrl =
-        appyPayResponse?.checkout_url ||
-        appyPayResponse?.checkoutUrl ||
-        appyPayResponse?.url ||
-        '';
-
-      const providerQrCode =
-        appyPayResponse?.qrCode ||
-        appyPayResponse?.qr_code ||
-        appyPayResponse?.qr ||
-        '';
-
-      /*
-      --------------------------------------------------------
-      STATUS
-      --------------------------------------------------------
-      */
-
-      const rawStatus =
-        String(
-          appyPayResponse?.status ||
-          appyPayResponse?.responseStatus?.status ||
-          'PENDING'
-        ).toUpperCase();
 
       const localStatus =
         (
-          rawStatus ===
+          providerRawStatus ===
             'PAID' ||
 
-          rawStatus ===
+          providerRawStatus ===
             'SUCCESS' ||
 
-          rawStatus ===
+          providerRawStatus ===
             'SUCCEEDED'
         )
 
           ? 'PAID'
 
           : (
-              rawStatus ===
+              providerRawStatus ===
                 'FAILED' ||
 
-              rawStatus ===
+              providerRawStatus ===
                 'REJECTED' ||
 
-              rawStatus ===
+              providerRawStatus ===
                 'CANCELLED'
             )
 
@@ -5254,17 +5564,15 @@ app.post(
             orderReference,
 
           provider:
-            'appypay',
+            provider,
 
           providerPaymentId:
-
             providerPaymentId,
 
           providerMethod:
-            paymentMethod,
+            providerMethod,
 
           paymentMethod:
-
             paymentMethod,
 
           amount:
@@ -5287,7 +5595,7 @@ app.post(
             localStatus,
 
           providerRawStatus:
-            rawStatus,
+            providerRawStatus,
 
           providerReferenceEntity:
             referenceEntity,
@@ -5302,7 +5610,7 @@ app.post(
             providerQrCode,
 
           providerResponse:
-            appyPayResponse,
+            providerResponse,
 
           metadata:
             metadata
@@ -5339,6 +5647,7 @@ app.post(
           order._id,
           {
             $set: {
+
               status:
                 'PAYMENT_PROCESSING'
             }
@@ -5387,7 +5696,7 @@ app.post(
               payment.paymentMethod,
 
             provider:
-              'appypay',
+              payment.provider,
 
             providerPaymentId:
               payment.providerPaymentId,
