@@ -85,9 +85,13 @@ const APPYPAY_TOKEN_URL =
   process.env.APPYPAY_TOKEN_URL ||
   (
     APPYPAY_ENV === 'production'
-      ? 'https://gwy-api.appypay.co.ao/connect/token'
-      : 'https://gwy-api-tst.appypay.co.ao/connect/token'
+      ? 'https://login.microsoftonline.com/appypay.onmicrosoft.com/oauth2/token'
+      : 'https://login.microsoftonline.com/appypaydev.onmicrosoft.com/oauth2/token'
   );
+
+const APPYPAY_RESOURCE =
+  process.env.APPYPAY_RESOURCE ||
+  '2aed7612-de64-46b5-9e59-1f48f8902d14';
 
 /*
  * Cache do Access Token.
@@ -348,172 +352,60 @@ async function fetchWithTimeout(
  * ============================================================
  */
 
-async function getAccessToken(
-  forceRefresh = false
-) {
-
-  assertConfigured();
-
-  const now =
-    Date.now();
-
-  /*
-   * Mantemos uma margem de segurança de 60 segundos.
-   */
-
-  if (
-    !forceRefresh &&
-    accessTokenCache.token &&
-    accessTokenCache.expiresAt >
-      now + 60000
-  ) {
-
-    return accessTokenCache.token;
+async function getAccessToken(forceRefresh = false) {
+  if (!forceRefresh && tokenCache.accessToken && tokenCache.expiresAt > Date.now() + 60_000) {
+    return tokenCache.accessToken;
   }
 
-  /*
-   * Se outro pedido já está obtendo o token,
-   * reutilizamos a mesma Promise.
-   */
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: APPYPAY_CLIENT_ID,
+    client_secret: APPYPAY_CLIENT_SECRET,
+    resource: APPYPAY_RESOURCE
+  });
 
-  if (
-    tokenRequestPromise
-  ) {
+  const response = await fetch(APPYPAY_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
+    },
+    body: body.toString()
+  });
 
-    return tokenRequestPromise;
-  }
+  const text = await response.text();
 
-  tokenRequestPromise =
-    (async () => {
-
-      const credentials =
-        Buffer.from(
-          `${APPYPAY_CLIENT_ID}:${APPYPAY_CLIENT_SECRET}`
-        ).toString(
-          'base64'
-        );
-
-      const response =
-        await fetchWithTimeout(
-          APPYPAY_TOKEN_URL,
-          {
-            method:
-              'POST',
-
-            headers: {
-              Accept:
-                'application/json',
-
-              'Content-Type':
-                'application/x-www-form-urlencoded',
-
-              Authorization:
-                `Basic ${credentials}`
-            },
-
-            body:
-              new URLSearchParams({
-                grant_type:
-                  'client_credentials'
-              }).toString()
-          }
-        );
-
-      const text =
-        await response.text();
-
-      let data = null;
-
-      try {
-
-        data =
-          text
-            ? JSON.parse(text)
-            : null;
-
-      } catch {
-
-        data = {
-          raw: text
-        };
-      }
-
-      if (
-        !response.ok
-      ) {
-
-        const error =
-          new Error(
-            data?.error_description ||
-            data?.message ||
-            data?.error ||
-            `AppyPay OAuth HTTP ${response.status}`
-          );
-
-        error.status =
-          response.status;
-
-        error.providerResponse =
-          data;
-
-        throw error;
-      }
-
-      const token =
-        data?.access_token ||
-        data?.accessToken ||
-        null;
-
-      if (
-        !token
-      ) {
-
-        const error =
-          new Error(
-            'A AppyPay não devolveu um access_token.'
-          );
-
-        error.providerResponse =
-          data;
-
-        throw error;
-      }
-
-      const expiresIn =
-        Number(
-          data?.expires_in ||
-          data?.expiresIn ||
-          3600
-        );
-
-      accessTokenCache = {
-
-        token,
-
-        expiresAt:
-          Date.now() +
-          (
-            Math.max(
-              expiresIn,
-              60
-            ) *
-            1000
-          )
-      };
-
-      return token;
-
-    })();
+  let data;
 
   try {
-
-    return await tokenRequestPromise;
-
-  } finally {
-
-    tokenRequestPromise =
-      null;
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
   }
+
+  if (!response.ok) {
+    throw new Error(
+      `Falha na autenticação AppyPay (${response.status}): ${
+        data?.error_description ||
+        data?.error ||
+        data?.message ||
+        'resposta inválida'
+      }`
+    );
+  }
+
+  if (!data.access_token) {
+    throw new Error('A AppyPay não devolveu access_token.');
+  }
+
+  const expiresIn = Number(data.expires_in || 3600);
+
+  tokenCache = {
+    accessToken: data.access_token,
+    expiresAt: Date.now() + Math.max(expiresIn - 60, 60) * 1000
+  };
+
+  return tokenCache.accessToken;
 }
 
 /*
