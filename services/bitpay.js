@@ -335,7 +335,48 @@ async function createPaymentIntent({
 
   return extractPaymentIntent(response);
 }
+async function createQRCode({
+  amount,
+  description = 'Pagamento Honey Pay'
+}) {
+  const normalizedAmount =
+    normalizeAmount(amount);
 
+  const response =
+    await request(
+      '/qr_codes',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: normalizedAmount,
+          description:
+            String(
+              description ||
+              'Pagamento Honey Pay'
+            ).slice(0, 255)
+        })
+      }
+    );
+
+  return {
+    qrCode:
+      response?.qr_code ||
+      response?.qrCode ||
+      response?.svg ||
+      response?.data ||
+      response?.raw ||
+      '',
+
+    url:
+      response?.url ||
+      response?.payment_url ||
+      response?.paymentUrl ||
+      '',
+
+    providerResponse:
+      response
+  };
+}
 async function getPaymentIntent(paymentIntentId) {
   if (!paymentIntentId) {
     throw new Error(
@@ -412,6 +453,7 @@ module.exports = {
   isConfigured,
   createPaymentIntent,
   getPaymentIntent,
+    createQRCode,
   cancelPaymentIntent,
   createRefund,
 
