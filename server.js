@@ -96,6 +96,14 @@ const {
   createCharge: createAppyPayCharge,
   getCharge: getAppyPayCharge
 } = require('./services/appypay');
+const {
+  PAYMENT_METHODS: BITPAY_PAYMENT_METHODS,
+  normalizePaymentMethod: normalizeBitPayPaymentMethod,
+  isConfigured: isBitPayConfigured,
+  createPaymentIntent: createBitPayPaymentIntent,
+  getPaymentIntent: getBitPayPaymentIntent,
+  cancelPaymentIntent: cancelBitPayPaymentIntent
+} = require('./services/bitpay');
 /* =========================================================
    APP
 ========================================================= */
@@ -1121,10 +1129,10 @@ const MerchantSchema =
     'appypay',
 
   enum: [
-    'appypay'
+    'appypay',
+    'bitpay'
   ]
 },
-
       providerAccountRef: {
         type:
           String,
@@ -1541,16 +1549,20 @@ const PaymentSchema =
       },
 
       provider: {
-        type:
-          String,
-        enum: [
-          'appypay'
-        ],
-        default:
-          'appypay',
-        index:
-          true
-      },
+  type:
+    String,
+
+  enum: [
+    'appypay',
+    'bitpay'
+  ],
+
+  default:
+    'appypay',
+
+  index:
+    true
+},
 
       providerPaymentId: {
         type:
