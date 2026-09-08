@@ -6878,7 +6878,61 @@ app.get(
     });
   }
 );
+/* =========================================================
+   BITPAY STATUS
+   ========================================================= */
 
+app.get(
+  '/api/bitpay/status',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      return res.json({
+        success: true,
+
+        provider: 'bitpay',
+
+        enabled:
+          isBitPayConfigured(),
+
+        environment:
+          process.env.BITPAY_ENV ||
+          'sandbox',
+
+        apiUrl:
+          process.env.BITPAY_API_URL ||
+          (
+            String(
+              process.env.BITPAY_ENV ||
+              'sandbox'
+            ).toLowerCase() ===
+            'production'
+              ? 'https://api.bitpay.ao/v1'
+              : 'https://api-sandbox.bitpay.ao/v1'
+          ),
+
+        webhookConfigured:
+          Boolean(
+            process.env.BITPAY_WEBHOOK_SECRET
+          ),
+
+        methods: [
+          'multicaixa_express',
+          'multicaixa_reference'
+        ]
+      });
+
+    }
+  )
+);
 /* =========================================================
    PUBLIC CHECKOUT
 ========================================================= */
