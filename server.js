@@ -101,8 +101,9 @@ const {
   normalizePaymentMethod: normalizeBitPayPaymentMethod,
   isConfigured: isBitPayConfigured,
   createPaymentIntent: createBitPayPaymentIntent,
-  getPaymentIntent: getBitPayPaymentIntent,
-  cancelPaymentIntent: cancelBitPayPaymentIntent
+createQRCode: createBitPayQRCode,
+getPaymentIntent: getBitPayPaymentIntent,
+cancelPaymentIntent: cancelBitPayPaymentIntent
 } = require('./services/bitpay');
 /* =========================================================
    APP
@@ -5295,6 +5296,52 @@ app.post(
 
           }
 
+                 /*
+          ------------------------------------------------------
+          QR CODE HONEY PAY
+          ------------------------------------------------------
+          */
+
+          try {
+            const qrResponse =
+              await createBitPayQRCode({
+                amount:
+                  Math.round(
+                    amount
+                  ),
+
+                description:
+                  description ||
+                  title
+              });
+
+            providerQrCode =
+              qrResponse?.qrCode ||
+              '';
+
+            if (
+              qrResponse?.url
+            ) {
+              checkoutUrl =
+                qrResponse.url;
+            }
+
+          } catch (
+            qrError
+          ) {
+            /*
+             * O QR é complementar.
+             * Se a cobrança principal foi criada,
+             * não devemos destruir a cobrança só porque
+             * o QR falhou.
+             */
+
+            console.warn(
+              'Honey Pay: QR Code não disponível:',
+              qrError?.message ||
+              qrError
+            );
+          }
         } catch (
           error
         ) {
@@ -5735,6 +5782,231 @@ app.post(
               )
           }
         });
+    }
+  )
+);
+/* =========================================================
+   HONEY PAY — ESTADO DA COBRANÇA PRESENCIAL
+   ========================================================= */
+
+app.get(
+  '/api/merchant/payments/presential/:paymentId',
+
+  authenticate,
+
+  requireMerchant,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const payment =
+        await Payment.findOne({
+          _id:
+            req.params.paymentId,
+
+          merchantId:
+            req.merchantId
+        });
+
+      if (!payment) {
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Cobrança não encontrada.'
+          });
+      }
+
+      /*
+      --------------------------------------------------------
+      SE FOR BITPAY, CONSULTAMOS O ESTADO REAL
+      --------------------------------------------------------
+      */
+
+      if (
+        payment.provider ===
+          'bitpay' &&
+        payment.providerPaymentId
+      ) {
+
+        const currentStatus =
+          String(
+            payment.providerRawStatus ||
+            ''
+          ).toUpperCase();
+
+        const terminalStates = [
+          'SUCCEEDED',
+          'FAILED',
+          'EXPIRED',
+          'CANCELLED',
+          'REFUNDED'
+        ];
+
+        if (
+          !terminalStates.includes(
+            currentStatus
+          )
+        ) {
+
+          try {
+
+            const intent =
+              await getBitPayPaymentIntent(
+                payment.providerPaymentId
+              );
+
+            const rawStatus =
+              String(
+                intent?.status ||
+                'PENDING'
+              ).toUpperCase();
+
+            let localStatus =
+              'PROCESSING';
+
+            if (
+              rawStatus ===
+                'SUCCEEDED'
+            ) {
+              localStatus =
+                'PAID';
+            }
+
+            if (
+              [
+                'FAILED',
+                'EXPIRED',
+                'CANCELLED'
+              ].includes(
+                rawStatus
+              )
+            ) {
+              localStatus =
+                'FAILED';
+            }
+
+            payment.providerRawStatus =
+              rawStatus;
+
+            payment.status =
+              localStatus;
+
+            payment.providerResponse =
+              intent?.providerResponse ||
+              intent;
+
+            if (
+              localStatus ===
+              'PAID' &&
+              !payment.paidAt
+            ) {
+              payment.paidAt =
+                new Date();
+            }
+
+            await payment.save();
+
+            /*
+            ------------------------------------------------
+            ATUALIZAR ORDER
+            ------------------------------------------------
+            */
+
+            if (
+              payment.orderId
+            ) {
+
+              await Order.findByIdAndUpdate(
+                payment.orderId,
+
+                {
+                  $set: {
+                    status:
+                      localStatus ===
+                      'PAID'
+                        ? 'PAID'
+                        : 'PAYMENT_PROCESSING',
+
+                    ...(localStatus ===
+                    'PAID'
+                      ? {
+                          paidAt:
+                            payment.paidAt ||
+                            new Date()
+                        }
+                      : {})
+                  }
+                }
+              );
+            }
+
+          } catch (
+            providerError
+          ) {
+
+            console.warn(
+              'Honey Pay: não foi possível atualizar o estado BitPay:',
+              providerError?.message ||
+              providerError
+            );
+
+          }
+        }
+      }
+
+      return res.json({
+        success:
+          true,
+
+        payment: {
+          id:
+            String(
+              payment._id
+            ),
+
+          reference:
+            payment.reference,
+
+          status:
+            payment.status,
+
+          providerStatus:
+            payment.providerRawStatus,
+
+          amount:
+            payment.amount,
+
+          currency:
+            payment.currency,
+
+          paymentMethod:
+            payment.paymentMethod,
+
+          multicaixaReference: {
+            entity:
+              payment.providerReferenceEntity,
+
+            number:
+              payment.providerReferenceNumber
+          },
+
+          checkoutUrl:
+            payment.checkoutUrl,
+
+          qrCode:
+            payment.providerQrCode,
+
+          paidAt:
+            payment.paidAt
+        }
+      });
     }
   )
 );
