@@ -3936,58 +3936,130 @@ async function openManualPaymentLinkForm() {
         ====================================================== -->
 
         <div
-          id="inPersonPaymentOptions"
-          class="full"
-          style="display:none;"
+  id="inPersonPaymentOptions"
+  class="full"
+  style="display:none;"
+>
+
+  <div
+    style="
+      padding:16px;
+      border:1px solid #e4e7ec;
+      border-radius:12px;
+      background:#f9fafb;
+    "
+  >
+
+    <strong
+      style="
+        display:block;
+        margin-bottom:6px;
+      "
+    >
+      Cobrança presencial
+    </strong>
+
+    <p
+      style="
+        margin:0 0 16px;
+        color:#667085;
+        font-size:13px;
+        line-height:1.5;
+      "
+    >
+      Crie uma cobrança presencial através da
+      Honey Pay e acompanhe o pagamento em tempo real.
+    </p>
+
+    <div
+      style="
+        display:grid;
+        gap:12px;
+      "
+    >
+
+      <label>
+        <span>
+          Método de pagamento
+        </span>
+
+        <select
+          name="presentialPaymentMethod"
+          id="presentialPaymentMethod"
         >
+          <option value="multicaixa_express">
+            Multicaixa Express
+          </option>
 
-          <div
-            style="
-              padding:14px;
-              border:1px solid #e4e7ec;
-              border-radius:12px;
-              background:#f9fafb;
-            "
-          >
+          <option value="reference">
+            Multicaixa Referência
+          </option>
+        </select>
+      </label>
 
-            <strong
-              style="
-                display:block;
-                margin-bottom:6px;
-              "
-            >
-              Cobrança presencial
-            </strong>
+      <label
+        id="presentialMobileField"
+      >
+        <span>
+          Número do Multicaixa Express
+        </span>
 
-            <p
-              style="
-                margin:0;
-                color:#667085;
-                font-size:13px;
-                line-height:1.5;
-              "
-            >
-              A cobrança presencial será integrada à
-              AppyPay para gerar uma cobrança real e,
-              quando aplicável, o QR Code em tempo real.
-            </p>
+        <input
+          type="tel"
+          name="customerMobile"
+          id="presentialCustomerMobile"
+          inputmode="numeric"
+          autocomplete="tel"
+          placeholder="923000000"
+          maxlength="13"
+        />
 
-            <p
-              style="
-                margin:10px 0 0;
-                color:#667085;
-                font-size:13px;
-                line-height:1.5;
-              "
-            >
-              Esta opção será ativada assim que o
-              endpoint de cobrança presencial AppyPay
-              estiver ligado ao backend.
-            </p>
+        <small
+          style="
+            display:block;
+            margin-top:5px;
+            color:#667085;
+            font-size:12px;
+          "
+        >
+          Introduza o número associado ao Multicaixa Express.
+        </small>
+      </label>
 
-          </div>
+      <div
+        style="
+          padding:12px;
+          border-radius:10px;
+          background:#fff;
+          border:1px solid #eaecf0;
+        "
+      >
+        <strong
+          style="
+            display:block;
+            margin-bottom:4px;
+          "
+        >
+          QR Code
+        </strong>
 
-        </div>
+        <span
+          style="
+            color:#667085;
+            font-size:12px;
+            line-height:1.4;
+          "
+        >
+          Quando disponível, a Honey Pay apresentará
+          o QR Code da cobrança para o cliente.
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
         <!-- =====================================================
              CONTA BANCÁRIA
@@ -4079,6 +4151,35 @@ async function openManualPaymentLinkForm() {
 
   const inPersonOptions =
     $("#inPersonPaymentOptions");
+   const presentialPaymentMethod =
+  $("#presentialPaymentMethod");
+
+const presentialMobileField =
+  $("#presentialMobileField");
+
+function updatePresentialPaymentMethodUI() {
+
+  const method =
+    presentialPaymentMethod?.value ||
+    "multicaixa_express";
+
+  if (
+    presentialMobileField
+  ) {
+    presentialMobileField.style.display =
+      method ===
+      "multicaixa_express"
+        ? ""
+        : "none";
+  }
+}
+
+presentialPaymentMethod?.addEventListener(
+  "change",
+  updatePresentialPaymentMethodUI
+);
+
+updatePresentialPaymentMethodUI();
 
   const bankAccountField =
     $("#bankAccountField");
@@ -4335,7 +4436,385 @@ async function openManualPaymentLinkForm() {
     }
   );
 }
+function showPresentialPaymentResult(
+  payment
+) {
 
+  const amount =
+    formatKz(
+      payment?.amount
+    );
+
+  const method =
+    payment?.paymentMethod ===
+    "multicaixa_express"
+      ? "Multicaixa Express"
+      : "Multicaixa Referência";
+
+  const qrCode =
+    payment?.qrCode ||
+    "";
+
+  const reference =
+    payment?.multicaixaReference ||
+    {};
+
+  const entity =
+    reference.entity ||
+    "";
+
+  const number =
+    reference.number ||
+    "";
+
+  const status =
+    String(
+      payment?.status ||
+      "PROCESSING"
+    ).toUpperCase();
+
+  const overlay =
+    $("#modalOverlay");
+
+  const modalElement =
+    $("#modal");
+
+  if (
+    !overlay ||
+    !modalElement
+  ) {
+    return;
+  }
+
+  modalElement.innerHTML = `
+    <div
+      style="
+        padding:24px;
+        max-width:520px;
+        width:100%;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          margin-bottom:18px;
+        "
+      >
+
+        <div>
+          <strong
+            style="
+              font-size:18px;
+            "
+          >
+            Cobrança Honey Pay
+          </strong>
+
+          <div
+            style="
+              margin-top:4px;
+              color:#667085;
+              font-size:13px;
+            "
+          >
+            ${escapeHTML(method)}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn secondary"
+          data-close-modal
+        >
+          Fechar
+        </button>
+
+      </div>
+
+      <div
+        style="
+          text-align:center;
+          padding:18px;
+          border:1px solid #eaecf0;
+          border-radius:14px;
+        "
+      >
+
+        <div
+          style="
+            font-size:28px;
+            font-weight:700;
+          "
+        >
+          ${escapeHTML(amount)}
+        </div>
+
+        <div
+          style="
+            margin-top:8px;
+            color:#667085;
+          "
+        >
+          ${escapeHTML(
+            statusLabel(status)
+          )}
+        </div>
+
+        ${
+          qrCode
+            ? `
+              <div
+                style="
+                  margin:20px auto;
+                  max-width:280px;
+                  padding:12px;
+                  background:#fff;
+                  border:1px solid #eaecf0;
+                  border-radius:12px;
+                "
+              >
+                ${
+                  String(qrCode)
+                    .trim()
+                    .startsWith("<svg")
+                    ? qrCode
+                    : `
+                      <img
+                        src="${escapeHTML(qrCode)}"
+                        alt="QR Code Honey Pay"
+                        style="
+                          width:100%;
+                          height:auto;
+                          display:block;
+                        "
+                      />
+                    `
+                }
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          entity ||
+          number
+            ? `
+              <div
+                style="
+                  margin-top:16px;
+                  text-align:left;
+                  padding:14px;
+                  background:#f9fafb;
+                  border-radius:10px;
+                "
+              >
+                <strong>
+                  Referência de pagamento
+                </strong>
+
+                ${
+                  entity
+                    ? `
+                      <div style="margin-top:8px;">
+                        Entidade:
+                        <strong>
+                          ${escapeHTML(entity)}
+                        </strong>
+                      </div>
+                    `
+                    : ""
+                }
+
+                ${
+                  number
+                    ? `
+                      <div style="margin-top:5px;">
+                        Número:
+                        <strong>
+                          ${escapeHTML(number)}
+                        </strong>
+                      </div>
+                    `
+                    : ""
+                }
+              </div>
+            `
+            : ""
+        }
+
+        <div
+          id="presentialPaymentStatusMessage"
+          style="
+            margin-top:18px;
+            font-size:13px;
+            color:#667085;
+          "
+        >
+          Aguardando confirmação do pagamento...
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  overlay.classList.remove(
+    "hidden"
+  );
+
+  overlay.classList.add(
+    "show"
+  );
+
+  overlay
+    .querySelector(
+      "[data-close-modal]"
+    )
+    ?.addEventListener(
+      "click",
+      closeModal
+    );
+}
+async function monitorPresentialPayment(
+  paymentId
+) {
+
+  if (!paymentId) {
+    return;
+  }
+
+  const terminalStatuses = [
+    "PAID",
+    "FAILED",
+    "EXPIRED",
+    "CANCELLED"
+  ];
+
+  let attempts = 0;
+
+  const maxAttempts = 40;
+
+  const check = async () => {
+
+    attempts += 1;
+
+    try {
+
+      const data =
+        await get(
+          `/merchant/payments/presential/${encodeURIComponent(
+            paymentId
+          )}`,
+          {
+            timeout: 10000
+          }
+        );
+
+      const payment =
+        data?.payment;
+
+      if (!payment) {
+        return;
+      }
+
+      const status =
+        String(
+          payment.status ||
+          ""
+        ).toUpperCase();
+
+      const message =
+        document.querySelector(
+          "#presentialPaymentStatusMessage"
+        );
+
+      if (message) {
+
+        if (
+          status ===
+          "PAID"
+        ) {
+
+          message.textContent =
+            "Pagamento confirmado com sucesso.";
+
+          message.style.color =
+            "#027A48";
+
+        } else if (
+          status ===
+          "FAILED"
+        ) {
+
+          message.textContent =
+            "O pagamento não foi concluído.";
+
+          message.style.color =
+            "#B42318";
+
+        } else {
+
+          message.textContent =
+            "Aguardando confirmação do pagamento...";
+
+        }
+      }
+
+      if (
+        terminalStatuses.includes(
+          status
+        )
+      ) {
+
+        if (
+          status ===
+          "PAID"
+        ) {
+          showToast(
+            "Pagamento confirmado com sucesso.",
+            "success"
+          );
+        }
+
+        return;
+      }
+
+      if (
+        attempts <
+        maxAttempts
+      ) {
+        window.setTimeout(
+          check,
+          3000
+        );
+      }
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        "Honey Pay: erro ao consultar cobrança presencial.",
+        error
+      );
+
+      if (
+        attempts <
+        maxAttempts
+      ) {
+        window.setTimeout(
+          check,
+          5000
+        );
+      }
+    }
+  };
+
+  await check();
+}
 async function openPaymentLinkForm(
   product
 ) {
@@ -4969,16 +5448,151 @@ async function openPaymentLinkForm(
        */
 
       if (
-        collectionMode ===
-        "in_person"
-      ) {
-        showToast(
-          "A cobrança presencial AppyPay será ativada no próximo passo da integração.",
-          "info"
-        );
+  collectionMode ===
+  "in_person"
+) {
 
-        return;
-      }
+  const title =
+    String(
+      formData.get(
+        "title"
+      ) || ""
+    ).trim();
+
+  const description =
+    String(
+      formData.get(
+        "description"
+      ) || ""
+    ).trim();
+
+  const amount =
+    Number(
+      formData.get(
+        "amount"
+      )
+    );
+
+  const paymentMethod =
+    String(
+      formData.get(
+        "presentialPaymentMethod"
+      ) ||
+      "multicaixa_express"
+    ).trim();
+
+  const customerMobile =
+    String(
+      formData.get(
+        "customerMobile"
+      ) ||
+      ""
+    ).trim();
+
+  if (
+    !title
+  ) {
+    showToast(
+      "Indica o título da cobrança.",
+      "error"
+    );
+    return;
+  }
+
+  if (
+    !Number.isFinite(
+      amount
+    ) ||
+    amount <= 0
+  ) {
+    showToast(
+      "Indica um valor válido.",
+      "error"
+    );
+    return;
+  }
+
+  if (
+    paymentMethod ===
+      "multicaixa_express" &&
+    !customerMobile
+  ) {
+    showToast(
+      "Indica o número do Multicaixa Express.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+
+    submitButton.disabled =
+      true;
+
+    submitButton.textContent =
+      "A criar cobrança...";
+
+    const data =
+      await post(
+        "/merchant/payments/presential",
+        {
+          title,
+          description,
+          amount,
+          paymentMethod,
+          customerMobile,
+          provider:
+            "bitpay"
+        }
+      );
+
+    closeModal();
+
+    const payment =
+      data?.payment;
+
+    if (!payment) {
+      throw new Error(
+        "A Honey Pay não recebeu os dados da cobrança."
+      );
+    }
+
+    showPresentialPaymentResult(
+      payment
+    );
+
+    showToast(
+      "Cobrança criada com sucesso.",
+      "success"
+    );
+
+    monitorPresentialPayment(
+      payment.id
+    );
+
+  } catch (
+    error
+  ) {
+
+    showToast(
+      getErrorMessage(
+        error,
+        "Não foi possível criar a cobrança."
+      ),
+      "error"
+    );
+
+  } finally {
+
+    submitButton.disabled =
+      false;
+
+    submitButton.textContent =
+      "Preparar cobrança presencial";
+  }
+
+  return;
+}
 
       const remoteCheckoutMode =
         formData.get(
