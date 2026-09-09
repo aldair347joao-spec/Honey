@@ -3935,127 +3935,172 @@ async function openManualPaymentLinkForm() {
              MODO PRESENCIAL
         ====================================================== -->
 
-        <div
+       <div
   id="inPersonPaymentOptions"
-  class="full"
+  class="full hp-presential-panel"
   style="display:none;"
 >
 
-  <div
-    style="
-      padding:16px;
-      border:1px solid #e4e7ec;
-      border-radius:12px;
-      background:#f9fafb;
-    "
+  <div class="hp-presential-heading">
+
+    <div class="hp-presential-icon">
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/>
+        <path d="M8 7h8"/>
+        <path d="M8 11h3"/>
+        <path d="M8 15h5"/>
+      </svg>
+    </div>
+
+    <div>
+      <strong>Cobrança presencial</strong>
+
+      <p>
+        O cliente está contigo.
+        Escolhe como pretende pagar.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="hp-form-label">
+    Método de pagamento
+  </div>
+
+  <div class="hp-method-grid">
+
+    <button
+      type="button"
+      class="hp-method-card is-active"
+      data-presential-method="multicaixa_express"
+    >
+
+      <span class="hp-method-icon">
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <rect
+            x="5"
+            y="3"
+            width="14"
+            height="18"
+            rx="3"
+          />
+          <path d="M8 7h8"/>
+          <path d="M8 11h5"/>
+          <path d="M8 15h8"/>
+        </svg>
+      </span>
+
+      <span class="hp-method-copy">
+        <strong>Multicaixa Express</strong>
+
+        <small>
+          Pagamento através do Express
+        </small>
+      </span>
+
+      <span class="hp-method-check">
+        ✓
+      </span>
+
+    </button>
+
+    <button
+      type="button"
+      class="hp-method-card"
+      data-presential-method="reference"
+    >
+
+      <span class="hp-method-icon">
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <rect
+            x="5"
+            y="3"
+            width="14"
+            height="18"
+            rx="2"
+          />
+          <path d="M8 8h8"/>
+          <path d="M8 12h8"/>
+          <path d="M8 16h5"/>
+        </svg>
+      </span>
+
+      <span class="hp-method-copy">
+        <strong>Multicaixa Referência</strong>
+
+        <small>
+          Pagamento através de referência
+        </small>
+      </span>
+
+      <span class="hp-method-check">
+        ✓
+      </span>
+
+    </button>
+
+  </div>
+
+  <select
+    name="presentialPaymentMethod"
+    id="presentialPaymentMethod"
+    class="hp-hidden-control"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <option value="multicaixa_express">
+      Multicaixa Express
+    </option>
+
+    <option value="reference">
+      Multicaixa Referência
+    </option>
+  </select>
+
+  <label
+    id="presentialMobileField"
+    class="hp-mobile-field"
   >
 
-    <strong
-      style="
-        display:block;
-        margin-bottom:6px;
-      "
-    >
-      Cobrança presencial
-    </strong>
+    <span>
+      Número do Multicaixa Express
+    </span>
 
-    <p
-      style="
-        margin:0 0 16px;
-        color:#667085;
-        font-size:13px;
-        line-height:1.5;
-      "
-    >
-      Crie uma cobrança presencial através da
-      Honey Pay e acompanhe o pagamento em tempo real.
-    </p>
+    <input
+      type="tel"
+      name="customerMobile"
+      id="presentialCustomerMobile"
+      inputmode="numeric"
+      autocomplete="tel"
+      placeholder="923 000 000"
+      maxlength="13"
+    />
 
-    <div
-      style="
-        display:grid;
-        gap:12px;
-      "
-    >
+    <small>
+      Número associado ao Multicaixa Express.
+    </small>
 
-      <label>
-        <span>
-          Método de pagamento
-        </span>
+  </label>
 
-        <select
-          name="presentialPaymentMethod"
-          id="presentialPaymentMethod"
-        >
-          <option value="multicaixa_express">
-            Multicaixa Express
-          </option>
+  <div class="hp-secure-note">
 
-          <option value="reference">
-            Multicaixa Referência
-          </option>
-        </select>
-      </label>
+    <span class="hp-secure-icon">
+      ✓
+    </span>
 
-      <label
-        id="presentialMobileField"
-      >
-        <span>
-          Número do Multicaixa Express
-        </span>
-
-        <input
-          type="tel"
-          name="customerMobile"
-          id="presentialCustomerMobile"
-          inputmode="numeric"
-          autocomplete="tel"
-          placeholder="923000000"
-          maxlength="13"
-        />
-
-        <small
-          style="
-            display:block;
-            margin-top:5px;
-            color:#667085;
-            font-size:12px;
-          "
-        >
-          Introduza o número associado ao Multicaixa Express.
-        </small>
-      </label>
-
-      <div
-        style="
-          padding:12px;
-          border-radius:10px;
-          background:#fff;
-          border:1px solid #eaecf0;
-        "
-      >
-        <strong
-          style="
-            display:block;
-            margin-bottom:4px;
-          "
-        >
-          QR Code
-        </strong>
-
-        <span
-          style="
-            color:#667085;
-            font-size:12px;
-            line-height:1.4;
-          "
-        >
-          Quando disponível, a Honey Pay apresentará
-          o QR Code da cobrança para o cliente.
-        </span>
-      </div>
-
-    </div>
+    <span>
+      A cobrança será criada pela Honey Pay
+      e acompanhada em tempo real.
+    </span>
 
   </div>
 
