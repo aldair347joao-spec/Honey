@@ -4083,9 +4083,9 @@ select {
 
 .modal {
   width: min(100%, 540px);
-
   max-width: 540px;
-  max-height: min(86vh, 700px);
+
+  max-height: min(86dvh, 700px);
 
   overflow: hidden;
 
@@ -4104,70 +4104,104 @@ select {
   animation: hp-modal-in .25s ease both;
 }
 
-/*
- * O conteúdo do resultado pode fazer scroll,
- * mas o cartão branco nunca deve crescer para
- * ocupar a viewport inteira.
- */
+/* ---------------------------------------------------------
+   MODAL BODY
+   --------------------------------------------------------- */
+
 .modal > .modal-body {
-  max-height: calc(min(86vh, 700px) - 1px);
+  min-width: 0;
+  max-height: calc(min(86dvh, 700px) - 78px);
+
   overflow-y: auto;
   overflow-x: hidden;
+
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
-/*
- * Resultados que não usam .modal-body,
- * como a cobrança presencial criada diretamente
- * pelo showPresentialPaymentResult().
- */
-.modal > div {
-  max-width: 100%;
-}
-
-@media (max-width: 640px) {
-
-  .modal {
-    width: calc(100vw - 28px);
-    max-width: 430px;
-    max-height: calc(100dvh - 28px);
-
-    border-radius: 18px;
-  }
-
-  .modal > .modal-body {
-    max-height: calc(100dvh - 29px);
-  }
-}
-
-@media (max-width: 380px) {
-
-  .modal {
-    width: calc(100vw - 20px);
-    max-width: 360px;
-  }
-}
 /* ---------------------------------------------------------
-   HONEY PAY — QR PRESENCIAL
+   RESULTADO PRESENCIAL
+   --------------------------------------------------------- */
+
+.modal.honey-presential-result-modal {
+  width: min(100%, 390px);
+  max-width: 390px;
+
+  max-height: min(88dvh, 640px);
+
+  border-radius: 20px;
+}
+
+.modal.honey-presential-result-modal
+.modal-body {
+  max-height: calc(min(88dvh, 640px) - 70px);
+
+  padding: 18px 20px 22px;
+
+  overflow-y: auto;
+}
+
+/* ---------------------------------------------------------
+   CONTEÚDO DA COBRANÇA
+   --------------------------------------------------------- */
+
+.honey-presential-result {
+  width: 100%;
+
+  text-align: center;
+}
+
+/* Método */
+.honey-presential-method {
+  color: #667085;
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+/* Valor */
+.honey-presential-amount {
+  margin-top: 5px;
+
+  color: #101828;
+
+  font-family: var(--hp-heading);
+  font-size: 27px;
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: -.035em;
+}
+
+/* Estado inicial */
+.honey-presential-status {
+  margin-top: 7px;
+
+  color: #667085;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* ---------------------------------------------------------
+   QR
    --------------------------------------------------------- */
 
 .honey-presential-qr {
   width: 100%;
 
-  margin: 18px auto 4px;
+  margin: 16px auto 0;
 
   display: flex;
   justify-content: center;
 }
 
 .honey-presential-qr-frame {
-  width: 248px;
-  height: 248px;
+  width: 238px;
+  height: 238px;
 
-  max-width: 100%;
-  max-height: 248px;
+  flex: 0 0 238px;
 
-  padding: 12px;
+  padding: 9px;
 
   display: flex;
   align-items: center;
@@ -4175,16 +4209,27 @@ select {
 
   overflow: hidden;
 
-  border: 1px solid #eaecf0;
-  border-radius: 14px;
+  border: 1px solid #e4e7ec;
+  border-radius: 15px;
 
   background: #ffffff;
 
   box-shadow:
-    0 6px 18px rgba(16,24,40,.06);
+    0 7px 22px rgba(16,24,40,.07);
 }
 
-.honey-presential-qr img,
+.honey-presential-qr img {
+  display: block;
+
+  width: 220px;
+  height: 220px;
+
+  max-width: 220px;
+  max-height: 220px;
+
+  object-fit: contain;
+}
+
 .honey-presential-qr-svg {
   width: 220px;
   height: 220px;
@@ -4195,8 +4240,6 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  object-fit: contain;
 }
 
 .honey-presential-qr-svg svg {
@@ -4208,22 +4251,114 @@ select {
   max-width: 220px !important;
   max-height: 220px !important;
 
-  object-fit: contain;
+  overflow: hidden;
 }
+
+/* ---------------------------------------------------------
+   REFERÊNCIA
+   --------------------------------------------------------- */
+
+.honey-presential-reference {
+  margin-top: 14px;
+
+  padding: 12px 13px;
+
+  text-align: left;
+
+  border: 1px solid #eaecf0;
+  border-radius: 11px;
+
+  color: #475467;
+  background: #f9fafb;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.honey-presential-reference > strong {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #101828;
+
+  font-size: 11px;
+}
+
+.honey-presential-reference div + div {
+  margin-top: 3px;
+}
+
+.honey-presential-reference div strong {
+  color: #101828;
+}
+
+/* ---------------------------------------------------------
+   ESTADO EM TEMPO REAL
+   --------------------------------------------------------- */
+
+.honey-presential-status-message {
+  margin-top: 14px;
+
+  color: #667085;
+
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
 
 @media (max-width: 640px) {
 
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    width: calc(100vw - 24px);
+    max-width: 540px;
+
+    max-height: calc(100dvh - 24px);
+  }
+
+  .modal > .modal-body {
+    max-height: calc(100dvh - 96px);
+  }
+
+  .modal.honey-presential-result-modal {
+    width: min(
+      calc(100vw - 24px),
+      390px
+    );
+
+    max-height: calc(100dvh - 24px);
+  }
+
+  .modal.honey-presential-result-modal
+  .modal-body {
+    max-height: calc(100dvh - 94px);
+
+    padding: 16px 15px 18px;
+  }
+
+  .honey-presential-amount {
+    font-size: 25px;
+  }
+
   .honey-presential-qr {
-    margin-top: 15px;
+    margin-top: 14px;
   }
 
   .honey-presential-qr-frame {
-    width: 232px;
-    height: 232px;
+    width: 226px;
+    height: 226px;
 
-    max-height: 232px;
+    flex-basis: 226px;
 
-    padding: 10px;
+    padding: 8px;
   }
 
   .honey-presential-qr img,
@@ -4246,28 +4381,34 @@ select {
 
 @media (max-width: 380px) {
 
-  .honey-presential-qr-frame {
-    width: 214px;
-    height: 214px;
+  .modal.honey-presential-result-modal {
+    width: calc(100vw - 18px);
+  }
 
-    max-height: 214px;
+  .honey-presential-qr-frame {
+    width: 210px;
+    height: 210px;
+
+    flex-basis: 210px;
+
+    padding: 7px;
   }
 
   .honey-presential-qr img,
   .honey-presential-qr-svg {
-    width: 192px;
-    height: 192px;
+    width: 196px;
+    height: 196px;
 
-    max-width: 192px;
-    max-height: 192px;
+    max-width: 196px;
+    max-height: 196px;
   }
 
   .honey-presential-qr-svg svg {
-    width: 192px !important;
-    height: 192px !important;
+    width: 196px !important;
+    height: 196px !important;
 
-    max-width: 192px !important;
-    max-height: 192px !important;
+    max-width: 196px !important;
+    max-height: 196px !important;
   }
 }
 /* ---------------------------------------------------------
@@ -5178,12 +5319,6 @@ select {
 
   .modal-overlay {
     padding: 12px;
-  }
-
-  .modal {
-    max-height: 94vh;
-    padding: 18px;
-    border-radius: 16px;
   }
 
   #toastContainer {
