@@ -4775,39 +4775,35 @@ function showPresentialPaymentResult(
         </div>
 
         ${
-          qrCode
-            ? `
-              <div
-                style="
-                  margin:20px auto;
-                  max-width:280px;
-                  padding:12px;
-                  background:#fff;
-                  border:1px solid #eaecf0;
-                  border-radius:12px;
-                "
-              >
-                ${
-                  String(qrCode)
-                    .trim()
-                    .startsWith("<svg")
-                    ? qrCode
-                    : `
-                      <img
-                        src="${escapeHTML(qrCode)}"
-                        alt="QR Code Honey Pay"
-                        style="
-                          width:100%;
-                          height:auto;
-                          display:block;
-                        "
-                      />
-                    `
-                }
-              </div>
-            `
-            : ""
-        }
+  qrCode
+    ? `
+      <div
+        class="honey-presential-qr"
+      >
+        <div
+          class="honey-presential-qr-frame"
+        >
+          ${
+            String(qrCode)
+              .trim()
+              .startsWith("<svg")
+              ? `
+                <div class="honey-presential-qr-svg">
+                  ${qrCode}
+                </div>
+              `
+              : `
+                <img
+                  src="${escapeHTML(qrCode)}"
+                  alt="QR Code Honey Pay"
+                />
+              `
+          }
+        </div>
+      </div>
+    `
+    : ""
+}
 
         ${
           entity ||
