@@ -7446,17 +7446,23 @@ function openModal(
    * Resultados de link/QR não entram aqui.
    */
   const form =
-    modal.querySelector("form");
+  modal.querySelector("form");
 
-  if (form) {
+if (form) {
+  modal.classList.add(
+    "honey-form-modal"
+  );
+
+  form.classList.add(
+    "honey-form"
+  );
+
+  if (form.id) {
     modal.classList.add(
-      "honey-form-modal"
-    );
-
-    form.classList.add(
-      "honey-form"
+      `honey-${form.id}-modal`
     );
   }
+}
 
   modalOverlay.classList.remove(
     "hidden"
