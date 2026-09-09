@@ -7311,21 +7311,30 @@ function openModal(
     return;
   }
 
+  /*
+   * Remove qualquer estado visual anterior.
+   * Isto é importante porque o mesmo modal é reutilizado
+   * para formulários, resultados, QR Code, etc.
+   */
+  modal.classList.remove(
+    "honey-form-modal"
+  );
+
+  modal.classList.remove(
+    "honey-result-modal"
+  );
+
   modal.innerHTML = `
     <div class="modal-header">
 
       <div>
-
         <span class="eyebrow">
           Honey Pay
         </span>
 
         <h3>
-          ${escapeHTML(
-            title
-          )}
+          ${escapeHTML(title)}
         </h3>
-
       </div>
 
       <button
@@ -7343,6 +7352,25 @@ function openModal(
       ${content}
     </div>
   `;
+
+  /*
+   * Se o modal contém um formulário,
+   * aplicamos a identidade visual Honey Pay.
+   *
+   * Resultados de link/QR não entram aqui.
+   */
+  const form =
+    modal.querySelector("form");
+
+  if (form) {
+    modal.classList.add(
+      "honey-form-modal"
+    );
+
+    form.classList.add(
+      "honey-form"
+    );
+  }
 
   modalOverlay.classList.remove(
     "hidden"
@@ -7367,7 +7395,6 @@ function openModal(
       );
     });
 }
-
 function closeModal() {
   if (!modalOverlay) {
     return;
@@ -7386,8 +7413,15 @@ function closeModal() {
   );
 
   if (modal) {
-    modal.innerHTML = "";
-  }
+  modal.classList.remove(
+    "honey-form-modal"
+  );
+
+  modal.classList.remove(
+    "honey-result-modal"
+  );
+
+  modal.innerHTML = "";
 }
 
 function setupModal() {
