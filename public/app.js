@@ -7499,17 +7499,18 @@ function closeModal() {
   );
 
   if (modal) {
-  modal.classList.remove(
-    "honey-form-modal"
-  );
+    modal.classList.remove(
+      "honey-form-modal"
+    );
 
-  modal.classList.remove(
-    "honey-result-modal"
-  );
+    modal.classList.remove(
+      "honey-result-modal"
+    );
 
-  modal.innerHTML = "";
+    modal.innerHTML = "";
+  }
 }
-       }
+
 function setupModal() {
   modalOverlay?.addEventListener(
     "click",
