@@ -3095,7 +3095,499 @@ textarea:disabled {
   pointer-events: none;
 }
 
+/* =========================================================
+   HONEY PAY — EXTERNAL FORM SYSTEM
+   Formulários de criação fora do Dashboard
+   ========================================================= */
 
+.modal.honey-form-modal {
+  width: min(100%, 620px);
+  max-height: min(92vh, 820px);
+
+  padding: 0;
+
+  overflow: hidden;
+
+  color: #f8fafc;
+
+  background:
+    radial-gradient(
+      700px 300px at 100% 0%,
+      rgba(244, 193, 55, .10),
+      transparent 60%
+    ),
+    linear-gradient(
+      145deg,
+      #111925 0%,
+      #0c131e 48%,
+      #080e17 100%
+    );
+
+  border: 1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 35px 100px rgba(0,0,0,.48),
+    0 10px 35px rgba(0,0,0,.28);
+}
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.modal.honey-form-modal .modal-header {
+  position: relative;
+
+  margin: 0;
+  padding: 24px 26px 20px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.07);
+}
+
+.modal.honey-form-modal
+.modal-header .eyebrow {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #f4c137;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.modal.honey-form-modal
+.modal-header h3 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.modal.honey-form-modal
+.modal-close {
+  width: 36px;
+  height: 36px;
+
+  color: #aeb9c8;
+
+  background: rgba(255,255,255,.045);
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius: 10px;
+
+  font-size: 20px;
+
+  transition:
+    background .18s ease,
+    color .18s ease,
+    transform .18s ease;
+}
+
+.modal.honey-form-modal
+.modal-close:hover {
+  color: #ffffff;
+
+  background:
+    rgba(255,255,255,.09);
+
+  transform: rotate(2deg);
+}
+
+/* =========================================================
+   CORPO
+   ========================================================= */
+
+.modal.honey-form-modal .modal-body {
+  padding: 25px 26px 26px;
+
+  overflow-y: auto;
+}
+
+/* =========================================================
+   FORM GRID
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 19px 15px;
+}
+
+.modal.honey-form-modal
+.honey-form > .full {
+  grid-column: 1 / -1;
+}
+
+/* =========================================================
+   LABELS
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form > label,
+.modal.honey-form-modal
+.honey-form > .form-group {
+  min-width: 0;
+
+  color: #d8e0eb;
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.modal.honey-form-modal
+.honey-form > label > span,
+.modal.honey-form-modal
+.honey-form > .form-group > span,
+.modal.honey-form-modal
+.honey-form > .form-group > label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #dbe4ef;
+
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .01em;
+}
+
+/* =========================================================
+   INPUTS GRANDES
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form
+input:not([type="checkbox"]):not([type="radio"]),
+.modal.honey-form-modal
+.honey-form
+select,
+.modal.honey-form-modal
+.honey-form
+textarea {
+  width: 100%;
+
+  min-height: 52px;
+
+  box-sizing: border-box;
+
+  padding: 0 15px;
+
+  color: #ffffff;
+
+  background:
+    rgba(255,255,255,.055);
+
+  border:
+    1px solid rgba(255,255,255,.12);
+
+  border-radius: 12px;
+
+  outline: none;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025);
+
+  font-family: inherit;
+
+  font-size: 15px;
+  font-weight: 550;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+.modal.honey-form-modal
+.honey-form
+input:not([type="checkbox"]):not([type="radio"]):hover,
+.modal.honey-form-modal
+.honey-form
+select:hover,
+.modal.honey-form-modal
+.honey-form
+textarea:hover {
+  background:
+    rgba(255,255,255,.07);
+
+  border-color:
+    rgba(255,255,255,.18);
+}
+
+.modal.honey-form-modal
+.honey-form
+input:not([type="checkbox"]):not([type="radio"]):focus,
+.modal.honey-form-modal
+.honey-form
+select:focus,
+.modal.honey-form-modal
+.honey-form
+textarea:focus {
+  background:
+    rgba(255,255,255,.075);
+
+  border-color:
+    rgba(244,193,55,.72);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(244,193,55,.10);
+}
+
+/* =========================================================
+   PLACEHOLDER
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form
+input::placeholder,
+.modal.honey-form-modal
+.honey-form
+textarea::placeholder {
+  color: #718096;
+
+  opacity: 1;
+}
+
+/* =========================================================
+   DESCRIÇÃO
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form
+textarea {
+  min-height: 118px;
+
+  padding-top: 14px;
+  padding-bottom: 14px;
+
+  line-height: 1.55;
+
+  resize: vertical;
+}
+
+/* =========================================================
+   VALOR — DESTAQUE ESPECIAL
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form
+input[name="amount"] {
+  min-height: 58px;
+
+  color: #ffffff;
+
+  font-size: 21px;
+  font-weight: 800;
+
+  letter-spacing: -.02em;
+}
+
+/* =========================================================
+   DATA / SELECT
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form
+input[type="datetime-local"],
+.modal.honey-form-modal
+.honey-form
+select {
+  font-size: 14px;
+}
+
+/* =========================================================
+   TEXTO DE AJUDA
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form small,
+.modal.honey-form-modal
+.honey-form .form-help {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #7f8da0;
+
+  font-size: 11px;
+  font-weight: 450;
+
+  line-height: 1.5;
+}
+
+/* =========================================================
+   SEÇÕES INTERNAS
+   ========================================================= */
+
+.modal.honey-form-modal
+.honey-form-section {
+  padding: 17px;
+
+  background:
+    rgba(255,255,255,.035);
+
+  border:
+    1px solid rgba(255,255,255,.075);
+
+  border-radius: 15px;
+}
+
+.modal.honey-form-modal
+.honey-form-section-title {
+  margin-bottom: 13px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* =========================================================
+   BOTÕES
+   ========================================================= */
+
+.modal.honey-form-modal
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 4px;
+  padding-top: 5px;
+}
+
+.modal.honey-form-modal
+.form-actions
+.btn {
+  min-height: 50px;
+
+  padding: 0 20px;
+
+  border-radius: 11px;
+
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.modal.honey-form-modal
+.form-actions
+.btn.secondary {
+  color: #c8d1dd;
+
+  background:
+    rgba(255,255,255,.045);
+
+  border:
+    1px solid rgba(255,255,255,.10);
+}
+
+.modal.honey-form-modal
+.form-actions
+.btn.secondary:hover {
+  color: #ffffff;
+
+  background:
+    rgba(255,255,255,.08);
+}
+
+.modal.honey-form-modal
+.form-actions
+.btn.primary {
+  color: #111827;
+
+  background: #f4c137;
+
+  border-color: #f4c137;
+
+  box-shadow:
+    0 8px 20px
+    rgba(244,193,55,.16);
+}
+
+.modal.honey-form-modal
+.form-actions
+.btn.primary:hover {
+  background: #ffd45c;
+
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal.honey-form-modal {
+    width: 100%;
+    max-height: 94vh;
+
+    border-radius: 17px;
+  }
+
+  .modal.honey-form-modal
+  .modal-header {
+    padding: 20px 18px 17px;
+  }
+
+  .modal.honey-form-modal
+  .modal-header h3 {
+    font-size: 19px;
+  }
+
+  .modal.honey-form-modal
+  .modal-body {
+    padding: 20px 18px 22px;
+  }
+
+  .modal.honey-form-modal
+  .honey-form {
+    grid-template-columns: 1fr;
+
+    gap: 17px;
+  }
+
+  .modal.honey-form-modal
+  .honey-form > .full {
+    grid-column: auto;
+  }
+
+  .modal.honey-form-modal
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal.honey-form-modal
+  .form-actions
+  .btn {
+    width: 100%;
+  }
+
+  .modal.honey-form-modal
+  .honey-form
+  input[name="amount"] {
+    font-size: 22px;
+  }
+}
 /* ---------------------------------------------------------
    MODAL CONTAINER
    --------------------------------------------------------- */
