@@ -7509,7 +7509,7 @@ function closeModal() {
 
   modal.innerHTML = "";
 }
-
+       }
 function setupModal() {
   modalOverlay?.addEventListener(
     "click",
