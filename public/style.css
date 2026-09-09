@@ -3103,8 +3103,8 @@ textarea:disabled {
 .modal.honey-form-modal {
   width: min(100%, 620px);
 
-  height: min(92vh, 820px);
-  max-height: calc(100vh - 44px);
+  height: auto;
+  max-height: 82vh;
 
   min-height: 0;
 
@@ -3555,10 +3555,10 @@ select {
   }
 
   .modal.honey-form-modal {
-  width: 100%;
+  width: min(100%, 620px);
 
-  height: calc(100vh - 20px);
-  max-height: calc(100vh - 20px);
+  height: auto;
+  max-height: 86vh;
 
   min-height: 0;
 
