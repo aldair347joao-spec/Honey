@@ -3104,9 +3104,11 @@ textarea:disabled {
   width: min(100%, 620px);
 
   height: auto;
-  max-height: 82vh;
+  max-height: calc(100dvh - 48px);
 
   min-height: 0;
+
+  margin: 24px auto;
 
   display: flex;
   flex-direction: column;
