@@ -4650,7 +4650,6 @@ if (
 function showPresentialPaymentResult(
   payment
 ) {
-
   const amount =
     formatKz(
       payment?.amount
@@ -4684,206 +4683,106 @@ function showPresentialPaymentResult(
       "PROCESSING"
     ).toUpperCase();
 
-  const overlay =
-    $("#modalOverlay");
+  const content = `
+    <div class="honey-presential-result">
 
-  const modalElement =
-    $("#modal");
-
-  if (
-    !overlay ||
-    !modalElement
-  ) {
-    return;
-  }
-
-  modalElement.innerHTML = `
-    <div
-      style="
-        padding:24px;
-        max-width:520px;
-        width:100%;
-      "
-    >
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          margin-bottom:18px;
-        "
-      >
-
-        <div>
-          <strong
-            style="
-              font-size:18px;
-            "
-          >
-            Cobrança Honey Pay
-          </strong>
-
-          <div
-            style="
-              margin-top:4px;
-              color:#667085;
-              font-size:13px;
-            "
-          >
-            ${escapeHTML(method)}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="btn secondary"
-          data-close-modal
-        >
-          Fechar
-        </button>
-
+      <div class="honey-presential-method">
+        ${escapeHTML(method)}
       </div>
 
-      <div
-        style="
-          text-align:center;
-          padding:18px;
-          border:1px solid #eaecf0;
-          border-radius:14px;
-        "
-      >
-
-        <div
-          style="
-            font-size:28px;
-            font-weight:700;
-          "
-        >
-          ${escapeHTML(amount)}
-        </div>
-
-        <div
-          style="
-            margin-top:8px;
-            color:#667085;
-          "
-        >
-          ${escapeHTML(
-            statusLabel(status)
-          )}
-        </div>
-
-        ${
-  qrCode
-    ? `
-      <div
-        class="honey-presential-qr"
-      >
-        <div
-          class="honey-presential-qr-frame"
-        >
-          ${
-            String(qrCode)
-              .trim()
-              .startsWith("<svg")
-              ? `
-                <div class="honey-presential-qr-svg">
-                  ${qrCode}
-                </div>
-              `
-              : `
-                <img
-                  src="${escapeHTML(qrCode)}"
-                  alt="QR Code Honey Pay"
-                />
-              `
-          }
-        </div>
+      <div class="honey-presential-amount">
+        ${escapeHTML(amount)}
       </div>
-    `
-    : ""
-}
 
-        ${
-          entity ||
-          number
-            ? `
-              <div
-                style="
-                  margin-top:16px;
-                  text-align:left;
-                  padding:14px;
-                  background:#f9fafb;
-                  border-radius:10px;
-                "
-              >
-                <strong>
-                  Referência de pagamento
-                </strong>
+      <div class="honey-presential-status">
+        ${escapeHTML(
+          statusLabel(status)
+        )}
+      </div>
 
+      ${
+        qrCode
+          ? `
+            <div class="honey-presential-qr">
+              <div class="honey-presential-qr-frame">
                 ${
-                  entity
+                  String(qrCode)
+                    .trim()
+                    .startsWith("<svg")
                     ? `
-                      <div style="margin-top:8px;">
-                        Entidade:
-                        <strong>
-                          ${escapeHTML(entity)}
-                        </strong>
+                      <div class="honey-presential-qr-svg">
+                        ${qrCode}
                       </div>
                     `
-                    : ""
-                }
-
-                ${
-                  number
-                    ? `
-                      <div style="margin-top:5px;">
-                        Número:
-                        <strong>
-                          ${escapeHTML(number)}
-                        </strong>
-                      </div>
+                    : `
+                      <img
+                        src="${escapeHTML(qrCode)}"
+                        alt="QR Code Honey Pay"
+                      />
                     `
-                    : ""
                 }
               </div>
-            `
-            : ""
-        }
+            </div>
+          `
+          : ""
+      }
 
-        <div
-          id="presentialPaymentStatusMessage"
-          style="
-            margin-top:18px;
-            font-size:13px;
-            color:#667085;
-          "
-        >
-          Aguardando confirmação do pagamento...
-        </div>
+      ${
+        entity ||
+        number
+          ? `
+            <div class="honey-presential-reference">
 
+              <strong>
+                Referência de pagamento
+              </strong>
+
+              ${
+                entity
+                  ? `
+                    <div>
+                      Entidade:
+                      <strong>
+                        ${escapeHTML(entity)}
+                      </strong>
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${
+                number
+                  ? `
+                    <div>
+                      Número:
+                      <strong>
+                        ${escapeHTML(number)}
+                      </strong>
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+          `
+          : ""
+      }
+
+      <div
+        id="presentialPaymentStatusMessage"
+        class="honey-presential-status-message"
+      >
+        Aguardando confirmação do pagamento...
       </div>
 
     </div>
   `;
 
-  overlay.classList.remove(
-    "hidden"
+  openModal(
+    "Cobrança Honey Pay",
+    content,
+    "honey-presential-result-modal"
   );
-
-  overlay.classList.add(
-    "show"
-  );
-
-  overlay
-    .querySelector(
-      "[data-close-modal]"
-    )
-    ?.addEventListener(
-      "click",
-      closeModal
-    );
 }
 async function monitorPresentialPayment(
   paymentId
@@ -7384,19 +7283,17 @@ async function saveSettings(
 /* =========================================================
    MODAL
 ========================================================= */
-
 function openModal(
   title,
-  content
+  content,
+  modalClass = ""
 ) {
   if (!modalOverlay || !modal) {
     return;
   }
 
   /*
-   * Remove qualquer estado visual anterior.
-   * Isto é importante porque o mesmo modal é reutilizado
-   * para formulários, resultados, QR Code, etc.
+   * Limpa qualquer estado visual anterior.
    */
   modal.classList.remove(
     "honey-form-modal"
@@ -7404,6 +7301,10 @@ function openModal(
 
   modal.classList.remove(
     "honey-result-modal"
+  );
+
+  modal.classList.remove(
+    "honey-presential-result-modal"
   );
 
   modal.innerHTML = `
@@ -7436,29 +7337,36 @@ function openModal(
   `;
 
   /*
-   * Se o modal contém um formulário,
-   * aplicamos a identidade visual Honey Pay.
-   *
-   * Resultados de link/QR não entram aqui.
+   * Formulários continuam usando o sistema
+   * visual escuro existente.
    */
   const form =
-  modal.querySelector("form");
+    modal.querySelector("form");
 
-if (form) {
-  modal.classList.add(
-    "honey-form-modal"
-  );
-
-  form.classList.add(
-    "honey-form"
-  );
-
-  if (form.id) {
+  if (form) {
     modal.classList.add(
-      `honey-${form.id}-modal`
+      "honey-form-modal"
+    );
+
+    form.classList.add(
+      "honey-form"
+    );
+
+    if (form.id) {
+      modal.classList.add(
+        `honey-${form.id}-modal`
+      );
+    }
+  }
+
+  /*
+   * Classes especiais para resultados.
+   */
+  if (modalClass) {
+    modal.classList.add(
+      modalClass
     );
   }
-}
 
   modalOverlay.classList.remove(
     "hidden"
@@ -7483,6 +7391,7 @@ if (form) {
       );
     });
 }
+
 function closeModal() {
   if (!modalOverlay) {
     return;
@@ -7508,7 +7417,9 @@ function closeModal() {
     modal.classList.remove(
       "honey-result-modal"
     );
-
+modal.classList.remove(
+  "honey-presential-result-modal"
+);
     modal.innerHTML = "";
   }
 }
