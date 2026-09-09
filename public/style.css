@@ -4083,11 +4083,13 @@ select {
 
 .modal {
   width: min(100%, 540px);
-  max-height: min(90vh, 760px);
 
-  overflow: auto;
+  max-width: 540px;
+  max-height: min(86vh, 700px);
 
-  padding: 23px;
+  overflow: hidden;
+
+  padding: 0;
 
   border: 1px solid #e4e7ec;
   border-radius: 19px;
@@ -4102,19 +4104,49 @@ select {
   animation: hp-modal-in .25s ease both;
 }
 
-@keyframes hp-modal-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(.985);
+/*
+ * O conteúdo do resultado pode fazer scroll,
+ * mas o cartão branco nunca deve crescer para
+ * ocupar a viewport inteira.
+ */
+.modal > .modal-body {
+  max-height: calc(min(86vh, 700px) - 1px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/*
+ * Resultados que não usam .modal-body,
+ * como a cobrança presencial criada diretamente
+ * pelo showPresentialPaymentResult().
+ */
+.modal > div {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+
+  .modal {
+    width: calc(100vw - 28px);
+    max-width: 430px;
+    max-height: calc(100dvh - 28px);
+
+    border-radius: 18px;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  .modal > .modal-body {
+    max-height: calc(100dvh - 29px);
   }
 }
 
+@media (max-width: 380px) {
 
+  .modal {
+    width: calc(100vw - 20px);
+    max-width: 360px;
+  }
+}
 /* ---------------------------------------------------------
    MODAL HEADER
    --------------------------------------------------------- */
