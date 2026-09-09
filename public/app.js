@@ -4202,22 +4202,63 @@ async function openManualPaymentLinkForm() {
 const presentialMobileField =
   $("#presentialMobileField");
 
+const presentialMethodCards =
+  form.querySelectorAll(
+    "[data-presential-method]"
+  );
+
 function updatePresentialPaymentMethodUI() {
 
   const method =
     presentialPaymentMethod?.value ||
     "multicaixa_express";
 
-  if (
-    presentialMobileField
-  ) {
+  presentialMethodCards.forEach(
+    card => {
+
+      card.classList.toggle(
+        "is-active",
+        card.dataset.presentialMethod ===
+          method
+      );
+
+    }
+  );
+
+  if (presentialMobileField) {
     presentialMobileField.style.display =
-      method ===
-      "multicaixa_express"
+      method === "multicaixa_express"
         ? ""
         : "none";
   }
 }
+
+presentialMethodCards.forEach(
+  card => {
+
+    card.addEventListener(
+      "click",
+      () => {
+
+        const method =
+          card.dataset.presentialMethod;
+
+        if (
+          !method ||
+          !presentialPaymentMethod
+        ) {
+          return;
+        }
+
+        presentialPaymentMethod.value =
+          method;
+
+        updatePresentialPaymentMethodUI();
+      }
+    );
+
+  }
+);
 
 presentialPaymentMethod?.addEventListener(
   "change",
