@@ -3588,6 +3588,336 @@ select {
     font-size: 22px;
   }
 }
+/* =========================================================
+   MÉTODOS DE PAGAMENTO
+   ========================================================= */
+
+.hp-presential-panel {
+  padding: 18px;
+
+  background:
+    rgba(255,255,255,.028);
+
+  border:
+    1px solid rgba(255,255,255,.075);
+
+  border-radius: 16px;
+}
+
+.hp-presential-heading {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.hp-presential-icon {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 40px;
+
+  color: #111827;
+
+  background: #f4c137;
+
+  border-radius: 11px;
+}
+
+.hp-presential-icon svg {
+  width: 21px;
+  height: 21px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hp-presential-heading strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.hp-presential-heading p {
+  margin: 4px 0 0;
+
+  color: #8491a3;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.hp-form-label {
+  margin-bottom: 9px;
+
+  color: #dbe4ef;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hp-method-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.hp-method-card {
+  position: relative;
+
+  min-width: 0;
+  min-height: 88px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 13px;
+
+  color: #ffffff;
+
+  background:
+    rgba(255,255,255,.035);
+
+  border:
+    1px solid rgba(255,255,255,.09);
+
+  border-radius: 13px;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color .18s ease,
+    background .18s ease,
+    transform .18s ease;
+}
+
+.hp-method-card:hover {
+  background:
+    rgba(244,193,55,.055);
+
+  border-color:
+    rgba(244,193,55,.40);
+
+  transform: translateY(-1px);
+}
+
+.hp-method-card.is-active {
+  background:
+    rgba(244,193,55,.075);
+
+  border-color:
+    rgba(244,193,55,.72);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(244,193,55,.08);
+}
+
+.hp-method-icon {
+  width: 39px;
+  height: 39px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 39px;
+
+  color: #f4c137;
+
+  background:
+    rgba(244,193,55,.09);
+
+  border-radius: 10px;
+}
+
+.hp-method-icon svg {
+  width: 21px;
+  height: 21px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hp-method-copy {
+  min-width: 0;
+}
+
+.hp-method-copy strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  line-height: 1.25;
+}
+
+.hp-method-copy small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #7f8da0;
+
+  font-size: 10px;
+  font-weight: 450;
+
+  line-height: 1.35;
+}
+
+.hp-method-check {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 18px;
+  height: 18px;
+
+  display: grid;
+  place-items: center;
+
+  color: #101722;
+
+  background: #f4c137;
+
+  border-radius: 50%;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  opacity: 0;
+
+  transform: scale(.7);
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+.hp-method-card.is-active
+.hp-method-check {
+  opacity: 1;
+
+  transform: scale(1);
+}
+
+.hp-hidden-control {
+  position: absolute !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  opacity: 0 !important;
+
+  pointer-events: none !important;
+}
+
+.hp-mobile-field {
+  display: block;
+
+  margin-top: 16px;
+}
+
+.hp-mobile-field > span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #dbe4ef;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hp-mobile-field input {
+  min-height: 54px !important;
+
+  font-size: 17px !important;
+  font-weight: 650 !important;
+}
+
+.hp-secure-note {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+
+  margin-top: 15px;
+  padding: 11px 12px;
+
+  color: #8794a5;
+
+  background:
+    rgba(255,255,255,.025);
+
+  border:
+    1px solid rgba(255,255,255,.06);
+
+  border-radius: 10px;
+
+  font-size: 10px;
+
+  line-height: 1.45;
+}
+
+.hp-secure-icon {
+  width: 18px;
+  height: 18px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 18px;
+
+  color: #111827;
+
+  background: #f4c137;
+
+  border-radius: 50%;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+@media (max-width: 600px) {
+
+  .hp-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hp-method-card {
+    min-height: 78px;
+  }
+}
 /* ---------------------------------------------------------
    MODAL CONTAINER
    --------------------------------------------------------- */
