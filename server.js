@@ -417,7 +417,381 @@ function isValidObjectId(
     id
   );
 }
+/* =========================================================
+   HONEY PAY - GUE PUBLIC COMPANY LOOKUP
+========================================================= */
 
+function normalizeNif(value) {
+  return String(value || '')
+    .replace(/\D/g, '')
+    .trim()
+    .slice(0, 20);
+}
+
+
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;/gi, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, ' ')
+    .replace(/&#(\d+);/g, (_, code) => {
+      const number = Number(code);
+
+      if (
+        Number.isFinite(number)
+      ) {
+        return String.fromCharCode(number);
+      }
+
+      return _;
+    });
+}
+
+
+function stripHtml(value) {
+  return decodeHtmlEntities(
+    String(value || '')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
+}
+
+
+function extractGueCompanyFromHtml(
+  html,
+  nif
+) {
+  const cleanNif =
+    normalizeNif(nif);
+
+  if (!cleanNif) {
+    return null;
+  }
+
+  const text =
+    stripHtml(html);
+
+  if (!text.includes(cleanNif)) {
+    return null;
+  }
+
+  /*
+   * Procuramos a tabela pública do GUE.
+   * O portal apresenta:
+   *
+   * Firma/Denominação | NIF | Origem
+   */
+
+  const rowMatches =
+    String(html || '').match(
+      /<tr[\s\S]*?<\/tr>/gi
+    ) || [];
+
+  for (
+    const row of rowMatches
+  ) {
+    const rowText =
+      stripHtml(row);
+
+    if (
+      !rowText.includes(
+        cleanNif
+      )
+    ) {
+      continue;
+    }
+
+    /*
+     * Extrair células da linha.
+     */
+
+    const cells =
+      row.match(
+        /<td[\s\S]*?<\/td>/gi
+      ) || [];
+
+    if (
+      cells.length < 2
+    ) {
+      continue;
+    }
+
+    const values =
+      cells.map(
+        stripHtml
+      );
+
+    const foundNifIndex =
+      values.findIndex(
+        value =>
+          normalizeNif(
+            value
+          ) === cleanNif
+      );
+
+    if (
+      foundNifIndex === -1
+    ) {
+      continue;
+    }
+
+    const companyName =
+      values
+        .slice(
+          0,
+          foundNifIndex
+        )
+        .map(
+          value =>
+            value
+              .replace(
+                /\(\d{4}-\d{2}-\d{2}\)/g,
+                ''
+              )
+              .trim()
+        )
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+    if (!companyName) {
+      continue;
+    }
+
+    return {
+      found: true,
+
+      nif:
+        cleanNif,
+
+      name:
+        companyName,
+
+      source:
+        'GUE'
+    };
+  }
+
+  return null;
+}
+
+
+async function lookupCompanyByNif(
+  nif
+) {
+  const cleanNif =
+    normalizeNif(nif);
+
+  if (
+    !cleanNif ||
+    cleanNif.length < 9
+  ) {
+    return {
+      found: false
+    };
+  }
+
+  const url =
+    'https://gue.gov.ao/portal/publicacao?empresa=' +
+    encodeURIComponent(
+      cleanNif
+    );
+
+  const response =
+    await fetch(
+      url,
+      {
+        method:
+          'GET',
+
+        headers: {
+          'User-Agent':
+            'Honey-Pay/1.0',
+          'Accept':
+            'text/html,application/xhtml+xml'
+        },
+
+        redirect:
+          'follow',
+
+        signal:
+          AbortSignal.timeout(
+            12000
+          )
+      }
+    );
+
+  if (
+    !response.ok
+  ) {
+    throw new Error(
+      `GUE respondeu com HTTP ${response.status}.`
+    );
+  }
+
+  const html =
+    await response.text();
+
+  const company =
+    extractGueCompanyFromHtml(
+      html,
+      cleanNif
+    );
+
+  return (
+    company || {
+      found: false,
+      nif: cleanNif
+    }
+  );
+}
+/* =========================================================
+   ANGOLA IBAN VALIDATION
+========================================================= */
+
+function normalizeIban(value) {
+  return String(value || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 25);
+}
+
+
+function validateAngolaIban(
+  value
+) {
+  const iban =
+    normalizeIban(value);
+
+  if (
+    iban.length !== 25 ||
+    !iban.startsWith('AO')
+  ) {
+    return false;
+  }
+
+  const rearranged =
+    iban.slice(4) +
+    iban.slice(0, 4);
+
+  let numeric = '';
+
+  for (
+    const char of rearranged
+  ) {
+    if (
+      char >= 'A' &&
+      char <= 'Z'
+    ) {
+      numeric +=
+        String(
+          char.charCodeAt(0) -
+          55
+        );
+    } else {
+      numeric += char;
+    }
+  }
+
+  let remainder = 0;
+
+  for (
+    let index = 0;
+    index < numeric.length;
+    index += 7
+  ) {
+    remainder =
+      Number(
+        String(remainder) +
+        numeric.slice(
+          index,
+          index + 7
+        )
+      ) % 97;
+  }
+
+  return (
+    remainder === 1
+  );
+}
+
+
+const ANGOLA_BANKS = {
+  '0004':
+    'Banco Caixa Geral Angola',
+
+  '0005':
+    'Banco de Comércio e Indústria',
+
+  '0006':
+    'Banco de Fomento de Angola',
+
+  '0010':
+    'Banco de Poupança e Crédito',
+
+  '0040':
+    'Banco Angolano de Investimentos',
+
+  '0044':
+    'Banco Sol',
+
+  '0045':
+    'Banco Económico',
+
+  '0047':
+    'Banco KEVE',
+
+  '0051':
+    'Banco BIC',
+
+  '0055':
+    'Banco Millennium Atlântico',
+
+  '0060':
+    'Standard Bank de Angola'
+};
+
+
+function getAngolaBankFromIban(
+  iban
+) {
+  const clean =
+    normalizeIban(iban);
+
+  if (
+    clean.length !== 25 ||
+    !clean.startsWith('AO')
+  ) {
+    return null;
+  }
+
+  const bankCode =
+    clean.slice(4, 8);
+
+  const bankName =
+    ANGOLA_BANKS[
+      bankCode
+    ];
+
+  if (!bankName) {
+    return null;
+  }
+
+  return {
+    code:
+      bankCode,
+
+    name:
+      bankName
+  };
+}
 function asyncHandler(
   fn
 ) {
@@ -1149,7 +1523,25 @@ const MerchantSchema =
         default:
           false
       },
+      onboardingCompleted: {
+  type:
+    Boolean,
 
+  default:
+    false,
+
+  index:
+    true
+},
+
+onboardingCompletedAt: {
+  type:
+    Date,
+
+  default:
+    null
+},
+       
       active: {
         type:
           Boolean,
@@ -2810,9 +3202,17 @@ app.get(
           token
         );
 
-        return res.redirect(
-          '/'
-        );
+        if (
+  merchant.onboardingCompleted
+) {
+  return res.redirect(
+    '/index.html'
+  );
+}
+
+return res.redirect(
+  '/onboarding.html'
+);
 
       } catch (error) {
         console.error(
@@ -3065,7 +3465,495 @@ app.get(
     }
   )
 );
+/* =========================================================
+   ONBOARDING
+========================================================= */
 
+/*
+GET ONBOARDING STATUS
+*/
+
+app.get(
+  '/api/onboarding/status',
+
+  authenticate,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const merchant =
+        await Merchant.findOne({
+          userId:
+            req.userId
+        }).lean();
+
+      if (!merchant) {
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Merchant não encontrado.'
+          });
+      }
+
+      return res.json({
+        success:
+          true,
+
+        authenticated:
+          true,
+
+        onboardingCompleted:
+          Boolean(
+            merchant.onboardingCompleted
+          ),
+
+        merchant: {
+          id:
+            String(
+              merchant._id
+            ),
+
+          businessName:
+            merchant.businessName ||
+            '',
+
+          nif:
+            merchant.nif ||
+            ''
+        }
+      });
+    }
+  )
+);
+
+
+/*
+POST VERIFY COMPANY
+*/
+
+app.post(
+  '/api/onboarding/company',
+
+  authenticate,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const nif =
+        normalizeNif(
+          req.body.nif
+        );
+
+      if (
+        !nif ||
+        nif.length < 9
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'NIF inválido.'
+          });
+      }
+
+      let company;
+
+      try {
+
+        company =
+          await lookupCompanyByNif(
+            nif
+          );
+
+      } catch (error) {
+
+        console.error(
+          'GUE lookup error:',
+          error
+        );
+
+        return res
+          .status(502)
+          .json({
+            success:
+              false,
+
+            error:
+              'Não foi possível consultar o GUE neste momento. Tente novamente.'
+          });
+      }
+
+      if (
+        !company ||
+        !company.found
+      ) {
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Empresa não encontrada.'
+          });
+      }
+
+      return res.json({
+        success:
+          true,
+
+        company: {
+          found:
+            true,
+
+          nif:
+            company.nif,
+
+          name:
+            company.name,
+
+          source:
+            'GUE'
+        }
+      });
+    }
+  )
+);
+
+function requireCompletedOnboarding(
+  req,
+  res,
+  next
+) {
+  if (
+    !req.merchant
+  ) {
+    return res
+      .status(403)
+      .json({
+        success:
+          false,
+
+        error:
+          'Merchant não encontrado.'
+      });
+  }
+
+  if (
+    !req.merchant.onboardingCompleted
+  ) {
+    return res
+      .status(403)
+      .json({
+        success:
+          false,
+
+        error:
+          'Configuração empresarial incompleta.',
+
+        code:
+          'ONBOARDING_REQUIRED',
+
+        redirect:
+          '/onboarding.html'
+      });
+  }
+
+  next();
+}
+/*
+POST COMPLETE ONBOARDING
+*/
+
+app.post(
+  '/api/onboarding/complete',
+
+  authenticate,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const nif =
+        normalizeNif(
+          req.body.nif
+        );
+
+      const businessName =
+        cleanString(
+          req.body.businessName,
+          500
+        );
+
+      const iban =
+        normalizeIban(
+          req.body.iban
+        );
+
+      if (
+        !nif ||
+        !businessName ||
+        !iban
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'NIF, empresa e IBAN são obrigatórios.'
+          });
+      }
+
+      /*
+       * Verificar novamente a empresa
+       * no GUE.
+       */
+
+      let company;
+
+      try {
+
+        company =
+          await lookupCompanyByNif(
+            nif
+          );
+
+      } catch (error) {
+
+        console.error(
+          'GUE final verification error:',
+          error
+        );
+
+        return res
+          .status(502)
+          .json({
+            success:
+              false,
+
+            error:
+              'Não foi possível confirmar a empresa no GUE.'
+          });
+      }
+
+      if (
+        !company ||
+        !company.found
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Empresa não encontrada no GUE.'
+          });
+      }
+
+      /*
+       * Nunca confiar no nome enviado
+       * pelo navegador.
+       */
+
+      const officialBusinessName =
+        cleanString(
+          company.name,
+          500
+        );
+
+      /*
+       * Validar IBAN novamente.
+       */
+
+      if (
+        !validateAngolaIban(
+          iban
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'IBAN inválido.'
+          });
+      }
+
+      const bank =
+        getAngolaBankFromIban(
+          iban
+        );
+
+      if (!bank) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            error:
+              'Não foi possível identificar o banco através do IBAN.'
+          });
+      }
+
+      const merchant =
+        await Merchant.findOne({
+          userId:
+            req.userId
+        });
+
+      if (!merchant) {
+        return res
+          .status(404)
+          .json({
+            success:
+              false,
+
+            error:
+              'Merchant não encontrado.'
+          });
+      }
+
+      /*
+       * Atualizar empresa.
+       */
+
+      merchant.nif =
+        company.nif;
+
+      merchant.businessName =
+        officialBusinessName;
+
+      merchant.country =
+        'AO';
+
+      merchant.currency =
+        'AOA';
+
+      merchant.onboardingCompleted =
+        true;
+
+      merchant.onboardingCompletedAt =
+        new Date();
+
+      await merchant.save();
+
+
+      /*
+       * Desativar contas anteriores
+       * marcadas como padrão.
+       */
+
+      await BankAccount.updateMany(
+        {
+          merchantId:
+            merchant._id,
+
+          active:
+            true
+        },
+
+        {
+          $set: {
+            isDefault:
+              false
+          }
+        }
+      );
+
+
+      /*
+       * Criar conta de liquidação.
+       */
+
+      const account =
+        await BankAccount.create({
+          merchantId:
+            merchant._id,
+
+          bankName:
+            bank.name,
+
+          accountNumber:
+            '',
+
+          iban:
+            iban,
+
+          accountHolder:
+            officialBusinessName,
+
+          alias:
+            'Conta principal',
+
+          phone:
+            merchant.phone ||
+            '',
+
+          active:
+            true,
+
+          isDefault:
+            true
+        });
+
+
+      return res.json({
+        success:
+          true,
+
+        onboardingCompleted:
+          true,
+
+        merchant: {
+          id:
+            String(
+              merchant._id
+            ),
+
+          businessName:
+            officialBusinessName,
+
+          nif:
+            company.nif
+        },
+
+        bankAccount: {
+          id:
+            String(
+              account._id
+            ),
+
+          bankName:
+            bank.name,
+
+          bankCode:
+            bank.code
+        }
+      });
+    }
+  )
+);
 /* =========================================================
    DASHBOARD
 ========================================================= */
@@ -7262,7 +8150,47 @@ app.get(
     }
   )
 );
+/* =========================================================
+   PROTECTED DASHBOARD ENTRY
+========================================================= */
 
+app.get(
+  '/index.html',
+
+  authenticate,
+
+  asyncHandler(
+    async (
+      req,
+      res
+    ) => {
+
+      const merchant =
+        await Merchant.findOne({
+          userId:
+            req.userId
+        }).lean();
+
+      if (!merchant) {
+        return res.redirect(
+          '/login'
+        );
+      }
+
+      if (
+        !merchant.onboardingCompleted
+      ) {
+        return res.redirect(
+          '/onboarding.html'
+        );
+      }
+
+      return res.sendFile(
+        INDEX_FILE
+      );
+    }
+  )
+);
 /* =========================================================
    STATIC FRONTEND
 ========================================================= */
