@@ -4,43 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#07111f">
-  <meta name="description" content="Honey Pay — infraestrutura de pagamentos para negócios em Angola. Receba, acompanhe e controle os seus pagamentos numa única plataforma.">
-
-  <title>Honey Pay — Infraestrutura de pagamentos para negócios</title>
+  <meta name="description" content="Honey Pay — receba, acompanhe e organize os pagamentos do seu negócio em Angola.">
+  <title>Honey Pay — Você cuida do negócio. Nós cuidamos dos pagamentos.</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
   <style>
     :root {
-      --hp-bg: #06101d;
-      --hp-bg-2: #081522;
-      --hp-surface: #0b1928;
-      --hp-surface-2: #0f1f30;
-      --hp-border: rgba(255,255,255,.085);
-      --hp-border-strong: rgba(255,255,255,.13);
+      --hp-bg: #07111f;
+      --hp-bg-soft: #091522;
+      --hp-panel: #0d1a29;
+      --hp-panel-2: #101f30;
 
-      --hp-text: #f5f7fa;
-      --hp-muted: #91a0b2;
-      --hp-muted-2: #66768a;
+      --hp-white: #f6f7f8;
+      --hp-text: #dfe6ed;
+      --hp-muted: #98a7b7;
+      --hp-dim: #68798c;
 
-      --hp-gold: #f3bd4d;
-      --hp-gold-soft: #f8d889;
-      --hp-gold-dark: #c89227;
+      --hp-gold: #f1bc4b;
+      --hp-gold-light: #f7d47d;
 
-      --hp-green: #38d39f;
-      --hp-blue: #5ca9ff;
-      --hp-red: #ff6d78;
+      --hp-green: #43d3a3;
+      --hp-red: #f07878;
 
-      --hp-radius: 18px;
-      --hp-radius-lg: 28px;
+      --hp-line: rgba(255, 255, 255, 0.085);
 
-      --hp-max: 1240px;
-
-      --hp-shadow:
-        0 30px 80px rgba(0,0,0,.30),
-        0 8px 30px rgba(0,0,0,.16);
+      --hp-max: 1180px;
     }
 
     * {
@@ -55,29 +50,49 @@
 
     body {
       min-height: 100vh;
-      background:
-        radial-gradient(circle at 75% 10%, rgba(243,189,77,.065), transparent 26%),
-        radial-gradient(circle at 8% 40%, rgba(70,130,190,.055), transparent 24%),
-        var(--hp-bg);
-      color: var(--hp-text);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow-x: hidden;
+      background:
+        radial-gradient(
+          circle at 78% 12%,
+          rgba(241, 188, 75, 0.055),
+          transparent 28%
+        ),
+        linear-gradient(
+          180deg,
+          #07111f 0%,
+          #07111f 45%,
+          #08131f 100%
+        );
+      color: var(--hp-white);
+      font-family: "DM Sans", sans-serif;
       line-height: 1.55;
       -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
-    body::before {
+    body::after {
       content: "";
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: .16;
+      z-index: -1;
+      opacity: 0.28;
       background-image:
-        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: linear-gradient(to bottom, black, transparent 80%);
-      z-index: -2;
+        linear-gradient(
+          rgba(255,255,255,0.018) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,0.018) 1px,
+          transparent 1px
+        );
+      background-size: 80px 80px;
+      mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 75%
+      );
     }
 
     a {
@@ -85,57 +100,44 @@
       text-decoration: none;
     }
 
-    button,
-    a {
-      -webkit-tap-highlight-color: transparent;
-    }
-
     button {
       font: inherit;
     }
 
     .hp-container {
-      width: min(calc(100% - 40px), var(--hp-max));
+      width: min(
+        calc(100% - 40px),
+        var(--hp-max)
+      );
       margin: 0 auto;
     }
 
     .hp-section {
-      position: relative;
-      padding: 120px 0;
+      padding: 110px 0;
     }
 
-    .hp-section-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      margin-bottom: 20px;
-      color: var(--hp-gold-soft);
+    .hp-label {
+      margin-bottom: 17px;
+      color: var(--hp-gold-light);
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .16em;
+      font-weight: 700;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
     }
 
-    .hp-section-label::before {
-      content: "";
-      width: 24px;
-      height: 1px;
-      background: var(--hp-gold);
-      opacity: .8;
-    }
-
-    .hp-section-title {
-      max-width: 760px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: clamp(34px, 4vw, 58px);
-      line-height: 1.02;
-      letter-spacing: -.045em;
+    .hp-title {
+      max-width: 720px;
+      color: var(--hp-white);
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(36px, 4.7vw, 61px);
       font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.055em;
     }
 
-    .hp-section-copy {
-      max-width: 660px;
-      margin-top: 22px;
+    .hp-copy {
+      max-width: 650px;
+      margin-top: 20px;
       color: var(--hp-muted);
       font-size: 17px;
       line-height: 1.75;
@@ -143,249 +145,264 @@
 
     /* =========================================================
        HEADER
-       ========================================================= */
+    ========================================================= */
 
     #hpHeader {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      height: 76px;
       z-index: 1000;
+
+      height: 74px;
+
       border-bottom: 1px solid transparent;
+
       transition:
-        background .35s ease,
-        border-color .35s ease,
-        backdrop-filter .35s ease,
-        box-shadow .35s ease;
+        background 0.3s ease,
+        border-color 0.3s ease,
+        backdrop-filter 0.3s ease;
     }
 
     #hpHeader.hp-scrolled {
-      background: rgba(6,16,29,.82);
-      border-color: var(--hp-border);
-      backdrop-filter: blur(20px);
-      box-shadow: 0 10px 40px rgba(0,0,0,.16);
+      background: rgba(7, 17, 31, 0.88);
+      border-bottom-color: var(--hp-line);
+      backdrop-filter: blur(18px);
     }
 
     .hp-nav {
-      height: 76px;
+      height: 74px;
+
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 28px;
     }
 
     .hp-brand {
       display: inline-flex;
       align-items: center;
-      gap: 11px;
-      flex-shrink: 0;
-    }
+      gap: 10px;
 
-    .hp-brand-mark {
-      width: 35px;
-      height: 35px;
-      border: 1px solid rgba(243,189,77,.35);
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(145deg, #132438, #0a1725);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-    }
+      color: var(--hp-white);
 
-    .hp-brand-mark span {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 2px solid var(--hp-gold);
-      position: relative;
-    }
-
-    .hp-brand-mark span::after {
-      content: "";
-      position: absolute;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--hp-gold);
-      top: 3px;
-      left: 3px;
-    }
-
-    .hp-brand-name {
-      font-family: Manrope, Inter, sans-serif;
+      font-family: "Manrope", sans-serif;
       font-size: 17px;
       font-weight: 800;
-      letter-spacing: -.03em;
+      letter-spacing: -0.03em;
     }
 
-    .hp-brand-name em {
+    .hp-brand em {
       color: var(--hp-gold);
       font-style: normal;
     }
 
-    .hp-nav-links {
+    .hp-brand-mark {
+      position: relative;
+
+      width: 34px;
+      height: 34px;
+
+      display: grid;
+      place-items: center;
+
+      border: 1px solid rgba(241, 188, 75, 0.35);
+      border-radius: 10px;
+
+      background: #0d1c2c;
+    }
+
+    .hp-brand-mark::before {
+      content: "";
+
+      width: 14px;
+      height: 14px;
+
+      border: 2px solid var(--hp-gold);
+      border-radius: 50%;
+    }
+
+    .hp-brand-mark::after {
+      content: "";
+
+      position: absolute;
+
+      width: 5px;
+      height: 5px;
+
+      border-radius: 50%;
+
+      background: var(--hp-gold);
+    }
+
+    .hp-links {
       display: flex;
       align-items: center;
-      gap: 30px;
+      gap: 28px;
+
       margin-left: auto;
-      margin-right: 12px;
     }
 
-    .hp-nav-links a {
-      color: #b6c1ce;
+    .hp-links a {
+      color: #aeb9c6;
+
       font-size: 13px;
-      font-weight: 600;
-      transition: color .2s ease;
+      font-weight: 500;
+
+      transition: color 0.2s ease;
     }
 
-    .hp-nav-links a:hover {
-      color: white;
+    .hp-links a:hover {
+      color: #ffffff;
     }
 
-    .hp-nav-actions {
+    .hp-actions {
       display: flex;
-      align-items: center;
-      gap: 10px;
+      gap: 9px;
+      margin-left: 8px;
     }
 
     .hp-btn {
-      min-height: 43px;
-      padding: 0 18px;
-      border-radius: 11px;
+      min-height: 44px;
+
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 9px;
-      border: 1px solid transparent;
+
+      padding: 0 18px;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 11px;
+
       font-size: 13px;
       font-weight: 700;
-      cursor: pointer;
+
       transition:
-        transform .22s ease,
-        background .22s ease,
-        border-color .22s ease,
-        box-shadow .22s ease;
+        transform 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease;
     }
 
     .hp-btn:hover {
       transform: translateY(-2px);
     }
 
-    .hp-btn-ghost {
-      color: #dce3eb;
-      border-color: var(--hp-border);
-      background: rgba(255,255,255,.025);
-    }
-
-    .hp-btn-ghost:hover {
-      background: rgba(255,255,255,.055);
-      border-color: var(--hp-border-strong);
-    }
-
-    .hp-btn-primary {
-      color: #16110a;
+    .hp-primary {
+      border-color: var(--hp-gold);
       background: var(--hp-gold);
-      box-shadow: 0 8px 25px rgba(243,189,77,.12);
+      color: #171108;
+
+      box-shadow:
+        0 10px 28px rgba(241, 188, 75, 0.13);
     }
 
-    .hp-btn-primary:hover {
-      background: var(--hp-gold-soft);
-      box-shadow: 0 12px 32px rgba(243,189,77,.18);
+    .hp-primary:hover {
+      background: var(--hp-gold-light);
+    }
+
+    .hp-ghost {
+      background: rgba(255, 255, 255, 0.025);
+      color: #dce3ea;
+    }
+
+    .hp-ghost:hover {
+      background: rgba(255, 255, 255, 0.055);
+      border-color: rgba(255,255,255,0.14);
     }
 
     #hpMenuButton {
       display: none;
+
       width: 42px;
       height: 42px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      background: rgba(255,255,255,.025);
-      color: white;
-      cursor: pointer;
-    }
 
-    #hpMenuButton svg {
-      width: 19px;
-      height: 19px;
+      margin-left: auto;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 10px;
+
+      background: transparent;
+      color: #ffffff;
+
+      cursor: pointer;
     }
 
     /* =========================================================
        HERO
-       ========================================================= */
+    ========================================================= */
 
     .hp-hero {
-      min-height: 900px;
-      padding-top: 150px;
-      padding-bottom: 90px;
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
+      min-height: 790px;
 
-    .hp-hero::before {
-      content: "";
-      position: absolute;
-      width: 700px;
-      height: 500px;
-      top: 70px;
-      right: -280px;
-      background: radial-gradient(circle, rgba(243,189,77,.075), transparent 68%);
-      pointer-events: none;
+      display: grid;
+      align-items: center;
+
+      padding: 145px 0 90px;
     }
 
     .hp-hero-grid {
       display: grid;
-      grid-template-columns: .9fr 1.1fr;
-      gap: 76px;
+      grid-template-columns: 0.9fr 1.1fr;
+
+      gap: 65px;
+
       align-items: center;
     }
 
-    .hp-hero-copy {
-      position: relative;
-      z-index: 2;
-    }
-
-    .hp-eyebrow {
+    .hp-kicker {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      padding: 7px 10px 7px 8px;
-      margin-bottom: 24px;
-      border: 1px solid var(--hp-border);
+      gap: 8px;
+
+      padding: 7px 11px 7px 8px;
+
+      border: 1px solid var(--hp-line);
       border-radius: 999px;
-      background: rgba(255,255,255,.025);
-      color: #c5cfda;
+
+      background: rgba(255,255,255,0.025);
+
+      color: #b9c5d1;
+
       font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .03em;
+      font-weight: 600;
     }
 
-    .hp-eyebrow-dot {
+    .hp-kicker i {
       width: 7px;
       height: 7px;
+
       border-radius: 50%;
+
       background: var(--hp-green);
-      box-shadow: 0 0 0 5px rgba(56,211,159,.08);
+
+      box-shadow:
+        0 0 0 5px rgba(67, 211, 163, 0.08);
     }
 
     .hp-hero h1 {
-      max-width: 650px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: clamp(50px, 6vw, 84px);
-      line-height: .98;
-      letter-spacing: -.065em;
+      max-width: 700px;
+
+      margin-top: 22px;
+
+      color: var(--hp-white);
+
+      font-family: "Manrope", sans-serif;
+      font-size: clamp(50px, 6.5vw, 82px);
       font-weight: 800;
+      line-height: 0.97;
+      letter-spacing: -0.065em;
     }
 
-    .hp-hero h1 .gold {
+    .hp-hero h1 span {
       color: var(--hp-gold);
     }
 
     .hp-hero-text {
       max-width: 590px;
-      margin-top: 28px;
-      color: #98a7b8;
+
+      margin-top: 25px;
+
+      color: #9caabb;
+
       font-size: 18px;
       line-height: 1.75;
     }
@@ -393,1783 +410,1346 @@
     .hp-hero-actions {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 12px;
-      margin-top: 34px;
+      gap: 11px;
+
+      margin-top: 31px;
     }
 
-    .hp-hero-note {
+    .hp-note {
       display: flex;
       align-items: center;
-      gap: 9px;
-      margin-top: 20px;
-      color: #68798d;
+      gap: 8px;
+
+      margin-top: 17px;
+
+      color: var(--hp-dim);
+
       font-size: 11px;
     }
 
-    .hp-hero-note svg {
-      width: 14px;
-      height: 14px;
+    .hp-note b {
       color: var(--hp-green);
     }
 
-    /* dashboard */
+    /* =========================================================
+       PRODUCT PREVIEW
+    ========================================================= */
 
-    .hp-dashboard-wrap {
+    .hp-stage {
       position: relative;
-      perspective: 1300px;
     }
 
-    .hp-dashboard-glow {
+    .hp-stage::before {
+      content: "";
+
       position: absolute;
-      inset: 12% 3% 3%;
-      background: radial-gradient(circle, rgba(78,130,180,.12), transparent 65%);
-      filter: blur(25px);
-    }
 
-    .hp-dashboard {
-      position: relative;
-      border: 1px solid var(--hp-border-strong);
-      border-radius: 23px;
+      width: 500px;
+      height: 400px;
+
+      right: -90px;
+      top: 0;
+
       background:
-        linear-gradient(145deg, rgba(16,31,47,.98), rgba(7,18,31,.98));
-      box-shadow:
-        0 50px 100px rgba(0,0,0,.4),
-        0 15px 40px rgba(0,0,0,.22),
-        inset 0 1px 0 rgba(255,255,255,.045);
+        radial-gradient(
+          circle,
+          rgba(241, 188, 75, 0.08),
+          transparent 67%
+        );
+
+      filter: blur(8px);
+    }
+
+    .hp-product {
+      position: relative;
+      z-index: 1;
+
       overflow: hidden;
-      transform: rotateY(-3deg) rotateX(1deg);
-      animation: hpDashboardFloat 8s ease-in-out infinite;
+
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 25px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #122338,
+          #091522
+        );
+
+      box-shadow:
+        0 45px 90px rgba(0,0,0,0.38),
+        inset 0 1px rgba(255,255,255,0.05);
+
+      animation:
+        hpFloat 7s ease-in-out infinite;
     }
 
-    @keyframes hpDashboardFloat {
-      0%, 100% {
-        transform: rotateY(-3deg) rotateX(1deg) translateY(0);
-      }
-      50% {
-        transform: rotateY(-2deg) rotateX(0deg) translateY(-8px);
-      }
-    }
+    .hp-product-top {
+      height: 46px;
 
-    .hp-dashboard-topbar {
-      height: 48px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 17px;
-      border-bottom: 1px solid var(--hp-border);
-      background: rgba(255,255,255,.012);
+      gap: 6px;
+
+      padding: 0 15px;
+
+      border-bottom: 1px solid var(--hp-line);
     }
 
-    .hp-window-dots {
-      display: flex;
-      gap: 5px;
-    }
-
-    .hp-window-dots span {
+    .hp-product-top i {
       width: 6px;
       height: 6px;
+
       border-radius: 50%;
-      background: #425264;
+
+      background: #405164;
     }
 
-    .hp-dashboard-mini-brand {
+    .hp-product-top strong {
+      margin-left: auto;
+
+      color: #718297;
+
       font-size: 10px;
-      color: #6f8092;
-      font-weight: 700;
-      letter-spacing: .04em;
+      letter-spacing: 0.05em;
     }
 
-    .hp-dashboard-body {
+    .hp-product-body {
       display: grid;
-      grid-template-columns: 150px 1fr;
-      min-height: 490px;
+      grid-template-columns: 135px 1fr;
+
+      min-height: 450px;
     }
 
-    .hp-dash-sidebar {
-      padding: 19px 11px;
-      border-right: 1px solid var(--hp-border);
-      background: rgba(0,0,0,.08);
+    .hp-sidebar {
+      padding: 20px 10px;
+
+      border-right: 1px solid var(--hp-line);
+
+      background: rgba(0,0,0,0.08);
     }
 
-    .hp-side-label {
-      margin: 7px 10px 10px;
-      color: #526275;
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: .14em;
+    .hp-side-title {
+      margin: 4px 9px 12px;
+
+      color: #56677a;
+
+      font-size: 9px;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
     }
 
     .hp-side-item {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 9px 10px;
-      margin-bottom: 2px;
+      padding: 9px;
+
       border-radius: 8px;
-      color: #7e8ea0;
+
+      color: #77889a;
+
       font-size: 10px;
-      font-weight: 600;
+
+      margin-bottom: 2px;
     }
 
     .hp-side-item.active {
-      color: #f0f3f6;
-      background: rgba(243,189,77,.09);
+      background: rgba(241,188,75,0.08);
+      color: #e5c777;
     }
 
-    .hp-side-item svg {
-      width: 13px;
-      height: 13px;
+    .hp-main {
+      padding: 24px;
     }
 
-    .hp-dash-main {
-      padding: 20px;
-      min-width: 0;
-    }
-
-    .hp-dash-heading {
+    .hp-welcome {
       display: flex;
-      align-items: center;
+      align-items: end;
       justify-content: space-between;
-      margin-bottom: 16px;
+      gap: 15px;
     }
 
-    .hp-dash-heading h3 {
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 16px;
-      letter-spacing: -.025em;
+    .hp-welcome small {
+      display: block;
+
+      color: #65768a;
+
+      font-size: 9px;
     }
 
-    .hp-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      color: #7890a6;
-      font-size: 8px;
+    .hp-welcome h3 {
+      margin-top: 3px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 19px;
       font-weight: 700;
     }
 
-    .hp-live i {
+    .hp-live {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      color: var(--hp-green);
+
+      font-size: 9px;
+      white-space: nowrap;
+    }
+
+    .hp-live::before {
+      content: "";
+
       width: 5px;
       height: 5px;
+
       border-radius: 50%;
+
       background: var(--hp-green);
-      box-shadow: 0 0 0 4px rgba(56,211,159,.07);
-      animation: hpPulse 2s infinite;
+
+      box-shadow:
+        0 0 0 4px rgba(67,211,163,0.07);
     }
 
-    @keyframes hpPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: .35; }
-    }
-
-    .hp-kpi-grid {
+    .hp-kpis {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      grid-template-columns: 1.25fr 1fr 1fr;
+
+      gap: 9px;
+
+      margin-top: 20px;
     }
 
     .hp-kpi {
       padding: 13px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      background: rgba(255,255,255,.018);
+
+      border: 1px solid var(--hp-line);
+      border-radius: 12px;
+
+      background: rgba(255,255,255,0.025);
     }
 
-    .hp-kpi-label {
-      color: #718298;
+    .hp-kpi span {
+      color: #68798c;
       font-size: 8px;
-      font-weight: 600;
     }
 
-    .hp-kpi-value {
-      margin-top: 7px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -.035em;
-    }
+    .hp-kpi strong {
+      display: block;
 
-    .hp-kpi-change {
       margin-top: 4px;
-      color: var(--hp-green);
-      font-size: 7px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 17px;
       font-weight: 700;
     }
 
-    .hp-chart-card {
-      margin-top: 9px;
+    .hp-kpi strong.green {
+      color: var(--hp-green);
+    }
+
+    .hp-chart {
+      margin-top: 11px;
+
       padding: 14px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      background: rgba(255,255,255,.018);
+
+      border: 1px solid var(--hp-line);
+      border-radius: 12px;
+
+      background: rgba(255,255,255,0.018);
     }
 
     .hp-chart-head {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 9px;
     }
 
-    .hp-chart-head span:first-child {
-      color: #8494a7;
-      font-size: 8px;
-      font-weight: 700;
+    .hp-chart-head span {
+      color: #748599;
+      font-size: 9px;
     }
 
-    .hp-chart-head span:last-child {
-      color: #586a7e;
-      font-size: 7px;
+    .hp-chart-head b {
+      color: var(--hp-gold-light);
+      font-size: 9px;
     }
 
-    .hp-chart {
-      position: relative;
-      height: 110px;
+    .hp-line {
+      height: 95px;
+
+      margin-top: 8px;
+
       overflow: hidden;
     }
 
-    .hp-chart-grid {
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
-      background-size: 100% 27px;
-    }
-
-    .hp-chart svg {
-      position: absolute;
-      inset: 5px 0 0;
+    .hp-line svg {
       width: 100%;
-      height: calc(100% - 5px);
-      overflow: visible;
-    }
-
-    .hp-chart-line {
-      fill: none;
-      stroke: var(--hp-gold);
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 500;
-      stroke-dashoffset: 500;
-      animation: hpChartDraw 2.5s ease forwards .5s;
-    }
-
-    .hp-chart-area {
-      fill: url(#hpChartGradient);
-      opacity: .18;
-    }
-
-    @keyframes hpChartDraw {
-      to { stroke-dashoffset: 0; }
+      height: 100%;
     }
 
     .hp-transactions {
-      margin-top: 9px;
-      padding: 13px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      background: rgba(255,255,255,.018);
+      margin-top: 11px;
+
+      overflow: hidden;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 12px;
     }
 
-    .hp-transactions-title {
-      color: #8494a7;
-      font-size: 8px;
-      font-weight: 700;
-      margin-bottom: 8px;
+    .hp-transactions header {
+      padding: 10px 13px;
+
+      border-bottom: 1px solid var(--hp-line);
+
+      color: #738498;
+
+      font-size: 9px;
     }
 
-    .hp-transaction {
+    .hp-tx {
       display: grid;
-      grid-template-columns: 25px 1fr auto;
+      grid-template-columns: 1fr auto;
+      gap: 5px;
+
+      padding: 10px 13px;
+
+      border-bottom: 1px solid rgba(255,255,255,0.045);
+
+      font-size: 9px;
+    }
+
+    .hp-tx:last-child {
+      border-bottom: 0;
+    }
+
+    .hp-tx span {
+      color: #7f90a3;
+    }
+
+    .hp-tx strong {
+      font-size: 10px;
+    }
+
+    .hp-tx em {
+      grid-column: 2;
+
+      color: var(--hp-green);
+
+      font-size: 8px;
+      font-style: normal;
+    }
+
+    .hp-toast {
+      position: absolute;
+      z-index: 2;
+
+      right: -22px;
+      bottom: 35px;
+
+      width: 190px;
+
+      padding: 13px;
+
+      border: 1px solid rgba(67,211,163,0.2);
+      border-radius: 14px;
+
+      background: rgba(10,25,38,0.94);
+
+      box-shadow:
+        0 20px 45px rgba(0,0,0,0.35);
+
+      animation:
+        hpToast 5s ease-in-out infinite;
+    }
+
+    .hp-toast-top {
+      display: flex;
       align-items: center;
       gap: 8px;
-      padding: 7px 0;
-      border-top: 1px solid rgba(255,255,255,.045);
-      opacity: 0;
-      transform: translateY(7px);
-      animation: hpTransactionIn .5s ease forwards;
+
+      color: #dfe9e6;
+
+      font-size: 10px;
+      font-weight: 700;
     }
 
-    .hp-transaction:nth-child(2) { animation-delay: 1.2s; }
-    .hp-transaction:nth-child(3) { animation-delay: 1.55s; }
-    .hp-transaction:nth-child(4) { animation-delay: 1.9s; }
+    .hp-check {
+      width: 22px;
+      height: 22px;
 
-    @keyframes hpTransactionIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: rgba(67,211,163,0.12);
+      color: var(--hp-green);
+
+      font-size: 12px;
+    }
+
+    .hp-toast strong {
+      display: block;
+
+      margin-top: 7px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .hp-toast small {
+      color: #718296;
+      font-size: 8px;
+    }
+
+    @keyframes hpFloat {
+      0%, 100% {
+        transform: translateY(0) rotateY(-2deg);
+      }
+
+      50% {
+        transform: translateY(-8px) rotateY(-1deg);
       }
     }
 
-    .hp-tx-icon {
-      width: 25px;
-      height: 25px;
-      border-radius: 7px;
-      display: grid;
-      place-items: center;
-      background: rgba(56,211,159,.08);
-      color: var(--hp-green);
-    }
+    @keyframes hpToast {
+      0%, 100% {
+        opacity: 0.82;
+        transform: translateY(5px);
+      }
 
-    .hp-tx-icon svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    .hp-tx-main strong {
-      display: block;
-      color: #cdd6df;
-      font-size: 8px;
-      font-weight: 700;
-    }
-
-    .hp-tx-main span {
-      display: block;
-      margin-top: 1px;
-      color: #526477;
-      font-size: 7px;
-    }
-
-    .hp-tx-amount {
-      color: #dce5ed;
-      font-size: 8px;
-      font-weight: 800;
-      text-align: right;
-    }
-
-    .hp-tx-status {
-      display: block;
-      margin-top: 2px;
-      color: var(--hp-green);
-      font-size: 6px;
-      font-weight: 700;
-    }
-
-    .hp-floating-payment {
-      position: absolute;
-      right: -28px;
-      bottom: 52px;
-      width: 185px;
-      padding: 14px;
-      border: 1px solid rgba(56,211,159,.18);
-      border-radius: 14px;
-      background: rgba(10,26,39,.94);
-      box-shadow: var(--hp-shadow);
-      backdrop-filter: blur(14px);
-      animation: hpFloatPayment 5s ease-in-out infinite;
-      z-index: 4;
-    }
-
-    @keyframes hpFloatPayment {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    .hp-floating-top {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      color: #8495a7;
-      font-size: 7px;
-      font-weight: 700;
-    }
-
-    .hp-floating-check {
-      width: 22px;
-      height: 22px;
-      border-radius: 7px;
-      display: grid;
-      place-items: center;
-      background: rgba(56,211,159,.09);
-      color: var(--hp-green);
-    }
-
-    .hp-floating-check svg {
-      width: 11px;
-    }
-
-    .hp-floating-amount {
-      margin-top: 10px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 19px;
-      font-weight: 800;
-    }
-
-    .hp-floating-meta {
-      margin-top: 3px;
-      color: #64768a;
-      font-size: 7px;
+      50% {
+        opacity: 1;
+        transform: translateY(-4px);
+      }
     }
 
     /* =========================================================
        TRUST STRIP
-       ========================================================= */
+    ========================================================= */
 
-    .hp-trust-strip {
-      border-top: 1px solid var(--hp-border);
-      border-bottom: 1px solid var(--hp-border);
-      background: rgba(255,255,255,.012);
+    .hp-strip {
+      border-top: 1px solid var(--hp-line);
+      border-bottom: 1px solid var(--hp-line);
+
+      background: rgba(255,255,255,0.018);
     }
 
-    .hp-trust-inner {
-      min-height: 84px;
+    .hp-strip-inner {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
     }
 
-    .hp-trust-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 18px;
-      border-right: 1px solid var(--hp-border);
+    .hp-trust {
+      padding: 25px 20px;
+
+      text-align: center;
+
+      border-right: 1px solid var(--hp-line);
     }
 
-    .hp-trust-item:last-child {
+    .hp-trust:last-child {
       border-right: 0;
     }
 
-    .hp-trust-icon {
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--hp-border);
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      color: var(--hp-gold);
-      background: rgba(243,189,77,.04);
-    }
-
-    .hp-trust-icon svg {
-      width: 14px;
-    }
-
-    .hp-trust-text strong {
+    .hp-trust strong {
       display: block;
-      font-size: 11px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 18px;
       font-weight: 700;
     }
 
-    .hp-trust-text span {
+    .hp-trust span {
       display: block;
-      margin-top: 2px;
-      color: var(--hp-muted-2);
-      font-size: 9px;
+
+      margin-top: 3px;
+
+      color: var(--hp-dim);
+
+      font-size: 11px;
     }
 
     /* =========================================================
-       PAYMENT FLOW
-       ========================================================= */
+       STORY
+    ========================================================= */
 
-    .hp-flow-section {
-      overflow: hidden;
-    }
-
-    .hp-flow-header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 30px;
-    }
-
-    .hp-flow-header .hp-section-copy {
-      margin-top: 0;
-      max-width: 500px;
-    }
-
-    .hp-flow {
-      position: relative;
+    .hp-story {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0;
-      margin-top: 70px;
+      grid-template-columns: 0.85fr 1.15fr;
+
+      gap: 80px;
+
+      align-items: center;
     }
 
-    .hp-flow-line {
-      position: absolute;
-      top: 36px;
-      left: 12%;
-      right: 12%;
-      height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(243,189,77,.45),
-        rgba(243,189,77,.45),
-        transparent
-      );
+    .hp-steps {
+      display: grid;
+
+      margin-top: 34px;
     }
 
-    .hp-flow-line::after {
-      content: "";
-      position: absolute;
-      top: -2px;
-      left: -5%;
-      width: 40px;
-      height: 5px;
-      border-radius: 99px;
-      background: var(--hp-gold);
-      filter: blur(3px);
-      animation: hpFlowMove 4s linear infinite;
+    .hp-step {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+
+      gap: 16px;
+
+      padding: 21px 0;
+
+      border-bottom: 1px solid var(--hp-line);
     }
 
-    @keyframes hpFlowMove {
-      from { left: -5%; }
-      to { left: 105%; }
+    .hp-step:first-child {
+      border-top: 1px solid var(--hp-line);
     }
 
-    .hp-flow-step {
-      position: relative;
-      text-align: center;
-      padding: 0 20px;
-    }
+    .hp-step-num {
+      width: 32px;
+      height: 32px;
 
-    .hp-flow-number {
-      width: 72px;
-      height: 72px;
-      margin: 0 auto;
-      border: 1px solid var(--hp-border-strong);
-      border-radius: 20px;
       display: grid;
       place-items: center;
-      background: #0b1928;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 50%;
+
       color: var(--hp-gold);
-      box-shadow:
-        0 12px 35px rgba(0,0,0,.2),
-        inset 0 1px 0 rgba(255,255,255,.035);
-      position: relative;
-      z-index: 2;
+
+      font-size: 10px;
     }
 
-    .hp-flow-number svg {
-      width: 25px;
-      height: 25px;
+    .hp-step h3 {
+      font-family: "Manrope", sans-serif;
+      font-size: 17px;
+      font-weight: 700;
     }
 
-    .hp-flow-step h3 {
-      margin-top: 22px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 16px;
-      letter-spacing: -.02em;
-    }
+    .hp-step p {
+      margin-top: 5px;
 
-    .hp-flow-step p {
-      max-width: 210px;
-      margin: 9px auto 0;
       color: var(--hp-muted);
-      font-size: 12px;
-      line-height: 1.65;
+
+      font-size: 13px;
     }
 
-    /* =========================================================
-       CHANNELS
-       ========================================================= */
+    .hp-story-visual {
+      min-height: 400px;
 
-    .hp-channels-section {
+      display: grid;
+      place-items: center;
+
+      padding: 35px;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 25px;
+
       background:
         linear-gradient(
-          180deg,
-          transparent,
-          rgba(255,255,255,.012) 50%,
-          transparent
+          145deg,
+          #0e1d2d,
+          #091521
         );
     }
 
-    .hp-channels-grid {
-      display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: 20px;
-      margin-top: 55px;
+    .hp-flow {
+      width: min(100%, 420px);
     }
 
-    .hp-channel-main,
-    .hp-channel-stack {
-      min-height: 470px;
-    }
-
-    .hp-channel-main {
-      position: relative;
-      padding: 38px;
-      border: 1px solid var(--hp-border);
-      border-radius: var(--hp-radius-lg);
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 80% 20%, rgba(243,189,77,.08), transparent 34%),
-        linear-gradient(145deg, #0d1c2c, #081522);
-    }
-
-    .hp-channel-main::after {
-      content: "";
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      right: -100px;
-      bottom: -130px;
-      border: 1px solid rgba(243,189,77,.08);
-      border-radius: 50%;
-      box-shadow:
-        0 0 0 45px rgba(243,189,77,.018),
-        0 0 0 90px rgba(243,189,77,.012);
-    }
-
-    .hp-channel-icon {
-      width: 50px;
-      height: 50px;
-      border: 1px solid rgba(243,189,77,.18);
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      color: var(--hp-gold);
-      background: rgba(243,189,77,.045);
-    }
-
-    .hp-channel-icon svg {
-      width: 22px;
-    }
-
-    .hp-channel-main h3 {
-      max-width: 480px;
-      margin-top: 80px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 31px;
-      line-height: 1.1;
-      letter-spacing: -.035em;
-    }
-
-    .hp-channel-main p {
-      max-width: 490px;
-      margin-top: 15px;
-      color: var(--hp-muted);
-      font-size: 14px;
-      line-height: 1.7;
-    }
-
-    .hp-channel-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 24px;
-    }
-
-    .hp-channel-tag {
-      padding: 7px 10px;
-      border: 1px solid var(--hp-border);
-      border-radius: 8px;
-      color: #9baabd;
-      background: rgba(255,255,255,.025);
-      font-size: 9px;
-      font-weight: 700;
-    }
-
-    .hp-channel-stack {
-      display: grid;
-      grid-template-rows: repeat(2, 1fr);
-      gap: 20px;
-    }
-
-    .hp-channel-card {
-      position: relative;
-      padding: 30px;
-      border: 1px solid var(--hp-border);
-      border-radius: var(--hp-radius);
-      background: var(--hp-surface);
-      overflow: hidden;
-      transition:
-        transform .3s ease,
-        border-color .3s ease,
-        background .3s ease;
-    }
-
-    .hp-channel-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--hp-border-strong);
-      background: var(--hp-surface-2);
-    }
-
-    .hp-channel-card h3 {
-      margin-top: 35px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 21px;
-      letter-spacing: -.025em;
-    }
-
-    .hp-channel-card p {
-      max-width: 390px;
-      margin-top: 9px;
-      color: var(--hp-muted);
-      font-size: 12px;
-      line-height: 1.65;
-    }
-
-    .hp-card-arrow {
-      position: absolute;
-      top: 27px;
-      right: 28px;
-      color: #4c6075;
-      transition: transform .3s ease, color .3s ease;
-    }
-
-    .hp-channel-card:hover .hp-card-arrow {
-      transform: translate(3px,-3px);
-      color: var(--hp-gold);
-    }
-
-    /* =========================================================
-       CONTROL CENTER
-       ========================================================= */
-
-    .hp-control-section {
-      padding-top: 100px;
-    }
-
-    .hp-control-grid {
-      display: grid;
-      grid-template-columns: .8fr 1.2fr;
-      gap: 75px;
-      align-items: center;
-    }
-
-    .hp-control-points {
-      margin-top: 35px;
-      display: grid;
-      gap: 20px;
-    }
-
-    .hp-control-point {
-      display: grid;
-      grid-template-columns: 38px 1fr;
-      gap: 13px;
-    }
-
-    .hp-point-icon {
-      width: 38px;
-      height: 38px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      display: grid;
-      place-items: center;
-      color: var(--hp-gold);
-      background: rgba(255,255,255,.018);
-    }
-
-    .hp-point-icon svg {
-      width: 16px;
-    }
-
-    .hp-control-point h4 {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .hp-control-point p {
-      margin-top: 3px;
-      color: var(--hp-muted-2);
-      font-size: 11px;
-      line-height: 1.6;
-    }
-
-    .hp-control-ui {
-      position: relative;
-      min-height: 470px;
-      padding: 24px;
-      border: 1px solid var(--hp-border);
-      border-radius: 25px;
-      background: #091725;
-      box-shadow: var(--hp-shadow);
-      overflow: hidden;
-    }
-
-    .hp-control-ui::before {
-      content: "";
-      position: absolute;
-      width: 400px;
-      height: 400px;
-      top: -260px;
-      right: -100px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(243,189,77,.08), transparent 65%);
-    }
-
-    .hp-control-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .hp-control-top strong {
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 15px;
-    }
-
-    .hp-control-filter {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 9px;
-      border: 1px solid var(--hp-border);
-      border-radius: 7px;
-      color: #687a8e;
-      font-size: 8px;
-    }
-
-    .hp-control-kpis {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-      margin-top: 20px;
-      position: relative;
-    }
-
-    .hp-control-kpi {
-      padding: 13px;
-      border: 1px solid var(--hp-border);
-      border-radius: 11px;
-      background: rgba(255,255,255,.018);
-    }
-
-    .hp-control-kpi span {
-      color: #687a8e;
-      font-size: 8px;
-    }
-
-    .hp-control-kpi strong {
-      display: block;
-      margin-top: 6px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 18px;
-    }
-
-    .hp-control-table {
-      margin-top: 10px;
-      border: 1px solid var(--hp-border);
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-    }
+    .hp-flow-box {
+      padding: 18px;
 
-    .hp-table-head,
-    .hp-table-row {
-      display: grid;
-      grid-template-columns: 1.3fr .8fr .8fr .65fr;
-      align-items: center;
-      gap: 8px;
-      padding: 11px 13px;
-    }
-
-    .hp-table-head {
-      background: rgba(255,255,255,.02);
-      color: #536579;
-      font-size: 7px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    .hp-table-row {
-      border-top: 1px solid var(--hp-border);
-      color: #aebbc8;
-      font-size: 8px;
-    }
-
-    .hp-table-row strong {
-      color: #d7dfe7;
-      font-size: 8px;
-    }
-
-    .hp-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      width: max-content;
-      padding: 4px 6px;
-      border-radius: 5px;
-      background: rgba(56,211,159,.07);
-      color: var(--hp-green);
-      font-size: 6px;
-      font-weight: 800;
-    }
-
-    .hp-status i {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* =========================================================
-       METHODS
-       ========================================================= */
-
-    .hp-methods-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-top: 55px;
-    }
-
-    .hp-method-card {
-      min-height: 245px;
-      padding: 28px;
-      border: 1px solid var(--hp-border);
-      border-radius: var(--hp-radius);
-      background: var(--hp-surface);
-      transition:
-        transform .3s ease,
-        border-color .3s ease;
-    }
-
-    .hp-method-card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(243,189,77,.2);
-    }
-
-    .hp-method-symbol {
-      width: 45px;
-      height: 45px;
-      border-radius: 12px;
-      display: grid;
-      place-items: center;
-      border: 1px solid var(--hp-border);
-      background: rgba(255,255,255,.025);
-      color: var(--hp-gold);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .hp-method-card h3 {
-      margin-top: 32px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 18px;
-      letter-spacing: -.025em;
-    }
-
-    .hp-method-card p {
-      margin-top: 8px;
-      color: var(--hp-muted);
-      font-size: 11px;
-      line-height: 1.7;
-    }
-
-    .hp-method-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 22px;
-      color: #65778b;
-      font-size: 8px;
-      font-weight: 700;
-    }
-
-    /* =========================================================
-       BUSINESS SECTION
-       ========================================================= */
-
-    .hp-business {
-      position: relative;
-      overflow: hidden;
-      padding: 90px 0;
-      border-top: 1px solid var(--hp-border);
-      border-bottom: 1px solid var(--hp-border);
-      background:
-        radial-gradient(circle at 75% 50%, rgba(243,189,77,.055), transparent 32%),
-        #07131f;
-    }
-
-    .hp-business-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-    }
-
-    .hp-business-title {
-      max-width: 650px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: clamp(34px, 4vw, 55px);
-      line-height: 1.03;
-      letter-spacing: -.045em;
-      font-weight: 800;
-    }
-
-    .hp-business-copy {
-      max-width: 590px;
-      margin-top: 20px;
-      color: var(--hp-muted);
-      font-size: 15px;
-      line-height: 1.75;
-    }
-
-    .hp-business-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 30px;
-    }
-
-    .hp-business-list div {
-      padding: 13px;
-      border: 1px solid var(--hp-border);
-      border-radius: 10px;
-      color: #b7c2ce;
-      background: rgba(255,255,255,.018);
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    .hp-business-list div::before {
-      content: "✓";
-      margin-right: 8px;
-      color: var(--hp-gold);
-    }
-
-    .hp-enterprise-panel {
-      position: relative;
-      min-height: 380px;
-      border: 1px solid var(--hp-border-strong);
-      border-radius: 24px;
-      background:
-        linear-gradient(145deg, #0e1e2e, #071522);
-      box-shadow: var(--hp-shadow);
-      overflow: hidden;
-    }
-
-    .hp-enterprise-panel::before {
-      content: "";
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      top: -150px;
-      left: -80px;
-      border-radius: 50%;
-      background: rgba(243,189,77,.07);
-      filter: blur(30px);
-    }
-
-    .hp-enterprise-inner {
-      position: relative;
-      padding: 27px;
-    }
-
-    .hp-enterprise-caption {
-      color: #627489;
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: .13em;
-      text-transform: uppercase;
-    }
-
-    .hp-enterprise-heading {
-      margin-top: 9px;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 20px;
-      letter-spacing: -.025em;
-    }
-
-    .hp-enterprise-bars {
-      display: grid;
-      gap: 14px;
-      margin-top: 35px;
-    }
-
-    .hp-enterprise-bar {
-      display: grid;
-      grid-template-columns: 100px 1fr 50px;
-      align-items: center;
-      gap: 12px;
-      color: #718298;
-      font-size: 8px;
-    }
-
-    .hp-bar-track {
-      height: 5px;
-      border-radius: 99px;
-      background: rgba(255,255,255,.06);
-      overflow: hidden;
-    }
-
-    .hp-bar-fill {
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #b8862b, var(--hp-gold));
-      transform-origin: left;
-      animation: hpBarIn 1.2s ease forwards;
-    }
-
-    @keyframes hpBarIn {
-      from { transform: scaleX(0); }
-      to { transform: scaleX(1); }
-    }
-
-    .hp-enterprise-bottom {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 35px;
-    }
-
-    .hp-enterprise-stat {
-      padding: 13px;
-      border: 1px solid var(--hp-border);
-      border-radius: 10px;
-      background: rgba(255,255,255,.02);
-    }
-
-    .hp-enterprise-stat strong {
-      display: block;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: 16px;
-    }
-
-    .hp-enterprise-stat span {
-      display: block;
-      margin-top: 3px;
-      color: #596b7f;
-      font-size: 7px;
-    }
+      border: 1px solid var(--hp-line);
+      border-radius: 15px;
 
-    /* =========================================================
-       PRICING
-       ========================================================= */
+      background: rgba(255,255,255,0.025);
 
-    .hp-pricing {
       text-align: center;
     }
 
-    .hp-pricing .hp-section-title {
-      margin: 0 auto;
-    }
+    .hp-flow-box strong {
+      display: block;
 
-    .hp-pricing .hp-section-copy {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .hp-price-card {
-      max-width: 780px;
-      margin: 50px auto 0;
-      padding: 42px;
-      border: 1px solid var(--hp-border-strong);
-      border-radius: 25px;
-      background:
-        radial-gradient(circle at 50% 0, rgba(243,189,77,.08), transparent 40%),
-        var(--hp-surface);
-      box-shadow: var(--hp-shadow);
-    }
-
-    .hp-price-label {
-      color: #718298;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .13em;
-      text-transform: uppercase;
-    }
-
-    .hp-price {
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 5px;
-      margin-top: 12px;
-      font-family: Manrope, Inter, sans-serif;
-    }
-
-    .hp-price strong {
-      font-size: clamp(58px, 8vw, 92px);
-      line-height: 1;
-      letter-spacing: -.07em;
-    }
-
-    .hp-price span {
-      color: #8797a9;
-      font-size: 13px;
-    }
-
-    .hp-price-sub {
-      margin-top: 10px;
-      color: #8a99aa;
-      font-size: 12px;
-    }
-
-    .hp-price-features {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 9px;
-      margin-top: 28px;
-    }
-
-    .hp-price-feature {
-      padding: 8px 11px;
-      border: 1px solid var(--hp-border);
-      border-radius: 8px;
-      color: #9aa9b9;
-      background: rgba(255,255,255,.02);
-      font-size: 9px;
+      font-family: "Manrope", sans-serif;
+      font-size: 18px;
       font-weight: 700;
     }
 
-    .hp-price-note {
-      max-width: 560px;
-      margin: 22px auto 0;
-      color: #596b7f;
-      font-size: 9px;
+    .hp-flow-box span {
+      color: #718397;
+      font-size: 11px;
+    }
+
+    .hp-flow-box.success {
+      border-color: rgba(67,211,163,0.18);
+      background: rgba(67,211,163,0.035);
+    }
+
+    .hp-flow-box.success strong {
+      color: var(--hp-green);
+    }
+
+    .hp-arrow {
+      padding: 10px;
+
+      color: var(--hp-gold);
+
+      text-align: center;
+      font-size: 17px;
+    }
+
+    /* =========================================================
+       PAYMENT METHODS
+    ========================================================= */
+
+    .hp-methods-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+
+      gap: 30px;
+    }
+
+    .hp-methods-head .hp-copy {
+      max-width: 440px;
+      margin-top: 0;
+    }
+
+    .hp-method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      gap: 13px;
+
+      margin-top: 42px;
+    }
+
+    .hp-method {
+      position: relative;
+
+      min-height: 290px;
+
+      overflow: hidden;
+
+      padding: 24px;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 20px;
+
+      background:
+        linear-gradient(
+          150deg,
+          #0e1c2b,
+          #091521
+        );
+
+      transition:
+        transform 0.25s ease,
+        border-color 0.25s ease;
+    }
+
+    .hp-method::after {
+      content: "";
+
+      position: absolute;
+
+      width: 140px;
+      height: 140px;
+
+      right: -65px;
+      bottom: -65px;
+
+      border-radius: 50%;
+
+      border: 1px solid rgba(241,188,75,0.08);
+    }
+
+    .hp-method:hover {
+      transform: translateY(-5px);
+
+      border-color: rgba(241,188,75,0.24);
+    }
+
+    .hp-method-number {
+      color: #526477;
+
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    .hp-method h3 {
+      margin-top: 60px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .hp-method p {
+      max-width: 330px;
+
+      margin-top: 9px;
+
+      color: var(--hp-muted);
+
+      font-size: 13px;
       line-height: 1.65;
+    }
+
+    .hp-method-ui {
+      position: absolute;
+
+      top: 22px;
+      right: 22px;
+
+      padding: 7px 9px;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 9px;
+
+      background: #0b1826;
+
+      color: #b8c5d2;
+
+      font-size: 9px;
+    }
+
+    .hp-method-ui b {
+      color: var(--hp-green);
+    }
+
+    .hp-method-icon {
+      position: absolute;
+
+      left: 24px;
+      bottom: 24px;
+
+      width: 38px;
+      height: 38px;
+
+      display: grid;
+      place-items: center;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 11px;
+
+      color: var(--hp-gold);
+
+      font-size: 13px;
+    }
+
+    /* =========================================================
+       HUMAN SECTION
+    ========================================================= */
+
+    .hp-human {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+
+      gap: 70px;
+
+      align-items: center;
+    }
+
+    .hp-human-card {
+      position: relative;
+
+      min-height: 410px;
+
+      overflow: hidden;
+
+      padding: 30px;
+
+      border: 1px solid var(--hp-line);
+      border-radius: 25px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #102135,
+          #0a1724
+        );
+    }
+
+    .hp-human-card::before {
+      content: "";
+
+      position: absolute;
+
+      width: 280px;
+      height: 280px;
+
+      right: -90px;
+      top: -80px;
+
+      border-radius: 50%;
+
+      border: 1px solid rgba(241,188,75,0.07);
+    }
+
+    .hp-human-quote {
+      position: relative;
+      z-index: 4;
+
+      max-width: 290px;
+
+      color: #c9d2dc;
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .hp-human-quote b {
+      display: block;
+
+      margin-top: 14px;
+
+      color: var(--hp-gold-light);
+
+      font-size: 11px;
+    }
+
+    .hp-person {
+      position: absolute;
+
+      right: 25px;
+      bottom: -5px;
+
+      width: 230px;
+      height: 310px;
+    }
+
+    .hp-person-head {
+      position: absolute;
+
+      width: 92px;
+      height: 100px;
+
+      right: 66px;
+      top: 25px;
+
+      border-radius: 48% 48% 44% 44%;
+
+      background:
+        linear-gradient(
+          145deg,
+          #9a6748,
+          #67402f
+        );
+    }
+
+    .hp-person-hair {
+      position: absolute;
+
+      width: 103px;
+      height: 68px;
+
+      right: 60px;
+      top: 12px;
+
+      border-radius: 55% 55% 35% 35%;
+
+      background: #211813;
+    }
+
+    .hp-person-body {
+      position: absolute;
+
+      width: 190px;
+      height: 205px;
+
+      right: 15px;
+      bottom: 0;
+
+      border-radius: 90px 90px 0 0;
+
+      background:
+        linear-gradient(
+          145deg,
+          #d8a63e,
+          #9a6820
+        );
+    }
+
+    .hp-phone {
+      position: absolute;
+
+      width: 95px;
+      height: 150px;
+
+      right: 126px;
+      top: 135px;
+
+      padding: 13px 8px;
+
+      border: 3px solid #1b2028;
+      border-radius: 15px;
+
+      background: #0b1118;
+
+      transform: rotate(-9deg);
+
+      box-shadow:
+        0 15px 30px rgba(0,0,0,0.3);
+    }
+
+    .hp-phone-screen {
+      height: 100%;
+
+      padding: 12px 8px;
+
+      border-radius: 8px;
+
+      background: #102033;
+
+      color: #cfd8e1;
+
+      font-size: 7px;
+    }
+
+    .hp-phone-screen b {
+      display: block;
+
+      margin-top: 7px;
+
+      color: #ffffff;
+
+      font-size: 10px;
+    }
+
+    .hp-phone-check {
+      width: 30px;
+      height: 30px;
+
+      display: grid;
+      place-items: center;
+
+      margin-top: 20px;
+
+      border-radius: 50%;
+
+      background: rgba(67,211,163,0.12);
+      color: var(--hp-green);
+    }
+
+    /* =========================================================
+       PRICE
+    ========================================================= */
+
+    .hp-price {
+      display: grid;
+      grid-template-columns: 1fr 0.75fr;
+
+      gap: 80px;
+
+      align-items: center;
+    }
+
+    .hp-price-card {
+      padding: 35px;
+
+      border: 1px solid rgba(241,188,75,0.18);
+      border-radius: 24px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #141f2a,
+          #0b1724
+        );
+    }
+
+    .hp-price-card small {
+      color: #77879a;
+      font-size: 11px;
+    }
+
+    .hp-price-number {
+      margin-top: 4px;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 68px;
+      font-weight: 800;
+      line-height: 1;
+
+      letter-spacing: -0.06em;
+    }
+
+    .hp-price-number span {
+      color: var(--hp-gold);
+
+      font-size: 25px;
+    }
+
+    .hp-price-card > p {
+      color: var(--hp-muted);
+      font-size: 13px;
+    }
+
+    .hp-price-list {
+      display: grid;
+      gap: 10px;
+
+      margin-top: 22px;
+    }
+
+    .hp-price-list span {
+      color: #b9c5d1;
+
+      font-size: 12px;
+    }
+
+    .hp-price-list span::before {
+      content: "✓";
+
+      margin-right: 9px;
+
+      color: var(--hp-green);
     }
 
     /* =========================================================
        FAQ
-       ========================================================= */
+    ========================================================= */
 
-    .hp-faq-grid {
-      max-width: 880px;
-      margin: 55px auto 0;
-      border-top: 1px solid var(--hp-border);
+    .hp-faq {
+      max-width: 820px;
+
+      margin-top: 38px;
     }
 
     .hp-faq-item {
-      border-bottom: 1px solid var(--hp-border);
+      border-top: 1px solid var(--hp-line);
+
+      padding: 21px 0;
     }
 
-    .hp-faq-question {
-      width: 100%;
-      padding: 23px 4px;
-      border: 0;
-      background: transparent;
-      color: #e3e8ee;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      text-align: left;
-      font-size: 14px;
-      font-weight: 700;
+    .hp-faq-item:last-child {
+      border-bottom: 1px solid var(--hp-line);
+    }
+
+    .hp-faq-item summary {
       cursor: pointer;
+
+      list-style: none;
+
+      font-family: "Manrope", sans-serif;
+      font-size: 16px;
+      font-weight: 600;
     }
 
-    .hp-faq-question svg {
-      flex-shrink: 0;
-      width: 17px;
-      color: #64768a;
-      transition: transform .25s ease;
+    .hp-faq-item summary::-webkit-details-marker {
+      display: none;
     }
 
-    .hp-faq-item.open .hp-faq-question svg {
-      transform: rotate(45deg);
+    .hp-faq-item summary::after {
+      content: "+";
+
+      float: right;
+
       color: var(--hp-gold);
+
+      font-size: 20px;
+      font-weight: 400;
+
+      transition: transform 0.2s ease;
     }
 
-    .hp-faq-answer {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows .3s ease;
+    .hp-faq-item[open] summary::after {
+      transform: rotate(45deg);
     }
 
-    .hp-faq-answer > div {
-      overflow: hidden;
-    }
+    .hp-faq-item p {
+      max-width: 700px;
 
-    .hp-faq-answer p {
-      padding: 0 30px 22px 4px;
+      padding-top: 11px;
+
       color: var(--hp-muted);
-      font-size: 12px;
-      line-height: 1.75;
-    }
 
-    .hp-faq-item.open .hp-faq-answer {
-      grid-template-rows: 1fr;
+      font-size: 13px;
+      line-height: 1.75;
     }
 
     /* =========================================================
        FINAL CTA
-       ========================================================= */
+    ========================================================= */
 
     .hp-final {
-      padding: 110px 0 130px;
-    }
+      padding: 100px 0 115px;
 
-    .hp-final-card {
-      position: relative;
-      padding: 75px 50px;
-      border: 1px solid var(--hp-border-strong);
-      border-radius: 30px;
       text-align: center;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 50% 0, rgba(243,189,77,.11), transparent 38%),
-        linear-gradient(145deg, #0e1d2c, #081522);
     }
 
-    .hp-final-card::before,
-    .hp-final-card::after {
-      content: "";
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      border: 1px solid rgba(243,189,77,.06);
-      border-radius: 50%;
-    }
+    .hp-final .hp-title {
+      max-width: 720px;
 
-    .hp-final-card::before {
-      left: -190px;
-      bottom: -180px;
-    }
-
-    .hp-final-card::after {
-      right: -190px;
-      top: -180px;
-    }
-
-    .hp-final-card > * {
-      position: relative;
-      z-index: 2;
-    }
-
-    .hp-final-card h2 {
-      max-width: 760px;
       margin: 0 auto;
-      font-family: Manrope, Inter, sans-serif;
-      font-size: clamp(36px, 5vw, 62px);
-      line-height: 1.02;
-      letter-spacing: -.055em;
     }
 
-    .hp-final-card p {
-      max-width: 570px;
+    .hp-final .hp-copy {
       margin: 20px auto 0;
-      color: var(--hp-muted);
-      font-size: 15px;
-      line-height: 1.7;
     }
 
-    .hp-final-actions {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 32px;
+    .hp-final .hp-btn {
+      margin-top: 28px;
     }
 
     /* =========================================================
        FOOTER
-       ========================================================= */
+    ========================================================= */
 
     .hp-footer {
-      border-top: 1px solid var(--hp-border);
-      padding: 32px 0;
+      padding: 25px 0 32px;
+
+      border-top: 1px solid var(--hp-line);
+
+      color: #617286;
+
+      font-size: 11px;
     }
 
     .hp-footer-inner {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 25px;
-    }
-
-    .hp-footer-copy {
-      color: #56677b;
-      font-size: 10px;
-    }
-
-    .hp-footer-links {
-      display: flex;
       gap: 20px;
     }
 
-    .hp-footer-links a {
-      color: #718195;
-      font-size: 10px;
-      font-weight: 600;
-    }
-
-    .hp-footer-links a:hover {
-      color: white;
+    .hp-footer a:hover {
+      color: #ffffff;
     }
 
     /* =========================================================
-       REVEAL
-       ========================================================= */
+       REVEAL ANIMATION
+    ========================================================= */
 
     .hp-reveal {
       opacity: 0;
-      transform: translateY(25px);
+
+      transform: translateY(22px);
+
       transition:
-        opacity .8s ease,
-        transform .8s cubic-bezier(.2,.75,.25,1);
+        opacity 0.75s ease,
+        transform 0.75s ease;
     }
 
-    .hp-reveal.hp-visible {
+    .hp-reveal.visible {
       opacity: 1;
+
       transform: translateY(0);
     }
 
-    .hp-delay-1 { transition-delay: .08s; }
-    .hp-delay-2 { transition-delay: .16s; }
-    .hp-delay-3 { transition-delay: .24s; }
-
     /* =========================================================
-       RESPONSIVE
-       ========================================================= */
+       MOBILE MENU
+    ========================================================= */
 
-    @media (max-width: 1050px) {
-      .hp-nav-links {
-        gap: 20px;
+    @media (max-width: 900px) {
+      .hp-links {
+        display: none;
       }
 
-      .hp-hero-grid {
-        grid-template-columns: 1fr;
-        gap: 65px;
-      }
-
-      .hp-hero-copy {
-        max-width: 760px;
-      }
-
-      .hp-dashboard-wrap {
-        max-width: 760px;
-      }
-
-      .hp-dashboard {
-        transform: none;
-      }
-
-      .hp-control-grid {
-        grid-template-columns: 1fr;
-        gap: 45px;
-      }
-
-      .hp-business-grid {
-        grid-template-columns: 1fr;
-        gap: 50px;
-      }
-
-      .hp-channels-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hp-channel-main {
-        min-height: 400px;
-      }
-
-      .hp-channel-stack {
-        min-height: auto;
-      }
-    }
-
-    @media (max-width: 820px) {
-      .hp-container {
-        width: min(calc(100% - 28px), var(--hp-max));
-      }
-
-      .hp-nav-links,
-      .hp-nav-actions {
+      .hp-actions {
         display: none;
       }
 
       #hpMenuButton {
-        display: grid;
-        place-items: center;
+        display: block;
       }
 
-      #hpHeader.hp-menu-open {
-        background: rgba(6,16,29,.97);
-        backdrop-filter: blur(20px);
-      }
-
-      #hpHeader.hp-menu-open .hp-nav {
-        position: relative;
-      }
-
-      #hpHeader.hp-menu-open::after {
-        content: "";
+      .hp-links.hp-mobile-open {
         position: absolute;
-        left: 0;
-        right: 0;
-        top: 76px;
-        height: calc(100vh - 76px);
-        background: rgba(6,16,29,.98);
-        border-top: 1px solid var(--hp-border);
-        z-index: -1;
-      }
 
-      #hpHeader.hp-menu-open .hp-nav-links {
-        position: absolute;
-        display: grid;
-        left: 0;
-        right: 0;
-        top: 92px;
-        gap: 0;
-        margin: 0;
-      }
+        top: 66px;
+        left: 14px;
+        right: 14px;
 
-      #hpHeader.hp-menu-open .hp-nav-links a {
-        padding: 17px 2px;
-        border-bottom: 1px solid var(--hp-border);
-        font-size: 15px;
-      }
-
-      #hpHeader.hp-menu-open .hp-nav-actions {
-        position: absolute;
         display: flex;
-        left: 0;
-        right: 0;
-        top: 325px;
+
+        flex-direction: column;
+        gap: 4px;
+
+        padding: 15px;
+
+        border: 1px solid var(--hp-line);
+        border-radius: 14px;
+
+        background: rgba(9,21,34,0.98);
+
+        box-shadow:
+          0 20px 50px rgba(0,0,0,0.35);
       }
 
-      #hpHeader.hp-menu-open .hp-nav-actions .hp-btn {
-        flex: 1;
+      .hp-links.hp-mobile-open a {
+        padding: 12px;
       }
 
-      .hp-hero {
-        min-height: auto;
-        padding-top: 125px;
+      .hp-links.hp-mobile-open a:hover {
+        border-radius: 8px;
+
+        background: rgba(255,255,255,0.04);
       }
 
-      .hp-hero h1 {
-        font-size: clamp(45px, 12vw, 68px);
+      .hp-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 45px;
       }
 
-      .hp-dashboard-body {
+      .hp-story {
+        grid-template-columns: 1fr;
+        gap: 45px;
+      }
+
+      .hp-human {
+        grid-template-columns: 1fr;
+        gap: 45px;
+      }
+
+      .hp-price {
+        grid-template-columns: 1fr;
+        gap: 45px;
+      }
+
+      .hp-methods-head {
+        display: block;
+      }
+
+      .hp-methods-head .hp-copy {
+        margin-top: 20px;
+      }
+
+      .hp-method-grid {
         grid-template-columns: 1fr;
       }
 
-      .hp-dash-sidebar {
-        display: none;
+      .hp-strip-inner {
+        grid-template-columns: repeat(2, 1fr);
       }
 
-      .hp-floating-payment {
-        right: 15px;
-        bottom: 25px;
-      }
-
-      .hp-trust-inner {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .hp-trust-item:nth-child(2) {
+      .hp-trust:nth-child(2) {
         border-right: 0;
       }
 
-      .hp-trust-item:nth-child(3),
-      .hp-trust-item:nth-child(4) {
-        border-top: 1px solid var(--hp-border);
-      }
-
-      .hp-flow {
-        grid-template-columns: 1fr 1fr;
-        gap: 55px 0;
-      }
-
-      .hp-flow-line {
-        display: none;
-      }
-
-      .hp-methods-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hp-method-card {
-        min-height: 210px;
+      .hp-trust:nth-child(-n+2) {
+        border-bottom: 1px solid var(--hp-line);
       }
     }
 
-    @media (max-width: 560px) {
+    /* =========================================================
+       TABLET / PHONE
+    ========================================================= */
+
+    @media (max-width: 620px) {
+      .hp-container {
+        width: min(
+          calc(100% - 28px),
+          var(--hp-max)
+        );
+      }
+
       .hp-section {
-        padding: 85px 0;
+        padding: 75px 0;
       }
 
       .hp-hero {
-        padding-top: 112px;
-        padding-bottom: 65px;
+        min-height: auto;
+
+        padding: 110px 0 70px;
+      }
+
+      .hp-hero h1 {
+        font-size: 48px;
       }
 
       .hp-hero-text {
-        font-size: 15px;
+        font-size: 16px;
       }
 
-      .hp-hero-actions {
-        align-items: stretch;
-        flex-direction: column;
+      .hp-product {
+        border-radius: 18px;
       }
 
-      .hp-hero-actions .hp-btn {
-        width: 100%;
+      .hp-product-body {
+        grid-template-columns: 1fr;
       }
 
-      .hp-dashboard {
-        border-radius: 17px;
-      }
-
-      .hp-dashboard-body {
-        min-height: 430px;
-      }
-
-      .hp-dash-main {
-        padding: 13px;
-      }
-
-      .hp-kpi-grid {
-        grid-template-columns: 1fr 1fr 1fr;
-      }
-
-      .hp-kpi-value {
-        font-size: 13px;
-      }
-
-      .hp-chart {
-        height: 90px;
-      }
-
-      .hp-floating-payment {
+      .hp-sidebar {
         display: none;
       }
 
-      .hp-trust-item {
-        justify-content: flex-start;
-        padding: 15px 10px;
-      }
-
-      .hp-trust-text strong {
-        font-size: 9px;
-      }
-
-      .hp-trust-text span {
-        font-size: 7px;
-      }
-
-      .hp-flow {
-        grid-template-columns: 1fr;
-        gap: 42px;
-      }
-
-      .hp-flow-step {
-        display: grid;
-        grid-template-columns: 58px 1fr;
-        column-gap: 17px;
-        text-align: left;
-        align-items: center;
-      }
-
-      .hp-flow-number {
-        width: 58px;
-        height: 58px;
-        border-radius: 16px;
-        grid-row: span 2;
-      }
-
-      .hp-flow-step h3 {
-        margin-top: 0;
-      }
-
-      .hp-flow-step p {
-        margin: 5px 0 0;
-        max-width: none;
-      }
-
-      .hp-channel-main {
-        padding: 27px;
-        min-height: 390px;
-      }
-
-      .hp-channel-main h3 {
-        margin-top: 60px;
-        font-size: 27px;
-      }
-
-      .hp-channel-stack {
-        grid-template-rows: auto;
-      }
-
-      .hp-control-ui {
-        min-height: auto;
+      .hp-main {
         padding: 15px;
       }
 
-      .hp-control-kpis {
-        grid-template-columns: 1fr;
+      .hp-kpis {
+        grid-template-columns: 1fr 1fr;
       }
 
-      .hp-table-head,
-      .hp-table-row {
-        grid-template-columns: 1.1fr .8fr .7fr;
+      .hp-kpi:first-child {
+        grid-column: 1 / -1;
       }
 
-      .hp-table-head div:nth-child(3),
-      .hp-table-row > div:nth-child(3) {
-        display: none;
+      .hp-toast {
+        right: 8px;
+        bottom: 18px;
       }
 
-      .hp-business-list {
-        grid-template-columns: 1fr;
+      .hp-human-card {
+        min-height: 360px;
+
+        padding: 22px;
       }
 
-      .hp-enterprise-panel {
-        min-height: 350px;
+      .hp-person {
+        right: -5px;
+
+        transform:
+          scale(0.78);
+
+        transform-origin:
+          bottom right;
       }
 
-      .hp-enterprise-bar {
-        grid-template-columns: 70px 1fr 35px;
+      .hp-human-quote {
+        max-width: 230px;
       }
 
-      .hp-enterprise-bottom {
-        grid-template-columns: 1fr;
-      }
-
-      .hp-price-card {
-        padding: 32px 18px;
-      }
-
-      .hp-price strong {
-        font-size: 65px;
-      }
-
-      .hp-final {
-        padding: 80px 0 90px;
-      }
-
-      .hp-final-card {
-        padding: 55px 22px;
-        border-radius: 22px;
-      }
-
-      .hp-final-actions {
-        flex-direction: column;
-      }
-
-      .hp-final-actions .hp-btn {
-        width: 100%;
+      .hp-price-number {
+        font-size: 58px;
       }
 
       .hp-footer-inner {
-        align-items: flex-start;
         flex-direction: column;
       }
 
-      .hp-footer-links {
-        flex-wrap: wrap;
+      .hp-strip-inner {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hp-trust {
+        padding: 20px 10px;
+      }
+
+      .hp-trust strong {
+        font-size: 16px;
       }
     }
+
+    /* =========================================================
+       REDUCED MOTION
+    ========================================================= */
 
     @media (prefers-reduced-motion: reduce) {
       html {
         scroll-behavior: auto;
       }
 
-      *,
-      *::before,
-      *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
+      .hp-product,
+      .hp-toast {
+        animation: none;
       }
 
       .hp-reveal {
         opacity: 1;
+
         transform: none;
+
+        transition: none;
       }
     }
   </style>
@@ -2179,56 +1759,74 @@
 
   <!-- =======================================================
        HEADER
-       ======================================================= -->
+  ======================================================== -->
 
   <header id="hpHeader">
+
     <div class="hp-container hp-nav">
 
-      <a href="/" class="hp-brand" aria-label="Honey Pay">
-        <span class="hp-brand-mark" aria-hidden="true">
-          <span></span>
-        </span>
+      <a
+        class="hp-brand"
+        href="/"
+        aria-label="Honey Pay"
+      >
+        <span class="hp-brand-mark"></span>
 
-        <span class="hp-brand-name">
+        <span>
           Honey <em>Pay</em>
         </span>
       </a>
 
-      <nav class="hp-nav-links" aria-label="Navegação principal">
-        <a href="#produto">Produto</a>
-        <a href="#pagamentos">Pagamentos</a>
-        <a href="#empresas">Empresas</a>
-        <a href="#precos">Preços</a>
-        <a href="#faq">FAQ</a>
+      <nav
+        class="hp-links"
+        aria-label="Navegação principal"
+      >
+        <a href="#como-funciona">
+          Como funciona
+        </a>
+
+        <a href="#pagamentos">
+          Pagamentos
+        </a>
+
+        <a href="#preco">
+          Preço
+        </a>
+
+        <a href="#faq">
+          Perguntas
+        </a>
       </nav>
 
-      <div class="hp-nav-actions">
-        <a href="/login" class="hp-btn hp-btn-ghost">Entrar</a>
-        <a href="/login" class="hp-btn hp-btn-primary">
-          Criar conta
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M5 12h14M13 6l6 6-6 6"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-          </svg>
+      <div class="hp-actions">
+
+        <a
+          class="hp-btn hp-ghost"
+          href="/login"
+        >
+          Entrar
         </a>
+
+        <a
+          class="hp-btn hp-primary"
+          href="/login"
+        >
+          Criar conta grátis
+        </a>
+
       </div>
 
-      <button id="hpMenuButton"
-              type="button"
-              aria-label="Abrir menu"
-              aria-expanded="false">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M4 7h16M4 12h16M4 17h16"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"/>
-        </svg>
+      <button
+        id="hpMenuButton"
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+      >
+        ☰
       </button>
 
     </div>
+
   </header>
 
 
@@ -2236,54 +1834,57 @@
 
     <!-- =====================================================
          HERO
-         ===================================================== -->
+    ====================================================== -->
 
     <section class="hp-hero">
+
       <div class="hp-container hp-hero-grid">
 
         <div class="hp-hero-copy hp-reveal">
 
-          <div class="hp-eyebrow">
-            <span class="hp-eyebrow-dot"></span>
-            Infraestrutura de pagamentos para negócios
+          <div class="hp-kicker">
+            <i></i>
+
+            Pagamentos feitos para negócios em Angola
           </div>
 
           <h1>
-            Receba pagamentos.
-            <span class="gold">Controle o negócio.</span>
+            Você cuida do
+            <span>negócio.</span>
+
+            <br>
+
+            Nós cuidamos dos pagamentos.
           </h1>
 
           <p class="hp-hero-text">
-            A Honey Pay centraliza os seus pagamentos digitais,
-            cobranças e acompanhamento financeiro numa única
-            plataforma pensada para negócios em Angola.
+            Venda pelo WhatsApp, pelas redes sociais,
+            na sua loja ou presencialmente.
+            A Honey Pay ajuda a cobrar, confirmar
+            e acompanhar cada pagamento num só lugar.
           </p>
 
           <div class="hp-hero-actions">
-            <a href="/login" class="hp-btn hp-btn-primary">
-              Começar agora
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14M13 6l6 6-6 6"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
+
+            <a
+              class="hp-btn hp-primary"
+              href="/login"
+            >
+              Começar gratuitamente
             </a>
 
-            <a href="#produto" class="hp-btn hp-btn-ghost">
-              Conhecer a plataforma
+            <a
+              class="hp-btn hp-ghost"
+              href="#como-funciona"
+            >
+              Ver como funciona
             </a>
+
           </div>
 
-          <div class="hp-hero-note">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="m5 12 4 4L19 6"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"/>
-            </svg>
+          <div class="hp-note">
+            <b>✓</b>
+
             Sem mensalidade · 0,80% por transação
           </div>
 
@@ -2292,176 +1893,154 @@
 
         <!-- PRODUCT PREVIEW -->
 
-        <div class="hp-dashboard-wrap hp-reveal hp-delay-2">
+        <div class="hp-stage hp-reveal">
 
-          <div class="hp-dashboard-glow"></div>
+          <div class="hp-product">
 
-          <div class="hp-dashboard">
+            <div class="hp-product-top">
 
-            <div class="hp-dashboard-topbar">
-              <div class="hp-window-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              <i></i>
+              <i></i>
+              <i></i>
 
-              <div class="hp-dashboard-mini-brand">
-                HONEY PAY · CONTROL CENTER
-              </div>
+              <strong>
+                HONEY PAY · DASHBOARD
+              </strong>
 
-              <div style="width:24px;"></div>
             </div>
 
-            <div class="hp-dashboard-body">
 
-              <aside class="hp-dash-sidebar">
+            <div class="hp-product-body">
 
-                <div class="hp-side-label">Operação</div>
+              <aside class="hp-sidebar">
+
+                <div class="hp-side-title">
+                  Negócio
+                </div>
 
                 <div class="hp-side-item active">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M4 13h6V4H4v9Zm10 7h6v-9h-6v9ZM4 20h6v-3H4v3Zm10-16v3h6V4h-6Z"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linejoin="round"/>
-                  </svg>
                   Visão geral
                 </div>
 
                 <div class="hp-side-item">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M4 6h16v12H4zM8 10h3M8 14h6"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"/>
-                  </svg>
                   Pagamentos
                 </div>
 
                 <div class="hp-side-item">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M4 5h16v14H4zM7 9h10M7 13h6"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                  </svg>
-                  Cobranças
+                  Links
                 </div>
 
                 <div class="hp-side-item">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M5 19V9m7 10V5m7 14v-7"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"/>
-                  </svg>
+                  Clientes
+                </div>
+
+                <div class="hp-side-item">
                   Relatórios
-                </div>
-
-                <div class="hp-side-label" style="margin-top:25px;">Conta</div>
-
-                <div class="hp-side-item">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="8" r="3"
-                            stroke="currentColor"
-                            stroke-width="1.7"/>
-                    <path d="M5 20c.8-3.2 3.1-5 7-5s6.2 1.8 7 5"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"/>
-                  </svg>
-                  Empresa
                 </div>
 
               </aside>
 
 
-              <div class="hp-dash-main">
+              <div class="hp-main">
 
-                <div class="hp-dash-heading">
-                  <h3>Visão geral</h3>
+                <div class="hp-welcome">
 
-                  <span class="hp-live">
-                    <i></i>
-                    Atualizado agora
-                  </span>
-                </div>
+                  <div>
 
+                    <small>
+                      Hoje
+                    </small>
 
-                <div class="hp-kpi-grid">
+                    <h3>
+                      O seu negócio está a andar.
+                    </h3>
 
-                  <div class="hp-kpi">
-                    <div class="hp-kpi-label">Recebido</div>
-                    <div class="hp-kpi-value">
-                      <span data-counter="12480000">0</span> Kz
-                    </div>
-                    <div class="hp-kpi-change">+12,8% este mês</div>
                   </div>
 
-                  <div class="hp-kpi">
-                    <div class="hp-kpi-label">Transações</div>
-                    <div class="hp-kpi-value">
-                      <span data-counter="1284">0</span>
-                    </div>
-                    <div class="hp-kpi-change">+8,4% este mês</div>
-                  </div>
-
-                  <div class="hp-kpi">
-                    <div class="hp-kpi-label">Conversão</div>
-                    <div class="hp-kpi-value">94,2%</div>
-                    <div class="hp-kpi-change">+2,1% este mês</div>
+                  <div class="hp-live">
+                    Em funcionamento
                   </div>
 
                 </div>
 
 
-                <div class="hp-chart-card">
+                <div class="hp-kpis">
+
+                  <div class="hp-kpi">
+
+                    <span>
+                      Recebido este mês
+                    </span>
+
+                    <strong>
+                      384.500 Kz
+                    </strong>
+
+                  </div>
+
+
+                  <div class="hp-kpi">
+
+                    <span>
+                      Pagamentos
+                    </span>
+
+                    <strong>
+                      84
+                    </strong>
+
+                  </div>
+
+
+                  <div class="hp-kpi">
+
+                    <span>
+                      Variação
+                    </span>
+
+                    <strong class="green">
+                      +18,4%
+                    </strong>
+
+                  </div>
+
+                </div>
+
+
+                <div class="hp-chart">
 
                   <div class="hp-chart-head">
-                    <span>Volume de pagamentos</span>
-                    <span>Últimos 7 dias</span>
+
+                    <span>
+                      Receita · últimos 30 dias
+                    </span>
+
+                    <b>
+                      +18,4%
+                    </b>
+
                   </div>
 
-                  <div class="hp-chart">
 
-                    <div class="hp-chart-grid"></div>
+                  <div class="hp-line">
 
-                    <svg viewBox="0 0 600 130" preserveAspectRatio="none">
-
-                      <defs>
-                        <linearGradient id="hpChartGradient"
-                                        x1="0"
-                                        x2="0"
-                                        y1="0"
-                                        y2="1">
-                          <stop offset="0%" stop-color="#f3bd4d"/>
-                          <stop offset="100%" stop-color="#f3bd4d" stop-opacity="0"/>
-                        </linearGradient>
-                      </defs>
+                    <svg
+                      viewBox="0 0 500 120"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
 
                       <path
-                        class="hp-chart-area"
-                        d="M0,105
-                           C40,92 60,97 95,76
-                           C125,58 145,83 175,72
-                           C210,59 225,66 255,46
-                           C285,27 300,56 330,49
-                           C365,41 385,62 415,36
-                           C450,7 465,43 495,29
-                           C535,10 550,25 600,8
-                           L600,130 L0,130 Z"/>
+                        d="M0 103 C45 98 60 80 92 86 S135 102 166 70 S208 88 240 62 S280 76 312 45 S355 57 387 30 S430 48 500 13"
+                        fill="none"
+                        stroke="#f1bc4b"
+                        stroke-width="3"
+                      />
 
                       <path
-                        class="hp-chart-line"
-                        d="M0,105
-                           C40,92 60,97 95,76
-                           C125,58 145,83 175,72
-                           C210,59 225,66 255,46
-                           C285,27 300,56 330,49
-                           C365,41 385,62 415,36
-                           C450,7 465,43 495,29
-                           C535,10 550,25 600,8"/>
+                        d="M0 103 C45 98 60 80 92 86 S135 102 166 70 S208 88 240 62 S280 76 312 45 S355 57 387 30 S430 48 500 13 L500 120 L0 120Z"
+                        fill="rgba(241,188,75,.055)"
+                      />
 
                     </svg>
 
@@ -2472,907 +2051,543 @@
 
                 <div class="hp-transactions">
 
-                  <div class="hp-transactions-title">
-                    Últimas transações
-                  </div>
+                  <header>
+                    Últimos pagamentos
+                  </header>
 
-                  <div class="hp-transaction">
 
-                    <div class="hp-tx-icon">
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="m5 12 4 4L19 6"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                      </svg>
-                    </div>
+                  <div class="hp-tx">
 
-                    <div class="hp-tx-main">
-                      <strong>Pedido #HP-8421</strong>
-                      <span>Multicaixa Express · agora</span>
-                    </div>
+                    <span>
+                      Pedido #1048 · Multicaixa Express
+                    </span>
 
-                    <div class="hp-tx-amount">
-                      +85.000 Kz
-                      <span class="hp-tx-status">Pago</span>
-                    </div>
+                    <strong>
+                      35.000 Kz
+                    </strong>
+
+                    <em>
+                      ✓ Confirmado
+                    </em>
 
                   </div>
 
 
-                  <div class="hp-transaction">
+                  <div class="hp-tx">
 
-                    <div class="hp-tx-icon">
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="m5 12 4 4L19 6"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                      </svg>
-                    </div>
+                    <span>
+                      Pedido #1047 · Referência
+                    </span>
 
-                    <div class="hp-tx-main">
-                      <strong>Pedido #HP-8420</strong>
-                      <span>Referência · 2 min</span>
-                    </div>
+                    <strong>
+                      12.500 Kz
+                    </strong>
 
-                    <div class="hp-tx-amount">
-                      +42.500 Kz
-                      <span class="hp-tx-status">Pago</span>
-                    </div>
+                    <em>
+                      ✓ Confirmado
+                    </em>
 
                   </div>
 
 
-                  <div class="hp-transaction">
+                  <div class="hp-tx">
 
-                    <div class="hp-tx-icon">
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="m5 12 4 4L19 6"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"/>
-                      </svg>
-                    </div>
+                    <span>
+                      Pedido #1046 · UNITEL Money
+                    </span>
 
-                    <div class="hp-tx-main">
-                      <strong>Pedido #HP-8419</strong>
-                      <span>Unitel Money · 5 min</span>
-                    </div>
+                    <strong>
+                      80.000 Kz
+                    </strong>
 
-                    <div class="hp-tx-amount">
-                      +120.000 Kz
-                      <span class="hp-tx-status">Pago</span>
-                    </div>
+                    <em>
+                      ✓ Confirmado
+                    </em>
 
                   </div>
 
                 </div>
 
               </div>
+
             </div>
+
           </div>
 
 
-          <div class="hp-floating-payment">
+          <div class="hp-toast">
 
-            <div class="hp-floating-top">
-              <span class="hp-floating-check">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="m5 12 4 4L19 6"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"/>
-                </svg>
+            <div class="hp-toast-top">
+
+              <span class="hp-check">
+                ✓
               </span>
 
               Pagamento confirmado
+
             </div>
 
-            <div class="hp-floating-amount">
-              + 85.000 Kz
-            </div>
+            <strong>
+              25.000 Kz
+            </strong>
 
-            <div class="hp-floating-meta">
-              Multicaixa Express · Pedido #HP-8421
-            </div>
+            <small>
+              Multicaixa Express · agora
+            </small>
 
           </div>
 
         </div>
 
       </div>
+
     </section>
 
 
     <!-- =====================================================
-         TRUST STRIP
-         ===================================================== -->
+         TRUST
+    ====================================================== -->
 
-    <section class="hp-trust-strip">
-      <div class="hp-container hp-trust-inner">
+    <section class="hp-strip">
 
-        <div class="hp-trust-item">
-          <div class="hp-trust-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 3 5 6v5c0 4.5 2.9 8.4 7 10 4.1-1.6 7-5.5 7-10V6l-7-3Z"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="hp-trust-text">
-            <strong>Infraestrutura segura</strong>
-            <span>Arquitetura orientada a pagamentos</span>
-          </div>
-        </div>
+      <div class="hp-container hp-strip-inner">
 
-        <div class="hp-trust-item">
-          <div class="hp-trust-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M4 12h16M12 4v16"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="hp-trust-text">
-            <strong>0,80% por transação</strong>
-            <span>Sem mensalidade</span>
-          </div>
-        </div>
+        <div class="hp-trust">
 
-        <div class="hp-trust-item">
-          <div class="hp-trust-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M5 12a7 7 0 1 0 14 0"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"/>
-              <path d="M12 5v7l4 2"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="hp-trust-text">
-            <strong>Visão em tempo real</strong>
-            <span>Acompanhe cada pagamento</span>
-          </div>
-        </div>
+          <strong>
+            0,80%
+          </strong>
 
-        <div class="hp-trust-item">
-          <div class="hp-trust-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="hp-trust-text">
-            <strong>Construído para empresas</strong>
-            <span>Operação, controlo e dados</span>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =====================================================
-         PAYMENT FLOW
-         ===================================================== -->
-
-    <section id="produto" class="hp-section hp-flow-section">
-
-      <div class="hp-container">
-
-        <div class="hp-flow-header hp-reveal">
-
-          <div>
-            <div class="hp-section-label">Como funciona</div>
-
-            <h2 class="hp-section-title">
-              O pagamento acontece.
-              A Honey Pay acompanha tudo.
-            </h2>
-          </div>
-
-          <p class="hp-section-copy">
-            Do momento em que o cliente escolhe pagar até à
-            confirmação da transação, a operação fica centralizada
-            numa única experiência.
-          </p>
+          <span>
+            por transação
+          </span>
 
         </div>
 
 
-        <div class="hp-flow">
+        <div class="hp-trust">
 
-          <div class="hp-flow-line"></div>
+          <strong>
+            0 Kz
+          </strong>
 
-          <div class="hp-flow-step hp-reveal">
-            <div class="hp-flow-number">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M5 4h14v16H5zM8 8h8M8 12h5"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
-            </div>
+          <span>
+            mensalidade
+          </span>
 
-            <h3>Crie a cobrança</h3>
-
-            <p>
-              Gere uma cobrança, link ou experiência de checkout
-              para o seu cliente.
-            </p>
-          </div>
+        </div>
 
 
-          <div class="hp-flow-step hp-reveal hp-delay-1">
-            <div class="hp-flow-number">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M6 7h12M6 12h12M6 17h7"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </div>
+        <div class="hp-trust">
 
-            <h3>Cliente escolhe</h3>
+          <strong>
+            Angola
+          </strong>
 
-            <p>
-              O cliente escolhe entre os métodos disponíveis
-              para concluir o pagamento.
-            </p>
-          </div>
+          <span>
+            feito para o mercado local
+          </span>
+
+        </div>
 
 
-          <div class="hp-flow-step hp-reveal hp-delay-2">
-            <div class="hp-flow-number">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="m5 12 4 4L19 6"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
-            </div>
+        <div class="hp-trust">
 
-            <h3>Pagamento confirmado</h3>
+          <strong>
+            1 lugar
+          </strong>
 
-            <p>
-              A transação é atualizada e o estado do pagamento
-              fica disponível para a operação.
-            </p>
-          </div>
-
-
-          <div class="hp-flow-step hp-reveal hp-delay-3">
-            <div class="hp-flow-number">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M4 19V9m5 10V5m5 14v-7m5 7V3"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </div>
-
-            <h3>Empresa acompanha</h3>
-
-            <p>
-              Consulte pagamentos, cobranças e desempenho
-              diretamente no seu painel.
-            </p>
-          </div>
+          <span>
+            para acompanhar tudo
+          </span>
 
         </div>
 
       </div>
+
     </section>
 
 
     <!-- =====================================================
-         CHANNELS
-         ===================================================== -->
+         HOW IT WORKS
+    ====================================================== -->
 
-    <section id="pagamentos" class="hp-section hp-channels-section">
+    <section
+      class="hp-section"
+      id="como-funciona"
+    >
 
-      <div class="hp-container">
+      <div class="hp-container hp-story">
+
 
         <div class="hp-reveal">
 
-          <div class="hp-section-label">
-            Canais de cobrança
+          <div class="hp-label">
+            É simples
           </div>
 
-          <h2 class="hp-section-title">
-            Uma infraestrutura para
-            diferentes formas de vender.
+          <h2 class="hp-title">
+            O cliente paga.
+            Você sabe.
           </h2>
 
-          <p class="hp-section-copy">
-            Seja através de uma loja online, redes sociais,
-            serviços, eventos ou uma operação empresarial,
-            a Honey Pay coloca os pagamentos no centro do negócio.
+          <p class="hp-copy">
+            A Honey Pay tira do caminho aquela parte
+            do negócio que costuma consumir tempo:
+            confirmar pagamentos, procurar referências
+            e juntar informações de vários lugares.
+          </p>
+
+
+          <div class="hp-steps">
+
+            <div class="hp-step">
+
+              <div class="hp-step-num">
+                01
+              </div>
+
+              <div>
+
+                <h3>
+                  Você cria a cobrança
+                </h3>
+
+                <p>
+                  Um link, checkout ou cobrança presencial.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="hp-step">
+
+              <div class="hp-step-num">
+                02
+              </div>
+
+              <div>
+
+                <h3>
+                  O cliente escolhe como pagar
+                </h3>
+
+                <p>
+                  Multicaixa Express, Referência
+                  ou UNITEL Money.
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="hp-step">
+
+              <div class="hp-step-num">
+                03
+              </div>
+
+              <div>
+
+                <h3>
+                  O pagamento é confirmado
+                </h3>
+
+                <p>
+                  Você acompanha o estado sem depender
+                  de mensagens soltas.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="hp-story-visual hp-reveal">
+
+          <div class="hp-flow">
+
+            <div class="hp-flow-box">
+
+              <strong>
+                Cliente
+              </strong>
+
+              <span>
+                Escolhe o que quer comprar
+              </span>
+
+            </div>
+
+
+            <div class="hp-arrow">
+              ↓
+            </div>
+
+
+            <div class="hp-flow-box">
+
+              <strong>
+                Honey Pay
+              </strong>
+
+              <span>
+                Apresenta a forma de pagamento
+              </span>
+
+            </div>
+
+
+            <div class="hp-arrow">
+              ↓
+            </div>
+
+
+            <div class="hp-flow-box success">
+
+              <strong>
+                ✓ Pagamento confirmado
+              </strong>
+
+              <span>
+                O negócio continua
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PAYMENT METHODS
+    ====================================================== -->
+
+    <section
+      class="hp-section"
+      id="pagamentos"
+    >
+
+      <div class="hp-container">
+
+        <div class="hp-methods-head hp-reveal">
+
+          <div>
+
+            <div class="hp-label">
+              Formas de pagamento
+            </div>
+
+            <h2 class="hp-title">
+              Cada cliente paga
+              <br>
+              do seu jeito.
+            </h2>
+
+          </div>
+
+
+          <p class="hp-copy">
+            A experiência muda conforme a forma
+            de pagamento. A Honey Pay mantém tudo
+            organizado para você.
           </p>
 
         </div>
 
 
-        <div class="hp-channels-grid">
+        <div class="hp-method-grid">
 
-          <div class="hp-channel-main hp-reveal">
 
-            <div class="hp-channel-icon">
-              <svg viewBox="0 0 24 24" fill="none">
-                <rect x="4" y="3" width="16" height="18" rx="2"
-                      stroke="currentColor"
-                      stroke-width="1.7"/>
-                <path d="M8 7h8M8 11h8M8 15h5"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
+          <!-- MULTICAIXA -->
+
+          <article class="hp-method hp-reveal">
+
+            <span class="hp-method-number">
+              01 · EXPRESS
+            </span>
+
+            <div class="hp-method-ui">
+              <b>✓</b>
+              Confirmado
             </div>
 
             <h3>
-              Checkout e pagamentos
-              para a operação digital.
+              Multicaixa Express
             </h3>
 
             <p>
-              Centralize as cobranças feitas através dos seus
-              canais digitais e acompanhe o estado de cada
-              pagamento numa experiência única.
+              Uma experiência rápida para quem
+              prefere pagar diretamente pelo telefone.
             </p>
 
-            <div class="hp-channel-tags">
-              <span class="hp-channel-tag">Checkout</span>
-              <span class="hp-channel-tag">Pay by Link</span>
-              <span class="hp-channel-tag">QR</span>
-              <span class="hp-channel-tag">API</span>
+            <div class="hp-method-icon">
+              ↗
             </div>
 
-          </div>
+          </article>
 
 
-          <div class="hp-channel-stack">
+          <!-- REFERENCE -->
 
-            <div class="hp-channel-card hp-reveal hp-delay-1">
+          <article class="hp-method hp-reveal">
 
-              <div class="hp-channel-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M6 4h12v16H6z"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linejoin="round"/>
-                  <path d="M9 8h6M9 12h6M9 16h3"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"/>
-                </svg>
-              </div>
-
-              <svg class="hp-card-arrow"
-                   width="16"
-                   height="16"
-                   viewBox="0 0 24 24"
-                   fill="none">
-                <path d="M5 19 19 5M8 5h11v11"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
-
-              <h3>Pay by Link</h3>
-
-              <p>
-                Transforme uma cobrança em um link e envie
-                diretamente ao cliente pelos canais onde
-                o seu negócio já vende.
-              </p>
-
-            </div>
-
-
-            <div class="hp-channel-card hp-reveal hp-delay-2">
-
-              <div class="hp-channel-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M4 7h16v12H4z"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linejoin="round"/>
-                  <path d="M7 11h10M7 15h5"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"/>
-                </svg>
-              </div>
-
-              <svg class="hp-card-arrow"
-                   width="16"
-                   height="16"
-                   viewBox="0 0 24 24"
-                   fill="none">
-                <path d="M5 19 19 5M8 5h11v11"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
-
-              <h3>Operação presencial</h3>
-
-              <p>
-                Registe cobranças presenciais e mantenha
-                a operação física ligada ao mesmo ambiente
-                de controlo.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =====================================================
-         CONTROL CENTER
-         ===================================================== -->
-
-    <section class="hp-section hp-control-section">
-
-      <div class="hp-container hp-control-grid">
-
-        <div class="hp-reveal">
-
-          <div class="hp-section-label">
-            Control Center
-          </div>
-
-          <h2 class="hp-section-title">
-            Não basta receber.
-            É preciso saber o que aconteceu.
-          </h2>
-
-          <p class="hp-section-copy">
-            O verdadeiro valor de uma infraestrutura de pagamentos
-            está também na visibilidade que ela entrega à operação.
-          </p>
-
-
-          <div class="hp-control-points">
-
-            <div class="hp-control-point">
-
-              <div class="hp-point-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M4 19V5M4 19h16"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"/>
-                  <path d="m7 15 4-5 3 3 5-7"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"/>
-                </svg>
-              </div>
-
-              <div>
-                <h4>Visibilidade da operação</h4>
-                <p>
-                  Veja volume, pagamentos e evolução
-                  num único ambiente.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div class="hp-control-point">
-
-              <div class="hp-point-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M6 4h12v16H6z"
-                        stroke="currentColor"
-                        stroke-width="1.7"/>
-                  <path d="M9 8h6M9 12h6M9 16h4"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"/>
-                </svg>
-              </div>
-
-              <div>
-                <h4>Rastreabilidade</h4>
-                <p>
-                  Cada cobrança mantém o seu contexto
-                  e estado dentro da plataforma.
-                </p>
-              </div>
-
-            </div>
-
-
-            <div class="hp-control-point">
-
-              <div class="hp-point-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12h14M12 5v14"
-                        stroke="currentColor"
-                        stroke-width="1.7"
-                        stroke-linecap="round"/>
-                  <circle cx="12" cy="12" r="8"
-                          stroke="currentColor"
-                          stroke-width="1.7"/>
-                </svg>
-              </div>
-
-              <div>
-                <h4>Preparado para integração</h4>
-                <p>
-                  A plataforma pode acompanhar operações
-                  que precisam de fluxos digitais integrados.
-                </p>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <div class="hp-control-ui hp-reveal hp-delay-2">
-
-          <div class="hp-control-top">
-            <strong>Pagamentos</strong>
-
-            <div class="hp-control-filter">
-              Últimos 30 dias
-              <span>⌄</span>
-            </div>
-          </div>
-
-
-          <div class="hp-control-kpis">
-
-            <div class="hp-control-kpi">
-              <span>Volume</span>
-              <strong>12,48M Kz</strong>
-            </div>
-
-            <div class="hp-control-kpi">
-              <span>Transações</span>
-              <strong>1.284</strong>
-            </div>
-
-            <div class="hp-control-kpi">
-              <span>Taxa de sucesso</span>
-              <strong>94,2%</strong>
-            </div>
-
-          </div>
-
-
-          <div class="hp-control-table">
-
-            <div class="hp-table-head">
-              <div>Transação</div>
-              <div>Canal</div>
-              <div>Valor</div>
-              <div>Estado</div>
-            </div>
-
-
-            <div class="hp-table-row">
-              <div>
-                <strong>#HP-8421</strong>
-              </div>
-              <div>Express</div>
-              <div>85.000 Kz</div>
-              <div>
-                <span class="hp-status">
-                  <i></i> Pago
-                </span>
-              </div>
-            </div>
-
-
-            <div class="hp-table-row">
-              <div>
-                <strong>#HP-8420</strong>
-              </div>
-              <div>Referência</div>
-              <div>42.500 Kz</div>
-              <div>
-                <span class="hp-status">
-                  <i></i> Pago
-                </span>
-              </div>
-            </div>
-
-
-            <div class="hp-table-row">
-              <div>
-                <strong>#HP-8419</strong>
-              </div>
-              <div>Unitel</div>
-              <div>120.000 Kz</div>
-              <div>
-                <span class="hp-status">
-                  <i></i> Pago
-                </span>
-              </div>
-            </div>
-
-
-            <div class="hp-table-row">
-              <div>
-                <strong>#HP-8418</strong>
-              </div>
-              <div>Express</div>
-              <div>18.500 Kz</div>
-              <div>
-                <span class="hp-status">
-                  <i></i> Pago
-                </span>
-              </div>
-            </div>
-
-          </div>
-
-
-          <div style="
-            margin-top:10px;
-            padding:13px;
-            border:1px solid var(--hp-border);
-            border-radius:11px;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            background:rgba(255,255,255,.018);
-          ">
-            <div>
-              <div style="font-size:8px;color:#718298;">
-                Reconciliação
-              </div>
-              <div style="margin-top:4px;font-size:10px;font-weight:700;">
-                Operação atualizada
-              </div>
-            </div>
-
-            <span class="hp-status">
-              <i></i> Sincronizado
+            <span class="hp-method-number">
+              02 · REFERÊNCIA
             </span>
-          </div>
+
+            <div class="hp-method-ui">
+              835 421 908
+            </div>
+
+            <h3>
+              Pagamento por Referência
+            </h3>
+
+            <p>
+              Gere a referência e acompanhe quando
+              o pagamento for confirmado.
+            </p>
+
+            <div class="hp-method-icon">
+              #
+            </div>
+
+          </article>
+
+
+          <!-- UNITEL -->
+
+          <article class="hp-method hp-reveal">
+
+            <span class="hp-method-number">
+              03 · UNITEL
+            </span>
+
+            <div class="hp-method-ui">
+              <b>
+                25.000 Kz
+              </b>
+            </div>
+
+            <h3>
+              UNITEL Money
+            </h3>
+
+            <p>
+              Mais uma opção para os seus clientes
+              pagarem sem complicar a venda.
+            </p>
+
+            <div class="hp-method-icon">
+              ₳
+            </div>
+
+          </article>
+
 
         </div>
 
       </div>
+
     </section>
 
 
     <!-- =====================================================
-         METHODS
-         ===================================================== -->
+         HUMAN
+    ====================================================== -->
 
     <section class="hp-section">
 
-      <div class="hp-container">
-
-        <div class="hp-reveal">
-
-          <div class="hp-section-label">
-            Métodos de pagamento
-          </div>
-
-          <h2 class="hp-section-title">
-            Dê ao cliente a forma certa de pagar.
-          </h2>
-
-          <p class="hp-section-copy">
-            A Honey Pay foi pensada para conectar negócios
-            aos canais digitais de pagamento relevantes para
-            o mercado angolano.
-          </p>
-
-        </div>
+      <div class="hp-container hp-human">
 
 
-        <div class="hp-methods-grid">
+        <div class="hp-human-card hp-reveal">
 
-          <article class="hp-method-card hp-reveal">
+          <p class="hp-human-quote">
 
-            <div class="hp-method-symbol">
-              MC
-            </div>
+            “Eu só queria saber se o cliente
+            tinha pago. Agora consigo abrir
+            o Honey Pay e ver.”
 
-            <h3>Multicaixa Express</h3>
+            <b>
+              — Um negócio a crescer,
+              um pagamento de cada vez.
+            </b>
 
-            <p>
-              Ofereça ao cliente uma experiência de pagamento
-              digital através do ecossistema Multicaixa.
-            </p>
-
-            <div class="hp-method-footer">
-              <span>Pagamento digital</span>
-              <span>→</span>
-            </div>
-
-          </article>
-
-
-          <article class="hp-method-card hp-reveal hp-delay-1">
-
-            <div class="hp-method-symbol">
-              REF
-            </div>
-
-            <h3>Pagamento por referência</h3>
-
-            <p>
-              Gere cobranças por referência e acompanhe
-              o respetivo estado dentro da sua operação.
-            </p>
-
-            <div class="hp-method-footer">
-              <span>Cobrança</span>
-              <span>→</span>
-            </div>
-
-          </article>
-
-
-          <article class="hp-method-card hp-reveal hp-delay-2">
-
-            <div class="hp-method-symbol">
-              UM
-            </div>
-
-            <h3>Unitel Money</h3>
-
-            <p>
-              Disponibilize um canal adicional para clientes
-              que preferem pagamentos através de carteira móvel.
-            </p>
-
-            <div class="hp-method-footer">
-              <span>Mobile money</span>
-              <span>→</span>
-            </div>
-
-          </article>
-
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =====================================================
-         BUSINESS / ENTERPRISE
-         ===================================================== -->
-
-    <section id="empresas" class="hp-business">
-
-      <div class="hp-container hp-business-grid">
-
-        <div class="hp-reveal">
-
-          <div class="hp-section-label">
-            Para negócios
-          </div>
-
-          <h2 class="hp-business-title">
-            Uma operação de pagamentos que cresce com a empresa.
-          </h2>
-
-          <p class="hp-business-copy">
-            Desde uma pequena operação digital até uma empresa
-            com equipas comerciais e financeiras, a Honey Pay
-            organiza a camada de pagamentos para que a empresa
-            tenha mais visibilidade e controlo.
           </p>
 
 
-          <div class="hp-business-list">
-            <div>Comércio e retalho</div>
-            <div>Serviços profissionais</div>
-            <div>Educação e propinas</div>
-            <div>Cursos e conteúdos</div>
-            <div>Eventos e bilhetes</div>
-            <div>Negócios digitais</div>
+          <div class="hp-person">
+
+            <div class="hp-person-hair"></div>
+
+            <div class="hp-person-head"></div>
+
+            <div class="hp-person-body"></div>
+
+
+            <div class="hp-phone">
+
+              <div class="hp-phone-screen">
+
+                Pagamento recebido
+
+                <b>
+                  25.000 Kz
+                </b>
+
+                <div class="hp-phone-check">
+                  ✓
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
 
         </div>
 
 
-        <div class="hp-enterprise-panel hp-reveal hp-delay-2">
+        <div class="hp-reveal">
 
-          <div class="hp-enterprise-inner">
-
-            <div class="hp-enterprise-caption">
-              Performance operacional
-            </div>
-
-            <div class="hp-enterprise-heading">
-              Um negócio. Vários canais. Uma visão.
-            </div>
-
-
-            <div class="hp-enterprise-bars">
-
-              <div class="hp-enterprise-bar">
-                <span>Online</span>
-                <div class="hp-bar-track">
-                  <div class="hp-bar-fill" style="width:86%;"></div>
-                </div>
-                <strong>86%</strong>
-              </div>
-
-              <div class="hp-enterprise-bar">
-                <span>Referências</span>
-                <div class="hp-bar-track">
-                  <div class="hp-bar-fill" style="width:71%;"></div>
-                </div>
-                <strong>71%</strong>
-              </div>
-
-              <div class="hp-enterprise-bar">
-                <span>Express</span>
-                <div class="hp-bar-track">
-                  <div class="hp-bar-fill" style="width:92%;"></div>
-                </div>
-                <strong>92%</strong>
-              </div>
-
-              <div class="hp-enterprise-bar">
-                <span>Mobile</span>
-                <div class="hp-bar-track">
-                  <div class="hp-bar-fill" style="width:64%;"></div>
-                </div>
-                <strong>64%</strong>
-              </div>
-
-            </div>
-
-
-            <div class="hp-enterprise-bottom">
-
-              <div class="hp-enterprise-stat">
-                <strong>24/7</strong>
-                <span>Visibilidade</span>
-              </div>
-
-              <div class="hp-enterprise-stat">
-                <strong>1</strong>
-                <span>Plataforma</span>
-              </div>
-
-              <div class="hp-enterprise-stat">
-                <strong>∞</strong>
-                <span>Possibilidades</span>
-              </div>
-
-            </div>
-
+          <div class="hp-label">
+            Para quem está a construir
           </div>
+
+          <h2 class="hp-title">
+            A tecnologia fica por trás.
+            O seu negócio fica à frente.
+          </h2>
+
+          <p class="hp-copy">
+            Se vende pelas redes sociais, tem uma loja,
+            organiza eventos, gere uma escola ou presta
+            serviços, o objetivo é o mesmo:
+            receber sem perder tempo a confirmar
+            cada pagamento.
+          </p>
+
+          <a
+            class="hp-btn hp-ghost"
+            href="/login"
+            style="margin-top:26px"
+          >
+            Conhecer a Honey Pay
+          </a>
 
         </div>
 
@@ -3382,273 +2597,197 @@
 
 
     <!-- =====================================================
-         PRICING
-         ===================================================== -->
+         PRICE
+    ====================================================== -->
 
-    <section id="precos" class="hp-section hp-pricing">
+    <section
+      class="hp-section"
+      id="preco"
+    >
 
-      <div class="hp-container">
+      <div class="hp-container hp-price">
 
-        <div class="hp-section-label hp-reveal">
-          Estrutura simples
+
+        <div class="hp-reveal">
+
+          <div class="hp-label">
+            Preço simples
+          </div>
+
+          <h2 class="hp-title">
+            Você só paga
+            quando recebe.
+          </h2>
+
+          <p class="hp-copy">
+            Sem pacote mensal para escolher.
+            Sem complicar a decisão de começar.
+            A Honey Pay aplica uma taxa de
+            0,80% por transação.
+          </p>
+
         </div>
-
-        <h2 class="hp-section-title hp-reveal">
-          Pague pelo que movimenta.
-          Não pelo acesso.
-        </h2>
-
-        <p class="hp-section-copy hp-reveal">
-          A Honey Pay foi pensada para que o custo acompanhe
-          a utilização da plataforma, sem obrigar o negócio
-          a manter uma mensalidade.
-        </p>
 
 
         <div class="hp-price-card hp-reveal">
 
-          <div class="hp-price-label">
-            Taxa por transação
+          <small>
+            Taxa Honey Pay
+          </small>
+
+          <div class="hp-price-number">
+            0,80<span>%</span>
           </div>
 
-          <div class="hp-price">
-            <strong>0,80%</strong>
-            <span>por transação</span>
-          </div>
-
-          <div class="hp-price-sub">
-            Sem mensalidade.
-          </div>
+          <p>
+            por transação
+          </p>
 
 
-          <div class="hp-price-features">
-            <span class="hp-price-feature">Dashboard</span>
-            <span class="hp-price-feature">Cobranças</span>
-            <span class="hp-price-feature">Pay by Link</span>
-            <span class="hp-price-feature">Acompanhamento</span>
-            <span class="hp-price-feature">Relatórios</span>
-          </div>
+          <div class="hp-price-list">
 
+            <span>
+              Sem mensalidade
+            </span>
 
-          <div class="hp-price-note">
-            A disponibilidade de métodos, integrações e condições
-            comerciais pode depender do serviço, contrato e
-            configuração aplicáveis à conta.
+            <span>
+              Sem plano obrigatório
+            </span>
+
+            <span>
+              Feito para crescer consigo
+            </span>
+
           </div>
 
         </div>
 
       </div>
+
     </section>
 
 
     <!-- =====================================================
          FAQ
-         ===================================================== -->
+    ====================================================== -->
 
-    <section id="faq" class="hp-section">
+    <section
+      class="hp-section"
+      id="faq"
+    >
 
       <div class="hp-container">
 
-        <div style="text-align:center;" class="hp-reveal">
-
-          <div class="hp-section-label">
-            Perguntas frequentes
-          </div>
-
-          <h2 class="hp-section-title" style="margin:0 auto;">
-            Antes de começar.
-          </h2>
-
+        <div class="hp-label">
+          Perguntas
         </div>
 
-
-        <div class="hp-faq-grid">
-
-          <div class="hp-faq-item hp-reveal">
-
-            <button class="hp-faq-question" type="button">
-              O que é a Honey Pay?
-
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </button>
-
-            <div class="hp-faq-answer">
-              <div>
-                <p>
-                  A Honey Pay é uma plataforma de infraestrutura
-                  de pagamentos destinada a ajudar negócios a
-                  criar cobranças, receber pagamentos e acompanhar
-                  a sua operação através de um único ambiente.
-                </p>
-              </div>
-            </div>
-
-          </div>
+        <h2 class="hp-title">
+          Sem letras pequenas.
+        </h2>
 
 
-          <div class="hp-faq-item hp-reveal hp-delay-1">
-
-            <button class="hp-faq-question" type="button">
-              A Honey Pay cobra mensalidade?
-
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </button>
-
-            <div class="hp-faq-answer">
-              <div>
-                <p>
-                  A estrutura comercial atual prevê uma taxa de
-                  0,80% por transação, sem mensalidade.
-                </p>
-              </div>
-            </div>
-
-          </div>
+        <div class="hp-faq">
 
 
-          <div class="hp-faq-item hp-reveal hp-delay-2">
+          <details
+            class="hp-faq-item"
+            open
+          >
 
-            <button class="hp-faq-question" type="button">
-              Quais métodos de pagamento estão disponíveis?
+            <summary>
+              Quanto custa usar a Honey Pay?
+            </summary>
 
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </button>
+            <p>
+              A taxa comercial apresentada atualmente
+              é de 0,80% por transação.
+              Não há mensalidade.
+            </p>
 
-            <div class="hp-faq-answer">
-              <div>
-                <p>
-                  A plataforma está orientada para Multicaixa
-                  Express, pagamentos por referência e Unitel
-                  Money, de acordo com a disponibilidade e
-                  configuração aplicáveis.
-                </p>
-              </div>
-            </div>
-
-          </div>
+          </details>
 
 
-          <div class="hp-faq-item hp-reveal hp-delay-3">
+          <details class="hp-faq-item">
 
-            <button class="hp-faq-question" type="button">
-              Posso utilizar a Honey Pay para o meu negócio?
+            <summary>
+              Quais formas de pagamento estão disponíveis?
+            </summary>
 
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </button>
+            <p>
+              A experiência atual está preparada para
+              Multicaixa Express, pagamento por Referência
+              e UNITEL Money.
+            </p>
 
-            <div class="hp-faq-answer">
-              <div>
-                <p>
-                  A plataforma foi pensada para diferentes tipos
-                  de negócios, incluindo comércio, serviços,
-                  educação, eventos, produtos digitais e operações
-                  que precisam de uma camada de cobrança digital.
-                </p>
-              </div>
-            </div>
-
-          </div>
+          </details>
 
 
-          <div class="hp-faq-item hp-reveal">
+          <details class="hp-faq-item">
 
-            <button class="hp-faq-question" type="button">
-              Como começo?
+            <summary>
+              Preciso de uma conta para começar?
+            </summary>
 
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14"
-                      stroke="currentColor"
-                      stroke-width="1.7"
-                      stroke-linecap="round"/>
-              </svg>
-            </button>
+            <p>
+              Para usar o ambiente de negócio da Honey Pay,
+              você cria a sua conta e conclui o processo
+              de configuração da empresa.
+            </p>
 
-            <div class="hp-faq-answer">
-              <div>
-                <p>
-                  Crie a sua conta, conclua o processo de
-                  configuração empresarial e, depois da validação,
-                  poderá aceder ao ambiente da Honey Pay.
-                </p>
-              </div>
-            </div>
+          </details>
 
-          </div>
+
+          <details class="hp-faq-item">
+
+            <summary>
+              A Honey Pay é só para lojas online?
+            </summary>
+
+            <p>
+              Não. A plataforma foi pensada para diferentes
+              formas de venda, incluindo redes sociais,
+              links de pagamento e cobranças presenciais.
+            </p>
+
+          </details>
+
 
         </div>
 
       </div>
+
     </section>
 
 
     <!-- =====================================================
          FINAL CTA
-         ===================================================== -->
+    ====================================================== -->
 
     <section class="hp-final">
 
-      <div class="hp-container">
+      <div class="hp-container hp-reveal">
 
-        <div class="hp-final-card hp-reveal">
-
-          <div class="hp-section-label">
-            Honey Pay
-          </div>
-
-          <h2>
-            Os seus pagamentos
-            merecem uma infraestrutura melhor.
-          </h2>
-
-          <p>
-            Centralize cobranças, acompanhe transações
-            e dê ao seu negócio uma operação de pagamentos
-            preparada para crescer.
-          </p>
-
-
-          <div class="hp-final-actions">
-
-            <a href="/login" class="hp-btn hp-btn-primary">
-              Criar conta
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14M13 6l6 6-6 6"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-              </svg>
-            </a>
-
-            <a href="mailto:contacto@honeypay.ao"
-               class="hp-btn hp-btn-ghost">
-              Falar com a equipa
-            </a>
-
-          </div>
-
+        <div class="hp-label">
+          Comece hoje
         </div>
+
+        <h2 class="hp-title">
+          O próximo pagamento
+          pode começar aqui.
+        </h2>
+
+        <p class="hp-copy">
+          Crie a sua conta e comece a organizar
+          os pagamentos do seu negócio com a Honey Pay.
+        </p>
+
+        <a
+          class="hp-btn hp-primary"
+          href="/login"
+        >
+          Criar conta grátis
+        </a>
 
       </div>
 
@@ -3659,23 +2798,22 @@
 
   <!-- =======================================================
        FOOTER
-       ======================================================= -->
+  ======================================================== -->
 
   <footer class="hp-footer">
 
     <div class="hp-container hp-footer-inner">
 
-      <div class="hp-footer-copy">
-        © <span id="hpYear"></span> Honey Pay. Todos os direitos reservados.
-      </div>
+      <span>
+        ©
+        <span id="hpYear"></span>
+        Honey Pay.
+        Todos os direitos reservados.
+      </span>
 
-      <div class="hp-footer-links">
-        <a href="/login">Entrar</a>
-        <a href="#produto">Produto</a>
-        <a href="#pagamentos">Pagamentos</a>
-        <a href="#empresas">Empresas</a>
-        <a href="#faq">FAQ</a>
-      </div>
+      <a href="/login">
+        Entrar na plataforma
+      </a>
 
     </div>
 
@@ -3684,40 +2822,49 @@
 
   <!-- =======================================================
        JAVASCRIPT
-       ======================================================= -->
+  ======================================================== -->
 
   <script>
     (() => {
       "use strict";
 
-      const header = document.getElementById("hpHeader");
-      const menuButton = document.getElementById("hpMenuButton");
-      const year = document.getElementById("hpYear");
+      const header =
+        document.getElementById("hpHeader");
 
-      /* -----------------------------------------------------
-         YEAR
-         ----------------------------------------------------- */
+      const menu =
+        document.getElementById("hpMenuButton");
+
+      const nav =
+        document.querySelector(".hp-links");
+
+      const year =
+        document.getElementById("hpYear");
+
+
+      /*
+       * Ano atual
+       */
 
       if (year) {
-        year.textContent = new Date().getFullYear();
+        year.textContent =
+          new Date().getFullYear();
       }
 
 
-      /* -----------------------------------------------------
-         HEADER SCROLL
-         ----------------------------------------------------- */
+      /*
+       * Header ao fazer scroll
+       */
 
-      const updateHeader = () => {
-        if (!header) return;
+      const updateHeader =
+        () => {
+          if (!header) return;
 
-        if (window.scrollY > 18) {
-          header.classList.add("hp-scrolled");
-        } else {
-          header.classList.remove("hp-scrolled");
-        }
-      };
+          header.classList.toggle(
+            "hp-scrolled",
+            window.scrollY > 18
+          );
+        };
 
-      updateHeader();
 
       window.addEventListener(
         "scroll",
@@ -3725,336 +2872,188 @@
         { passive: true }
       );
 
-
-      /* -----------------------------------------------------
-         MOBILE MENU
-         ----------------------------------------------------- */
-
-      if (menuButton && header) {
-
-        menuButton.addEventListener("click", () => {
-
-          const open =
-            header.classList.toggle("hp-menu-open");
-
-          menuButton.setAttribute(
-            "aria-expanded",
-            open ? "true" : "false"
-          );
-
-          menuButton.setAttribute(
-            "aria-label",
-            open ? "Fechar menu" : "Abrir menu"
-          );
-
-          menuButton.innerHTML = open
-            ? `
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="m6 6 12 12M18 6 6 18"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"/>
-              </svg>
-            `
-            : `
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M4 7h16M4 12h16M4 17h16"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"/>
-              </svg>
-            `;
-        });
+      updateHeader();
 
 
-        header
-          .querySelectorAll(".hp-nav-links a, .hp-nav-actions a")
-          .forEach(link => {
+      /*
+       * Menu mobile
+       */
 
-            link.addEventListener("click", () => {
+      if (menu && nav) {
 
-              header.classList.remove("hp-menu-open");
+        menu.addEventListener(
+          "click",
+          () => {
 
-              menuButton.setAttribute(
-                "aria-expanded",
-                "false"
+            const open =
+              nav.classList.toggle(
+                "hp-mobile-open"
               );
 
-              menuButton.setAttribute(
-                "aria-label",
-                "Abrir menu"
-              );
-
-              menuButton.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M4 7h16M4 12h16M4 17h16"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"/>
-                </svg>
-              `;
-            });
-
-          });
-      }
-
-
-      /* -----------------------------------------------------
-         SCROLL REVEAL
-         ----------------------------------------------------- */
-
-      const revealItems =
-        document.querySelectorAll(".hp-reveal");
-
-      if ("IntersectionObserver" in window) {
-
-        const revealObserver =
-          new IntersectionObserver(
-            entries => {
-
-              entries.forEach(entry => {
-
-                if (!entry.isIntersecting) {
-                  return;
-                }
-
-                entry.target.classList.add("hp-visible");
-
-                revealObserver.unobserve(entry.target);
-
-              });
-
-            },
-            {
-              threshold: .12,
-              rootMargin: "0px 0px -45px 0px"
-            }
-          );
-
-        revealItems.forEach(item => {
-          revealObserver.observe(item);
-        });
-
-      } else {
-
-        revealItems.forEach(item => {
-          item.classList.add("hp-visible");
-        });
-
-      }
-
-
-      /* -----------------------------------------------------
-         NUMBER COUNTERS
-         ----------------------------------------------------- */
-
-      const counters =
-        document.querySelectorAll("[data-counter]");
-
-      const formatCounter = value => {
-
-        return new Intl.NumberFormat("pt-AO").format(
-          Math.round(value)
-        );
-
-      };
-
-      const animateCounter = element => {
-
-        const target =
-          Number(element.dataset.counter);
-
-        if (!Number.isFinite(target)) {
-          return;
-        }
-
-        const duration = 1500;
-        const start = performance.now();
-
-        const tick = now => {
-
-          const progress =
-            Math.min((now - start) / duration, 1);
-
-          const eased =
-            1 - Math.pow(1 - progress, 3);
-
-          element.textContent =
-            formatCounter(target * eased);
-
-          if (progress < 1) {
-            requestAnimationFrame(tick);
-          }
-
-        };
-
-        requestAnimationFrame(tick);
-      };
-
-
-      if ("IntersectionObserver" in window) {
-
-        const counterObserver =
-          new IntersectionObserver(
-            entries => {
-
-              entries.forEach(entry => {
-
-                if (!entry.isIntersecting) {
-                  return;
-                }
-
-                animateCounter(entry.target);
-
-                counterObserver.unobserve(
-                  entry.target
-                );
-
-              });
-
-            },
-            {
-              threshold: .5
-            }
-          );
-
-        counters.forEach(counter => {
-          counterObserver.observe(counter);
-        });
-
-      } else {
-
-        counters.forEach(counter => {
-          counter.textContent =
-            formatCounter(Number(counter.dataset.counter));
-        });
-
-      }
-
-
-      /* -----------------------------------------------------
-         FAQ
-         ----------------------------------------------------- */
-
-      document
-        .querySelectorAll(".hp-faq-question")
-        .forEach(button => {
-
-          button.addEventListener("click", () => {
-
-            const item =
-              button.closest(".hp-faq-item");
-
-            if (!item) return;
-
-            const wasOpen =
-              item.classList.contains("open");
-
-            document
-              .querySelectorAll(".hp-faq-item.open")
-              .forEach(openItem => {
-
-                if (openItem !== item) {
-                  openItem.classList.remove("open");
-                }
-
-              });
-
-            item.classList.toggle(
-              "open",
-              !wasOpen
+            menu.setAttribute(
+              "aria-expanded",
+              String(open)
             );
 
-          });
+            menu.setAttribute(
+              "aria-label",
+              open
+                ? "Fechar menu"
+                : "Abrir menu"
+            );
 
-        });
+            menu.textContent =
+              open ? "×" : "☰";
+          }
+        );
 
 
-      /* -----------------------------------------------------
-         ESCAPE MOBILE MENU
-         ----------------------------------------------------- */
+        nav
+          .querySelectorAll("a")
+          .forEach(
+            (link) => {
 
-      document.addEventListener("keydown", event => {
+              link.addEventListener(
+                "click",
+                () => {
 
-        if (event.key !== "Escape") {
-          return;
-        }
+                  nav.classList.remove(
+                    "hp-mobile-open"
+                  );
 
-        if (!header || !header.classList.contains("hp-menu-open")) {
-          return;
-        }
+                  menu.setAttribute(
+                    "aria-expanded",
+                    "false"
+                  );
 
-        header.classList.remove("hp-menu-open");
+                  menu.setAttribute(
+                    "aria-label",
+                    "Abrir menu"
+                  );
 
-        if (menuButton) {
+                  menu.textContent = "☰";
+                }
+              );
 
-          menuButton.setAttribute(
-            "aria-expanded",
-            "false"
+            }
           );
 
-          menuButton.setAttribute(
-            "aria-label",
-            "Abrir menu"
+      }
+
+
+      /*
+       * Animações de entrada
+       */
+
+      const revealElements =
+        document.querySelectorAll(
+          ".hp-reveal"
+        );
+
+
+      if (
+        "IntersectionObserver" in window
+      ) {
+
+        const observer =
+          new IntersectionObserver(
+            (entries) => {
+
+              entries.forEach(
+                (entry) => {
+
+                  if (
+                    entry.isIntersecting
+                  ) {
+
+                    entry.target.classList.add(
+                      "visible"
+                    );
+
+                    observer.unobserve(
+                      entry.target
+                    );
+                  }
+
+                }
+              );
+
+            },
+            {
+              threshold: 0.12
+            }
           );
 
-          menuButton.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M4 7h16M4 12h16M4 17h16"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"/>
-            </svg>
-          `;
+
+        revealElements.forEach(
+          (element) => {
+            observer.observe(element);
+          }
+        );
+
+      } else {
+
+        revealElements.forEach(
+          (element) => {
+            element.classList.add(
+              "visible"
+            );
+          }
+        );
+
+      }
+
+
+      /*
+       * Fechar menu quando clicar fora
+       */
+
+      document.addEventListener(
+        "click",
+        (event) => {
+
+          if (
+            !nav ||
+            !menu ||
+            !nav.classList.contains(
+              "hp-mobile-open"
+            )
+          ) {
+            return;
+          }
+
+
+          const clickedInside =
+            nav.contains(event.target);
+
+          const clickedButton =
+            menu.contains(event.target);
+
+
+          if (
+            !clickedInside &&
+            !clickedButton
+          ) {
+
+            nav.classList.remove(
+              "hp-mobile-open"
+            );
+
+            menu.setAttribute(
+              "aria-expanded",
+              "false"
+            );
+
+            menu.setAttribute(
+              "aria-label",
+              "Abrir menu"
+            );
+
+            menu.textContent = "☰";
+          }
 
         }
-
-      });
-
-
-      /* -----------------------------------------------------
-         SMOOTH ANCHOR OFFSET
-         ----------------------------------------------------- */
-
-      document
-        .querySelectorAll('a[href^="#"]')
-        .forEach(link => {
-
-          link.addEventListener("click", event => {
-
-            const id =
-              link.getAttribute("href");
-
-            if (!id || id === "#") {
-              return;
-            }
-
-            const target =
-              document.querySelector(id);
-
-            if (!target) {
-              return;
-            }
-
-            event.preventDefault();
-
-            const headerHeight =
-              header ? header.offsetHeight : 0;
-
-            const targetPosition =
-              target.getBoundingClientRect().top +
-              window.scrollY -
-              headerHeight -
-              20;
-
-            window.scrollTo({
-              top: targetPosition,
-              behavior: "smooth"
-            });
-
-          });
-
-        });
+      );
 
     })();
   </script>
