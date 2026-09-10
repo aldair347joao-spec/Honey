@@ -174,6 +174,12 @@ const FRONTEND_DIR =
     'public'
   );
 
+const HOME_FILE =
+  path.join(
+    FRONTEND_DIR,
+    'home.html'
+  );
+
 const INDEX_FILE =
   path.join(
     FRONTEND_DIR,
@@ -8535,9 +8541,35 @@ p {
 /* =========================================================
    SPA ROUTES
 ========================================================= */
+/* =========================================================
+   HONEY PAY — PUBLIC HOMEPAGE
+   ========================================================= */
 
-const SPA_ROUTES = [
+app.get(
   '/',
+  (
+    req,
+    res
+  ) => {
+
+    if (
+      fs.existsSync(
+        HOME_FILE
+      )
+    ) {
+      return res.sendFile(
+        HOME_FILE
+      );
+    }
+
+    return res
+      .status(404)
+      .send(
+        'Homepage do Honey Pay não encontrada.'
+      );
+  }
+);
+const SPA_ROUTES = [
   '/dashboard',
   '/merchant',
   '/payments',
