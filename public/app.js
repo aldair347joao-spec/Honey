@@ -3978,161 +3978,359 @@ async function openManualPaymentLinkForm() {
           class="full"
         >
 
-          <span
-            style="
-              display:block;
-              font-weight:700;
-              margin-bottom:10px;
-            "
-          >
-            Como o cliente vai pagar?
-          </span>
+          <div class="hp-remote-checkout">
 
-          <div
-            style="
-              display:grid;
-              gap:10px;
-            "
-          >
+  <div class="hp-section-heading">
 
+    <span class="hp-section-eyebrow">
+      Checkout
+    </span>
+
+    <strong>
+      Como o cliente vai pagar?
+    </strong>
+
+    <span class="hp-section-help">
+      Escolha se o cliente decide o método ou se a sua empresa define as opções disponíveis.
+    </span>
+
+  </div>
+
+
+  <div class="hp-checkout-choice-grid">
+
+    <label
+      class="hp-checkout-choice is-active"
+      data-checkout-card="customer_choice"
+    >
+
+      <input
+        type="radio"
+        name="remoteCheckoutMode"
+        value="customer_choice"
+        checked
+        class="hp-visually-hidden"
+      >
+
+      <span class="hp-checkout-choice-icon">
+
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+          <rect
+            x="7"
+            y="8"
+            width="27"
+            height="31"
+            rx="6"
+          />
+
+          <path d="M7 16h27" />
+
+          <circle cx="14" cy="23" r="2" />
+          <circle cx="21" cy="23" r="2" />
+          <circle cx="28" cy="23" r="2" />
+
+          <circle cx="14" cy="30" r="2" />
+          <circle cx="21" cy="30" r="2" />
+          <circle cx="28" cy="30" r="2" />
+
+          <path d="M35 27h7" />
+          <path d="m39 23 4 4-4 4" />
+        </svg>
+
+      </span>
+
+      <span class="hp-checkout-choice-content">
+
+        <strong>
+          Cliente escolhe
+        </strong>
+
+        <span>
+          O cliente vê os métodos disponíveis
+          e decide como quer pagar.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+
+    <label
+      class="hp-checkout-choice"
+      data-checkout-card="single_method"
+    >
+
+      <input
+        type="radio"
+        name="remoteCheckoutMode"
+        value="single_method"
+        class="hp-visually-hidden"
+      >
+
+      <span class="hp-checkout-choice-icon">
+
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+
+          <rect
+            x="6"
+            y="8"
+            width="36"
+            height="32"
+            rx="7"
+          />
+
+          <rect
+            x="12"
+            y="15"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="26"
+            y="15"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="12"
+            y="27"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="26"
+            y="27"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <path d="M16 18.5h1" />
+          <path d="M30 18.5h1" />
+          <path d="M16 30.5h1" />
+          <path d="M30 30.5h1" />
+
+        </svg>
+
+      </span>
+
+      <span class="hp-checkout-choice-content">
+
+        <strong>
+          Eu escolho os métodos
+        </strong>
+
+        <span>
+          Defina exatamente quais métodos
+          aparecerão no checkout.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+  </div>
+
+
+  <div
+    id="remoteMethodsBox"
+    class="hp-payment-methods-panel"
+  >
+
+    <div class="hp-payment-methods-heading">
+
+      <div>
+
+        <span class="hp-section-eyebrow">
+          Métodos de pagamento
+        </span>
+
+        <strong>
+          Escolha como os seus clientes podem pagar
+        </strong>
+
+        <small>
+          Estes métodos serão apresentados no checkout desta cobrança.
+        </small>
+
+      </div>
+
+      <span class="hp-methods-count">
+        3 métodos
+      </span>
+
+    </div>
+
+
+    <div class="hp-payment-method-grid">
+
+      ${methods
+        .map(
+          method => `
             <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
+              class="hp-payment-method-card"
+              data-payment-method-card="${method.value}"
             >
+
               <input
-                type="radio"
-                name="remoteCheckoutMode"
-                value="customer_choice"
+                type="checkbox"
+                name="paymentMethods"
+                value="${method.value}"
                 checked
-                style="margin-right:8px;"
+                class="hp-visually-hidden"
               >
 
-              <strong>
-                Cliente escolhe
-              </strong>
+              <span class="hp-payment-method-icon">
 
-              <span
-                style="
-                  display:block;
-                  margin:5px 0 0 24px;
-                  color:#667085;
-                  font-size:13px;
-                "
-              >
-                O cliente verá os métodos disponíveis
-                e escolherá como quer pagar.
-              </span>
-            </label>
-
-            <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
-            >
-              <input
-                type="radio"
-                name="remoteCheckoutMode"
-                value="single_method"
-                style="margin-right:8px;"
-              >
-
-              <strong>
-                Eu escolho os métodos
-              </strong>
-
-              <span
-                style="
-                  display:block;
-                  margin:5px 0 0 24px;
-                  color:#667085;
-                  font-size:13px;
-                "
-              >
-                Escolha exatamente os métodos que
-                ficarão disponíveis para o cliente.
-              </span>
-            </label>
-
-          </div>
-
-          <div
-            id="remoteMethodsBox"
-            style="
-              display:none;
-              margin-top:14px;
-              padding:14px;
-              border:1px solid #e4e7ec;
-              border-radius:12px;
-              background:#f9fafb;
-            "
-          >
-
-            <strong
-              style="
-                display:block;
-                margin-bottom:10px;
-              "
-            >
-              Métodos permitidos
-            </strong>
-
-            <div
-              style="
-                display:grid;
-                gap:9px;
-              "
-            >
-
-              ${methods
-                .map(
-                  method => `
-                    <label
-                      style="
-                        display:flex;
-                        align-items:flex-start;
-                        gap:8px;
-                        cursor:pointer;
-                        margin:0;
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        name="paymentMethods"
-                        value="${method.value}"
-                        checked
-                        style="margin-top:3px;"
+                ${
+                  method.value === "multicaixa_express"
+                    ? `
+                      <svg
+                        viewBox="0 0 48 48"
+                        aria-hidden="true"
                       >
+                        <rect
+                          x="13"
+                          y="5"
+                          width="22"
+                          height="38"
+                          rx="6"
+                        />
 
-                      <span>
-                        <strong>
-                          ${method.label}
-                        </strong>
+                        <rect
+                          x="18"
+                          y="10"
+                          width="12"
+                          height="14"
+                          rx="3"
+                        />
 
-                        <small
-                          style="
-                            display:block;
-                            margin-top:2px;
-                            color:#667085;
-                          "
+                        <path d="M20 29h8" />
+                        <path d="M21 34h6" />
+
+                        <path d="M37 17c3 2 4 5 4 8" />
+                        <path d="M38 27c1 1 1 2 1 3" />
+
+                        <path d="m20 17 3 3 6-6" />
+                      </svg>
+                    `
+                    : method.value === "reference"
+                      ? `
+                        <svg
+                          viewBox="0 0 48 48"
+                          aria-hidden="true"
                         >
-                          ${method.description}
-                        </small>
-                      </span>
-                    </label>
-                  `
-                )
-                .join("")}
+                          <rect
+                            x="7"
+                            y="8"
+                            width="34"
+                            height="32"
+                            rx="6"
+                          />
 
-            </div>
+                          <path d="M13 16h22" />
+                          <path d="M13 22h8" />
+                          <path d="M13 28h22" />
+                          <path d="M13 34h5" />
 
-          </div>
+                          <circle cx="26" cy="22" r="2" />
+                          <circle cx="32" cy="22" r="2" />
 
-        </div>
+                          <path d="M23 34h12" />
+                        </svg>
+                      `
+                      : `
+                        <svg
+                          viewBox="0 0 48 48"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            x="8"
+                            y="11"
+                            width="32"
+                            height="27"
+                            rx="7"
+                          />
+
+                          <path d="M8 18h32" />
+                          <path d="M28 25h7" />
+
+                          <circle
+                            cx="30"
+                            cy="31"
+                            r="3"
+                          />
+
+                          <path d="M17 27h5" />
+                          <path d="M17 32h3" />
+
+                          <path d="M36 7c2 2 3 4 3 6" />
+                          <path d="M40 6c2 2 3 4 3 6" />
+                        </svg>
+                      `
+                }
+
+              </span>
+
+              <span class="hp-payment-method-copy">
+
+                <strong>
+                  ${method.label}
+                </strong>
+
+                <small>
+                  ${method.description}
+                </small>
+
+              </span>
+
+              <span class="hp-payment-method-check">
+                ✓
+              </span>
+
+            </label>
+          `
+        )
+        .join("")}
+
+    </div>
+
+
+    <div class="hp-methods-footer">
+
+      <span class="hp-methods-footer-icon">
+        ✓
+      </span>
+
+      <span>
+        Os métodos selecionados aparecerão no checkout do cliente.
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
 
         <!-- =====================================================
              MODO PRESENCIAL
