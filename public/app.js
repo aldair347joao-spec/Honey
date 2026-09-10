@@ -4772,16 +4772,15 @@ updatePresentialPaymentMethodUI();
       'input[name="remoteCheckoutMode"]:checked'
     )?.value || "customer_choice";
 
-
-  form
+   form
     .querySelectorAll(
-      "[data-checkout-choice]"
+      "[data-checkout-card]"
     )
     .forEach(card => {
 
       const active =
-        card.dataset.checkoutChoice ===
-        checkoutMode;
+  card.dataset.checkoutCard ===
+  checkoutMode;
 
       card.classList.toggle(
         "is-active",
@@ -4896,7 +4895,73 @@ form
         formData.get(
           "collectionMode"
         ) || "remote";
+       function updatePaymentMethodCards() {
 
+  const cards =
+    form.querySelectorAll(
+      "[data-payment-method-card]"
+    );
+
+  const selected =
+    form.querySelectorAll(
+      'input[name="paymentMethods"]:checked'
+    );
+
+  cards.forEach(card => {
+
+    const input =
+      card.querySelector(
+        'input[name="paymentMethods"]'
+      );
+
+    const active =
+      Boolean(input?.checked);
+
+    card.classList.toggle(
+      "is-active",
+      active
+    );
+
+    card.setAttribute(
+      "aria-checked",
+      active
+        ? "true"
+        : "false"
+    );
+
+  });
+
+  const count =
+    form.querySelector(
+      ".hp-methods-count"
+    );
+
+  if (count) {
+
+    const total =
+      selected.length;
+
+    count.textContent =
+      `${total} método${total === 1 ? "" : "s"}`;
+
+  }
+
+}
+       form
+  .querySelectorAll(
+    'input[name="paymentMethods"]'
+  )
+  .forEach(input => {
+
+    input.addEventListener(
+      "change",
+      updatePaymentMethodCards
+    );
+
+  });
+
+updatePaymentMethodCards();
+       
       /*
  * --------------------------------------------------------
  * COBRANÇA PRESENCIAL — HONEY PAY
