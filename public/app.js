@@ -3614,13 +3614,9 @@ async function openManualPaymentLinkForm() {
       value: "unitel_money",
       label: "UNITEL Money",
       description: "Pagamento através do UNITEL Money."
-    },
-    {
-      value: "direct_debit",
-      label: "Débito Directo",
-      description: "Pagamento através de débito directo."
     }
   ];
+    
 
   openModal(
     "Nova cobrança",
