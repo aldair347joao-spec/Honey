@@ -3671,100 +3671,307 @@ async function openManualPaymentLinkForm() {
         </label>
 
         <!-- =====================================================
-             MODO DA COBRANÇA
-        ====================================================== -->
+     MODO DA COBRANÇA — HONEY PAY
+====================================================== -->
 
-        <div class="full">
+<div class="full">
 
-          <span
-            style="
-              display:block;
-              font-weight:700;
-              margin-bottom:10px;
-            "
-          >
-            Como pretende receber esta cobrança?
-          </span>
+  <div class="hp-section-heading">
+    <span class="hp-section-eyebrow">
+      Forma de cobrança
+    </span>
 
-          <div
-            style="
-              display:grid;
-              grid-template-columns:repeat(
-                auto-fit,
-                minmax(220px, 1fr)
-              );
-              gap:12px;
-            "
-          >
+    <strong>
+      Como pretende receber esta cobrança?
+    </strong>
 
-            <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
-            >
-              <input
-                type="radio"
-                name="collectionMode"
-                value="remote"
-                checked
-                style="margin-right:8px;"
-              >
+    <span class="hp-section-help">
+      Escolha onde o cliente vai realizar o pagamento.
+    </span>
+  </div>
 
-              <strong>
-                📱 Enviar ao cliente
-              </strong>
+  <div class="hp-collection-grid">
 
-              <span
-                style="
-                  display:block;
-                  margin-top:5px;
-                  color:#667085;
-                  font-size:13px;
-                  line-height:1.45;
-                "
-              >
-                Gere um link para WhatsApp,
-                Instagram, Facebook ou outro canal.
-              </span>
-            </label>
+    <!-- ENVIAR AO CLIENTE -->
 
-            <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
-            >
-              <input
-                type="radio"
-                name="collectionMode"
-                value="in_person"
-                style="margin-right:8px;"
-              >
+    <label
+      class="hp-collection-card is-active"
+      data-collection-card="remote"
+    >
 
-              <strong>
-                🏪 Pagamento presencial
-              </strong>
+      <input
+        type="radio"
+        name="collectionMode"
+        value="remote"
+        checked
+        class="hp-visually-hidden"
+      >
 
-              <span
-                style="
-                  display:block;
-                  margin-top:5px;
-                  color:#667085;
-                  font-size:13px;
-                  line-height:1.45;
-                "
-              >
-                O cliente está consigo e a cobrança
-                será feita presencialmente.
-              </span>
-            </label>
+      <span class="hp-collection-icon hp-collection-icon-remote">
 
-          </div>
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+          focusable="false"
+        >
 
-        </div>
+          <!-- núcleo da cobrança -->
+          <rect
+            x="6"
+            y="8"
+            width="24"
+            height="31"
+            rx="7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          />
+
+          <!-- linhas da cobrança -->
+          <path
+            d="M12 16h12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M12 21h8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <!-- pequeno símbolo de pagamento -->
+          <path
+            d="M12 29h3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          />
+
+          <circle
+            cx="19"
+            cy="29"
+            r="2.2"
+            fill="currentColor"
+          />
+
+          <!-- fluxo Honey Pay -->
+          <path
+            d="M27 24h11"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="m34 18 6 6-6 6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <!-- ponto de saída -->
+          <circle
+            cx="40"
+            cy="24"
+            r="1.8"
+            fill="currentColor"
+          />
+
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0; 1.5 0; 0 0"
+            dur="1.8s"
+            repeatCount="indefinite"
+          />
+
+        </svg>
+
+      </span>
+
+      <span class="hp-collection-content">
+
+        <strong>
+          Enviar ao cliente
+        </strong>
+
+        <span>
+          Crie uma cobrança para enviar por
+          WhatsApp, Instagram, Facebook ou outro canal.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+
+    <!-- PAGAMENTO PRESENCIAL -->
+
+    <label
+      class="hp-collection-card"
+      data-collection-card="in_person"
+    >
+
+      <input
+        type="radio"
+        name="collectionMode"
+        value="in_person"
+        class="hp-visually-hidden"
+      >
+
+      <span class="hp-collection-icon hp-collection-icon-presential">
+
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+          focusable="false"
+        >
+
+          <!-- terminal -->
+          <rect
+            x="7"
+            y="6"
+            width="25"
+            height="36"
+            rx="7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          />
+
+          <!-- ecrã -->
+          <rect
+            x="12"
+            y="11"
+            width="15"
+            height="15"
+            rx="3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+          />
+
+          <!-- QR estilizado -->
+          <path
+            d="M15 14h4v4h-4z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M21 14h3v3h-3z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M15 20h3v3h-3z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M21 19h3v4h-3z"
+            fill="currentColor"
+          />
+
+          <!-- zona de pagamento -->
+          <path
+            d="M13 31h13"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M16 35h7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <!-- ondas de leitura -->
+          <path
+            d="M35 16c3 2 5 5 5 8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M34 22c1.5 1 2.5 2.5 2.5 4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <!-- ponto de confirmação -->
+          <circle
+            cx="38"
+            cy="33"
+            r="4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+
+          <path
+            d="m36.2 33 1.2 1.2 2.5-2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0; 0 -1; 0 0"
+            dur="1.6s"
+            repeatCount="indefinite"
+          />
+
+        </svg>
+
+      </span>
+
+      <span class="hp-collection-content">
+
+        <strong>
+          Pagamento presencial
+        </strong>
+
+        <span>
+          O cliente está consigo. Apresente a cobrança
+          e acompanhe a confirmação do pagamento.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+  </div>
+
+</div>
 
         <!-- =====================================================
              MODO REMOTO
@@ -4274,38 +4481,95 @@ updatePresentialPaymentMethodUI();
     $("#submitPaymentLink");
 
   function updateCollectionModeUI() {
-    const collectionMode =
-      form.querySelector(
-        'input[name="collectionMode"]:checked'
-      )?.value || "remote";
+  const collectionMode =
+    form.querySelector(
+      'input[name="collectionMode"]:checked'
+    )?.value || "remote";
 
-    const isRemote =
-      collectionMode === "remote";
+  const isRemote =
+    collectionMode === "remote";
 
-    if (remoteOptions) {
-      remoteOptions.style.display =
-        isRemote ? "" : "block";
-    }
+  /*
+   * Atualiza visualmente os cartões
+   */
+  form
+    .querySelectorAll(
+      "[data-collection-card]"
+    )
+    .forEach(card => {
 
-    if (inPersonOptions) {
-      inPersonOptions.style.display =
-        isRemote ? "none" : "";
-    }
+      const value =
+        card.dataset.collectionCard;
 
-    if (bankAccountField) {
-      bankAccountField.style.display =
-        isRemote ? "" : "none";
-    }
+      const active =
+        value === collectionMode;
 
-    if (submitButton) {
-      submitButton.textContent =
-        isRemote
-          ? "Gerar link"
-          : "Preparar cobrança presencial";
-    }
+      card.classList.toggle(
+        "is-active",
+        active
+      );
 
-    updateRemoteCheckoutModeUI();
+      card.setAttribute(
+        "aria-checked",
+        active ? "true" : "false"
+      );
+
+      if (active) {
+        card.style.setProperty(
+          "--hp-card-scale",
+          "1"
+        );
+      } else {
+        card.style.setProperty(
+          "--hp-card-scale",
+          "0.985"
+        );
+      }
+    });
+
+  /*
+   * Conteúdo remoto
+   */
+  if (remoteOptions) {
+    remoteOptions.style.display =
+      isRemote
+        ? ""
+        : "none";
   }
+
+  /*
+   * Conteúdo presencial
+   */
+  if (inPersonOptions) {
+    inPersonOptions.style.display =
+      isRemote
+        ? "none"
+        : "";
+  }
+
+  /*
+   * Conta bancária só pertence
+   * à cobrança remota.
+   */
+  if (bankAccountField) {
+    bankAccountField.style.display =
+      isRemote
+        ? ""
+        : "none";
+  }
+
+  /*
+   * Botão principal
+   */
+  if (submitButton) {
+    submitButton.textContent =
+      isRemote
+        ? "Gerar link"
+        : "Preparar cobrança presencial";
+  }
+
+  updateRemoteCheckoutModeUI();
+}
 
   function updateRemoteCheckoutModeUI() {
     const checkoutMode =
@@ -4320,7 +4584,58 @@ updatePresentialPaymentMethodUI();
           : "none";
     }
   }
+form
+  .querySelectorAll(
+    "[data-collection-card]"
+  )
+  .forEach(card => {
 
+    card.addEventListener(
+      "click",
+      () => {
+
+        const input =
+          card.querySelector(
+            'input[name="collectionMode"]'
+          );
+
+        if (!input) {
+          return;
+        }
+
+        input.checked = true;
+
+        updateCollectionModeUI();
+
+        /*
+         * Pequeno feedback físico
+         * no cartão selecionado.
+         */
+        card.animate(
+          [
+            {
+              transform:
+                "scale(.985)"
+            },
+            {
+              transform:
+                "scale(1.012)"
+            },
+            {
+              transform:
+                "scale(1)"
+            }
+          ],
+          {
+            duration: 280,
+            easing:
+              "cubic-bezier(.2,.8,.2,1)"
+          }
+        );
+      }
+    );
+
+  });
   form
     .querySelectorAll(
       'input[name="collectionMode"]'
