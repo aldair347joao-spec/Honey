@@ -3671,6 +3671,257 @@ select {
   }
 }
 /* =========================================================
+   HONEY PAY — COLLECTION MODE
+   ========================================================= */
+
+.modal.honey-form-modal
+.hp-section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal.honey-form-modal
+.hp-section-eyebrow {
+  color: #f4c137;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.modal.honey-form-modal
+.hp-section-heading > strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.modal.honey-form-modal
+.hp-section-help {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 450;
+}
+
+.hp-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.hp-collection-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.hp-collection-card {
+  position: relative;
+
+  min-width: 0;
+  min-height: 126px;
+
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 17px;
+
+  cursor: pointer;
+
+  color: #dce5ef;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.025)
+    );
+
+  border:
+    1px solid rgba(255,255,255,.085);
+
+  border-radius: 16px;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 12px 30px rgba(0,0,0,.14);
+
+  transform:
+    scale(var(--hp-card-scale, 1));
+
+  transition:
+    border-color .2s ease,
+    background .2s ease,
+    box-shadow .2s ease,
+    transform .2s ease;
+}
+
+.hp-collection-card:hover {
+  border-color:
+    rgba(244,193,55,.38);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.075),
+      rgba(255,255,255,.025)
+    );
+
+  transform: translateY(-2px);
+}
+
+.hp-collection-card.is-active {
+  border-color:
+    rgba(244,193,55,.75);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.13),
+      rgba(255,255,255,.035)
+    );
+
+  box-shadow:
+    0 0 0 1px
+      rgba(244,193,55,.10),
+    0 18px 42px
+      rgba(0,0,0,.24),
+    0 0 32px
+      rgba(244,193,55,.07);
+}
+
+.hp-collection-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  color: #f4c137;
+
+  border:
+    1px solid rgba(244,193,55,.20);
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.15),
+      rgba(244,193,55,.045)
+    );
+
+  transition:
+    transform .25s ease,
+    background .25s ease,
+    box-shadow .25s ease;
+}
+
+.hp-collection-icon svg {
+  width: 31px;
+  height: 31px;
+}
+
+.hp-collection-card:hover
+.hp-collection-icon {
+  transform:
+    translateY(-1px)
+    rotate(-2deg);
+}
+
+.hp-collection-card.is-active
+.hp-collection-icon {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.24),
+      rgba(244,193,55,.07)
+    );
+
+  box-shadow:
+    0 0 24px
+      rgba(244,193,55,.12);
+}
+
+.hp-collection-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hp-collection-content strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hp-collection-content > span {
+  color: #9eabbc;
+  font-size: 11px;
+  font-weight: 450;
+  line-height: 1.5;
+}
+
+.hp-collection-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 19px;
+  height: 19px;
+
+  display: grid;
+  place-items: center;
+
+  color: #08101a;
+  background: #f4c137;
+
+  border-radius: 50%;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  opacity: 0;
+  transform: scale(.6);
+
+  transition:
+    opacity .2s ease,
+    transform .2s ease;
+}
+
+.hp-collection-card.is-active
+.hp-collection-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (max-width: 640px) {
+
+  .hp-collection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hp-collection-card {
+    min-height: 112px;
+  }
+
+}
+/* =========================================================
    MÉTODOS DE PAGAMENTO
    ========================================================= */
 
