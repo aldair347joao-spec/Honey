@@ -5399,99 +5399,108 @@ async function openPaymentLinkForm(
             type="datetime-local"
           >
         </label>
-
-        <!-- =====================================================
-     MODO REMOTO — HONEY PAY CHECKOUT
+<!-- =====================================================
+     MODO DA COBRANÇA — HONEY PAY
 ====================================================== -->
 
-<div
-  id="remotePaymentOptionsProduct"
-  class="full hp-remote-checkout"
->
+<div class="full">
 
   <div class="hp-section-heading">
+
     <span class="hp-section-eyebrow">
-      Checkout
+      Forma de cobrança
     </span>
 
     <strong>
-      Quem decide como o cliente paga?
+      Como pretende receber esta cobrança?
     </strong>
 
     <span class="hp-section-help">
-      Defina se o cliente escolhe o método ou se a sua empresa controla as opções.
+      Escolha onde o cliente vai realizar o pagamento.
     </span>
+
   </div>
 
-
-  <div class="hp-checkout-choice-grid">
-
-    <!-- CLIENTE ESCOLHE -->
+  <div class="hp-collection-grid">
 
     <label
-      class="hp-checkout-choice is-active"
-      data-checkout-card="customer_choice"
+      class="hp-collection-card is-active"
+      data-collection-card="remote"
     >
 
       <input
         type="radio"
-        name="remoteCheckoutMode"
-        value="customer_choice"
+        name="collectionMode"
+        value="remote"
         checked
         class="hp-visually-hidden"
       >
 
-      <span class="hp-checkout-choice-icon">
+      <span class="hp-collection-icon hp-collection-icon-remote">
 
         <svg
           viewBox="0 0 48 48"
           aria-hidden="true"
+          focusable="false"
         >
 
-          <!-- checkout -->
           <rect
-            x="7"
+            x="6"
             y="8"
-            width="27"
+            width="24"
             height="31"
-            rx="6"
+            rx="7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
           />
 
-          <path d="M7 16h27" />
+          <path
+            d="M12 16h12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
 
-          <!-- métodos -->
-          <circle cx="14" cy="23" r="2" />
-          <circle cx="21" cy="23" r="2" />
-          <circle cx="28" cy="23" r="2" />
+          <path
+            d="M12 21h8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
 
-          <circle cx="14" cy="30" r="2" />
-          <circle cx="21" cy="30" r="2" />
-          <circle cx="28" cy="30" r="2" />
+          <path
+            d="M27 24h11"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+          />
 
-          <!-- escolha -->
-          <path d="M35 27h7" />
-          <path d="m39 23 4 4-4 4" />
-
-          <circle
-            class="hp-choice-pulse"
-            cx="39"
-            cy="27"
-            r="7"
+          <path
+            d="m34 18 6 6-6 6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           />
 
         </svg>
 
       </span>
 
-      <span class="hp-checkout-choice-content">
+      <span class="hp-collection-content">
 
         <strong>
-          Cliente escolhe
+          Enviar ao cliente
         </strong>
 
         <span>
-          O cliente vê os métodos disponíveis
-          e decide como quer pagar.
+          Crie uma cobrança para enviar por
+          WhatsApp, Instagram, Facebook ou outro canal.
         </span>
 
       </span>
@@ -5503,94 +5512,107 @@ async function openPaymentLinkForm(
     </label>
 
 
-    <!-- COMERCIANTE ESCOLHE -->
-
     <label
-      class="hp-checkout-choice"
-      data-checkout-card="single_method"
+      class="hp-collection-card"
+      data-collection-card="in_person"
     >
 
       <input
         type="radio"
-        name="remoteCheckoutMode"
-        value="single_method"
+        name="collectionMode"
+        value="in_person"
         class="hp-visually-hidden"
       >
 
-      <span class="hp-checkout-choice-icon">
+      <span class="hp-collection-icon hp-collection-icon-presential">
 
         <svg
           viewBox="0 0 48 48"
           aria-hidden="true"
+          focusable="false"
         >
 
-          <!-- painel de controlo -->
           <rect
-            x="6"
-            y="8"
-            width="36"
-            height="32"
+            x="7"
+            y="6"
+            width="25"
+            height="36"
             rx="7"
-          />
-
-          <!-- módulos -->
-          <rect
-            x="12"
-            y="15"
-            width="9"
-            height="7"
-            rx="2"
-          />
-
-          <rect
-            x="26"
-            y="15"
-            width="9"
-            height="7"
-            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
           />
 
           <rect
             x="12"
-            y="27"
-            width="9"
-            height="7"
-            rx="2"
+            y="11"
+            width="15"
+            height="15"
+            rx="3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
           />
-
-          <rect
-            x="26"
-            y="27"
-            width="9"
-            height="7"
-            rx="2"
-          />
-
-          <!-- controlo -->
-          <path d="M16 18.5h1" />
-          <path d="M30 18.5h1" />
-
-          <path d="M16 30.5h1" />
-          <path d="M30 30.5h1" />
 
           <path
-            class="hp-control-sweep"
-            d="M10 12h28"
+            d="M15 14h4v4h-4z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M21 14h3v3h-3z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M15 20h3v3h-3z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M21 19h3v4h-3z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M35 16c3 2 5 5 5 8"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+
+          <circle
+            cx="38"
+            cy="33"
+            r="4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+
+          <path
+            d="m36.2 33 1.2 1.2 2.5-2.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           />
 
         </svg>
 
       </span>
 
-      <span class="hp-checkout-choice-content">
+      <span class="hp-collection-content">
 
         <strong>
-          Eu escolho os métodos
+          Pagamento presencial
         </strong>
 
         <span>
-          Defina exatamente quais métodos
-          aparecerão no checkout.
+          O cliente está consigo. Apresente a cobrança
+          e acompanhe a confirmação do pagamento.
         </span>
 
       </span>
@@ -5600,103 +5622,6 @@ async function openPaymentLinkForm(
       </span>
 
     </label>
-
-  </div>
-
-
-  <!-- =====================================================
-       MÉTODOS DISPONÍVEIS
-  ====================================================== -->
-
-  <div
-    id="remoteMethodsBoxProduct"
-    class="hp-payment-methods-panel"
-  >
-
-    <div class="hp-payment-methods-heading">
-
-      <div>
-        <span class="hp-section-eyebrow">
-          Configuração
-        </span>
-
-        <strong>
-          Métodos disponíveis
-        </strong>
-
-        <small>
-          Escolha as opções que aparecerão no checkout do cliente.
-        </small>
-      </div>
-
-      <span class="hp-methods-count">
-        <span id="hpSelectedMethodsCount">
-          3
-        </span>
-        ativos
-      </span>
-
-    </div>
-
-
-    <div class="hp-payment-method-grid">
-
-      ${methods
-        .map(
-          (method, index) => `
-            <label
-              class="hp-payment-method-card is-active"
-              data-payment-method-card="${method.value}"
-            >
-
-              <input
-                type="checkbox"
-                name="paymentMethods"
-                value="${method.value}"
-                checked
-                class="hp-visually-hidden"
-              >
-
-              <span class="hp-payment-method-icon">
-                ${method.icon}
-              </span>
-
-              <span class="hp-payment-method-copy">
-
-                <strong>
-                  ${method.label}
-                </strong>
-
-                <small>
-                  ${method.description}
-                </small>
-
-              </span>
-
-              <span class="hp-payment-method-check">
-                ✓
-              </span>
-
-            </label>
-          `
-        )
-        .join("")}
-
-    </div>
-
-
-    <div class="hp-methods-footer">
-
-      <span class="hp-methods-footer-icon">
-        ✓
-      </span>
-
-      <span>
-        Os métodos selecionados serão apresentados
-        no checkout da cobrança.
-      </span>
-
-    </div>
 
   </div>
 
