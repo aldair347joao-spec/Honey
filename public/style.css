@@ -8624,3 +8624,72 @@ small {
     grid-template-columns: 1fr;
   }
 }
+/* =========================================================
+   HONEY PAY — PAYMENT METHOD EXPERIENCE
+   Normalização da área "Como o cliente vai pagar?"
+========================================================= */
+
+#remotePaymentOptions {
+  width: 100%;
+}
+
+#remotePaymentOptions .hp-remote-checkout {
+  width: 100%;
+}
+
+#remotePaymentOptions .hp-payment-methods-panel {
+  animation: hp-payment-panel-in .24s ease both;
+}
+
+#remotePaymentOptions .hp-payment-method-card {
+  min-height: 112px;
+}
+
+#remotePaymentOptions .hp-payment-method-card:has(
+  input[name="paymentMethods"]:checked
+) {
+  border-color: rgba(244,193,55,.72);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.105),
+      rgba(244,193,55,.025)
+    );
+
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.16),
+    0 0 0 1px rgba(244,193,55,.05);
+}
+
+#remotePaymentOptions .hp-payment-method-card:has(
+  input[name="paymentMethods"]:checked
+) .hp-payment-method-icon {
+  background: rgba(244,193,55,.15);
+
+  box-shadow:
+    0 0 20px rgba(244,193,55,.08);
+}
+
+#remotePaymentOptions .hp-payment-method-card:has(
+  input[name="paymentMethods"]:checked
+) .hp-payment-method-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#remotePaymentOptions .hp-payment-method-card:hover {
+  transform: translateY(-2px);
+}
+
+#remotePaymentOptions .hp-payment-method-icon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+
+  #remotePaymentOptions .hp-payment-method-card {
+    min-height: 82px;
+  }
+
+}
