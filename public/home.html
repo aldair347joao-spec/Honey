@@ -1,0 +1,2972 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Honey Pay — receba pagamentos, crie links de pagamento e venda online com simplicidade."
+  >
+
+  <meta name="theme-color" content="#07111f">
+
+  <title>Honey Pay — Pagamentos simples para o seu negócio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --hp-bg: #06101d;
+      --hp-bg-2: #09182a;
+      --hp-card: rgba(14, 29, 48, 0.72);
+      --hp-card-solid: #0d1d31;
+      --hp-border: rgba(255, 255, 255, 0.09);
+      --hp-border-strong: rgba(255, 193, 7, 0.25);
+
+      --hp-text: #f7f9fc;
+      --hp-text-soft: #b7c2d1;
+      --hp-text-muted: #7f8da1;
+
+      --hp-gold: #f7c928;
+      --hp-gold-2: #ffd84d;
+      --hp-gold-dark: #dba900;
+
+      --hp-green: #36d399;
+
+      --hp-radius-lg: 28px;
+      --hp-radius-md: 20px;
+      --hp-radius-sm: 14px;
+
+      --hp-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.32);
+
+      --hp-container: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+
+      color: var(--hp-text);
+      background:
+        radial-gradient(
+          circle at 78% 10%,
+          rgba(247, 201, 40, 0.10),
+          transparent 27%
+        ),
+        radial-gradient(
+          circle at 10% 35%,
+          rgba(31, 105, 180, 0.10),
+          transparent 30%
+        ),
+        linear-gradient(
+          180deg,
+          var(--hp-bg) 0%,
+          #071321 48%,
+          #06101d 100%
+        );
+
+      font-family: "Inter", sans-serif;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,0.015) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,0.015) 1px,
+          transparent 1px
+        );
+
+      background-size: 60px 60px;
+
+      mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 70%
+      );
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hp-container {
+      width: min(
+        calc(100% - 40px),
+        var(--hp-container)
+      );
+
+      margin: 0 auto;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .hp-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+
+      z-index: 1000;
+
+      border-bottom: 1px solid transparent;
+
+      transition:
+        background 0.3s ease,
+        border-color 0.3s ease,
+        backdrop-filter 0.3s ease;
+    }
+
+    .hp-header.scrolled {
+      background: rgba(5, 14, 26, 0.82);
+      border-color: var(--hp-border);
+      backdrop-filter: blur(18px);
+    }
+
+    .hp-nav {
+      min-height: 78px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 30px;
+    }
+
+    .hp-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .hp-logo-mark {
+      width: 36px;
+      height: 36px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 11px;
+
+      color: #07111f;
+      background:
+        linear-gradient(
+          135deg,
+          var(--hp-gold-2),
+          var(--hp-gold-dark)
+        );
+
+      box-shadow:
+        0 8px 24px rgba(247, 201, 40, 0.18);
+    }
+
+    .hp-logo-mark span {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .hp-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .hp-nav-links a {
+      color: var(--hp-text-soft);
+
+      font-size: 14px;
+      font-weight: 600;
+
+      transition: color 0.2s ease;
+    }
+
+    .hp-nav-links a:hover {
+      color: var(--hp-text);
+    }
+
+    .hp-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hp-login {
+      padding: 10px 15px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 14px;
+      font-weight: 700;
+
+      border-radius: 10px;
+
+      transition:
+        color 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .hp-login:hover {
+      color: var(--hp-text);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .hp-primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+
+      min-height: 46px;
+      padding: 0 18px;
+
+      color: #07111f;
+      background:
+        linear-gradient(
+          135deg,
+          var(--hp-gold-2),
+          var(--hp-gold)
+        );
+
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 12px;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      box-shadow:
+        0 10px 30px rgba(247, 201, 40, 0.14);
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+    }
+
+    .hp-primary-btn:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 16px 36px rgba(247, 201, 40, 0.22);
+
+      filter: brightness(1.04);
+    }
+
+    .hp-menu-btn {
+      display: none;
+
+      width: 42px;
+      height: 42px;
+
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid var(--hp-border);
+      border-radius: 11px;
+
+      color: var(--hp-text);
+      background: rgba(255,255,255,0.04);
+
+      cursor: pointer;
+    }
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hp-hero {
+      position: relative;
+
+      min-height: 760px;
+
+      display: flex;
+      align-items: center;
+
+      padding:
+        145px 0
+        100px;
+    }
+
+    .hp-hero::after {
+      content: "";
+
+      position: absolute;
+
+      width: 600px;
+      height: 600px;
+
+      right: -300px;
+      top: 100px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(247,201,40,0.09),
+          transparent 68%
+        );
+
+      filter: blur(20px);
+
+      pointer-events: none;
+    }
+
+    .hp-hero-grid {
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1.03fr)
+        minmax(400px, 0.97fr);
+
+      align-items: center;
+
+      gap: 70px;
+    }
+
+    .hp-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+
+      padding: 7px 11px;
+
+      color: var(--hp-gold-2);
+
+      background: rgba(247,201,40,0.07);
+
+      border: 1px solid rgba(247,201,40,0.17);
+      border-radius: 999px;
+
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+
+      text-transform: uppercase;
+    }
+
+    .hp-eyebrow-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: var(--hp-gold);
+
+      box-shadow:
+        0 0 0 5px rgba(247,201,40,0.08);
+    }
+
+    .hp-hero h1 {
+      max-width: 700px;
+
+      margin-top: 22px;
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: clamp(46px, 5.7vw, 74px);
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.055em;
+    }
+
+    .hp-gradient-text {
+      color: var(--hp-gold-2);
+    }
+
+    .hp-hero-description {
+      max-width: 600px;
+
+      margin-top: 25px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .hp-hero-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+
+      gap: 13px;
+
+      margin-top: 34px;
+    }
+
+    .hp-hero-actions .hp-primary-btn {
+      min-height: 54px;
+      padding: 0 24px;
+
+      border-radius: 14px;
+
+      font-size: 15px;
+    }
+
+    .hp-secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 54px;
+      padding: 0 21px;
+
+      color: var(--hp-text);
+
+      background: rgba(255,255,255,0.035);
+
+      border: 1px solid var(--hp-border);
+      border-radius: 14px;
+
+      font-size: 15px;
+      font-weight: 700;
+
+      transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .hp-secondary-btn:hover {
+      transform: translateY(-2px);
+
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.16);
+    }
+
+    .hp-hero-note {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      margin-top: 18px;
+
+      color: var(--hp-text-muted);
+
+      font-size: 12px;
+    }
+
+    .hp-check {
+      color: var(--hp-green);
+      font-weight: 900;
+    }
+
+    /* =========================
+       HERO VISUAL
+    ========================= */
+
+    .hp-hero-visual {
+      position: relative;
+
+      min-height: 490px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hp-dashboard-card {
+      position: relative;
+
+      width: min(100%, 500px);
+
+      padding: 24px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(18, 39, 64, 0.94),
+          rgba(9, 24, 42, 0.94)
+        );
+
+      border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+      border-radius: 27px;
+
+      box-shadow:
+        0 40px 90px rgba(0,0,0,0.42);
+
+      transform:
+        perspective(1200px)
+        rotateY(-7deg)
+        rotateX(2deg);
+
+      animation:
+        hpFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes hpFloat {
+      0%,
+      100% {
+        transform:
+          perspective(1200px)
+          rotateY(-7deg)
+          rotateX(2deg)
+          translateY(0);
+      }
+
+      50% {
+        transform:
+          perspective(1200px)
+          rotateY(-5deg)
+          rotateX(2deg)
+          translateY(-9px);
+      }
+    }
+
+    .hp-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding-bottom: 20px;
+
+      border-bottom:
+        1px solid
+        rgba(255,255,255,0.07);
+    }
+
+    .hp-card-title {
+      font-size: 13px;
+      color: var(--hp-text-muted);
+    }
+
+    .hp-card-logo {
+      color: var(--hp-gold-2);
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .hp-balance {
+      padding: 25px 0 22px;
+    }
+
+    .hp-balance-label {
+      color: var(--hp-text-muted);
+      font-size: 12px;
+    }
+
+    .hp-balance-value {
+      margin-top: 5px;
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 37px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .hp-balance-value span {
+      font-size: 17px;
+      color: var(--hp-text-soft);
+    }
+
+    .hp-mini-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .hp-mini-stat {
+      padding: 15px;
+
+      background: rgba(255,255,255,0.035);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.06);
+
+      border-radius: 15px;
+    }
+
+    .hp-mini-stat-label {
+      color: var(--hp-text-muted);
+      font-size: 11px;
+    }
+
+    .hp-mini-stat-value {
+      margin-top: 5px;
+
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .hp-transactions {
+      margin-top: 18px;
+    }
+
+    .hp-transaction {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 12px 0;
+
+      border-bottom:
+        1px solid
+        rgba(255,255,255,0.055);
+    }
+
+    .hp-transaction:last-child {
+      border-bottom: 0;
+    }
+
+    .hp-transaction-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hp-transaction-icon {
+      width: 35px;
+      height: 35px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 10px;
+
+      color: var(--hp-gold-2);
+      background: rgba(247,201,40,0.08);
+    }
+
+    .hp-transaction-name {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .hp-transaction-time {
+      margin-top: 1px;
+
+      color: var(--hp-text-muted);
+      font-size: 10px;
+    }
+
+    .hp-transaction-value {
+      color: var(--hp-green);
+
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .hp-floating-card {
+      position: absolute;
+
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      padding: 13px 15px;
+
+      background:
+        rgba(13,29,49,0.91);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.10);
+
+      border-radius: 15px;
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,0.30);
+
+      backdrop-filter: blur(14px);
+
+      animation:
+        hpFloatSmall 5s ease-in-out infinite;
+    }
+
+    .hp-floating-card:first-of-type {
+      top: 28px;
+      left: -10px;
+    }
+
+    .hp-floating-card:last-of-type {
+      right: -16px;
+      bottom: 35px;
+
+      animation-delay: -2s;
+    }
+
+    @keyframes hpFloatSmall {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    .hp-floating-icon {
+      width: 36px;
+      height: 36px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 10px;
+
+      color: #07111f;
+      background: var(--hp-gold);
+    }
+
+    .hp-floating-text strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .hp-floating-text span {
+      color: var(--hp-text-muted);
+      font-size: 10px;
+    }
+
+    /* =========================
+       TRUST BAR
+    ========================= */
+
+    .hp-trust {
+      padding: 0 0 90px;
+    }
+
+    .hp-trust-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+
+      gap: 18px 45px;
+
+      padding-top: 27px;
+
+      border-top:
+        1px solid
+        rgba(255,255,255,0.06);
+
+      color: var(--hp-text-muted);
+
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* =========================
+       SECTION
+    ========================= */
+
+    .hp-section {
+      padding: 105px 0;
+    }
+
+    .hp-section-heading {
+      max-width: 680px;
+
+      margin: 0 auto 52px;
+
+      text-align: center;
+    }
+
+    .hp-section-kicker {
+      color: var(--hp-gold);
+
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+
+      text-transform: uppercase;
+    }
+
+    .hp-section-heading h2 {
+      margin-top: 12px;
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: clamp(31px, 4vw, 47px);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.045em;
+    }
+
+    .hp-section-heading p {
+      margin-top: 16px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    /* =========================
+       FEE
+    ========================= */
+
+    .hp-fee-section {
+      padding-top: 30px;
+    }
+
+    .hp-fee-card {
+      position: relative;
+
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(280px, 0.8fr);
+
+      gap: 50px;
+
+      overflow: hidden;
+
+      padding: 50px;
+
+      background:
+        radial-gradient(
+          circle at 90% 20%,
+          rgba(247,201,40,0.13),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          #0e2036,
+          #09182a
+        );
+
+      border:
+        1px solid
+        rgba(247,201,40,0.15);
+
+      border-radius: var(--hp-radius-lg);
+
+      box-shadow: var(--hp-shadow);
+    }
+
+    .hp-fee-card h2 {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: clamp(29px, 4vw, 43px);
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+
+    .hp-fee-card p {
+      max-width: 600px;
+
+      margin-top: 15px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 15px;
+    }
+
+    .hp-fee-points {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+
+      margin-top: 25px;
+    }
+
+    .hp-fee-point {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 11px;
+
+      color: var(--hp-text-soft);
+
+      background: rgba(255,255,255,0.035);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.07);
+
+      border-radius: 10px;
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .hp-fee-number {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 220px;
+
+      padding: 30px;
+
+      background:
+        rgba(4,13,24,0.55);
+
+      border:
+        1px solid
+        rgba(247,201,40,0.16);
+
+      border-radius: 22px;
+
+      text-align: center;
+    }
+
+    .hp-fee-number strong {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: clamp(58px, 7vw, 82px);
+      line-height: 1;
+
+      color: var(--hp-gold-2);
+
+      letter-spacing: -0.07em;
+    }
+
+    .hp-fee-number span {
+      margin-top: 9px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* =========================
+       PAYMENT METHODS
+    ========================= */
+
+    .hp-method-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 17px;
+    }
+
+    .hp-method-card {
+      padding: 27px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(14,29,48,0.80),
+          rgba(9,23,40,0.70)
+        );
+
+      border:
+        1px solid
+        var(--hp-border);
+
+      border-radius: var(--hp-radius-md);
+
+      transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .hp-method-card:hover {
+      transform: translateY(-5px);
+
+      border-color:
+        rgba(247,201,40,0.20);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(18,37,60,0.90),
+          rgba(10,25,43,0.80)
+        );
+    }
+
+    .hp-method-icon {
+      width: 48px;
+      height: 48px;
+
+      display: grid;
+      place-items: center;
+
+      color: var(--hp-gold-2);
+
+      background:
+        rgba(247,201,40,0.08);
+
+      border:
+        1px solid
+        rgba(247,201,40,0.12);
+
+      border-radius: 14px;
+
+      font-size: 20px;
+    }
+
+    .hp-method-card h3 {
+      margin-top: 19px;
+
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .hp-method-card p {
+      margin-top: 8px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* =========================
+       HOW IT WORKS
+    ========================= */
+
+    .hp-steps {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+      gap: 20px;
+    }
+
+    .hp-step {
+      position: relative;
+
+      padding: 28px;
+
+      background:
+        rgba(255,255,255,0.025);
+
+      border:
+        1px solid
+        var(--hp-border);
+
+      border-radius: var(--hp-radius-md);
+    }
+
+    .hp-step-number {
+      width: 42px;
+      height: 42px;
+
+      display: grid;
+      place-items: center;
+
+      color: #07111f;
+      background: var(--hp-gold);
+
+      border-radius: 12px;
+
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .hp-step h3 {
+      margin-top: 20px;
+
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .hp-step p {
+      margin-top: 8px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    /* =========================
+       FEATURES
+    ========================= */
+
+    .hp-feature-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 18px;
+    }
+
+    .hp-feature {
+      display: flex;
+      gap: 17px;
+
+      padding: 26px;
+
+      background:
+        rgba(255,255,255,0.025);
+
+      border:
+        1px solid
+        var(--hp-border);
+
+      border-radius: var(--hp-radius-md);
+    }
+
+    .hp-feature-icon {
+      flex: 0 0 auto;
+
+      width: 44px;
+      height: 44px;
+
+      display: grid;
+      place-items: center;
+
+      color: var(--hp-gold-2);
+
+      background:
+        rgba(247,201,40,0.07);
+
+      border-radius: 12px;
+
+      font-size: 18px;
+    }
+
+    .hp-feature h3 {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .hp-feature p {
+      margin-top: 5px;
+
+      color: var(--hp-text-soft);
+
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    /* =========================
+       CTA
+    ========================= */
+
+    .hp-cta {
+      padding: 30px 0 110px;
+    }
+
+    .hp-cta-card {
+      position: relative;
+
+      overflow: hidden;
+
+      padding: 65px 30px;
+
+      background:
+        radial-gradient(
+          circle at 50% 0%,
+          rgba(247,201,40,0.13),
+          transparent 55%
+        ),
+        linear-gradient(
+          145deg,
+          #0d2036,
+          #081729
+        );
+
+      border:
+        1px solid
+        rgba(247,201,40,0.14);
+
+      border-radius: 30px;
+
+      text-align: center;
+    }
+
+    .hp-cta-card h2 {
+      max-width: 700px;
+
+      margin: 0 auto;
+
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+    }
+
+    .hp-cta-card p {
+      max-width: 570px;
+
+      margin: 16px auto 0;
+
+      color: var(--hp-text-soft);
+
+      font-size: 15px;
+    }
+
+    .hp-cta-card .hp-primary-btn {
+      margin-top: 28px;
+
+      min-height: 53px;
+      padding: 0 25px;
+    }
+
+    /* =========================
+       FAQ
+    ========================= */
+
+    .hp-faq {
+      max-width: 800px;
+
+      margin: 0 auto;
+    }
+
+    .hp-faq-item {
+      border-bottom:
+        1px solid
+        rgba(255,255,255,0.07);
+    }
+
+    .hp-faq-question {
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      padding: 21px 0;
+
+      color: var(--hp-text);
+
+      background: transparent;
+      border: 0;
+
+      text-align: left;
+
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    .hp-faq-plus {
+      flex: 0 0 auto;
+
+      width: 30px;
+      height: 30px;
+
+      display: grid;
+      place-items: center;
+
+      color: var(--hp-gold);
+
+      border:
+        1px solid
+        rgba(247,201,40,0.16);
+
+      border-radius: 9px;
+
+      transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .hp-faq-item.open .hp-faq-plus {
+      transform: rotate(45deg);
+      background:
+        rgba(247,201,40,0.07);
+    }
+
+    .hp-faq-answer {
+      max-height: 0;
+
+      overflow: hidden;
+
+      color: var(--hp-text-soft);
+
+      font-size: 13px;
+      line-height: 1.75;
+
+      transition:
+        max-height 0.3s ease,
+        padding 0.3s ease;
+    }
+
+    .hp-faq-item.open .hp-faq-answer {
+      max-height: 220px;
+      padding-bottom: 21px;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .hp-footer {
+      padding: 35px 0 25px;
+
+      border-top:
+        1px solid
+        rgba(255,255,255,0.06);
+    }
+
+    .hp-footer-main {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 40px;
+    }
+
+    .hp-footer-brand p {
+      max-width: 300px;
+
+      margin-top: 12px;
+
+      color: var(--hp-text-muted);
+
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .hp-footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+
+    .hp-footer-column {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .hp-footer-column strong {
+      margin-bottom: 3px;
+
+      color: var(--hp-text);
+
+      font-size: 12px;
+    }
+
+    .hp-footer-column a {
+      color: var(--hp-text-muted);
+
+      font-size: 11px;
+
+      transition: color 0.2s ease;
+    }
+
+    .hp-footer-column a:hover {
+      color: var(--hp-text);
+    }
+
+    .hp-footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      margin-top: 35px;
+      padding-top: 18px;
+
+      border-top:
+        1px solid
+        rgba(255,255,255,0.05);
+
+      color: var(--hp-text-muted);
+
+      font-size: 10px;
+    }
+
+    /* =========================
+       REVEAL
+    ========================= */
+
+    .hp-reveal {
+      opacity: 0;
+
+      transform: translateY(18px);
+
+      transition:
+        opacity 0.7s ease,
+        transform 0.7s ease;
+    }
+
+    .hp-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 950px) {
+
+      .hp-nav-links {
+        display: none;
+      }
+
+      .hp-menu-btn {
+        display: inline-flex;
+      }
+
+      .hp-hero {
+        min-height: auto;
+        padding-top: 130px;
+      }
+
+      .hp-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 50px;
+      }
+
+      .hp-hero-copy {
+        text-align: center;
+      }
+
+      .hp-hero-description {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hp-hero-actions,
+      .hp-hero-note {
+        justify-content: center;
+      }
+
+      .hp-hero-visual {
+        min-height: 430px;
+      }
+
+      .hp-fee-card {
+        grid-template-columns: 1fr;
+      }
+
+      .hp-method-grid,
+      .hp-steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+
+      .hp-container {
+        width: min(
+          calc(100% - 28px),
+          var(--hp-container)
+        );
+      }
+
+      .hp-header .hp-primary-btn {
+        display: none;
+      }
+
+      .hp-login {
+        display: none;
+      }
+
+      .hp-nav {
+        min-height: 68px;
+      }
+
+      .hp-logo {
+        font-size: 19px;
+      }
+
+      .hp-logo-mark {
+        width: 33px;
+        height: 33px;
+      }
+
+      .hp-hero {
+        padding:
+          112px 0
+          70px;
+      }
+
+      .hp-hero h1 {
+        font-size: clamp(39px, 12vw, 55px);
+      }
+
+      .hp-hero-description {
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .hp-hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .hp-hero-actions a {
+        width: 100%;
+      }
+
+      .hp-hero-note {
+        font-size: 11px;
+      }
+
+      .hp-hero-visual {
+        min-height: 360px;
+      }
+
+      .hp-dashboard-card {
+        padding: 18px;
+
+        transform: none;
+
+        animation:
+          hpFloatMobile 6s ease-in-out infinite;
+      }
+
+      @keyframes hpFloatMobile {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+
+        50% {
+          transform: translateY(-7px);
+        }
+      }
+
+      .hp-balance-value {
+        font-size: 30px;
+      }
+
+      .hp-floating-card {
+        padding: 10px;
+      }
+
+      .hp-floating-card:first-of-type {
+        top: 0;
+        left: -5px;
+      }
+
+      .hp-floating-card:last-of-type {
+        right: -4px;
+        bottom: 5px;
+      }
+
+      .hp-floating-text {
+        display: none;
+      }
+
+      .hp-section {
+        padding: 75px 0;
+      }
+
+      .hp-section-heading {
+        margin-bottom: 35px;
+      }
+
+      .hp-section-heading h2 {
+        font-size: 31px;
+      }
+
+      .hp-section-heading p {
+        font-size: 14px;
+      }
+
+      .hp-fee-card {
+        gap: 30px;
+        padding: 28px 21px;
+      }
+
+      .hp-fee-card h2 {
+        font-size: 30px;
+      }
+
+      .hp-fee-number {
+        min-height: 175px;
+      }
+
+      .hp-method-card,
+      .hp-step,
+      .hp-feature {
+        padding: 21px;
+      }
+
+      .hp-feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hp-cta {
+        padding-bottom: 75px;
+      }
+
+      .hp-cta-card {
+        padding: 45px 20px;
+      }
+
+      .hp-cta-card h2 {
+        font-size: 34px;
+      }
+
+      .hp-footer-main {
+        flex-direction: column;
+      }
+
+      .hp-footer-links {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .hp-footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       HEADER
+  ========================== -->
+
+  <header class="hp-header" id="hpHeader">
+
+    <div class="hp-container">
+
+      <nav class="hp-nav">
+
+        <a href="#inicio" class="hp-logo" aria-label="Honey Pay">
+
+          <span class="hp-logo-mark">
+            <span>H</span>
+          </span>
+
+          <span>Honey Pay</span>
+
+        </a>
+
+        <div class="hp-nav-links">
+
+          <a href="#como-funciona">
+            Como funciona
+          </a>
+
+          <a href="#pagamentos">
+            Pagamentos
+          </a>
+
+          <a href="#seguranca">
+            Segurança
+          </a>
+
+          <a href="#faq">
+            FAQ
+          </a>
+
+        </div>
+
+        <div class="hp-nav-actions">
+
+          <a
+            href="/login"
+            class="hp-login"
+          >
+            Entrar
+          </a>
+
+          <a
+            href="/login"
+            class="hp-primary-btn"
+          >
+            Entrar / Criar conta
+          </a>
+
+          <button
+            type="button"
+            class="hp-menu-btn"
+            id="hpMenuButton"
+            aria-label="Abrir menu"
+          >
+            ☰
+          </button>
+
+        </div>
+
+      </nav>
+
+    </div>
+
+  </header>
+
+
+  <!-- =========================
+       HERO
+  ========================== -->
+
+  <main id="inicio">
+
+    <section class="hp-hero">
+
+      <div class="hp-container">
+
+        <div class="hp-hero-grid">
+
+          <div class="hp-hero-copy hp-reveal">
+
+            <span class="hp-eyebrow">
+              <span class="hp-eyebrow-dot"></span>
+              Pagamentos para o seu negócio
+            </span>
+
+            <h1>
+              Venda mais.
+              <br>
+              <span class="hp-gradient-text">
+                Receba melhor.
+              </span>
+            </h1>
+
+            <p class="hp-hero-description">
+              A Honey Pay ajuda comerciantes a receber pagamentos
+              de forma simples, profissional e segura, através de
+              links de pagamento e diferentes meios de pagamento.
+            </p>
+
+            <div class="hp-hero-actions">
+
+              <a
+                href="/login"
+                class="hp-primary-btn"
+              >
+                Começar agora
+                <span>→</span>
+              </a>
+
+              <a
+                href="#como-funciona"
+                class="hp-secondary-btn"
+              >
+                Ver como funciona
+              </a>
+
+            </div>
+
+            <div class="hp-hero-note">
+              <span class="hp-check">✓</span>
+              Sem mensalidade. Pague apenas quando vender.
+            </div>
+
+          </div>
+
+
+          <div class="hp-hero-visual hp-reveal">
+
+            <div class="hp-floating-card">
+
+              <div class="hp-floating-icon">
+                ✓
+              </div>
+
+              <div class="hp-floating-text">
+                <strong>Pagamento recebido</strong>
+                <span>Agora mesmo</span>
+              </div>
+
+            </div>
+
+
+            <div class="hp-dashboard-card">
+
+              <div class="hp-card-header">
+
+                <span class="hp-card-title">
+                  Visão geral
+                </span>
+
+                <span class="hp-card-logo">
+                  Honey Pay
+                </span>
+
+              </div>
+
+
+              <div class="hp-balance">
+
+                <div class="hp-balance-label">
+                  Vendas recebidas
+                </div>
+
+                <div class="hp-balance-value">
+                  845.500
+                  <span>Kz</span>
+                </div>
+
+              </div>
+
+
+              <div class="hp-mini-stats">
+
+                <div class="hp-mini-stat">
+
+                  <div class="hp-mini-stat-label">
+                    Transações
+                  </div>
+
+                  <div class="hp-mini-stat-value">
+                    128
+                  </div>
+
+                </div>
+
+                <div class="hp-mini-stat">
+
+                  <div class="hp-mini-stat-label">
+                    Este mês
+                  </div>
+
+                  <div class="hp-mini-stat-value">
+                    +18,4%
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <div class="hp-transactions">
+
+                <div class="hp-transaction">
+
+                  <div class="hp-transaction-left">
+
+                    <div class="hp-transaction-icon">
+                      ₿
+                    </div>
+
+                    <div>
+                      <div class="hp-transaction-name">
+                        Venda online
+                      </div>
+
+                      <div class="hp-transaction-time">
+                        Hoje, 13:21
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="hp-transaction-value">
+                    +75.000 Kz
+                  </div>
+
+                </div>
+
+
+                <div class="hp-transaction">
+
+                  <div class="hp-transaction-left">
+
+                    <div class="hp-transaction-icon">
+                      ↗
+                    </div>
+
+                    <div>
+                      <div class="hp-transaction-name">
+                        Link de pagamento
+                      </div>
+
+                      <div class="hp-transaction-time">
+                        Hoje, 12:47
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="hp-transaction-value">
+                    +42.500 Kz
+                  </div>
+
+                </div>
+
+
+                <div class="hp-transaction">
+
+                  <div class="hp-transaction-left">
+
+                    <div class="hp-transaction-icon">
+                      ✓
+                    </div>
+
+                    <div>
+                      <div class="hp-transaction-name">
+                        Pagamento confirmado
+                      </div>
+
+                      <div class="hp-transaction-time">
+                        Hoje, 11:32
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="hp-transaction-value">
+                    +120.000 Kz
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="hp-floating-card">
+
+              <div class="hp-floating-icon">
+                %
+              </div>
+
+              <div class="hp-floating-text">
+                <strong>Taxa simples</strong>
+                <span>0,80% por transação</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         TRUST
+    ========================== -->
+
+    <section class="hp-trust">
+
+      <div class="hp-container">
+
+        <div class="hp-trust-inner">
+
+          <span>Para lojas online</span>
+          <span>Para vendedores nas redes sociais</span>
+          <span>Para cursos</span>
+          <span>Para eventos</span>
+          <span>Para escolas</span>
+          <span>Para pequenos negócios</span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         FEE
+    ========================== -->
+
+    <section class="hp-section hp-fee-section">
+
+      <div class="hp-container">
+
+        <div class="hp-fee-card hp-reveal">
+
+          <div>
+
+            <span class="hp-section-kicker">
+              Simples e transparente
+            </span>
+
+            <h2>
+              Você vende.
+              <br>
+              A Honey Pay cobra apenas
+              <span class="hp-gradient-text">
+                quando vender.
+              </span>
+            </h2>
+
+            <p>
+              Sem mensalidade e sem planos complicados.
+              A Honey Pay trabalha com uma taxa por transação,
+              para que o custo acompanhe o seu negócio.
+            </p>
+
+            <div class="hp-fee-points">
+
+              <span class="hp-fee-point">
+                <span class="hp-check">✓</span>
+                Sem mensalidade
+              </span>
+
+              <span class="hp-fee-point">
+                <span class="hp-check">✓</span>
+                Sem planos obrigatórios
+              </span>
+
+              <span class="hp-fee-point">
+                <span class="hp-check">✓</span>
+                0,80% por transação
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="hp-fee-number">
+
+            <strong>0,80%</strong>
+
+            <span>
+              por transação
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         PAYMENT METHODS
+    ========================== -->
+
+    <section
+      class="hp-section"
+      id="pagamentos"
+    >
+
+      <div class="hp-container">
+
+        <div class="hp-section-heading hp-reveal">
+
+          <span class="hp-section-kicker">
+            Receba pagamentos
+          </span>
+
+          <h2>
+            Dê aos seus clientes
+            mais formas de pagar.
+          </h2>
+
+          <p>
+            Escolha os meios de pagamento disponíveis
+            para o seu negócio e facilite cada venda.
+          </p>
+
+        </div>
+
+
+        <div class="hp-method-grid">
+
+          <article class="hp-method-card hp-reveal">
+
+            <div class="hp-method-icon">
+              MC
+            </div>
+
+            <h3>
+              Multicaixa Express
+            </h3>
+
+            <p>
+              Facilite pagamentos através do ecossistema
+              Multicaixa e ofereça uma experiência rápida
+              aos seus clientes.
+            </p>
+
+          </article>
+
+
+          <article class="hp-method-card hp-reveal">
+
+            <div class="hp-method-icon">
+              #
+            </div>
+
+            <h3>
+              Pagamento por referência
+            </h3>
+
+            <p>
+              Gere referências para que o cliente possa
+              efetuar o pagamento através dos canais
+              disponíveis.
+            </p>
+
+          </article>
+
+
+          <article class="hp-method-card hp-reveal">
+
+            <div class="hp-method-icon">
+              U
+            </div>
+
+            <h3>
+              Unitel Money
+            </h3>
+
+            <p>
+              Ofereça aos seus clientes outra alternativa
+              de pagamento digital diretamente no checkout.
+            </p>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         HOW IT WORKS
+    ========================== -->
+
+    <section
+      class="hp-section"
+      id="como-funciona"
+    >
+
+      <div class="hp-container">
+
+        <div class="hp-section-heading hp-reveal">
+
+          <span class="hp-section-kicker">
+            Como funciona
+          </span>
+
+          <h2>
+            Comece a receber
+            em poucos passos.
+          </h2>
+
+          <p>
+            A Honey Pay foi pensada para tornar o processo
+            simples para quem vende online ou presencialmente.
+          </p>
+
+        </div>
+
+
+        <div class="hp-steps">
+
+          <article class="hp-step hp-reveal">
+
+            <div class="hp-step-number">
+              01
+            </div>
+
+            <h3>
+              Crie a sua conta
+            </h3>
+
+            <p>
+              Entre com a sua conta Google e configure
+              os dados da sua empresa.
+            </p>
+
+          </article>
+
+
+          <article class="hp-step hp-reveal">
+
+            <div class="hp-step-number">
+              02
+            </div>
+
+            <h3>
+              Crie uma cobrança
+            </h3>
+
+            <p>
+              Crie um link de pagamento, informe o valor
+              e escolha os meios de pagamento disponíveis.
+            </p>
+
+          </article>
+
+
+          <article class="hp-step hp-reveal">
+
+            <div class="hp-step-number">
+              03
+            </div>
+
+            <h3>
+              Receba e acompanhe
+            </h3>
+
+            <p>
+              Partilhe o link com o seu cliente e acompanhe
+              as suas vendas através do painel Honey Pay.
+            </p>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         FEATURES
+    ========================== -->
+
+    <section
+      class="hp-section"
+      id="seguranca"
+    >
+
+      <div class="hp-container">
+
+        <div class="hp-section-heading hp-reveal">
+
+          <span class="hp-section-kicker">
+            Feita para comerciantes
+          </span>
+
+          <h2>
+            Mais controlo.
+            Menos complicação.
+          </h2>
+
+          <p>
+            Ferramentas essenciais para transformar
+            uma venda numa experiência de pagamento profissional.
+          </p>
+
+        </div>
+
+
+        <div class="hp-feature-grid">
+
+          <article class="hp-feature hp-reveal">
+
+            <div class="hp-feature-icon">
+              ↗
+            </div>
+
+            <div>
+
+              <h3>
+                Links de pagamento
+              </h3>
+
+              <p>
+                Crie uma cobrança e envie o link pelo
+                WhatsApp, Instagram, Facebook ou qualquer
+                outro canal.
+              </p>
+
+            </div>
+
+          </article>
+
+
+          <article class="hp-feature hp-reveal">
+
+            <div class="hp-feature-icon">
+              QR
+            </div>
+
+            <div>
+
+              <h3>
+                Experiência rápida
+              </h3>
+
+              <p>
+                Apresente as informações necessárias ao cliente
+                de forma clara durante o processo de pagamento.
+              </p>
+
+            </div>
+
+          </article>
+
+
+          <article class="hp-feature hp-reveal">
+
+            <div class="hp-feature-icon">
+              ✓
+            </div>
+
+            <div>
+
+              <h3>
+                Acompanhamento
+              </h3>
+
+              <p>
+                Consulte cobranças e acompanhe o estado
+                dos pagamentos através do seu painel.
+              </p>
+
+            </div>
+
+          </article>
+
+
+          <article class="hp-feature hp-reveal">
+
+            <div class="hp-feature-icon">
+              ⌁
+            </div>
+
+            <div>
+
+              <h3>
+                Estrutura preparada para crescer
+              </h3>
+
+              <p>
+                Uma plataforma construída para acompanhar
+                desde pequenos vendedores até operações maiores.
+              </p>
+
+            </div>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         CTA
+    ========================== -->
+
+    <section class="hp-cta">
+
+      <div class="hp-container">
+
+        <div class="hp-cta-card hp-reveal">
+
+          <h2>
+            O próximo pagamento
+            pode começar aqui.
+          </h2>
+
+          <p>
+            Crie a sua conta Honey Pay e prepare o seu negócio
+            para receber pagamentos de forma mais simples.
+          </p>
+
+          <a
+            href="/login"
+            class="hp-primary-btn"
+          >
+            Entrar / Criar conta
+            <span>→</span>
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         FAQ
+    ========================== -->
+
+    <section
+      class="hp-section"
+      id="faq"
+    >
+
+      <div class="hp-container">
+
+        <div class="hp-section-heading hp-reveal">
+
+          <span class="hp-section-kicker">
+            FAQ
+          </span>
+
+          <h2>
+            Perguntas frequentes.
+          </h2>
+
+        </div>
+
+
+        <div class="hp-faq">
+
+          <div class="hp-faq-item hp-reveal">
+
+            <button
+              type="button"
+              class="hp-faq-question"
+            >
+
+              <span>
+                A Honey Pay cobra mensalidade?
+              </span>
+
+              <span class="hp-faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="hp-faq-answer">
+              Não. O modelo atual da Honey Pay não possui
+              mensalidade. A taxa comercial definida é de
+              0,80% por transação.
+            </div>
+
+          </div>
+
+
+          <div class="hp-faq-item hp-reveal">
+
+            <button
+              type="button"
+              class="hp-faq-question"
+            >
+
+              <span>
+                Posso vender através das redes sociais?
+              </span>
+
+              <span class="hp-faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="hp-faq-answer">
+              Sim. Os links de pagamento podem ser utilizados
+              em diferentes canais, permitindo que o comerciante
+              envie uma cobrança diretamente ao cliente.
+            </div>
+
+          </div>
+
+
+          <div class="hp-faq-item hp-reveal">
+
+            <button
+              type="button"
+              class="hp-faq-question"
+            >
+
+              <span>
+                Que tipos de negócios podem usar a Honey Pay?
+              </span>
+
+              <span class="hp-faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="hp-faq-answer">
+              A plataforma pode atender lojas, vendedores
+              nas redes sociais, prestadores de serviços,
+              cursos, eventos, escolas e outros negócios
+              que precisem receber pagamentos.
+            </div>
+
+          </div>
+
+
+          <div class="hp-faq-item hp-reveal">
+
+            <button
+              type="button"
+              class="hp-faq-question"
+            >
+
+              <span>
+                Como começo?
+              </span>
+
+              <span class="hp-faq-plus">
+                +
+              </span>
+
+            </button>
+
+            <div class="hp-faq-answer">
+              Clique em Entrar / Criar conta, autentique-se
+              com o Google e siga o processo de configuração
+              da sua empresa.
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+  <footer class="hp-footer">
+
+    <div class="hp-container">
+
+      <div class="hp-footer-main">
+
+        <div class="hp-footer-brand">
+
+          <a
+            href="#inicio"
+            class="hp-logo"
+          >
+
+            <span class="hp-logo-mark">
+              <span>H</span>
+            </span>
+
+            <span>Honey Pay</span>
+
+          </a>
+
+          <p>
+            Pagamentos simples para negócios que querem
+            vender mais e receber melhor.
+          </p>
+
+        </div>
+
+
+        <div class="hp-footer-links">
+
+          <div class="hp-footer-column">
+
+            <strong>
+              Produto
+            </strong>
+
+            <a href="#pagamentos">
+              Pagamentos
+            </a>
+
+            <a href="#como-funciona">
+              Como funciona
+            </a>
+
+            <a href="#seguranca">
+              Segurança
+            </a>
+
+          </div>
+
+
+          <div class="hp-footer-column">
+
+            <strong>
+              Empresa
+            </strong>
+
+            <a href="#faq">
+              FAQ
+            </a>
+
+            <a href="/login">
+              Entrar
+            </a>
+
+          </div>
+
+
+          <div class="hp-footer-column">
+
+            <strong>
+              Conta
+            </strong>
+
+            <a href="/login">
+              Criar conta
+            </a>
+
+            <a href="/login">
+              Aceder ao painel
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="hp-footer-bottom">
+
+        <span>
+          © <span id="hpYear"></span> Honey Pay. Todos os direitos reservados.
+        </span>
+
+        <span>
+          Pagamentos digitais para negócios em Angola.
+        </span>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+  <!-- =========================
+       JAVASCRIPT
+  ========================== -->
+
+  <script>
+    (() => {
+      "use strict";
+
+      const header =
+        document.getElementById("hpHeader");
+
+      const year =
+        document.getElementById("hpYear");
+
+      const menuButton =
+        document.getElementById("hpMenuButton");
+
+
+      /*
+       * Ano automático
+       */
+      if (year) {
+        year.textContent =
+          new Date().getFullYear();
+      }
+
+
+      /*
+       * Header ao fazer scroll
+       */
+      const updateHeader =
+        () => {
+
+          if (!header) {
+            return;
+          }
+
+          header.classList.toggle(
+            "scrolled",
+            window.scrollY > 15
+          );
+
+        };
+
+      updateHeader();
+
+      window.addEventListener(
+        "scroll",
+        updateHeader,
+        { passive: true }
+      );
+
+
+      /*
+       * FAQ
+       */
+      document
+        .querySelectorAll(".hp-faq-question")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              const item =
+                button.closest(
+                  ".hp-faq-item"
+                );
+
+              if (!item) {
+                return;
+              }
+
+              const wasOpen =
+                item.classList.contains("open");
+
+              document
+                .querySelectorAll(
+                  ".hp-faq-item.open"
+                )
+                .forEach(openItem => {
+
+                  openItem.classList.remove(
+                    "open"
+                  );
+
+                });
+
+              if (!wasOpen) {
+
+                item.classList.add(
+                  "open"
+                );
+
+              }
+
+            }
+          );
+
+        });
+
+
+      /*
+       * Reveal on scroll
+       */
+      const revealElements =
+        document.querySelectorAll(
+          ".hp-reveal"
+        );
+
+      if (
+        "IntersectionObserver"
+        in window
+      ) {
+
+        const observer =
+          new IntersectionObserver(
+            entries => {
+
+              entries.forEach(entry => {
+
+                if (
+                  entry.isIntersecting
+                ) {
+
+                  entry.target.classList.add(
+                    "visible"
+                  );
+
+                  observer.unobserve(
+                    entry.target
+                  );
+
+                }
+
+              });
+
+            },
+            {
+              threshold: 0.10
+            }
+          );
+
+        revealElements.forEach(
+          element =>
+            observer.observe(element)
+        );
+
+      } else {
+
+        revealElements.forEach(
+          element =>
+            element.classList.add("visible")
+        );
+
+      }
+
+
+      /*
+       * Menu mobile
+       *
+       * O menu visual será ligado ao
+       * sistema completo de navegação
+       * numa próxima etapa.
+       */
+      if (menuButton) {
+
+        menuButton.addEventListener(
+          "click",
+          () => {
+
+            const navLinks =
+              document.querySelector(
+                ".hp-nav-links"
+              );
+
+            if (!navLinks) {
+              return;
+            }
+
+            const isOpen =
+              navLinks.dataset.open === "true";
+
+            navLinks.dataset.open =
+              isOpen
+                ? "false"
+                : "true";
+
+            navLinks.style.display =
+              isOpen
+                ? ""
+                : "flex";
+
+            if (!isOpen) {
+
+              navLinks.style.position =
+                "absolute";
+
+              navLinks.style.top =
+                "68px";
+
+              navLinks.style.left =
+                "14px";
+
+              navLinks.style.right =
+                "14px";
+
+              navLinks.style.flexDirection =
+                "column";
+
+              navLinks.style.alignItems =
+                "stretch";
+
+              navLinks.style.gap =
+                "0";
+
+              navLinks.style.padding =
+                "10px";
+
+              navLinks.style.background =
+                "rgba(7,17,31,0.97)";
+
+              navLinks.style.border =
+                "1px solid rgba(255,255,255,0.09)";
+
+              navLinks.style.borderRadius =
+                "15px";
+
+              navLinks.style.backdropFilter =
+                "blur(18px)";
+
+              navLinks
+                .querySelectorAll("a")
+                .forEach(link => {
+
+                  link.style.padding =
+                    "12px";
+
+                });
+
+            }
+
+          }
+        );
+
+      }
+
+
+      /*
+       * Fecha menu mobile ao clicar num link
+       */
+      document
+        .querySelectorAll(
+          ".hp-nav-links a"
+        )
+        .forEach(link => {
+
+          link.addEventListener(
+            "click",
+            () => {
+
+              const navLinks =
+                document.querySelector(
+                  ".hp-nav-links"
+                );
+
+              if (
+                navLinks &&
+                window.innerWidth <= 950
+              ) {
+
+                navLinks.dataset.open =
+                  "false";
+
+                navLinks.style.display =
+                  "";
+
+              }
+
+            }
+          );
+
+        });
+
+    })();
+  </script>
+
+</body>
+</html>
