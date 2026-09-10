@@ -4331,7 +4331,7 @@ async function openManualPaymentLinkForm() {
   </div>
 
 </div>
-
+         </div>
         <!-- =====================================================
              MODO PRESENCIAL
         ====================================================== -->
@@ -4766,18 +4766,48 @@ updatePresentialPaymentMethodUI();
 }
 
   function updateRemoteCheckoutModeUI() {
-    const checkoutMode =
-      form.querySelector(
-        'input[name="remoteCheckoutMode"]:checked'
-      )?.value || "customer_choice";
 
-    if (remoteMethodsBox) {
-      remoteMethodsBox.style.display =
-        checkoutMode === "single_method"
-          ? ""
-          : "none";
-    }
+  const checkoutMode =
+    form.querySelector(
+      'input[name="remoteCheckoutMode"]:checked'
+    )?.value || "customer_choice";
+
+
+  form
+    .querySelectorAll(
+      "[data-checkout-choice]"
+    )
+    .forEach(card => {
+
+      const active =
+        card.dataset.checkoutChoice ===
+        checkoutMode;
+
+      card.classList.toggle(
+        "is-active",
+        active
+      );
+
+      card.setAttribute(
+        "aria-checked",
+        active
+          ? "true"
+          : "false"
+      );
+
+    });
+
+
+  if (remoteMethodsBox) {
+
+    remoteMethodsBox.style.display =
+      checkoutMode === "single_method"
+        ? ""
+        : "none";
+
   }
+
+}
 form
   .querySelectorAll(
     "[data-collection-card]"
