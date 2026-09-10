@@ -2579,7 +2579,65 @@ async function requireMerchant(
     next(error);
   }
 }
+/* =========================================================
+   PRIVATE FRONTEND MIDDLEWARE
+   Protege o dashboard e o /index.html
+========================================================= */
 
+function requirePrivatePage(
+  req,
+  res,
+  next
+) {
+  try {
+    const token =
+      getAuthToken(req);
+
+    if (!token) {
+      return res.redirect(
+        '/login'
+      );
+    }
+
+    const payload =
+      jwt.verify(
+        token,
+        JWT_SECRET
+      );
+
+    if (
+      !payload ||
+      !payload.sub
+    ) {
+      return res.redirect(
+        '/login'
+      );
+    }
+
+    req.userId =
+      String(
+        payload.sub
+      );
+
+    req.userEmail =
+      payload.email ||
+      '';
+
+    req.userRole =
+      payload.role ||
+      'merchant';
+
+    req.authToken =
+      token;
+
+    return next();
+
+  } catch {
+    return res.redirect(
+      '/login'
+    );
+  }
+}
 /* =========================================================
    HEALTH
 ========================================================= */
@@ -8198,6 +8256,20 @@ app.get(
   )
 );
 /* =========================================================
+   PRIVATE DASHBOARD ENTRY
+   /index.html nunca deve ser público
+========================================================= */
+
+app.get(
+  '/index.html',
+  requirePrivatePage,
+  (req, res) => {
+    return res.sendFile(
+      INDEX_FILE
+    );
+  }
+);
+/* =========================================================
    STATIC FRONTEND
 ========================================================= */
 
@@ -8569,6 +8641,10 @@ app.get(
       );
   }
 );
+/* =========================================================
+   PRIVATE SPA ROUTES
+========================================================= */
+
 const SPA_ROUTES = [
   '/dashboard',
   '/merchant',
@@ -8586,11 +8662,12 @@ for (
 ) {
   app.get(
     route,
+    requirePrivatePage,
     (
       req,
       res
     ) => {
-      res.sendFile(
+      return res.sendFile(
         INDEX_FILE
       );
     }
