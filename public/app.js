@@ -5401,100 +5401,306 @@ async function openPaymentLinkForm(
         </label>
 
         <!-- =====================================================
-             MODO DA COBRANÇA
-        ====================================================== -->
+     MODO REMOTO — HONEY PAY CHECKOUT
+====================================================== -->
 
-        <div class="full">
+<div
+  id="remotePaymentOptionsProduct"
+  class="full hp-remote-checkout"
+>
 
-          <span
-            style="
-              display:block;
-              font-weight:700;
-              margin-bottom:10px;
-            "
-          >
-            Como pretende receber esta cobrança?
-          </span>
+  <div class="hp-section-heading">
+    <span class="hp-section-eyebrow">
+      Checkout
+    </span>
 
-          <div
-            style="
-              display:grid;
-              grid-template-columns:repeat(
-                auto-fit,
-                minmax(220px, 1fr)
-              );
-              gap:12px;
-            "
-          >
+    <strong>
+      Quem decide como o cliente paga?
+    </strong>
 
+    <span class="hp-section-help">
+      Defina se o cliente escolhe o método ou se a sua empresa controla as opções.
+    </span>
+  </div>
+
+
+  <div class="hp-checkout-choice-grid">
+
+    <!-- CLIENTE ESCOLHE -->
+
+    <label
+      class="hp-checkout-choice is-active"
+      data-checkout-card="customer_choice"
+    >
+
+      <input
+        type="radio"
+        name="remoteCheckoutMode"
+        value="customer_choice"
+        checked
+        class="hp-visually-hidden"
+      >
+
+      <span class="hp-checkout-choice-icon">
+
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+
+          <!-- checkout -->
+          <rect
+            x="7"
+            y="8"
+            width="27"
+            height="31"
+            rx="6"
+          />
+
+          <path d="M7 16h27" />
+
+          <!-- métodos -->
+          <circle cx="14" cy="23" r="2" />
+          <circle cx="21" cy="23" r="2" />
+          <circle cx="28" cy="23" r="2" />
+
+          <circle cx="14" cy="30" r="2" />
+          <circle cx="21" cy="30" r="2" />
+          <circle cx="28" cy="30" r="2" />
+
+          <!-- escolha -->
+          <path d="M35 27h7" />
+          <path d="m39 23 4 4-4 4" />
+
+          <circle
+            class="hp-choice-pulse"
+            cx="39"
+            cy="27"
+            r="7"
+          />
+
+        </svg>
+
+      </span>
+
+      <span class="hp-checkout-choice-content">
+
+        <strong>
+          Cliente escolhe
+        </strong>
+
+        <span>
+          O cliente vê os métodos disponíveis
+          e decide como quer pagar.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+
+    <!-- COMERCIANTE ESCOLHE -->
+
+    <label
+      class="hp-checkout-choice"
+      data-checkout-card="single_method"
+    >
+
+      <input
+        type="radio"
+        name="remoteCheckoutMode"
+        value="single_method"
+        class="hp-visually-hidden"
+      >
+
+      <span class="hp-checkout-choice-icon">
+
+        <svg
+          viewBox="0 0 48 48"
+          aria-hidden="true"
+        >
+
+          <!-- painel de controlo -->
+          <rect
+            x="6"
+            y="8"
+            width="36"
+            height="32"
+            rx="7"
+          />
+
+          <!-- módulos -->
+          <rect
+            x="12"
+            y="15"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="26"
+            y="15"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="12"
+            y="27"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <rect
+            x="26"
+            y="27"
+            width="9"
+            height="7"
+            rx="2"
+          />
+
+          <!-- controlo -->
+          <path d="M16 18.5h1" />
+          <path d="M30 18.5h1" />
+
+          <path d="M16 30.5h1" />
+          <path d="M30 30.5h1" />
+
+          <path
+            class="hp-control-sweep"
+            d="M10 12h28"
+          />
+
+        </svg>
+
+      </span>
+
+      <span class="hp-checkout-choice-content">
+
+        <strong>
+          Eu escolho os métodos
+        </strong>
+
+        <span>
+          Defina exatamente quais métodos
+          aparecerão no checkout.
+        </span>
+
+      </span>
+
+      <span class="hp-collection-check">
+        ✓
+      </span>
+
+    </label>
+
+  </div>
+
+
+  <!-- =====================================================
+       MÉTODOS DISPONÍVEIS
+  ====================================================== -->
+
+  <div
+    id="remoteMethodsBoxProduct"
+    class="hp-payment-methods-panel"
+  >
+
+    <div class="hp-payment-methods-heading">
+
+      <div>
+        <span class="hp-section-eyebrow">
+          Configuração
+        </span>
+
+        <strong>
+          Métodos disponíveis
+        </strong>
+
+        <small>
+          Escolha as opções que aparecerão no checkout do cliente.
+        </small>
+      </div>
+
+      <span class="hp-methods-count">
+        <span id="hpSelectedMethodsCount">
+          3
+        </span>
+        ativos
+      </span>
+
+    </div>
+
+
+    <div class="hp-payment-method-grid">
+
+      ${methods
+        .map(
+          (method, index) => `
             <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
+              class="hp-payment-method-card is-active"
+              data-payment-method-card="${method.value}"
             >
+
               <input
-                type="radio"
-                name="collectionMode"
-                value="remote"
+                type="checkbox"
+                name="paymentMethods"
+                value="${method.value}"
                 checked
-                style="margin-right:8px;"
+                class="hp-visually-hidden"
               >
 
-              <strong>
-                📱 Enviar ao cliente
-              </strong>
-
-              <span
-                style="
-                  display:block;
-                  margin-top:5px;
-                  color:#667085;
-                  font-size:13px;
-                  line-height:1.45;
-                "
-              >
-                Gere um link para WhatsApp,
-                Instagram, Facebook ou outro canal.
+              <span class="hp-payment-method-icon">
+                ${method.icon}
               </span>
-            </label>
 
-            <label
-              style="
-                display:block;
-                cursor:pointer;
-                margin:0;
-              "
-            >
-              <input
-                type="radio"
-                name="collectionMode"
-                value="in_person"
-                style="margin-right:8px;"
-              >
+              <span class="hp-payment-method-copy">
 
-              <strong>
-                🏪 Pagamento presencial
-              </strong>
+                <strong>
+                  ${method.label}
+                </strong>
 
-              <span
-                style="
-                  display:block;
-                  margin-top:5px;
-                  color:#667085;
-                  font-size:13px;
-                  line-height:1.45;
-                "
-              >
-                O cliente está consigo e a cobrança
-                será feita presencialmente.
+                <small>
+                  ${method.description}
+                </small>
+
               </span>
+
+              <span class="hp-payment-method-check">
+                ✓
+              </span>
+
             </label>
+          `
+        )
+        .join("")}
 
-          </div>
+    </div>
 
-        </div>
+
+    <div class="hp-methods-footer">
+
+      <span class="hp-methods-footer-icon">
+        ✓
+      </span>
+
+      <span>
+        Os métodos selecionados serão apresentados
+        no checkout da cobrança.
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
 
         <!-- =====================================================
      MODO REMOTO — HONEY PAY CHECKOUT
@@ -5951,45 +6157,66 @@ async function openPaymentLinkForm(
     $("#submitProductPaymentLink");
 
   function updateCollectionModeUI() {
-    const collectionMode =
-      form.querySelector(
-        'input[name="collectionMode"]:checked'
-      )?.value || "remote";
+  const collectionMode =
+    form.querySelector(
+      'input[name="collectionMode"]:checked'
+    )?.value || "remote";
 
-    const isRemote =
-      collectionMode === "remote";
+  const isRemote =
+    collectionMode === "remote";
 
-    if (remoteOptions) {
-      remoteOptions.style.display =
-        isRemote
-          ? ""
-          : "none";
-    }
+  /*
+   * Atualiza visualmente os cartões
+   * "Enviar ao cliente" / "Pagamento presencial".
+   */
+  form
+    .querySelectorAll("[data-collection-card]")
+    .forEach(card => {
+      const active =
+        card.dataset.collectionCard ===
+        collectionMode;
 
-    if (inPersonOptions) {
-      inPersonOptions.style.display =
-        isRemote
-          ? "none"
-          : "";
-    }
+      card.classList.toggle(
+        "is-active",
+        active
+      );
 
-    if (bankAccountField) {
-      bankAccountField.style.display =
-        isRemote
-          ? ""
-          : "none";
-    }
+      card.setAttribute(
+        "aria-checked",
+        active ? "true" : "false"
+      );
+    });
 
-    if (submitButton) {
-      submitButton.textContent =
-        isRemote
-          ? "Gerar link"
-          : "Preparar cobrança presencial";
-    }
-
-    updateRemoteCheckoutModeUI();
+  if (remoteOptions) {
+    remoteOptions.style.display =
+      isRemote
+        ? ""
+        : "none";
   }
 
+  if (inPersonOptions) {
+    inPersonOptions.style.display =
+      isRemote
+        ? "none"
+        : "";
+  }
+
+  if (bankAccountField) {
+    bankAccountField.style.display =
+      isRemote
+        ? ""
+        : "none";
+  }
+
+  if (submitButton) {
+    submitButton.textContent =
+      isRemote
+        ? "Gerar link"
+        : "Preparar cobrança presencial";
+  }
+
+  updateRemoteCheckoutModeUI();
+}
   function updateRemoteCheckoutModeUI() {
   const checkoutMode =
     form.querySelector(
@@ -6094,7 +6321,52 @@ function updatePaymentMethodCards() {
         );
       }
     );
+form
+  .querySelectorAll(
+    "[data-collection-card]"
+  )
+  .forEach(card => {
 
+    card.addEventListener(
+      "click",
+      () => {
+
+        const input =
+          card.querySelector(
+            'input[name="collectionMode"]'
+          );
+
+        if (!input) {
+          return;
+        }
+
+        input.checked = true;
+
+        updateCollectionModeUI();
+
+        card.animate(
+          [
+            {
+              transform: "scale(.985)"
+            },
+            {
+              transform: "scale(1.012)"
+            },
+            {
+              transform: "scale(1)"
+            }
+          ],
+          {
+            duration: 260,
+            easing:
+              "cubic-bezier(.2,.8,.2,1)"
+          }
+        );
+
+      }
+    );
+
+  });
   form
     .querySelectorAll(
       'input[name="remoteCheckoutMode"]'
