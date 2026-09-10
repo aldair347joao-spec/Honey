@@ -3922,6 +3922,583 @@ select {
 
 }
 /* =========================================================
+   HONEY PAY — REMOTE CHECKOUT
+   ========================================================= */
+
+.hp-remote-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hp-checkout-choice-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.hp-checkout-choice {
+  position: relative;
+
+  min-width: 0;
+  min-height: 112px;
+
+  display: grid;
+  grid-template-columns:
+    46px minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 16px;
+
+  cursor: pointer;
+
+  color: #dce5ef;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.045),
+      rgba(255,255,255,.018)
+    );
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  border-radius: 16px;
+
+  transition:
+    border-color .2s ease,
+    background .2s ease,
+    box-shadow .2s ease,
+    transform .2s ease;
+}
+
+.hp-checkout-choice:hover {
+  transform: translateY(-2px);
+
+  border-color:
+    rgba(244,193,55,.38);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.065),
+      rgba(255,255,255,.022)
+    );
+}
+
+.hp-checkout-choice.is-active {
+  border-color:
+    rgba(244,193,55,.74);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.115),
+      rgba(244,193,55,.025)
+    );
+
+  box-shadow:
+    0 14px 34px
+      rgba(0,0,0,.20),
+    0 0 0 1px
+      rgba(244,193,55,.06);
+}
+
+.hp-checkout-choice-icon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  color: #f4c137;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.16),
+      rgba(244,193,55,.045)
+    );
+
+  border:
+    1px solid
+    rgba(244,193,55,.18);
+
+  border-radius: 13px;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.hp-checkout-choice-icon svg {
+  width: 29px;
+  height: 29px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.65;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hp-checkout-choice:hover
+.hp-checkout-choice-icon {
+  transform:
+    translateY(-1px)
+    rotate(-1.5deg);
+}
+
+.hp-checkout-choice.is-active
+.hp-checkout-choice-icon {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.25),
+      rgba(244,193,55,.065)
+    );
+
+  box-shadow:
+    0 0 24px
+      rgba(244,193,55,.10);
+}
+
+.hp-checkout-choice-content {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.hp-checkout-choice-content strong {
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+.hp-checkout-choice-content span {
+  color: #9ba8b9;
+
+  font-size: 10.5px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   MÉTODOS REMOTOS
+   ========================================================= */
+
+.hp-payment-methods-panel {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 14px;
+
+  padding: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.032),
+      rgba(255,255,255,.014)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.075);
+
+  border-radius: 16px;
+
+  animation:
+    hp-payment-panel-in
+    .24s ease both;
+}
+
+@keyframes hp-payment-panel-in {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px)
+      scale(.99);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+.hp-payment-methods-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 14px;
+}
+
+.hp-payment-methods-heading > div {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.hp-payment-methods-heading
+strong {
+  color: #ffffff;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+.hp-payment-methods-heading
+small {
+  color: #8e9bad;
+
+  font-size: 10px;
+
+  line-height: 1.4;
+}
+
+.hp-methods-count {
+  flex: 0 0 auto;
+
+  padding: 6px 9px;
+
+  color: #f4c137;
+
+  background:
+    rgba(244,193,55,.08);
+
+  border:
+    1px solid
+    rgba(244,193,55,.15);
+
+  border-radius: 999px;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+.hp-payment-method-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+.hp-payment-method-card {
+  position: relative;
+
+  min-width: 0;
+
+  min-height: 104px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 13px;
+
+  cursor: pointer;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.042),
+      rgba(255,255,255,.016)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.075);
+
+  border-radius: 13px;
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease;
+}
+
+.hp-payment-method-card:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(244,193,55,.36);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.065),
+      rgba(255,255,255,.02)
+    );
+}
+
+.hp-payment-method-card.is-active {
+  border-color:
+    rgba(244,193,55,.72);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(244,193,55,.105),
+      rgba(244,193,55,.025)
+    );
+
+  box-shadow:
+    0 10px 25px
+      rgba(0,0,0,.16),
+    0 0 0 1px
+      rgba(244,193,55,.05);
+}
+
+.hp-payment-method-icon {
+  width: 39px;
+  height: 39px;
+
+  display: grid;
+
+  place-items: center;
+
+  color: #f4c137;
+
+  background:
+    rgba(244,193,55,.075);
+
+  border:
+    1px solid
+    rgba(244,193,55,.13);
+
+  border-radius: 11px;
+
+  transition:
+    transform .22s ease,
+    background .22s ease,
+    box-shadow .22s ease;
+}
+
+.hp-payment-method-icon svg {
+  width: 23px;
+  height: 23px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hp-payment-method-card:hover
+.hp-payment-method-icon {
+  transform:
+    translateY(-1px)
+    rotate(-2deg);
+}
+
+.hp-payment-method-card.is-active
+.hp-payment-method-icon {
+  background:
+    rgba(244,193,55,.15);
+
+  box-shadow:
+    0 0 20px
+      rgba(244,193,55,.08);
+}
+
+.hp-payment-method-copy {
+  min-width: 0;
+}
+
+.hp-payment-method-copy strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 11.5px;
+
+  font-weight: 800;
+
+  line-height: 1.25;
+}
+
+.hp-payment-method-copy small {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #8491a3;
+
+  font-size: 9.5px;
+
+  line-height: 1.4;
+}
+
+.hp-payment-method-check {
+  position: absolute;
+
+  top: 8px;
+
+  right: 8px;
+
+  width: 18px;
+  height: 18px;
+
+  display: grid;
+
+  place-items: center;
+
+  color: #09111b;
+
+  background: #f4c137;
+
+  border-radius: 50%;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  opacity: 0;
+
+  transform:
+    scale(.65);
+
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
+}
+
+.hp-payment-method-card.is-active
+.hp-payment-method-check {
+  opacity: 1;
+
+  transform:
+    scale(1);
+}
+
+.hp-methods-footer {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding-top: 2px;
+
+  color: #778599;
+
+  font-size: 9.5px;
+
+  line-height: 1.4;
+}
+
+.hp-methods-footer-icon {
+  width: 17px;
+  height: 17px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex: 0 0 17px;
+
+  color: #0b111a;
+
+  background: #f4c137;
+
+  border-radius: 50%;
+
+  font-size: 9px;
+
+  font-weight: 900;
+}
+
+@media (max-width: 700px) {
+
+  .hp-checkout-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hp-payment-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hp-payment-method-card {
+    min-height: 82px;
+
+    display: grid;
+
+    grid-template-columns:
+      39px minmax(0, 1fr);
+
+    align-items: center;
+
+    gap: 11px;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .hp-payment-methods-panel {
+    padding: 13px;
+  }
+
+  .hp-payment-methods-heading {
+    align-items: flex-start;
+  }
+
+  .hp-methods-count {
+    font-size: 8px;
+  }
+
+}
+/* =========================================================
    MÉTODOS DE PAGAMENTO
    ========================================================= */
 
