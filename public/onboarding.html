@@ -1791,25 +1791,29 @@
       }
 
       function formatIban(value) {
-        const clean =
-          normalizeIban(value);
+  let clean = normalizeIban(value);
 
-        if (!clean) {
-          return "";
-        }
+  /*
+   * O prefixo "AO" já aparece visualmente
+   * fora do campo. Se o utilizador escrever
+   * apenas os 23 dígitos do NBA, adicionamos AO
+   * automaticamente.
+   */
+  if (/^\d/.test(clean)) {
+    clean = "AO" + clean;
+  }
 
-        return clean
-          .replace(
-            /^AO/i,
-            "AO"
-          )
-          .replace(
-            /(.{4})/g,
-            "$1 "
-          )
-          .trim();
-      }
+  /*
+   * Angola:
+   * AO + 2 dígitos de controlo + 21 dígitos NBA
+   * = 25 caracteres.
+   */
+  clean = clean.slice(0, 25);
 
+  return clean
+    .replace(/(.{4})/g, "$1 ")
+    .trim();
+}
       function maskIban(value) {
         const clean =
           normalizeIban(value);
@@ -1847,75 +1851,66 @@
       }
 
       function validateAngolaIban(value) {
-        const clean =
-          normalizeIban(value);
+  let clean = normalizeIban(value);
 
-        if (
-          !/^AO\d{23}$/.test(
-            clean
-          )
-        ) {
-          return {
-            valid: false,
-            reason:
-              "O IBAN deve ter 25 caracteres e começar por AO."
-          };
-        }
+  /*
+   * Aceita tanto o IBAN completo como os
+   * 23 dígitos introduzidos depois do prefixo AO.
+   */
+  if (/^\d{23}$/.test(clean)) {
+    clean = "AO" + clean;
+  }
 
-        /*
-         * ISO 13616 / MOD-97.
-         *
-         * Move AO + check digits to the end:
-         * IBAN[4:] + AO + IBAN[2:4]
-         *
-         * A=10 ... Z=35.
-         */
-        const rearranged =
-          clean.slice(4) +
-          "1024" +
-          clean.slice(2, 4);
+  if (!/^AO\d{23}$/.test(clean)) {
+    return {
+      valid: false,
+      reason:
+        "O IBAN deve ter 25 caracteres."
+    };
+  }
 
-        let remainder = 0;
+  /*
+   * ISO 13616 / MOD-97.
+   *
+   * Para Angola:
+   * A = 10
+   * O = 24
+   *
+   * Portanto AO = 1024.
+   */
+  const rearranged =
+    clean.slice(4) +
+    "1024" +
+    clean.slice(2, 4);
 
-        for (
-          const char of rearranged
-        ) {
-          const valuePart =
-            /[A-Z]/.test(char)
-              ? String(
-                  char.charCodeAt(0) -
-                  55
-                )
-              : char;
+  let remainder = 0;
 
-          for (
-            const digit of valuePart
-          ) {
-            remainder =
-              (
-                remainder * 10 +
-                Number(digit)
-              ) % 97;
-          }
-        }
+  for (const char of rearranged) {
+    const valuePart =
+      /[A-Z]/.test(char)
+        ? String(char.charCodeAt(0) - 55)
+        : char;
 
-        if (remainder !== 1) {
-          return {
-            valid: false,
-            reason:
-              "O IBAN introduzido não passou na validação."
-          };
-        }
+    for (const digit of valuePart) {
+      remainder =
+        (remainder * 10 + Number(digit)) % 97;
+    }
+  }
 
-        return {
-          valid: true,
-          bankCode:
-            getBankCodeFromIban(
-              clean
-            )
-        };
-      }
+  if (remainder !== 1) {
+    return {
+      valid: false,
+      reason:
+        "O IBAN introduzido não passou na validação."
+    };
+  }
 
+  return {
+    valid: true,
+    bankCode: getBankCodeFromIban(clean),
+    iban: clean
+  };
+}
       function extractData(payload) {
         if (
           !payload ||
@@ -2382,50 +2377,78 @@
       }
 
       function handleIbanInput() {
-        const cursorEnd =
-          ibanInput.selectionEnd;
+  const previous =
+    ibanInput.value;
 
-        const previous =
-          ibanInput.value;
+  const cursorEnd =
+    ibanInput.selectionEnd || 0;
 
-        const clean =
-          normalizeIban(
-            previous
-          );
+  let clean =
+    normalizeIban(previous);
 
-        ibanInput.value =
-          formatIban(
-            clean
-          );
+  /*
+   * Se o utilizador começar pelos números,
+   * o AO é colocado automaticamente.
+   */
+  if (/^\d/.test(clean)) {
+    clean = "AO" + clean;
+  }
 
-        /*
-         * Mantém a experiência de escrita
-         * sem interferir na validação.
-         */
-        try {
-          const delta =
-            ibanInput.value.length -
-            previous.length;
+  /*
+   * Nunca permitir mais de 25 caracteres reais.
+   */
+  clean = clean.slice(0, 25);
 
-          ibanInput.setSelectionRange(
-            Math.max(
-              0,
-              (cursorEnd || 0) +
-              delta
-            ),
-            Math.max(
-              0,
-              (cursorEnd || 0) +
-              delta
-            )
-          );
-        } catch {
-          /* ignore */
-        }
+  const formatted =
+    formatIban(clean);
 
-        updateBankFromIban();
-      }
+  ibanInput.value =
+    formatted;
 
+  /*
+   * Mantém o cursor numa posição natural
+   * depois da inserção dos espaços.
+   */
+  try {
+    const beforeCursor =
+      normalizeIban(
+        previous.slice(0, cursorEnd)
+      );
+
+    let normalizedBeforeCursor =
+      beforeCursor;
+
+    if (
+      /^\d/.test(
+        normalizedBeforeCursor
+      )
+    ) {
+      normalizedBeforeCursor =
+        "AO" +
+        normalizedBeforeCursor;
+    }
+
+    normalizedBeforeCursor =
+      normalizedBeforeCursor.slice(
+        0,
+        25
+      );
+
+    const targetPosition =
+      formatIban(
+        normalizedBeforeCursor
+      ).length;
+
+    ibanInput.setSelectionRange(
+      targetPosition,
+      targetPosition
+    );
+  } catch {
+    /* ignore */
+  }
+
+  updateBankFromIban();
+}
       /* ===================================================
          SUMMARY
       =================================================== */
