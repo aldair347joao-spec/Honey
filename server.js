@@ -9265,20 +9265,6 @@ app.get(
   )
 );
 /* =========================================================
-   PRIVATE DASHBOARD ENTRY
-   /index.html nunca deve ser público
-========================================================= */
-
-app.get(
-  '/index.html',
-  requirePrivatePage,
-  (req, res) => {
-    return res.sendFile(
-      INDEX_FILE
-    );
-  }
-);
-/* =========================================================
    STATIC FRONTEND
 ========================================================= */
 
@@ -9533,83 +9519,139 @@ app.use(
    DATABASE + SERVER
 ========================================================= */
 
-async function startServer() {
+async function connectDatabase() {
   try {
+    console.log(
+      'A ligar ao MongoDB...'
+    );
+
     await mongoose.connect(
-      MONGODB_URI
+      MONGODB_URI,
+      {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000
+      }
     );
 
     console.log(
       'MongoDB conectado com sucesso.'
     );
 
-    app.listen(
-      PORT,
-      () => {
-        console.log(
-          '============================================================'
-        );
-
-        console.log(
-          'HONEY PAY V4.0.0'
-        );
-
-        console.log(
-          '============================================================'
-        );
-
-        console.log(
-          `Servidor: ${APP_BASE_URL}`
-        );
-
-        console.log(
-          `Google Callback: ${GOOGLE_CALLBACK_URL}`
-        );
-
-        console.log(
-          `Honey Pay fee: ${HONEY_PAY_FEE_BPS} bps`
-        );
-
-        console.log(
-          `Honey Pay fee: ${
-            HONEY_PAY_FEE_BPS / 100
-          }%`
-        );
-
-        console.log(
-          'Auth: Google OAuth + HttpOnly Cookie'
-        );
-
-        console.log(
-          'Session endpoint: /api/me'
-        );
-
-        console.log(
-          'Login: /login'
-        );
-
-        console.log(
-  'Webhook: POST /api/webhooks/appypay'
-);
-
-        console.log(
-          '============================================================'
-        );
-      }
-    );
-
   } catch (error) {
     console.error(
-      'Falha ao iniciar Honey Pay:',
+      'Falha ao conectar ao MongoDB:',
+      error?.message || error
+    );
+
+    console.error(
+      'O servidor HTTP continuará ativo para permitir diagnóstico.'
+    );
+  }
+}
+
+const server = app.listen(
+  PORT,
+  '0.0.0.0',
+  () => {
+
+    console.log(
+      '============================================================'
+    );
+
+    console.log(
+      'HONEY PAY V4.0.0'
+    );
+
+    console.log(
+      '============================================================'
+    );
+
+    console.log(
+      `Servidor HTTP iniciado na porta ${PORT}`
+    );
+
+    console.log(
+      `Servidor: ${APP_BASE_URL}`
+    );
+
+    console.log(
+      `Google Callback: ${GOOGLE_CALLBACK_URL}`
+    );
+
+    console.log(
+      `Honey Pay fee: ${HONEY_PAY_FEE_BPS} bps`
+    );
+
+    console.log(
+      `Honey Pay fee: ${
+        HONEY_PAY_FEE_BPS / 100
+      }%`
+    );
+
+    console.log(
+      'Auth: Google OAuth + HttpOnly Cookie'
+    );
+
+    console.log(
+      'Session endpoint: /api/me'
+    );
+
+    console.log(
+      'Login: /login'
+    );
+
+    console.log(
+      'Webhook: POST /api/webhooks/appypay'
+    );
+
+    console.log(
+      '============================================================'
+    );
+
+    connectDatabase();
+  }
+);
+
+server.on(
+  'error',
+  (error) => {
+
+    console.error(
+      'HONEY PAY SERVER ERROR:',
       error
     );
 
     process.exit(1);
   }
-}
+);
 
-startServer();
+/* =========================================================
+   PROCESS ERROR HANDLERS
+========================================================= */
 
+process.on(
+  'unhandledRejection',
+  (reason) => {
+
+    console.error(
+      'UNHANDLED REJECTION:',
+      reason
+    );
+  }
+);
+
+process.on(
+  'uncaughtException',
+  (error) => {
+
+    console.error(
+      'UNCAUGHT EXCEPTION:',
+      error
+    );
+
+    process.exit(1);
+  }
+);
 /* =========================================================
    EXPORT
 ========================================================= */
