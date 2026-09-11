@@ -84,11 +84,11 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const {
   PAYMENT_METHODS,
   PAYMENT_METHOD_LIST,
@@ -147,6 +147,66 @@ const APP_BASE_URL =
 const GOOGLE_CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
   `${APP_BASE_URL}/api/auth/google/callback`;
+/* =========================================================
+   EMAIL / BREVO SMTP
+========================================================= */
+
+const EMAIL_HOST =
+  process.env.EMAIL_HOST ||
+  'smtp-relay.brevo.com';
+
+const EMAIL_PORT =
+  Number(
+    process.env.EMAIL_PORT ||
+    587
+  );
+
+const EMAIL_SECURE =
+  String(
+    process.env.EMAIL_SECURE ||
+    'false'
+  ).toLowerCase() === 'true';
+
+const EMAIL_USER =
+  process.env.EMAIL_USER ||
+  '';
+
+const EMAIL_PASSWORD =
+  process.env.EMAIL_PASSWORD ||
+  '';
+
+const EMAIL_FROM =
+  process.env.EMAIL_FROM ||
+  EMAIL_USER;
+
+const emailTransporter =
+  nodemailer.createTransport({
+    host:
+      EMAIL_HOST,
+
+    port:
+      EMAIL_PORT,
+
+    secure:
+      EMAIL_SECURE,
+
+    auth: {
+      user:
+        EMAIL_USER,
+
+      pass:
+        EMAIL_PASSWORD
+    },
+
+    connectionTimeout:
+      10000,
+
+    greetingTimeout:
+      10000,
+
+    socketTimeout:
+      15000
+  });
 const EMAIL_HOST = process.env.EMAIL_HOST || '';
 const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
 const EMAIL_SECURE =
@@ -582,6 +642,453 @@ async function sendPasswordResetEmail(user, token) {
     to: user.email,
     subject,
     text,
+    html
+  });
+}
+/* =========================================================
+   AUTH EMAIL HELPERS
+========================================================= */
+
+function hashToken(
+  token
+) {
+  return crypto
+    .createHash('sha256')
+    .update(
+      String(token || ''),
+      'utf8'
+    )
+    .digest('hex');
+}
+
+
+function generateEmailVerificationToken() {
+  return crypto
+    .randomBytes(32)
+    .toString('hex');
+}
+
+
+function generatePasswordResetToken() {
+  return crypto
+    .randomBytes(32)
+    .toString('hex');
+}
+
+
+function getEmailVerificationUrl(
+  token
+) {
+  return (
+    `${APP_BASE_URL}/api/auth/verify-email?token=` +
+    encodeURIComponent(token)
+  );
+}
+
+
+function getPasswordResetUrl(
+  token
+) {
+  return (
+    `${APP_BASE_URL}/reset-password.html?token=` +
+    encodeURIComponent(token)
+  );
+}
+
+
+async function sendEmail({
+  to,
+  subject,
+  html,
+  text
+}) {
+  if (
+    !EMAIL_HOST ||
+    !EMAIL_USER ||
+    !EMAIL_PASSWORD
+  ) {
+    throw new Error(
+      'Configuração SMTP incompleta.'
+    );
+  }
+
+  console.log(
+    '[HONEY PAY SMTP] A enviar email...',
+    {
+      host:
+        EMAIL_HOST,
+
+      port:
+        EMAIL_PORT,
+
+      secure:
+        EMAIL_SECURE,
+
+      from:
+        EMAIL_FROM,
+
+      to
+    }
+  );
+
+  try {
+    const info =
+      await emailTransporter.sendMail({
+        from:
+          EMAIL_FROM,
+
+        to,
+
+        subject,
+
+        text,
+
+        html
+      });
+
+    console.log(
+      '[HONEY PAY SMTP] Email enviado com sucesso.',
+      {
+        messageId:
+          info?.messageId || '',
+
+        response:
+          info?.response || ''
+      }
+    );
+
+    return info;
+
+  } catch (error) {
+    console.error(
+      '[HONEY PAY SMTP ERROR]',
+      {
+        message:
+          error?.message || '',
+
+        code:
+          error?.code || '',
+
+        command:
+          error?.command || '',
+
+        response:
+          error?.response || '',
+
+        responseCode:
+          error?.responseCode || ''
+      }
+    );
+
+    throw error;
+  }
+}
+
+
+async function sendVerificationEmail(
+  user,
+  token
+) {
+  const name =
+    cleanString(
+      user?.name ||
+        'Cliente',
+      120
+    );
+
+  const email =
+    normalizeEmail(
+      user?.email
+    );
+
+  const verificationUrl =
+    getEmailVerificationUrl(
+      token
+    );
+
+  const subject =
+    'Confirme o seu email — Honey Pay';
+
+  const text =
+    `Olá ${name},
+
+Obrigado por criar a sua conta Honey Pay.
+
+Para confirmar o seu endereço de email, abra o seguinte link:
+
+${verificationUrl}
+
+Este link é válido durante 30 minutos.
+
+Se não criou esta conta, pode ignorar este email.
+
+Honey Pay`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar email — Honey Pay</title>
+</head>
+
+<body style="
+  margin:0;
+  padding:0;
+  background:#07111f;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#e8edf4;
+">
+
+  <div style="
+    max-width:620px;
+    margin:0 auto;
+    padding:40px 20px;
+  ">
+
+    <div style="
+      background:#0b1827;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:22px;
+      padding:40px;
+    ">
+
+      <div style="
+        font-size:24px;
+        font-weight:800;
+        color:#f5c542;
+        margin-bottom:28px;
+      ">
+        Honey Pay
+      </div>
+
+      <h1 style="
+        margin:0 0 18px;
+        color:#f8fafc;
+        font-size:28px;
+      ">
+        Confirme o seu email
+      </h1>
+
+      <p style="
+        color:#a9b5c5;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        Olá ${name},
+      </p>
+
+      <p style="
+        color:#a9b5c5;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        A sua conta Honey Pay foi criada.
+        Para continuar, confirme o seu endereço de email.
+      </p>
+
+      <div style="
+        margin:32px 0;
+      ">
+        <a
+          href="${verificationUrl}"
+          style="
+            display:inline-block;
+            padding:14px 22px;
+            border-radius:12px;
+            background:#f5c542;
+            color:#111820;
+            text-decoration:none;
+            font-weight:800;
+          "
+        >
+          Confirmar email
+        </a>
+      </div>
+
+      <p style="
+        color:#78889b;
+        font-size:13px;
+        line-height:1.6;
+      ">
+        Este link expira em 30 minutos.
+      </p>
+
+      <p style="
+        color:#78889b;
+        font-size:13px;
+        line-height:1.6;
+      ">
+        Se não criou esta conta, pode ignorar este email.
+      </p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`;
+
+  return sendEmail({
+    to:
+      email,
+
+    subject,
+
+    text,
+
+    html
+  });
+}
+
+
+async function sendPasswordResetEmail(
+  user,
+  token
+) {
+  const name =
+    cleanString(
+      user?.name ||
+        'Cliente',
+      120
+    );
+
+  const email =
+    normalizeEmail(
+      user?.email
+    );
+
+  const resetUrl =
+    getPasswordResetUrl(
+      token
+    );
+
+  const subject =
+    'Redefinir palavra-passe — Honey Pay';
+
+  const text =
+    `Olá ${name},
+
+Recebemos um pedido para redefinir a palavra-passe da sua conta Honey Pay.
+
+Abra o seguinte link:
+
+${resetUrl}
+
+Este link é válido durante 30 minutos.
+
+Se não pediu esta alteração, ignore este email.
+
+Honey Pay`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir palavra-passe — Honey Pay</title>
+</head>
+
+<body style="
+  margin:0;
+  padding:0;
+  background:#07111f;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#e8edf4;
+">
+
+  <div style="
+    max-width:620px;
+    margin:0 auto;
+    padding:40px 20px;
+  ">
+
+    <div style="
+      background:#0b1827;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:22px;
+      padding:40px;
+    ">
+
+      <div style="
+        font-size:24px;
+        font-weight:800;
+        color:#f5c542;
+        margin-bottom:28px;
+      ">
+        Honey Pay
+      </div>
+
+      <h1 style="
+        margin:0 0 18px;
+        color:#f8fafc;
+        font-size:28px;
+      ">
+        Redefinir palavra-passe
+      </h1>
+
+      <p style="
+        color:#a9b5c5;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        Olá ${name},
+      </p>
+
+      <p style="
+        color:#a9b5c5;
+        font-size:16px;
+        line-height:1.7;
+      ">
+        Recebemos um pedido para redefinir a palavra-passe da sua conta.
+      </p>
+
+      <div style="
+        margin:32px 0;
+      ">
+        <a
+          href="${resetUrl}"
+          style="
+            display:inline-block;
+            padding:14px 22px;
+            border-radius:12px;
+            background:#f5c542;
+            color:#111820;
+            text-decoration:none;
+            font-weight:800;
+          "
+        >
+          Redefinir palavra-passe
+        </a>
+      </div>
+
+      <p style="
+        color:#78889b;
+        font-size:13px;
+        line-height:1.6;
+      ">
+        Este link expira em 30 minutos.
+      </p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`;
+
+  return sendEmail({
+    to:
+      email,
+
+    subject,
+
+    text,
+
     html
   });
 }
