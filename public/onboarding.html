@@ -1,1656 +1,1868 @@
-<!DOCTYPE html><html lang="pt-AO">
+<!DOCTYPE html>
+<html lang="pt-AO">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#06111f">
-  <title>Configuração empresarial — Honey Pay</title>  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">  <style>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Configurar empresa — Honey Pay</title>
+
+  <meta
+    name="description"
+    content="Configure a sua empresa e conta de liquidação no Honey Pay."
+  />
+
+  <style>
     :root {
-      --bg:#050c16;
-      --surface:#0b1a2b;
-      --surface2:#0e2136;
-      --line:rgba(255,255,255,.085);
-      --gold:#f5c928;
-      --gold-light:#ffdc63;
-      --green:#38d59d;
-      --red:#ff7373;
-      --text:#f7f9fc;
-      --soft:#bdc8d7;
-      --muted:#7e8c9f;
-      --max:760px;
+      --bg: #07111f;
+      --bg-soft: #0b1728;
+      --card: rgba(15, 29, 48, 0.88);
+      --card-2: rgba(20, 38, 61, 0.72);
+      --border: rgba(255, 255, 255, 0.09);
+      --border-active: rgba(245, 183, 55, 0.55);
+
+      --gold: #f5b737;
+      --gold-light: #ffd978;
+      --gold-soft: rgba(245, 183, 55, 0.12);
+
+      --text: #f7f9fc;
+      --muted: #91a0b5;
+
+      --success: #35d49a;
+      --success-soft: rgba(53, 212, 154, 0.11);
+
+      --danger: #ff6b7a;
+      --danger-soft: rgba(255, 107, 122, 0.11);
+
+      --shadow:
+        0 30px 80px rgba(0, 0, 0, 0.32);
+
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
 
     * {
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
     }
 
     body {
-      min-height:100vh;
-      color:var(--text);
-      font-family:Inter,Arial,sans-serif;
-      background:
-        radial-gradient(circle at 50% 0%,rgba(245,201,40,.09),transparent 30%),
-        linear-gradient(180deg,#06111f,#050c16);
-      line-height:1.55;
-    }
+      margin: 0;
+      min-height: 100vh;
 
-    body::before {
-      content:"";
-      position:fixed;
-      inset:0;
-      z-index:-1;
-      pointer-events:none;
-      background-image:
-        linear-gradient(rgba(255,255,255,.016) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.016) 1px,transparent 1px);
-      background-size:70px 70px;
-      mask-image:linear-gradient(#000,transparent 75%);
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+      color: var(--text);
+      background:
+        radial-gradient(
+          circle at 15% 10%,
+          rgba(245, 183, 55, 0.08),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 90% 20%,
+          rgba(37, 99, 235, 0.10),
+          transparent 30%
+        ),
+        linear-gradient(
+          145deg,
+          #06101d 0%,
+          #081423 48%,
+          #06101c 100%
+        );
+
+      overflow-x: hidden;
     }
 
     button,
     input {
-      font:inherit;
+      font: inherit;
+    }
+
+    button {
+      border: 0;
     }
 
     .page {
-      width:min(calc(100% - 30px),var(--max));
-      margin:auto;
-      padding:34px 0 70px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* TOP */
+    /* =====================================================
+       HEADER
+    ===================================================== */
 
-    .top {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:20px;
-      margin-bottom:48px;
+    .topbar {
+      height: 78px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 32px;
+
+      border-bottom: 1px solid var(--border);
+
+      background:
+        rgba(5, 13, 24, 0.74);
+
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
 
     .brand {
-      display:flex;
-      align-items:center;
-      gap:10px;
-      font-family:"Plus Jakarta Sans",sans-serif;
-      font-size:20px;
-      font-weight:800;
-      letter-spacing:-.045em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      text-decoration: none;
+      color: var(--text);
     }
 
     .brand-mark {
-      width:37px;
-      height:37px;
-      display:grid;
-      place-items:center;
-      border-radius:11px;
-      background:linear-gradient(135deg,var(--gold-light),var(--gold));
-      color:#07111f;
-      font-weight:900;
+      width: 38px;
+      height: 38px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 12px;
+
+      background:
+        linear-gradient(
+          145deg,
+          var(--gold-light),
+          var(--gold)
+        );
+
+      color: #07111f;
+
+      font-size: 21px;
+      font-weight: 900;
+
+      box-shadow:
+        0 10px 30px rgba(245, 183, 55, 0.18);
     }
 
-    .secure-label {
-      display:flex;
-      align-items:center;
-      gap:7px;
-      color:var(--muted);
-      font-size:10px;
-      font-weight:650;
+    .brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
     }
 
-    .secure-label span {
-      width:7px;
-      height:7px;
-      border-radius:50%;
-      background:var(--green);
-      box-shadow:0 0 0 5px rgba(56,213,157,.08);
+    .brand-name span {
+      color: var(--gold);
     }
 
-    /* INTRO */
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: var(--success);
+
+      box-shadow:
+        0 0 0 5px rgba(53, 212, 154, 0.08);
+    }
+
+    /* =====================================================
+       MAIN
+    ===================================================== */
+
+    .main {
+      width: min(1040px, calc(100% - 32px));
+
+      margin: 0 auto;
+
+      padding:
+        64px 0
+        80px;
+    }
 
     .intro {
-      text-align:center;
-      max-width:650px;
-      margin:0 auto 38px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto 42px;
     }
 
-    .kicker {
-      color:var(--gold-light);
-      font-size:10px;
-      font-weight:850;
-      letter-spacing:.09em;
-      text-transform:uppercase;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 8px 12px;
+
+      border: 1px solid rgba(245, 183, 55, 0.20);
+
+      border-radius: 999px;
+
+      color: var(--gold-light);
+
+      background:
+        rgba(245, 183, 55, 0.07);
+
+      font-size: 12px;
+      font-weight: 700;
+
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     .intro h1 {
-      margin-top:10px;
-      font-family:"Plus Jakarta Sans",sans-serif;
-      font-size:clamp(32px,6vw,49px);
-      line-height:1.08;
-      letter-spacing:-.06em;
+      margin:
+        18px 0
+        12px;
+
+      font-size:
+        clamp(34px, 5vw, 54px);
+
+      line-height: 1.02;
+
+      letter-spacing: -0.055em;
+    }
+
+    .intro h1 span {
+      color: var(--gold);
     }
 
     .intro p {
-      max-width:570px;
-      margin:14px auto 0;
-      color:var(--soft);
-      font-size:13px;
-      line-height:1.75;
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 16px;
+      line-height: 1.7;
     }
 
-    /* STEPS */
+    /* =====================================================
+       STEPPER
+    ===================================================== */
 
     .steps {
-      display:grid;
-      grid-template-columns:1fr auto 1fr auto 1fr;
-      align-items:center;
-      margin-bottom:25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      margin-bottom: 28px;
     }
 
     .step {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-      text-align:center;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      color: #66758a;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      white-space: nowrap;
     }
 
-    .step-circle {
-      width:38px;
-      height:38px;
-      display:grid;
-      place-items:center;
-      border:1px solid var(--line);
-      border-radius:50%;
-      background:#091727;
-      color:var(--muted);
-      font-size:11px;
-      font-weight:850;
-      transition:.25s;
+    .step-number {
+      width: 30px;
+      height: 30px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      border: 1px solid var(--border);
+
+      background: rgba(255, 255, 255, 0.025);
+
+      font-size: 12px;
     }
 
-    .step-label {
-      color:var(--muted);
-      font-size:9px;
-      font-weight:700;
+    .step.active {
+      color: var(--text);
+    }
+
+    .step.active .step-number {
+      border-color: var(--gold);
+
+      color: #07111f;
+
+      background: var(--gold);
+
+      box-shadow:
+        0 8px 25px rgba(245, 183, 55, 0.18);
+    }
+
+    .step.done {
+      color: var(--success);
+    }
+
+    .step.done .step-number {
+      border-color: var(--success);
+      background: var(--success);
+      color: #06151a;
     }
 
     .step-line {
-      height:1px;
-      margin:0 10px 26px;
-      background:var(--line);
+      width: 70px;
+      height: 1px;
+
+      margin: 0 14px;
+
+      background: var(--border);
     }
 
-    .step.active .step-circle {
-      border-color:rgba(245,201,40,.55);
-      background:rgba(245,201,40,.09);
-      color:var(--gold-light);
-      box-shadow:0 0 0 5px rgba(245,201,40,.045);
-    }
+    /* =====================================================
+       CARD
+    ===================================================== */
 
-    .step.active .step-label {
-      color:var(--gold-light);
-    }
+    .card {
+      position: relative;
 
-    .step.done .step-circle {
-      border-color:rgba(56,213,157,.4);
-      background:rgba(56,213,157,.08);
-      color:var(--green);
-    }
+      padding: 34px;
 
-    .step.done .step-label {
-      color:#b7c9c1;
-    }
+      border: 1px solid var(--border);
 
-    /* MAIN CARD */
+      border-radius: var(--radius-xl);
 
-    .main-card {
-      border:1px solid var(--line);
-      border-radius:25px;
       background:
-        linear-gradient(145deg,rgba(13,31,51,.98),rgba(7,18,31,.98));
-      box-shadow:0 35px 90px rgba(0,0,0,.35);
-      overflow:hidden;
+        linear-gradient(
+          145deg,
+          rgba(18, 35, 57, 0.92),
+          rgba(9, 22, 37, 0.92)
+        );
+
+      box-shadow: var(--shadow);
+
+      overflow: hidden;
     }
 
-    .card-header {
-      padding:24px 28px;
-      border-bottom:1px solid var(--line);
-      background:rgba(255,255,255,.012);
+    .card::before {
+      content: "";
+
+      position: absolute;
+
+      width: 260px;
+      height: 260px;
+
+      top: -170px;
+      right: -120px;
+
+      border-radius: 50%;
+
+      background:
+        rgba(245, 183, 55, 0.08);
+
+      filter: blur(10px);
+
+      pointer-events: none;
     }
 
-    .card-header h2 {
-      font-family:"Plus Jakarta Sans",sans-serif;
-      font-size:18px;
-      letter-spacing:-.03em;
+    .section-header {
+      position: relative;
+      z-index: 1;
+
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      margin-bottom: 26px;
     }
 
-    .card-header p {
-      margin-top:5px;
-      color:var(--muted);
-      font-size:10px;
+    .section-title {
+      margin: 0 0 7px;
+
+      font-size: 21px;
+      letter-spacing: -0.03em;
     }
 
-    .card-body {
-      padding:28px;
+    .section-description {
+      margin: 0;
+
+      color: var(--muted);
+
+      font-size: 14px;
+      line-height: 1.6;
     }
 
-    /* FORM */
+    .secure-badge {
+      flex-shrink: 0;
+
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 8px 11px;
+
+      border-radius: 999px;
+
+      color: #b8f4dd;
+
+      background:
+        var(--success-soft);
+
+      border:
+        1px solid rgba(53, 212, 154, 0.15);
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* =====================================================
+       FORM
+    ===================================================== */
 
     .field {
-      margin-bottom:22px;
+      margin-bottom: 20px;
     }
 
     .field-label {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:8px;
+      display: block;
+
+      margin-bottom: 8px;
+
+      font-size: 13px;
+      font-weight: 700;
+
+      color: #dce3ed;
     }
 
-    .field-label label {
-      color:#e9edf3;
-      font-size:11px;
-      font-weight:750;
+    .field-label span {
+      color: var(--muted);
+      font-weight: 500;
     }
 
-    .field-hint {
-      color:var(--muted);
-      font-size:9px;
+    .input-row {
+      display: flex;
+      gap: 10px;
     }
 
-    .input-wrap {
-      position:relative;
+    .input {
+      width: 100%;
+      min-height: 54px;
+
+      padding: 0 16px;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+      border-radius: var(--radius-md);
+
+      outline: none;
+
+      color: var(--text);
+
+      background:
+        rgba(3, 11, 20, 0.54);
+
+      transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
     }
 
-    input {
-      width:100%;
-      height:54px;
-      padding:0 16px;
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:13px;
-      outline:none;
-      color:#fff;
-      background:#081727;
-      font-size:14px;
-      transition:.2s;
+    .input::placeholder {
+      color: #526175;
     }
 
-    input::placeholder {
-      color:#536276;
+    .input:focus {
+      border-color:
+        rgba(245, 183, 55, 0.58);
+
+      background:
+        rgba(3, 11, 20, 0.72);
+
+      box-shadow:
+        0 0 0 4px
+        rgba(245, 183, 55, 0.08);
     }
 
-    input:focus {
-      border-color:rgba(245,201,40,.48);
-      box-shadow:0 0 0 4px rgba(245,201,40,.06);
+    .input:disabled,
+    .input[readonly] {
+      opacity: 0.82;
+      cursor: not-allowed;
     }
 
-    input:disabled {
-      opacity:.48;
-      cursor:not-allowed;
+    .verify-button {
+      min-width: 154px;
+
+      padding: 0 18px;
+
+      border-radius: var(--radius-md);
+
+      color: #08111c;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold-light),
+          var(--gold)
+        );
+
+      font-weight: 800;
+
+      cursor: pointer;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        opacity .2s ease;
     }
 
-    .input-button {
-      position:absolute;
-      top:6px;
-      right:6px;
-      height:42px;
-      padding:0 14px;
-      border:0;
-      border-radius:10px;
-      background:linear-gradient(135deg,var(--gold-light),var(--gold));
-      color:#07111f;
-      font-size:10px;
-      font-weight:850;
-      cursor:pointer;
-      transition:.2s;
+    .verify-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 12px 30px
+        rgba(245, 183, 55, 0.18);
     }
 
-    .input-button:hover:not(:disabled) {
-      transform:translateY(-1px);
+    .verify-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
-    .input-button:disabled {
-      opacity:.55;
-      cursor:not-allowed;
-    }
-
-    /* STATUS */
+    /* =====================================================
+       STATUS
+    ===================================================== */
 
     .status {
-      min-height:17px;
-      margin-top:7px;
-      font-size:10px;
+      display: none;
+
+      align-items: flex-start;
+      gap: 12px;
+
+      margin-top: 14px;
+
+      padding: 15px;
+
+      border-radius: 14px;
+
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status.visible {
+      display: flex;
     }
 
     .status.success {
-      color:var(--green);
+      color: #b9f4dd;
+
+      background:
+        var(--success-soft);
+
+      border:
+        1px solid
+        rgba(53, 212, 154, 0.17);
     }
 
     .status.error {
-      color:var(--red);
+      color: #ffc1c8;
+
+      background:
+        var(--danger-soft);
+
+      border:
+        1px solid
+        rgba(255, 107, 122, 0.17);
     }
 
-    .spinner {
-      display:inline-block;
-      width:11px;
-      height:11px;
-      margin-right:5px;
-      vertical-align:-1px;
-      border:2px solid rgba(7,17,31,.28);
-      border-top-color:#07111f;
-      border-radius:50%;
-      animation:spin .7s linear infinite;
+    .status-icon {
+      flex-shrink: 0;
+
+      width: 24px;
+      height: 24px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      font-size: 12px;
+      font-weight: 900;
     }
 
-    @keyframes spin {
-      to { transform:rotate(360deg); }
+    .status.success .status-icon {
+      background: rgba(53, 212, 154, 0.14);
     }
 
-    /* RESULT CARDS */
-
-    .result-card {
-      display:none;
-      margin-top:13px;
-      padding:18px;
-      border:1px solid rgba(56,213,157,.20);
-      border-radius:16px;
-      background:rgba(56,213,157,.045);
-      animation:resultIn .3s ease both;
+    .status.error .status-icon {
+      background: rgba(255, 107, 122, 0.14);
     }
 
-    .result-card.visible {
-      display:block;
+    /* =====================================================
+       COMPANY RESULT
+    ===================================================== */
+
+    .company-result {
+      display: none;
+
+      margin-top: 18px;
+
+      padding: 20px;
+
+      border-radius: 18px;
+
+      border:
+        1px solid
+        rgba(53, 212, 154, 0.18);
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(53, 212, 154, 0.08),
+          rgba(10, 26, 39, 0.40)
+        );
+
+      animation:
+        fadeUp .35s ease both;
     }
 
-    @keyframes resultIn {
-      from {
-        opacity:0;
-        transform:translateY(5px);
-      }
-      to {
-        opacity:1;
-        transform:translateY(0);
-      }
+    .company-result.visible {
+      display: block;
     }
 
-    .result-top {
-      display:flex;
-      align-items:flex-start;
-      gap:12px;
+    .company-found {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      margin-bottom: 8px;
+
+      color: var(--success);
+
+      font-size: 12px;
+      font-weight: 800;
+
+      text-transform: uppercase;
+      letter-spacing: .05em;
     }
 
-    .result-icon {
-      width:35px;
-      height:35px;
-      flex:0 0 auto;
-      display:grid;
-      place-items:center;
-      border-radius:10px;
-      background:rgba(56,213,157,.10);
-      color:var(--green);
-      font-weight:900;
+    .company-name {
+      margin: 0;
+
+      color: var(--text);
+
+      font-size: 18px;
+      font-weight: 800;
+
+      line-height: 1.35;
     }
 
-    .result-content small {
-      display:block;
-      color:var(--green);
-      font-size:9px;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.06em;
+    .company-meta {
+      margin-top: 8px;
+
+      color: var(--muted);
+
+      font-size: 12px;
     }
 
-    .result-content strong {
-      display:block;
-      margin-top:2px;
-      color:#fff;
-      font-size:14px;
-    }
-
-    .result-content p {
-      margin-top:3px;
-      color:var(--muted);
-      font-size:9px;
-    }
-
-    /* DIVIDER */
-
-    .section-divider {
-      height:1px;
-      margin:29px 0;
-      background:var(--line);
-    }
-
-    /* BANK */
+    /* =====================================================
+       BANK
+    ===================================================== */
 
     .bank-result {
-      display:none;
-      align-items:center;
-      justify-content:space-between;
-      gap:15px;
-      margin-top:12px;
-      padding:16px 17px;
-      border:1px solid rgba(56,213,157,.18);
-      border-radius:15px;
-      background:rgba(56,213,157,.04);
+      display: none;
+
+      margin-top: 14px;
+
+      padding: 16px 18px;
+
+      border-radius: 15px;
+
+      background:
+        rgba(245, 183, 55, 0.07);
+
+      border:
+        1px solid
+        rgba(245, 183, 55, 0.15);
     }
 
     .bank-result.visible {
-      display:flex;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      animation:
+        fadeUp .3s ease both;
     }
 
-    .bank-left {
-      display:flex;
-      align-items:center;
-      gap:11px;
+    .bank-label {
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 700;
+
+      text-transform: uppercase;
+      letter-spacing: .05em;
     }
 
-    .bank-icon {
-      width:37px;
-      height:37px;
-      display:grid;
-      place-items:center;
-      border-radius:11px;
-      background:rgba(245,201,40,.08);
-      color:var(--gold-light);
-      font-weight:900;
-      font-size:12px;
-    }
+    .bank-name {
+      margin-top: 4px;
 
-    .bank-left small {
-      display:block;
-      color:var(--muted);
-      font-size:8px;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-    }
-
-    .bank-left strong {
-      display:block;
-      margin-top:1px;
-      font-size:11px;
+      font-size: 15px;
+      font-weight: 800;
     }
 
     .bank-code {
-      color:var(--muted);
-      font-size:9px;
+      color: var(--gold-light);
+
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    /* SUMMARY */
+    /* =====================================================
+       DIVIDER
+    ===================================================== */
+
+    .divider {
+      height: 1px;
+
+      margin:
+        32px 0;
+
+      background:
+        var(--border);
+    }
+
+    /* =====================================================
+       SUMMARY
+    ===================================================== */
 
     .summary {
-      display:none;
-      margin-top:25px;
-      padding:21px;
-      border:1px solid var(--line-gold);
-      border-radius:18px;
+      display: none;
+
+      margin-top: 28px;
+
+      padding: 22px;
+
+      border-radius: 18px;
+
       background:
-        radial-gradient(circle at 100% 0,rgba(245,201,40,.08),transparent 40%),
-        rgba(245,201,40,.018);
-      animation:resultIn .3s ease both;
+        rgba(255, 255, 255, 0.025);
+
+      border:
+        1px solid var(--border);
     }
 
     .summary.visible {
-      display:block;
+      display: block;
+
+      animation:
+        fadeUp .35s ease both;
     }
 
-    .summary-heading {
-      display:flex;
-      align-items:center;
-      gap:9px;
-      margin-bottom:17px;
-    }
+    .summary-title {
+      margin: 0 0 18px;
 
-    .summary-heading-icon {
-      width:31px;
-      height:31px;
-      display:grid;
-      place-items:center;
-      border-radius:9px;
-      background:rgba(245,201,40,.09);
-      color:var(--gold-light);
-      font-size:12px;
-      font-weight:900;
-    }
-
-    .summary-heading strong {
-      font-size:12px;
-    }
-
-    .summary-heading span {
-      display:block;
-      margin-top:1px;
-      color:var(--muted);
-      font-size:8px;
+      font-size: 15px;
+      font-weight: 800;
     }
 
     .summary-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 14px;
     }
 
     .summary-item {
-      padding:13px;
-      border:1px solid rgba(255,255,255,.055);
-      border-radius:12px;
-      background:rgba(255,255,255,.022);
+      padding: 14px;
+
+      border-radius: 13px;
+
+      background:
+        rgba(255, 255, 255, 0.025);
     }
 
-    .summary-item small {
-      display:block;
-      color:var(--muted);
-      font-size:8px;
+    .summary-label {
+      display: block;
+
+      margin-bottom: 5px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      font-weight: 600;
     }
 
-    .summary-item strong {
-      display:block;
-      margin-top:3px;
-      color:#f2f5f8;
-      font-size:10px;
-      word-break:break-word;
+    .summary-value {
+      color: var(--text);
+
+      font-size: 13px;
+      font-weight: 750;
+
+      word-break: break-word;
     }
 
-    /* COMPLETE */
+    /* =====================================================
+       ACTIONS
+    ===================================================== */
 
-    .complete-area {
-      margin-top:22px;
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 16px;
+
+      margin-top: 30px;
     }
 
-    #completeButton {
-      width:100%;
-      min-height:55px;
-      border:0;
-      border-radius:13px;
-      background:linear-gradient(135deg,var(--gold-light),var(--gold));
-      color:#07111f;
-      font-size:12px;
-      font-weight:850;
-      cursor:pointer;
-      box-shadow:0 14px 34px rgba(245,201,40,.13);
-      transition:.2s;
+    .security-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+
+      max-width: 470px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      line-height: 1.5;
     }
 
-    #completeButton:hover:not(:disabled) {
-      transform:translateY(-2px);
-      box-shadow:0 19px 40px rgba(245,201,40,.2);
+    .complete-button {
+      min-height: 52px;
+
+      padding:
+        0 24px;
+
+      border-radius: 14px;
+
+      color: #08111c;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--gold-light),
+          var(--gold)
+        );
+
+      font-size: 14px;
+      font-weight: 850;
+
+      cursor: pointer;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        opacity .2s ease;
     }
 
-    #completeButton:disabled {
-      opacity:.42;
-      cursor:not-allowed;
-      box-shadow:none;
+    .complete-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 15px 35px
+        rgba(245, 183, 55, 0.20);
     }
 
-    .legal-note {
-      margin-top:13px;
-      text-align:center;
-      color:var(--muted);
-      font-size:8px;
-      line-height:1.65;
+    .complete-button:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
     }
 
-    /* FOOTER */
+    /* =====================================================
+       LOADING
+    ===================================================== */
+
+    .spinner {
+      width: 17px;
+      height: 17px;
+
+      border:
+        2px solid
+        rgba(8, 17, 28, 0.28);
+
+      border-top-color:
+        #08111c;
+
+      border-radius: 50%;
+
+      display: inline-block;
+
+      animation:
+        spin .75s linear infinite;
+
+      vertical-align: middle;
+      margin-right: 7px;
+    }
+
+    /* =====================================================
+       FOOTER
+    ===================================================== */
 
     .footer {
-      margin-top:27px;
-      text-align:center;
-      color:var(--muted);
-      font-size:9px;
+      margin-top: auto;
+
+      padding:
+        22px 32px;
+
+      text-align: center;
+
+      color: #536175;
+
+      font-size: 11px;
+
+      border-top:
+        1px solid var(--border);
     }
 
-    /* MOBILE */
+    /* =====================================================
+       ANIMATIONS
+    ===================================================== */
 
-    @media(max-width:620px) {
-      .page {
-        width:min(calc(100% - 20px),var(--max));
-        padding-top:21px;
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
       }
 
-      .top {
-        margin-bottom:35px;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ===================================================== */
+
+    @media (max-width: 700px) {
+      .topbar {
+        height: 68px;
+        padding: 0 18px;
       }
 
-      .secure-label {
-        display:none;
+      .user-status {
+        display: none;
+      }
+
+      .main {
+        width: min(
+          100% - 22px,
+          1040px
+        );
+
+        padding:
+          38px 0
+          48px;
       }
 
       .intro {
-        margin-bottom:31px;
+        margin-bottom: 30px;
       }
 
       .intro h1 {
-        font-size:31px;
+        font-size: 35px;
       }
 
       .intro p {
-        font-size:11px;
+        font-size: 14px;
       }
 
       .steps {
-        grid-template-columns:1fr 20px 1fr 20px 1fr;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+
+      .step {
+        font-size: 11px;
       }
 
       .step-line {
-        margin-left:3px;
-        margin-right:3px;
+        width: 30px;
+        margin: 0 8px;
       }
 
-      .step-label {
-        font-size:8px;
+      .card {
+        padding: 22px 18px;
+
+        border-radius: 22px;
       }
 
-      .card-header {
-        padding:21px;
+      .section-header {
+        flex-direction: column;
       }
 
-      .card-body {
-        padding:21px;
+      .secure-badge {
+        align-self: flex-start;
       }
 
-      .input-button {
-        padding:0 10px;
-        font-size:9px;
+      .input-row {
+        flex-direction: column;
+      }
+
+      .verify-button {
+        width: 100%;
+        min-height: 52px;
       }
 
       .summary-grid {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
 
-      .bank-result {
-        align-items:flex-start;
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
       }
 
-      .bank-code {
-        text-align:right;
+      .security-note {
+        max-width: none;
+      }
+
+      .complete-button {
+        width: 100%;
       }
     }
-  </style></head><body><div class="page">  <header class="top"><a class="brand" href="/home.html">
-  <span class="brand-mark">H</span>
-  Honey Pay
-</a>
+  </style>
+</head>
 
-<div class="secure-label">
-  <span></span>
-  Configuração empresarial segura
-</div>
+<body>
 
-  </header>  <section class="intro"><span class="kicker">
-  Primeira configuração
-</span>
+  <div class="page">
 
-<h1>
-  Vamos preparar a sua conta empresarial.
-</h1>
+    <header class="topbar">
 
-<p>
-  Confirme a sua empresa e indique a conta bancária onde pretende receber os seus pagamentos através da Honey Pay.
-</p>
-
-  </section>  <div class="steps"><div class="step active" id="stepIndicator1">
-  <div class="step-circle">01</div>
-  <div class="step-label">Empresa</div>
-</div>
-
-<div class="step-line"></div>
-
-<div class="step" id="stepIndicator2">
-  <div class="step-circle">02</div>
-  <div class="step-label">Conta bancária</div>
-</div>
-
-<div class="step-line"></div>
-
-<div class="step" id="stepIndicator3">
-  <div class="step-circle">03</div>
-  <div class="step-label">Confirmação</div>
-</div>
-
-  </div>  <main class="main-card"><div class="card-header">
-  <h2>Dados da empresa</h2>
-  <p>Utilizamos o NIF para confirmar a empresa no registo público.</p>
-</div>
-
-<div class="card-body">
-
-  <div class="field">
-
-    <div class="field-label">
-      <label for="nif">
-        NIF da empresa
-      </label>
-
-      <span class="field-hint">
-        Obrigatório
-      </span>
-    </div>
-
-    <div class="input-wrap">
-
-      <input
-        id="nif"
-        type="text"
-        inputmode="numeric"
-        autocomplete="off"
-        placeholder="Introduza o NIF da empresa"
-        maxlength="20"
+      <a
+        class="brand"
+        href="/home.html"
+        aria-label="Honey Pay"
       >
+        <div class="brand-mark">H</div>
 
-      <button
-        id="verifyNifButton"
-        class="input-button"
-        type="button"
-      >
-        Verificar empresa
-      </button>
+        <div class="brand-name">
+          Honey <span>Pay</span>
+        </div>
+      </a>
 
-    </div>
+      <div class="user-status">
+        <span class="status-dot"></span>
+        Sessão segura
+      </div>
 
-    <div
-      id="nifStatus"
-      class="status"
-      aria-live="polite"
-    ></div>
+    </header>
 
-    <div
-      id="companyResult"
-      class="result-card"
-    >
 
-      <div class="result-top">
+    <main class="main">
 
-        <div class="result-icon">
-          ✓
+      <section class="intro">
+
+        <div class="eyebrow">
+          Configuração empresarial
         </div>
 
-        <div class="result-content">
-          <small>Empresa encontrada</small>
+        <h1>
+          Vamos preparar a sua
+          <span>empresa.</span>
+        </h1>
 
-          <strong id="companyName">
-            —
-          </strong>
+        <p>
+          Precisamos confirmar os dados da sua empresa
+          e indicar a conta bancária que será utilizada
+          no processo de liquidação.
+        </p>
 
-          <p id="companyMeta">
-            —
-          </p>
+      </section>
+
+
+      <div class="steps">
+
+        <div
+          class="step active"
+          id="stepIndicator1"
+        >
+          <span class="step-number">1</span>
+          Empresa
+        </div>
+
+        <div class="step-line"></div>
+
+        <div
+          class="step"
+          id="stepIndicator2"
+        >
+          <span class="step-number">2</span>
+          Conta bancária
+        </div>
+
+        <div class="step-line"></div>
+
+        <div
+          class="step"
+          id="stepIndicator3"
+        >
+          <span class="step-number">3</span>
+          Confirmar
         </div>
 
       </div>
 
-    </div>
 
-  </div>
+      <section class="card">
 
-  <div class="section-divider"></div>
+        <div class="section-header">
 
-  <div class="field">
+          <div>
+            <h2 class="section-title">
+              Dados da empresa
+            </h2>
 
-    <div class="field-label">
-      <label for="iban">
-        IBAN da empresa
-      </label>
+            <p class="section-description">
+              Introduza o NIF. O nome da empresa será
+              obtido automaticamente através da consulta
+              pública do GUE.
+            </p>
+          </div>
 
-      <span class="field-hint">
-        25 caracteres
-      </span>
-    </div>
+          <div class="secure-badge">
+            🔒 Dados protegidos
+          </div>
 
-    <div class="input-wrap">
-
-      <input
-        id="iban"
-        type="text"
-        inputmode="text"
-        autocomplete="off"
-        placeholder="AO00 0000 0000 0000 0000 0000 0"
-        maxlength="31"
-        disabled
-      >
-
-    </div>
-
-    <div
-      id="ibanStatus"
-      class="status"
-      aria-live="polite"
-    ></div>
-
-    <div
-      id="bankResult"
-      class="bank-result"
-    >
-
-      <div class="bank-left">
-
-        <div class="bank-icon">
-          B
         </div>
 
-        <div>
-          <small>Banco identificado</small>
 
-          <strong id="bankName">
-            —
-          </strong>
+        <div class="field">
+
+          <label
+            class="field-label"
+            for="nif"
+          >
+            NIF da empresa
+            <span>— obrigatório</span>
+          </label>
+
+          <div class="input-row">
+
+            <input
+              id="nif"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="20"
+              placeholder="Ex.: 5001234567"
+            />
+
+            <button
+              id="verifyNifButton"
+              class="verify-button"
+              type="button"
+            >
+              Verificar empresa
+            </button>
+
+          </div>
+
+          <div
+            id="nifStatus"
+            class="status"
+          ></div>
+
+
+          <div
+            id="companyResult"
+            class="company-result"
+          >
+
+            <div class="company-found">
+              <span>✓</span>
+              Empresa encontrada no GUE
+            </div>
+
+            <p
+              id="companyName"
+              class="company-name"
+            ></p>
+
+            <div
+              id="companyMeta"
+              class="company-meta"
+            ></div>
+
+          </div>
+
         </div>
 
-      </div>
 
-      <div
-        id="bankCode"
-        class="bank-code"
-      >
-        —
-      </div>
+        <div class="divider"></div>
 
-    </div>
+
+        <div class="section-header">
+
+          <div>
+            <h2 class="section-title">
+              Conta de liquidação
+            </h2>
+
+            <p class="section-description">
+              Indique o IBAN da conta empresarial.
+              O banco será identificado automaticamente
+              através da estrutura do IBAN.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="field">
+
+          <label
+            class="field-label"
+            for="iban"
+          >
+            IBAN da empresa
+            <span>— obrigatório</span>
+          </label>
+
+          <input
+            id="iban"
+            class="input"
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            maxlength="29"
+            placeholder="AO06 0000 0000 0000 0000 0000 0"
+            disabled
+          />
+
+          <div
+            id="ibanStatus"
+            class="status"
+          ></div>
+
+
+          <div
+            id="bankResult"
+            class="bank-result"
+          >
+
+            <div>
+
+              <div class="bank-label">
+                Banco identificado
+              </div>
+
+              <div
+                id="bankName"
+                class="bank-name"
+              ></div>
+
+            </div>
+
+            <div
+              id="bankCode"
+              class="bank-code"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="summary"
+          class="summary"
+        >
+
+          <h3 class="summary-title">
+            Confirme os dados
+          </h3>
+
+          <div class="summary-grid">
+
+            <div class="summary-item">
+
+              <span class="summary-label">
+                Empresa
+              </span>
+
+              <div
+                id="summaryCompany"
+                class="summary-value"
+              >
+                —
+              </div>
+
+            </div>
+
+            <div class="summary-item">
+
+              <span class="summary-label">
+                NIF
+              </span>
+
+              <div
+                id="summaryNif"
+                class="summary-value"
+              >
+                —
+              </div>
+
+            </div>
+
+            <div class="summary-item">
+
+              <span class="summary-label">
+                Banco
+              </span>
+
+              <div
+                id="summaryBank"
+                class="summary-value"
+              >
+                —
+              </div>
+
+            </div>
+
+            <div class="summary-item">
+
+              <span class="summary-label">
+                IBAN
+              </span>
+
+              <div
+                id="summaryIban"
+                class="summary-value"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="actions">
+
+          <div class="security-note">
+            <span>🛡️</span>
+
+            <span>
+              Os dados são enviados diretamente para
+              o servidor Honey Pay. O IBAN não é enviado
+              para serviços externos a partir do navegador.
+            </span>
+          </div>
+
+          <button
+            id="completeButton"
+            class="complete-button"
+            type="button"
+            disabled
+          >
+            Concluir configuração
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <footer class="footer">
+      Honey Pay · Pagamentos simples para empresas em Angola
+    </footer>
 
   </div>
 
-  <div
-    id="summary"
-    class="summary"
-  >
 
-    <div class="summary-heading">
-
-      <div class="summary-heading-icon">
-        ✓
-      </div>
-
-      <div>
-        <strong>Confirme os seus dados</strong>
-        <span>Verifique as informações antes de concluir.</span>
-      </div>
-
-    </div>
-
-    <div class="summary-grid">
-
-      <div class="summary-item">
-        <small>Empresa</small>
-        <strong id="summaryCompany">—</strong>
-      </div>
-
-      <div class="summary-item">
-        <small>NIF</small>
-        <strong id="summaryNif">—</strong>
-      </div>
-
-      <div class="summary-item">
-        <small>Banco</small>
-        <strong id="summaryBank">—</strong>
-      </div>
-
-      <div class="summary-item">
-        <small>IBAN</small>
-        <strong id="summaryIban">—</strong>
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="complete-area">
-
-    <button
-      id="completeButton"
-      type="button"
-      disabled
-    >
-      Concluir configuração
-    </button>
-
-    <p class="legal-note">
-      Ao concluir, confirma que os dados fornecidos correspondem à empresa indicada.
-    </p>
-
-  </div>
-
-</div>
-
-  </main>  <footer class="footer">
-    Honey Pay · Pagamentos para empresas em Angola
-  </footer></div><script>
-  "use strict";
-
-  const state = {
-    companyVerified: false,
-    companyName: "",
-    verifiedNif: "",
-    ibanValid: false,
-    bankCode: "",
-    bankName: "",
-    iban: ""
-  };
-
-  const nifInput =
-    document.getElementById("nif");
-
-  const verifyNifButton =
-    document.getElementById("verifyNifButton");
-
-  const nifStatus =
-    document.getElementById("nifStatus");
-
-  const companyResult =
-    document.getElementById("companyResult");
-
-  const companyName =
-    document.getElementById("companyName");
-
-  const companyMeta =
-    document.getElementById("companyMeta");
-
-  const ibanInput =
-    document.getElementById("iban");
-
-  const ibanStatus =
-    document.getElementById("ibanStatus");
-
-  const bankResult =
-    document.getElementById("bankResult");
-
-  const bankName =
-    document.getElementById("bankName");
-
-  const bankCode =
-    document.getElementById("bankCode");
-
-  const summary =
-    document.getElementById("summary");
-
-  const summaryCompany =
-    document.getElementById("summaryCompany");
-
-  const summaryNif =
-    document.getElementById("summaryNif");
-
-  const summaryBank =
-    document.getElementById("summaryBank");
-
-  const summaryIban =
-    document.getElementById("summaryIban");
-
-  const completeButton =
-    document.getElementById("completeButton");
-
-
-  function setStatus(
-    element,
-    type,
-    message
-  ) {
-    element.className = "status " + type;
-    element.textContent = message;
-  }
-
-
-  function clearStatus(element) {
-    element.className = "status";
-    element.innerHTML = "";
-  }
-
-
-  function escapeHtml(value) {
-    return String(value || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-
-  function normalizeNif(value) {
-    return String(value || "")
-      .replace(/\D/g, "")
-      .slice(0, 20);
-  }
-
-
-  function normalizeIban(value) {
-    return String(value || "")
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "")
-      .slice(0, 25);
-  }
-
-
-  function formatIban(value) {
-    const clean =
-      normalizeIban(value);
-
-    return clean.match(/.{1,4}/g)?.join(" ") || "";
-  }
-
-
-  function validateAngolaIban(value) {
-    const iban =
-      normalizeIban(value);
-
-    if (
-      iban.length !== 25 ||
-      !iban.startsWith("AO")
-    ) {
-      return false;
-    }
-
-    const rearranged =
-      iban.slice(4) +
-      iban.slice(0, 4);
-
-    let numeric = "";
-
-    for (const char of rearranged) {
-      if (
-        char >= "A" &&
-        char <= "Z"
-      ) {
-        numeric += String(
-          char.charCodeAt(0) - 55
-        );
-      } else {
-        numeric += char;
-      }
-    }
-
-    let remainder = 0;
-
-    for (
-      let index = 0;
-      index < numeric.length;
-      index += 7
-    ) {
-      remainder =
-        Number(
-          String(remainder) +
-          numeric.slice(index,index + 7)
-        ) % 97;
-    }
-
-    return remainder === 1;
-  }
-
-
-  function updateSteps() {
-    const step1 =
-      document.getElementById(
-        "stepIndicator1"
-      );
-
-    const step2 =
-      document.getElementById(
-        "stepIndicator2"
-      );
-
-    const step3 =
-      document.getElementById(
-        "stepIndicator3"
-      );
-
-    step1.classList.toggle(
-      "done",
-      state.companyVerified
-    );
-
-    step1.classList.toggle(
-      "active",
-      !state.companyVerified
-    );
-
-    step2.classList.toggle(
-      "active",
-      state.companyVerified &&
-      !state.ibanValid
-    );
-
-    step2.classList.toggle(
-      "done",
-      state.ibanValid
-    );
-
-    step3.classList.toggle(
-      "active",
-      state.companyVerified &&
-      state.ibanValid
-    );
-  }
-
-
-  function maskIban(iban) {
-    const clean =
-      normalizeIban(iban);
-
-    if (clean.length < 12) {
-      return formatIban(clean);
-    }
-
-    return (
-      clean.slice(0,8) +
-      " •••• •••• " +
-      clean.slice(-4)
-    );
-  }
-
-
-  function updateSummary() {
-    if (
-      !state.companyVerified ||
-      !state.ibanValid
-    ) {
-      summary.classList.remove("visible");
-      completeButton.disabled = true;
-      return;
-    }
-
-    summaryCompany.textContent =
-      state.companyName;
-
-    summaryNif.textContent =
-      state.verifiedNif;
-
-    summaryBank.textContent =
-      state.bankName;
-
-    summaryIban.textContent =
-      maskIban(state.iban);
-
-    summary.classList.add("visible");
-
-    completeButton.disabled = false;
-
-    updateSteps();
-  }
-
-
-  async function request(
-    url,
-    options = {}
-  ) {
-    const response =
-      await fetch(
-        url,
-        {
-          credentials:"include",
-          cache:"no-store",
-          ...options
-        }
-      );
-
-    const text =
-      await response.text();
-
-    let data = {};
-
-    try {
-      data = text
-        ? JSON.parse(text)
-        : {};
-    } catch {
-      data = {};
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        data.error ||
-        "Não foi possível concluir a operação."
-      );
-    }
-
-    return data;
-  }
-
-
-  async function loadStatus() {
-    try {
-      const data =
-        await request(
-          "/api/onboarding/status"
-        );
-
-      if (!data.authenticated) {
-        window.location.href =
-          "/login";
-        return;
-      }
-
-      if (
-        data.onboardingCompleted
-      ) {
-        window.location.href =
-          "/index.html";
-        return;
-      }
-
-      if (
-        data.merchant?.nif
-      ) {
-        nifInput.value =
-          data.merchant.nif;
-      }
-
-    } catch (error) {
-      console.error(
-        "Onboarding status:",
-        error
-      );
-
-      window.location.href =
-        "/login";
-    }
-  }
-
-
-  async function verifyCompany() {
-    const nif =
-      normalizeNif(
-        nifInput.value
-      );
-
-    nifInput.value = nif;
-
-    if (!nif) {
-      setStatus(
-        nifStatus,
-        "error",
-        "Introduza o NIF da empresa."
-      );
-      return;
-    }
-
-    if (nif.length < 9) {
-      setStatus(
-        nifStatus,
-        "error",
-        "Verifique o NIF introduzido."
-      );
-      return;
-    }
-
-    verifyNifButton.disabled = true;
-
-    verifyNifButton.innerHTML =
-      '<span class="spinner"></span> A verificar...';
-
-    clearStatus(nifStatus);
-
-    companyResult.classList.remove(
-      "visible"
-    );
-
-    try {
-      const data =
-        await request(
-          "/api/onboarding/company",
-          {
-            method:"POST",
-            headers:{
-              "Content-Type":
-                "application/json"
-            },
-            body:
-              JSON.stringify({ nif })
-          }
-        );
-
-      if (
-        !data.company?.found
-      ) {
-        throw new Error(
-          "Empresa não encontrada."
-        );
-      }
-
-      state.companyVerified =
-        true;
-
-      state.companyName =
-        data.company.name;
-
-      state.verifiedNif =
-        data.company.nif;
-
-      companyName.textContent =
-        data.company.name;
-
-      companyMeta.textContent =
-        `NIF: ${data.company.nif} · Fonte: GUE`;
-
-      companyResult.classList.add(
-        "visible"
-      );
-
-      setStatus(
-        nifStatus,
-        "success",
-        "Empresa encontrada e validada."
-      );
-
-      ibanInput.disabled = false;
-
-      updateSteps();
-
-      ibanInput.focus();
-
-    } catch (error) {
-
-      state.companyVerified =
-        false;
-
-      state.companyName =
-        "";
-
-      state.verifiedNif =
-        "";
-
-      state.ibanValid =
-        false;
-
-      state.bankCode =
-        "";
-
-      state.bankName =
-        "";
-
-      state.iban =
-        "";
-
-      ibanInput.value = "";
-
-      ibanInput.disabled = true;
-
-      bankResult.classList.remove(
-        "visible"
-      );
-
-      updateSummary();
-
-      setStatus(
-        nifStatus,
-        "error",
-        error.message ||
-        "Empresa não encontrada."
-      );
-
-    } finally {
-
-      verifyNifButton.disabled =
-        false;
-
-      verifyNifButton.textContent =
-        "Verificar empresa";
-    }
-  }
-
-
-  function handleIbanInput() {
-    const formatted =
-      formatIban(
-        ibanInput.value
-      );
-
-    ibanInput.value =
-      formatted;
-
-    state.ibanValid = false;
-    state.bankCode = "";
-    state.bankName = "";
-
-    state.iban =
-      normalizeIban(
-        formatted
-      );
-
-    bankResult.classList.remove(
-      "visible"
-    );
-
-    if (!state.companyVerified) {
-      clearStatus(ibanStatus);
-      updateSummary();
-      return;
-    }
-
-    const clean =
-      normalizeIban(
-        formatted
-      );
-
-    if (!clean) {
-      clearStatus(ibanStatus);
-      updateSummary();
-      return;
-    }
-
-    if (clean.length < 25) {
-      setStatus(
-        ibanStatus,
-        "error",
-        "O IBAN angolano deve ter 25 caracteres."
-      );
-
-      updateSummary();
-      return;
-    }
-
-    if (!clean.startsWith("AO")) {
-      setStatus(
-        ibanStatus,
-        "error",
-        "O IBAN deve começar por AO."
-      );
-
-      updateSummary();
-      return;
-    }
-
-    if (
-      !validateAngolaIban(clean)
-    ) {
-      setStatus(
-        ibanStatus,
-        "error",
-        "O IBAN introduzido não passou na validação."
-      );
-
-      updateSummary();
-      return;
-    }
-
-    const code =
-      clean.slice(4,8);
-
-    state.bankCode =
-      code;
-
-    const bank =
-      getBankName(code);
-
-    if (!bank) {
-      setStatus(
-        ibanStatus,
-        "error",
-        "O IBAN é válido, mas ainda não reconhecemos este código bancário."
-      );
-
-      updateSummary();
-      return;
-    }
-
-    state.ibanValid =
-      true;
-
-    state.bankName =
-      bank;
-
-    state.iban =
-      clean;
-
-    setStatus(
-      ibanStatus,
-      "success",
-      "IBAN válido."
-    );
-
-    bankName.textContent =
-      bank;
-
-    bankCode.textContent =
-      code;
-
-    bankResult.classList.add(
-      "visible"
-    );
-
-    updateSummary();
-  }
-
-
-  function getBankName(code) {
-    const banks = {
-      "0004":
-        "Banco Caixa Geral Angola",
-      "0005":
-        "Banco de Comércio e Indústria",
-      "0006":
-        "Banco de Fomento de Angola",
-      "0010":
-        "Banco de Poupança e Crédito",
-      "0040":
-        "Banco Angolano de Investimentos",
-      "0044":
-        "Banco Sol",
-      "0045":
-        "Banco Económico",
-      "0047":
-        "Banco KEVE",
-      "0051":
-        "Banco BIC",
-      "0055":
-        "Banco Millennium Atlântico",
-      "0060":
-        "Standard Bank de Angola"
+  <script>
+    "use strict";
+
+    const state = {
+      companyVerified: false,
+      companyName: "",
+      verifiedNif: "",
+      ibanValid: false,
+      bankCode: "",
+      bankName: "",
+      iban: "",
+      loading: false
     };
 
-    return banks[code] || "";
-  }
+
+    const nifInput =
+      document.getElementById("nif");
+
+    const verifyNifButton =
+      document.getElementById("verifyNifButton");
+
+    const nifStatus =
+      document.getElementById("nifStatus");
+
+    const companyResult =
+      document.getElementById("companyResult");
+
+    const companyName =
+      document.getElementById("companyName");
+
+    const companyMeta =
+      document.getElementById("companyMeta");
+
+    const ibanInput =
+      document.getElementById("iban");
+
+    const ibanStatus =
+      document.getElementById("ibanStatus");
+
+    const bankResult =
+      document.getElementById("bankResult");
+
+    const bankName =
+      document.getElementById("bankName");
+
+    const bankCode =
+      document.getElementById("bankCode");
+
+    const summary =
+      document.getElementById("summary");
+
+    const summaryCompany =
+      document.getElementById("summaryCompany");
+
+    const summaryNif =
+      document.getElementById("summaryNif");
+
+    const summaryBank =
+      document.getElementById("summaryBank");
+
+    const summaryIban =
+      document.getElementById("summaryIban");
+
+    const completeButton =
+      document.getElementById("completeButton");
 
 
-  async function completeOnboarding() {
-    if (
-      !state.companyVerified ||
-      !state.ibanValid
+    function setStatus(
+      element,
+      type,
+      message
     ) {
-      return;
+      element.className =
+        "status visible " + type;
+
+      element.innerHTML = `
+        <span class="status-icon">
+          ${type === "success" ? "✓" : "!"}
+        </span>
+
+        <span>${escapeHtml(message)}</span>
+      `;
     }
 
-    completeButton.disabled =
-      true;
 
-    completeButton.innerHTML =
-      '<span class="spinner"></span> A guardar...';
+    function clearStatus(element) {
+      element.className = "status";
+      element.innerHTML = "";
+    }
 
-    try {
 
-      const data =
-        await request(
-          "/api/onboarding/complete",
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function normalizeNif(value) {
+      return String(value || "")
+        .replace(/\D/g, "")
+        .slice(0, 20);
+    }
+
+
+    function normalizeIban(value) {
+      return String(value || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 25);
+    }
+
+
+    function formatIban(value) {
+      const clean =
+        normalizeIban(value);
+
+      return clean.match(/.{1,4}/g)?.join(" ") || "";
+    }
+
+
+    function validateAngolaIban(value) {
+      const iban =
+        normalizeIban(value);
+
+      if (
+        iban.length !== 25 ||
+        !iban.startsWith("AO")
+      ) {
+        return false;
+      }
+
+      const rearranged =
+        iban.slice(4) +
+        iban.slice(0, 4);
+
+      let numeric = "";
+
+      for (const char of rearranged) {
+        if (
+          char >= "A" &&
+          char <= "Z"
+        ) {
+          numeric +=
+            String(
+              char.charCodeAt(0) - 55
+            );
+        } else {
+          numeric += char;
+        }
+      }
+
+      let remainder = 0;
+
+      for (
+        let index = 0;
+        index < numeric.length;
+        index += 7
+      ) {
+        remainder =
+          Number(
+            String(remainder) +
+            numeric.slice(index, index + 7)
+          ) % 97;
+      }
+
+      return remainder === 1;
+    }
+
+
+    function updateSteps() {
+      const step1 =
+        document.getElementById(
+          "stepIndicator1"
+        );
+
+      const step2 =
+        document.getElementById(
+          "stepIndicator2"
+        );
+
+      const step3 =
+        document.getElementById(
+          "stepIndicator3"
+        );
+
+      step1.classList.toggle(
+        "done",
+        state.companyVerified
+      );
+
+      step1.classList.toggle(
+        "active",
+        !state.companyVerified
+      );
+
+      step2.classList.toggle(
+        "active",
+        state.companyVerified &&
+        !state.ibanValid
+      );
+
+      step2.classList.toggle(
+        "done",
+        state.ibanValid
+      );
+
+      step3.classList.toggle(
+        "active",
+        state.companyVerified &&
+        state.ibanValid
+      );
+    }
+
+
+    function updateSummary() {
+      if (
+        !state.companyVerified ||
+        !state.ibanValid
+      ) {
+        summary.classList.remove(
+          "visible"
+        );
+
+        completeButton.disabled = true;
+
+        return;
+      }
+
+      summaryCompany.textContent =
+        state.companyName;
+
+      summaryNif.textContent =
+        state.verifiedNif;
+
+      summaryBank.textContent =
+        state.bankName;
+
+      summaryIban.textContent =
+        maskIban(state.iban);
+
+      summary.classList.add(
+        "visible"
+      );
+
+      completeButton.disabled = false;
+
+      updateSteps();
+    }
+
+
+    function maskIban(iban) {
+      const clean =
+        normalizeIban(iban);
+
+      if (clean.length < 12) {
+        return formatIban(clean);
+      }
+
+      return (
+        clean.slice(0, 8) +
+        " •••• •••• " +
+        clean.slice(-4)
+      );
+    }
+
+
+    async function request(
+      url,
+      options = {}
+    ) {
+      const response =
+        await fetch(
+          url,
           {
-            method:"POST",
-
-            headers:{
-              "Content-Type":
-                "application/json"
-            },
-
-            body:
-              JSON.stringify({
-                nif:
-                  state.verifiedNif,
-
-                businessName:
-                  state.companyName,
-
-                iban:
-                  state.iban,
-
-                bankCode:
-                  state.bankCode,
-
-                bankName:
-                  state.bankName
-              })
+            credentials: "include",
+            cache: "no-store",
+            ...options
           }
         );
 
-      if (!data.success) {
+      const text =
+        await response.text();
+
+      let data = {};
+
+      try {
+        data =
+          text
+            ? JSON.parse(text)
+            : {};
+      } catch {
+        data = {};
+      }
+
+      if (!response.ok) {
         throw new Error(
           data.error ||
-          "Não foi possível concluir a configuração."
+          "Não foi possível concluir a operação."
         );
       }
 
-      completeButton.innerHTML =
-        "✓ Configuração concluída";
+      return data;
+    }
 
-      setTimeout(
-        () => {
+
+    async function loadStatus() {
+      try {
+        const data =
+          await request(
+            "/api/onboarding/status"
+          );
+
+        if (!data.authenticated) {
+          window.location.href =
+            "/login";
+
+          return;
+        }
+
+        if (
+          data.onboardingCompleted
+        ) {
           window.location.href =
             "/index.html";
-        },
-        500
-      );
 
-    } catch (error) {
+          return;
+        }
 
-      console.error(
-        "Complete onboarding:",
-        error
-      );
+        if (
+          data.merchant?.nif
+        ) {
+          nifInput.value =
+            data.merchant.nif;
+        }
 
-      setStatus(
-        ibanStatus,
-        "error",
-        error.message ||
-        "Não foi possível guardar os dados."
-      );
+      } catch (error) {
+        console.error(
+          "Onboarding status:",
+          error
+        );
 
-      completeButton.disabled =
-        false;
-
-      completeButton.textContent =
-        "Concluir configuração";
+        window.location.href =
+          "/login";
+      }
     }
-  }
 
 
-  verifyNifButton.addEventListener(
-    "click",
-    verifyCompany
-  );
-
-
-  nifInput.addEventListener(
-    "input",
-    () => {
-
-      nifInput.value =
+    async function verifyCompany() {
+      const nif =
         normalizeNif(
           nifInput.value
         );
 
-      if (
-        state.companyVerified &&
-        nifInput.value !==
-          state.verifiedNif
-      ) {
+      nifInput.value = nif;
 
+      if (!nif) {
+        setStatus(
+          nifStatus,
+          "error",
+          "Introduza o NIF da empresa."
+        );
+
+        return;
+      }
+
+      if (nif.length < 9) {
+        setStatus(
+          nifStatus,
+          "error",
+          "Verifique o NIF introduzido."
+        );
+
+        return;
+      }
+
+      verifyNifButton.disabled = true;
+
+      verifyNifButton.innerHTML =
+        '<span class="spinner"></span> A verificar...';
+
+      clearStatus(
+        nifStatus
+      );
+
+      companyResult.classList.remove(
+        "visible"
+      );
+
+      try {
+        const data =
+          await request(
+            "/api/onboarding/company",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  nif
+                })
+            }
+          );
+
+        if (
+          !data.company?.found
+        ) {
+          throw new Error(
+            "Empresa não encontrada."
+          );
+        }
+
+        state.companyVerified =
+          true;
+
+        state.companyName =
+          data.company.name;
+
+        state.verifiedNif =
+          data.company.nif;
+
+        companyName.textContent =
+          data.company.name;
+
+        companyMeta.textContent =
+          `NIF: ${data.company.nif} · Fonte: GUE`;
+
+        companyResult.classList.add(
+          "visible"
+        );
+
+        setStatus(
+          nifStatus,
+          "success",
+          "Empresa encontrada e validada."
+        );
+
+        ibanInput.disabled = false;
+
+        ibanInput.focus();
+
+        updateSteps();
+
+      } catch (error) {
         state.companyVerified =
           false;
 
@@ -1672,62 +1884,390 @@
         state.iban =
           "";
 
-        ibanInput.value =
-          "";
+        ibanInput.value = "";
 
-        ibanInput.disabled =
-          true;
-
-        companyResult.classList.remove(
-          "visible"
-        );
+        ibanInput.disabled = true;
 
         bankResult.classList.remove(
           "visible"
         );
 
-        clearStatus(
-          nifStatus
+        updateSummary();
+
+        setStatus(
+          nifStatus,
+          "error",
+          error.message ||
+            "Empresa não encontrada."
         );
 
+      } finally {
+        verifyNifButton.disabled =
+          false;
+
+        verifyNifButton.textContent =
+          "Verificar empresa";
+      }
+    }
+
+
+    function handleIbanInput() {
+      const formatted =
+        formatIban(
+          ibanInput.value
+        );
+
+      ibanInput.value =
+        formatted;
+
+      state.ibanValid = false;
+      state.bankCode = "";
+      state.bankName = "";
+      state.iban =
+        normalizeIban(
+          formatted
+        );
+
+      bankResult.classList.remove(
+        "visible"
+      );
+
+      if (!state.companyVerified) {
         clearStatus(
           ibanStatus
         );
 
         updateSummary();
-        updateSteps();
+
+        return;
       }
-    }
-  );
 
+      const clean =
+        normalizeIban(
+          formatted
+        );
 
-  nifInput.addEventListener(
-    "keydown",
-    event => {
+      if (!clean) {
+        clearStatus(
+          ibanStatus
+        );
+
+        updateSummary();
+
+        return;
+      }
 
       if (
-        event.key === "Enter"
+        clean.length < 25
       ) {
-        event.preventDefault();
-        verifyCompany();
+        setStatus(
+          ibanStatus,
+          "error",
+          "O IBAN angolano deve ter 25 caracteres."
+        );
+
+        updateSummary();
+
+        return;
       }
 
+      if (
+        !clean.startsWith("AO")
+      ) {
+        setStatus(
+          ibanStatus,
+          "error",
+          "O IBAN deve começar por AO."
+        );
+
+        updateSummary();
+
+        return;
+      }
+
+      if (
+        !validateAngolaIban(
+          clean
+        )
+      ) {
+        setStatus(
+          ibanStatus,
+          "error",
+          "O IBAN introduzido não passou na validação."
+        );
+
+        updateSummary();
+
+        return;
+      }
+
+      const code =
+        clean.slice(4, 8);
+
+      state.bankCode =
+        code;
+
+      const bank =
+        getBankName(
+          code
+        );
+
+      if (!bank) {
+        setStatus(
+          ibanStatus,
+          "error",
+          "O IBAN é válido, mas ainda não reconhecemos este código bancário."
+        );
+
+        updateSummary();
+
+        return;
+      }
+
+      state.ibanValid =
+        true;
+
+      state.bankName =
+        bank;
+
+      state.iban =
+        clean;
+
+      setStatus(
+        ibanStatus,
+        "success",
+        "IBAN válido."
+      );
+
+      bankName.textContent =
+        bank;
+
+      bankCode.textContent =
+        code;
+
+      bankResult.classList.add(
+        "visible"
+      );
+
+      updateSummary();
     }
-  );
 
 
-  ibanInput.addEventListener(
-    "input",
-    handleIbanInput
-  );
+    /*
+     * Códigos bancários usados na estrutura
+     * NBA/IBAN angolana.
+     *
+     * Mantemos a lista no frontend apenas
+     * para feedback visual.
+     *
+     * O backend volta a validar o código
+     * antes de guardar.
+     */
+    function getBankName(code) {
+      const banks = {
+        "0004":
+          "Banco Caixa Geral Angola",
+        "0005":
+          "Banco de Comércio e Indústria",
+        "0006":
+          "Banco de Fomento de Angola",
+        "0010":
+          "Banco de Poupança e Crédito",
+        "0040":
+          "Banco Angolano de Investimentos",
+        "0044":
+          "Banco Sol",
+        "0045":
+          "Banco Económico",
+        "0047":
+          "Banco KEVE",
+        "0051":
+          "Banco BIC",
+        "0055":
+          "Banco Millennium Atlântico",
+        "0060":
+          "Standard Bank de Angola"
+      };
+
+      return banks[code] || "";
+    }
 
 
-  completeButton.addEventListener(
-    "click",
-    completeOnboarding
-  );
+    async function completeOnboarding() {
+      if (
+        !state.companyVerified ||
+        !state.ibanValid
+      ) {
+        return;
+      }
+
+      completeButton.disabled =
+        true;
+
+      completeButton.innerHTML =
+        '<span class="spinner"></span> A guardar...';
+
+      try {
+        const data =
+          await request(
+            "/api/onboarding/complete",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  nif:
+                    state.verifiedNif,
+
+                  businessName:
+                    state.companyName,
+
+                  iban:
+                    state.iban,
+
+                  bankCode:
+                    state.bankCode,
+
+                  bankName:
+                    state.bankName
+                })
+            }
+          );
+
+        if (
+          !data.success
+        ) {
+          throw new Error(
+            data.error ||
+              "Não foi possível concluir a configuração."
+          );
+        }
+
+        completeButton.innerHTML =
+          "✓ Configuração concluída";
+
+        setTimeout(
+          () => {
+            window.location.href =
+              "/index.html";
+          },
+          500
+        );
+
+      } catch (error) {
+        console.error(
+          "Complete onboarding:",
+          error
+        );
+
+        setStatus(
+          ibanStatus,
+          "error",
+          error.message ||
+            "Não foi possível guardar os dados."
+        );
+
+        completeButton.disabled =
+          false;
+
+        completeButton.textContent =
+          "Concluir configuração";
+      }
+    }
 
 
-  loadStatus();
-</script></body>
+    verifyNifButton.addEventListener(
+      "click",
+      verifyCompany
+    );
+
+
+    nifInput.addEventListener(
+      "input",
+      () => {
+        nifInput.value =
+          normalizeNif(
+            nifInput.value
+          );
+
+        if (
+          state.companyVerified &&
+          nifInput.value !==
+            state.verifiedNif
+        ) {
+          state.companyVerified =
+            false;
+
+          state.companyName =
+            "";
+
+          state.verifiedNif =
+            "";
+
+          state.ibanValid =
+            false;
+
+          ibanInput.value = "";
+
+          ibanInput.disabled =
+            true;
+
+          companyResult.classList.remove(
+            "visible"
+          );
+
+          bankResult.classList.remove(
+            "visible"
+          );
+
+          clearStatus(
+            nifStatus
+          );
+
+          clearStatus(
+            ibanStatus
+          );
+
+          updateSummary();
+        }
+      }
+    );
+
+
+    nifInput.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key ===
+          "Enter"
+        ) {
+          event.preventDefault();
+
+          verifyCompany();
+        }
+      }
+    );
+
+
+    ibanInput.addEventListener(
+      "input",
+      handleIbanInput
+    );
+
+
+    completeButton.addEventListener(
+      "click",
+      completeOnboarding
+    );
+
+
+    loadStatus();
+  </script>
+
+</body>
 </html>
