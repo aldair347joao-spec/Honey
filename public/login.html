@@ -1,0 +1,3573 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="description"
+    content="Entre na sua conta Honey Pay e gira os seus pagamentos, clientes e vendas."
+  >
+
+  <meta
+    name="theme-color"
+    content="#07111f"
+  >
+
+  <title>Honey Pay — Entrar</title>
+
+  <style>
+    :root {
+      --hp-bg: #050b14;
+      --hp-bg-2: #071321;
+      --hp-panel: rgba(11, 24, 39, 0.82);
+      --hp-panel-solid: #0b1827;
+
+      --hp-gold: #f5c542;
+      --hp-gold-2: #ffd866;
+      --hp-gold-soft: rgba(245, 197, 66, 0.12);
+      --hp-gold-border: rgba(245, 197, 66, 0.28);
+
+      --hp-white: #f8fafc;
+      --hp-text: #e8edf4;
+      --hp-muted: #8f9cad;
+      --hp-muted-2: #687789;
+
+      --hp-border: rgba(255, 255, 255, 0.085);
+      --hp-border-strong: rgba(255, 255, 255, 0.13);
+
+      --hp-success: #55d6a0;
+      --hp-danger: #ff7474;
+
+      --hp-radius-xl: 28px;
+      --hp-radius-lg: 18px;
+      --hp-radius-md: 13px;
+
+      --hp-shadow:
+        0 35px 100px rgba(0, 0, 0, 0.48);
+
+      --hp-font:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--hp-bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      font-family: var(--hp-font);
+      color: var(--hp-white);
+
+      background:
+        radial-gradient(
+          circle at 10% 20%,
+          rgba(245, 197, 66, 0.07),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 82% 12%,
+          rgba(36, 91, 145, 0.18),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #040911 0%,
+          #07111f 50%,
+          #050b14 100%
+        );
+
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    /* =====================================================
+       BACKGROUND
+    ===================================================== */
+
+    .hp-background {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .hp-grid {
+      position: absolute;
+      inset: 0;
+
+      opacity: 0.23;
+
+      background-image:
+        linear-gradient(
+          rgba(255, 255, 255, 0.028) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.028) 1px,
+          transparent 1px
+        );
+
+      background-size: 54px 54px;
+
+      mask-image:
+        radial-gradient(
+          ellipse at center,
+          black 20%,
+          transparent 78%
+        );
+    }
+
+    .hp-orb {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(2px);
+      opacity: 0.65;
+    }
+
+    .hp-orb-one {
+      width: 380px;
+      height: 380px;
+      left: -210px;
+      top: 24%;
+      background: rgba(245, 197, 66, 0.055);
+      animation: hpFloatOne 12s ease-in-out infinite;
+    }
+
+    .hp-orb-two {
+      width: 420px;
+      height: 420px;
+      right: -230px;
+      bottom: -100px;
+      background: rgba(26, 86, 139, 0.14);
+      animation: hpFloatTwo 15s ease-in-out infinite;
+    }
+
+    @keyframes hpFloatOne {
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+
+      50% {
+        transform: translate3d(45px, -28px, 0);
+      }
+    }
+
+    @keyframes hpFloatTwo {
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+
+      50% {
+        transform: translate3d(-35px, -35px, 0);
+      }
+    }
+
+    /* =====================================================
+       PAGE
+    ===================================================== */
+
+    .hp-page {
+      position: relative;
+      z-index: 1;
+
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding:
+        28px
+        max(28px, env(safe-area-inset-right))
+        28px
+        max(28px, env(safe-area-inset-left));
+    }
+
+    .hp-shell {
+      width: min(1180px, 100%);
+
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+
+      min-height: 720px;
+
+      border:
+        1px solid var(--hp-border);
+
+      border-radius: var(--hp-radius-xl);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(14, 30, 48, 0.74),
+          rgba(5, 13, 23, 0.91)
+        );
+
+      box-shadow: var(--hp-shadow);
+
+      overflow: hidden;
+
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    /* =====================================================
+       BRAND SIDE
+    ===================================================== */
+
+    .hp-brand-side {
+      position: relative;
+
+      padding: 54px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      border-right:
+        1px solid var(--hp-border);
+
+      overflow: hidden;
+    }
+
+    .hp-brand-side::after {
+      content: "";
+
+      position: absolute;
+      width: 500px;
+      height: 500px;
+
+      right: -280px;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      border-radius: 50%;
+
+      border:
+        1px solid rgba(245, 197, 66, 0.08);
+
+      box-shadow:
+        0 0 0 70px rgba(245, 197, 66, 0.025),
+        0 0 0 140px rgba(245, 197, 66, 0.014);
+
+      pointer-events: none;
+    }
+
+    .hp-brand-top {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hp-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+
+      text-decoration: none;
+    }
+
+    .hp-logo-mark {
+      width: 44px;
+      height: 44px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 14px;
+
+      background:
+        linear-gradient(
+          145deg,
+          var(--hp-gold-2),
+          var(--hp-gold)
+        );
+
+      color: #111820;
+
+      font-size: 20px;
+      font-weight: 950;
+
+      box-shadow:
+        0 10px 30px rgba(245, 197, 66, 0.17);
+    }
+
+    .hp-logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .hp-logo-name {
+      font-size: 18px;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      line-height: 1;
+    }
+
+    .hp-logo-caption {
+      color: var(--hp-muted);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.17em;
+      text-transform: uppercase;
+    }
+
+    .hp-brand-content {
+      position: relative;
+      z-index: 2;
+
+      max-width: 590px;
+
+      margin-top: 50px;
+      margin-bottom: 30px;
+    }
+
+    .hp-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      margin-bottom: 21px;
+
+      padding: 7px 11px;
+
+      border:
+        1px solid var(--hp-gold-border);
+
+      border-radius: 999px;
+
+      background:
+        rgba(245, 197, 66, 0.055);
+
+      color: var(--hp-gold-2);
+
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hp-eyebrow-dot {
+      width: 6px;
+      height: 6px;
+
+      border-radius: 50%;
+
+      background: var(--hp-gold);
+
+      box-shadow:
+        0 0 0 5px rgba(245, 197, 66, 0.08);
+
+      animation: hpPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes hpPulse {
+      0%,
+      100% {
+        opacity: 0.6;
+        transform: scale(0.85);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .hp-brand-content h1 {
+      margin: 0;
+
+      max-width: 580px;
+
+      font-size:
+        clamp(42px, 5vw, 68px);
+
+      line-height: 0.98;
+
+      letter-spacing: -0.055em;
+
+      font-weight: 850;
+    }
+
+    .hp-brand-content h1 span {
+      color: var(--hp-gold);
+    }
+
+    .hp-brand-description {
+      max-width: 500px;
+
+      margin:
+        24px
+        0
+        0;
+
+      color: var(--hp-muted);
+
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* =====================================================
+       PAYMENT FLOW VISUAL
+    ===================================================== */
+
+    .hp-flow {
+      position: relative;
+
+      margin-top: 42px;
+
+      min-height: 195px;
+    }
+
+    .hp-flow-line {
+      position: absolute;
+
+      left: 31px;
+      right: 31px;
+      top: 53px;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(245, 197, 66, 0.38),
+          rgba(245, 197, 66, 0.08),
+          transparent
+        );
+    }
+
+    .hp-flow-line::after {
+      content: "";
+
+      position: absolute;
+
+      width: 80px;
+      height: 1px;
+
+      top: 0;
+      left: 0;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          var(--hp-gold),
+          transparent
+        );
+
+      animation: hpFlowMove 4s linear infinite;
+    }
+
+    @keyframes hpFlowMove {
+      from {
+        transform: translateX(-100px);
+      }
+
+      to {
+        transform: translateX(530px);
+      }
+    }
+
+    .hp-flow-items {
+      position: relative;
+
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+
+      gap: 16px;
+    }
+
+    .hp-flow-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 11px;
+    }
+
+    .hp-flow-icon {
+      position: relative;
+      z-index: 2;
+
+      width: 62px;
+      height: 62px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid var(--hp-border-strong);
+
+      border-radius: 18px;
+
+      background:
+        rgba(8, 18, 30, 0.9);
+
+      color: var(--hp-gold-2);
+
+      box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.2);
+
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .hp-flow-icon svg {
+      width: 23px;
+      height: 23px;
+    }
+
+    .hp-flow-title {
+      font-size: 12px;
+      font-weight: 750;
+      color: var(--hp-text);
+    }
+
+    .hp-flow-subtitle {
+      font-size: 10px;
+      color: var(--hp-muted-2);
+      line-height: 1.4;
+    }
+
+    /* =====================================================
+       FLOATING TRANSACTION
+    ===================================================== */
+
+    .hp-transaction {
+      position: absolute;
+
+      right: 5%;
+      bottom: 34px;
+
+      z-index: 4;
+
+      width: 230px;
+
+      padding: 15px;
+
+      border:
+        1px solid rgba(255, 255, 255, 0.10);
+
+      border-radius: 16px;
+
+      background:
+        rgba(8, 19, 32, 0.82);
+
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.28);
+
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+
+      animation:
+        hpTransactionFloat
+        5.5s
+        ease-in-out
+        infinite;
+    }
+
+    @keyframes hpTransactionFloat {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-9px);
+      }
+    }
+
+    .hp-transaction-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-bottom: 12px;
+    }
+
+    .hp-transaction-label {
+      color: var(--hp-muted);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .hp-status-dot {
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background: var(--hp-success);
+
+      box-shadow:
+        0 0 0 5px rgba(85, 214, 160, 0.08);
+    }
+
+    .hp-transaction-value {
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -0.04em;
+    }
+
+    .hp-transaction-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-top: 6px;
+    }
+
+    .hp-transaction-method {
+      color: var(--hp-muted-2);
+      font-size: 9px;
+    }
+
+    .hp-transaction-success {
+      color: var(--hp-success);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    /* =====================================================
+       BRAND FOOTER
+    ===================================================== */
+
+    .hp-brand-footer {
+      position: relative;
+      z-index: 2;
+
+      display: flex;
+      align-items: center;
+      gap: 18px;
+
+      color: var(--hp-muted-2);
+
+      font-size: 10px;
+    }
+
+    .hp-trust {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .hp-trust svg {
+      width: 14px;
+      height: 14px;
+
+      color: var(--hp-gold);
+    }
+
+    .hp-footer-separator {
+      width: 3px;
+      height: 3px;
+
+      border-radius: 50%;
+
+      background: var(--hp-muted-2);
+    }
+
+    /* =====================================================
+       AUTH SIDE
+    ===================================================== */
+
+    .hp-auth-side {
+      position: relative;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 48px;
+    }
+
+    .hp-auth-container {
+      width: min(390px, 100%);
+    }
+
+    .hp-auth-header {
+      margin-bottom: 30px;
+    }
+
+    .hp-auth-kicker {
+      margin-bottom: 10px;
+
+      color: var(--hp-gold);
+
+      font-size: 10px;
+      font-weight: 850;
+
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .hp-auth-header h2 {
+      margin: 0;
+
+      font-size: 32px;
+      line-height: 1.08;
+
+      letter-spacing: -0.04em;
+
+      font-weight: 830;
+    }
+
+    .hp-auth-header p {
+      margin: 11px 0 0;
+
+      color: var(--hp-muted);
+
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* =====================================================
+       AUTH MESSAGES
+    ===================================================== */
+
+    .hp-message {
+      display: none;
+
+      margin-bottom: 18px;
+
+      padding: 12px 14px;
+
+      border-radius: var(--hp-radius-md);
+
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .hp-message.is-visible {
+      display: block;
+    }
+
+    .hp-message.error {
+      color: #ffb2b2;
+
+      border:
+        1px solid rgba(255, 116, 116, 0.20);
+
+      background:
+        rgba(255, 116, 116, 0.08);
+    }
+
+    .hp-message.success {
+      color: #9bf0c9;
+
+      border:
+        1px solid rgba(85, 214, 160, 0.20);
+
+      background:
+        rgba(85, 214, 160, 0.08);
+    }
+
+    .hp-message.info {
+      color: #bcd8f3;
+
+      border:
+        1px solid rgba(93, 162, 221, 0.20);
+
+      background:
+        rgba(93, 162, 221, 0.08);
+    }
+
+    /* =====================================================
+       FORM
+    ===================================================== */
+
+    .hp-form {
+      display: none;
+    }
+
+    .hp-form.is-active {
+      display: block;
+      animation: hpFormIn 0.24s ease;
+    }
+
+    @keyframes hpFormIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hp-field {
+      margin-bottom: 17px;
+    }
+
+    .hp-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-bottom: 8px;
+    }
+
+    .hp-label {
+      color: #cdd5df;
+
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .hp-input-wrap {
+      position: relative;
+    }
+
+    .hp-input {
+      width: 100%;
+
+      height: 52px;
+
+      padding:
+        0
+        15px;
+
+      border:
+        1px solid var(--hp-border);
+
+      border-radius: var(--hp-radius-md);
+
+      outline: none;
+
+      background:
+        rgba(255, 255, 255, 0.035);
+
+      color: var(--hp-white);
+
+      font-size: 13px;
+
+      transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    }
+
+    .hp-input.has-toggle {
+      padding-right: 50px;
+    }
+
+    .hp-input::placeholder {
+      color: #526174;
+    }
+
+    .hp-input:hover {
+      border-color: rgba(255, 255, 255, 0.13);
+    }
+
+    .hp-input:focus {
+      border-color:
+        rgba(245, 197, 66, 0.62);
+
+      background:
+        rgba(245, 197, 66, 0.025);
+
+      box-shadow:
+        0 0 0 4px rgba(245, 197, 66, 0.07);
+    }
+
+    .hp-input.hp-invalid {
+      border-color:
+        rgba(255, 116, 116, 0.65);
+    }
+
+    .hp-password-toggle {
+      position: absolute;
+
+      right: 7px;
+      top: 50%;
+
+      width: 38px;
+      height: 38px;
+
+      transform: translateY(-50%);
+
+      display: grid;
+      place-items: center;
+
+      border: 0;
+      border-radius: 10px;
+
+      background: transparent;
+
+      color: var(--hp-muted);
+
+      cursor: pointer;
+
+      transition:
+        background 0.18s ease,
+        color 0.18s ease;
+    }
+
+    .hp-password-toggle:hover {
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--hp-white);
+    }
+
+    .hp-password-toggle svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .hp-link {
+      border: 0;
+      padding: 0;
+
+      background: transparent;
+
+      color: var(--hp-gold);
+
+      font-size: 11px;
+      font-weight: 700;
+
+      text-decoration: none;
+
+      cursor: pointer;
+    }
+
+    .hp-link:hover {
+      color: var(--hp-gold-2);
+      text-decoration: underline;
+    }
+
+    /* =====================================================
+       PASSWORD RULES
+    ===================================================== */
+
+    .hp-password-rules {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 6px 10px;
+
+      margin-top: 10px;
+      margin-bottom: 2px;
+    }
+
+    .hp-rule {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      color: #536174;
+
+      font-size: 9px;
+
+      transition: color 0.18s ease;
+    }
+
+    .hp-rule-dot {
+      width: 5px;
+      height: 5px;
+
+      border-radius: 50%;
+
+      background: #3c4959;
+
+      flex: 0 0 auto;
+    }
+
+    .hp-rule.is-valid {
+      color: var(--hp-success);
+    }
+
+    .hp-rule.is-valid .hp-rule-dot {
+      background: var(--hp-success);
+    }
+
+    /* =====================================================
+       PRIMARY BUTTON
+    ===================================================== */
+
+    .hp-primary-button {
+      position: relative;
+
+      width: 100%;
+      height: 52px;
+
+      margin-top: 8px;
+
+      border: 0;
+
+      border-radius: var(--hp-radius-md);
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--hp-gold-2),
+          var(--hp-gold)
+        );
+
+      color: #101820;
+
+      font-size: 13px;
+      font-weight: 850;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 12px 28px rgba(245, 197, 66, 0.14);
+
+      overflow: hidden;
+
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+    }
+
+    .hp-primary-button::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      bottom: 0;
+
+      left: -80px;
+
+      width: 55px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.48),
+          transparent
+        );
+
+      transform: skewX(-18deg);
+
+      transition: left 0.55s ease;
+    }
+
+    .hp-primary-button:hover {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 15px 35px rgba(245, 197, 66, 0.20);
+
+      filter: brightness(1.035);
+    }
+
+    .hp-primary-button:hover::before {
+      left: calc(100% + 80px);
+    }
+
+    .hp-primary-button:active {
+      transform: translateY(0);
+    }
+
+    .hp-primary-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+      transform: none;
+    }
+
+    .hp-button-content {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .hp-spinner {
+      width: 15px;
+      height: 15px;
+
+      border:
+        2px solid rgba(16, 24, 32, 0.25);
+
+      border-top-color: #101820;
+
+      border-radius: 50%;
+
+      animation: hpSpin 0.7s linear infinite;
+    }
+
+    @keyframes hpSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =====================================================
+       DIVIDER
+    ===================================================== */
+
+    .hp-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      margin:
+        22px
+        0;
+    }
+
+    .hp-divider::before,
+    .hp-divider::after {
+      content: "";
+
+      flex: 1;
+
+      height: 1px;
+
+      background:
+        var(--hp-border);
+    }
+
+    .hp-divider span {
+      color: #536174;
+
+      font-size: 9px;
+      font-weight: 700;
+
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    /* =====================================================
+       GOOGLE
+    ===================================================== */
+
+    .hp-google-button {
+      width: 100%;
+      height: 50px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+
+      border:
+        1px solid var(--hp-border-strong);
+
+      border-radius: var(--hp-radius-md);
+
+      background:
+        rgba(255, 255, 255, 0.045);
+
+      color: var(--hp-text);
+
+      font-size: 12px;
+      font-weight: 750;
+
+      text-decoration: none;
+
+      cursor: pointer;
+
+      transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+    }
+
+    .hp-google-button:hover {
+      background:
+        rgba(255, 255, 255, 0.075);
+
+      border-color:
+        rgba(255, 255, 255, 0.18);
+
+      transform: translateY(-1px);
+    }
+
+    .hp-google-icon {
+      width: 18px;
+      height: 18px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: #fff;
+
+      color: #4285f4;
+
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    /* =====================================================
+       AUTH SWITCH
+    ===================================================== */
+
+    .hp-switch {
+      margin-top: 25px;
+
+      text-align: center;
+
+      color: var(--hp-muted);
+
+      font-size: 11px;
+    }
+
+    .hp-switch button {
+      margin-left: 4px;
+
+      border: 0;
+      padding: 0;
+
+      background: transparent;
+
+      color: var(--hp-gold);
+
+      font-size: 11px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .hp-switch button:hover {
+      color: var(--hp-gold-2);
+      text-decoration: underline;
+    }
+
+    /* =====================================================
+       VERIFICATION / INFO PANEL
+    ===================================================== */
+
+    .hp-info-panel {
+      display: none;
+
+      text-align: center;
+
+      padding-top: 8px;
+    }
+
+    .hp-info-panel.is-active {
+      display: block;
+      animation: hpFormIn 0.25s ease;
+    }
+
+    .hp-info-icon {
+      width: 66px;
+      height: 66px;
+
+      margin:
+        0
+        auto
+        20px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid var(--hp-gold-border);
+
+      border-radius: 20px;
+
+      background:
+        var(--hp-gold-soft);
+
+      color: var(--hp-gold-2);
+    }
+
+    .hp-info-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    .hp-info-panel h3 {
+      margin: 0 0 10px;
+
+      font-size: 24px;
+      letter-spacing: -0.035em;
+    }
+
+    .hp-info-panel p {
+      margin: 0 auto;
+
+      max-width: 330px;
+
+      color: var(--hp-muted);
+
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .hp-info-email {
+      margin:
+        17px
+        auto
+        20px;
+
+      padding: 12px 14px;
+
+      border:
+        1px solid var(--hp-border);
+
+      border-radius: var(--hp-radius-md);
+
+      background:
+        rgba(255, 255, 255, 0.035);
+
+      color: var(--hp-text);
+
+      font-size: 12px;
+      font-weight: 700;
+
+      word-break: break-word;
+    }
+
+    .hp-info-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .hp-secondary-button {
+      width: 100%;
+      min-height: 48px;
+
+      border:
+        1px solid var(--hp-border-strong);
+
+      border-radius: var(--hp-radius-md);
+
+      background:
+        rgba(255, 255, 255, 0.035);
+
+      color: var(--hp-text);
+
+      font-size: 12px;
+      font-weight: 750;
+
+      cursor: pointer;
+
+      transition:
+        background 0.18s ease,
+        border-color 0.18s ease;
+    }
+
+    .hp-secondary-button:hover {
+      background:
+        rgba(255, 255, 255, 0.065);
+
+      border-color:
+        rgba(255, 255, 255, 0.18);
+    }
+
+    /* =====================================================
+       LEGAL / FOOTER
+    ===================================================== */
+
+    .hp-legal {
+      margin-top: 24px;
+
+      color: #526174;
+
+      font-size: 9px;
+      line-height: 1.6;
+
+      text-align: center;
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ===================================================== */
+
+    @media (max-width: 980px) {
+      .hp-shell {
+        grid-template-columns: 1fr;
+        max-width: 560px;
+        min-height: auto;
+      }
+
+      .hp-brand-side {
+        display: none;
+      }
+
+      .hp-auth-side {
+        min-height: 680px;
+        padding: 42px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hp-page {
+        align-items: flex-start;
+
+        padding:
+          18px
+          max(18px, env(safe-area-inset-right))
+          18px
+          max(18px, env(safe-area-inset-left));
+      }
+
+      .hp-shell {
+        width: 100%;
+        border-radius: 22px;
+      }
+
+      .hp-auth-side {
+        min-height: calc(100vh - 36px);
+        min-height: calc(100dvh - 36px);
+
+        padding:
+          34px
+          22px;
+      }
+
+      .hp-auth-header {
+        margin-bottom: 26px;
+      }
+
+      .hp-auth-header h2 {
+        font-size: 28px;
+      }
+
+      .hp-logo-mobile {
+        display: flex;
+        margin-bottom: 38px;
+      }
+
+      .hp-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+
+      .hp-mobile-brand .hp-logo-mark {
+        width: 39px;
+        height: 39px;
+        border-radius: 12px;
+        font-size: 17px;
+      }
+
+      .hp-mobile-brand .hp-logo-name {
+        font-size: 16px;
+      }
+
+      .hp-mobile-brand .hp-logo-caption {
+        font-size: 8px;
+      }
+
+      .hp-password-rules {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 561px) {
+      .hp-logo-mobile {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hp-background" aria-hidden="true">
+    <div class="hp-grid"></div>
+    <div class="hp-orb hp-orb-one"></div>
+    <div class="hp-orb hp-orb-two"></div>
+  </div>
+
+  <main class="hp-page">
+
+    <section class="hp-shell">
+
+      <!-- ===================================================
+           BRAND / PRODUCT SIDE
+      ==================================================== -->
+
+      <section class="hp-brand-side">
+
+        <div class="hp-brand-top">
+
+          <a
+            href="/"
+            class="hp-logo"
+            aria-label="Honey Pay"
+          >
+            <span class="hp-logo-mark">H</span>
+
+            <span class="hp-logo-text">
+              <span class="hp-logo-name">
+                HONEY PAY
+              </span>
+
+              <span class="hp-logo-caption">
+                Payments infrastructure
+              </span>
+            </span>
+          </a>
+
+          <div class="hp-brand-content">
+
+            <div class="hp-eyebrow">
+              <span class="hp-eyebrow-dot"></span>
+              Plataforma de pagamentos
+            </div>
+
+            <h1>
+              O pagamento
+              <br>
+              acontece
+              <span>aqui.</span>
+            </h1>
+
+            <p class="hp-brand-description">
+              Venda, cobre e acompanhe o seu negócio
+              através de uma única plataforma construída
+              para simplificar os seus pagamentos.
+            </p>
+
+            <div class="hp-flow">
+
+              <div class="hp-flow-line"></div>
+
+              <div class="hp-flow-items">
+
+                <div class="hp-flow-item">
+
+                  <div class="hp-flow-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect
+                        x="3"
+                        y="5"
+                        width="18"
+                        height="14"
+                        rx="2"
+                      />
+                      <path d="M3 10h18" />
+                      <path d="M7 15h3" />
+                    </svg>
+                  </div>
+
+                  <div>
+                    <div class="hp-flow-title">
+                      Venda
+                    </div>
+
+                    <div class="hp-flow-subtitle">
+                      Crie cobranças
+                      rapidamente.
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="hp-flow-item">
+
+                  <div class="hp-flow-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M12 3v18" />
+                      <path d="M17 7.5c0-2-2-3.5-5-3.5s-5 1.5-5 3.5 2 3 5 3 5 1 5 3.5-2 3.5-5 3.5-5-1.5-5-3.5" />
+                    </svg>
+                  </div>
+
+                  <div>
+                    <div class="hp-flow-title">
+                      Receba
+                    </div>
+
+                    <div class="hp-flow-subtitle">
+                      Acompanhe cada
+                      pagamento.
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="hp-flow-item">
+
+                  <div class="hp-flow-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M4 19V5" />
+                      <path d="M4 19h16" />
+                      <path d="m7 15 4-4 3 2 5-6" />
+                    </svg>
+                  </div>
+
+                  <div>
+                    <div class="hp-flow-title">
+                      Cresça
+                    </div>
+
+                    <div class="hp-flow-subtitle">
+                      Tenha visão da
+                      sua operação.
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="hp-transaction">
+
+          <div class="hp-transaction-top">
+
+            <span class="hp-transaction-label">
+              Pagamento recebido
+            </span>
+
+            <span class="hp-status-dot"></span>
+
+          </div>
+
+          <div class="hp-transaction-value">
+            + 25.000 Kz
+          </div>
+
+          <div class="hp-transaction-bottom">
+
+            <span class="hp-transaction-method">
+              Multicaixa Express
+            </span>
+
+            <span class="hp-transaction-success">
+              Concluído
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="hp-brand-footer">
+
+          <span class="hp-trust">
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 3 5 6v5c0 4.8 2.9 8.4 7 10 4.1-1.6 7-5.2 7-10V6l-7-3Z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+
+            Ambiente protegido
+          </span>
+
+          <span class="hp-footer-separator"></span>
+
+          <span>
+            Honey Pay
+          </span>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================
+           AUTH SIDE
+      ==================================================== -->
+
+      <section class="hp-auth-side">
+
+        <div class="hp-auth-container">
+
+          <!-- Mobile logo -->
+
+          <div class="hp-logo-mobile">
+
+            <a
+              href="/"
+              class="hp-mobile-brand"
+              aria-label="Honey Pay"
+            >
+              <span class="hp-logo-mark">
+                H
+              </span>
+
+              <span class="hp-logo-text">
+
+                <span class="hp-logo-name">
+                  HONEY PAY
+                </span>
+
+                <span class="hp-logo-caption">
+                  Payments infrastructure
+                </span>
+
+              </span>
+            </a>
+
+          </div>
+
+          <!-- Header -->
+
+          <div class="hp-auth-header">
+
+            <div class="hp-auth-kicker">
+              Acesso seguro
+            </div>
+
+            <h2 id="authTitle">
+              Bem-vindo de volta.
+            </h2>
+
+            <p id="authSubtitle">
+              Entre na sua conta para continuar
+              a gerir a sua operação.
+            </p>
+
+          </div>
+
+          <!-- Message -->
+
+          <div
+            id="authMessage"
+            class="hp-message"
+            role="alert"
+            aria-live="polite"
+          ></div>
+
+          <!-- =================================================
+               LOGIN
+          ================================================== -->
+
+          <form
+            id="loginForm"
+            class="hp-form is-active"
+            novalidate
+          >
+
+            <div class="hp-field">
+
+              <div class="hp-label-row">
+
+                <label
+                  class="hp-label"
+                  for="loginEmail"
+                >
+                  Email
+                </label>
+
+              </div>
+
+              <input
+                id="loginEmail"
+                class="hp-input"
+                type="email"
+                autocomplete="email"
+                placeholder="nome@empresa.com"
+                required
+              >
+
+            </div>
+
+            <div class="hp-field">
+
+              <div class="hp-label-row">
+
+                <label
+                  class="hp-label"
+                  for="loginPassword"
+                >
+                  Palavra-passe
+                </label>
+
+                <button
+                  type="button"
+                  class="hp-link"
+                  id="forgotPasswordButton"
+                >
+                  Esqueceu-se?
+                </button>
+
+              </div>
+
+              <div class="hp-input-wrap">
+
+                <input
+                  id="loginPassword"
+                  class="hp-input has-toggle"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Introduza a sua palavra-passe"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="hp-password-toggle"
+                  data-password-target="loginPassword"
+                  aria-label="Mostrar palavra-passe"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </button>
+
+              </div>
+
+            </div>
+
+            <button
+              type="submit"
+              class="hp-primary-button"
+              id="loginSubmit"
+            >
+              <span class="hp-button-content">
+                <span class="hp-button-label">
+                  Entrar na Honey Pay
+                </span>
+              </span>
+            </button>
+
+            <div class="hp-divider">
+              <span>ou continue com</span>
+            </div>
+
+            <a
+              href="/api/auth/google"
+              class="hp-google-button"
+            >
+              <span class="hp-google-icon">
+                G
+              </span>
+
+              Continuar com Google
+            </a>
+
+            <div class="hp-switch">
+
+              Ainda não tem uma conta?
+
+              <button
+                type="button"
+                id="showRegisterButton"
+              >
+                Criar conta
+              </button>
+
+            </div>
+
+          </form>
+
+          <!-- =================================================
+               REGISTER
+          ================================================== -->
+
+          <form
+            id="registerForm"
+            class="hp-form"
+            novalidate
+          >
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="registerName"
+              >
+                Nome completo
+              </label>
+
+              <input
+                id="registerName"
+                class="hp-input"
+                type="text"
+                autocomplete="name"
+                placeholder="O seu nome"
+                required
+                style="margin-top: 8px;"
+              >
+
+            </div>
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="registerEmail"
+              >
+                Email
+              </label>
+
+              <input
+                id="registerEmail"
+                class="hp-input"
+                type="email"
+                autocomplete="email"
+                placeholder="nome@empresa.com"
+                required
+                style="margin-top: 8px;"
+              >
+
+            </div>
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="registerPassword"
+              >
+                Palavra-passe
+              </label>
+
+              <div
+                class="hp-input-wrap"
+                style="margin-top: 8px;"
+              >
+
+                <input
+                  id="registerPassword"
+                  class="hp-input has-toggle"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Crie uma palavra-passe segura"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="hp-password-toggle"
+                  data-password-target="registerPassword"
+                  aria-label="Mostrar palavra-passe"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </button>
+
+              </div>
+
+              <div class="hp-password-rules">
+
+                <div
+                  class="hp-rule"
+                  data-rule="length"
+                >
+                  <span class="hp-rule-dot"></span>
+                  8 caracteres
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-rule="upper"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Uma maiúscula
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-rule="lower"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Uma minúscula
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-rule="number"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Um número
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-rule="special"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Um símbolo
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="registerConfirmPassword"
+              >
+                Confirmar palavra-passe
+              </label>
+
+              <div
+                class="hp-input-wrap"
+                style="margin-top: 8px;"
+              >
+
+                <input
+                  id="registerConfirmPassword"
+                  class="hp-input has-toggle"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Repita a palavra-passe"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="hp-password-toggle"
+                  data-password-target="registerConfirmPassword"
+                  aria-label="Mostrar palavra-passe"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </button>
+
+              </div>
+
+            </div>
+
+            <button
+              type="submit"
+              class="hp-primary-button"
+              id="registerSubmit"
+            >
+              <span class="hp-button-content">
+                <span class="hp-button-label">
+                  Criar minha conta
+                </span>
+              </span>
+            </button>
+
+            <div class="hp-switch">
+
+              Já tem uma conta?
+
+              <button
+                type="button"
+                id="showLoginButton"
+              >
+                Entrar
+              </button>
+
+            </div>
+
+          </form>
+
+          <!-- =================================================
+               FORGOT PASSWORD
+          ================================================== -->
+
+          <form
+            id="forgotForm"
+            class="hp-form"
+            novalidate
+          >
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="forgotEmail"
+              >
+                Email da conta
+              </label>
+
+              <input
+                id="forgotEmail"
+                class="hp-input"
+                type="email"
+                autocomplete="email"
+                placeholder="nome@empresa.com"
+                required
+                style="margin-top: 8px;"
+              >
+
+            </div>
+
+            <button
+              type="submit"
+              class="hp-primary-button"
+              id="forgotSubmit"
+            >
+              <span class="hp-button-content">
+                <span class="hp-button-label">
+                  Enviar recuperação
+                </span>
+              </span>
+            </button>
+
+            <div class="hp-switch">
+
+              Lembrou-se da palavra-passe?
+
+              <button
+                type="button"
+                id="backToLoginButton"
+              >
+                Voltar ao login
+              </button>
+
+            </div>
+
+          </form>
+
+          <!-- =================================================
+               VERIFICATION
+          ================================================== -->
+
+          <div
+            id="verificationPanel"
+            class="hp-info-panel"
+          >
+
+            <div class="hp-info-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="14"
+                  rx="2"
+                />
+
+                <path d="m4 7 8 6 8-6" />
+
+              </svg>
+
+            </div>
+
+            <h3>
+              Confirme o seu email
+            </h3>
+
+            <p>
+              Enviámos um link de verificação
+              para o endereço associado à sua
+              nova conta.
+            </p>
+
+            <div
+              id="verificationEmail"
+              class="hp-info-email"
+            ></div>
+
+            <div class="hp-info-actions">
+
+              <button
+                type="button"
+                class="hp-primary-button"
+                id="resendVerificationButton"
+              >
+                <span class="hp-button-content">
+                  <span class="hp-button-label">
+                    Reenviar email
+                  </span>
+                </span>
+              </button>
+
+              <button
+                type="button"
+                class="hp-secondary-button"
+                id="verificationBackButton"
+              >
+                Voltar ao login
+              </button>
+
+            </div>
+
+          </div>
+
+          <!-- =================================================
+               RESET PASSWORD
+          ================================================== -->
+
+          <form
+            id="resetForm"
+            class="hp-form"
+            novalidate
+          >
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="resetPassword"
+              >
+                Nova palavra-passe
+              </label>
+
+              <div
+                class="hp-input-wrap"
+                style="margin-top: 8px;"
+              >
+
+                <input
+                  id="resetPassword"
+                  class="hp-input has-toggle"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Crie uma nova palavra-passe"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="hp-password-toggle"
+                  data-password-target="resetPassword"
+                  aria-label="Mostrar palavra-passe"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </button>
+
+              </div>
+
+              <div class="hp-password-rules">
+
+                <div
+                  class="hp-rule"
+                  data-reset-rule="length"
+                >
+                  <span class="hp-rule-dot"></span>
+                  8 caracteres
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-reset-rule="upper"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Uma maiúscula
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-reset-rule="lower"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Uma minúscula
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-reset-rule="number"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Um número
+                </div>
+
+                <div
+                  class="hp-rule"
+                  data-reset-rule="special"
+                >
+                  <span class="hp-rule-dot"></span>
+                  Um símbolo
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="hp-field">
+
+              <label
+                class="hp-label"
+                for="resetConfirmPassword"
+              >
+                Confirmar nova palavra-passe
+              </label>
+
+              <div
+                class="hp-input-wrap"
+                style="margin-top: 8px;"
+              >
+
+                <input
+                  id="resetConfirmPassword"
+                  class="hp-input has-toggle"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Repita a nova palavra-passe"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="hp-password-toggle"
+                  data-password-target="resetConfirmPassword"
+                  aria-label="Mostrar palavra-passe"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                </button>
+
+              </div>
+
+            </div>
+
+            <button
+              type="submit"
+              class="hp-primary-button"
+              id="resetSubmit"
+            >
+              <span class="hp-button-content">
+                <span class="hp-button-label">
+                  Alterar palavra-passe
+                </span>
+              </span>
+            </button>
+
+            <div class="hp-switch">
+
+              <button
+                type="button"
+                id="resetBackButton"
+              >
+                Voltar ao login
+              </button>
+
+            </div>
+
+          </form>
+
+          <div class="hp-legal">
+            Ao continuar, concorda com os termos
+            e condições de utilização da Honey Pay.
+          </div>
+
+        </div>
+
+      </section>
+
+    </section>
+
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* =====================================================
+         ELEMENTS
+      ===================================================== */
+
+      const authTitle =
+        document.getElementById('authTitle');
+
+      const authSubtitle =
+        document.getElementById('authSubtitle');
+
+      const authMessage =
+        document.getElementById('authMessage');
+
+      const forms = {
+        login:
+          document.getElementById('loginForm'),
+
+        register:
+          document.getElementById('registerForm'),
+
+        forgot:
+          document.getElementById('forgotForm'),
+
+        reset:
+          document.getElementById('resetForm')
+      };
+
+      const verificationPanel =
+        document.getElementById(
+          'verificationPanel'
+        );
+
+      let verificationEmail = '';
+
+      let resetToken =
+        new URLSearchParams(
+          window.location.search
+        ).get('token') || '';
+
+      /* =====================================================
+         MESSAGE
+      ===================================================== */
+
+      function showMessage(
+        message,
+        type = 'error'
+      ) {
+        authMessage.textContent =
+          message || '';
+
+        authMessage.className =
+          'hp-message';
+
+        if (message) {
+          authMessage.classList.add(
+            'is-visible',
+            type
+          );
+        }
+      }
+
+      function clearMessage() {
+        showMessage('');
+      }
+
+      /* =====================================================
+         FORM STATE
+      ===================================================== */
+
+      function hideAllAuthViews() {
+        Object.values(forms).forEach(
+          (form) => {
+            form.classList.remove(
+              'is-active'
+            );
+          }
+        );
+
+        verificationPanel.classList.remove(
+          'is-active'
+        );
+      }
+
+      function setAuthHeader(
+        title,
+        subtitle
+      ) {
+        authTitle.textContent =
+          title;
+
+        authSubtitle.textContent =
+          subtitle;
+      }
+
+      function showLogin() {
+        hideAllAuthViews();
+
+        forms.login.classList.add(
+          'is-active'
+        );
+
+        setAuthHeader(
+          'Bem-vindo de volta.',
+          'Entre na sua conta para continuar a gerir a sua operação.'
+        );
+
+        clearMessage();
+      }
+
+      function showRegister() {
+        hideAllAuthViews();
+
+        forms.register.classList.add(
+          'is-active'
+        );
+
+        setAuthHeader(
+          'Crie a sua conta.',
+          'Comece a utilizar a Honey Pay para gerir os seus pagamentos.'
+        );
+
+        clearMessage();
+
+        document
+          .getElementById('registerName')
+          .focus();
+      }
+
+      function showForgot() {
+        hideAllAuthViews();
+
+        forms.forgot.classList.add(
+          'is-active'
+        );
+
+        setAuthHeader(
+          'Recupere o acesso.',
+          'Introduza o email da sua conta e enviaremos as instruções de recuperação.'
+        );
+
+        clearMessage();
+
+        const loginEmail =
+          document.getElementById(
+            'loginEmail'
+          ).value.trim();
+
+        if (loginEmail) {
+          document.getElementById(
+            'forgotEmail'
+          ).value = loginEmail;
+        }
+
+        document
+          .getElementById('forgotEmail')
+          .focus();
+      }
+
+      function showReset() {
+        hideAllAuthViews();
+
+        forms.reset.classList.add(
+          'is-active'
+        );
+
+        setAuthHeader(
+          'Nova palavra-passe.',
+          'Defina uma nova palavra-passe segura para a sua conta.'
+        );
+
+        clearMessage();
+      }
+
+      function showVerification(
+        email
+      ) {
+        hideAllAuthViews();
+
+        verificationPanel.classList.add(
+          'is-active'
+        );
+
+        setAuthHeader(
+          'Quase lá.',
+          'Falta apenas confirmar o seu endereço de email.'
+        );
+
+        verificationEmail =
+          email || '';
+
+        document.getElementById(
+          'verificationEmail'
+        ).textContent =
+          verificationEmail;
+
+        clearMessage();
+      }
+
+      /* =====================================================
+         API
+      ===================================================== */
+
+      async function apiRequest(
+        url,
+        options = {}
+      ) {
+        const response =
+          await fetch(
+            url,
+            {
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type':
+                  'application/json',
+                ...(options.headers || {})
+              },
+              ...options
+            }
+          );
+
+        let data = null;
+
+        try {
+          data =
+            await response.json();
+        } catch (_) {
+          data = null;
+        }
+
+        if (!response.ok) {
+          const error =
+            new Error(
+              data?.error ||
+              data?.message ||
+              'Não foi possível concluir a operação.'
+            );
+
+          error.status =
+            response.status;
+
+          error.data =
+            data;
+
+          throw error;
+        }
+
+        return data || {};
+      }
+
+      /* =====================================================
+         BUTTON LOADING
+      ===================================================== */
+
+      function setButtonLoading(
+        button,
+        loading,
+        loadingText
+      ) {
+        if (!button) {
+          return;
+        }
+
+        if (loading) {
+          button.disabled = true;
+
+          button.dataset.originalText =
+            button.querySelector(
+              '.hp-button-label'
+            )?.textContent ||
+            '';
+
+          const content =
+            button.querySelector(
+              '.hp-button-content'
+            );
+
+          if (content) {
+            content.innerHTML = `
+              <span class="hp-spinner"></span>
+              <span class="hp-button-label">
+                ${loadingText || 'A processar...'}
+              </span>
+            `;
+          }
+
+          return;
+        }
+
+        button.disabled = false;
+
+        const originalText =
+          button.dataset.originalText ||
+          'Continuar';
+
+        const content =
+          button.querySelector(
+            '.hp-button-content'
+          );
+
+        if (content) {
+          content.innerHTML = `
+            <span class="hp-button-label">
+              ${originalText}
+            </span>
+          `;
+        }
+      }
+
+      /* =====================================================
+         PASSWORD
+      ===================================================== */
+
+      document
+        .querySelectorAll(
+          '.hp-password-toggle'
+        )
+        .forEach(
+          (button) => {
+            button.addEventListener(
+              'click',
+              () => {
+                const targetId =
+                  button.dataset
+                    .passwordTarget;
+
+                const input =
+                  document.getElementById(
+                    targetId
+                  );
+
+                if (!input) {
+                  return;
+                }
+
+                const isPassword =
+                  input.type ===
+                  'password';
+
+                input.type =
+                  isPassword
+                    ? 'text'
+                    : 'password';
+
+                button.setAttribute(
+                  'aria-label',
+                  isPassword
+                    ? 'Ocultar palavra-passe'
+                    : 'Mostrar palavra-passe'
+                );
+              }
+            );
+          }
+        );
+
+      /* =====================================================
+         PASSWORD RULES
+      ===================================================== */
+
+      function passwordRules(
+        password
+      ) {
+        return {
+          length:
+            password.length >= 8,
+
+          upper:
+            /[A-Z]/.test(password),
+
+          lower:
+            /[a-z]/.test(password),
+
+          number:
+            /[0-9]/.test(password),
+
+          special:
+            /[^A-Za-z0-9]/.test(password)
+        };
+      }
+
+      function updatePasswordRules(
+        password,
+        prefix = ''
+      ) {
+        const rules =
+          passwordRules(
+            password
+          );
+
+        Object.entries(rules).forEach(
+          ([key, valid]) => {
+            const selector =
+              prefix
+                ? `[data-${prefix}-rule="${key}"]`
+                : `[data-rule="${key}"]`;
+
+            const element =
+              document.querySelector(
+                selector
+              );
+
+            if (!element) {
+              return;
+            }
+
+            element.classList.toggle(
+              'is-valid',
+              valid
+            );
+          }
+        );
+
+        return Object.values(
+          rules
+        ).every(Boolean);
+      }
+
+      document
+        .getElementById(
+          'registerPassword'
+        )
+        .addEventListener(
+          'input',
+          (event) => {
+            updatePasswordRules(
+              event.target.value
+            );
+          }
+        );
+
+      document
+        .getElementById(
+          'resetPassword'
+        )
+        .addEventListener(
+          'input',
+          (event) => {
+            updatePasswordRules(
+              event.target.value,
+              'reset'
+            );
+          }
+        );
+
+      /* =====================================================
+         NAVIGATION
+      ===================================================== */
+
+      document
+        .getElementById(
+          'showRegisterButton'
+        )
+        .addEventListener(
+          'click',
+          showRegister
+        );
+
+      document
+        .getElementById(
+          'showLoginButton'
+        )
+        .addEventListener(
+          'click',
+          showLogin
+        );
+
+      document
+        .getElementById(
+          'forgotPasswordButton'
+        )
+        .addEventListener(
+          'click',
+          showForgot
+        );
+
+      document
+        .getElementById(
+          'backToLoginButton'
+        )
+        .addEventListener(
+          'click',
+          showLogin
+        );
+
+      document
+        .getElementById(
+          'verificationBackButton'
+        )
+        .addEventListener(
+          'click',
+          showLogin
+        );
+
+      document
+        .getElementById(
+          'resetBackButton'
+        )
+        .addEventListener(
+          'click',
+          showLogin
+        );
+
+      /* =====================================================
+         LOGIN
+      ===================================================== */
+
+      forms.login.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          clearMessage();
+
+          const email =
+            document
+              .getElementById(
+                'loginEmail'
+              )
+              .value
+              .trim()
+              .toLowerCase();
+
+          const password =
+            document
+              .getElementById(
+                'loginPassword'
+              )
+              .value;
+
+          if (!email) {
+            showMessage(
+              'Introduza o seu email.'
+            );
+
+            document
+              .getElementById(
+                'loginEmail'
+              )
+              .focus();
+
+            return;
+          }
+
+          if (!password) {
+            showMessage(
+              'Introduza a sua palavra-passe.'
+            );
+
+            document
+              .getElementById(
+                'loginPassword'
+              )
+              .focus();
+
+            return;
+          }
+
+          const button =
+            document.getElementById(
+              'loginSubmit'
+            );
+
+          setButtonLoading(
+            button,
+            true,
+            'A entrar...'
+          );
+
+          try {
+            const result =
+              await apiRequest(
+                '/api/auth/login',
+                {
+                  method: 'POST',
+                  body:
+                    JSON.stringify({
+                      email,
+                      password
+                    })
+                }
+              );
+
+            if (
+              result.redirectTo
+            ) {
+              window.location.href =
+                result.redirectTo;
+
+              return;
+            }
+
+            window.location.href =
+              '/onboarding.html';
+
+          } catch (error) {
+            const message =
+              String(
+                error.message || ''
+              );
+
+            if (
+              /verific/i.test(
+                message
+              )
+            ) {
+              verificationEmail =
+                email;
+
+              showVerification(
+                email
+              );
+
+              showMessage(
+                message,
+                'info'
+              );
+
+            } else {
+              showMessage(
+                message ||
+                  'Não foi possível entrar. Verifique os seus dados e tente novamente.'
+              );
+            }
+
+          } finally {
+            setButtonLoading(
+              button,
+              false
+            );
+          }
+        }
+      );
+
+      /* =====================================================
+         REGISTER
+      ===================================================== */
+
+      forms.register.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          clearMessage();
+
+          const name =
+            document
+              .getElementById(
+                'registerName'
+              )
+              .value
+              .trim();
+
+          const email =
+            document
+              .getElementById(
+                'registerEmail'
+              )
+              .value
+              .trim()
+              .toLowerCase();
+
+          const password =
+            document
+              .getElementById(
+                'registerPassword'
+              )
+              .value;
+
+          const confirmPassword =
+            document
+              .getElementById(
+                'registerConfirmPassword'
+              )
+              .value;
+
+          if (!name) {
+            showMessage(
+              'Introduza o seu nome.'
+            );
+
+            return;
+          }
+
+          if (!email) {
+            showMessage(
+              'Introduza um email válido.'
+            );
+
+            return;
+          }
+
+          const validPassword =
+            updatePasswordRules(
+              password
+            );
+
+          if (!validPassword) {
+            showMessage(
+              'A palavra-passe ainda não cumpre todos os requisitos.'
+            );
+
+            return;
+          }
+
+          if (
+            password !==
+            confirmPassword
+          ) {
+            showMessage(
+              'As palavras-passe não coincidem.'
+            );
+
+            return;
+          }
+
+          const button =
+            document.getElementById(
+              'registerSubmit'
+            );
+
+          setButtonLoading(
+            button,
+            true,
+            'A criar conta...'
+          );
+
+          try {
+            const result =
+              await apiRequest(
+                '/api/auth/register',
+                {
+                  method: 'POST',
+                  body:
+                    JSON.stringify({
+                      name,
+                      email,
+                      password,
+                      confirmPassword
+                    })
+                }
+              );
+
+            verificationEmail =
+              email;
+
+            showVerification(
+              email
+            );
+
+            showMessage(
+              result.message ||
+                'Conta criada. Verifique o seu email para continuar.',
+              'success'
+            );
+
+          } catch (error) {
+            showMessage(
+              error.message ||
+                'Não foi possível criar a conta.'
+            );
+
+          } finally {
+            setButtonLoading(
+              button,
+              false
+            );
+          }
+        }
+      );
+
+      /* =====================================================
+         FORGOT PASSWORD
+      ===================================================== */
+
+      forms.forgot.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          clearMessage();
+
+          const email =
+            document
+              .getElementById(
+                'forgotEmail'
+              )
+              .value
+              .trim()
+              .toLowerCase();
+
+          if (!email) {
+            showMessage(
+              'Introduza o email da sua conta.'
+            );
+
+            return;
+          }
+
+          const button =
+            document.getElementById(
+              'forgotSubmit'
+            );
+
+          setButtonLoading(
+            button,
+            true,
+            'A enviar...'
+          );
+
+          try {
+            const result =
+              await apiRequest(
+                '/api/auth/forgot-password',
+                {
+                  method: 'POST',
+                  body:
+                    JSON.stringify({
+                      email
+                    })
+                }
+              );
+
+            showMessage(
+              result.message ||
+                'Se existir uma conta associada a este email, receberá as instruções de recuperação.',
+              'success'
+            );
+
+          } catch (error) {
+            /*
+             * Mantemos uma mensagem genérica
+             * para não revelar se o email existe.
+             */
+            showMessage(
+              'Se existir uma conta associada a este email, receberá as instruções de recuperação.',
+              'success'
+            );
+
+          } finally {
+            setButtonLoading(
+              button,
+              false
+            );
+          }
+        }
+      );
+
+      /* =====================================================
+         RESEND VERIFICATION
+      ===================================================== */
+
+      document
+        .getElementById(
+          'resendVerificationButton'
+        )
+        .addEventListener(
+          'click',
+          async () => {
+            clearMessage();
+
+            if (
+              !verificationEmail
+            ) {
+              showMessage(
+                'Introduza novamente o email da sua conta.'
+              );
+
+              showLogin();
+
+              return;
+            }
+
+            const button =
+              document.getElementById(
+                'resendVerificationButton'
+              );
+
+            setButtonLoading(
+              button,
+              true,
+              'A reenviar...'
+            );
+
+            try {
+              const result =
+                await apiRequest(
+                  '/api/auth/resend-verification',
+                  {
+                    method: 'POST',
+                    body:
+                      JSON.stringify({
+                        email:
+                          verificationEmail
+                      })
+                  }
+                );
+
+              showMessage(
+                result.message ||
+                  'Se a conta existir e ainda não estiver verificada, enviaremos um novo email.',
+                'success'
+              );
+
+            } catch (error) {
+              showMessage(
+                error.message ||
+                  'Não foi possível reenviar o email.'
+              );
+
+            } finally {
+              setButtonLoading(
+                button,
+                false
+              );
+            }
+          }
+        );
+
+      /* =====================================================
+         RESET PASSWORD
+      ===================================================== */
+
+      forms.reset.addEventListener(
+        'submit',
+        async (event) => {
+          event.preventDefault();
+
+          clearMessage();
+
+          if (!resetToken) {
+            showMessage(
+              'O link de recuperação é inválido ou expirou.'
+            );
+
+            return;
+          }
+
+          const password =
+            document
+              .getElementById(
+                'resetPassword'
+              )
+              .value;
+
+          const confirmPassword =
+            document
+              .getElementById(
+                'resetConfirmPassword'
+              )
+              .value;
+
+          const validPassword =
+            updatePasswordRules(
+              password,
+              'reset'
+            );
+
+          if (!validPassword) {
+            showMessage(
+              'A nova palavra-passe ainda não cumpre todos os requisitos.'
+            );
+
+            return;
+          }
+
+          if (
+            password !==
+            confirmPassword
+          ) {
+            showMessage(
+              'As palavras-passe não coincidem.'
+            );
+
+            return;
+          }
+
+          const button =
+            document.getElementById(
+              'resetSubmit'
+            );
+
+          setButtonLoading(
+            button,
+            true,
+            'A atualizar...'
+          );
+
+          try {
+            const result =
+              await apiRequest(
+                '/api/auth/reset-password',
+                {
+                  method: 'POST',
+                  body:
+                    JSON.stringify({
+                      token:
+                        resetToken,
+                      password,
+                      confirmPassword
+                    })
+                }
+              );
+
+            resetToken = '';
+
+            showLogin();
+
+            showMessage(
+              result.message ||
+                'A sua palavra-passe foi atualizada. Já pode entrar na sua conta.',
+              'success'
+            );
+
+            document.getElementById(
+              'loginEmail'
+            ).focus();
+
+          } catch (error) {
+            showMessage(
+              error.message ||
+                'Não foi possível atualizar a palavra-passe.'
+            );
+
+          } finally {
+            setButtonLoading(
+              button,
+              false
+            );
+          }
+        }
+      );
+
+      /* =====================================================
+         GOOGLE / BACKEND ERROR
+      ===================================================== */
+
+      function handleUrlState() {
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
+
+        const error =
+          params.get('error');
+
+        if (resetToken) {
+          showReset();
+          return;
+        }
+
+        if (!error) {
+          return;
+        }
+
+        const messages = {
+          google_cancelled:
+            'O login Google foi cancelado.',
+
+          google_auth_failed:
+            'Não foi possível concluir o login Google.',
+
+          invalid_state:
+            'A sessão de autenticação expirou. Tente novamente.',
+
+          account_disabled:
+            'Esta conta está desativada.'
+        };
+
+        showLogin();
+
+        showMessage(
+          messages[error] ||
+            'Não foi possível concluir a autenticação.'
+        );
+
+        /*
+         * Remove o parâmetro da URL
+         * depois de o processarmos.
+         */
+        try {
+          const cleanUrl =
+            window.location.pathname;
+
+          window.history.replaceState(
+            {},
+            document.title,
+            cleanUrl
+          );
+        } catch (_) {
+          // Não impede o funcionamento.
+        }
+      }
+
+      /* =====================================================
+         INIT
+      ===================================================== */
+
+      handleUrlState();
+
+    })();
+  </script>
+
+</body>
+</html>
