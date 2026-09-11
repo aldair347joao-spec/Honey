@@ -157,10 +157,15 @@ const emailTransporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
   secure: EMAIL_SECURE,
+
   auth: {
     user: EMAIL_USER,
     pass: EMAIL_PASSWORD
-  }
+  },
+
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000
 });
 /*
 ============================================================
@@ -387,17 +392,67 @@ async function sendEmail({
   html,
   text
 }) {
-  if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASSWORD) {
-    throw new Error('SMTP email configuration is incomplete');
+  if (
+    !EMAIL_HOST ||
+    !EMAIL_USER ||
+    !EMAIL_PASSWORD
+  ) {
+    throw new Error(
+      'SMTP email configuration is incomplete'
+    );
   }
 
-  return emailTransporter.sendMail({
-    from: EMAIL_USER,
-    to,
-    subject,
-    text,
-    html
-  });
+  try {
+    console.log(
+      'HONEY PAY SMTP: enviando email...',
+      {
+        host: EMAIL_HOST,
+        port: EMAIL_PORT,
+        secure: EMAIL_SECURE,
+        to
+      }
+    );
+
+    const info =
+      await emailTransporter.sendMail({
+        from: EMAIL_USER,
+        to,
+        subject,
+        text,
+        html
+      });
+
+    console.log(
+      'HONEY PAY SMTP: email enviado.',
+      {
+        messageId:
+          info?.messageId || '',
+        response:
+          info?.response || ''
+      }
+    );
+
+    return info;
+
+  } catch (error) {
+    console.error(
+      'HONEY PAY SMTP ERROR:',
+      {
+        message:
+          error?.message || '',
+        code:
+          error?.code || '',
+        command:
+          error?.command || '',
+        response:
+          error?.response || '',
+        responseCode:
+          error?.responseCode || ''
+      }
+    );
+
+    throw error;
+  }
 }
 async function sendVerificationEmail(user, token) {
   const verificationUrl = getAuthFrontendUrl(
