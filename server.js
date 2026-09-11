@@ -84,6 +84,8 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
@@ -145,7 +147,21 @@ const APP_BASE_URL =
 const GOOGLE_CALLBACK_URL =
   process.env.GOOGLE_CALLBACK_URL ||
   `${APP_BASE_URL}/api/auth/google/callback`;
-
+const EMAIL_HOST = process.env.EMAIL_HOST || '';
+const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
+const EMAIL_SECURE =
+  String(process.env.EMAIL_SECURE || '').toLowerCase() === 'true';
+const EMAIL_USER = process.env.EMAIL_USER || '';
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || '';
+const emailTransporter = nodemailer.createTransport({
+  host: EMAIL_HOST,
+  port: EMAIL_PORT,
+  secure: EMAIL_SECURE,
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASSWORD
+  }
+});
 /*
 ============================================================
 HONEY PAY FEE
@@ -180,6 +196,10 @@ const HOME_FILE =
     'home.html'
   );
 
+const LOGIN_FILE = path.join(
+  FRONTEND_DIR,
+  'login.html'
+);
 const INDEX_FILE =
   path.join(
     FRONTEND_DIR,
@@ -341,7 +361,175 @@ function generateToken() {
     .randomBytes(24)
     .toString('hex');
 }
+function hashToken(token) {
+  return crypto
+    .createHash('sha256')
+    .update(String(token))
+    .digest('hex');
+}
 
+function generateEmailVerificationToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function generatePasswordResetToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function getAuthFrontendUrl(pathname) {
+  const baseUrl = String(APP_BASE_URL || '').replace(/\/+$/, '');
+  return `${baseUrl}${pathname}`;
+}
+
+async function sendEmail({
+  to,
+  subject,
+  html,
+  text
+}) {
+  if (!EMAIL_HOST || !EMAIL_USER || !EMAIL_PASSWORD) {
+    throw new Error('SMTP email configuration is incomplete');
+  }
+
+  return emailTransporter.sendMail({
+    from: EMAIL_USER,
+    to,
+    subject,
+    text,
+    html
+  });
+}
+async function sendVerificationEmail(user, token) {
+  const verificationUrl = getAuthFrontendUrl(
+    `/verify-email?token=${encodeURIComponent(token)}`
+  );
+
+  const subject = 'Confirme o seu email — Honey Pay';
+
+  const text = [
+    `Olá ${user.name || ''},`,
+    '',
+    'Obrigado por criar a sua conta no Honey Pay.',
+    '',
+    'Para confirmar o seu email, abra o seguinte endereço:',
+    verificationUrl,
+    '',
+    'Este link é temporário e pode ser utilizado apenas uma vez.',
+    '',
+    'Se não criou esta conta, pode ignorar este email.',
+    '',
+    'Honey Pay'
+  ].join('\n');
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172033;max-width:600px;margin:0 auto;padding:32px">
+      <h1 style="margin:0 0 20px;color:#d9a441">Honey Pay</h1>
+
+      <h2 style="margin-bottom:12px">Confirme o seu email</h2>
+
+      <p>Olá ${String(user.name || '').replace(/[<>&"]/g, '')},</p>
+
+      <p>
+        Obrigado por criar a sua conta no Honey Pay.
+        Para começar, confirme o seu endereço de email.
+      </p>
+
+      <p style="margin:28px 0">
+        <a
+          href="${verificationUrl}"
+          style="display:inline-block;background:#d9a441;color:#111827;text-decoration:none;padding:13px 22px;border-radius:8px;font-weight:700"
+        >
+          Confirmar email
+        </a>
+      </p>
+
+      <p style="font-size:14px;color:#667085">
+        Este link é temporário e pode ser utilizado apenas uma vez.
+      </p>
+
+      <p style="font-size:14px;color:#667085">
+        Se não criou esta conta, pode ignorar este email.
+      </p>
+
+      <p style="margin-top:30px">
+        Honey Pay
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject,
+    text,
+    html
+  });
+}
+
+async function sendPasswordResetEmail(user, token) {
+  const resetUrl = getAuthFrontendUrl(
+    `/reset-password?token=${encodeURIComponent(token)}`
+  );
+
+  const subject = 'Redefinir palavra-passe — Honey Pay';
+
+  const text = [
+    `Olá ${user.name || ''},`,
+    '',
+    'Recebemos um pedido para redefinir a palavra-passe da sua conta Honey Pay.',
+    '',
+    'Para criar uma nova palavra-passe, abra o seguinte endereço:',
+    resetUrl,
+    '',
+    'Este link é temporário e pode ser utilizado apenas uma vez.',
+    '',
+    'Se não fez este pedido, pode ignorar este email.',
+    '',
+    'Honey Pay'
+  ].join('\n');
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#172033;max-width:600px;margin:0 auto;padding:32px">
+      <h1 style="margin:0 0 20px;color:#d9a441">Honey Pay</h1>
+
+      <h2 style="margin-bottom:12px">Redefinir palavra-passe</h2>
+
+      <p>Olá ${String(user.name || '').replace(/[<>&"]/g, '')},</p>
+
+      <p>
+        Recebemos um pedido para redefinir a palavra-passe
+        da sua conta Honey Pay.
+      </p>
+
+      <p style="margin:28px 0">
+        <a
+          href="${resetUrl}"
+          style="display:inline-block;background:#d9a441;color:#111827;text-decoration:none;padding:13px 22px;border-radius:8px;font-weight:700"
+        >
+          Redefinir palavra-passe
+        </a>
+      </p>
+
+      <p style="font-size:14px;color:#667085">
+        Este link é temporário e pode ser utilizado apenas uma vez.
+      </p>
+
+      <p style="font-size:14px;color:#667085">
+        Se não fez este pedido, pode ignorar este email.
+      </p>
+
+      <p style="margin-top:30px">
+        Honey Pay
+      </p>
+    </div>
+  `;
+
+  return sendEmail({
+    to: user.email,
+    subject,
+    text,
+    html
+  });
+}
 function generateReference(
   prefix = 'HP'
 ) {
@@ -1368,7 +1556,35 @@ const UserSchema =
         index:
           true
       },
+passwordHash: {
+  type: String,
+  default: null
+},
 
+emailVerified: {
+  type: Boolean,
+  default: false
+},
+
+emailVerificationTokenHash: {
+  type: String,
+  default: null
+},
+
+emailVerificationExpiresAt: {
+  type: Date,
+  default: null
+},
+
+passwordResetTokenHash: {
+  type: String,
+  default: null
+},
+
+passwordResetExpiresAt: {
+  type: Date,
+  default: null
+},
       avatar: {
         type:
           String,
@@ -3037,7 +3253,498 @@ app.post(
 /* =========================================================
    AUTH - GOOGLE
 ========================================================= */
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const name = String(req.body?.name || '').trim();
+    const email = normalizeEmail(req.body?.email || '');
+    const password = String(req.body?.password || '');
+    const confirmPassword = String(req.body?.confirmPassword || '');
 
+    if (!name || !email || !password || !confirmPassword) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Preencha todos os campos obrigatórios.'
+      });
+    }
+
+    if (name.length < 2 || name.length > 120) {
+      return res.status(400).json({
+        ok: false,
+        message: 'O nome deve ter entre 2 e 120 caracteres.'
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        ok: false,
+        message: 'As palavras-passe não coincidem.'
+      });
+    }
+
+    const passwordIsStrong =
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password);
+
+    if (!passwordIsStrong) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          'A palavra-passe deve ter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um carácter especial.'
+      });
+    }
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({
+        ok: false,
+        message:
+          'Não foi possível criar a conta com estes dados. Se já possui uma conta, tente iniciar sessão.'
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const verificationToken = generateEmailVerificationToken();
+    const verificationTokenHash = hashToken(verificationToken);
+
+    const verificationExpiresAt = new Date(
+      Date.now() + 30 * 60 * 1000
+    );
+
+    const user = await User.create({
+      name,
+      email,
+      passwordHash,
+      emailVerified: false,
+      emailVerificationTokenHash: verificationTokenHash,
+      emailVerificationExpiresAt: verificationExpiresAt,
+      authProvider: 'legacy',
+      active: true,
+      lastLoginAt: null
+    });
+
+    try {
+      await sendVerificationEmail(user, verificationToken);
+    } catch (emailError) {
+      console.error(
+        '[AUTH] Falha ao enviar email de verificação:',
+        emailError
+      );
+
+      await User.deleteOne({ _id: user._id });
+
+      return res.status(503).json({
+        ok: false,
+        message:
+          'Não foi possível enviar o email de confirmação. Tente novamente.'
+      });
+    }
+
+    return res.status(201).json({
+      ok: true,
+      message:
+        'Conta criada com sucesso. Enviámos um email para confirmar o seu endereço.',
+      email: user.email
+    });
+  } catch (error) {
+    console.error('[AUTH] Erro no registo:', error);
+
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        ok: false,
+        message:
+          'Não foi possível criar a conta com estes dados. Se já possui uma conta, tente iniciar sessão.'
+      });
+    }
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Não foi possível criar a conta neste momento.'
+    });
+  }
+});
+app.get('/api/auth/verify-email', async (req, res) => {
+  try {
+    const token = String(req.query?.token || '').trim();
+
+    if (!token) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Token de verificação inválido.'
+      });
+    }
+
+    const tokenHash = hashToken(token);
+
+    const user = await User.findOne({
+      emailVerificationTokenHash: tokenHash,
+      emailVerificationExpiresAt: {
+        $gt: new Date()
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          'Este link de confirmação é inválido ou já expirou.'
+      });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationTokenHash = null;
+    user.emailVerificationExpiresAt = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Email confirmado com sucesso.'
+    });
+  } catch (error) {
+    console.error('[AUTH] Erro na confirmação do email:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Não foi possível confirmar o email neste momento.'
+    });
+  }
+});
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email || '');
+    const password = String(req.body?.password || '');
+
+    if (!email || !password) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Informe o email e a palavra-passe.'
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Email ou palavra-passe incorretos.'
+      });
+    }
+
+    if (!user.active) {
+      return res.status(403).json({
+        ok: false,
+        message: 'Esta conta está desativada.'
+      });
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Email ou palavra-passe incorretos.'
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        ok: false,
+        code: 'EMAIL_NOT_VERIFIED',
+        message:
+          'Confirme o seu email antes de iniciar sessão.'
+      });
+    }
+
+    user.lastLoginAt = new Date();
+
+    if (user.authProvider !== 'google') {
+      user.authProvider = 'legacy';
+    }
+
+    await user.save();
+
+    let merchant = await Merchant.findOne({
+      userId: user._id
+    });
+
+    if (!merchant) {
+      merchant = await Merchant.create({
+        userId: user._id,
+        businessName: user.name || 'Novo comerciante',
+        country: 'AO',
+        currency: 'AOA',
+        active: true
+      });
+    }
+
+    const token = signJWT({
+      userId: String(user._id),
+      merchantId: String(merchant._id),
+      email: user.email,
+      role: user.role || 'merchant'
+    });
+
+    setAuthCookie(res, token);
+
+    if (merchant.onboardingCompleted) {
+  return res.status(200).json({
+    ok: true,
+    message: 'Login efetuado com sucesso.',
+    redirectTo: '/index.html',
+    user: {
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      emailVerified: user.emailVerified
+    },
+    merchant: {
+      id: String(merchant._id),
+      onboardingCompleted: true
+    }
+  });
+}
+
+return res.status(200).json({
+  ok: true,
+  message: 'Login efetuado com sucesso.',
+  redirectTo: '/onboarding.html',
+  user: {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    emailVerified: user.emailVerified
+  },
+  merchant: {
+    id: String(merchant._id),
+    onboardingCompleted: false
+  }
+});
+  } catch (error) {
+    console.error('[AUTH] Erro no login:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Não foi possível iniciar sessão neste momento.'
+    });
+  }
+});
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email || '');
+
+    // Resposta genérica para não revelar se o email existe.
+    const genericResponse = {
+      ok: true,
+      message:
+        'Se existir uma conta associada a este email, receberá instruções para redefinir a palavra-passe.'
+    };
+
+    if (!email) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || !user.passwordHash || !user.active) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const resetToken = generatePasswordResetToken();
+    const resetTokenHash = hashToken(resetToken);
+
+    user.passwordResetTokenHash = resetTokenHash;
+    user.passwordResetExpiresAt = new Date(
+      Date.now() + 30 * 60 * 1000
+    );
+
+    await user.save();
+
+    try {
+      await sendPasswordResetEmail(user, resetToken);
+    } catch (emailError) {
+      console.error(
+        '[AUTH] Falha ao enviar email de recuperação:',
+        emailError
+      );
+
+      user.passwordResetTokenHash = null;
+      user.passwordResetExpiresAt = null;
+
+      await user.save();
+    }
+
+    return res.status(200).json(genericResponse);
+  } catch (error) {
+    console.error(
+      '[AUTH] Erro no pedido de recuperação:',
+      error
+    );
+
+    return res.status(200).json({
+      ok: true,
+      message:
+        'Se existir uma conta associada a este email, receberá instruções para redefinir a palavra-passe.'
+    });
+  }
+});
+app.post('/api/auth/resend-verification', async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email || '');
+
+    const genericResponse = {
+      ok: true,
+      message:
+        'Se existir uma conta pendente de confirmação, enviaremos um novo email.'
+    };
+
+    if (!email) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || !user.active || user.emailVerified) {
+      return res.status(200).json(genericResponse);
+    }
+
+    const verificationToken =
+      generateEmailVerificationToken();
+
+    user.emailVerificationTokenHash =
+      hashToken(verificationToken);
+
+    user.emailVerificationExpiresAt = new Date(
+      Date.now() + 30 * 60 * 1000
+    );
+
+    await user.save();
+
+    try {
+      await sendVerificationEmail(
+        user,
+        verificationToken
+      );
+    } catch (emailError) {
+      console.error(
+        '[AUTH] Falha ao reenviar email de verificação:',
+        emailError
+      );
+
+      return res.status(503).json({
+        ok: false,
+        message:
+          'Não foi possível enviar o email de confirmação. Tente novamente.'
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message:
+        'Um novo email de confirmação foi enviado.'
+    });
+  } catch (error) {
+    console.error(
+      '[AUTH] Erro ao reenviar verificação:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      message:
+        'Não foi possível reenviar o email de confirmação neste momento.'
+    });
+  }
+});
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const token = String(req.body?.token || '').trim();
+    const password = String(req.body?.password || '');
+    const confirmPassword = String(
+      req.body?.confirmPassword || ''
+    );
+
+    if (!token || !password || !confirmPassword) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Dados incompletos.'
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        ok: false,
+        message: 'As palavras-passe não coincidem.'
+      });
+    }
+
+    const passwordIsStrong =
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password);
+
+    if (!passwordIsStrong) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          'A palavra-passe deve ter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um carácter especial.'
+      });
+    }
+
+    const tokenHash = hashToken(token);
+
+    const user = await User.findOne({
+      passwordResetTokenHash: tokenHash,
+      passwordResetExpiresAt: {
+        $gt: new Date()
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          'Este link de recuperação é inválido ou já expirou.'
+      });
+    }
+
+    user.passwordHash = await bcrypt.hash(password, 12);
+
+    // Token de recuperação de utilização única.
+    user.passwordResetTokenHash = null;
+    user.passwordResetExpiresAt = null;
+
+    user.lastLoginAt = new Date();
+
+    await user.save();
+
+    return res.status(200).json({
+      ok: true,
+      message:
+        'A palavra-passe foi redefinida com sucesso.'
+    });
+  } catch (error) {
+    console.error(
+      '[AUTH] Erro ao redefinir palavra-passe:',
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      message:
+        'Não foi possível redefinir a palavra-passe neste momento.'
+    });
+  }
+});
 app.get(
   '/api/auth/google',
   (req, res) => {
@@ -3173,7 +3880,7 @@ app.get(
                 googleUser.picture ||
                 '',
 
-              authProvider:
+                            authProvider:
                 'google',
 
               role:
@@ -3182,38 +3889,53 @@ app.get(
               active:
                 true,
 
+              emailVerified:
+                true,
+
+              passwordHash:
+                null,
+
+              emailVerificationTokenHash:
+                null,
+
+              emailVerificationExpiresAt:
+                null,
+
               lastLoginAt:
                 new Date()
             });
 
         } else {
-          user.name =
-            cleanString(
-              googleUser.name ||
-                user.name ||
-                email,
-              150
-            );
+  user.name =
+    cleanString(
+      googleUser.name ||
+        user.name ||
+        email,
+      150
+    );
 
-          user.email =
-            email;
+  user.email =
+    email;
 
-          user.googleId =
-            googleUser.sub;
+  user.googleId =
+    googleUser.sub;
 
-          user.avatar =
-            googleUser.picture ||
-            user.avatar ||
-            '';
+  user.avatar =
+    googleUser.picture ||
+    user.avatar ||
+    '';
 
-          user.authProvider =
-            'google';
+  user.authProvider =
+    'google';
 
-          user.lastLoginAt =
-            new Date();
+  user.emailVerified =
+    true;
 
-          await user.save();
-        }
+  user.lastLoginAt =
+    new Date();
+
+  await user.save();
+}
 
         if (!user.active) {
           return res.redirect(
@@ -3252,7 +3974,11 @@ app.get(
                 'appypay',
 
               active:
-                true
+                true,
+            onboardingCompleted:
+                false,
+          onboardingCompletedAt:
+                 null
             });
         }
 
@@ -8299,317 +9025,24 @@ app.get(
     req,
     res
   ) => {
-    const error =
-      cleanString(
-        req.query.error,
-        100
+
+    if (
+      fs.existsSync(
+        LOGIN_FILE
+      )
+    ) {
+      return res.sendFile(
+        LOGIN_FILE
       );
-
-    let message =
-      'Entre no Honey Pay com a sua conta Google.';
-
-    if (
-      error ===
-      'google_cancelled'
-    ) {
-      message =
-        'O login Google foi cancelado.';
     }
 
-    if (
-      error ===
-      'google_auth_failed'
-    ) {
-      message =
-        'Não foi possível concluir o login Google.';
-    }
-
-    if (
-      error ===
-      'invalid_state'
-    ) {
-      message =
-        'A sessão de autenticação expirou. Tente novamente.';
-    }
-
-    if (
-      error ===
-      'account_disabled'
-    ) {
-      message =
-        'Esta conta está desativada.';
-    }
-
-    res
-      .status(200)
-      .type('html')
+    return res
+      .status(404)
       .send(
-        `<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Honey Pay — Entrar</title>
-
-<style>
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  background:
-    #080808;
-
-  color:
-    #fff;
-}
-
-body {
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  padding:
-    24px;
-}
-
-.login-card {
-  width:
-    100%;
-
-  max-width:
-    430px;
-
-  padding:
-    40px;
-
-  border-radius:
-    24px;
-
-  background:
-    #111;
-
-  border:
-    1px solid
-    rgba(
-      255,
-      255,
-      255,
-      .09
-    );
-
-  box-shadow:
-    0 30px 80px
-    rgba(
-      0,
-      0,
-      0,
-      .45
-    );
-}
-
-.logo {
-  width:
-    54px;
-
-  height:
-    54px;
-
-  border-radius:
-    16px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  background:
-    #f5c542;
-
-  color:
-    #111;
-
-  font-size:
-    27px;
-
-  font-weight:
-    900;
-
-  margin-bottom:
-    26px;
-}
-
-h1 {
-  margin:
-    0 0 10px;
-
-  font-size:
-    30px;
-}
-
-p {
-  color:
-    #999;
-
-  line-height:
-    1.6;
-
-  margin:
-    0 0 28px;
-}
-
-.google-button {
-  width:
-    100%;
-
-  border:
-    0;
-
-  border-radius:
-    14px;
-
-  padding:
-    15px 18px;
-
-  background:
-    #fff;
-
-  color:
-    #111;
-
-  font-size:
-    15px;
-
-  font-weight:
-    700;
-
-  cursor:
-    pointer;
-
-  text-decoration:
-    none;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  gap:
-    10px;
-}
-
-.google-button:hover {
-  opacity:
-    .92;
-}
-
-.error {
-  margin-bottom:
-    20px;
-
-  padding:
-    13px 15px;
-
-  border-radius:
-    12px;
-
-  background:
-    rgba(
-      255,
-      70,
-      70,
-      .12
-    );
-
-  border:
-    1px solid
-    rgba(
-      255,
-      70,
-      70,
-      .2
-    );
-
-  color:
-    #ff9b9b;
-
-  font-size:
-    14px;
-
-  line-height:
-    1.5;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="login-card">
-
-  <div class="logo">
-    H
-  </div>
-
-  <h1>
-    Bem-vindo ao Honey Pay
-  </h1>
-
-  <p>
-    Gerencie pagamentos, clientes,
-    produtos e links de pagamento
-    num único lugar.
-  </p>
-
-  ${
-    error
-      ? `<div class="error">${message}</div>`
-      : ''
-  }
-
-  <a
-    class="google-button"
-    href="/api/auth/google"
-  >
-    <span>G</span>
-    Continuar com Google
-  </a>
-
-</div>
-
-</body>
-</html>`
+        'Página de login da Honey Pay não encontrada.'
       );
   }
 );
-
 /* =========================================================
    SPA ROUTES
 ========================================================= */
